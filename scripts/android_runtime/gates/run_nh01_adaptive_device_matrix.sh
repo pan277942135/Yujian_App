@@ -590,16 +590,610 @@ runtime_config_path = os.environ.get("RUNTIME_CONFIG_PATH", "")
 config_values, config_counts = ini(config_path)
 runtime_values, runtime_counts = ini(runtime_config_path)
 display_dump = read("dumpsys_display.txt")
-built_in = re.search(r'DisplayDeviceInfo\{"Built-in Screen"[^}]*\}', display_dump, re.S)
+# API 28 includes nested braces in supportedModes before the density field.
+# Read the complete Built-in Screen line instead of stopping at its first closing brace.
+built_in = re.search(
+    r'^\s*DisplayDeviceInfo\{"Built-in Screen":[^\r\n]*
+
+target = {"profile_id": profile, "resolution_px": [expected_width, expected_height], "density_dpi": expected_density}
+config_target = {
+    "width_px": config_values.get("hw.lcd.width"),
+    "height_px": config_values.get("hw.lcd.height"),
+    "density_dpi": config_values.get("hw.lcd.density"),
+}
+failures = []
+if api != "28":
+    failures.append(f"API_LEVEL_EXPECTED_28_GOT_{api or 'MISSING'}")
+if config_target != {"width_px": str(expected_width), "height_px": str(expected_height), "density_dpi": str(expected_density)}:
+    failures.append(f"AVD_CONFIG_READBACK_MISMATCH_{config_target}")
+for key in ("hw.lcd.width", "hw.lcd.height", "hw.lcd.density"):
+    if config_counts.get(key) != 1:
+        failures.append(f"AVD_CONFIG_DUPLICATE_OR_MISSING_{key}")
+if physical_size != expected_size:
+    failures.append(f"WM_PHYSICAL_SIZE_EXPECTED_{requested}_GOT_{physical_size}")
+if override_size is not None:
+    failures.append(f"WM_OVERRIDE_SIZE_PRESENT_{override_size}")
+if physical_density != expected_density:
+    failures.append(f"WM_PHYSICAL_DENSITY_EXPECTED_{expected_density}_GOT_{physical_density}")
+if override_density is not None:
+    failures.append(f"WM_DENSITY_OVERRIDE_PRESENT_{override_density}")
+if qemu_density != str(expected_density):
+    failures.append(f"QEMU_DENSITY_EXPECTED_{expected_density}_GOT_{qemu_density or 'MISSING'}")
+if font_scale != 1.0:
+    failures.append(f"FONT_SCALE_EXPECTED_1.0_GOT_{font_scale}")
+if screenshot_size != expected_size:
+    failures.append(f"FRAMEBUFFER_EXPECTED_{requested}_GOT_{screenshot_size}")
+if display_info is None:
+    failures.append("DUMPSYS_DISPLAY_BUILT_IN_SCREEN_UNPARSEABLE")
+elif (display_info["width_px"], display_info["height_px"]) != expected_size or display_info["density_dpi"] != expected_density:
+    failures.append(f"DUMPSYS_DISPLAY_READBACK_MISMATCH_{display_info}")
+if runtime_values:
+    runtime_display = {
+        "width_px": runtime_values.get("hw.lcd.width"),
+        "height_px": runtime_values.get("hw.lcd.height"),
+        "density_dpi": runtime_values.get("hw.lcd.density"),
+    }
+    if any(runtime_display.values()) and runtime_display != config_target:
+        failures.append(f"RUNTIME_HARDWARE_QEMU_MISMATCH_{runtime_display}")
+
+payload = {
+    "profile_id": profile,
+    "target": target,
+    "avd_config_path": config_path or None,
+    "avd_runtime_hardware_qemu_path": runtime_config_path or None,
+    "avd_config_target_readback": config_target,
+    "avd_config_display_key_counts": {key: config_counts.get(key, 0) for key in ("hw.lcd.width", "hw.lcd.height", "hw.lcd.density")},
+    "runtime_hardware_qemu_display_readback": {
+        "width_px": runtime_values.get("hw.lcd.width"),
+        "height_px": runtime_values.get("hw.lcd.height"),
+        "density_dpi": runtime_values.get("hw.lcd.density"),
+        "display_key_counts": {key: runtime_counts.get(key, 0) for key in ("hw.lcd.width", "hw.lcd.height", "hw.lcd.density")},
+    } if runtime_values else None,
+    "api_level": int(api) if api.isdigit() else api,
+    "device_model": model,
+    "build_fingerprint": fingerprint,
+    "wm_size_raw": wm_size_raw,
+    "wm_physical_size": physical_size_text or None,
+    "wm_override_size": override_size_text or None,
+    "wm_density_raw": wm_density_raw,
+    "wm_physical_density_dpi": physical_density,
+    "wm_override_density_dpi": override_density,
+    "qemu_sf_lcd_density": qemu_density or None,
+    "ro_sf_lcd_density": ro_density or None,
+    "font_scale": font_scale,
+    "dumpsys_display_readback": display_info,
+    "launcher_screencap_dimensions": f"{screenshot_size[0]}x{screenshot_size[1]}" if screenshot_size else "INVALID",
+    "launcher_screencap_path": str(png_path),
+    "accessibility_enabled": read("accessibility_enabled.txt"),
+    "accessibility_display_magnification_enabled": read("accessibility_display_magnification_enabled.txt"),
+    "enabled_accessibility_services": read("enabled_accessibility_services.txt"),
+    "accessibility_magnification_scale": re.search(r"scale[=:]\s*[0-9.]+", read("dumpsys_accessibility.txt")).group(0) if re.search(r"scale[=:]\s*[0-9.]+", read("dumpsys_accessibility.txt")) else None,
+    "native_viewport_pass": not failures,
+    "validation_failures": failures,
+}
+pathlib.Path(sys.argv[1]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+}
+
+for row in "${profiles[@]}"; do
+  read -r profile width height font_scale expected_safe_height_dp <<< "$row"
+  requested="${width}x${height}"
+  font_log="$LOG_DIR/${profile}_font_scale.log"
+  native_boot_ok=true
+  profile_boot_seconds=0
+  current_size="$("${ADB[@]}" shell wm size 2>/dev/null | sed -n 's/^Physical size: //p' | head -n 1 | tr -d '\r' || true)"
+  current_size_override="$("${ADB[@]}" shell wm size 2>/dev/null | sed -n 's/^Override size: //p' | head -n 1 | tr -d '\r' || true)"
+  current_density="$("${ADB[@]}" shell wm density 2>/dev/null | sed -n 's/^Physical density: //p' | head -n 1 | tr -d '\r' || true)"
+  current_density_override="$("${ADB[@]}" shell wm density 2>/dev/null | sed -n 's/^Override density: //p' | head -n 1 | tr -d '\r' || true)"
+  restart_profile=true
+  if [[ "$profile" == "M04" && "$current_size" == "$requested" && -z "$current_size_override" && \
+        "$current_density" == "160" && -z "$current_density_override" ]]; then
+    restart_profile=false
+  fi
+  if [[ "$selected_serial" ]]; then
+    config_started="$(date +%s)"
+    if [[ "$restart_profile" == true ]]; then
+      if ! restart_native_avd "$profile" "$width" "$height" 160; then
+        native_boot_ok=false
+      fi
+    else
+      config_evidence="$LOG_DIR/display/$profile/avd_config"
+      bash scripts/android_runtime/configure_nh01_api28_avd.sh "$AVD_NAME" "$profile" "$config_evidence" --verify-only \
+        > "$LOG_DIR/"$profile"_avd_config.log" 2>&1 || native_boot_ok=false
+      sed -n 's/^AVD_CONFIG_PATH=//p' "$LOG_DIR/"$profile"_avd_config.log" | tail -n 1 > "$LOG_DIR/display/$profile/avd_config_path.txt"
+    fi
+    profile_boot_seconds="$(( $(date +%s) - config_started ))"
+  else
+    native_boot_ok=false
+  fi
+
+  font_rc=0
+  if [[ "$native_boot_ok" == true ]]; then
+    "${ADB[@]}" shell settings put system font_scale "$font_scale" > "$font_log" 2>&1 || font_rc=$?
+    sleep 1
+    capture_native_display_state "$profile" "$requested"
+  else
+    echo "Native display boot failed" > "$font_log"
+  fi
+
+  physical_size="unknown"
+  physical_density="unknown"
+  override_size=""
+  override_density=""
+  qemu_density="unknown"
+  ro_density="unknown"
+  screenshot_dimensions="INVALID"
+  native_viewport_pass=false
+  if [[ -s "$LOG_DIR/display/$profile/native_display_validation.json" ]]; then
+    physical_size="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["wm_physical_size"])' "$LOG_DIR/display/$profile/native_display_validation.json")"
+    physical_density="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["wm_physical_density_dpi"])' "$LOG_DIR/display/$profile/native_display_validation.json")"
+    override_size="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("wm_override_size") or "")' "$LOG_DIR/display/$profile/native_display_validation.json")"
+    override_density="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("wm_override_density_dpi") or "")' "$LOG_DIR/display/$profile/native_display_validation.json")"
+    qemu_density="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["qemu_sf_lcd_density"])' "$LOG_DIR/display/$profile/native_display_validation.json")"
+    ro_density="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["ro_sf_lcd_density"])' "$LOG_DIR/display/$profile/native_display_validation.json")"
+    screenshot_dimensions="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["launcher_screencap_dimensions"])' "$LOG_DIR/display/$profile/native_display_validation.json")"
+    native_viewport_pass="$(python3 -c 'import json,sys; print(str(json.load(open(sys.argv[1]))["native_viewport_pass"]).lower())' "$LOG_DIR/display/$profile/native_display_validation.json")"
+  fi
+  if [[ "$physical_size" != "unknown" ]]; then last_native_size="$physical_size"; fi
+  if [[ "$physical_density" != "unknown" ]]; then last_native_density="$physical_density"; fi
+
+  actual_wm_size="$physical_size"
+  actual_density="unknown"
+  actual_font="unknown"
+  actual_animator_scale="unknown"
+  actual_transition_scale="unknown"
+  actual_window_scale="unknown"
+  if [[ -n "$selected_serial" ]]; then
+    actual_density="$physical_density"
+    actual_font="$("${ADB[@]}" shell settings get system font_scale 2>&1 | tr -d '\r')"
+    actual_animator_scale="$("${ADB[@]}" shell settings get global animator_duration_scale 2>&1 | tr -d '\r')"
+    actual_transition_scale="$("${ADB[@]}" shell settings get global transition_animation_scale 2>&1 | tr -d '\r')"
+    actual_window_scale="$("${ADB[@]}" shell settings get global window_animation_scale 2>&1 | tr -d '\r')"
+  fi
+  profile_settings_match=true
+  [[ "$native_boot_ok" == true && "$native_viewport_pass" == true && "$font_rc" -eq 0 ]] || profile_settings_match=false
+  [[ "$actual_wm_size" == "$requested" && -z "$override_size" ]] || profile_settings_match=false
+  [[ "$actual_density" == "160" ]] || profile_settings_match=false
+  [[ -z "$override_density" ]] || profile_settings_match=false
+  [[ "$actual_font" == "$font_scale" ]] || profile_settings_match=false
+  [[ "$actual_animator_scale" == "0.0" && "$actual_transition_scale" == "0.0" && "$actual_window_scale" == "0.0" ]] || profile_settings_match=false
+python3 - "$LOG_DIR/${profile}_device_settings.json" "$profile" "$requested" "$font_scale" "$actual_wm_size" "$actual_density" "$actual_font" "$actual_animator_scale" "$actual_transition_scale" "$actual_window_scale" "$native_boot_ok" "$override_size" "$override_density" "$qemu_density" "$ro_density" "$screenshot_dimensions" "$native_viewport_pass" "$profile_boot_seconds" <<'PY'
+import json, sys
+from pathlib import Path
+p={"profile_id":sys.argv[2],"requested_native_size_px":sys.argv[3],"requested_density_dpi":160,"requested_font_scale":float(sys.argv[4]),
+   "actual_wm_size":sys.argv[5],"actual_wm_density":sys.argv[6],"actual_font_scale":sys.argv[7],
+   "android_animation_scales":{"animator_duration_scale":sys.argv[8],"transition_animation_scale":sys.argv[9],"window_animation_scale":sys.argv[10]},
+   "native_avd_boot_pass":sys.argv[11]=="true","wm_override_size":sys.argv[12] or None,"wm_override_density_dpi":sys.argv[13] or None,
+   "qemu_sf_lcd_density":sys.argv[14],"ro_sf_lcd_density":sys.argv[15],"launcher_screencap_dimensions":sys.argv[16],
+   "native_viewport_pass":sys.argv[17]=="true","profile_boot_seconds":int(sys.argv[18])}
+Path(sys.argv[1]).write_text(json.dumps(p,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+PY
+
+  for variant in "${variants[@]}"; do
+    variant_token="$(tr '[:upper:]' '[:lower:]' <<< "$variant" | tr -d '\r\n')"
+    case_key="${profile}_${variant_token}"
+    case_dir="$LOG_DIR/diagnostics/$case_key"
+    mkdir -p "$case_dir"
+    stdout="$LOG_DIR/${case_key}_stdout.log"
+    stderr="$LOG_DIR/${case_key}_stderr.log"
+    combined="$LOG_DIR/${case_key}.log"
+    report_name="$profile-${variant_token}.json"
+    initial_name="${profile}_${width}x${height}_initial.png"
+    swipe_name="${profile}_${width}x${height}_after_swipe.png"
+    failure_name="${profile}_failure.png"
+    if [[ "$matrix_setup_ok" -ne 1 ]]; then
+      reason="MATRIX_SETUP_BLOCKED: ${matrix_setup_reason:-UNSPECIFIED}"
+      write_case_record "$profile" "$variant_token" "MISSING" "null" "$reason" false false "$profile_settings_match"
+      continue
+    fi
+    if [[ "$native_boot_ok" != true ]]; then
+      all_ok=0
+      reason="INFRA_EMULATOR_BOOT_TIMEOUT_OR_AVD_CONFIG_FAILED"
+      write_case_record "$profile" "$variant_token" "FAIL" "null" "$reason" false false false "$profile_boot_seconds"
+      printf 'CASE %s %s status=FAIL reason=%s\n' "$profile" "$variant" "$reason"
+      continue
+    fi
+
+    case_started_epoch="$(date +%s)"
+    "${ADB[@]}" logcat -c > "$case_dir/logcat_clear.stdout.log" 2> "$case_dir/logcat_clear.stderr.log" || true
+    "${ADB[@]}" shell am force-stop "$YUJIAN_APP_PACKAGE" > "$case_dir/force_stop.stdout.log" 2> "$case_dir/force_stop.stderr.log" || true
+    write_case_record "$profile" "$variant_token" "RUNNING" "null" "INSTRUMENTATION_STARTED" false false "$profile_settings_match"
+    instrumentation_args=(
+      -e class "$TEST_CLASS"
+      -e profile_id "$profile"
+      -e layout_variant "$variant"
+      -e font_scale "$font_scale"
+      -e expected_display_px "$requested"
+      -e source_sha "$BUILD_SHA"
+      -e scenario "$RECORD_SCENARIO"
+    )
+    if [[ -n "$expected_safe_height_dp" ]]; then
+      instrumentation_args+=(-e expected_safe_height_dp "$expected_safe_height_dp")
+    fi
+    instrumentation_command=(
+      "${ADB[@]}" shell am instrument -w -r
+      "${instrumentation_args[@]}"
+      "$YUJIAN_INSTRUMENTATION_TARGET"
+    )
+    if command -v timeout >/dev/null 2>&1; then
+      timeout 300s "${instrumentation_command[@]}" > "$stdout" 2> "$stderr"
+    else
+      "${instrumentation_command[@]}" > "$stdout" 2> "$stderr"
+    fi
+    instrumentation_rc=$?
+    case_elapsed_seconds="$(( $(date +%s) - case_started_epoch ))"
+    {
+      printf 'COMMAND='
+      printf '%q ' "${instrumentation_command[@]}"
+      printf '\n'
+      echo "EXIT_CODE=$instrumentation_rc"
+      echo "--- stdout ---"
+      cat "$stdout"
+      echo "--- stderr ---"
+      cat "$stderr"
+    } > "$combined"
+
+    profile_diag_dir="$LOG_DIR/display/$profile"
+    mkdir -p "$profile_diag_dir"
+    "${ADB[@]}" shell wm size > "$profile_diag_dir/wm_size_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell wm density > "$profile_diag_dir/wm_density_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell getprop qemu.sf.lcd_density > "$profile_diag_dir/qemu_sf_lcd_density_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell getprop ro.sf.lcd_density > "$profile_diag_dir/ro_sf_lcd_density_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell dumpsys window windows > "$profile_diag_dir/dumpsys_window_windows_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell dumpsys activity activities > "$profile_diag_dir/dumpsys_activity_activities_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell dumpsys display > "$profile_diag_dir/dumpsys_display_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell dumpsys SurfaceFlinger > "$profile_diag_dir/dumpsys_surfaceflinger_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell dumpsys accessibility > "$profile_diag_dir/dumpsys_accessibility_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell settings get secure accessibility_enabled > "$profile_diag_dir/accessibility_enabled_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell settings get secure accessibility_display_magnification_enabled > "$profile_diag_dir/accessibility_magnification_enabled_after_app.txt" 2>&1 || true
+    "${ADB[@]}" shell settings get secure enabled_accessibility_services > "$profile_diag_dir/enabled_accessibility_services_after_app.txt" 2>&1 || true
+    "${ADB[@]}" exec-out screencap -p > "$case_dir/adb_screencap_after_instrumentation.png" 2> "$case_dir/adb_screencap_after_instrumentation.stderr.log" || true
+
+    pull_log="$case_dir/adb_pull_after_case.log"
+    "${ADB[@]}" pull "$REMOTE_DIR" "$RAW_DIR" > "$pull_log" 2>&1 || all_ok=0
+    device_report="$RAW_CASE_DIR/$report_name"
+    report_present=false
+    screenshots_present=false
+    report_status="MISSING"
+    if [[ -s "$device_report" ]]; then
+      report_present=true
+      report_status="$(python3 - "$device_report" <<'PY'
+import json,sys
+try:
+ print(json.load(open(sys.argv[1],encoding="utf-8")).get("status","INVALID"))
+except Exception:
+ print("INVALID")
+PY
+)"
+    fi
+    device_failure_detail=""
+    device_failure_stage=""
+    if [[ -s "$device_report" ]]; then
+      device_failure_detail="$(python3 - "$device_report" <<'PY'
+import json,sys
+try:
+    p=json.load(open(sys.argv[1],encoding="utf-8"))
+    fields=[]
+    for key in ("failure_stage","current_step","last_successful_step","failure_class","failure_message"):
+        value=p.get(key)
+        if value:
+            fields.append(f"{key}={str(value).replace(chr(10),' ').replace(chr(13),' ')[:800]}")
+    print("; ".join(fields))
+except Exception:
+    print("device_failure_report_unreadable")
+PY
+)"
+      device_failure_stage="$(python3 - "$device_report" <<'PY'
+import json,sys
+try: print(json.load(open(sys.argv[1],encoding="utf-8")).get("failure_stage", ""))
+except Exception: print("")
+PY
+)"
+    fi
+    if [[ -s "$device_report" ]]; then
+      screenshots_present="$(python3 - "$device_report" "$RAW_CASE_DIR/$initial_name" "$RAW_CASE_DIR/$swipe_name" "$RAW_CASE_DIR/$failure_name" <<'PY'
+import json, pathlib, sys
+report_path, initial_path, swipe_path, failure_path = map(pathlib.Path, sys.argv[1:])
+try:
+    report=json.loads(report_path.read_text(encoding="utf-8"))
+except (OSError, json.JSONDecodeError):
+    print("false"); raise SystemExit
+screens=report.get("screenshots") or {}
+status=str(report.get("status","")).upper()
+required=[initial_path]
+if status=="PASS" or screens.get("after_swipe"):
+    required.append(swipe_path)
+if status=="FAIL":
+    required.append(failure_path)
+print("true" if all(path.is_file() and path.stat().st_size for path in required) else "false")
+PY
+)"
+    fi
+
+    reason=""
+    case_status="PASS"
+    if [[ "$instrumentation_rc" -ne 0 ]]; then
+      case_status="FAIL"
+      reason="INSTRUMENTATION_EXIT_$instrumentation_rc"
+    elif grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|Assertion(Error|FailedError)|Process (crashed|has died)|shortMsg=Process crashed' "$combined"; then
+      case_status="FAIL"
+      reason="INSTRUMENTATION_FAILURE_MARKER"
+    elif ! grep -Eq 'INSTRUMENTATION_CODE:[[:space:]]*0|OK \(1 test' "$combined"; then
+      case_status="FAIL"
+      reason="INSTRUMENTATION_SUCCESS_MARKER_MISSING"
+    elif [[ "$report_present" != true ]]; then
+      case_status="FAIL"
+      reason="DEVICE_CASE_REPORT_MISSING_AFTER_SUCCESSFUL_COMMAND"
+    elif [[ "$report_status" != "PASS" ]]; then
+      case_status="FAIL"
+      reason="DEVICE_CASE_STATUS_$report_status"
+    elif [[ "$screenshots_present" != true ]]; then
+      case_status="FAIL"
+      reason="INITIAL_OR_AFTER_SWIPE_SCREENSHOT_MISSING"
+    elif [[ "$profile_settings_match" != true ]]; then
+      case_status="FAIL"
+      reason="PROFILE_SETTINGS_DID_NOT_MATCH_REQUEST"
+    fi
+    if [[ "$native_viewport_pass" != true ]]; then
+      case_status="FAIL"
+      reason="FAIL_CAPTURE_PIPELINE_NATIVE_VIEWPORT"
+    elif [[ "$device_failure_stage" == "VERIFY_INITIAL_SCREENSHOT_VIEWPORT_PIPELINE" ]]; then
+      case_status="FAIL"
+      reason="FAIL_CAPTURE_PIPELINE_SCREENSHOT_CHANNELS"
+    elif [[ "$device_failure_stage" == "SWIPE_TO_NEXT_REAL_REPOSITORY_CATCH" ]]; then
+      case_status="FAIL"
+      reason="PAGER_SINGLE_PAGE_INTERACTION_FAILED"
+    fi
+    if [[ -n "$device_failure_detail" ]]; then
+      if [[ -n "$reason" ]]; then reason+="; $device_failure_detail"; else reason="$device_failure_detail"; fi
+    fi
+
+    if [[ "$case_status" == "FAIL" ]]; then
+      all_ok=0
+      {
+        echo "profile=$profile"
+        echo "variant=$variant"
+        echo "requested_display_px=$requested"
+        echo "requested_density_dpi=160"
+        echo "requested_font_scale=$font_scale"
+        echo "actual_wm_size=$actual_wm_size"
+        echo "actual_density=$actual_density"
+        echo "actual_font_scale=$actual_font"
+        echo "animator_duration_scale=$actual_animator_scale"
+        echo "transition_animation_scale=$actual_transition_scale"
+        echo "window_animation_scale=$actual_window_scale"
+        echo "api=$device_api"
+        echo "fingerprint=$device_fingerprint"
+        echo "adb_serial=$selected_serial"
+        echo "app_package=$YUJIAN_APP_PACKAGE"
+        echo "instrumentation_target=$YUJIAN_INSTRUMENTATION_TARGET"
+        echo "reason=$reason"
+      } > "$case_dir/device_parameters.txt"
+      "${ADB[@]}" devices -l > "$case_dir/adb_devices_after_failure.log" 2>&1 || true
+      "${ADB[@]}" shell getprop > "$case_dir/getprop_after_failure.txt" 2>&1 || true
+      "${ADB[@]}" shell wm size > "$case_dir/wm_size_after_failure.log" 2>&1 || true
+      "${ADB[@]}" shell wm density > "$case_dir/wm_density_after_failure.log" 2>&1 || true
+      "${ADB[@]}" shell settings get system font_scale > "$case_dir/font_scale_after_failure.log" 2>&1 || true
+      "${ADB[@]}" shell settings get global animator_duration_scale > "$case_dir/animator_duration_scale_after_failure.log" 2>&1 || true
+      "${ADB[@]}" shell settings get global transition_animation_scale > "$case_dir/transition_animation_scale_after_failure.log" 2>&1 || true
+      "${ADB[@]}" shell settings get global window_animation_scale > "$case_dir/window_animation_scale_after_failure.log" 2>&1 || true
+      "${ADB[@]}" shell dumpsys window windows > "$case_dir/window_after_failure.txt" 2>&1 || true
+      "${ADB[@]}" logcat -d -v threadtime -t 4000 > "$case_dir/logcat_after_failure.txt" 2>&1 || true
+      "${ADB[@]}" exec-out screencap -p > "$case_dir/screenshot_after_failure.png" 2> "$case_dir/screenshot_capture.stderr.log" || true
+      cat "$case_dir/logcat_after_failure.txt" >> "$LOG_DIR/${case_key}_failure_logcat.txt" 2>/dev/null || true
+      "${ADB[@]}" pull "$REMOTE_DIR" "$RAW_DIR" >> "$pull_log" 2>&1 || true
+    fi
+    write_case_record "$profile" "$variant_token" "$case_status" "$instrumentation_rc" "$reason" "$report_present" "$screenshots_present" "$profile_settings_match" "$case_elapsed_seconds"
+    printf 'CASE %s %s status=%s rc=%s report=%s screenshots=%s reason=%s\n' \
+      "$profile" "$variant" "$case_status" "$instrumentation_rc" "$report_present" "$screenshots_present" "$reason"
+  done
+done
+
+final_pull_log="$LOG_DIR/pull_runtime_matrix.log"
+if [[ -n "$selected_serial" ]]; then
+  "${ADB[@]}" pull "$REMOTE_DIR" "$RAW_DIR" > "$final_pull_log" 2>&1 || all_ok=0
+else
+  echo "No unique online ADB device selected; remote pull not run." > "$final_pull_log"
+  all_ok=0
+fi
+
+mkdir -p "$MATRIX_DIR/screenshots/sources"
+for expected_screen in \
+  M04_360x640_initial.png M04_360x640_after_swipe.png \
+  M07_390x844_initial.png M07_390x844_after_swipe.png \
+  M10_430x932_initial.png M10_430x932_after_swipe.png; do
+  profile="${expected_screen%%_*}"
+  case_key="${profile}_adaptive_v2"
+  native_pass="$(python3 - "$LOG_DIR/display/$profile/native_display_validation.json" <<'PY'
+import json, pathlib, sys
+try: print(str(json.loads(pathlib.Path(sys.argv[1]).read_text()).get("native_viewport_pass",False)).lower())
+except Exception: print("false")
+PY
+)"
+  case_pass="$(python3 - "$EXEC_DIR/${profile}-adaptive_v2.json" <<'PY'
+import json, pathlib, sys
+try: print(str(json.loads(pathlib.Path(sys.argv[1]).read_text()).get("status","")).upper()=="PASS")
+except Exception: print("false")
+PY
+)"
+  stem="${expected_screen%.png}"
+  if [[ -s "$RAW_CASE_DIR/$expected_screen" && "$native_pass" == true && "$case_pass" == True && \
+        -s "$RAW_CASE_DIR/${stem}_adb.png" && -s "$RAW_CASE_DIR/${stem}_pixelcopy.png" ]]; then
+    cp "$RAW_CASE_DIR/$expected_screen" "$MATRIX_DIR/screenshots/$expected_screen"
+    cp "$RAW_CASE_DIR/${stem}_adb.png" "$MATRIX_DIR/screenshots/sources/"
+    cp "$RAW_CASE_DIR/${stem}_pixelcopy.png" "$MATRIX_DIR/screenshots/sources/"
+  fi
+done
+
+restore_device
+restore_rc=$?
+trap - EXIT INT TERM
+if [[ "$restore_rc" -ne 0 ]]; then
+  all_ok=0
+  printf 'DEVICE_SETTINGS_RESTORE=FAIL\n' | tee -a "$LOG_DIR/restore_device.log"
+else
+  printf 'DEVICE_SETTINGS_RESTORE=PASS\n' | tee -a "$LOG_DIR/restore_device.log"
+fi
+
+aggregate_rc=0
+if [[ -n "$profile_filter" || -n "$variant_filter" ]]; then
+  report_stem="${YUJIAN_NH01_REPORT_STEM:-NH01_REPRESENTATIVE_DEVICE_REPORT}"
+  expected_case_count=$((${#profiles[@]} * ${#variants[@]}))
+  python3 - "$EXEC_DIR" "$profile_filter" "$variant_filter" "$YUJIAN_EVIDENCE_DIR/${report_stem}.md" "$YUJIAN_EVIDENCE_DIR/${report_stem}.json" "$expected_case_count" "$BUILD_SHA" "$selected_serial" "$device_api" <<'PY'
+import json, pathlib, sys
+execution_dir=pathlib.Path(sys.argv[1])
+profiles=sys.argv[2].split(",") if sys.argv[2] else []
+variants=[v.lower() for v in sys.argv[3].split(",") if v]
+md_path,json_path=map(pathlib.Path,sys.argv[4:6])
+expected_cases=int(sys.argv[6])
+source_sha,serial,api=sys.argv[7:10]
+rows=[]
+for profile in profiles:
+  for variant in variants:
+    path=execution_dir/f"{profile}-{variant}.json"
+    data=json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {"status":"MISSING","reason":"execution record missing"}
+    rows.append({"profile":profile,"variant":variant,"status":data.get("status","MISSING"),
+                 "duration_seconds":data.get("duration_seconds"),"reason":data.get("reason",""),
+                 "screenshot_evidence":data.get("required_screenshots_present"),
+                 "settings_match":data.get("profile_settings_match"),"execution":data})
+result={"schema":"NH01_REPRESENTATIVE_DEVICE_MATRIX_REPORT_V1","source_sha":source_sha,"device_api":api,
+        "adb_serial":serial,"status":"PASS" if len(rows)==expected_cases and all(r["status"]=="PASS" for r in rows) else "FAIL",
+        "expected_cases":expected_cases,"executed_cases":len(rows),"cases":rows}
+json_path.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+lines=["# NH01 Representative-Device API 28 Validation","",
+       f"- Source SHA: `{source_sha}`",f"- API: {api}",f"- ADB serial: {serial}",
+       "- Profiles: " + ", ".join(profiles), "- Variants: " + ", ".join(variants),
+       f"- Result: **{result['status']}**","",
+       "| Profile | Mode | Duration (s) | Screenshot evidence | Device settings | Status | Reason |",
+       "|---|---|---:|---|---|---|---|"]
+for row in rows:
+  lines.append(f"| {row['profile']} | {row['variant']} | {row['duration_seconds']} | {row['screenshot_evidence']} | {row['settings_match']} | {row['status']} | {row['reason']} |")
+md_path.write_text("\n".join(lines)+"\n",encoding="utf-8")
+if result["status"]!="PASS": raise SystemExit(1)
+PY
+  aggregate_rc=$?
+else
+  python3 scripts/android_runtime/aggregate_nh01_adaptive_matrix.py \
+    --raw-dir "$RAW_CASE_DIR" \
+    --execution-dir "$EXEC_DIR" \
+    --output-dir "$YUJIAN_RUNTIME_EVIDENCE" \
+    --source-sha "$BUILD_SHA" \
+    --run-id "${GITHUB_RUN_ID:-local}" \
+    --run-url "${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-pan277942135/Yujian_App}/actions/runs/${GITHUB_RUN_ID:-local}" \
+    --contract design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md || aggregate_rc=$?
+fi
+if [[ "$aggregate_rc" -ne 0 ]]; then all_ok=0; fi
+
+python3 - "$MATRIX_DIR/NH01_API28_NATIVE_VIEWPORT_AND_PAGER_FIX_REPORT.md" "$LOG_DIR/display" "$EXEC_DIR" "$RAW_CASE_DIR" "$MATRIX_DIR/screenshots" "$BUILD_SHA" "$AVD_NAME" <<'PY'
+import json
+import pathlib
+import sys
+
+report_path, display_root, execution_root, raw_root, screenshot_root = map(pathlib.Path, sys.argv[1:6])
+source_sha, avd_name = sys.argv[6:8]
+profiles = [
+    ("M04", "360x640", "M04_360x640_initial.png", "M04_360x640_after_swipe.png"),
+    ("M07", "390x844", "M07_390x844_initial.png", "M07_390x844_after_swipe.png"),
+    ("M10", "430x932", "M10_430x932_initial.png", "M10_430x932_after_swipe.png"),
+]
+def load(path):
+    try: return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError): return {}
+
+lines = [
+    "# NH01 API 28 Native Viewport and Pager Fix Report", "",
+    f"- Source SHA: `{source_sha}`", f"- AVD: `{avd_name}`", "- API: 28, Pixel 2 x86_64 System Image",
+    "- Display method: AVD hardware LCD width / height / density configured before boot; no runtime `wm size` override.",
+    "- Pager contract: fling is explicitly capped at one page; test swipe is one 600 ms real touch gesture.", "",
+    "## Root causes and corrections", "",
+    "- Earlier profile setup did not prove that the Emulator consumed the AVD config it had rewritten, and a deprecated density launch flag was ignored. Each run now records the resolved AVD path, config before/after and readback, runtime QEMU config, active display dump, physical WindowManager values, and raw launcher framebuffer dimensions. No WindowManager display override or emulator skin/density launch override is used for native geometry.",
+    "- The earlier swipe used Compose test's default `swipeLeft()` gesture and settled at page 2. The production pager now uses `PagerSnapDistance.atMost(1)`. The test injects one slow 72%→28% Pager-width touch over 600 ms, captures the settled state and transition history, and preserves the second-state screenshot before checking the final record ID.", "",
+    "| Profile | Requested physical viewport | WM physical | WM override | Density | Launcher screencap | Native viewport | Case | Initial | After swipe |",
+    "|---|---:|---:|---:|---:|---:|---|---|---|---|",
+]
+for profile, size, initial, after in profiles:
+    display = load(display_root / profile / "native_display_validation.json")
+    case = load(execution_root / f"{profile}-adaptive_v2.json")
+    status = str(case.get("status", "MISSING"))
+    initial_file = screenshot_root / initial
+    after_file = screenshot_root / after
+    initial_state = f"[PNG](screenshots/{initial})" if initial_file.is_file() else "MISSING / NOT VALIDATED"
+    after_state = f"[PNG](screenshots/{after})" if after_file.is_file() else "MISSING / NOT VALIDATED"
+    lines.append("| {} | {} | {} | {} | {} dpi | {} | {} | {} | {} | {} |".format(
+        profile, size, display.get("wm_physical_size", "unknown"), display.get("wm_override_size") or "none",
+        display.get("wm_physical_density_dpi", "unknown"), display.get("launcher_screencap_dimensions", "unknown"),
+        "PASS" if display.get("native_viewport_pass") else "FAIL",
+        status, initial_state, after_state))
+    case_report = load(raw_root / f"{profile}-adaptive_v2.json")
+    gesture = case_report.get("pager_gesture", {})
+    if gesture:
+        lines.extend(["", f"### {profile} Pager trace", "", "```json", json.dumps(gesture, ensure_ascii=False, indent=2), "```"])
+lines.extend(["", "## Native display and accessibility records", ""])
+for profile, _, _, _ in profiles:
+    native = load(display_root / profile / "native_display_validation.json")
+    lines.extend([
+        f"### {profile}", "",
+        f"AVD config: [`nh01_api28_{profile}.ini`](avd_profiles/nh01_api28_{profile}.ini)", "",
+        "```json", json.dumps(native, ensure_ascii=False, indent=2), "```",
+    ])
+lines.extend(["", "## Initial view comparison", ""])
+for profile, _, initial, _ in profiles:
+    if (screenshot_root / initial).is_file():
+        lines.append(f"### {profile}\n\n![{profile} initial view](screenshots/{initial})")
+    else:
+        lines.append(f"### {profile}\n\n`MISSING / NOT VALIDATED` — {initial}")
+lines.extend(["", "## After-swipe view comparison", ""])
+for profile, _, _, after in profiles:
+    if (screenshot_root / after).is_file():
+        lines.append(f"### {profile}\n\n![{profile} after swipe](screenshots/{after})")
+    else:
+        lines.append(f"### {profile}\n\n`MISSING / NOT VALIDATED` — {after}")
+lines.extend(["", "## Screenshot source files", "", "The app-side report records UiAutomation, ADB `screencap -p`, and Window PixelCopy dimensions and pixel-comparison diagnostics for the initial and post-swipe frames. Full raw source PNGs are retained in the case evidence directory; only cases with a passing native viewport and complete test case enter the formal screenshot directory.", ""])
+report_path.write_text("\n".join(lines), encoding="utf-8")
+PY
+
+MATRIX_STATUS="PASS"
+if [[ "$all_ok" -ne 1 ]]; then MATRIX_STATUS="FAIL"; fi
+MATRIX_STATUS="$MATRIX_STATUS" BUILD_SHA="$BUILD_SHA" SELECTED_SERIAL="$selected_serial" \
+  DEVICE_API="$device_api" DEVICE_FINGERPRINT="$device_fingerprint" SETUP_REASON="$matrix_setup_reason" \
+  MATRIX_ELAPSED_SECONDS="$(( $(date +%s) - matrix_started_epoch ))" PROFILE_FILTER="$profile_filter" VARIANT_FILTER="$variant_filter" \
+  python3 - "$MATRIX_DIR/execution_summary.json" "$EXEC_DIR" <<'PY'
+import json, os, sys
+from pathlib import Path
+root=Path(sys.argv[2])
+records=[]
+for path in sorted(root.glob("*.json")):
+    try: records.append(json.loads(path.read_text(encoding="utf-8")))
+    except (OSError,json.JSONDecodeError): records.append({"status":"INVALID","profile_id":path.stem})
+payload={"schema":"NH01_ADAPTIVE_MATRIX_EXECUTION_SUMMARY_V1","status":os.environ["MATRIX_STATUS"],
+ "source_sha":os.environ["BUILD_SHA"],"adb_serial":os.environ.get("SELECTED_SERIAL") or None,
+ "device_api":os.environ.get("DEVICE_API"),"device_fingerprint":os.environ.get("DEVICE_FINGERPRINT"),
+ "setup_reason":os.environ.get("SETUP_REASON"),"profile_filter":os.environ.get("PROFILE_FILTER") or None,
+ "variant_filter":os.environ.get("VARIANT_FILTER") or None,
+ "matrix_elapsed_seconds":int(os.environ.get("MATRIX_ELAPSED_SECONDS","0")),"execution_records":records}
+Path(sys.argv[1]).write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+PY
+
+if [[ "$all_ok" -ne 1 ]]; then
+  printf '%s\n' "NH01_ADAPTIVE_DEVICE_MATRIX=FAIL logs=$MATRIX_DIR/logs executions=$EXEC_DIR" >&2
+  exit 1
+fi
+printf '%s\n' "NH01_ADAPTIVE_DEVICE_MATRIX=PASS source_sha=$BUILD_SHA"
+,
+    display_dump,
+    re.MULTILINE,
+)
 display_info = None
 if built_in:
-    dimension_match = re.search(r"(\d+)\s*x\s*(\d+).*?\bdensity\s+(\d+)\b", built_in.group(0), re.S)
-    if dimension_match:
+    raw_device_info = built_in.group(0).strip()
+    dimension_match = re.search(r"\b(\d+)\s*x\s*(\d+)\b", raw_device_info)
+    density_match = re.search(r"\bdensity\s+(\d+)(?:\.\d+)?\s*,", raw_device_info)
+    if dimension_match and density_match:
         display_info = {
             "width_px": int(dimension_match.group(1)),
             "height_px": int(dimension_match.group(2)),
-            "density_dpi": int(dimension_match.group(3)),
-            "raw": built_in.group(0),
+            "density_dpi": int(density_match.group(1)),
+            "raw": raw_device_info,
         }
 
 target = {"profile_id": profile, "resolution_px": [expected_width, expected_height], "density_dpi": expected_density}
