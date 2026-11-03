@@ -157,6 +157,19 @@ case "$*" in
   *"getprop sys.boot_completed")
     printf '1\n'
     ;;
+  *"shell settings get system font_scale")
+    if [ -s "$FAKE_ADB_STATE" ]; then
+      cat "$FAKE_ADB_STATE"
+    else
+      printf 'null\n'
+    fi
+    ;;
+  *"shell settings put system font_scale 1.0")
+    printf '1.0\n' > "$FAKE_ADB_STATE"
+    ;;
+  *"shell settings delete system font_scale")
+    rm -f "$FAKE_ADB_STATE"
+    ;;
   *"shell df -k /data")
     printf 'Filesystem 1K-blocks Used Available Use%% Mounted on\n/dev/fake 2000000 100000 1900000 5%% /data\n'
     ;;
@@ -194,6 +207,7 @@ SH
     PATH="$tmp/bin:$PATH" \
       NH01_TEST_TRACE="$trace" \
       NH01_ADB_TRACE="$adb_trace" \
+      FAKE_ADB_STATE="$tmp/font-scale-state.txt" \
       YUJIAN_RUNTIME_EVIDENCE="$tmp/evidence" \
       YUJIAN_SOURCE_SHA="fake-sha" \
       YUJIAN_APP_APK="$tmp/runtime-apks/app-debug.apk" \
