@@ -103,18 +103,40 @@ def main() -> None:
           "pow(smoothstep(0.10, 1.0, s), 1.6)" in shader and
           "normalize(bezierTangent" in shader and "clamp(coord - displacement * surfaceSize" in shader,
           "local normal bending clamps the single original Core sample to its source bounds")
-    check("localReleaseMovement(" in renderer and "spec, sceneMs, opticalMs" in renderer and
+    path_math = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentPathMathV1.kt").read_text()
+    check("localRelease -> OrbFilamentPathMathV1.localReleaseMovementForStage(" in renderer and
+          "spec, sceneMs, sceneFrame.stage, sceneFrame.stageProgress" in renderer and
+          "movement(spec, opticalMs, frame.reducedMotion, event, eventStartMs)" in renderer and
+          "stage != RecognitionSceneStage.ORB_RELEASE" in path_math and
+          "releaseOffset(stage, progress, peakArcFraction)" in path_math and
           "R06_MAX_EXTENSION_DP / (pathLengthD * diameterDp)" in
-          (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentPathMathV1.kt").read_text() and
+          path_math and
           all(token not in shader for token in ("R01_grass_back.svg", "R01_grass_front.svg")),
-          "R06 release is split from continuous motion and revoked SVGs are absent")
+          "R06 release is stage-local, split from continuous motion, and revoked SVGs are absent")
     for parameter in ("R06_ALPHA_GAIN = 1.28f", "R06_ALPHA_CAP = .82f",
                       "R06_MOVING_HIGHLIGHT_GAIN = 1.15f", "R06_RELEASE_HEAD_BRIGHTNESS_GAIN = 1.18f",
                       "R06_MAX_EXTENSION_DP = 14f"):
         check(parameter in timeline, f"frozen R06 parameter: {parameter}")
-    for marker in ("RELEASE_START_MS = 350L", "RELEASE_RETURN_MS = 690L", "RELEASE_END_MS = 950L",
-                   "RELEASE_DIRECTION_RAMP_MS = 260L", "FILAMENT_TRANSITION_MS = 450L"):
-        check(marker in timeline, f"frozen event marker: {marker}")
+    scene_frame = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt").read_text()
+    wake_match = re.search(r"\bORB_WAKE\((\d+)L", scene_frame)
+    release_match = re.search(r"\bORB_RELEASE\((\d+)L", scene_frame)
+    return_match = re.search(r"RELEASE_RETURN_PROGRESS = ([0-9.]+)f / ([0-9.]+)f", timeline)
+    transition_match = re.search(r"S2_TRANSITION_LOCAL_MS = ([0-9.]+)f", timeline)
+    if wake_match and release_match and return_match:
+        wake_ms = int(wake_match.group(1))
+        release_ms = int(release_match.group(1))
+        return_progress = float(return_match.group(1)) / float(return_match.group(2))
+        frozen_return_ms = wake_ms + release_ms * return_progress
+        frozen_end_ms = wake_ms + release_ms
+        frozen_return_ramp_ms = release_ms * (1.0 - return_progress)
+    else:
+        wake_ms = release_ms = -1
+        frozen_return_ms = frozen_end_ms = frozen_return_ramp_ms = -1.0
+    transition_ms = float(transition_match.group(1)) if transition_match else -1.0
+    check(wake_ms == 350 and release_ms == 600 and math.isclose(frozen_return_ms, 690.0) and
+          math.isclose(frozen_end_ms, 950.0) and math.isclose(frozen_return_ramp_ms, 260.0),
+          "frozen 350/690/950/260 ms R06 timing maps to semantic stage progress")
+    check(math.isclose(transition_ms, 450.0), "frozen 450 ms filament transition remains intact")
     print("RESULT: P0-2 frozen asset CI checks passed")
 
 
