@@ -875,10 +875,10 @@ class RecognitionSceneAnimationController(
     companion object {
         const val PHOTO_STABLE_MIN_MS = 120L
         const val ORB_WAKE_MIN_MS = 350L
-        const val PERIMETER_SPREAD_MIN_MS = 1_200L
-        const val ORB_RELEASE_MIN_MS = PERIMETER_SPREAD_MIN_MS
-        const val PERIMETER_ARRIVAL_MIN_MS = 180L
-        const val PATH_TO_FISH_MIN_MS = 220L
+        const val PERIMETER_SPREAD_MIN_MS = 1_200L // Legacy WaterLight spread-layer duration, not a stage minimum.
+        const val ORB_RELEASE_MIN_MS = 600L
+        const val PERIMETER_ARRIVAL_MIN_MS = 125L
+        const val PATH_TO_FISH_MIN_MS = 125L
         const val CONTOUR_STAGE_MIN_MS = 250L
         const val GOLD_PEAK_HOLD_MS = 850L
         const val ORB_RETURN_MIN_MS = 380L
