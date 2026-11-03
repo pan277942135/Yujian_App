@@ -169,7 +169,7 @@ fun YuJianCaptureButton(
                 .graphicsLayer {
                     scaleX = if (frozenVisual) resolvedPressScale * captureIdleBreathScale(idleBreathProgress) else visualScale
                     scaleY = if (frozenVisual) scaleX else visualScale
-                    alpha = if (frozenVisual) 1f else if (enabled) 1f else 0.48f
+                    alpha = 1f // Visual integrity is independent of whether interaction is enabled.
                 }
                 .then(if (frozenVisual) Modifier else Modifier.shadow(1.dp, CircleShape, clip = false)),
             contentAlignment = Alignment.Center,
