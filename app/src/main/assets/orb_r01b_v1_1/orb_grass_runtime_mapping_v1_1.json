@@ -1,0 +1,60 @@
+{
+  "contract": "YUJIAN_AI_ORB_GRASS_RUNTIME_MAPPING_V1_1",
+  "status": "FROZEN_RESOURCE_IMPORT_VERIFIED",
+  "sourceMaster": {
+    "path": "透明湖水玻璃球.png",
+    "sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee",
+    "dimensions": [
+      1254,
+      1254
+    ]
+  },
+  "androidRuntime": {
+    "path": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
+    "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+    "dimensions": [
+      384,
+      384
+    ]
+  },
+  "uvMapping": {
+    "sourceSpace": "full 1254x1254 square",
+    "runtimeSpace": "full 384x384 square",
+    "crop": "none",
+    "origin": "upper_left",
+    "xRight": true,
+    "yDown": true,
+    "map": [
+      "u_runtime=u_source",
+      "v_runtime=v_source"
+    ],
+    "pixelScale": {
+      "x": 0.3062200956937799,
+      "y": 0.3062200956937799
+    }
+  },
+  "verification": {
+    "masterAlphaBBoxGT128": [
+      129,
+      124,
+      1125,
+      1118
+    ],
+    "runtimeAlphaBBoxGT128": [
+      39,
+      38,
+      345,
+      342
+    ],
+    "runtimeFromMasterBilinearAlphaCorrelationForRuntimeAlphaGT4": 0.9997892839365005,
+    "meanAbsoluteAlphaError": 0.0906747430562973,
+    "interpretation": "The full-square composition is preserved. The Runtime WebP is bilinear downsampled from the same source canvas with compression/edge rounding under one pixel; no crop or UV remap is required."
+  },
+  "diameterRule": "OrbLocal D is the live coreSize supplied by RecognitionPhotoFlowGeometry (68dp compact, 80dp normal; camera handoff interpolates into that size). The core Image is drawn at D/0.84; convert leaf D amplitudes to image UV by multiplying by 0.84.",
+  "shaderMasks": "The four exact 1254x1254 source-wide masks are sampled at normalized full-square UV; app runtime decodes them at 1/3 sample size without changing normalized UV.",
+  "sourceAlphaBoundary": {
+    "masterAlphaMaskChecked": true,
+    "maxMaskOutsideSourceAlphaPx": 0,
+    "allSixMasksValidated": true
+  }
+}

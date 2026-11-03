@@ -1,0 +1,50 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_AI_ORB_WAKE_BREATH_RELEASE_RUNTIME_FROZEN_V1_1",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "feature/p0-2-ai-orb-wake-breath-release-v1-1",
+  "control_plane_revision": "b5f025ef9232ea3e2bb491d142b31f341584fe16",
+  "base_branch": "main",
+  "base_sha": "b5f025ef9232ea3e2bb491d142b31f341584fe16",
+  "phase": "P6",
+  "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
+  "stage": "E1",
+  "status": "RUNNING",
+  "source_sha": "b5f025ef9232ea3e2bb491d142b31f341584fe16",
+  "checkpoint_updated_at": "2026-11-03T06:38:40Z",
+  "next_action": "Complete static source review, validate branch-local state, commit the candidate, and run exact-head Android CI.",
+  "dependencies": [
+    "P5-02",
+    "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
+  ],
+  "blockers": [],
+  "evidence": {
+    "main_baseline": {
+      "sha": "b5f025ef9232ea3e2bb491d142b31f341584fe16",
+      "source": "origin/main"
+    },
+    "admission": {
+      "result": "PASS",
+      "command": "python scripts/validate_control_plane_admission.py",
+      "baseline_sha": "b5f025ef9232ea3e2bb491d142b31f341584fe16",
+      "control_plane_layers": 6,
+      "synced_paths": 747
+    },
+    "requested_task_id": "YUJIAN_AI_ORB_WAKE_BREATH_RELEASE_RUNTIME_FROZEN_V1_1",
+    "api28_validation": "NOT_RUN_BY_REQUEST",
+    "device_visual": "NOT_RUN_BY_REQUEST",
+    "frozen_package": {
+      "result": "PASS",
+      "zip_sha256": "677ea9dddf3d445bc9c8385a14d9c6bb20e45619453f766f8b6c21a36d811500",
+      "manifest_files": 17,
+      "sha256sum_rows": 18,
+      "mask_source_alpha_outside_pixels": 0,
+      "source_runtime_alpha_correlation": 0.999789
+    }
+  },
+  "execution_v2": {
+    "schema_version": "1.0",
+    "issues": {}
+  }
+}

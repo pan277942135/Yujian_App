@@ -54,8 +54,8 @@ android {
         buildConfigField("String", "SOURCE_REVISION", quotedBuildConfig(providers.environmentVariable("GITHUB_SHA").orElse("LOCAL_UNVERIFIED").get()))
         minSdk = 24
         targetSdk = 35
-        versionCode = 5
-        versionName = "2.3.2-unified-qa-20261103"
+        versionCode = 6
+        versionName = "2.3.3-orb-wake-v1.1-20261103"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         buildConfigField("String", "FEEDBACK_BASE_URL", quotedBuildConfig(feedbackBaseUrl))

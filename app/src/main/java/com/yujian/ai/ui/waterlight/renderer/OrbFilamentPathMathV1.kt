@@ -132,6 +132,43 @@ internal object OrbFilamentPathMathV1 {
         return Movement(unclamped.coerceIn(0f, 1f), unclamped, smoothDirection)
     }
 
+    /** Local Orb release is an optical envelope over the continuously scene-clocked R06 path. */
+    fun localReleaseMovement(
+        spec: OrbFilamentSpecV1,
+        sceneElapsedMs: Long,
+        opticalReferenceElapsedMs: Long,
+        reduced: Boolean,
+        pathLengthD: Float,
+        diameterDp: Float,
+    ): Movement {
+        val base = movement(spec, sceneElapsedMs, reduced, OrbRuntimeProfileV1.MotionEvent.NONE, 0L)
+        if (reduced) return base
+        val phase = OrbWakeBreathReleaseV11.localRelease(opticalReferenceElapsedMs)
+        if (phase == OrbWakeBreathReleaseV11.LocalRelease.AMBIENT) return base
+        // Convert the frozen 14dp outward envelope to arc-length fraction for this exact path and D.
+        val peakArcFraction = if (pathLengthD > 0f && diameterDp > 0f) {
+            OrbWakeBreathReleaseV11.R06_MAX_EXTENSION_DP / (pathLengthD * diameterDp)
+        } else 0f
+        val offset = OrbWakeBreathReleaseV11.releaseOffset(
+            opticalReferenceElapsedMs,
+            peakArcFraction,
+        )
+        val direction = when (phase) {
+            OrbWakeBreathReleaseV11.LocalRelease.AMBIENT -> base.direction
+            OrbWakeBreathReleaseV11.LocalRelease.OUTWARD -> {
+                val ramp = OrbWakeBreathReleaseV11.smoothstep(
+                    (opticalReferenceElapsedMs - OrbWakeBreathReleaseV11.RELEASE_START_MS).toFloat() /
+                        OrbWakeBreathReleaseV11.RELEASE_DIRECTION_RAMP_MS,
+                )
+                base.direction + (1f - base.direction) * ramp
+            }
+            OrbWakeBreathReleaseV11.LocalRelease.RETURN ->
+                1f - 2f * OrbWakeBreathReleaseV11.returnDirectionProgress(opticalReferenceElapsedMs)
+        }
+        val unclamped = base.unclampedU + offset
+        return Movement(unclamped.coerceIn(0f, 1f), unclamped, direction)
+    }
+
     fun smoothTransitionAlpha(from: Float, to: Float, elapsedMs: Long, durationMs: Long): Float {
         if (durationMs <= 0L) return to.coerceIn(0f, 1f)
         val p = (elapsedMs.toFloat() / durationMs).coerceIn(0f, 1f)

@@ -147,7 +147,8 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
         density: Float,
     ) {
         if (diameterPx <= 0f) return
-        val optMs = if (frame.reducedMotion) 0L else frame.opticalReferenceElapsedMs
+        val sceneMs = if (frame.reducedMotion) 0L else frame.elapsedMs
+        val opticalMs = frame.opticalReferenceElapsedMs
         val steps = if (low) OrbRuntimeProfileV1.R06_LOW_STEPS_PER_PATH else OrbRuntimeProfileV1.R06_NORMAL_STEPS_PER_PATH
         val active = (opening.coerceIn(0f, 1f) * lifeAlpha.coerceIn(0f, 1f) * (1f - settle.coerceIn(0f, 1f))).coerceIn(0f, 1f)
         val diameterDp = diameterPx / density
@@ -158,17 +159,29 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                 val spec = cache.spec
                 val material = cache.material
                 val lut = cache.lut
-                if (!frame.reducedMotion) OrbFilamentPathMathV1.fillLut(spec, optMs, lut)
-                val move = OrbFilamentPathMathV1.movement(spec, optMs, frame.reducedMotion, event, eventStartMs)
+                if (!frame.reducedMotion) OrbFilamentPathMathV1.fillLut(spec, sceneMs, lut)
+                val localRelease = OrbWakeBreathReleaseV11.localRelease(opticalMs) != OrbWakeBreathReleaseV11.LocalRelease.AMBIENT
+                val move = when {
+                    localRelease -> OrbFilamentPathMathV1.localReleaseMovement(
+                        spec, sceneMs, opticalMs, frame.reducedMotion, lut.cumulativeD.last(), diameterDp,
+                    )
+                    event != OrbRuntimeProfileV1.MotionEvent.NONE ->
+                        OrbFilamentPathMathV1.movement(spec, opticalMs, frame.reducedMotion, event, eventStartMs)
+                    else -> OrbFilamentPathMathV1.movement(spec, sceneMs, frame.reducedMotion,
+                        OrbRuntimeProfileV1.MotionEvent.NONE, 0L)
+                }
                 val trail = material.trailLengthFraction
                 val strokeMarginDp = spec.widthMaxDp * material.widthMultiplier * material.layers.maxOf { it.widthMultiplier } * .5f
-                val maxCenterRadiusDp = (spec.maxOuterRadiusD * diameterDp - strokeMarginDp).coerceAtLeast(0f)
+                val maxCenterRadiusDp = minOf(
+                    spec.maxOuterRadiusD * diameterDp - strokeMarginDp,
+                    diameterDp * .5f + OrbWakeBreathReleaseV11.R06_MAX_EXTENSION_DP - strokeMarginDp,
+                ).coerceAtLeast(0f)
                 val startU = move.u - move.direction * trail
-                val widthCycle = if (frame.reducedMotion) OrbRuntimeProfileV1.R06_REDUCED_MOTION_PHASE else optMs.toFloat() / spec.periodMs
+                val widthCycle = if (frame.reducedMotion) OrbRuntimeProfileV1.R06_REDUCED_MOTION_PHASE else sceneMs.toFloat() / spec.periodMs
                 val widthPulse = .5f + .5f * sin((2.0 * PI * (widthCycle + spec.phase)).toFloat())
                 val alphaPulse = spec.alphaMin + (spec.alphaMax - spec.alphaMin) * widthPulse
-                val eventBrightness = when (event) {
-                    OrbRuntimeProfileV1.MotionEvent.RELEASE -> 1.18f
+                val eventBrightness = if (localRelease) OrbWakeBreathReleaseV11.R06_RELEASE_HEAD_BRIGHTNESS_GAIN else when (event) {
+                    OrbRuntimeProfileV1.MotionEvent.RELEASE -> OrbWakeBreathReleaseV11.R06_RELEASE_HEAD_BRIGHTNESS_GAIN
                     OrbRuntimeProfileV1.MotionEvent.RETURN -> 1.07f
                     OrbRuntimeProfileV1.MotionEvent.NONE -> 1f
                 }
@@ -197,7 +210,7 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                     val nx = -dy / length
                     val ny = dx / length
                     val waveD = if (frame.reducedMotion) 0f else sin(
-                        (2.0 * PI * (optMs.toDouble() / spec.deformationPeriodMs + spec.phase + u * 1.7)).toFloat(),
+                        (2.0 * PI * (sceneMs.toDouble() / spec.deformationPeriodMs + spec.phase + u * 1.7)).toFloat(),
                     ) * spec.normalAmplitudeD
                     var px = cache.scratch[0] + nx * waveD
                     var py = cache.scratch[1] + ny * waveD
@@ -238,7 +251,8 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                             material.headLuminance
                         } else 1f
                         val layerAlpha = (active * alphaPulse * profileOpacity * crossOpacity * tailAlpha * longitudinal *
-                            headBoost * eventBrightness * layer.alphaMax * endFade).coerceIn(0f, layer.alphaMax)
+                            headBoost * eventBrightness * layer.alphaMax * endFade * OrbWakeBreathReleaseV11.R06_ALPHA_GAIN)
+                            .coerceIn(0f, OrbWakeBreathReleaseV11.R06_ALPHA_CAP)
                         if (layerAlpha <= .002f) continue
                         val path = cache.paths[chunk][layerIndex]
                         path.rewind()
@@ -271,7 +285,10 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                     val nx = -dy / length
                     val ny = dx / length
                     cache.headPaint.color = material.highlightColor.toInt() or (0xFF shl 24)
-                    cache.headPaint.alpha = (255f * active * alphaPulse * material.specularHeadAlpha * eventBrightness * endFade).toInt().coerceIn(0, 255)
+                    val headAlpha = (active * alphaPulse * material.specularHeadAlpha * eventBrightness *
+                        OrbWakeBreathReleaseV11.R06_ALPHA_GAIN * OrbWakeBreathReleaseV11.R06_MOVING_HIGHLIGHT_GAIN * endFade)
+                        .coerceIn(0f, OrbWakeBreathReleaseV11.R06_ALPHA_CAP)
+                    cache.headPaint.alpha = (255f * headAlpha).toInt().coerceIn(0, 255)
                     val radiusDp = material.specularHeadRadiusDpMin +
                         (material.specularHeadRadiusDpMax - material.specularHeadRadiusDpMin) * widthPulse
                     canvas.drawCircle(centerX + (cache.scratch[0] + nx * spec.normalAmplitudeD) * diameterPx,
@@ -288,7 +305,10 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                         cache.bandPath.lineTo(centerX + cache.scratch[0] * diameterPx, centerY + cache.scratch[1] * diameterPx)
                     }
                     cache.bandPaint.color = material.highlightColor.toInt() or (0xFF shl 24)
-                    cache.bandPaint.alpha = (255f * active * alphaPulse * material.specularHeadAlpha * eventBrightness * .58f * endFade).toInt().coerceIn(0, 255)
+                    val bandAlpha = (active * alphaPulse * material.specularHeadAlpha * eventBrightness *
+                        OrbWakeBreathReleaseV11.R06_ALPHA_GAIN * OrbWakeBreathReleaseV11.R06_MOVING_HIGHLIGHT_GAIN * .58f * endFade)
+                        .coerceIn(0f, OrbWakeBreathReleaseV11.R06_ALPHA_CAP)
+                    cache.bandPaint.alpha = (255f * bandAlpha).toInt().coerceIn(0, 255)
                     cache.bandPaint.strokeWidth = max(.28f, spec.widthMinDp * .34f) * density
                     canvas.drawPath(cache.bandPath, cache.bandPaint)
                 }

@@ -38,12 +38,14 @@ class ProcessingLakePresentationTest {
         assertEquals((p.startTransform.translationY + p.targetTransform.translationY) / 2f, mid.translationY, .001f)
     }
 
-    @Test fun buttonWaterAndRibbonUseOneEntranceClockAndRespectReducedMotion() {
+    @Test fun coreRemainsPresentWhileCameraHeroHandsOffAndR06UsesTheWakeClock() {
         val start = processingOrbMotionFrame(0, true, false, 0f)
-        assertEquals(0f, start.waterAlpha, 0f)
+        assertEquals(1f, start.waterAlpha, 0f)
+        assertEquals(1f, start.cameraHeroAlpha, 0f)
         assertEquals(0f, start.destinationProgress, 0f)
         assertEquals(1f, processingOrbMotionFrame(350, true, false, 0f).waterAlpha, 0f)
-        assertEquals(1f, processingOrbMotionFrame(650, true, false, 0f).ribbonOpening, 0f)
+        assertEquals(1f, processingOrbMotionFrame(350, true, false, 0f).ribbonOpening, 0f)
+        assertEquals(0f, processingOrbMotionFrame(350, true, false, 0f).cameraHeroAlpha, 0f)
         assertEquals(.5f, processingOrbMotionFrame(450, true, false, 0f).destinationProgress, .001f)
         assertEquals(1f, processingOrbMotionFrame(900, true, false, 0f).destinationProgress, 0f)
         assertEquals(0f, processingOrbMotionFrame(900, true, false, 1f).completionAlpha, 0f)
@@ -51,9 +53,9 @@ class ProcessingLakePresentationTest {
         assertEquals(1f, reduced.waterAlpha, 0f)
         assertEquals(1f, reduced.destinationProgress, 0f)
     }
-    @Test fun activatedCameraStateDissolvesIntoOrbAndGallerySkipsCameraSource() {
-        assertEquals(AIOrbVisualState.CAPTURE_BUTTON_ACTIVATED, aiOrbProcessingState(0L, true, false, 0f))
-        assertEquals(AIOrbVisualState.CAPTURE_BUTTON_ACTIVATED, aiOrbProcessingState(149L, true, false, 0f))
+    @Test fun cameraAndGalleryUseTheSameCoreStateAndOnlyCameraDrawsHeroOverlay() {
+        assertEquals(AIOrbVisualState.ORB_MORPH_IN, aiOrbProcessingState(0L, true, false, 0f))
+        assertEquals(AIOrbVisualState.ORB_MORPH_IN, aiOrbProcessingState(149L, true, false, 0f))
         assertEquals(AIOrbVisualState.ORB_MORPH_IN, aiOrbProcessingState(150L, true, false, 0f))
         assertEquals(AIOrbVisualState.ORB_MORPH_IN, aiOrbProcessingState(349L, true, false, 0f))
         assertEquals(AIOrbVisualState.ORB_ACTIVE, aiOrbProcessingState(350L, true, false, 0f))
@@ -61,16 +63,17 @@ class ProcessingLakePresentationTest {
         assertEquals(AIOrbVisualState.ORB_ACTIVE, aiOrbProcessingState(0L, true, true, 0f))
         assertEquals(AIOrbVisualState.ORB_CONTRACTING, aiOrbProcessingState(900L, true, false, .01f))
 
-        assertEquals(0f, processingOrbMotionFrame(149L, true, false, 0f).waterAlpha, 0f)
-        assertEquals(0f, processingOrbMotionFrame(150L, true, false, 0f).waterAlpha, 0f)
-        assertEquals(.995f, processingOrbMotionFrame(349L, true, false, 0f).waterAlpha, .001f)
+        assertEquals(1f, processingOrbMotionFrame(149L, true, false, 0f).waterAlpha, 0f)
+        assertEquals(1f, processingOrbMotionFrame(150L, true, false, 0f).waterAlpha, 0f)
+        assertEquals(1f, processingOrbMotionFrame(349L, true, false, 0f).waterAlpha, 0f)
         assertEquals(1f, processingOrbMotionFrame(350L, true, false, 0f).waterAlpha, 0f)
-        assertEquals(0f, processingOrbMotionFrame(350L, true, false, 0f).ribbonOpening, 0f)
+        assertEquals(1f, processingOrbMotionFrame(350L, true, false, 0f).ribbonOpening, 0f)
         assertEquals(1f, processingOrbMotionFrame(650L, true, false, 0f).ribbonOpening, 0f)
 
         val gallery = processingOrbMotionFrame(0L, false, false, 0f)
         assertEquals(1f, gallery.waterAlpha, 0f)
-        assertEquals(0f, gallery.ribbonOpening, 0f)
+        assertEquals(0f, gallery.cameraHeroAlpha, 0f)
+        assertEquals(processingOrbMotionFrame(0L, true, false, 0f).cameraHeroAlpha, 1f, 0f)
     }
 
 }

@@ -77,3 +77,12 @@
 - RR09 integration changes the 200 ms photo geometry to smoothstep, binds Mask trust to current session/attempt/image hash, scales the three Mask contour strokes with real fish geometry, and forms the Chinese title using its native glyph path. HIGH results without trusted Mask geometry keep the non-spatial Chinese title reveal; non-HIGH results remain static.
 - Added/updated targeted tests for the 2800 ms phase sequence, P0–P7 ambient strengths, P2–P7 fish-gold hold, R0.5 at 100 ms, title-only fallback, and stale Mask identities. Source tests and Debug APK are pending exact-head Android CI.
 - Local Kotlin/Gradle build and APK installation are `NOT_RUN`: this execution environment has Java 17 but no Gradle executable/wrapper, Android SDK, or `adb`. The exact `feature/**` push will invoke the repository Android workflow; physical-device runtime and product visual acceptance remain pending.
+
+
+## 2026-11-03 — P0-2 frozen Orb wake, breath, R01B grass, and R06 local release
+
+- Work ID: `YUJIAN_AI_ORB_WAKE_BREATH_RELEASE_RUNTIME_FROZEN_V1_1`; repository `pan277942135/Yujian_App`; branch `feature/p0-2-ai-orb-wake-breath-release-v1-1`; implementation starts from Main/P0-1 SHA `b5f025ef9232ea3e2bb491d142b31f341584fe16`.
+- Re-ran `python scripts/validate_control_plane_admission.py` after refreshing `origin/main`: PASS across six static layers, 747 synchronized paths, project state, and work state.
+- Verified the uploaded freeze archive (SHA-256 `677ea9dddf3d445bc9c8385a14d9c6bb20e45619453f766f8b6c21a36d811500`): all 17 manifest resources and 18 checksum rows pass. All six source-derived masks are 1254×1254 grayscale and have zero nonzero pixels outside frozen source alpha. Full-source UV mapping was checked against the pinned 384×384 Runtime WebP (bilinear alpha correlation `0.999789`); frozen source and Runtime Core hashes remain unchanged.
+- Implementing the shared-frame Orb wake/breath, one-texture R01B local warp, R06 five-path local release, and repository CI checks. No P0-1 controller/stage/result ownership changes. Local Gradle is unavailable; exact-head Android CI will run the requested test, lint, Debug assemble, and Release Kotlin compile equivalents. No emulator/API28/connected-device/Work visual run is authorized or planned.
+- Candidate source is uncommitted on this branch. Unit tests, lint, Debug APK, Release compilation, APK provenance, PR checks, and product-owner visual acceptance remain pending exact-head evidence.

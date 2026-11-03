@@ -39,9 +39,7 @@ fun ProcessingWaterOrb(
         fromCamera = fromCamera,
         waterLightFrame = waterLightFrame,
         waterLightMaterial = waterLightMaterial,
-        orbRendererMode = rendererMode ?: if (com.yujian.ai.BuildConfig.DEBUG) {
-            OrbFilamentRendererMode.ORB_V1_CANDIDATE
-        } else OrbFilamentRendererMode.LEGACY,
+        orbRendererMode = rendererMode ?: OrbFilamentRendererMode.ORB_V1_CANDIDATE,
         orbLifeState = lifeState,
         orbMotionEvent = motionEvent,
         orbMotionEventStartOpticalMs = motionEventStartOpticalMs,
