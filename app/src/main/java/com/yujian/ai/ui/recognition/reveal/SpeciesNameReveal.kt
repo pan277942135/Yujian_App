@@ -4,9 +4,11 @@ import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.PathMeasure
 import android.graphics.RectF
 import android.graphics.Region
 import android.graphics.Shader
+import kotlin.math.max
 import kotlin.math.ceil
 import kotlin.math.floor
 
@@ -17,8 +19,11 @@ import kotlin.math.floor
 internal class SpeciesNameReveal {
     private data class InkPoint(val x: Float, val y: Float, val rank: Int)
 
-    private val inkPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val sweepPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val sweepEdgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 2.2f }
+    private val glyphPathMeasure = PathMeasure()
+    private val glyphSweepPath = Path()
     private var cachedGlyph: Path? = null
     private var inkPoints: List<InkPoint> = emptyList()
 
@@ -30,6 +35,7 @@ internal class SpeciesNameReveal {
         mode: RecognitionRevealTitleMode,
         formationProgress: Float,
         revealProgress: Float,
+        sweepProgress: Float = revealProgress,
     ) {
         if (glyph.isEmpty || width <= 0f || height <= 0f || mode == RecognitionRevealTitleMode.HIDDEN ||
             mode == RecognitionRevealTitleMode.STATIC || mode == RecognitionRevealTitleMode.VISIBLE
@@ -40,7 +46,7 @@ internal class SpeciesNameReveal {
         }
         when (mode) {
             RecognitionRevealTitleMode.FORMING -> drawFormingInk(canvas, glyph, width, height, formationProgress)
-            RecognitionRevealTitleMode.REVEALING -> drawReveal(canvas, glyph, width, height, revealProgress)
+            RecognitionRevealTitleMode.REVEALING -> drawReveal(canvas, glyph, width, height, revealProgress, sweepProgress)
             RecognitionRevealTitleMode.HIDDEN,
             RecognitionRevealTitleMode.STATIC,
             RecognitionRevealTitleMode.VISIBLE -> Unit
@@ -50,6 +56,11 @@ internal class SpeciesNameReveal {
     private fun drawFormingInk(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float) {
         val p = progress.coerceIn(0f, 1f)
         if (p <= 0f || inkPoints.isEmpty()) return
+        // A connected water-gold wipe forms the real classifier Glyph while the
+        // deterministic droplets fill its stroke area; the title never fades in as plain Text.
+        drawSweptGlyph(canvas, glyph, width, height, (.08f + .86f * p).coerceIn(0f, 1f),
+            alpha = (88 + 92 * p).toInt())
+        drawGlyphPathSweep(canvas, glyph, p)
         val count = ceil(inkPoints.size * p).toInt().coerceIn(0, inkPoints.size)
         val save = canvas.save()
         try {
@@ -66,21 +77,58 @@ internal class SpeciesNameReveal {
         }
     }
 
-    private fun drawReveal(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float) {
+    private fun drawReveal(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float, sweepProgress: Float) {
         val p = progress.coerceIn(0f, 1f)
         if (p <= 0f) return
+        val sweep = sweepProgress.coerceIn(p * .78f, 1f)
+        drawSweptGlyph(canvas, glyph, width, height, sweep, alpha = (245 * p).toInt().coerceIn(0, 245))
+        drawGlyphPathSweep(canvas, glyph, sweep, alpha = (155 * (1f - p * .45f)).toInt())
+    }
+
+    /** Trace the actual classifier Glyph contours continuously, in their Path order. */
+    private fun drawGlyphPathSweep(canvas: Canvas, glyph: Path, progress: Float, alpha: Int = 150) {
+        val p = progress.coerceIn(0f, 1f)
+        if (p <= 0f) return
+        glyphPathMeasure.setPath(glyph, false)
+        var totalLength = 0f
+        do {
+            totalLength += glyphPathMeasure.length
+        } while (glyphPathMeasure.nextContour())
+        if (totalLength <= 0f) return
+
+        glyphSweepPath.reset()
+        glyphPathMeasure.setPath(glyph, false)
+        var remaining = totalLength * p
+        do {
+            val contourLength = glyphPathMeasure.length
+            val segmentLength = remaining.coerceIn(0f, contourLength)
+            if (segmentLength > 0f) glyphPathMeasure.getSegment(0f, segmentLength, glyphSweepPath, true)
+            remaining -= segmentLength
+        } while (remaining > 0f && glyphPathMeasure.nextContour())
+
         val save = canvas.save()
         try {
-            canvas.clipPath(glyph)
-            inkPaint.shader = LinearGradient(
-                0f, height, width, 0f,
-                intArrayOf(0xFF5C4329.toInt(), 0xFFD7B66F.toInt(), 0xFFFFE7AE.toInt(), 0xFF9A713B.toInt()),
-                floatArrayOf(0f, .32f, .58f, 1f), Shader.TileMode.CLAMP,
-            )
-            inkPaint.alpha = (245 * p).toInt().coerceIn(0, 245)
-            canvas.drawPath(glyph, inkPaint)
-            inkPaint.shader = null
+            sweepEdgePaint.color = 0xFFE4C77E.toInt()
+            sweepEdgePaint.alpha = alpha.coerceIn(0, 180)
+            canvas.drawPath(glyphSweepPath, sweepEdgePaint)
         } finally {
+            canvas.restoreToCount(save)
+        }
+    }
+
+    private fun drawSweptGlyph(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float, alpha: Int) {
+        val save = canvas.save()
+        try {
+            canvas.clipRect(0f, 0f, max(1f, width * progress), height)
+            sweepPaint.shader = LinearGradient(
+                0f, height, width, 0f,
+                intArrayOf(0xFF477F80.toInt(), 0xFF78B5AF.toInt(), 0xFFE4C77E.toInt(), 0xFF9A713B.toInt()),
+                floatArrayOf(0f, .36f, .64f, 1f), Shader.TileMode.CLAMP,
+            )
+            sweepPaint.alpha = alpha.coerceIn(0, 245)
+            canvas.drawPath(glyph, sweepPaint)
+        } finally {
+            sweepPaint.shader = null
             canvas.restoreToCount(save)
         }
     }

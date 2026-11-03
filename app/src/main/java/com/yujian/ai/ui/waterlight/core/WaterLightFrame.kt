@@ -19,6 +19,9 @@ data class WaterLightFrame(
     val photoContentVersion: Long = 0L,
     val playbackMode: ScenePlaybackMode = ScenePlaybackMode.AUTO,
     val playbackPaused: Boolean = false,
+    val eventSequence: Long = 0L,
+    /** Exact scene snapshot shared by Processing/Result and every visual host. */
+    val sceneFrameOverride: RecognitionSceneFrame? = null,
     /** Non-null only for production event-driven stages; diagnostics keep their preview projection. */
     val sceneStageOverride: RecognitionSceneStage? = null,
     val sceneStageElapsedMsOverride: Long? = null,
@@ -41,6 +44,9 @@ data class WaterLightFrame(
             photoSha256 = photoSha256,
             photoContentVersion = photoContentVersion,
         )
+        sceneFrameOverride?.takeIf {
+            it.identity == identity && it.geometryVersion == geometryVersion
+        }?.let { return it }
         val stageOverride = sceneStageOverride
         return if (stageOverride != null) RecognitionSceneCoordinator.frameForStage(
             identity = identity,
@@ -53,6 +59,8 @@ data class WaterLightFrame(
             playbackMode = playbackMode,
             paused = playbackPaused,
             reducedMotion = reducedMotion,
+            eventSequence = eventSequence,
+            monotonicTimestampMs = elapsedMs,
         ) else RecognitionSceneCoordinator.frameAt(
             identity = identity,
             sceneElapsedMs = elapsedMs,
@@ -61,6 +69,8 @@ data class WaterLightFrame(
             playbackMode = playbackMode,
             paused = playbackPaused,
             reducedMotion = reducedMotion,
+            eventSequence = eventSequence,
+            monotonicTimestampMs = elapsedMs,
         )
     }
 }

@@ -113,6 +113,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneTimelineProjection
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
@@ -162,6 +163,8 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlin.math.min
 import java.util.ArrayDeque
 import java.util.LinkedHashSet
@@ -291,7 +294,18 @@ fun RecognitionProcessingScene(
     var delivered by remember(sceneKey) { mutableStateOf(false) }
     var photoPresentedAtMs by remember(sceneKey) { mutableStateOf<Long?>(null) }
     var visualNowMs by remember(sceneKey) { mutableStateOf(0L) }
-    val controller = remember(sceneKey) { RecognitionVisualStateController() }
+    // The controller injected by YujianApp owns playback, stage identity, gates and
+    // the monotonic scene clock. Recognition and Result only sample this instance.
+    val controller = playbackController
+    val sceneIdentity = remember(sceneKey) {
+        RecognitionSceneIdentity(
+            sessionId = recognitionSessionId.orEmpty(),
+            attemptId = recognitionAttemptId.orEmpty(),
+            imageId = image?.imageId.orEmpty(),
+            photoSha256 = image?.photoSha256,
+            photoContentVersion = image?.bitmap?.generationId?.toLong()?.coerceAtLeast(0L) ?: 0L,
+        )
+    }
     val latestPhotoPresentedAtMs by rememberUpdatedState(photoPresentedAtMs)
     val revealDecision = RecognitionRevealDecisionGate.decide(
         classifier = when {
@@ -309,12 +323,43 @@ fun RecognitionProcessingScene(
     val latestSubjectStatus = rememberUpdatedState(subjectResult.status)
     val latestTrustedMask = rememberUpdatedState(trustedSubjectMask)
     val latestFinishedResult = rememberUpdatedState(finishedResult)
-    val latestAssessment = rememberUpdatedState(assessment)
     val diagnosticRevealCallback = rememberUpdatedState(onDiagnosticRevealRequested)
     val manualStepDiagnosticState = rememberUpdatedState(
         stepDiagnosticActive && playbackController.mode == ScenePlaybackMode.MANUAL,
     )
     var diagnosticActionStatus by remember(sceneKey) { mutableStateOf<String?>(null) }
+    var photoGeometryVersion by remember(sceneKey) { mutableLongStateOf(0L) }
+
+    LaunchedEffect(sceneKey, assessment?.primary?.box, finishedResult, subjectResult.status, trustedSubjectMask, contour, photoGeometryVersion) {
+        val detectorReady = assessment?.primary?.box?.let { box ->
+            listOf(box.x1, box.y1, box.x2, box.y2).all(Float::isFinite) && box.x1 < box.x2 && box.y1 < box.y2
+        } == true
+        val classifierReady = finishedResult?.ready == true && finishedResult?.assessment?.primary != null
+        val slimSamTerminal = subjectResult.status == SubjectStatus.READY || subjectResult.status == SubjectStatus.FAILED
+        val contourValid = trustedSubjectMask && contour.isNotEmpty()
+        controller.onDetectorTargetAvailable(detectorReady, sceneIdentity)
+        controller.onPhotoTransformAvailable(photoGeometryVersion > 0L, sceneIdentity)
+        if (slimSamTerminal) controller.onMaskTerminal(
+            trusted = trustedSubjectMask,
+            contourValid = contourValid,
+            contourClosed = contourValid && contour.lastOrNull()?.closesContour == true,
+            failedTerminal = subjectResult.status == SubjectStatus.FAILED,
+            currentIdentity = sceneIdentity,
+        )
+        controller.updateModelJoin(
+            detectorReady = detectorReady,
+            classifierReady = classifierReady,
+            slimSamTerminal = slimSamTerminal,
+            maskTrusted = trustedSubjectMask,
+            contourValid = contourValid,
+            contourClosed = contourValid && contour.lastOrNull()?.closesContour == true,
+            slimSamFailed = subjectResult.status == SubjectStatus.FAILED,
+            currentIdentity = sceneIdentity,
+        )
+        controller.onRevealDecisionReady(sceneIdentity.takeIf { RecognitionRevealDecisionGate.isReady(revealDecision) })
+        val glyphReady = classifierReady && !finishedResult?.prediction?.top1?.speciesName.isNullOrBlank()
+        controller.onGlyphAvailable(glyphReady, sceneIdentity)
+    }
 
     LaunchedEffect(sceneKey, revealDecision) {
         Log.i(
@@ -332,7 +377,7 @@ fun RecognitionProcessingScene(
             // Every Debug session opens on step 01. The clock starts only after the
             // actual PhotoSession first frame is presented; choosing the diagnostic
             // display must not silently switch playback to AUTO.
-            playbackController.prepareInitialStepPreview()
+            playbackController.beginNewSession(sceneIdentity, debugBuild = true, nowMs = recognitionMonotonicNowMs())
             playbackRevision++
         }
     }
@@ -366,10 +411,25 @@ fun RecognitionProcessingScene(
                 "image=${selected.imageId} sha256=${selected.photoSha256} bbox=${primary.box} uptime_ms=$startedAtMs",
         )
         val result = try {
-            generateSubjectWithConfidence?.invoke(selected, primary.box, primary.confidence)
-                ?: generateSubject?.invoke(selected, primary.box)
-                ?: return@LaunchedEffect
+            withTimeout(RECOGNITION_MODEL_WATCHDOG_MS) {
+                generateSubjectWithConfidence?.invoke(selected, primary.box, primary.confidence)
+                    ?: generateSubject?.invoke(selected, primary.box)
+                    ?: return@withTimeout null
+            }
         } catch (cancellation: CancellationException) {
+            if (cancellation is TimeoutCancellationException) {
+                val timeout = IllegalStateException("SLIMSAM_WATCHDOG_TIMEOUT_${RECOGNITION_MODEL_WATCHDOG_MS}MS", cancellation)
+                Log.e(LOG_TAG, "MODEL_WATCHDOG_TIMEOUT stage=SLIMSAM session=${recognitionSessionId.orEmpty()} " +
+                    "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} timeout_ms=$RECOGNITION_MODEL_WATCHDOG_MS", timeout)
+                pipelineError = timeout
+                subjectResult = FishSubjectResult(SubjectStatus.FAILED, errorCode = "SLIMSAM_WATCHDOG_TIMEOUT")
+                controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs(), currentIdentity = sceneIdentity)
+                if (!manualStepDiagnosticState.value && !delivered) {
+                    delivered = true
+                    onFailure(timeout)
+                }
+                return@LaunchedEffect
+            }
             Log.i(LOG_TAG, "SLIMSAM_CANCEL session=${recognitionSessionId.orEmpty()} image=${selected.imageId} duration_ms=${recognitionMonotonicNowMs() - startedAtMs}")
             throw cancellation
         } catch (error: Throwable) {
@@ -482,7 +542,7 @@ fun RecognitionProcessingScene(
                 trustedSubjectMask = true
                 val acceptedAtMs = recognitionMonotonicNowMs()
                 latestPhotoPresentedAtMs?.let { photoStartMs ->
-                    controller.onTrustedMaskAvailable(acceptedAtMs)
+                    controller.onTrustedMaskAvailable(acceptedAtMs, sceneIdentity)
                     if (trustedMaskRevealStartedAtMs == null) {
                         trustedMaskRevealStartedAtMs = controller.opticalReferenceElapsedMs(
                             acceptedAtMs,
@@ -539,7 +599,6 @@ fun RecognitionProcessingScene(
     LaunchedEffect(sceneKey, photoPresentedAtMs) {
         val selected = image ?: return@LaunchedEffect
         val startedAtMs = photoPresentedAtMs ?: return@LaunchedEffect
-        controller.reset(startedAtMs)
         visualPhase = RecognitionPhase.CAPTURED
         productionSceneStage = RecognitionSceneStage.PHOTO_STABLE
         productionStageElapsedMs = 0L
@@ -550,6 +609,7 @@ fun RecognitionProcessingScene(
                 phase = realPhase,
                 nowMs = startedAtMs,
                 hasRealFishFocus = assessment?.primary?.box != null,
+                currentIdentity = sceneIdentity,
             )
         }
         if (finishedResult?.ready == true) {
@@ -557,9 +617,10 @@ fun RecognitionProcessingScene(
                 RecognitionPhase.RESULT,
                 startedAtMs,
                 hasRealFishFocus = finishedResult?.assessment?.primary?.box != null,
+                currentIdentity = sceneIdentity,
             )
         }
-        if (trustedSubjectMask) controller.onTrustedMaskAvailable(startedAtMs)
+        if (trustedSubjectMask) controller.onTrustedMaskAvailable(startedAtMs, sceneIdentity)
         Log.i(
             LOG_TAG,
             "PROCESSING_P0 session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
@@ -588,6 +649,7 @@ fun RecognitionProcessingScene(
             var lastPipelinePhase: RecognitionPhase? = null
             var detectorStartedAtMs: Long? = null
             var classifierStartedAtMs: Long? = null
+            withTimeout(RECOGNITION_MODEL_WATCHDOG_MS) {
             recognize { progress ->
                 assessment = progress.assessment ?: assessment
                 realPhase = progress.phase
@@ -659,9 +721,15 @@ fun RecognitionProcessingScene(
                         phase = progress.phase,
                         nowMs = recognitionMonotonicNowMs(),
                         hasRealFishFocus = assessment?.primary?.box != null,
+                        currentIdentity = sceneIdentity,
                     )
                 }
             }
+            }
+        } catch (timeout: TimeoutCancellationException) {
+            Log.e(LOG_TAG, "MODEL_WATCHDOG_TIMEOUT stage=DETECTOR_CLASSIFIER session=${recognitionSessionId.orEmpty()} " +
+                "attempt=${recognitionAttemptId.orEmpty()} image=${image.imageId} timeout_ms=$RECOGNITION_MODEL_WATCHDOG_MS", timeout)
+            throw IllegalStateException("RECOGNITION_MODEL_WATCHDOG_TIMEOUT_${RECOGNITION_MODEL_WATCHDOG_MS}MS", timeout)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Throwable) {
@@ -669,7 +737,7 @@ fun RecognitionProcessingScene(
             realPhase = RecognitionPhase.FAILURE
             pipelineError = error
             if (latestPhotoPresentedAtMs != null) {
-                controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs())
+                controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs(), currentIdentity = sceneIdentity)
             }
             if (!manualStepDiagnosticState.value && !delivered) {
                 delivered = true
@@ -685,6 +753,7 @@ fun RecognitionProcessingScene(
                     RecognitionPhase.RESULT,
                     recognitionMonotonicNowMs(),
                     hasRealFishFocus = result.assessment.primary?.box != null,
+                    currentIdentity = sceneIdentity,
                 )
             }
         } else if (!delivered && !manualStepDiagnosticState.value) {
@@ -726,13 +795,11 @@ fun RecognitionProcessingScene(
                     visualNowMs = recognitionMonotonicNowMs()
                 }
                 if (RecognitionRevealDecisionGate.isReady(latestRevealDecision.value)) {
-                    controller.onRevealDecisionReady()
+                    controller.onRevealDecisionReady(sceneIdentity)
                 }
                 val currentSubjectStatus = latestSubjectStatus.value
-                val noDetectorTarget = latestFinishedResult.value?.ready == true &&
-                    latestAssessment.value?.primary?.box == null
                 val subjectTerminal = currentSubjectStatus == SubjectStatus.READY ||
-                    currentSubjectStatus == SubjectStatus.FAILED || noDetectorTarget
+                    currentSubjectStatus == SubjectStatus.FAILED
                 val currentResult = latestFinishedResult.value
                 val successfulRevealReady = currentResult?.let { result ->
                     result.ready && resolveRecognitionUiState(result) == RecognitionUiState.RESULT_HIGH
@@ -809,12 +876,14 @@ fun RecognitionProcessingScene(
             subjectTerminal = subjectResult.status == SubjectStatus.READY || subjectResult.status == SubjectStatus.FAILED,
         )
     }
-    val opticalReferenceElapsedMs = if (stepDiagnosticActive) {
-        playbackController.sample(authoritativeOpticalReferenceElapsedMs, visualNowMs)
-    } else {
+    val opticalReferenceElapsedMs = if (deterministicMotion || phaseOverride != null) {
         authoritativeOpticalReferenceElapsedMs
+    } else {
+        controller.opticalReferenceElapsedMs(visualNowMs, trustedMask = trustedSubjectMask,
+            subjectTerminal = subjectResult.status == SubjectStatus.READY || subjectResult.status == SubjectStatus.FAILED)
     }
-    val sceneElapsedMs = if (stepDiagnosticActive) opticalReferenceElapsedMs else processingElapsedMs
+    val sceneElapsedMs = if (deterministicMotion || phaseOverride != null) visualClockMs.coerceAtLeast(0L)
+        else controller.sceneElapsedMs(visualNowMs)
 
     fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
         if (mode == displayMode) return
@@ -840,7 +909,9 @@ fun RecognitionProcessingScene(
     LaunchedEffect(sceneKey, orbStage) {
         Log.i(LOG_TAG, "ORB_STAGE image=${image?.imageId} sha256=${image?.photoSha256} stage=$orbStage elapsed_ms=$entranceElapsedMs")
     }
-    var photoGeometryVersion by remember(sceneKey) { mutableLongStateOf(0L) }
+    val authoritativeSceneFrame = if (!deterministicMotion && phaseOverride == null && photoPresentedAtMs != null) {
+        controller.currentFrame(sceneIdentity, visualNowMs, photoGeometryVersion, motionPolicy.reduceMotion)
+    } else null
     val sceneBaseFrame = WaterLightFrame(
         sessionId = recognitionSessionId.orEmpty(), photoSha256 = image?.photoSha256,
         elapsedMs = sceneElapsedMs, opticalReferenceElapsedMs = opticalReferenceElapsedMs,
@@ -849,13 +920,15 @@ fun RecognitionProcessingScene(
         geometryVersion = photoGeometryVersion,
         attemptId = recognitionAttemptId.orEmpty(), imageId = image?.imageId.orEmpty(),
         photoContentVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
-        playbackMode = if (stepDiagnosticActive) playbackMode else ScenePlaybackMode.AUTO,
-        playbackPaused = stepDiagnosticActive && playbackPaused,
+        playbackMode = playbackMode,
+        playbackPaused = playbackPaused,
+        eventSequence = authoritativeSceneFrame?.eventSequence ?: 0L,
+        sceneFrameOverride = authoritativeSceneFrame,
         sceneStageOverride = if (stepDiagnosticActive || phaseOverride != null || deterministicMotion) null else productionSceneStage,
         sceneStageElapsedMsOverride = if (stepDiagnosticActive || phaseOverride != null || deterministicMotion) null else productionStageElapsedMs,
         sceneStageProgressOverride = if (stepDiagnosticActive || phaseOverride != null || deterministicMotion) null else productionStageProgress,
     )
-    val diagnosticSceneFrame = sceneBaseFrame.sceneFrame
+    val diagnosticSceneFrame = authoritativeSceneFrame ?: sceneBaseFrame.sceneFrame
     LaunchedEffect(sceneKey, diagnosticSceneFrame.stage) {
         Log.i(
             LOG_TAG,
@@ -879,9 +952,16 @@ fun RecognitionProcessingScene(
         trustedSubjectMask,
     ) {
         if (!diagnosticUiAvailable || displayMode != RecognitionProgressDisplayMode.STEP_DIAGNOSTIC ||
-            diagnosticSceneFrame.stage.ordinal < RecognitionSceneStage.ORB_RETURN.ordinal ||
+            diagnosticSceneFrame.stage != RecognitionSceneStage.ORB_RETURN ||
             finishedResult == null || diagnosticHandoffDelivered) return@LaunchedEffect
         val result = requireNotNull(finishedResult)
+        if (result.ready && (!controller.resultVisualReady(visualNowMs) ||
+                diagnosticSceneFrame.identity != sceneIdentity ||
+                sceneIdentity.sessionId != recognitionSessionId ||
+                sceneIdentity.attemptId != recognitionAttemptId ||
+                sceneIdentity.imageId != image?.imageId ||
+                sceneIdentity.photoSha256 != image?.photoSha256)
+        ) return@LaunchedEffect
         diagnosticHandoffDelivered = true
         if (!result.ready) {
             onFinished(result)
@@ -914,7 +994,27 @@ fun RecognitionProcessingScene(
         RecognitionPhase.FAILURE -> WaterLightPhase.SETTLED
     }
     val waterLightFrame = sceneBaseFrame.copy(phase = waterLightPhase)
-    val diagnosticStageStatus = when {
+    val diagnosticStageStatus = diagnosticSceneFrame.modelGates.waitingReason?.let { reason ->
+        when (reason) {
+            "WAITING_FOR_PHOTO_FIRST_FRAME" -> "等待照片真实首帧呈现"
+            "WAITING_FOR_RESULT_GEOMETRY" -> "等待 Result / Orb / Glyph 几何"
+            "RESULT_GEOMETRY_INVALID" -> "Result 几何无效 · 揭晓已静态降级"
+            "WAITING_FOR_MODEL_JOIN" -> "等待 Classifier 与 SlimSAM 汇合"
+            "WAITING_FOR_TRUSTED_MASK" -> "等待可信鱼体 Mask"
+            "WAITING_FOR_REAL_CLASSIFIER_GLYPH" -> "等待真实鱼种 Glyph"
+            "WAITING_FOR_ORB_ANCHOR" -> "等待原始 Orb 锚点"
+            "WAITING_FOR_RELEASE_PATH_AND_PERIMETER_ARRIVAL" -> "等待 Orb 释放路径到达照片外围"
+            "WAITING_FOR_DETECTOR_TARGET_AND_PHOTO_TRANSFORM" -> "等待 Detector 目标与照片变换"
+            "WAITING_FOR_CLASSIFIER_AND_SLIMSAM_TERMINAL_JOIN" -> "等待 Classifier 与 SlimSAM 终态"
+            "WAITING_FOR_TRUSTED_MASK_AND_CONTOUR" -> "等待可信 Mask 和真实轮廓"
+            "WAITING_FOR_RETURN_EVENT_OR_RESULT_GEOMETRY" -> "等待真实回馈事件与 Result 几何"
+            "WAITING_FOR_ORB_TO_GLYPH_COMPLETION" -> "等待原始 Orb 向 Glyph 完成转换"
+            "WAITING_FOR_GLYPH_REVEAL_COMPLETION" -> "等待真实鱼种名称揭晓完成"
+            "WAITING_FOR_RESIDUE_SETTLE_COMPLETION" -> "等待水光余辉收束完成"
+            "MODEL_OR_ATTEMPT_FAILED" -> "模型或识别尝试失败"
+            else -> "等待：$reason"
+        }
+    } ?: when {
         finishedResult?.ready == true && revealDecision == RecognitionRevealDecisionState.WAITING_SLIMSAM ->
             "鱼种已识别 · 等待 SlimSAM 最终质量判断"
         finishedResult?.ready == true && manualStepDiagnosticState.value &&
@@ -944,6 +1044,11 @@ fun RecognitionProcessingScene(
     val successfulRevealAllowed = finishedResult?.let { result ->
         result.ready && resolveRecognitionUiState(result) == RecognitionUiState.RESULT_HIGH
     } == true
+    LaunchedEffect(sceneKey, diagnosticSceneFrame.stage, diagnosticSceneFrame.stageProgress, trustedSubjectMask, successfulRevealAllowed) {
+        if (diagnosticSceneFrame.stage == RecognitionSceneStage.FISH_GOLD_PEAK &&
+            diagnosticSceneFrame.stageProgress >= .999f && trustedSubjectMask && successfulRevealAllowed
+        ) controller.onFishGoldComplete(true, sceneIdentity)
+    }
     LaunchedEffect(sceneKey, diagnosticSceneFrame.stage, playbackRevision, photoPresentedAtMs, playbackController.previewCompleted) {
         if (diagnosticUiAvailable && photoPresentedAtMs != null) Log.i(
             LOG_TAG,
@@ -1151,7 +1256,10 @@ fun RecognitionProcessingScene(
             onMotionFrame = onMotionFrame,
             focusLevel = displayedFocusLevel,
             onFishFocusTransform = onFishFocusTransform,
-            onPhotoGeometryChanged = { photoGeometryVersion = it },
+            onPhotoGeometryChanged = {
+                photoGeometryVersion = it
+                controller.onPhotoTransformAvailable(it > 0L, sceneIdentity)
+            },
             modifier = Modifier.fillMaxSize(),
             processingClockStarted = photoPresentedAtMs != null || deterministicMotion,
             recognitionSessionId = recognitionSessionId.orEmpty(),
@@ -1163,6 +1271,10 @@ fun RecognitionProcessingScene(
             successfulRevealAllowed = successfulRevealAllowed,
             allowDiagnosticContourPreview = diagnosticUiAvailable && playbackMode == ScenePlaybackMode.MANUAL,
             onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx, actualOrbCenter, orbCoreDiameterPx ->
+                controller.onOrbAnchorAvailable(
+                    actualOrbCenter.x.isFinite() && actualOrbCenter.y.isFinite() && orbCoreDiameterPx.isFinite() && orbCoreDiameterPx > 1f,
+                    sceneIdentity,
+                )
                 onProcessingPhotoSnapshot(
                     RecognitionProcessingPhotoSnapshot(
                         imageId = image.imageId,
@@ -1186,10 +1298,8 @@ fun RecognitionProcessingScene(
                             "attempt=${recognitionAttemptId.orEmpty()} image=${image.imageId} uptime_ms=$presentedAtMs",
                     )
                     photoPresentedAtMs = presentedAtMs
-                    if (diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) {
-                        playbackController.startPreparedStepPreview(presentedAtMs)
-                        playbackRevision++
-                    }
+                    controller.markPhotoFirstFramePresented(sceneIdentity, presentedAtMs)
+                    if (diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) playbackRevision++
                 }
             },
         )
@@ -1273,8 +1383,11 @@ fun RecognitionProcessingScene(
                 waterLightFrame.imageId,
                 orbEnergyEvent?.feedback,
                 orbEnergyEvent?.pathId,
+                orbEnergyEvent?.eventSequence,
+                orbEnergyEvent?.level?.let { it >= .999f },
             ) {
                 val event = orbEnergyEvent ?: return@LaunchedEffect
+                if (event.level >= .999f) controller.recordEnergyEvent(waterLightFrame.sceneFrame, event)
                 Log.i(
                     "WaterLightEnergy",
                     "ENERGY_EVENT session=${event.sessionId} attempt=${event.attemptId} image=${event.imageId} " +
@@ -1340,6 +1453,7 @@ fun RecognitionProcessingScene(
                     assessment?.primary?.box != null -> "排队"
                     else -> "等待"
                 },
+                slimSamStatus = diagnosticSceneFrame.modelGates.slimSam.name,
                 maskStatus = when {
                     trustedSubjectMask -> "Mask TRUSTED"
                     subjectResult.status == SubjectStatus.PROCESSING -> "Mask 计算中"
@@ -1347,11 +1461,13 @@ fun RecognitionProcessingScene(
                     assessment?.primary?.box != null && subjectResult.status == SubjectStatus.READY -> "Mask BBOX_ONLY"
                     else -> "Mask 等待"
                 },
+                geometryStatus = diagnosticSceneFrame.modelGates.geometry.name,
+                sceneStatus = diagnosticSceneFrame.modelGates.runState.name,
                 stepStatus = diagnosticActionStatus ?: diagnosticStageStatus,
                 normalProgressText = "",
-                canGoPrevious = currentStage != RecognitionSceneStage.entries.first(),
-                canGoNext = currentStage != RecognitionSceneStage.entries.last(),
-                canControl = true,
+                canGoPrevious = playbackController.canControl() && currentStage != RecognitionSceneStage.entries.first(),
+                canGoNext = playbackController.canControl() && currentStage != RecognitionSceneStage.entries.last(),
+                canControl = playbackController.canControl(),
                 onDisplayModeChange = ::changeDiagnosticDisplayMode,
                 onPrevious = {
                     val now = recognitionMonotonicNowMs()
@@ -1766,6 +1882,7 @@ private fun RecognitionPhoto(
 }
 
 internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n请重新拍摄或选择照片"
+private const val RECOGNITION_MODEL_WATCHDOG_MS = 60_000L
 internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String = GENERIC_RECOGNITION_FAILURE_MESSAGE
 
 private fun recognitionMaskAnchor(

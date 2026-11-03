@@ -161,6 +161,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
 import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
@@ -171,6 +172,7 @@ import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.SceneGeometryState
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometry
@@ -443,9 +445,6 @@ fun RecognitionResultScreen(
     }
     val visualHandoff = when {
         decisionHandoff != null &&
-            decisionHandoff.revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY && revealGeometry == null ->
-            decisionHandoff.copy(eligibility = RecognitionRevealEligibility.STATIC_RESULT)
-        decisionHandoff != null &&
             decisionHandoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL &&
             revealGeometry?.sourceContourPath?.isEmpty() != false ->
             decisionHandoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY)
@@ -467,56 +466,62 @@ fun RecognitionResultScreen(
         revealGeometryReady = revealGeometry != null,
         reduceMotion = revealMotionPolicy.reduceMotion,
     )
+    val resultGeometryReady = revealPhotoIdentityMatches && photoTransitionGeometry != null &&
+        heroSnapshot?.renderReady == true && revealTitleBounds?.isValid() == true && revealGeometry != null
     val diagnosticUiAvailable = BuildConfig.DEBUG && diagnosticPlaybackController != null
     val diagnosticManualActive = diagnosticUiAvailable &&
         diagnosticPlaybackController?.mode == ScenePlaybackMode.MANUAL
-    val diagnosticReferenceMs = if (diagnosticUiAvailable) {
-        val productionReference = (RecognitionSceneCoordinator.PROCESSING_END_MS + revealElapsedState.value)
-            .coerceAtMost(RecognitionSceneCoordinator.RR09_END_MS)
-        diagnosticPlaybackController?.sample(productionReference, diagnosticNowMs) ?: productionReference
-    } else null
+    val resultSceneIdentity = remember(revealHandoff?.key, image?.imageId) {
+        RecognitionSceneIdentity(
+            sessionId = revealHandoff?.key?.recognitionSessionId.orEmpty(),
+            attemptId = revealHandoff?.key?.recognitionAttemptId.orEmpty(),
+            imageId = image?.imageId.orEmpty(),
+            photoSha256 = image?.photoSha256,
+            photoContentVersion = image?.bitmap?.generationId?.toLong()?.coerceAtLeast(0L) ?: 0L,
+        )
+    }
+    val resultGeometryVersion = photoTransitionGeometry?.heroSourceTransform?.let(WaterLightGeometryVersion::of) ?: 0L
+    val resultGeometryVersions = remember(photoTransitionGeometry) {
+        val photoGeometry = photoTransitionGeometry
+        val base = photoGeometry?.heroSourceTransform?.let(WaterLightGeometryVersion::of)
+        if (photoGeometry == null || base == null) emptySet() else buildSet {
+            photoGeometry.processingPhotoClip.let { bounds ->
+                add(WaterLightGeometryVersion.withHostBounds(base, bounds.left, bounds.top, bounds.right, bounds.bottom))
+            }
+            photoGeometry.heroPhotoClip.let { bounds ->
+                add(WaterLightGeometryVersion.withHostBounds(base, bounds.left, bounds.top, bounds.right, bounds.bottom))
+            }
+        }
+    }
+    val diagnosticReferenceMs = diagnosticPlaybackController?.opticalReferenceElapsedMs(diagnosticNowMs)
     val effectiveRevealElapsedOverrideMs = when {
-        diagnosticUiAvailable && diagnosticReferenceMs != null &&
-            (diagnosticPlaybackController?.mode == ScenePlaybackMode.MANUAL || diagnosticPlaybackController?.paused == true) ->
-            (diagnosticReferenceMs - RecognitionSceneCoordinator.PROCESSING_END_MS)
-            .coerceIn(0L, RecognitionRevealClock.TOTAL_DURATION_MS)
+        // A completed production reveal remains single-play, while Debug stage
+        // previews must be able to replay the same identity-bound RR09 frame.
+        revealAlreadyPlayed && !diagnosticUiAvailable -> RecognitionRevealClock.TOTAL_DURATION_MS
+        diagnosticPlaybackController != null -> diagnosticPlaybackController.revealElapsedMs(diagnosticNowMs)
         else -> revealElapsedOverrideMs
     }
     val diagnosticPreviewElapsedMs = diagnosticPlaybackController?.previewElapsedMs(diagnosticNowMs) ?: 0L
     val diagnosticPreviewCompleted = diagnosticPlaybackController?.previewCompleted == true
     val diagnosticPaused = diagnosticPlaybackController?.paused == true
-    LaunchedEffect(diagnosticUiAvailable, diagnosticPlaybackController, revealStartReady) {
+    LaunchedEffect(diagnosticPlaybackController, revealHandoff?.key, uiState) {
         val playback = diagnosticPlaybackController ?: return@LaunchedEffect
-        if (!diagnosticUiAvailable || playback.mode != ScenePlaybackMode.MANUAL) return@LaunchedEffect
-        if (playback.paused && !playback.previewCompleted && !diagnosticUserPaused) {
-            val now = SystemClock.uptimeMillis()
-            playback.resume(RecognitionSceneCoordinator.PROCESSING_END_MS, now)
-            diagnosticNowMs = now
-        }
-    }
-    LaunchedEffect(diagnosticUiAvailable, diagnosticManualActive, diagnosticPaused, diagnosticPreviewCompleted, diagnosticPlaybackController) {
-        if (!diagnosticUiAvailable || !diagnosticManualActive || diagnosticPaused || diagnosticPreviewCompleted) return@LaunchedEffect
+        if (revealHandoff == null) return@LaunchedEffect
         while (isActive) {
             withFrameNanos { it }
-            diagnosticNowMs = SystemClock.uptimeMillis()
+            val now = SystemClock.uptimeMillis()
+            playback.currentSceneStage(
+                nowMs = now,
+                trustedMask = revealHandoff.geometryTrustState == RecognitionGeometryTrustState.TRUSTED_MASK,
+                subjectTerminal = revealHandoff.geometryTrustState != RecognitionGeometryTrustState.MISSING,
+                successfulRevealAllowed = uiState == RecognitionUiState.RESULT_HIGH,
+            )
+            diagnosticNowMs = now
+            revealElapsedState.value = playback.revealElapsedMs(now)
         }
     }
-    val diagnosticFrame = if (diagnosticReferenceMs != null && revealHandoff != null && image != null) {
-        RecognitionSceneCoordinator.frameAt(
-            identity = RecognitionSceneIdentity(
-                sessionId = revealHandoff.key.recognitionSessionId,
-                attemptId = revealHandoff.key.recognitionAttemptId,
-                imageId = image.imageId,
-                photoSha256 = image.photoSha256,
-                photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),
-            ),
-            sceneElapsedMs = diagnosticReferenceMs,
-            opticalReferenceElapsedMs = diagnosticReferenceMs,
-            geometryVersion = photoTransitionGeometry?.heroSourceTransform?.let { WaterLightGeometryVersion.of(it) } ?: 0L,
-            playbackMode = diagnosticPlaybackController?.mode ?: ScenePlaybackMode.AUTO,
-            paused = diagnosticPaused,
-            reducedMotion = revealMotionPolicy.reduceMotion,
-        )
+    val diagnosticFrame = if (diagnosticPlaybackController != null && revealHandoff != null && image != null) {
+        diagnosticPlaybackController.currentFrame(resultSceneIdentity, diagnosticNowMs, resultGeometryVersion, revealMotionPolicy.reduceMotion)
     } else null
     val diagnosticStage = diagnosticFrame?.stage ?: diagnosticPlaybackController?.currentStage ?: RecognitionSceneStage.ORB_RETURN
     LaunchedEffect(revealHandoff?.key, diagnosticStage, diagnosticDisplayMode, diagnosticPreviewCompleted, diagnosticUiAvailable) {
@@ -540,27 +545,74 @@ fun RecognitionResultScreen(
         onDiagnosticDisplayModeChange(mode)
     }
     var geometryWaitExpired by remember(revealHandoff?.key) { mutableStateOf(false) }
-    LaunchedEffect(revealHandoff?.key, revealStartReady) {
-        if (visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && !revealStartReady) {
+    LaunchedEffect(revealHandoff?.key, resultGeometryReady, visualHandoff?.eligibility) {
+        if (visualHandoff?.eligibility in setOf(RecognitionRevealEligibility.FULL_REVEAL, RecognitionRevealEligibility.TITLE_FADE_ONLY) &&
+            !resultGeometryReady
+        ) {
             delay(350L)
             geometryWaitExpired = true
+        }
+    }
+    val geometryResolutionReason = revealGeometryResolution?.failureReason
+    val geometryStillMeasuring = geometryResolutionReason in setOf(
+        "LAYOUT_ROOT_PENDING", "LAYOUT_HERO_PENDING", "LAYOUT_TITLE_PENDING",
+    )
+    // 350ms is an advisory threshold only. Keep the shared scene clock held while
+    // Compose measures; only an explicit geometry rejection enters static fallback.
+    val geometryInvalid = !resultGeometryReady && geometryResolutionReason != null && !geometryStillMeasuring
+    LaunchedEffect(revealHandoff?.key, resultGeometryReady, geometryInvalid, resultGeometryVersions) {
+        val playback = diagnosticPlaybackController ?: return@LaunchedEffect
+        if (revealHandoff == null) return@LaunchedEffect
+        val state = when {
+            resultGeometryReady -> SceneGeometryState.READY
+            geometryInvalid -> SceneGeometryState.INVALID
+            else -> SceneGeometryState.PENDING
+        }
+        playback.setResultGeometryState(
+            state,
+            SystemClock.uptimeMillis(),
+            resultSceneIdentity,
+            geometryVersions = resultGeometryVersions.takeIf { state == SceneGeometryState.READY }.orEmpty(),
+        )
+        playback.onGlyphAvailable(resultGeometryReady && prediction.top1.speciesName.isNotBlank(), resultSceneIdentity)
+        diagnosticNowMs = SystemClock.uptimeMillis()
+    }
+    DisposableEffect(diagnosticPlaybackController, revealHandoff?.key, resultSceneIdentity) {
+        onDispose {
+            diagnosticPlaybackController?.setResultGeometryState(
+                SceneGeometryState.PENDING,
+                SystemClock.uptimeMillis(),
+                resultSceneIdentity,
+            )
         }
     }
     val latestRevealKey = rememberUpdatedState(revealHandoff?.key)
     val latestImageId = rememberUpdatedState(image?.imageId)
     val latestRevealFinished = rememberUpdatedState(onRevealFinished)
-    val revealPresentationReady = if (resultFirstPresentedAtMs.value == null) {
-        revealStartReady
-    } else {
-        revealStartAllowed.value
+    var revealClaimResolved by remember(revealHandoff?.key) { mutableStateOf(revealAlreadyPlayed) }
+    LaunchedEffect(revealHandoff?.key, resultFirstPresentedAtMs.value, revealStartReady, revealAlreadyPlayed) {
+        val key = revealHandoff?.key ?: return@LaunchedEffect
+        if (resultFirstPresentedAtMs.value != null && revealStartReady && !revealAlreadyPlayed && !revealStartAllowed.value &&
+            latestRevealKey.value == key
+        ) {
+            revealStartAllowed.value = onClaimReveal(key)
+            revealClaimResolved = true
+        }
     }
-    val presentedHandoff = visualHandoff.takeIf { revealPresentationReady }
-    val revealFrameState = remember(presentedHandoff, revealMotionPolicy, effectiveRevealElapsedOverrideMs, revealElapsedState) {
+    val revealPresentationReady = resultFirstPresentedAtMs.value != null && resultGeometryReady &&
+        (revealMotionPolicy.reduceMotion || revealStartAllowed.value || revealAlreadyPlayed)
+    val revealPending = visualHandoff?.eligibility in setOf(RecognitionRevealEligibility.FULL_REVEAL, RecognitionRevealEligibility.TITLE_FADE_ONLY) &&
+        uiState == RecognitionUiState.RESULT_HIGH && !revealAlreadyPlayed && !geometryInvalid &&
+        !(resultFirstPresentedAtMs.value != null && resultGeometryReady &&
+            (revealMotionPolicy.reduceMotion || revealClaimResolved))
+    val presentedHandoff = visualHandoff.takeIf { revealPresentationReady || revealPending }
+    val frameMotionPolicy = if (revealPending && !revealPresentationReady) revealMotionPolicy.copy(reduceMotion = false) else revealMotionPolicy
+    val revealFrameState = remember(presentedHandoff, frameMotionPolicy, effectiveRevealElapsedOverrideMs, revealElapsedState) {
         derivedStateOf {
             RecognitionRevealClock.evaluate(
                 elapsedMs = effectiveRevealElapsedOverrideMs ?: revealElapsedState.value,
                 handoff = presentedHandoff,
-                policy = revealMotionPolicy,
+                policy = frameMotionPolicy,
             )
         }
     }
@@ -572,7 +624,7 @@ fun RecognitionResultScreen(
         effectiveRevealElapsedOverrideMs,
     ) {
         val handoff = revealHandoff ?: return@LaunchedEffect
-        if (effectiveRevealElapsedOverrideMs != null) return@LaunchedEffect
+        if (diagnosticPlaybackController != null || effectiveRevealElapsedOverrideMs != null) return@LaunchedEffect
         val startUptimeMs = resultFirstPresentedAtMs.value ?: return@LaunchedEffect
         if (!revealStartAllowed.value) return@LaunchedEffect
         Log.i(
@@ -731,11 +783,7 @@ fun RecognitionResultScreen(
             drawContent()
             val handoff = revealHandoff
             val frameImageId = image?.imageId
-            if (effectiveRevealElapsedOverrideMs == null &&
-                (visualHandoff?.eligibility != RecognitionRevealEligibility.FULL_REVEAL ||
-                    revealStartReady || geometryWaitExpired) &&
-                resultFirstFrameCallbackPosted.compareAndSet(false, true)
-            ) {
+            if (resultFirstFrameCallbackPosted.compareAndSet(false, true)) {
                 resultFrameHandler.post {
                     if (latestImageId.value == frameImageId && resultFirstPresentedAtMs.value == null) {
                         val presentedAtMs = SystemClock.uptimeMillis()
@@ -748,26 +796,20 @@ fun RecognitionResultScreen(
                             )
                         } else {
                             val sameHandoff = latestRevealKey.value == handoff.key
-                            val canAnimate = sameHandoff && revealStartReady && !revealMotionPolicy.reduceMotion &&
-                                !revealAlreadyPlayed && onClaimReveal(handoff.key)
-                            revealStartAllowed.value = canAnimate
                             val eligible = visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL ||
                                 visualHandoff?.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY
-                            if (canAnimate) {
-                                revealElapsedState.value = 0L
+                            if (sameHandoff && eligible) {
                                 Log.i(
                                     "RecognitionReveal",
-                                    "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} photoSha256=${handoff.photoSourceIdentity.substringAfterLast("sha256=")} uptimeMs=$presentedAtMs geometryReady=true hero=${heroSnapshot?.boundsInWindow} crop=${heroSnapshot?.cropRect} root=${rootBounds}",
+                                    "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} photoSha256=${handoff.photoSourceIdentity.substringAfterLast("sha256=")} uptimeMs=$presentedAtMs geometryReady=$resultGeometryReady hero=${heroSnapshot?.boundsInWindow} crop=${heroSnapshot?.cropRect} root=${rootBounds}",
                                 )
                             } else {
-                                revealElapsedState.value = RecognitionRevealClock.TOTAL_DURATION_MS
                                 val reason = when {
                                     !sameHandoff -> "HANDOFF_CHANGED_BEFORE_FIRST_FRAME"
                                     revealAlreadyPlayed -> "ALREADY_PLAYED"
                                     !eligible -> "INELIGIBLE"
                                     revealMotionPolicy.reduceMotion -> "REDUCE_MOTION"
-                                    !revealStartReady -> "FIRST_FRAME_GEOMETRY_NOT_READY"
-                                    else -> "PLAYBACK_ALREADY_CLAIMED"
+                                    else -> "STATIC_OR_INELIGIBLE"
                                 }
                                 Log.i(
                                     "RecognitionReveal",
@@ -830,9 +872,27 @@ fun RecognitionResultScreen(
                             widthDp = geometry.heroWidthDp,
                             enabled = !saveBusy,
                             revealFrameState = revealFrameState,
+                            holdNameUntilHandoff = !revealAlreadyPlayed &&
+                                (revealHandoff == null || revealHandoff.revealDecision !in setOf(
+                                    RecognitionRevealDecisionState.FISH_FOCUS_READY,
+                                    RecognitionRevealDecisionState.ORB_ONLY_READY,
+                                )),
                             onTitleBounds = { revealTitleBounds = it },
                             onChange = { openSpeciesSelector() },
                         )
+                        if (geometryInvalid || (geometryWaitExpired && !resultGeometryReady)) {
+                            Text(
+                                text = if (geometryInvalid) {
+                                    "Result 几何不可用 · 当前显示静态结果"
+                                } else {
+                                    "正在等待 Result 几何 · 就绪后继续水光揭晓"
+                                },
+                                color = Color(0xFF7C6A4B),
+                                fontSize = 11.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin, vertical = 2.dp),
+                            )
+                        }
                         Spacer(Modifier.height(8.dp))
                         ResultMetadataStrip(
                             length = lengthText,
@@ -1010,11 +1070,16 @@ fun RecognitionResultScreen(
             hostBounds?.let { WaterLightGeometryVersion.withHostBounds(base, it.left, it.top, it.right, it.bottom) }
                 ?: base
         } ?: 0L
+        val resultSceneFrame = if (diagnosticPlaybackController != null && revealHandoff != null && image != null) {
+            diagnosticPlaybackController.currentFrame(
+                resultSceneIdentity, diagnosticNowMs, geometryVersion, revealMotionPolicy.reduceMotion,
+            )
+        } else null
         val resultFrame = WaterLightFrame(
             sessionId = presentedHandoff?.key?.recognitionSessionId.orEmpty(),
             photoSha256 = image?.photoSha256,
-            elapsedMs = revealFrameState.value.elapsedMs.coerceAtLeast(0L),
-            opticalReferenceElapsedMs = (2800L + revealFrameState.value.elapsedMs).coerceAtLeast(0L),
+            elapsedMs = resultSceneFrame?.sceneElapsedMs ?: revealFrameState.value.elapsedMs.coerceAtLeast(0L),
+            opticalReferenceElapsedMs = resultSceneFrame?.opticalReferenceElapsedMs ?: (2800L + revealFrameState.value.elapsedMs).coerceAtLeast(0L),
             phase = if (hostType == WaterLightHost.RESIDUE) WaterLightPhase.RESIDUE else WaterLightPhase.HANDOFF,
             completion = (revealFrameState.value.elapsedMs / 850f).coerceIn(0f, 1f),
             reducedMotion = revealMotionPolicy.reduceMotion,
@@ -1022,6 +1087,8 @@ fun RecognitionResultScreen(
             attemptId = presentedHandoff?.key?.recognitionAttemptId.orEmpty(),
             imageId = image?.imageId.orEmpty(),
             photoContentVersion = resultPhoto?.generationId?.toLong() ?: 0L,
+            eventSequence = resultSceneFrame?.eventSequence ?: 0L,
+            sceneFrameOverride = resultSceneFrame,
         )
         val resultWaterEngine = remember(presentedHandoff?.key, image?.imageId) { UnifiedWaterLightEngine() }
         resultWaterEngine.activate(resultFrame)
@@ -1033,7 +1100,7 @@ fun RecognitionResultScreen(
             RecognitionRevealPhase.PHOTO_CONTINUITY,
             RecognitionRevealPhase.ORB_RETURN -> revealGeometry?.orbReturnPathLocal
             RecognitionRevealPhase.ORB_TO_NAME -> revealGeometry?.orbToGlyphPathLocal
-            RecognitionRevealPhase.SPECIES_NAME_REVEAL -> null
+            RecognitionRevealPhase.SPECIES_NAME_REVEAL -> revealGeometry?.glyphResiduePathLocal
             RecognitionRevealPhase.RESIDUE_SETTLE -> revealGeometry?.glyphResiduePathLocal
             RecognitionRevealPhase.COMPLETE -> null
         }
@@ -1063,8 +1130,16 @@ fun RecognitionResultScreen(
             resultFrame.imageId,
             resultEnergyEvent?.feedback,
             resultEnergyEvent?.pathId,
+            resultEnergyEvent?.eventSequence,
+            resultEnergyEvent?.level?.let { it >= .999f },
         ) {
             val event = resultEnergyEvent ?: return@LaunchedEffect
+            if (event.level >= .999f && resultSceneFrame != null) {
+                val accepted = diagnosticPlaybackController?.recordEnergyEvent(resultSceneFrame, event) == true
+                if (accepted && event.feedback == EnergyFeedback.SETTLE) {
+                    latestRevealFinished.value.invoke(RecognitionRevealKey(event.sessionId, event.attemptId))
+                }
+            }
             Log.i(
                 "WaterLightEnergy",
                 "ENERGY_EVENT session=${event.sessionId} attempt=${event.attemptId} image=${event.imageId} " +
@@ -1093,7 +1168,10 @@ fun RecognitionResultScreen(
             val stage = diagnosticStage
             val reference = diagnosticReferenceMs ?: RecognitionSceneCoordinator.PROCESSING_END_MS
             val stepStatus = when {
-                !revealStartReady && diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC -> "等待Result几何"
+                diagnosticFrame?.modelGates?.waitingReason == "WAITING_FOR_RESULT_GEOMETRY" -> "等待 Result / Orb / Glyph 几何"
+                diagnosticFrame?.modelGates?.waitingReason == "WAITING_FOR_REAL_CLASSIFIER_GLYPH" -> "等待真实鱼种 Glyph"
+                diagnosticFrame?.modelGates?.waitingReason != null -> "等待：${diagnosticFrame?.modelGates?.waitingReason}"
+                !revealStartReady && diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC -> "等待 Result 几何"
                 visualHandoff?.eligibility != RecognitionRevealEligibility.FULL_REVEAL -> "真实HIGH降级/等待 Trusted Mask"
                 else -> "进行中"
             }
@@ -1112,19 +1190,22 @@ fun RecognitionResultScreen(
                     productionResult != null -> "未通过"
                     else -> "等待"
                 },
+                slimSamStatus = diagnosticFrame?.modelGates?.slimSam?.name ?: "PENDING",
                 maskStatus = when {
                     revealHandoff?.geometryTrustState == RecognitionGeometryTrustState.TRUSTED_MASK -> "Mask TRUSTED"
                     subjectResult.status == SubjectStatus.PROCESSING -> "Mask 计算中"
                     subjectResult.status == SubjectStatus.FAILED -> "Mask 失败 · BBOX_ONLY"
                     else -> revealHandoff?.geometryTrustState?.name ?: "Mask不可用"
                 },
+                geometryStatus = diagnosticFrame?.modelGates?.geometry?.name ?: "PENDING",
+                sceneStatus = diagnosticFrame?.modelGates?.runState?.name ?: "WAITING",
                 stepStatus = stepStatus,
                 normalProgressText = if (diagnosticDisplayMode == RecognitionProgressDisplayMode.NORMAL_PROGRESS) {
                     "真实识别进度 · RR09 ${revealElapsedState.value.coerceAtMost(RecognitionRevealClock.TOTAL_DURATION_MS)}ms / 850ms"
                 } else "",
-                canGoPrevious = stage.ordinal > RecognitionSceneStage.PHOTO_STABLE.ordinal,
-                canGoNext = stage != RecognitionSceneStage.RESIDUE_SETTLE,
-                canControl = true,
+                canGoPrevious = playback.canControl() && stage.ordinal > RecognitionSceneStage.PHOTO_STABLE.ordinal,
+                canGoNext = playback.canControl() && stage != RecognitionSceneStage.RESIDUE_SETTLE,
+                canControl = playback.canControl(),
                 onDisplayModeChange = ::changeDiagnosticDisplayMode,
                 onPrevious = {
                     val now = SystemClock.uptimeMillis()
@@ -1167,7 +1248,7 @@ fun RecognitionResultScreen(
                 },
                 onAutoPlay = {
                     val now = SystemClock.uptimeMillis()
-                    playback.playProductionTimeline(reference, now)
+                    playback.playDiagnosticAuto(reference, now)
                     diagnosticNowMs = now
                 },
             )
@@ -1346,6 +1427,7 @@ private fun SpeciesIdentityRow(
     scientificName: String? = null,
     enabled: Boolean = true,
     revealFrameState: State<RecognitionRevealFrame>? = null,
+    holdNameUntilHandoff: Boolean = false,
     onTitleBounds: ((RecognitionRevealWindowRect) -> Unit)? = null,
     onChange: () -> Unit,
 ) {
@@ -1357,9 +1439,9 @@ private fun SpeciesIdentityRow(
     val speciesDisplayName = resultSpeciesDisplayName(speciesName)
     var speciesGlyphPath by remember(speciesDisplayName, compactTitle, widthDp) { mutableStateOf<android.graphics.Path?>(null) }
     val glyphReveal = remember(speciesDisplayName) { com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal() }
-    val showScientificName = revealFrame == null ||
+    val showScientificName = !holdNameUntilHandoff && (revealFrame == null ||
         revealFrame.elapsedMs >= RecognitionRevealClock.TOTAL_DURATION_MS ||
-        revealTitleMode == RecognitionRevealTitleMode.STATIC
+        revealTitleMode == RecognitionRevealTitleMode.STATIC)
     val visibleTitleAlpha = if (showScientificName) 1f else 0f
     Row(
         Modifier
@@ -1379,6 +1461,7 @@ private fun SpeciesIdentityRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawWithContent {
+                        if (holdNameUntilHandoff) return@drawWithContent
                         val settled = revealTitleMode == RecognitionRevealTitleMode.STATIC ||
                             revealTitleMode == RecognitionRevealTitleMode.VISIBLE
                         if (settled) drawContent() else speciesGlyphPath?.let { glyph ->
@@ -1386,6 +1469,7 @@ private fun SpeciesIdentityRow(
                                 mode = revealTitleMode,
                                 formationProgress = revealFormationProgress,
                                 revealProgress = revealProgress,
+                                sweepProgress = revealFrame?.titleSweepProgress ?: revealProgress,
                             )
                         }
                     }

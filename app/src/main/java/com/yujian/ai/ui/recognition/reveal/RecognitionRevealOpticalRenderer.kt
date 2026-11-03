@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
@@ -75,7 +77,6 @@ internal fun RecognitionRevealOpticalOverlay(
     val transferTail = remember { android.graphics.Path() }
     val sharedPhotoClipPath = remember { android.graphics.Path() }
     val transferPosition = remember { FloatArray(2) }
-    val transferTangent = remember { FloatArray(2) }
     val contourPosition = remember { FloatArray(2) }
     val mappedContourPosition = remember { FloatArray(2) }
     val transformValues = remember { FloatArray(9) }
@@ -102,7 +103,6 @@ internal fun RecognitionRevealOpticalOverlay(
     }
     val particlePaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val dotPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
-    val orbPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val waterGrassRenderer = remember { WaterGrassRenderer() }
 
     Box(canvasModifier) {
@@ -245,27 +245,6 @@ internal fun RecognitionRevealOpticalOverlay(
                     corePaint.strokeWidth = 3.4f * (1f + .9f * p)
                     canvas.drawPath(transferTail, corePaint)
                 }
-                if (orbToGlyphMeasure.getPosTan(distance, transferPosition, transferTangent)) {
-                    val radius = 22f
-                    val width = radius * 2f * (1f + 2.2f * p)
-                    val height = radius * 2f * (1f - .56f * p).coerceAtLeast(.38f)
-                    val angle = kotlin.math.atan2(transferTangent[1].toDouble(), transferTangent[0].toDouble())
-                    val save = canvas.save()
-                    canvas.rotate(Math.toDegrees(angle).toFloat(), transferPosition[0], transferPosition[1])
-                    orbPaint.shader = android.graphics.RadialGradient(
-                        transferPosition[0] - width * .18f, transferPosition[1] - height * .18f,
-                        width * .72f,
-                        intArrayOf(0xFFFFF7DE.toInt(), 0xFF72BAC0.toInt(), 0x8836828E.toInt(), android.graphics.Color.TRANSPARENT),
-                        null, android.graphics.Shader.TileMode.CLAMP,
-                    )
-                    orbPaint.alpha = (220 * (1f - p * .45f)).toInt()
-                    canvas.drawOval(
-                        RectF(transferPosition[0] - width / 2f, transferPosition[1] - height / 2f,
-                            transferPosition[0] + width / 2f, transferPosition[1] + height / 2f), orbPaint,
-                    )
-                    orbPaint.shader = null
-                    canvas.restoreToCount(save)
-                }
             }
 
             // Localized residue settles around the real title bounds and reaches zero at R5.
@@ -320,10 +299,11 @@ internal fun RecognitionRevealOpticalOverlay(
     }
     val orbDiameterPx = handoff.processingOrbCoreDiameterPx
     if (activeRevealGeometry != null && orbCenter != null && orbDiameterPx > 1f &&
-        frame.elapsedMs < RecognitionRevealClock.ORB_RETURN_END_MS
+        frame.elapsedMs < RecognitionRevealClock.ORB_TO_NAME_END_MS
     ) {
         val coreSize = with(density) { orbDiameterPx.toDp() }
         val outerSizePx = with(density) { (coreSize + 28.dp).toPx() }
+        val morph = frame.titleFormationProgress.coerceIn(0f, 1f)
         AIOrbCore(
             state = AIOrbVisualState.ORB_ACTIVE,
             modifier = Modifier.offset {
@@ -331,6 +311,13 @@ internal fun RecognitionRevealOpticalOverlay(
                     (orbCenter.first - outerSizePx / 2f).roundToInt(),
                     (orbCenter.second - outerSizePx / 2f).roundToInt(),
                 )
+            }.graphicsLayer {
+                // This remains the same measured Processing Orb; it stretches and
+                // releases its material toward the Glyph instead of being replaced by an oval.
+                transformOrigin = TransformOrigin.Center
+                scaleX = 1f + .62f * morph
+                scaleY = 1f - .32f * morph
+                alpha = 1f - morph
             },
             coreSize = coreSize,
             entranceElapsedMs = 900L,
