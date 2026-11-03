@@ -91,12 +91,14 @@ fun HomeScreen(
     onProfileClick: () -> Unit,
     onCatchClick: (String) -> Unit,
     layoutVariant: GeminiHomeLayoutVariant = GeminiHomeLayoutVariant.ADAPTIVE_V2,
+    initialSelectedCatchId: String? = null,
+    motionStateOverride: HomeMotionState? = null,
 ) {
     val view = LocalView.current
     val safeInsets = rememberSafeDrawingInsets()
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
-    val homeMotionState = rememberHomeMotionState()
+    val homeMotionState = motionStateOverride ?: rememberHomeMotionState()
     val emptyRuntimeAssets = rememberEmptyHomeRuntimeAssets(enabled = showEmptyState)
     val geminiRuntimeAssets = rememberGeminiNormalHomeRuntimeAssets(enabled = !showEmptyState)
 
@@ -171,6 +173,7 @@ fun HomeScreen(
                 runtimeAssets = geminiRuntimeAssets,
                 safeInsets = safeInsets,
                 layoutVariant = layoutVariant,
+                initialSelectedCatchId = initialSelectedCatchId,
                 modifier = Modifier.fillMaxSize(),
             )
         }

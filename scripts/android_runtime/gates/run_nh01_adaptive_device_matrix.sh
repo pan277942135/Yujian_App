@@ -8,7 +8,7 @@ set -uo pipefail
 : "${BUILD_SHA:?BUILD_SHA is required}"
 
 readonly TEST_CLASS="com.yujian.ai.ui.home.GeminiHomeDeviceMatrixTest#capturesActualWindowForScenario"
-readonly RECORD_SCENARIO="${YUJIAN_NH01_RECORD_SCENARIO:-two_unique_catches}"
+readonly RECORD_SCENARIO="${YUJIAN_NH01_RECORD_SCENARIO:-three_unique_catches}"
 readonly APP_APK="${YUJIAN_APP_APK:-build/runtime-apks/app-debug.apk}"
 readonly TEST_APK="${YUJIAN_TEST_APK:-build/runtime-apks/app-debug-androidTest.apk}"
 readonly RAW_DIR="$YUJIAN_EVIDENCE_DIR/nh01-adaptive-raw"
@@ -26,6 +26,11 @@ profiles=(
   "M04 360 640 1.0" "M05 360 640 1.3" "M06 360 640 1.5"
   "M07 390 844 1.0" "M08 390 844 1.3" "M09 390 844 1.5"
   "M10 430 932 1.0" "M11 430 932 1.3" "M12 430 932 1.5"
+  # Height boundaries are safe-content dp heights. API 28 app insets are measured in
+  # instrumentation; these physical heights assume the observed 24dp top + 24dp bottom.
+  "H499 360 547 1.0 499" "H500 360 548 1.0 500"
+  "H699 360 747 1.0 699" "H700 360 748 1.0 700"
+  "H839 360 887 1.0 839" "H840 360 888 1.0 840"
 )
 variants=("ADAPTIVE_V2" "V3_BASELINE")
 all_ok=1
@@ -320,7 +325,7 @@ if [[ -n "$selected_serial" ]]; then
 fi
 
 for row in "${profiles[@]}"; do
-  read -r profile width height font_scale <<< "$row"
+  read -r profile width height font_scale expected_safe_height_dp <<< "$row"
   requested="${width}x${height}"
   size_log="$LOG_DIR/${profile}_wm_size.log"
   density_log="$LOG_DIR/${profile}_wm_density.log"
@@ -397,6 +402,7 @@ PY
         -e expected_display_px "$requested" \
         -e source_sha "$BUILD_SHA" \
         -e scenario "$RECORD_SCENARIO" \
+        -e expected_safe_height_dp "$expected_safe_height_dp" \
         "$YUJIAN_INSTRUMENTATION_TARGET" > "$stdout" 2> "$stderr"
     else
       "${ADB[@]}" shell am instrument -w -r \
@@ -407,6 +413,7 @@ PY
         -e expected_display_px "$requested" \
         -e source_sha "$BUILD_SHA" \
         -e scenario "$RECORD_SCENARIO" \
+        -e expected_safe_height_dp "$expected_safe_height_dp" \
         "$YUJIAN_INSTRUMENTATION_TARGET" > "$stdout" 2> "$stderr"
     fi
     instrumentation_rc=$?

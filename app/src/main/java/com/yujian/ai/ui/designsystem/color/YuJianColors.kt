@@ -32,6 +32,9 @@ object YuJianColors {
     val GlassWhite = Color(0xC2FFFFFF)
     val GlassBorder = Color(0x8AFFFFFF)
     val DeepInk = DeepLakeBlue
+    // NH01 populated-home colors sampled from the current user-frozen V4 image.
+    val NormalHomeNavy = Color(0xFF01375B)
+    val NormalHomeAccentAqua = Color(0xFF4CCADB)
     val TextPrimary = DeepLakeBlue
     val TextSecondary = MistBlueGray
     val OnDark = LakeWhite

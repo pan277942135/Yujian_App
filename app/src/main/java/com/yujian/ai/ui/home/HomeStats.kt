@@ -47,10 +47,11 @@ internal fun resolveHomeStatValues(
         .filter(String::isNotBlank)
         .distinct()
         .size
-    val recordDays = validCatches
+    val localRecordDays = validCatches
         .mapNotNull(::catchDayKey)
         .distinct()
         .size
+    val recordDays = statistics.recordDays.takeIf { it > 0 } ?: localRecordDays
 
     return HomeStatValues(
         speciesCount = statistics.speciesCount.takeIf { it > 0 } ?: localSpeciesCount,

@@ -180,10 +180,10 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
 
         assertTrue("phone camera art grows beyond compact size", phone > compact)
         assertTrue("taller/wider phone camera art grows proportionally", tallPhone > phone)
-        assertTrue("large canvas receives larger camera art", wideCanvas > tallPhone)
-        assertEquals(80f, wideCanvas, 0.001f)
-        assertEquals(80f, extraWideViewport, 0.001f)
-        assertEquals("short viewports retain a visible minimum", 56f, shortViewport, 0.001f)
+        assertEquals("the frozen 360dp target is 85dp", 85f, geminiHomeCameraVisualSize(360f, 800f), 0.001f)
+        assertEquals("large canvases stay capped at 96dp", 96f, wideCanvas, 0.001f)
+        assertEquals("extra-wide canvases stay capped at 96dp", 96f, extraWideViewport, 0.001f)
+        assertEquals("short viewports use the height-derived size", 58.32f, shortViewport, 0.01f)
     }
 
     @Test
