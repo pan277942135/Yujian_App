@@ -133,6 +133,7 @@ import com.yujian.ai.ui.waterlight.renderer.WaterCausticsRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterDropletRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterLightEnergyPathRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterGrassField
+import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
 
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
@@ -1416,6 +1417,9 @@ fun RecognitionProcessingScene(
                 reduceMotion = motionPolicy.reduceMotion,
                 lowPerformance = motionPolicy.lowPerformance,
                 fromCamera = capture != null,
+                orbLifeState = if (waterLightFrame.opticalReferenceElapsedMs < 350L) {
+                    OrbRuntimeProfileV1.LifeState.S1_IDLE
+                } else OrbRuntimeProfileV1.LifeState.S2_ACTIVE,
                 waterLightFrame = waterLightFrame,
                 energyEvent = orbEnergyEvent,
                 waterLightMaterial = orbHost.material,

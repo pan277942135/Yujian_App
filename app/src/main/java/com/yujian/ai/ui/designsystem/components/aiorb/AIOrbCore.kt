@@ -1,52 +1,37 @@
 package com.yujian.ai.ui.designsystem.components.aiorb
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.annotation.DrawableRes
-import com.yujian.ai.BuildConfig
 import com.yujian.ai.R
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
-import com.yujian.ai.ui.waterlight.renderer.WaterGrassField
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
 import com.yujian.ai.ui.waterlight.renderer.OrbCoreOpticalEffects
 import com.yujian.ai.ui.waterlight.renderer.OrbFilamentRendererMode
-import com.yujian.ai.ui.waterlight.renderer.OrbFilamentPathMathV1
 import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
+import com.yujian.ai.ui.waterlight.renderer.OrbWakeBreathReleaseV11
+import com.yujian.ai.ui.waterlight.renderer.OrbGrassWarpProgramV11
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
 
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 /** The home button and its navigation handoff share one frozen visual identity. */
 object AIOrbCaptureVisualAssets {
@@ -87,7 +72,7 @@ fun AIOrbCore(
     waterLightFrame: WaterLightFrame? = null,
     energyEvent: EnergyEvent? = null,
     waterLightMaterial: WaterLightMaterialProfile = WaterLightMaterialProfile.ORB_LEGACY,
-    orbRendererMode: OrbFilamentRendererMode = if (BuildConfig.DEBUG) OrbFilamentRendererMode.ORB_V1_CANDIDATE else OrbFilamentRendererMode.LEGACY,
+    orbRendererMode: OrbFilamentRendererMode = OrbFilamentRendererMode.ORB_V1_CANDIDATE,
     orbLifeState: OrbRuntimeProfileV1.LifeState = OrbRuntimeProfileV1.LifeState.S2_ACTIVE,
     orbLifeAlpha: Float? = null,
     orbMotionEvent: OrbRuntimeProfileV1.MotionEvent = OrbRuntimeProfileV1.MotionEvent.NONE,
@@ -188,10 +173,8 @@ private fun OrbVisual(
     modifier: Modifier,
 ) {
     val frame = aiOrbMotionFrame(entranceElapsedMs, fromCamera, reduceMotion, completion)
-    val morph = frame.waterAlpha
     val ribbons = frame.ribbonOpening
     val settle = completion.coerceIn(0f, 1f)
-    val time = if (reduceMotion) 0f else elapsedMs / 1000f
     val sharedFrame = waterLightFrame ?: WaterLightFrame(
         sessionId = "", photoSha256 = null, elapsedMs = elapsedMs.coerceAtLeast(0L),
         opticalReferenceElapsedMs = elapsedMs.coerceAtLeast(0L), phase = WaterLightPhase.PROCESSING,
@@ -214,44 +197,39 @@ private fun OrbVisual(
     val effectiveMotionStartMs = if (activeEnergyEvent != null && orbMotionEvent == OrbRuntimeProfileV1.MotionEvent.NONE) {
         (sharedFrame.opticalReferenceElapsedMs - sharedFrame.sceneFrame.stageElapsedMs).coerceAtLeast(0L)
     } else orbMotionEventStartOpticalMs
-    val entranceLifeAlpha = when (orbLifeState) {
-        OrbRuntimeProfileV1.LifeState.S1_IDLE -> 0f
-        OrbRuntimeProfileV1.LifeState.S2_ACTIVE -> if (reduceMotion) 1f else {
-            val transition = ((entranceElapsedMs - 350L).toFloat() / OrbRuntimeProfileV1.R04_ACTIVE_TRANSITION_MS).coerceIn(0f, 1f)
-            transition * transition * (3f - 2f * transition)
+    val wake = OrbWakeBreathReleaseV11.wake(sharedFrame.opticalReferenceElapsedMs)
+    val lifeProgress = OrbWakeBreathReleaseV11.s2Progress(sharedFrame.opticalReferenceElapsedMs)
+    val candidateLifeAlpha = orbLifeAlpha ?: lifeProgress
+    val breath = OrbWakeBreathReleaseV11.breathScale(
+        sceneElapsedMs = sharedFrame.elapsedMs,
+        opticalReferenceElapsedMs = sharedFrame.opticalReferenceElapsedMs,
+        reducedMotion = reduceMotion,
+    )
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val coreTextureSizePx = with(density) { (coreSize / .84f).toPx() }
+    val grassWarp = remember(context, android.os.Build.VERSION.SDK_INT) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            runCatching { OrbGrassWarpProgramV11.create(context.applicationContext) }
+                .onFailure { android.util.Log.w("OrbGrassWarpV11", "R01B AGSL unavailable; source core and clipped light fallback active", it) }
+                .getOrNull()
+        } else {
+            android.util.Log.i("OrbGrassWarpV11", "API < 33 fallback: original static grass with scene-clock clipped light")
+            null
         }
     }
-    var previousLifeState by remember { mutableStateOf(orbLifeState) }
-    var lifeFromAlpha by remember { mutableFloatStateOf(entranceLifeAlpha) }
-    var lifeToAlpha by remember { mutableFloatStateOf(entranceLifeAlpha) }
-    var lifeTransitionStartMs by remember { mutableLongStateOf(Long.MIN_VALUE) }
-    var lifeTransitionDurationMs by remember { mutableLongStateOf(OrbRuntimeProfileV1.R04_ACTIVE_TRANSITION_MS) }
-    var lastLifeAlpha by remember { mutableFloatStateOf(entranceLifeAlpha) }
-    val clockDrivenLifeAlpha = if (lifeTransitionStartMs == Long.MIN_VALUE) entranceLifeAlpha else {
-        OrbFilamentPathMathV1.smoothTransitionAlpha(
-            lifeFromAlpha,
-            lifeToAlpha,
-            (sharedFrame.opticalReferenceElapsedMs - lifeTransitionStartMs).coerceAtLeast(0L),
-            lifeTransitionDurationMs,
-        )
-    }
-    SideEffect {
-        if (orbLifeAlpha == null) {
-            if (orbLifeState != previousLifeState) {
-                lifeFromAlpha = lastLifeAlpha
-                lifeToAlpha = if (orbLifeState == OrbRuntimeProfileV1.LifeState.S1_IDLE) 0f else 1f
-                lifeTransitionStartMs = sharedFrame.opticalReferenceElapsedMs
-                lifeTransitionDurationMs = if (orbLifeState == OrbRuntimeProfileV1.LifeState.S1_IDLE) {
-                    OrbRuntimeProfileV1.R04_RETURN_TRANSITION_MS
-                } else OrbRuntimeProfileV1.R04_ACTIVE_TRANSITION_MS
-                previousLifeState = orbLifeState
-            } else if (lastLifeAlpha != clockDrivenLifeAlpha) {
-                lastLifeAlpha = clockDrivenLifeAlpha
+    DisposableEffect(grassWarp) {
+        onDispose {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                grassWarp?.close()
             }
         }
     }
-    val candidateLifeAlpha = orbLifeAlpha ?: clockDrivenLifeAlpha
-    val breath = if (reduceMotion) 1f else 1f + .018f * sin(time * (2f * PI.toFloat() / 4.2f))
+    SideEffect {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            grassWarp?.update(if (reduceMotion) 0L else sharedFrame.elapsedMs, lifeProgress, wake.grassLight, coreTextureSizePx)
+        }
+    }
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
             scaleX = (1f - .18f * settle) * breath
@@ -263,79 +241,41 @@ private fun OrbVisual(
         OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
             orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
             activeEnergyEvent, releaseEnergy, returnEnergy)
-        if (fromCamera && morph < 1f) {
+        Image(
+            painter = painterResource(R.drawable.processing_water_core_v1),
+            contentDescription = null,
+            modifier = Modifier.size(coreSize / .84f).graphicsLayer {
+                alpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
+                scaleX = 1f
+                scaleY = 1f
+                grassWarp?.let { renderEffect = it.renderEffect }
+            },
+        )
+        OrbCoreOpticalEffects(
+            coreSize = coreSize,
+            frame = sharedFrame,
+            coreAlpha = 1f,
+            coreScale = 1f,
+            low = lowPerformance,
+            lifeState = orbLifeState,
+            candidate = orbRendererMode == OrbFilamentRendererMode.ORB_V1_CANDIDATE,
+            wake = wake,
+            showDroplets = orbShowDroplets,
+            showSunlight = orbShowSunlight,
+            showCaustics = orbShowCaustics,
+        )
+        if (fromCamera && frame.cameraHeroAlpha > 0f) {
             Image(
                 painter = painterResource(R.drawable.ai_orb_camera_activated_v1),
                 contentDescription = null,
                 modifier = Modifier.size(coreSize).graphicsLayer {
-                    alpha = 1f - morph
+                    alpha = frame.cameraHeroAlpha
                     val press = if (entranceElapsedMs < 150L) 1f - .04f * (entranceElapsedMs / 150f) else .96f
                     scaleX = press
                     scaleY = press
                 },
             )
         }
-        Image(
-            painter = painterResource(R.drawable.processing_water_core_v1),
-            contentDescription = null,
-            modifier = Modifier.size(coreSize / .84f).graphicsLayer {
-                alpha = (morph * (1f - orbEnergyDepletion + .22f * returnEnergy)).coerceIn(0f, 1f)
-                scaleX = .92f + .08f * morph
-                scaleY = scaleX
-            },
-        )
-        waterLightFrame?.let { frame ->
-            WaterGrassField(
-                frame = frame,
-                modifier = Modifier.size(coreSize * .58f),
-                material = waterLightMaterial,
-                opacity = .24f,
-                seed = frame.sessionId.hashCode().toLong() xor frame.imageId.hashCode().toLong(),
-                energyEvent = activeEnergyEvent,
-            )
-        }
-        if (orbRendererMode == OrbFilamentRendererMode.LEGACY) Canvas(Modifier.fillMaxSize()) {
-            if (morph <= 0f) return@Canvas
-            val radius = coreSize.toPx() * .48f
-            val mask = Path().apply {
-                addOval(androidx.compose.ui.geometry.Rect(center - Offset(radius, radius), center + Offset(radius, radius)))
-            }
-            clipPath(mask) {
-                val glint = center + Offset(sin(time * .7f) * radius * .35f, -radius * .45f)
-                drawCircle(
-                    Brush.radialGradient(
-                        listOf(Color(0xFFECF9EE).copy(alpha = (.20f + .18f * returnEnergy) * morph), Color.Transparent),
-                        glint,
-                        radius * .9f,
-                    ),
-                    radius,
-                    center,
-                )
-                repeat(if (lowPerformance) 2 else 4) { i ->
-                    val path = Path()
-                    val y = center.y - radius * .7f + radius * .44f * i
-                    path.moveTo(center.x - radius, y)
-                    path.cubicTo(
-                        center.x - radius * .3f, y + sin(time + i) * radius * .28f,
-                        center.x + radius * .4f, y - cos(time * .8f + i) * radius * .25f,
-                        center.x + radius, y + radius * .18f,
-                    )
-                    drawPath(path, Color(0xFFB5E6DF).copy(alpha = .16f * morph * (1f + .22f * returnEnergy)), style = Stroke(.7.dp.toPx()))
-                }
-            }
-        }
-        OrbCoreOpticalEffects(
-            coreSize = coreSize,
-            frame = sharedFrame,
-            coreAlpha = morph,
-            coreScale = .92f + .08f * morph,
-            low = lowPerformance,
-            lifeState = orbLifeState,
-            candidate = orbRendererMode == OrbFilamentRendererMode.ORB_V1_CANDIDATE,
-            showDroplets = orbShowDroplets,
-            showSunlight = orbShowSunlight,
-            showCaustics = orbShowCaustics,
-        )
         OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
             orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
             activeEnergyEvent, releaseEnergy, returnEnergy)

@@ -43,14 +43,24 @@ import kotlin.math.sqrt
 
 /** Orb-only bridge to the pinned field sampler; this does not reuse photo sizing or masks. */
 internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoCloseable {
-    private data class CacheKey(val sizePx: Int, val profileVersion: String, val low: Boolean)
+    private data class CacheKey(
+        val sessionId: String,
+        val attemptId: String,
+        val imageId: String,
+        val photoSha256: String?,
+        val photoContentVersion: Long,
+        val geometryVersion: Long,
+        val sizePx: Int,
+        val profileVersion: String,
+        val low: Boolean,
+    )
 
     private val lock = Any()
     private var bitmaps: Array<Bitmap>? = null
     private var front = 0
     private var pixels: IntArray? = null
     private var key: CacheKey? = null
-    private var lastRequestedOpticalMs = Long.MIN_VALUE
+    private var lastRequestedSceneMs = Long.MIN_VALUE
     private var generation = 0L
     private var job: Job? = null
     private var closed = false
@@ -65,8 +75,12 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
         val textureBase = if (low) OrbRuntimeProfileV1.CAUSTIC_LOW_TEXTURE_PX_80DP else OrbRuntimeProfileV1.CAUSTIC_NORMAL_TEXTURE_PX_80DP
         val size = (textureBase * coreSizeDp / 80f).roundToInt().coerceAtLeast(1)
         val minInterval = if (low) OrbRuntimeProfileV1.CAUSTIC_LOW_MIN_INTERVAL_MS else OrbRuntimeProfileV1.CAUSTIC_NORMAL_MIN_INTERVAL_MS
-        val elapsedMs = if (frame.reducedMotion) 0L else frame.opticalReferenceElapsedMs
-        val cacheKey = CacheKey(size, OrbRuntimeProfileV1.PROFILE_VERSION, low)
+        val elapsedMs = if (frame.reducedMotion) 0L else frame.elapsedMs
+        val cacheKey = CacheKey(
+            frame.sessionId, frame.attemptId, frame.imageId, frame.photoSha256,
+            frame.photoContentVersion, frame.geometryVersion, size,
+            OrbRuntimeProfileV1.PROFILE_VERSION, low,
+        )
         synchronized(lock) {
             if (closed) return
             if (key != cacheKey) {
@@ -79,12 +93,12 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
                 pixels = IntArray(size * size)
                 front = 0
                 key = cacheKey
-                lastRequestedOpticalMs = Long.MIN_VALUE
+                lastRequestedSceneMs = Long.MIN_VALUE
             }
             if (job?.isActive == true) return
-            if (lastRequestedOpticalMs != Long.MIN_VALUE && elapsedMs >= lastRequestedOpticalMs &&
-                elapsedMs - lastRequestedOpticalMs < minInterval) return
-            lastRequestedOpticalMs = elapsedMs
+            if (lastRequestedSceneMs != Long.MIN_VALUE && elapsedMs >= lastRequestedSceneMs &&
+                elapsedMs - lastRequestedSceneMs < minInterval) return
+            lastRequestedSceneMs = elapsedMs
             val targetGeneration = generation
             val targetPixels = pixels ?: return
             job = scope.launch(Dispatchers.Default) {
@@ -195,7 +209,7 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
         bitmaps = null
         pixels = null
         key = null
-        lastRequestedOpticalMs = Long.MIN_VALUE
+        lastRequestedSceneMs = Long.MIN_VALUE
     }
 }
 
@@ -209,6 +223,7 @@ internal fun OrbCoreOpticalEffects(
     low: Boolean,
     lifeState: OrbRuntimeProfileV1.LifeState,
     candidate: Boolean,
+    wake: OrbWakeBreathReleaseV11.Wake,
     showDroplets: Boolean = true,
     showSunlight: Boolean = true,
     showCaustics: Boolean = true,
@@ -257,10 +272,13 @@ internal fun OrbCoreOpticalEffects(
                 (native.height + coreSize.value * density.density * .77f) / 2f)
             val effectSave = native.saveLayer(effectBounds, additiveBudgetPaint)
             try {
-                if (showCaustics) caustics.withFrontBitmap { bitmap -> native.drawBitmap(bitmap, null, causticRect, causticPaint) }
-                if (showSunlight) sunlight.draw(native, coreSize.value * density.density, frame)
+                if (showCaustics && wake.waterCore > 0f) {
+                    causticPaint.alpha = (255f * wake.waterCore).toInt().coerceIn(0, 255)
+                    caustics.withFrontBitmap { bitmap -> native.drawBitmap(bitmap, null, causticRect, causticPaint) }
+                }
+                if (showSunlight) sunlight.draw(native, coreSize.value * density.density, frame, wake.optics)
                 if (showDroplets) droplets.draw(native, frame, coreSize.value, density.density, low,
-                    if (lifeState == OrbRuntimeProfileV1.LifeState.S1_IDLE) .35f else 1f)
+                    if (lifeState == OrbRuntimeProfileV1.LifeState.S1_IDLE) .35f else 1f, wake.waterCore)
                 // Alpha from the very same transparent core resource clips every internal layer.
                 val maskRect = Rect((native.width / 2f - boxSize / 2f).toInt(),
                     (native.height / 2f - boxSize / 2f).toInt(),
@@ -297,16 +315,16 @@ internal class OrbSunlightRenderer {
     }
     private val path = android.graphics.Path()
 
-    fun draw(canvas: Canvas, coreSizePx: Float, frame: WaterLightFrame) {
-        val opticalMs = if (frame.reducedMotion) 0L else frame.opticalReferenceElapsedMs
+    fun draw(canvas: Canvas, coreSizePx: Float, frame: WaterLightFrame, wakeAlpha: Float) {
+        val sceneMs = if (frame.reducedMotion) 0L else frame.elapsedMs
         val radius = coreSizePx * .5f
         val sourceX = canvas.width * .5f + (OrbRuntimeProfileV1.R03_SUN_SOURCE_U - .5f) * coreSizePx
         val sourceY = canvas.height * .5f + (OrbRuntimeProfileV1.R03_SUN_SOURCE_V - .5f) * coreSizePx
-        val glintPhase = (2f * Math.PI.toFloat() * opticalMs / OrbRuntimeProfileV1.R03_GLASS_SPECULAR_PERIOD_MS)
-        val translation = sin(glintPhase) * OrbRuntimeProfileV1.R03_GLASS_MAX_TRANSLATION_D * coreSizePx
-        val glintAlpha = (.5f + .5f * sin(glintPhase)) * OrbRuntimeProfileV1.R03_GLASS_SPECULAR_ALPHA_MAX
-        val refractionPhase = (2f * Math.PI.toFloat() * opticalMs / OrbRuntimeProfileV1.R03_CORE_REFRACTION_PERIOD_MS)
-        val refractionAlpha = (.45f + .55f * (.5f + .5f * sin(refractionPhase))) * OrbRuntimeProfileV1.R03_CORE_REFRACTION_ALPHA_MAX
+        val glintPhase = (2f * Math.PI.toFloat() * sceneMs / OrbRuntimeProfileV1.R03_GLASS_SPECULAR_PERIOD_MS)
+        val translation = 0f // Keep the R03 source fixed in the upper-left; only local brightness breathes.
+        val glintAlpha = (.5f + .5f * sin(glintPhase)) * OrbRuntimeProfileV1.R03_GLASS_SPECULAR_ALPHA_MAX * wakeAlpha
+        val refractionPhase = (2f * Math.PI.toFloat() * sceneMs / OrbRuntimeProfileV1.R03_CORE_REFRACTION_PERIOD_MS)
+        val refractionAlpha = (.45f + .55f * (.5f + .5f * sin(refractionPhase))) * OrbRuntimeProfileV1.R03_CORE_REFRACTION_ALPHA_MAX * wakeAlpha
         val save = canvas.save()
         try {
             canvas.translate(sourceX + translation * .707f, sourceY + translation * .707f)

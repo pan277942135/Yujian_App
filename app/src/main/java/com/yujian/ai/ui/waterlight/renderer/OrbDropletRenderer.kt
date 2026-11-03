@@ -37,9 +37,17 @@ internal class OrbDropletRenderer {
     private val glint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
     private val glintRect = RectF()
 
-    fun draw(canvas: Canvas, frame: WaterLightFrame, coreSizeDp: Float, density: Float, low: Boolean, lifeAlpha: Float) {
+    fun draw(
+        canvas: Canvas,
+        frame: WaterLightFrame,
+        coreSizeDp: Float,
+        density: Float,
+        low: Boolean,
+        lifeAlpha: Float,
+        wakeAlpha: Float,
+    ) {
         if (coreSizeDp <= 0f || density <= 0f || lifeAlpha <= 0f) return
-        val opticalMs = if (frame.reducedMotion) 0L else frame.opticalReferenceElapsedMs
+        val sceneMs = if (frame.reducedMotion) 0L else frame.elapsedMs
         val count = if (low) OrbRuntimeProfileV1.R02_LOW_PERFORMANCE_COUNT else OrbRuntimeProfileV1.droplets.size
         val centerX = canvas.width * .5f
         val centerY = canvas.height * .5f
@@ -47,7 +55,7 @@ internal class OrbDropletRenderer {
         val radius = coreSizePx * .5f
         val stateAlpha = .35f + .65f * lifeAlpha.coerceIn(0f, 1f)
         OrbRuntimeProfileV1.droplets.take(count).forEach { drop ->
-            val phase = drop.phase + opticalMs.toDouble() / drop.periodMs
+            val phase = drop.phase + sceneMs.toDouble() / drop.periodMs
             val wave = (2.0 * PI * phase).toFloat()
             val dx = sin(wave * .83f) * .007f
             val dy = sin(wave) * .012f
@@ -55,7 +63,7 @@ internal class OrbDropletRenderer {
             val y = centerY + ((drop.v - .5f) * 2f + dy) * radius
             val scale = coreSizeDp / 80f
             val dropletDiameter = drop.diameterDpAt80 * scale * density
-            val opacity = stateAlpha
+            val opacity = stateAlpha * (.25f + .75f * wakeAlpha.coerceIn(0f, 1f))
             body.alpha = (255f * drop.bodyAlpha * opacity).toInt().coerceIn(0, 255)
             lens.alpha = (255f * drop.bodyAlpha * opacity).toInt().coerceIn(0, 255)
             rim.alpha = (255f * drop.rimAlpha * opacity).toInt().coerceIn(0, 255)

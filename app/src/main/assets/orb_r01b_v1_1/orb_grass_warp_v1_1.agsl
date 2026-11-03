@@ -1,0 +1,145 @@
+uniform shader inputImage;
+uniform shader maskBackB1;
+uniform shader maskBackB2;
+uniform shader maskFrontF1;
+uniform shader maskFrontF2;
+uniform float2 surfaceSize;
+uniform float maskSize;
+uniform float sceneSeconds;
+uniform float s2Progress;
+uniform float grassLight;
+uniform float visibleDiameterRatio;
+
+float2 bezier(float2 p0, float2 p1, float2 p2, float2 p3, float t) {
+    float inv = 1.0 - t;
+    return inv * inv * inv * p0 + 3.0 * inv * inv * t * p1 +
+        3.0 * inv * t * t * p2 + t * t * t * p3;
+}
+
+float2 bezierTangent(float2 p0, float2 p1, float2 p2, float2 p3, float t) {
+    float inv = 1.0 - t;
+    return 3.0 * inv * inv * (p1 - p0) + 6.0 * inv * t * (p2 - p1) +
+        3.0 * t * t * (p3 - p2);
+}
+
+float closestT(float2 point, float2 p0, float2 p1, float2 p2, float2 p3) {
+    float bestT = 0.0;
+    float bestD = 1000.0;
+    for (int i = 0; i <= 12; i++) {
+        float t = float(i) / 12.0;
+        float d = dot(bezier(p0, p1, p2, p3, t) - point,
+                      bezier(p0, p1, p2, p3, t) - point);
+        if (d < bestD) { bestD = d; bestT = t; }
+    }
+    float lo = max(0.0, bestT - 0.085);
+    float hi = min(1.0, bestT + 0.085);
+    for (int j = 0; j < 5; j++) {
+        float a = mix(lo, hi, 0.3333333);
+        float b = mix(lo, hi, 0.6666667);
+        float da = dot(bezier(p0, p1, p2, p3, a) - point,
+                       bezier(p0, p1, p2, p3, a) - point);
+        float db = dot(bezier(p0, p1, p2, p3, b) - point,
+                       bezier(p0, p1, p2, p3, b) - point);
+        if (da < db) hi = b; else lo = a;
+    }
+    return (lo + hi) * 0.5;
+}
+
+float arcLength(float2 p0, float2 p1, float2 p2, float2 p3, float endT) {
+    float2 previous = p0;
+    float total = 0.0;
+    for (int i = 1; i <= 12; i++) {
+        float t = endT * float(i) / 12.0;
+        float2 current = bezier(p0, p1, p2, p3, t);
+        total += length(current - previous);
+        previous = current;
+    }
+    return total;
+}
+
+float leafS(float2 point, float2 p0, float2 p1, float2 p2, float2 p3, out float t) {
+    t = closestT(point, p0, p1, p2, p3);
+    return clamp(arcLength(p0, p1, p2, p3, t) /
+        max(arcLength(p0, p1, p2, p3, 1.0), 0.00001), 0.0, 1.0);
+}
+
+float bendEnvelope(float s) {
+    return pow(smoothstep(0.10, 1.0, s), 1.6);
+}
+
+float2 bend(float2 uv, float2 p0, float2 p1, float2 p2, float2 p3,
+            float period, float phaseDeg, float amplitudeD, out float s, out float2 normal) {
+    float t;
+    s = leafS(uv, p0, p1, p2, p3, t);
+    float2 tangent = normalize(bezierTangent(p0, p1, p2, p3, t));
+    normal = float2(-tangent.y, tangent.x);
+    float phase = 6.28318530718 * sceneSeconds / period + radians(phaseDeg);
+    float amplitude = mix(0.005, amplitudeD, s2Progress);
+    return normal * sin(phase) * amplitude * visibleDiameterRatio * bendEnvelope(s);
+}
+
+void addLeaf(float maskAlpha, float2 leafDisplacement, float s, float2 pathNormal, float2 uv,
+             inout float2 weightedDisplacement, inout float coverage,
+             inout float lightResponse, inout float tipGlint) {
+    if (maskAlpha <= 0.001) return;
+    float2 lightDirection = normalize(float2(0.70710678, 0.70710678));
+    // Sun is fixed at the upper-left; this term only changes leaf reflectance.
+    float facing = max(dot(pathNormal, lightDirection), 0.0);
+    weightedDisplacement += leafDisplacement * maskAlpha;
+    coverage += maskAlpha;
+    lightResponse += maskAlpha * facing * grassLight * 0.10;
+    tipGlint += maskAlpha * pow(s, 7.0) * (0.5 + 0.5 * sin(sceneSeconds * 2.0 + uv.x * 5.0)) * grassLight * 0.12;
+}
+
+half4 main(float2 coord) {
+    float2 uv = coord / max(surfaceSize, float2(1.0));
+    float2 maskCoord = uv * maskSize;
+    float2 weightedDisplacement = float2(0.0);
+    float coverage = 0.0;
+    float lightResponse = 0.0;
+    float tipGlint = 0.0;
+
+    float mB1 = clamp(maskBackB1.eval(maskCoord).r, 0.0, 1.0);
+    if (mB1 > 0.001) {
+        float s;
+        float2 normal;
+        float2 d = bend(uv, float2(0.689793,0.527113), float2(0.720893,0.438596),
+            float2(0.666667,0.296651), float2(0.602073,0.259968), 6.2, 0.0, 0.018, s, normal);
+        addLeaf(mB1, d, s, normal, uv, weightedDisplacement, coverage, lightResponse, tipGlint);
+    }
+    float mB2 = clamp(maskBackB2.eval(maskCoord).r, 0.0, 1.0);
+    if (mB2 > 0.001) {
+        float s;
+        float2 normal;
+        float2 d = bend(uv, float2(0.650718,0.757576), float2(0.746411,0.635566),
+            float2(0.767145,0.491228), float2(0.747209,0.384370), 6.2, 100.0, 0.018, s, normal);
+        addLeaf(mB2, d, s, normal, uv, weightedDisplacement, coverage, lightResponse, tipGlint);
+    }
+    float mF1 = clamp(maskFrontF1.eval(maskCoord).r, 0.0, 1.0);
+    if (mF1 > 0.001) {
+        float s;
+        float2 normal;
+        float2 d = bend(uv, float2(0.401914,0.749601), float2(0.279904,0.637959),
+            float2(0.185008,0.524721), float2(0.164274,0.396332), 4.8, 120.0, 0.030, s, normal);
+        addLeaf(mF1, d, s, normal, uv, weightedDisplacement, coverage, lightResponse, tipGlint);
+    }
+    float mF2 = clamp(maskFrontF2.eval(maskCoord).r, 0.0, 1.0);
+    if (mF2 > 0.001) {
+        float s;
+        float2 normal;
+        float2 d = bend(uv, float2(0.491228,0.775917), float2(0.382775,0.735247),
+            float2(0.275120,0.649123), float2(0.208931,0.573365), 4.8, 240.0, 0.027, s, normal);
+        addLeaf(mF2, d, s, normal, uv, weightedDisplacement, coverage, lightResponse, tipGlint);
+    }
+
+    half4 original = inputImage.eval(coord);
+    float2 displacement = weightedDisplacement / max(coverage, 0.00001);
+    float2 displacedCoord = clamp(coord - displacement * surfaceSize, float2(0.0), surfaceSize);
+    half4 displaced = inputImage.eval(displacedCoord);
+    half4 color = mix(original, displaced, half(clamp(coverage, 0.0, 1.0)));
+    float3 sunlightTint = float3(0.6627451, 0.8509804, 0.7725490);
+    float reflectance = clamp(lightResponse, 0.0, 0.10);
+    color.rgb = mix(color.rgb, half3(sunlightTint), half(reflectance));
+    color.rgb = min(color.rgb + half3(sunlightTint * clamp(tipGlint, 0.0, 0.12)), half3(1.0));
+    return color;
+}

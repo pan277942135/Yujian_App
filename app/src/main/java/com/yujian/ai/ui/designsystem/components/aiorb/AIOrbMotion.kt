@@ -10,10 +10,14 @@ enum class AIOrbVisualState {
 }
 
 data class AIOrbMotionFrame(
+    /** The immutable water core is present from frame zero; wake reveals internal optics only. */
     val waterAlpha: Float,
+    /** Kept for call-site compatibility. The frozen R06 conversion runs alongside ORB_WAKE. */
     val ribbonOpening: Float,
     val destinationProgress: Float,
     val completionAlpha: Float,
+    /** Camera capture art is a handoff overlay; gallery entry has no camera overlay. */
+    val cameraHeroAlpha: Float,
 )
 
 /** All Orb layers sample one stable Processing scene clock. */
@@ -27,24 +31,25 @@ fun aiOrbMotionFrame(
     val safeCompletion = completion.coerceIn(0f, 1f)
     val progress = if (reduceMotion) 1f else (safeEntranceMs / 900f).coerceIn(0f, 1f)
     val eased = progress * progress * (3f - 2f * progress)
+    val heroProgress = if (reduceMotion) 1f else ((safeEntranceMs - 150L) / 200f).coerceIn(0f, 1f)
     return AIOrbMotionFrame(
-        waterAlpha = if (reduceMotion || !fromCamera) 1f else ((safeEntranceMs - 150L) / 200f).coerceIn(0f, 1f),
-        ribbonOpening = if (reduceMotion) 1f else ((safeEntranceMs - 350L) / 300f).coerceIn(0f, 1f),
+        waterAlpha = 1f,
+        ribbonOpening = 1f,
         destinationProgress = eased,
         completionAlpha = 1f - safeCompletion,
+        cameraHeroAlpha = if (fromCamera) 1f - heroProgress else 0f,
     )
 }
 
 /** Selects a visual state only; the host continues to own capture, inference and navigation. */
 fun aiOrbProcessingState(
     entranceMs: Long,
-    fromCamera: Boolean,
+    @Suppress("UNUSED_PARAMETER") fromCamera: Boolean,
     reduceMotion: Boolean,
     completion: Float,
 ): AIOrbVisualState = when {
     completion.coerceIn(0f, 1f) > 0f -> AIOrbVisualState.ORB_CONTRACTING
     reduceMotion -> AIOrbVisualState.ORB_ACTIVE
-    fromCamera && entranceMs < 150L -> AIOrbVisualState.CAPTURE_BUTTON_ACTIVATED
     entranceMs < 350L -> AIOrbVisualState.ORB_MORPH_IN
     else -> AIOrbVisualState.ORB_ACTIVE
 }

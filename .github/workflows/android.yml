@@ -199,8 +199,11 @@ jobs:
       - name: Verify immutable AI Orb core WebP
         run: python3 scripts/android_runtime/verify_orb_runtime_asset.py
 
+      - name: Verify P0-2 frozen Orb wake, release and R01B resources
+        run: python3 scripts/android_runtime/verify_orb_wake_breath_release_assets_v1_1.py
+
       - name: Unit tests
-        run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" test --stacktrace --no-daemon --max-workers=2
+        run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:testDebugUnitTest --stacktrace --no-daemon --max-workers=2
 
       - name: Camera runtime harness contract tests
         run: bash scripts/android_runtime/tests/test_contract.sh
@@ -246,6 +249,9 @@ jobs:
 
       - name: Android lint
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:lintDebug --stacktrace --no-daemon --max-workers=2
+
+      - name: Compile Release Kotlin from the same candidate runtime
+        run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:compileReleaseKotlin --stacktrace --no-daemon --max-workers=2
 
       # Build Once contract: the two files below are the only APK pair any
       # Android Runtime job is allowed to install.
