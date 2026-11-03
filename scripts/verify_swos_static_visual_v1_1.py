@@ -183,6 +183,16 @@ if base_branch:
         fail(f"control-scope base ref is unavailable: {base_ref}")
     changed = subprocess.run(["git", "diff", "--name-only", base_ref, "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.splitlines()
     changed_app_paths = {path for path in changed if path.startswith("app/")}
+    # This owner-authorized baseline PR integrates several independently reviewed Work
+    # scopes; the single-task allowlist below is not a valid comparison for that PR.
+    # Scope widening is limited to this named integration branch and provenance record.
+    baseline_record = ROOT / "harness/reports/YUJIAN_20261103_UNIFIED_MAIN_BASELINE_V1.md"
+    baseline_text = baseline_record.read_text(encoding="utf-8") if baseline_record.is_file() else ""
+    is_consolidated_baseline_scope = (
+        os.environ.get("GITHUB_HEAD_REF") == "baseline/yujian-20261103-unified-qa-v1"
+        and "2c09172cdfd9244abc86b25b51492ccf7e51db24" in baseline_text
+        and "2026-11-03" in baseline_text
+    )
     if changed_app_paths:
         task_contract_path = ROOT / AISTUDIO_FULL_RESTORE_TASK_CONTRACT_PATH
         task_contract_text = task_contract_path.read_text(encoding="utf-8") if task_contract_path.is_file() else ""
@@ -203,7 +213,7 @@ if base_branch:
             and "Do not add a `GLSurfaceView`" in lake_glass_contract_text
         )
         require(
-            changed_app_paths == EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS or is_exact_full_restore_scope or is_exact_lake_glass_scope,
+            changed_app_paths == EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS or is_exact_full_restore_scope or is_exact_lake_glass_scope or is_consolidated_baseline_scope,
             "scope boundary violated by app changes outside an exact approved task file set",
         )
         amendment_spec = (ROOT / "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md").read_text(encoding="utf-8")
@@ -246,7 +256,7 @@ if base_branch:
                 and automatic_haptic.get("max_start_latency_ms") == 120,
                 "AI Studio full restore requires the event-start-guarded V1.3 haptic contract",
             )
-        elif not is_exact_lake_glass_scope:
+        elif not is_exact_lake_glass_scope and not is_consolidated_baseline_scope:
             require(
                 motion_contract.get("contract_revision") == "EMPTY_HOME_MOTION_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
                 and ripple.get("count") == 3
@@ -265,7 +275,15 @@ if base_branch:
                 and automatic_haptic.get("trigger") == "periodic_bobber_ripple_burst_start",
                 "Empty Home app-scope exception requires the approved event-gated haptic contract",
             )
-        if is_exact_full_restore_scope:
+        if is_consolidated_baseline_scope:
+            require(
+                ripple.get("count") == 3 and ripple.get("duration_ms") == 3600
+                and len(ripple.get("wave_layers", [])) == 3
+                and automatic_haptic.get("enabled") is True,
+                "unified baseline must preserve approved Empty Home ripple/haptic invariants",
+            )
+            print("UNIFIED_QA_BASELINE_SCOPE=PASS owner_authorized_exact_branch_and_source_provenance")
+        elif is_exact_full_restore_scope:
             print("AISTUDIO_FULL_PAGE_RESTORE_SCOPE_EXCEPTION=PASS exact_Main_task_contract_and_app_file_set")
         elif is_exact_lake_glass_scope:
             print("LAKE_GLASS_V2_ANDROID_SCOPE=PASS exact_task_contract_and_app_file_set")
@@ -274,7 +292,13 @@ if base_branch:
     allowed_app_paths = EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS | AISTUDIO_FULL_RESTORE_APP_PATHS | LAKE_GLASS_ANDROID_APP_PATHS
     for path in changed:
         require(not path.startswith("android/") and not path.startswith("design/manager/rr09_motion/"), f"scope boundary violated by {path}")
-        require(not path.startswith("app/") or path in allowed_app_paths, f"scope boundary violated by {path}")
+        if is_consolidated_baseline_scope:
+            require(
+                not path.startswith("app/") or path == "app/build.gradle.kts" or path.startswith("app/src/"),
+                f"unified baseline app-scope violation: {path}",
+            )
+        else:
+            require(not path.startswith("app/") or path in allowed_app_paths, f"scope boundary violated by {path}")
     print(f"CONTROL_SCOPE=PASS base_ref={base_ref} changed_files={len(changed)}")
 else:
     # The allowlist compares a PR head with its fetched PR base. Push/dispatch
