@@ -1,3 +1,5 @@
+
+> V4 current task authority: the registered target is `NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json`; page-local changes are encoded in responsive contract V2.1. The 247:293 Hero, neighbor geometry, S/2 allocation, all spacing curves and the exact M01 exception remain unchanged. The existing API 28 emulator workflow is the required V4 runtime matrix; no separate API 28 OS compatibility certification is required.
 # NH01 Responsive Authority Crosswalk V1
 
 **Status:** SPEC_FROZEN (PR #191 candidate; canonical on Main after merge)  

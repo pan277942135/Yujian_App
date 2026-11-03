@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "contract_id": "NH01_RESPONSIVE_LAYOUT_V2",
-  "contract_version": "2.0",
+  "contract_version": "2.1",
   "status": "SPEC_FROZEN",
   "page_id": "normal_home_v1",
   "scope": {
@@ -399,7 +399,8 @@
       "rules": [
         "Keep the three statistics and their semantic order.",
         "The statistics divider height is 26dp.",
-        "Do not use a different row order to fit a viewport."
+        "Do not use a different row order to fit a viewport.",
+        "Use the page-local HomeStatisticsDivider token (#4CC9DB) sampled from the current V4 source at pixel (349,315), for the 26dp dividers."
       ],
       "constraints": [
         "Use declared responsive text roles and single system fontScale application."
@@ -421,7 +422,8 @@
       "role": "Selected FishRecord Hero",
       "rules": [
         "Preserve true FishRecord content, species/measurements/time/location priority and approved EVIDENCE_FIT photo handling.",
-        "No fabricated zero/unknown values and no global shrink to hide overflow."
+        "No fabricated zero/unknown values and no global shrink to hide overflow.",
+        "Use a 14dp corner radius."
       ],
       "constraints": [
         "Use preview_engine.parameters.hero as the sole numeric source for target width, aspect ratio, height cap, readable-height bounds, and the exact M01 exception.",
@@ -434,7 +436,8 @@
       "rules": [
         "Show only real neighboring FishRecords; never clone a record or create phantom side cards.",
         "Use a finite stable-ID pager; one record means one centered Hero and no pager hint.",
-        "No overlap beyond 1dp."
+        "No overlap beyond 1dp.",
+        "Darken neighboring cards with a 15% black overlay without changing their content or hit target."
       ],
       "constraints": [
         "Use preview_engine.parameters.neighbor as the sole numeric source for width, height, offset, peek gap, visible width, indicator, and overlap bounds."
@@ -446,7 +449,8 @@
       "rules": [
         "The record-next-catch copy is a static text label under the current interaction contract, not an independent action.",
         "Measure the rendered CTA line height once; do not add a duplicate 48dp CTA touch target.",
-        "Keep the CTA label and camera control in one action group inside the bottom safe content area."
+        "Keep the CTA label and camera control in one action group inside the bottom safe content area.",
+        "Decorate the centered static CTA with symmetric 23dp aqua lines, 1dp stroke, 80% opacity and 9dp gap."
       ],
       "constraints": [
         "CTA has no independent touch target; its height is the measured rendered text line height.",
@@ -840,6 +844,12 @@
       "version": "V2.0",
       "date": "2026-10-26",
       "change": "Promote unchanged V2.0 rules to SPEC_FROZEN after exact-source candidate preview, matrix, isolated deployment and live-route verification passed on e6df12c74d971ce6ed9e465d33689b95a931d9cc (Design Manager Pages run 40302990272). This status/control-plane update changes no responsive formulas or frozen visual anchors; current-head gates must pass before Main merge."
+    },
+    {
+      "version": "V2.1",
+      "date": "2026-11-03",
+      "change": "Register the current user-frozen V4 NH01 appearance by metadata-only authority. Sample new-reference divider color #4CC9DB and add the requested page-local Hero radius/padding, neighbor darkening, CTA ornament and Orb visual/touch bounds. Preserve existing ADAPTIVE_V2 geometry, 247:293 ratio, neighbor geometry, spacing curves, M01 exception and S/2 allocation.",
+      "status": "SPEC_FROZEN"
     }
   ],
   "preview_engine": {
@@ -934,7 +944,8 @@
             "footer_bottom_padding_dp": 0,
             "cta_camera_gap_dp": 6
           }
-        }
+        },
+        "corner_radius_dp": 14
       },
       "neighbor": {
         "maximum_width_fraction_of_hero": 0.82,
@@ -955,28 +966,31 @@
         "indicator_height_dp": 8,
         "indicator_gap_after_hero_dp": 8,
         "pager_height_formula": "heroHeightDp + indicator_gap_after_hero_dp + indicator_height_dp",
-        "indicator_width_dp": 40
+        "indicator_width_dp": 40,
+        "darkening_overlay_alpha": 0.15
       },
       "camera": {
-        "width_fraction_of_capped_safe_width": 0.18,
-        "height_fraction_of_safe_height": 0.1,
+        "width_fraction_of_capped_safe_width": 0.2361111111111111,
+        "height_fraction_of_safe_height": 0.135,
         "minimum_visual_dp": 56,
-        "maximum_visual_dp": 80,
-        "minimum_touch_dp": 72
+        "maximum_visual_dp": 96,
+        "minimum_touch_dp": 88
       },
       "card_content": {
-        "padding_horizontal_dp": 20,
         "text_gap_height_fraction": 0.006,
         "minimum_text_gap_dp": 2,
         "maximum_text_gap_dp": 5,
-        "footer_padding_height_fraction": 0.07,
+        "footer_padding_height_fraction": 0.042,
         "minimum_footer_padding_dp": 10,
-        "maximum_footer_padding_dp": 20,
+        "maximum_footer_padding_dp": 14,
         "species_wrap_width_threshold_dp": 240,
         "large_font_scale_threshold": 1.3,
         "maximum_lines_species": 2,
         "maximum_lines_measurements": 2,
-        "maximum_lines_metadata": 2
+        "maximum_lines_metadata": 2,
+        "padding_horizontal_fraction_of_hero_width": 0.074,
+        "minimum_horizontal_padding_dp": 12,
+        "maximum_horizontal_padding_dp": 20
       },
       "spacing": {
         "font_pressure": {
@@ -1078,7 +1092,20 @@
         "camera_artwork_inside_touch_target": true,
         "cta_camera_gap": "Use preview_engine.parameters.spacing.cta_to_camera.",
         "footer_outer_padding": "Use preview_engine.parameters.spacing.footer_top_padding and footer_bottom_padding once.",
-        "footer_height_formula": "footer_top_padding + measured_cta_line_height + cta_to_camera + camera_touch_target_height + footer_bottom_padding"
+        "footer_height_formula": "footer_top_padding + measured_cta_line_height + cta_to_camera + camera_touch_target_height + footer_bottom_padding",
+        "decorative_lines": {
+          "width_dp": 23,
+          "stroke_width_dp": 1,
+          "alpha": 0.8,
+          "gap_dp": 9,
+          "color_token": "HomeStatisticsDivider"
+        }
+      },
+      "page_visual_tokens": {
+        "statistics_divider": {
+          "token": "HomeStatisticsDivider",
+          "hex": "#4CC9DB"
+        }
       }
     },
     "role_bindings": {

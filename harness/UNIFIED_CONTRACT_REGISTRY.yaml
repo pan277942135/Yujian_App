@@ -284,7 +284,7 @@ feature_contracts:
         authority: "design/pages/home/normal_home/spec/Behavior_Spec_V1.md"
       visual:
         status: "PARTIAL"
-        authority: "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V1.json"
+        authority: "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json"
       motion:
         status: "FROZEN"
         authority: "design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md"
@@ -303,8 +303,8 @@ feature_contracts:
       assets:
         status: "FROZEN"
         authority: "design/pages/home/normal_home/assets/asset_manifest.json"
-    page_contract_refs: ["design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md","design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V1.json","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Motion_Runtime_Binding_V1.md","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Runtime_Gate_V1.md","design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json","design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md","design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json","design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json","design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md","design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md","design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md","design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json","design/pages/home/normal_home/authority/authority_map_v1_3.json","design/pages/home/normal_home/authority/authority_map.json","design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.envelope.json","design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.profile.json","design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json","design/pages/home/normal_home/Page_Resource_Binding_V1.json"]
-    page_contract_keys: ["visual","implementation","state","component_mapping","resource_binding","motion_runtime","runtime_gate","static_hifi_assets","static_hifi_responsive","static_hifi_acceptance","gemini_v22_authority","gemini_v22_balance","gemini_v22_acceptance","gemini_v22_matrix","nh01_authority_map","responsive_layout","responsive_authority_crosswalk","responsive_envelope","conformance_profile","responsive_matrix","acceptance_matrix","page_resource_binding","prior_visual_contract"]
+    page_contract_refs: ["design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md","design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Motion_Runtime_Binding_V1.md","design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Runtime_Gate_V1.md","design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json","design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md","design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json","design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json","design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md","design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md","design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md","design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json","design/pages/home/normal_home/authority/authority_map_v1_4.json","design/pages/home/normal_home/authority/authority_map.json","design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.envelope.json","design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.profile.json","design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json","design/pages/home/normal_home/engineering/NH01_V4_VISUAL_BASELINE_MANIFEST.json","scripts/design/compare_nh01_v4_visual.py","design/pages/home/normal_home/engineering/NH01_POPULATED_HOME_HIFI_V4_ACCEPTANCE.json","design/pages/home/normal_home/Page_Resource_Binding_V1.json"]
+    page_contract_keys: ["visual","implementation","state","component_mapping","resource_binding","motion_runtime","runtime_gate","static_hifi_assets","static_hifi_responsive","static_hifi_acceptance","v4_baseline_manifest","v4_visual_comparator","v4_acceptance","gemini_v22_authority","gemini_v22_balance","gemini_v22_acceptance","gemini_v22_matrix","nh01_authority_map","responsive_layout","responsive_authority_crosswalk","responsive_envelope","conformance_profile","responsive_matrix","acceptance_matrix","page_resource_binding","prior_visual_contract"]
     android_layout_policy: "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "AI-ORB-CORE-V1"]
     additional_shared_contract_refs: ["RESPONSIVE-LAYOUT-STANDARD-V1"]
@@ -1551,7 +1551,7 @@ page_contract_sets:
     authority_rule: "Only the named source owns the declared contract dimension; absence is not inherited silently."
   home_normal_v1:
     refs:
-      visual: "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V1.json"
+      visual: "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json"
       implementation: "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md"
       state: "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json"
       component_mapping: "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json"
@@ -1565,7 +1565,7 @@ page_contract_sets:
       gemini_v22_balance: "design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md"
       gemini_v22_acceptance: "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md"
       gemini_v22_matrix: "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json"
-      nh01_authority_map: "design/pages/home/normal_home/authority/authority_map_v1_3.json"
+      nh01_authority_map: "design/pages/home/normal_home/authority/authority_map_v1_4.json"
       prior_visual_contract: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md"
       responsive_layout: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
       responsive_authority_crosswalk: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md"
@@ -1573,6 +1573,9 @@ page_contract_sets:
       conformance_profile: "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.profile.json"
       responsive_matrix: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
       acceptance_matrix: "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json"
+      v4_baseline_manifest: "design/pages/home/normal_home/engineering/NH01_V4_VISUAL_BASELINE_MANIFEST.json"
+      v4_visual_comparator: "scripts/design/compare_nh01_v4_visual.py"
+      v4_acceptance: "design/pages/home/normal_home/engineering/NH01_POPULATED_HOME_HIFI_V4_ACCEPTANCE.json"
       page_resource_binding: "design/pages/home/normal_home/Page_Resource_Binding_V1.json"
     authority_rule: "The user-selected Lake Light reference controls current NH01 appearance and composition through its metadata-only authority; its private photo bytes are not distributed. The prior NH01 V1 image remains immutable historical composition provenance. Frozen NH01 Responsive Layout V2 JSON remains the sole numerical authority for geometry, spacing, typography, safe-area, overflow and preview values; the structured-preview JSON is metadata-only and static_hifi V1 remains an immutable archive. Logical Top/Middle/Footer structure and real FishRecord semantics remain binding; Android Runtime stays NOT_VERIFIED until the exact-SHA native gate passes."
 
@@ -1640,6 +1643,13 @@ gate_contracts:
     purpose: "Exact-SHA closure of the user-selected private Lake Light visual reference on NH01 Design Manager real DOM and Android Gemini route while retaining the frozen V2 numeric authority and excluding private photo bytes from public outputs."
     contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["asset", "visual", "responsive", "design_tooling", "implementation", "build", "unit_test", "lint", "runtime", "accessibility", "evidence", "apk_provenance"]
+    exact_sha_required: true
+
+  G-NH01-POPULATED-HOME-HIFI-V4-THREE-ROUND:
+    purpose: "Exact-SHA NH01 populated-home V4 implementation and no-more-than-three full visual audit, repair and regression rounds; private reference bytes remain excluded."
+    task_id: "YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4"
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["static_contract", "implementation", "build", "unit_test", "android_test_compile", "lint", "responsive", "visual", "interaction", "runtime", "evidence", "apk_provenance"]
     exact_sha_required: true
 
   G-PAGE-FREEZE-PIPELINE-W0-GOVERNANCE:
@@ -1869,6 +1879,10 @@ task_contract_bindings:
   YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1:
     contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "DESIGN-MANAGER-PAGE-LAYER-WORKSPACE-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-NH01-RESPONSIVE-PREVIEW-V2", "G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1", "G-NH01-LAKE-LIGHT-VISUAL-RESPONSIVE-CLOSURE-V1"]
     gate_id: "G-NH01-LAKE-LIGHT-VISUAL-RESPONSIVE-CLOSURE-V1"
+    phase: "P6"
+  YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4:
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-NH01-POPULATED-HOME-HIFI-V4-THREE-ROUND"]
+    gate_id: "G-NH01-POPULATED-HOME-HIFI-V4-THREE-ROUND"
     phase: "P6"
   YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1:
     contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1"]

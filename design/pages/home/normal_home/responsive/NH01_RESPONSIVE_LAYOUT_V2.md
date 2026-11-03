@@ -1,7 +1,9 @@
+
+> V4 page-local styling is defined by machine contract V2.1 and the V2 visual authority metadata. Existing ADAPTIVE_V2 formulas and historical frozen raster anchors remain unchanged; reuse the existing API 28 emulator matrix for current V4 implementation evidence; no additional API 28 OS compatibility certification is required.
 # NH01 Responsive Layout V2
 
 **Status:** `SPEC_FROZEN` (PR #191 candidate; canonical on Main after merge)  
-**Contract version:** `2.0`  
+**Contract version:** `2.1`  
 **Machine authority:** [NH01_RESPONSIVE_LAYOUT_V2.json](NH01_RESPONSIVE_LAYOUT_V2.json)  
 **Authority crosswalk:** [NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md](NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md)  
 **Android Runtime:** `NOT_VERIFIED`

@@ -6,7 +6,7 @@
     "normal_home_v1"
   ],
   "owner_path": "design/pages/home/normal_home",
-  "authority_version": "2.0",
+  "authority_version": "2.1",
   "page_identity_authority": {
     "authority_id": "experience",
     "json_pointer": "/features/1",
@@ -17,7 +17,7 @@
     "authority_id": "nhresponsive",
     "json_pointer": "",
     "field_pointer": "/contract_version",
-    "expected_value": "2.0"
+    "expected_value": "2.1"
   },
   "source_authorities": [
     {
@@ -59,7 +59,7 @@
     {
       "authority_id": "nhresponsive",
       "path": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
-      "sha256": "2de1fae0c958fd29cdc69f27cc94297438e71c07108f0146f0ff3352a9ba2c6f",
+      "sha256": "125e610144b05f6e29c885d5e8bd28f2368dd27dca827f04835acf55038a00e1",
       "purpose": "nhresponsive"
     },
     {
@@ -112,15 +112,21 @@
     },
     {
       "authority_id": "nh01_lake_light_visual",
-      "path": "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V1.json",
-      "sha256": "83c714423a68553d5cbb0be77a172a35618deeb8683fb078b6900e1f6fc4fb36",
+      "path": "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json",
+      "sha256": "fa7fbbe2f1f2b9ab19bbe00cd1a7146202b77fe03cb5976e840420d2a70e8736",
       "purpose": "Versioned Lake Light visual authority metadata; source photo bytes are excluded."
     },
     {
-      "authority_id": "nh01_authority_v13",
-      "path": "design/pages/home/normal_home/authority/authority_map_v1_3.json",
-      "sha256": "89ad9db123ddf6e8dff9d629713238ca2615c835a7b778828fdc236f0fa382b2",
+      "authority_id": "nh01_authority_v14",
+      "path": "design/pages/home/normal_home/authority/authority_map_v1_4.json",
+      "sha256": "67d034857c3709351cb8bf39988ae7f65321a23305c95884c6da4be7cfd60e08",
       "purpose": "Versioned authority map binding the selected visual reference and immutable prior composition history."
+    },
+    {
+      "authority_id": "nh01_v4_baseline_manifest",
+      "path": "design/pages/home/normal_home/engineering/NH01_V4_VISUAL_BASELINE_MANIFEST.json",
+      "sha256": "3532d29a878b9a8b57dabda831d2095306adb7ee62e2722ec7d543db36be704b",
+      "purpose": "Current-user V4 baseline metadata and non-publication policy; source image bytes remain local."
     }
   ],
   "publication_policy": {
@@ -131,7 +137,8 @@
     "Experience Registry page_id home_normal_v1 is canonical; legacy normal_home_v1 from the existing resource binding remains an evidenced alias.",
     "Six frozen NH01 visual anchors keep source SHA and dimensions; no NH01 images are assigned to Empty Home or Login.",
     "Private runtime photo/avatar rows contain no user bytes.",
-    "NH07 standalone assets remain design-only and do not replace the active NH01 V2 avatar fallback."
+    "NH07 standalone assets remain design-only and do not replace the active NH01 V2 avatar fallback.",
+    "V4 private visual target is registered by SHA and dimensions only; image bytes, crops and derivatives are excluded from Git, Pages and CI."
   ],
   "asset_bindings": [
     {
@@ -1076,7 +1083,7 @@
     },
     {
       "page_id": "home_normal_v1",
-      "asset_id": "NH01-LAKE-LIGHT-REFERENCE-V1",
+      "asset_id": "NH01-LAKE-LIGHT-REFERENCE-V2",
       "asset_role": "private_visual_reference_only",
       "source_path": null,
       "source_authorities": [
@@ -1094,8 +1101,8 @@
       "bytes": null,
       "sha256": null,
       "pixel_dimensions": {
-        "width": 864,
-        "height": 1536
+        "width": 941,
+        "height": 1672
       },
       "coordinate_space": "PRIVATE_REFERENCE_IMAGE_PIXELS",
       "fit_crop_policy": "Private local comparison only; never crop, serve, embed or create derivative photography.",
@@ -1109,11 +1116,11 @@
       },
       "requiredness": "NOT_VERIFIED",
       "missing_reason": "The private source is intentionally not stored in the repository.",
-      "declared_source_sha256": "f529f5a8595572f02e9ea72f9a47f4f3f93aebb055699e2c9a210f087b379828",
+      "declared_source_sha256": "8bb3bb1b4a2303d006bd3f6dbd373a11a02997d97ca64a1d5130c9432847e37c",
       "degradation_policy": "Use registered preview fixtures for public browser geometry; use the source image only for private local visual comparison.",
       "notes": [
-        "Source label: 229571.png",
-        "Reference SHA-256 is pinned in the visual authority metadata."
+        "Source label: 渔见湖光鱼获首页.png",
+        "Reference SHA-256 is pinned in the V2 visual authority metadata; image bytes remain private."
       ]
     }
   ],

@@ -1,0 +1,214 @@
+{
+  "schema_version": "1.0",
+  "task_id": "YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4",
+  "status": "REGISTERED_NOT_RUN",
+  "source_reference": {
+    "authority_path": "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json",
+    "manifest_path": "design/pages/home/normal_home/engineering/NH01_V4_VISUAL_BASELINE_MANIFEST.json",
+    "label": "渔见湖光鱼获首页.png",
+    "sha256": "8bb3bb1b4a2303d006bd3f6dbd373a11a02997d97ca64a1d5130c9432847e37c",
+    "bytes": 1984137,
+    "pixel_dimensions": {
+      "width": 941,
+      "height": 1672
+    },
+    "color_mode": "RGB",
+    "color_profile": "UNPROFILED_RGB_NO_EMBEDDED_ICC_OR_SRGB_CHUNK",
+    "logical_target_dp": {
+      "width": 360,
+      "height": 640
+    },
+    "authority": "CURRENT_USER_FROZEN_DESIGN",
+    "publication": "PRIVATE_NOT_DISTRIBUTABLE; metadata only in Git; source image bytes, crops and derivatives prohibited in CI and repository"
+  },
+  "starting_runtime_capture": {
+    "label": "screenshot_20261103_094843_com.yujian.ai.uiv2.jpg",
+    "sha256": "fb30c0ccc0c3fe8276691eded4ad5243346881b08f5657cab85206de78fbfed4",
+    "pixel_dimensions": {
+      "width": 694,
+      "height": 1536
+    },
+    "density": null,
+    "font_scale": null,
+    "actual_window_dp": null,
+    "dp_inference": "NOT_DETERMINED; raw screenshot pixels must not be treated as Android dp",
+    "device_type": "UNVERIFIED_FROM_AVAILABLE_METADATA"
+  },
+  "scope": "Existing GeminiNormalHomeContent NH01 route on ADAPTIVE_V2; preserve native Compose, real data, finite pager, LakeGlass centerCrop, current FishRecord/photo binding, and navigation.",
+  "responsive_authority": {
+    "path": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+    "version": "2.1",
+    "invariants": [
+      "Hero width:height ratio remains 247:293; width remains 70% of track capped at 337.2dp.",
+      "Hero max height 400dp; readable bounds 148dp to 220dp; exact M01 320x480/fontScale1 floor 124dp.",
+      "Side card remains at most 82% of Hero width and 66.7% of Hero height, with +15dp top offset.",
+      "Keep the existing S/2 equal surplus allocation and every piecewise-linear spacing curve and threshold.",
+      "Do not change CaptureVisualTokens, shared motion, assets, backend data, or real record/photo binding."
+    ],
+    "v4_page_local_additions": {
+      "hero_corner_radius_dp": 14,
+      "neighbor_black_overlay_alpha": 0.15,
+      "statistics_divider_color": "#4CC9DB",
+      "card_horizontal_padding": "clamp(heroWidthDp * 0.074, 12dp, 20dp)",
+      "card_footer_vertical_padding": "clamp(heroHeightDp * 0.042, 10dp, 14dp)",
+      "cta_decorative_lines": {
+        "width_dp": 23,
+        "stroke_dp": 1,
+        "alpha": 0.8,
+        "gap_dp": 9
+      },
+      "camera_visual_width": "85 * min(safeWidthDp,560dp) / 360",
+      "camera_visual_height_fraction_of_safe_height": 0.135,
+      "camera_visual_bounds_dp": {
+        "min": 56,
+        "max": 96
+      },
+      "camera_minimum_touch_target_dp": 88
+    }
+  },
+  "target_matrix": [
+    {
+      "id": "320x480dp",
+      "profiles": [
+        "M01",
+        "M02",
+        "M03"
+      ],
+      "font_scales": [
+        1,
+        1.3,
+        1.5
+      ],
+      "variants": [
+        "ADAPTIVE_V2",
+        "V3_BASELINE"
+      ],
+      "records_scenario": "three_unique_catches",
+      "exact_m01_exception_font_scale": 1
+    },
+    {
+      "id": "360x640dp",
+      "profiles": [
+        "M04",
+        "M05",
+        "M06"
+      ],
+      "font_scales": [
+        1,
+        1.3,
+        1.5
+      ],
+      "variants": [
+        "ADAPTIVE_V2",
+        "V3_BASELINE"
+      ],
+      "records_scenario": "three_unique_catches"
+    },
+    {
+      "id": "390x844dp",
+      "profiles": [
+        "M07",
+        "M08",
+        "M09"
+      ],
+      "font_scales": [
+        1,
+        1.3,
+        1.5
+      ],
+      "variants": [
+        "ADAPTIVE_V2",
+        "V3_BASELINE"
+      ],
+      "records_scenario": "three_unique_catches"
+    },
+    {
+      "id": "430x932dp",
+      "profiles": [
+        "M10",
+        "M11",
+        "M12"
+      ],
+      "font_scales": [
+        1,
+        1.3,
+        1.5
+      ],
+      "variants": [
+        "ADAPTIVE_V2",
+        "V3_BASELINE"
+      ],
+      "records_scenario": "three_unique_catches"
+    }
+  ],
+  "additional_scenarios": [
+    "Current connected device: read actual window dimensions, density, insets and font scale from runtime; do not infer from screenshot pixels.",
+    "Safe-height boundary pairs: 499/500dp, 699/700dp, 839/840dp, and existing footer 459/460dp continuity probes.",
+    "Width-change probes at stable height and font scale; validate piecewise curves and no layout-mode switches.",
+    "One real record centers one Hero without neighbors; three unique real records have previous/center/next content and stable IDs."
+  ],
+  "test_policy": {
+    "api28_special_validation": "NOT_REQUIRED_BUT_API28_RUNTIME_REQUIRED",
+    "runtime_emulator": "Reuse the repository's existing API 28 AVD and run-nh01-api28 workflow. No API 35/36 infrastructure is needed; API 28 runtime screenshots/layout measurements are emulator evidence, not OS compatibility certification.",
+    "each_round_requires": [
+      "Debug APK build",
+      "Unit tests",
+      "AndroidTest APK build",
+      "ADAPTIVE_V2 responsive formula, Hero ratio, side-card geometry, S/2 and piecewise continuity assertions",
+      "M01 short-screen special case",
+      "all target matrix profiles, font scales and boundary scenarios",
+      "real-data interaction and click/navigation checks",
+      "page component visual comparison against the private local target",
+      "Orb and footer visual inspection",
+      "regression check of every previously fixed issue",
+      "Run all 12 viewport/font-scale profiles across ADAPTIVE_V2 and V3_BASELINE (24 matrix executions) with the deterministic three_unique_catches fixture.",
+      "Capture actual API 28 emulator screenshots and record AVD, screen resolution, density, window bounds, safe insets and FontScale from runtime logs."
+    ],
+    "physical_device": "Physical-device acceptance is the user's responsibility and must be reported separately from emulator evidence."
+  },
+  "round_policy": {
+    "maximum_full_rounds": 3,
+    "rounds": [
+      {
+        "round": 1,
+        "report": "ROUND_1_FULL_AUDIT_AND_FIX_REPORT.md"
+      },
+      {
+        "round": 2,
+        "report": "ROUND_2_FULL_AUDIT_AND_FIX_REPORT.md"
+      },
+      {
+        "round": 3,
+        "report": "ROUND_3_FINAL_AUDIT_AND_FIX_REPORT.md"
+      }
+    ],
+    "issue_register": "NH01_VISUAL_ISSUE_REGISTER.csv",
+    "final_report": "NH01_THREE_ROUND_FINAL_CLOSURE_REPORT.md",
+    "no_fourth_round": true,
+    "per_round": "Run the entire matrix, capture actual screenshots, perform full visual diff, enumerate and prioritize all issues, batch-fix, rebuild, and execute the full regression suite."
+  },
+  "required_deliverables": [
+    "All three independent full audit/fix reports and per-round evidence",
+    "Complete issue register with unresolved, unverified and blocked items retained",
+    "NH01_THREE_ROUND_FINAL_CLOSURE_REPORT.md",
+    "Debug APK plus SHA-256 when a successful artifact exists",
+    "PR and exact product-code Commit SHA",
+    "Physical-device status reported separately from emulator status"
+  ],
+  "baseline_manifest": "design/pages/home/normal_home/engineering/NH01_V4_VISUAL_BASELINE_MANIFEST.json",
+  "visual_comparison_script": "scripts/design/compare_nh01_v4_visual.py",
+  "historical_reference": {
+    "label": "229571.png",
+    "v4_role": "HISTORICAL_TRACE_ONLY",
+    "used_as_target": false
+  },
+  "matrix_summary": {
+    "profile_count": 12,
+    "variant_count": 2,
+    "execution_count": 24,
+    "preferred_api_level": 28,
+    "primary_variant": "ADAPTIVE_V2",
+    "comparison_variant": "V3_BASELINE",
+    "fixture": "three_unique_catches"
+  }
+}
