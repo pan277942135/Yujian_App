@@ -63,18 +63,18 @@ matrix="$root/scripts/android_runtime/gates/run_nh01_adaptive_device_matrix.sh"
 workflow="$root/.github/workflows/nh01-cloud-runtime.yml"
 metadata="$root/scripts/design/capture_nh01_device_metadata.py"
 runtime="$root/scripts/design/run_nh01_emulator_runtime.sh"
-if ! rg -q 'settings put system font_scale 1\.0' "$runtime" ||
-   ! rg -q 'settings delete system font_scale' "$runtime" ||
-   ! rg -q 'font_scale_restored=' "$runtime" ||
-   ! rg -q '\|\| metadata_rc=\$\?' "$runtime"; then
+if ! grep -Fq 'settings put system font_scale 1.0' "$runtime" ||
+   ! grep -Fq 'settings delete system font_scale' "$runtime" ||
+   ! grep -Fq 'font_scale_restored=' "$runtime" ||
+   ! grep -Fq '|| metadata_rc=$?' "$runtime"; then
   echo "initial metadata must capture the target FontScale and restore the preexisting setting" >&2
   exit 1
 fi
-if rg -n 'wm size (reset|[0-9]+x[0-9]+)|wm density (reset|[0-9]+)([[:space:]";]|$)|-skin|-dpi-device' "$matrix" "$workflow"; then
+if grep -E -n 'wm size (reset|[0-9]+x[0-9]+)|wm density (reset|[0-9]+)([[:space:]";]|$)|-skin|-dpi-device' "$matrix" "$workflow"; then
   echo "runtime must not mutate WindowManager display size or rely on deprecated skin/dpi flags" >&2
   exit 1
 fi
-if rg -n 'wm size", "1080x1920|wm density", "480|wm size 1080x1920|wm density 480|1080x1920@480' "$metadata" "$root/scripts/design/tests/test_nh01_device_metadata.py"; then
+if grep -E -n 'wm size", "1080x1920|wm density", "480|wm size 1080x1920|wm density 480|1080x1920@480' "$metadata" "$root/scripts/design/tests/test_nh01_device_metadata.py"; then
   echo "legacy display contract remains in the metadata path" >&2
   exit 1
 fi
