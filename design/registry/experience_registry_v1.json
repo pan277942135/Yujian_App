@@ -261,7 +261,8 @@
         },
         "visual": {
           "status": "FROZEN",
-          "authority": "design/system/core_visual_v1/reference/normal_home_v1.png"
+          "authority": "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json",
+          "note": "The current V4 visual authority is the private user-frozen 渔见湖光鱼获首页.png registered by exact SHA in the V4 baseline manifest. The previous V1 page image remains historical only."
         },
         "motion": {
           "status": "FROZEN",
@@ -292,7 +293,7 @@
         "status": "FROZEN_BINDING",
         "envelope": {
           "path": "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.envelope.json",
-          "sha256": "7bb25e0c9ae46799b6bc0b0ce72889fa88a845f7914b290b751cb07f991df66d"
+          "sha256": "2affd3e9d05896c71230d8196487ee91b7d415ac5a5d24f53008958d505c7c70"
         },
         "profile": {
           "path": "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.profile.json",
@@ -301,7 +302,7 @@
         },
         "responsive_matrix": {
           "path": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
-          "sha256": "2de1fae0c958fd29cdc69f27cc94297438e71c07108f0146f0ff3352a9ba2c6f"
+          "sha256": "8349016b54f1b9759416dc6532c107be3fbc474c4452027fd30a05f6bdf9fc19"
         },
         "page_resource_binding": {
           "path": "design/pages/home/normal_home/Page_Resource_Binding_V1.json"
@@ -310,6 +311,17 @@
           "path": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json",
           "sha256": "69701cab428f941815e72eb6883c920ce229155f4bd7735ae9a33b2806408815",
           "status": "IMPLEMENTATION_REPAIR_IN_PROGRESS"
+        },
+        "v4_baseline_manifest": {
+          "path": "design/pages/home/normal_home/engineering/NH01_V4_VISUAL_BASELINE_MANIFEST.json",
+          "sha256": "3532d29a878b9a8b57dabda831d2095306adb7ee62e2722ec7d543db36be704b",
+          "authority": "CURRENT_USER_FROZEN_DESIGN"
+        },
+        "v4_visual_comparator": {
+          "path": "scripts/design/compare_nh01_v4_visual.py"
+        },
+        "v4_acceptance": {
+          "path": "design/pages/home/normal_home/engineering/NH01_POPULATED_HOME_HIFI_V4_ACCEPTANCE.json"
         }
       },
       "display_name": "有数据首页",
@@ -317,8 +329,17 @@
         {
           "version": "V1",
           "status": "FROZEN",
+          "current": false,
+          "visual_authority": "design/system/core_visual_v1/reference/normal_home_v1.png",
+          "note": "Historical composition reference only; not a V4 target and no visual parameters are inherited."
+        },
+        {
+          "version": "V4",
+          "status": "FROZEN",
           "current": true,
-          "visual_authority": "design/system/core_visual_v1/reference/normal_home_v1.png"
+          "visual_authority": "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json",
+          "source_sha256": "8bb3bb1b4a2303d006bd3f6dbd373a11a02997d97ca64a1d5130c9432847e37c",
+          "note": "Current user-frozen visual target; formal page G0/G6 and runtime acceptance remain separate gates."
         }
       ],
       "design_overall": "FROZEN",
@@ -359,7 +380,7 @@
           "note": "跨页面语义图标 V0.1 盘点引用；不代表本页面小图标已全部冻结。"
         }
       ],
-      "note": "NORMAL HOME V1 — DESIGN FROZEN。NH01–NH06 的规范与视觉 Authority 已全部冻结；Runtime / Evidence 仍按各自 modality 独立收口，不重新打开设计。 NH07 头像状态已建立独立 SPEC_FROZEN 菜单与透明资产（Android 尚未变更，待整页视觉验收）。",
+      "note": "NH01 current V4 visual target: user-frozen 渔见湖光鱼获首页.png, registered by SHA only; the previous V1 page image and V1 static anchors are historical reference only. The responsive geometry contract remains independent and runtime/evidence gates remain separate. NH07 remains a separate avatar-state work area.",
       "navigation_model": "normal_home_secondary_menu_v1",
       "design_manager_view_rules": {
         "overview": "页面总览保留当前 Normal Home Closure / shared refs / modalities。",
@@ -374,20 +395,29 @@
           "code": "NH01",
           "title": "NH01 · 主页面｜多鱼获状态",
           "status": "FROZEN",
-          "render_mode": "repo_image",
+          "render_mode": "authority_index",
           "authority_type": "visual",
-          "image": "design/system/core_visual_v1/reference/normal_home_v1.png",
-          "visual_authority": "design/system/core_visual_v1/reference/normal_home_v1.png",
+          "visual_authority": "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json",
           "authority": "design/pages/home/normal_home/README.md",
-          "summary": "当前有数据首页完整视觉权威。多鱼获状态由中央主卡 + 左右相邻鱼获露边表达；不再重复新增 Multiple Catch 高保。",
+          "summary": "Current NH01 V4 visual target is the user-frozen Lake Light reference registered in the private baseline manifest. The repository V1 whole-page raster is historical only. Multi-record hierarchy remains central Hero plus real adjacent FishRecords; formal page and runtime gates remain independent.",
           "menu_points": [
-            "Morning Lake Environment",
             "鱼种 / 鱼获 / 记录天数",
             "最近鱼获 / 全部",
             "中央 Hero + 左右邻卡露边",
             "记录下一条鱼",
-            "Primary Capture Button"
-          ]
+            "Primary Capture Button",
+            "Current V4 target: 渔见湖光鱼获首页.png"
+          ],
+          "visual_authority_manifest": "design/pages/home/normal_home/engineering/NH01_V4_VISUAL_BASELINE_MANIFEST.json",
+          "visual_status": "FROZEN",
+          "visual_authority_note": "Current user-frozen V4 source is registered by SHA and metadata only; source bytes remain private.",
+          "visual_authority_source": {
+            "name": "渔见湖光鱼获首页.png",
+            "kind": "CURRENT_USER_FROZEN_DESIGN",
+            "width": 941,
+            "height": 1672,
+            "sha256": "8bb3bb1b4a2303d006bd3f6dbd373a11a02997d97ca64a1d5130c9432847e37c"
+          }
         },
         {
           "id": "NH02",

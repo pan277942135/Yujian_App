@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1", "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1", "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1", "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1", "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -575,6 +575,21 @@ tasks:
     evidence_required: ["private_visual_reference_sha_and_publication_exclusion", "versioned_visual_authority_and_page_resource_binding", "design_manager_real_dom_visual_alignment", "nh01_v2_single_numeric_authority", "browser_core_and_font_matrix", "android_build_unit_lint_exact_sha", "57_case_api28_matrix_and_v22_baseline", "real_fish_record_pager_and_text_metadata_scenarios", "touch_area_and_safe_inset_measurements", "installable_debug_apk_sha256", "user_device_visual_acceptance_status"]
     completion: "Close the user-selected NH01 Lake Light visual on the existing Design Manager DOM and Android Gemini route. Keep NH01 Responsive Layout V2 as the sole numeric source, preserve real FishRecord identity and runtime photography, and bind the private 229571.png reference by SHA without publishing its bytes. Require exact-source browser evidence, the existing V2 Android baseline plus the 57-case API 28 matrix, measured bounds/text/touch data, Android build/unit/Lint, and APK SHA provenance. Record physical-device visual acceptance separately; do not claim it before the product owner confirms on device."
     human_required: true
+
+  YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-NH01-POPULATED-HOME-HIFI-V4-THREE-ROUND"
+    evidence_required: ["private_visual_reference_sha_and_publication_exclusion", "v2_1_single_numeric_authority_and_resource_binding", "native_compose_adaptive_v2_implementation", "debug_apk_unit_tests_and_android_test_apk_each_round", "api28_existing_emulator_full_matrix_each_round", "actual_runtime_screenshots_and_full_component_visual_diff_each_round", "hero_ratio_neighbor_geometry_s2_curves_and_m01_each_round", "interaction_navigation_orb_footer_visual_checks_each_round", "three_full_audit_fix_regression_reports", "complete_issue_register_and_final_closure_report", "debug_apk_sha256_and_exact_commit", "physical_device_acceptance_status_separate"]
+    completion: "Implement the user-approved NH01 populated-home high-fidelity V4 on the existing native Gemini ADAPTIVE_V2 route. Preserve all frozen geometry and data/photo semantics; register V4 page-local visual deltas in V2.1; execute at most three independent full runtime screenshot, visual-diff, batch-fix and full-regression rounds. Reuse the repository's existing API 28 AVD/runtime path; no separate API 28 OS compatibility certification or API 35/36 infrastructure is required. Mark unavailable emulator or physical-device checks BLOCKED and never claim completion from compilation alone."
+    human_required: true
+
 
   YUJIAN_ANDROID_HOME_CAPTURE_ACTIVATION_CAMERA_RUNTIME_FULL_CLOSURE_V2:
     phase: "P6"

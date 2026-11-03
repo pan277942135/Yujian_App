@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "NH01-LAKE-LIGHT-VISUAL-AUTHORITY-V2",
+  "page_id": "home_normal_v1",
+  "version": "2.0",
+  "selection_status": "USER_ACCEPTED_VISUAL_REFERENCE",
+  "formal_page_freeze_status": "PENDING_G0_G6",
+  "source_path": null,
+  "source_label": "Private current-user frozen design: 渔见湖光鱼获首页.png",
+  "media_type": "image/png",
+  "bytes": 1984137,
+  "sha256": "8bb3bb1b4a2303d006bd3f6dbd373a11a02997d97ca64a1d5130c9432847e37c",
+  "pixel_dimensions": {
+    "width": 941,
+    "height": 1672
+  },
+  "color_mode": "RGB",
+  "color_profile": "UNPROFILED_RGB_NO_EMBEDDED_ICC_OR_SRGB_CHUNK",
+  "resource_id": "NH01-LAKE-LIGHT-REFERENCE-V2",
+  "baseline_manifest_path": "design/pages/home/normal_home/engineering/NH01_V4_VISUAL_BASELINE_MANIFEST.json",
+  "page_scope": [
+    "home_normal_v1",
+    "NH01"
+  ],
+  "source_and_permissions": {
+    "origin": "Latest user-uploaded frozen design; original local file was read without modification and SHA-256 verified.",
+    "repository_bytes_included": false,
+    "pages_bytes_allowed": false,
+    "ci_artifact_bytes_allowed": false,
+    "permission_state": "PRIVATE_NOT_DISTRIBUTABLE",
+    "allowed_use": "Private local visual comparison and metadata-only design registration.",
+    "rights_note": "The reference includes personal catch photography. Do not publish the source image, crops, embeddings, or screenshot-derived photo assets."
+  },
+  "visual_direction": {
+    "reference_canvas": {
+      "logical_viewport_dp": {
+        "width": 360,
+        "height": 640
+      },
+      "pixel_dimensions": {
+        "width": 941,
+        "height": 1672
+      }
+    },
+    "background": "Bright sky transitions into clear cyan lake water; distant wooded banks frame the central fish-record image, with shoreline grasses visible in the lower corners. Match the current frozen reference's overall luminance and composition; do not substitute a historical reference's background or materials.",
+    "brand": "Use the registered 渔见 wordmark in deep navy at the upper left and the real profile/avatar state at upper right. The reference has no logo glow or header shadow.",
+    "statistics": "Three equal text columns display real statistics with thin, bright aqua dividers. Reference sample: divider pixel (349,315) = RGB(76,201,219), #4CC9DB. Keep text in navy and do not add statistic cards.",
+    "recent_catches_header": "Use a left-aligned deep-navy Recent Catches title and right-aligned All entry with chevron; no drop shadow.",
+    "hero": "Center the selected real FishRecord in a rounded photo card with a fine near-white outline and a dark translucent lower text gradient. Preserve the runtime fish photograph and actual record metadata; the reference person's image and catch copy are never implementation data.",
+    "neighbor": "Show only real adjacent FishRecords as cropped side cards, visually quieter than the selected card. The V4 15% darkening overlay is specified in the responsive contract.",
+    "capture_guide": "Center the static record-next-catch copy between two short symmetric aqua lines.",
+    "orb": "Use the existing native Orb component with a layered translucent cyan/blue crystal ring, pearl-white center, warm gold camera glyph, local highlights and ambient reflections. Do not flatten it to a solid fill.",
+    "palette_reference_samples": {
+      "wordmark_median": "#02375B (RGB median of dark pixels in source ROI x=80..229,y=90..179)",
+      "statistics_text_median": "#04375A (RGB median of dark pixels in source ROI x=180..779,y=260..369)",
+      "statistics_divider_sample": "#4CC9DB (source pixel x=349,y=315; RGB 76,201,219)",
+      "capture_guide_composited_median": "#59A7B2 (RGB median in source ROI x=285..659,y=1320..1349; composited over background)",
+      "hero_edge_median": "#F4FAFB (RGB median of near-white pixels at source ROI x=145..799,y=515..529)",
+      "camera_glyph_median": "#BD925C (RGB median of warm-gold pixels in source ROI x=420..524,y=1430..1519)"
+    },
+    "layout": "The screenshot is the V4 appearance authority only. All responsive sizing and placement remain owned by NH01 Responsive Layout V2.1; preserve the established adaptive algorithm and do not derive new absolute Android coordinates from image pixels."
+  },
+  "responsive_authority": {
+    "path": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+    "contract_version": "2.1",
+    "status": "SPEC_FROZEN",
+    "numeric_policy": "Responsive and page-local V4 numeric parameters are owned by the single machine contract. The new frozen image supplies appearance targets only."
+  },
+  "related_authorities": {
+    "historical_reference": "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V1.json",
+    "responsive_contract": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+    "page_resource_binding": "design/pages/home/normal_home/Page_Resource_Binding_V1.json"
+  },
+  "exclusions": [
+    "Do not use the historical 229571.png as the V4 target; retain its existing SHA and metadata for history only.",
+    "No image bytes, crops, or derivatives in the repository, Pages output, or CI artifacts.",
+    "Do not hardcode screenshot people, photos, fish species, measurements, location, time, or avatar.",
+    "Do not modify the immutable six legacy raster anchors."
+  ]
+}

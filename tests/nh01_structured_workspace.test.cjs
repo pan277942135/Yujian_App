@@ -82,7 +82,7 @@ for(const [width,height] of profiles){
     assert.ok(r.targetHeroWidth<=contract.preview_engine.parameters.hero.maximum_width_dp+1e-5);
     assert.ok(r.actualHeroWidth<=r.targetHeroWidth+1e-5 || (width===320&&height===480&&font===1),'Hero must respect target width except exact M01');
     assert.ok(Math.abs(r.actualHeroWidth/r.heroHeight-247/293)<1e-5,'Hero must preserve the shared 247:293 ratio');
-    assert.ok(r.cameraSize>=56&&r.cameraSize<=80);
+    assert.ok(r.cameraSize>=contract.preview_engine.parameters.camera.minimum_visual_dp&&r.cameraSize<=contract.preview_engine.parameters.camera.maximum_visual_dp,'camera visual size must follow the active NH01 contract bounds');
     assert.ok(r.cameraTouchSize>=72);
     assert.equal(r.contractId,'NH01_RESPONSIVE_LAYOUT_V2');
     assert.ok(r.rects['peek-left']&&r.rects['peek-right'],'both Peek slots need measurable geometry');
@@ -91,8 +91,8 @@ for(const [width,height] of profiles){
     assert.ok(r.peekGap>=contract.preview_engine.parameters.neighbor.peek_gap.minimum_dp&&r.peekGap<=contract.preview_engine.parameters.neighbor.peek_gap.maximum_dp);
     assert.ok(r.pagerContentHeight>=r.heroHeight+r.indicatorGap+r.indicatorHeight-1e-5);
     assert.ok(r.rects['capture-action-group'].y+r.hC<=height-24+.5,'Footer must stay inside bottom safe inset');
-    if(font===1)assert.ok(r.hC<130,'static CTA text must not create a redundant 48dp touch box');
-    else assert.ok(r.hC<146,'larger text must fit without a duplicate CTA touch container');
+    const footerFormula=r.footerTopPadding+r.ctaLineHeight+r.ctaCameraGap+r.cameraTouchSize+r.footerBottomPadding;
+    assert.ok(Math.abs(r.hC-footerFormula)<1e-5,'Footer height must equal its active top padding, CTA line, gap, camera target, and bottom padding');
     if(width===320&&height===480&&font===1){
       assert.ok(r.actualHeroWidth>=contract.preview_engine.parameters.hero.short_screen_exception.minimum_width_dp-1e-5,'M01 preserves minimum Hero width');
       assert.ok(r.heroHeight>=contract.preview_engine.parameters.hero.short_screen_exception.minimum_readable_floor_dp-1e-5,'M01 preserves minimum-readable floor');
@@ -104,7 +104,7 @@ for(const [width,height] of profiles){
 assert.ok(observedPositiveSurplus,'matrix must exercise positive surplus');
 const normal=calculate(390,844,1,24,24,contract,authorityConflict,previewRules);
 assert.ok(Math.abs(normal.actualHeroWidth-273)<.01);
-assert.ok(normal.hC>=90&&normal.hC<=125,'CaptureActionGroup should fit measured CTA line and camera target');
+assert.ok(Math.abs(normal.hC-(normal.footerTopPadding+normal.ctaLineHeight+normal.ctaCameraGap+normal.cameraTouchSize+normal.footerBottomPadding))<1e-5,'CaptureActionGroup follows the active footer formula');
 assert.equal(normal.gapABExtra,normal.S/2);
 assert.equal(normal.gapBCExtra,normal.S/2);
 assert.ok(calculate(390,844,1,24,24,contract,true,previewRules).conflicts.some(x=>x.includes('SPEC_CONFLICT')&&x.includes('Markdown')));

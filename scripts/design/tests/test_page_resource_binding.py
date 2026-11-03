@@ -170,6 +170,24 @@ class PageResourceBindingTests(unittest.TestCase):
         path.write_bytes(content)
         return path
 
+    def test_resource_binding_and_page_contract_versions_can_diverge(self):
+        data = self.read_binding()
+        data["authority_version"] = "2.0"
+        data["authority_version_source"]["expected_value"] = "2.1"
+        self.manifest["version"] = "2.1"
+        self.manifest_path.write_text(json.dumps(self.manifest), encoding="utf-8")
+        for authority in data["source_authorities"]:
+            if authority["authority_id"] == "manifest":
+                authority["sha256"] = self.sha(self.manifest_path)
+        self.write_binding(data)
+
+        report = self.validate()
+        self.assertEqual(report["status"], "PASS", report["errors"])
+        resolved = binding.resolve_page_asset(
+            self.root, "test_home", "page_visual_authority", "2.0", self.manifest["asset"]["sha256"]
+        )
+        self.assertEqual(resolved["status"], "RESOLVED", resolved["reason"])
+
     def test_checked_in_three_page_bindings_validate(self):
         report = binding.validate_all(
             ROOT,

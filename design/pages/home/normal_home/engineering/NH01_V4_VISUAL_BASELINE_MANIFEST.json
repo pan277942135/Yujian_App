@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "baseline_id": "NH01-V4-CURRENT-USER-FROZEN-DESIGN",
+  "filename": "渔见湖光鱼获首页.png",
+  "sha256": "8bb3bb1b4a2303d006bd3f6dbd373a11a02997d97ca64a1d5130c9432847e37c",
+  "width_px": 941,
+  "height_px": 1672,
+  "image_format": "PNG",
+  "color_profile": "UNPROFILED_RGB_NO_EMBEDDED_ICC_OR_SRGB_CHUNK",
+  "color_mode": "RGB",
+  "bit_depth": 8,
+  "file_bytes": 1984137,
+  "source": "Current user-uploaded frozen design attached to NH01 V4 task; read-only local source.",
+  "registered_at": "2026-11-03T03:00:35Z",
+  "authority": "CURRENT_USER_FROZEN_DESIGN",
+  "source_asset_path_local_only": "visual_refs/临时/有数据首页面/渔见湖光鱼获首页.png",
+  "repository_image_bytes_included": false,
+  "ci_image_bytes_allowed": false,
+  "historical_reference": {
+    "filename": "229571.png",
+    "sha256": "f529f5a8595572f02e9ea72f9a47f4f3f93aebb055699e2c9a210f087b379828",
+    "width_px": 864,
+    "height_px": 1536,
+    "v4_role": "HISTORICAL_TRACE_ONLY"
+  }
+}

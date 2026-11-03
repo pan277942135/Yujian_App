@@ -241,7 +241,10 @@ def validate_identity_and_version(root: Path, binding: dict[str, Any], authoriti
         if error:
             errors.append(error)
     version = binding.get("authority_version_source", {})
-    version_error = validate_field_reference(root, authorities, version, binding.get("authority_version"))
+    # The resource-binding API version and the referenced page-contract version are independent.
+    # Keep old bindings compatible by defaulting to the resource version when no source version is declared.
+    expected_source_version = version.get("expected_value", binding.get("authority_version"))
+    version_error = validate_field_reference(root, authorities, version, expected_source_version)
     if version_error:
         errors.append(version_error)
     for alias_source in binding.get("page_id_alias_sources", []):
