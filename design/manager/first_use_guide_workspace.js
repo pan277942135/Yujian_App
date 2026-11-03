@@ -3,8 +3,7 @@
   const GUIDE_ROOT = "design/pages/recognition/first_use_camera_guide/";
   const PAGE_FILES = {
     p01: "frozen/P01_First_Use_Camera_Guide_Frozen.png",
-    p02: "frozen/P02_First_Use_Camera_Guide_Frozen.png",
-    p03: "frozen/P03_First_Use_Camera_Guide_Frozen.png"
+    p02: "frozen/P02_First_Use_Camera_Guide_Frozen.png"
   };
   const PRESETS = [
     ["320 × 480", 320, 480], ["360 × 640", 360, 640], ["390 × 844", 390, 844],
@@ -43,7 +42,7 @@
   function pageHeading(page) {
     return `<div class="guide-workspace-page-head">
       <div><span class="guide-workspace-kicker">FIRST-USE CAMERA GUIDE · ${escapeHtml(page.id.toUpperCase())}</span><strong>${escapeHtml(page.title)}</strong></div>
-      <div class="guide-page-picker" role="group" aria-label="选择教学页面">${["p01", "p02", "p03"].map(id =>
+      <div class="guide-page-picker" role="group" aria-label="选择教学页面">${["p01", "p02"].map(id =>
         `<button type="button" data-guide-page="${id}" aria-pressed="${page.id === id}">${id.toUpperCase()}</button>`
       ).join("")}</div>
     </div>`;
@@ -52,6 +51,8 @@
   function manifestLinks(root) {
     const paths = [
       ["冻结页面图 Manifest", root.dataset.pageManifest],
+      ["两步教学合同 V1.2", GUIDE_ROOT + "First_Use_Camera_Guide_Spec_V1_2.md"],
+      ["产品负责人修订决定", GUIDE_ROOT + "PRODUCT_OWNER_DECISION_20261103.md"],
       ["独立素材 Manifest", root.dataset.assetManifest],
       ["结构化页面合同", root.dataset.structuredManifest],
       ["像素测量", root.dataset.geometryManifest],
@@ -156,15 +157,15 @@
         <label class="guide-font-scale">字号倍率 <select data-guide-font-scale><option value="1"${scale === 1 ? " selected" : ""}>1.0×</option><option value="1.3"${scale === 1.3 ? " selected" : ""}>1.3×</option></select></label>
         <div class="guide-inset-controls"><strong>Insets dp</strong><label>上 <input type="number" min="0" max="96" value="${Number(insets.top) || 0}" data-guide-inset="top"></label><label>右 <input type="number" min="0" max="96" value="${Number(insets.right) || 0}" data-guide-inset="right"></label><label>下 <input type="number" min="0" max="96" value="${Number(insets.bottom) || 0}" data-guide-inset="bottom"></label><label>左 <input type="number" min="0" max="96" value="${Number(insets.left) || 0}" data-guide-inset="left"></label></div>
       </div>
-      <div class="guide-responsive-boundary"><strong>Responsive proposal · not a screenshot scale</strong><span>P03 uses a horizontal capture instruction; the outer page remains in the selected viewport orientation. All numbers marked candidate in responsive_contract.json await visual tuning review.</span></div>
+      <div class="guide-responsive-boundary"><strong>Responsive proposal · not a screenshot scale</strong><span>Both active steps keep the phone portrait; only fish composition changes from horizontal (P01) to vertical (P02). The outer page remains responsive to the selected viewport.</span></div>
       <div class="guide-simulator-scroll"><div class="guide-simulator-viewport" data-testid="guide-simulator-viewport" data-guide-viewport-width="${viewport.width}" data-guide-viewport-height="${viewport.height}" style="width:${viewport.width}px;height:${viewport.height}px;${cssVars}">
         <main class="guide-sim-page" data-guide-page-content="${page.id}">
-          <header class="guide-sim-header"><button type="button" class="guide-sim-back" aria-label="返回">‹</button>${copy.masthead ? `<div class="guide-sim-masthead"><strong>${escapeHtml(copy.masthead)}</strong><span>${escapeHtml(copy.tagline)}</span></div>` : `<span class="guide-sim-header-spacer"></span>`}<span class="guide-sim-capture-direction">${page.id === "p03" ? "横向拍摄" : "竖向拍摄"}</span></header>
+          <header class="guide-sim-header"><button type="button" class="guide-sim-back" aria-label="返回">‹</button>${copy.masthead ? `<div class="guide-sim-masthead"><strong>${escapeHtml(copy.masthead)}</strong><span>${escapeHtml(copy.tagline)}</span></div>` : `<span class="guide-sim-header-spacer"></span>`}<span class="guide-sim-capture-direction">手机竖屏</span></header>
           <div class="guide-sim-hero" data-testid="guide-sim-hero">${hero ? `<img src="${escapeHtml(absoluteRepoUrl(hero.source_path))}" alt="候选 ${escapeHtml(ROLE_LABELS[hero.role])}" data-fish-orientation="${escapeHtml(hero.fish_orientation)}" loading="eager" decoding="async">` : `<div class="guide-sim-missing">正确示范独立照片缺失</div>`}<span class="guide-candidate-watermark">CANDIDATE · 仅供开发预览</span></div>
           <section class="guide-sim-intro"><span class="guide-sim-step">${escapeHtml(copy.step)}</span><h2 class="guide-sim-title guide-sim-text">${escapeHtml(copy.title)}</h2><p class="guide-sim-copy guide-sim-text">${escapeHtml(copy.instruction)}</p></section>
           <section class="guide-sim-examples" aria-label="三个错误示范">${errors.map(asset => `<article class="guide-sim-example">${asset ? `<img src="${escapeHtml(absoluteRepoUrl(asset.source_path))}" alt="候选 ${escapeHtml(ROLE_LABELS[asset.role])}" data-fish-orientation="${escapeHtml(asset.fish_orientation)}" loading="eager" decoding="async">` : `<div class="guide-sim-missing">独立示范图片缺失</div>`}<span>${escapeHtml(asset ? `避免 · ${ROLE_LABELS[asset.role]}` : "独立照片缺失")}</span><small>CANDIDATE</small></article>`).join("")}</section>
           <p class="guide-sim-completion guide-sim-text">${escapeHtml(page.nodes.find(node => node.id === "guide.completion_hint")?.text || "提示文案未登记")}</p>
-          <div class="guide-sim-pagination" aria-label="教学页码">${[1,2,3].map(index => `<span class="${index === page.sequence_index ? "is-current" : ""}" aria-label="第 ${index} 页"></span>`).join("")}</div>
+          <div class="guide-sim-pagination" aria-label="教学页码">${[1,2].map(index => `<span class="${index === page.sequence_index ? "is-current" : ""}" aria-label="第 ${index} 页"></span>`).join("")}</div>
           <footer class="guide-sim-actions"><button type="button" class="guide-sim-skip">跳过</button>${copy.previous ? `<button type="button" class="guide-sim-previous">${escapeHtml(copy.previous)}</button>` : ""}<button type="button" class="guide-sim-primary">${escapeHtml(copy.primary)}</button></footer>
         </main>
       </div></div>
@@ -184,7 +185,7 @@
         <a href="${escapeHtml(href)}" download="${escapeHtml((background.source_path || "").split("/").pop())}">下载背景原图 ↗</a>
       </article>`;
     }).join("");
-    const frozenCards = (pageManifest.assets || []).map(asset => {
+    const frozenCards = (pageManifest.assets || []).filter(asset => asset.id === "p01" || asset.id === "p02").map(asset => {
       const path = asset.path || asset.visual_authority;
       return `<article class="guide-frozen-resource guide-resource-card" data-resource-id="${escapeHtml(asset.id)}">
         <div><strong>${escapeHtml(asset.id.toUpperCase())} · Frozen 页面图</strong><span>FROZEN_PAGE_REFERENCE</span></div>
@@ -212,9 +213,9 @@
     }).join("");
     return `<section class="guide-resources-workspace" data-testid="guide-resources-workspace">
       ${pageHeading(page)}
-      <div class="guide-resource-summary"><strong>${assetManifest.counts?.unique_candidate_files || 8} 张独立候选源图 → ${assets.length} 个页面/角色绑定</strong><span>产品负责人已批准八张生成候选图用于 Android Runtime；候选仍为 GENERATED_CANDIDATE，未标记为 Frozen。API 28 Runtime 验收仍为 NOT_RUN。</span></div>
+      <div class="guide-resource-summary"><strong>8 张独立候选源图 → 8 个活动页面/角色绑定</strong><span>P01/P02 两步均保持手机竖屏；候选图已获准用于 Android Runtime，但仍为 GENERATED_CANDIDATE、未标记为 Frozen。真机验收仍由产品负责人执行。</span></div>
       <h4 class="guide-resource-section-title">Android Runtime 页面背景 · ${(assetManifest.runtime_backgrounds || []).length} 张</h4><div class="guide-candidate-grid" data-testid="guide-runtime-backgrounds">${runtimeBackgroundCards}</div>
-      <h4 class="guide-resource-section-title">获批独立候选素材 · 12 个页面/角色槽位</h4><div class="guide-candidate-grid">${candidateCards}</div>
+      <h4 class="guide-resource-section-title">获批独立候选素材 · 8 个活动页面/角色槽位</h4><div class="guide-candidate-grid">${candidateCards}</div>
       <details class="guide-reference-archive"><summary>归档对照裁切 · 9 项 REFERENCE_ONLY（不可作独立生产照片）</summary><p>这些归档条目来自扁平合成页面；为避免将复合截图裁切误作原片，本工作区只显示来源记录，不把它们作为可下载照片。</p><ul>${assets.filter(asset => asset.reference_package_asset).map(asset => `<li>${escapeHtml(asset.id)} — ${escapeHtml(asset.reference_package_asset.internal_path)} · ${escapeHtml(asset.reference_package_asset.sha256)}</li>`).join("")}</ul></details>
       <h4 class="guide-resource-section-title">页面高保真资源 · 原图字节保持不变</h4><div class="guide-frozen-resource-grid">${frozenCards}</div>
       ${manifestLinks(root)}
@@ -250,7 +251,7 @@
       else if (state.workspace === "responsive") workspaceContent = responsiveMarkup(root, page, state.data.assetManifest.assets, state.viewport, state.fontScale, state.insets);
       else workspaceContent = resourcesWorkspace(root, page, state.data.pageManifest, state.data.assetManifest);
       root.innerHTML = `<div class="guide-workspace" data-workspace="${escapeHtml(state.workspace)}" data-current-page="${escapeHtml(page.id)}">
-        <header class="guide-workspace-header"><div><span class="guide-workspace-kicker">PRE-DEV CONTRACT · ${escapeHtml(pageName)}</span><h3>首次拍照教学开发工作区</h3><p>保留三页冻结视觉权威；结构、响应式与独立候选素材使用同一资源 Manifest。</p></div><div class="guide-workspace-status"><strong>部分冻结</strong><span>候选照片未获生产批准</span></div></header>
+        <header class="guide-workspace-header"><div><span class="guide-workspace-kicker">PRE-DEV CONTRACT · ${escapeHtml(pageName)}</span><h3>首次拍照教学开发工作区</h3><p>当前两步均为手机竖屏；结构、响应式与八张独立候选素材使用同一资源 Manifest。</p></div><div class="guide-workspace-status"><strong>部分冻结</strong><span>候选照片已获 Runtime 授权，仍非 Frozen</span></div></header>
         <nav class="guide-workspace-tabs" aria-label="首次拍照教学工作区">${tabMarkup}</nav>
         <div class="guide-workspace-body">${workspaceContent}</div>
       </div>`;
