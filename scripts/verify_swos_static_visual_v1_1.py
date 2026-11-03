@@ -186,7 +186,7 @@ NH01_V4_ANDROID_APP_PATHS = {
     "app/src/main/java/com/yujian/ai/ui/home/HomeStats.kt",
     "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt",
     "app/src/test/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicyTest.kt",
-    "app/src/test/java/com/yujian/ai/ui/home/HomeStatsSemanticsTest.kt",
+    "app/src/androidTest/java/com/yujian/ai/ui/home/HomeStatsSemanticsTest.kt",
 }
 
 base_branch = os.environ.get("GITHUB_BASE_REF")
