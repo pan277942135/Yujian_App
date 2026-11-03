@@ -328,6 +328,7 @@ fun RecognitionProcessingScene(
         stepDiagnosticActive && playbackController.mode == ScenePlaybackMode.MANUAL,
     )
     var diagnosticActionStatus by remember(sceneKey) { mutableStateOf<String?>(null) }
+    var photoGeometryVersion by remember(sceneKey) { mutableLongStateOf(0L) }
 
     LaunchedEffect(sceneKey, assessment?.primary?.box, finishedResult, subjectResult.status, trustedSubjectMask, contour, photoGeometryVersion) {
         val detectorReady = assessment?.primary?.box?.let { box ->
@@ -908,7 +909,6 @@ fun RecognitionProcessingScene(
     LaunchedEffect(sceneKey, orbStage) {
         Log.i(LOG_TAG, "ORB_STAGE image=${image?.imageId} sha256=${image?.photoSha256} stage=$orbStage elapsed_ms=$entranceElapsedMs")
     }
-    var photoGeometryVersion by remember(sceneKey) { mutableLongStateOf(0L) }
     val authoritativeSceneFrame = if (!deterministicMotion && phaseOverride == null && photoPresentedAtMs != null) {
         controller.currentFrame(sceneIdentity, visualNowMs, photoGeometryVersion, motionPolicy.reduceMotion)
     } else null
