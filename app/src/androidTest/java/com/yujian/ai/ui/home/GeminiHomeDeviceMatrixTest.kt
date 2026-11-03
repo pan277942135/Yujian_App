@@ -268,10 +268,11 @@ class GeminiHomeDeviceMatrixTest {
         assertFalse("pager is idle before gesture", pagerBeforeGesture.isScrollInProgress)
         assertTrue("pager has no residual offset before gesture", abs(pagerBeforeGesture.offsetFraction) <= 0.005f)
         val pagerHistoryStart = GeminiHomeGeometryProbe.pagerStateHistory().size
-        compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-            .performTouchInput {
-                val start = Offset(size.width * 0.72f, size.height * 0.5f)
-                val end = Offset(size.width * 0.28f, size.height * 0.5f)
+        val pagerTag = compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+        val pagerSize = pagerTag.fetchSemanticsNode().size
+        val start = Offset(pagerSize.width * 0.72f, pagerSize.height * 0.5f)
+        val end = Offset(pagerSize.width * 0.28f, pagerSize.height * 0.5f)
+        pagerTag.performTouchInput {
                 down(start)
                 repeat(30) { step ->
                     val fraction = (step + 1) / 30f
