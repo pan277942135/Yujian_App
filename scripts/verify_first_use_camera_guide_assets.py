@@ -221,7 +221,7 @@ def verify_candidate_manifest() -> dict:
             "pages": ["p01"], "width": 941, "height": 1672, "bytes": 124618,
             "sha256": "544bbf91245ea0bc1a47fd5744effcd25b93f70748de926af1dd41c01e6498cf",
         },
-        "p02_vertical_background": {
+        "p02_portrait_phone_background": {
             "path": "assets/backgrounds/first_use_guide_bg_p02.jpg",
             "pages": ["p02"], "width": 941, "height": 1672, "bytes": 116538,
             "sha256": "75c61cd08ed4a7bf9fd522cdbaff564928a00198ccd96f54d65aa9ef00d8d823",
