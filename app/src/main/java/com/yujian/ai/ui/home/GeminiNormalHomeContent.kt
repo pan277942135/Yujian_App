@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -869,6 +871,10 @@ private fun GeminiCatchCarousel(
                 .testTag("gemini-home-catch-pager")
                 .captureGeminiHomeBounds("gemini-home-catch-pager"),
             pageSize = PageSize.Fixed(cardWidth),
+            flingBehavior = PagerDefaults.flingBehavior(
+                state = pagerState,
+                pagerSnapDistance = PagerSnapDistance.atMost(1),
+            ),
             contentPadding = PaddingValues(horizontal = contentInset),
             pageSpacing = pageSpacing,
             beyondViewportPageCount = if (hasNeighborPages) 1 else 0,

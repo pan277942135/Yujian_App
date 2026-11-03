@@ -89,6 +89,7 @@ jobs:
           python3 -m py_compile scripts/design/package_nh01_gemini_runtime_evidence.py scripts/android_runtime/aggregate_nh01_adaptive_matrix.py scripts/android_runtime/nh01_emulator_outcome.py
           bash scripts/android_runtime/tests/test_contract.sh
           bash scripts/android_runtime/tests/test_nh01_display_profile.sh
+          bash scripts/android_runtime/tests/test_nh01_native_avd_profiles.sh
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -168,15 +169,19 @@ jobs:
         if: steps.emulator_env.outputs.available == 'true'
         continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          YUJIAN_AVD_NAME: test
         with:
           api-level: 28
           target: default
           arch: x86_64
           profile: pixel_2
-          emulator-options: -no-window -gpu swiftshader -noaudio -no-boot-anim -camera-back none -partition-size 4096
+          avd-name: test
+          emulator-options: -no-window -gpu swiftshader -noaudio -no-boot-anim -camera-back none -partition-size 4096 -no-snapshot -skin 360x640 -dpi-device 160
           disable-linux-hw-accel: false
           disable-animations: true
           emulator-boot-timeout: 360
+          pre-emulator-launch-script: bash scripts/android_runtime/configure_nh01_api28_avd.sh test M04
           script: |
             bash scripts/design/run_nh01_emulator_runtime.sh
 

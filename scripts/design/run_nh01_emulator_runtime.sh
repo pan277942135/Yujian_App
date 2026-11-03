@@ -167,6 +167,9 @@ if matrix_rc == 0 and len(records) == 3 and statuses == ["PASS"] * 3:
 elif failures and any(
     "INSTRUMENTATION_EXIT_" in str(record.get("reason", ""))
     or "TEST_ASSERTION_FAILED" in str(record.get("reason", ""))
+    or "FAIL_CAPTURE_PIPELINE" in str(record.get("reason", ""))
+    or "PAGER_SINGLE_PAGE_INTERACTION_FAILED" in str(record.get("reason", ""))
+    or "SWIPE_TO_NEXT_REAL_REPOSITORY_CATCH" in str(record.get("reason", ""))
     or "failure_class=" in str(record.get("reason", ""))
     for record in failures
 ):
