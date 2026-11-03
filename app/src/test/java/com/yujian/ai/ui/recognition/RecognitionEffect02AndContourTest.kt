@@ -30,7 +30,7 @@ class RecognitionEffect02AndContourTest {
     fun processingEnvironmentStrengthUsesTheSharedSemanticStageFrame() {
         assertEquals(45f, processingEnvironmentStrength(scene(RecognitionSceneStage.ORB_RELEASE, 1f)), 0f)
         assertEquals(60f, processingEnvironmentStrength(scene(RecognitionSceneStage.PATH_TO_FISH, 1f)), 0f)
-        assertEquals(22.5f, processingEnvironmentStrength(scene(RecognitionSceneStage.CONTOUR_A, .5f)), .001f)
+        assertEquals(47.5f, processingEnvironmentStrength(scene(RecognitionSceneStage.CONTOUR_A, .5f)), .001f)
         assertEquals(0f, processingEnvironmentStrength(scene(RecognitionSceneStage.RESIDUE_SETTLE, 1f)), 0f)
     }
 

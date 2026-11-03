@@ -163,7 +163,7 @@ internal object RecognitionMaskContourExtractor {
     /** Removes only near-collinear subpixel samples; sharp fins and tails stay in the path. */
     private fun simplify(points: List<Point>): List<Point> {
         if (points.size < 5) return points
-        return points.filterIndexed { index, current ->
+        val simplified = points.filterIndexed { index, current ->
             val previous = points[(index - 1 + points.size) % points.size]
             val next = points[(index + 1) % points.size]
             val dx = next.x - previous.x
@@ -172,6 +172,7 @@ internal object RecognitionMaskContourExtractor {
             val lineDistance = abs(dy * current.x - dx * current.y + next.x * previous.y - next.y * previous.x) / length
             lineDistance > .22f || distance(previous, next) < .5f
         }
+        return if (simplified.size >= 4) simplified else points
     }
 
     private fun signedArea(points: List<Point>): Float {

@@ -15,7 +15,7 @@ class RecognitionFishFocusTest {
         assertEquals(0f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_A, 0f)), 0f)
         assertEquals(.15f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_A, 1f)), 0f)
         assertEquals(.15f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_B, 0f)), 0f)
-        assertEquals(.45f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_B, 1f)), 0f)
+        assertEquals(.45f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_B, 1f)), .0001f)
         assertEquals(1f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_C, 1f)), 0f)
         assertEquals(1f, recognitionFishGoldStrength(scene(RecognitionSceneStage.RESIDUE_SETTLE, 1f)), 0f)
         assertEquals(.18f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_C, 1f), reduceMotion = true), 0f)

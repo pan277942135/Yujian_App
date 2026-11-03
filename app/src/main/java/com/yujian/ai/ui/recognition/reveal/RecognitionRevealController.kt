@@ -74,7 +74,8 @@ object RecognitionRevealClock {
                 titleMode = when {
                     eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY -> RecognitionRevealTitleMode.VISIBLE
                     fullReveal -> RecognitionRevealTitleMode.VISIBLE
-                    eligibility == RecognitionRevealEligibility.STATIC_RESULT -> RecognitionRevealTitleMode.STATIC
+                    eligibility == RecognitionRevealEligibility.STATIC_RESULT ||
+                        eligibility == RecognitionRevealEligibility.PHOTO_ONLY -> RecognitionRevealTitleMode.STATIC
                     else -> RecognitionRevealTitleMode.HIDDEN
                 },
                 titleFormationProgress = if (fullReveal) 1f else 0f,
