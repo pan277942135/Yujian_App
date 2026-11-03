@@ -377,13 +377,13 @@ class GeminiHomeDeviceMatrixTest {
         assertEquals(nextCatch.id, stateBeforeSecondGesture.currentId)
         val secondPagerHistoryStart = GeminiHomeGeometryProbe.pagerStateHistory().size
         pagerTag.performTouchInput {
-            down(end)
+            down(start)
             repeat(30) { step ->
                 val fraction = (step + 1) / 30f
                 moveTo(
                     Offset(
-                        x = end.x + (start.x - end.x) * fraction,
-                        y = end.y,
+                        x = start.x + (end.x - start.x) * fraction,
+                        y = start.y,
                     ),
                     delayMillis = 20,
                 )
