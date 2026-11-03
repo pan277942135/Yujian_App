@@ -42,6 +42,12 @@ class HomeVisualEvidenceSeedTest {
         val preferences = context.getSharedPreferences(GUEST_ARCHIVE_PREFERENCES, Context.MODE_PRIVATE)
         assertTrue("guest archive was cleared", preferences.edit().clear().commit())
         File(context.filesDir, "guest_catches").deleteRecursively()
+        // Home applies user edits/media overlays after reading the guest archive.
+        // Clear those test-app preferences too so a previous run cannot shadow
+        // the deterministic fixture's location for the same stable catch IDs.
+        val overlayPreferences = context.getSharedPreferences(CATCH_LOCAL_OVERLAY_PREFERENCES, Context.MODE_PRIVATE)
+        assertTrue("local catch overlays were cleared", overlayPreferences.edit().clear().commit())
+        File(context.filesDir, "fish_record_memory").deleteRecursively()
 
         val zone = TimeZone.getTimeZone("Asia/Shanghai")
         val captureTime = Calendar.getInstance(zone).apply {
@@ -265,5 +271,6 @@ class HomeVisualEvidenceSeedTest {
     private companion object {
         const val GUEST_ARCHIVE_PREFERENCES = "yujian_guest_archive"
         const val GUEST_RECORDS_KEY = "records"
+        const val CATCH_LOCAL_OVERLAY_PREFERENCES = "fish_record_local_overlay_v1"
     }
 }
