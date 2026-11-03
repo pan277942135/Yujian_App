@@ -931,11 +931,19 @@ PY
     pull_log="$case_dir/adb_pull_after_case.log"
     "${ADB[@]}" pull "$REMOTE_DIR" "$RAW_DIR" > "$pull_log" 2>&1 || all_ok=0
     for phase in initial after_swipe; do
-      host_screenshot="$host_capture_dir/${profile}_${width}x${height}_${phase}.png"
-      case_screenshot="$RAW_CASE_DIR/${profile}_${width}x${height}_${phase}.png"
+      stem="${profile}_${width}x${height}_${phase}"
+      host_screenshot="$host_capture_dir/$stem.png"
+      case_screenshot="$RAW_CASE_DIR/$stem.png"
       if [[ -s "$host_screenshot" ]]; then
         cp "$host_screenshot" "$case_screenshot"
       fi
+      mkdir -p "$host_capture_dir/sources"
+      for source_name in adb pixelcopy ui_automation; do
+        source_path="$RAW_CASE_DIR/${stem}_${source_name}.png"
+        if [[ -s "$source_path" ]]; then
+          cp "$source_path" "$host_capture_dir/sources/"
+        fi
+      done
     done
     device_report="$RAW_CASE_DIR/$report_name"
     report_present=false
@@ -1129,12 +1137,15 @@ PY
 )"
   stem="${expected_screen%.png}"
   host_screenshot="$MATRIX_DIR/host_screencaps/$profile/$expected_screen"
-  if [[ -s "$host_screenshot" && "$native_pass" == true && "$case_pass" == True && \
-        -s "$RAW_CASE_DIR/${stem}_adb.png" && -s "$RAW_CASE_DIR/${stem}_pixelcopy.png" ]]; then
+  if [[ -s "$host_screenshot" && "$native_pass" == true && "$case_pass" == True ]]; then
     cp "$host_screenshot" "$MATRIX_DIR/screenshots/$expected_screen"
-    cp "$RAW_CASE_DIR/${stem}_adb.png" "$MATRIX_DIR/screenshots/sources/"
-    cp "$RAW_CASE_DIR/${stem}_pixelcopy.png" "$MATRIX_DIR/screenshots/sources/"
   fi
+  for source_name in adb pixelcopy ui_automation; do
+    source_path="$MATRIX_DIR/host_screencaps/$profile/sources/${stem}_${source_name}.png"
+    if [[ -s "$source_path" ]]; then
+      cp "$source_path" "$MATRIX_DIR/screenshots/sources/"
+    fi
+  done
 done
 
 restore_device
