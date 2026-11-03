@@ -307,7 +307,6 @@ def main() -> int:
         if forbidden in source:
             failures.append(f"LEGACY_RUNTIME_REFERENCE {forbidden}")
     for required in (
-        "normal_home_runtime_v1/static/scene_base.png",
         "fish_card/fish_card_gradient.png",
         "rememberNormalHomeRuntimeAssets",
     ):
@@ -316,6 +315,12 @@ def main() -> int:
 
     home_content = source_by_path["NormalHomeContent.kt"]
     runtime_loader = source_by_path["NormalHomeRuntimeAssets.kt"]
+    legacy_loader = runtime_loader.split("private fun loadNormalHomeRuntimeAssets", 1)[-1].split(
+        "private fun loadGeminiNormalHomeRuntimeAssets", 1
+    )[0]
+    if 'NORMAL_HOME_RUNTIME_ROOT = "normal_home_runtime_v1"' not in runtime_loader or \
+            'sceneBase = decodeNormalHomeAsset(context, "static/scene_base.png")' not in legacy_loader:
+        failures.append("Frozen Normal Home V1 scene loader/provenance reference is missing")
     avatar_contract_path = ROOT / "app/src/main/java/com/yujian/ai/ui/home/NormalHomeAvatarContract.kt"
     try:
         avatar_contract = avatar_contract_path.read_text(encoding="utf-8")

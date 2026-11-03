@@ -13,19 +13,24 @@ import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.random.Random
 
-/** Transparent lens-shaped water droplets; no raster sprite or glow-dot substitute. */
-class WaterDropletRenderer {
-    private data class Drop(val x: Float, val y: Float, val radius: Float, val phase: Float)
-    private var currentSeed = Long.MIN_VALUE
-    private var currentCount = -1
-    private var drops = emptyList<Drop>()
-    private val bodyPath = Path().apply {
+/** Shared unit-lens geometry used by photo droplets and the deterministic Orb adapter. */
+internal object WaterDropletUnitLensGeometry {
+    val path = Path().apply {
         moveTo(.5f, 0f)
         cubicTo(.79f, .20f, .98f, .54f, .84f, .80f)
         cubicTo(.69f, 1.07f, .31f, 1.07f, .16f, .80f)
         cubicTo(.02f, .54f, .21f, .20f, .5f, 0f)
         close()
     }
+}
+
+/** Transparent lens-shaped water droplets; no raster sprite or glow-dot substitute. */
+class WaterDropletRenderer {
+    private data class Drop(val x: Float, val y: Float, val radius: Float, val phase: Float)
+    private var currentSeed = Long.MIN_VALUE
+    private var currentCount = -1
+    private var drops = emptyList<Drop>()
+    private val bodyPath get() = WaterDropletUnitLensGeometry.path
     private val body = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         shader = LinearGradient(0f, 0f, 1f, 1f,

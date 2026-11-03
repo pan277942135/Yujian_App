@@ -139,7 +139,6 @@ async function main() {
   const overviewHash = "#page/recognition_flow_v1_2/hifi/main_journey_overview";
   const p01Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p01";
   const p02Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02";
-  const p03Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03";
   const resourcesHash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources";
   const fullFlowModelsHash = "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models";
   const nh01MultiScreenHash = "#page/home_normal_v1/hifi/multi_screen_static_hifi";
@@ -430,7 +429,7 @@ async function main() {
   await waitForHifiView(page);
   assert((await page.locator("#hifiViewTitle").innerText()).trim() === "资源", "Resources submenu must open its registered route");
   const routeSummary = await page.locator("#hifiViewSummary").innerText();
-  assert(routeSummary.includes("Android Runtime") && routeSummary.includes("Frozen 整页 PNG") && routeSummary.includes("NOT_RUN"), "Resources route must distinguish approved runtime photos, design-only page PNGs, and unrun API 28 acceptance");
+  assert(routeSummary.includes("Android Runtime") && routeSummary.includes("候选仍不是 Frozen") && routeSummary.includes("NOT_RUN") && routeSummary.includes("P01/P02"), "Resources route must distinguish approved runtime photos, design-only page PNGs, and unrun API 28 acceptance");
   await page.locator('[data-testid="first-use-guide-workspace"]').waitFor({state: "visible", timeout: 30000});
   await page.locator('[data-guide-tab="structure"]').waitFor({state: "visible", timeout: 30000});
   assert(await page.locator(".guide-workspace-tabs [data-guide-tab]").count() === 3, "Resources route must expose structure, responsive and assets workspaces");
@@ -448,11 +447,10 @@ async function main() {
 
   await page.locator('[data-guide-tab="resources"]').click();
   await page.locator('[data-testid="guide-resources-workspace"]').waitFor({state: "visible", timeout: 30000});
-  assert(await page.locator(".guide-resource-card").count() === 3, "Resources workspace must show the three unchanged Frozen source PNGs");
+  assert(await page.locator(".guide-resource-card").count() === 2, "Resources workspace must show only the two active portrait-phone Frozen source PNGs");
   const resourceExpected = [
     ["p01", 941, 1671, "P01_First_Use_Camera_Guide_Frozen.png", "dc731cca5470"],
-    ["p02", 941, 1671, "P02_First_Use_Camera_Guide_Frozen.png", "fb092235fd04"],
-    ["p03", 941, 1672, "P03_First_Use_Camera_Guide_Frozen.png", "1a3008483ac5"]
+    ["p02", 941, 1671, "P02_First_Use_Camera_Guide_Frozen.png", "fb092235fd04"]
   ];
   for (const [id, width, height, filename, shaPrefix] of resourceExpected) {
     const selector = `.guide-frozen-resource[data-resource-id="${id}"]`;
@@ -468,18 +466,18 @@ async function main() {
   }
   const manifestLinks = page.locator(".guide-workspace-authorities a");
   const manifestHrefs = await manifestLinks.evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
-  for (const path of ["manifest.json", "frontend_assets_manifest.json", "structured_pages.json", "geometry_measurements.json", "responsive_contract.json", "PREDEV_READINESS_MATRIX.json", "Freeze_Decision.md", "OWNER_APPROVAL_20261102.md"]) {
+  for (const path of ["manifest.json", "frontend_assets_manifest.json", "structured_pages.json", "geometry_measurements.json", "responsive_contract.json", "PREDEV_READINESS_MATRIX.json", "Freeze_Decision.md", "OWNER_APPROVAL_20261102.md", "First_Use_Camera_Guide_Spec_V1_2.md", "PRODUCT_OWNER_DECISION_20261103.md"]) {
     assert(manifestHrefs.some(href => href?.includes(`first_use_camera_guide/${path}`)), `Resources workspace must link ${path}`);
   }
-  assert(await page.locator(".guide-asset-slot").count() === 12, "Resources workspace must display all 12 page/role photo slots");
-  assert(await page.locator(".guide-asset-slot[data-authority='OWNER_APPROVED_FOR_RUNTIME']").count() === 12, "All twelve page/role slots must reflect the explicit runtime approval");
-  assert(await page.locator(".guide-asset-slot").filter({hasText: "GENERATED_CANDIDATE"}).count() === 12, "Runtime approval must not promote generated images to Frozen assets");
+  assert(await page.locator(".guide-asset-slot").count() === 8, "Resources workspace must display exactly 8 active page/role slots");
+  assert(await page.locator(".guide-asset-slot[data-authority='OWNER_APPROVED_FOR_RUNTIME']").count() === 8, "All eight active page/role slots must reflect Runtime approval");
+  assert(await page.locator(".guide-asset-slot").filter({hasText: "GENERATED_CANDIDATE"}).count() === 8, "Runtime approval must not promote generated images to Frozen assets");
   assert(await page.locator('[data-testid="guide-runtime-backgrounds"] .guide-runtime-background-card').count() === 2, "Resources workspace must expose both approved page backgrounds");
-  assert(await page.locator(".guide-asset-slot[data-asset-id$='_correct_hero']").filter({hasText: "ASSET_SOURCE_BLOCKED"}).count() === 3, "Three original Hero source slots must remain explicitly blocked");
-  assert(await page.locator(".guide-reference-only").count() === 9, "Nine archived composite crops must remain REFERENCE_ONLY");
+  assert(await page.locator(".guide-asset-slot[data-asset-id$='_correct_hero']").filter({hasText: "ASSET_SOURCE_BLOCKED"}).count() === 2, "Two active original Hero source slots must remain explicitly blocked");
+  assert(await page.locator(".guide-reference-only").count() === 6, "Six active-page linked composite crops must remain REFERENCE_ONLY; the full nine-crop archive stays preserved separately");
   assert(await page.locator(".guide-asset-slot[data-asset-id^='p02_']").count() === 4, "P02 must have four vertical-orientation candidate bindings");
   const candidatePaths = await page.locator(".guide-asset-slot").evaluateAll(nodes => nodes.map(node => node.dataset.sourcePath));
-  assert(new Set(candidatePaths).size === 8, `12 page/role bindings must reuse exactly eight original candidate files: ${new Set(candidatePaths).size}`);
+  assert(new Set(candidatePaths).size === 8, `8 active page/role slots must use eight original candidate files: ${new Set(candidatePaths).size}`);
   for (const asset of await page.locator(".guide-asset-slot").all()) {
     await asset.scrollIntoViewIfNeeded();
     const preview = asset.locator(".guide-candidate-preview img");
@@ -502,10 +500,10 @@ async function main() {
   const workspaceState = await page.locator(".guide-workspace").getAttribute("data-workspace");
   assert(workspaceState === "responsive", `Responsive tab click did not render the workspace: state=${workspaceState}; errors=${errors.join(" | ")}`);
   await page.locator('[data-testid="guide-responsive-workspace"]').waitFor({state: "visible", timeout: 10000});
-  const responsivePageTitles = {p01:"竖屏拍摄示意",p02:"竖拍鱼类拍摄示意",p03:"横屏拍摄示意"};
+  const responsivePageTitles = {p01:"竖屏拍摄示意",p02:"竖拍鱼类拍摄示意"};
   const responsiveMatrix = [];
   const responsiveProfiles = [[320,480],[360,640],[390,844],[412,915],[430,932],[480,960],[640,360],[844,390],[915,412]];
-  for (const pageId of ["p01", "p02", "p03"]) {
+  for (const pageId of ["p01", "p02"]) {
     await page.locator(`[data-guide-page="${pageId}"]`).click();
     assert((await page.locator(".guide-sim-title").innerText()).includes(responsivePageTitles[pageId]), `${pageId} responsive page copy failed to update`);
     for (const [width, height] of responsiveProfiles) {
@@ -556,13 +554,10 @@ async function main() {
         assert(result.gridColumnCount === (width >= 384 ? 3 : 2), `Example grid breakpoint mismatch at ${pageId} ${width}x${height}: ${JSON.stringify(result.gridColumns)}`);
         assert(loadedHero.width > 0 && loadedHero.height > 0, `Candidate hero is missing at ${pageId} ${width}x${height}`);
         responsiveMatrix.push({pageId,width,height,fontScale,...result});
-        if (pageId === "p03" && width === 640 && fontScale === "1.3") {
-          await page.screenshot({ path: resolve(args.outputDir, "guide-responsive-p03-640x360-font13.png"), fullPage: false });
-        }
       }
     }
   }
-  assert(responsiveMatrix.length === 54, `Expected 54 page × viewport × font-scale cases, got ${responsiveMatrix.length}`);
+  assert(responsiveMatrix.length === 36, `Expected 36 active page × viewport × font-scale cases, got ${responsiveMatrix.length}`);
   await page.locator('[data-guide-page="p01"]').click();
   await page.locator('[data-guide-preset="390x844"]').click();
   assert(await page.locator("[data-testid='guide-simulator-viewport']").getAttribute("data-guide-viewport-width") === "390", "Responsive preset control must update simulator width");
@@ -621,7 +616,7 @@ async function main() {
   await dialog.waitFor({ state: "hidden" });
   assert(await page.locator(".hifi-image-open").evaluate(node => document.activeElement === node), "closing the lightbox must restore focus");
 
-  for (const [hash, width, height, id] of [[p02Hash, 941, 1671, "P02"], [p03Hash, 941, 1672, "P03"]]) {
+  for (const [hash, width, height, id] of [[p02Hash, 941, 1671, "P02"]]) {
     await open(hash);
     const loaded = await waitForLoadedImage(page, ".hifi-asset-figure img", id);
     assert(loaded.complete && loaded.width === width && loaded.height === height, `${id} original dimensions are wrong: ${JSON.stringify(loaded)}`);
@@ -677,7 +672,7 @@ async function main() {
   await open(resourcesHash);
   await page.reload({ waitUntil: "networkidle" });
   assert(page.url().endsWith(resourcesHash), "refresh must preserve the direct Resources Hash");
-  assert(await page.locator(".guide-resource-card").count() === 3, "direct Resources Hash must render all source PNGs after refresh");
+  assert(await page.locator(".guide-resource-card").count() === 2, "direct Resources Hash must render the two active portrait-phone Frozen PNGs after refresh");
 
   const missingCases = [
     ["capture_portrait", "Recognition_Capture_Ready_Portrait_Horizontal_Fish_Frozen.png"],

@@ -32,7 +32,7 @@ EXPECTED = {
     },
 }
 ROLES = {"correct_hero", "fish_head_out_of_frame", "fish_too_small", "excessive_occlusion"}
-PAGES = {"p01", "p02", "p03"}
+PAGES = {"p01", "p02"}
 
 
 def fail(message: str) -> None:
@@ -121,12 +121,12 @@ def verify_frozen_assets() -> None:
         fail("legacy Frozen image import report must remain PASS")
     if [item.get("id") for item in manifest.get("assets", [])] != ["p01", "p02", "p03"]:
         fail("Frozen manifest must retain the P01/P02/P03 order")
-    if [item.get("id") for item in navigation.get("children", [])] != ["p01", "p02", "p03"]:
-        fail("navigation children must remain the three-page V1 sequence")
+    if [item.get("id") for item in navigation.get("children", [])] != ["p01", "p02"]:
+        fail("active navigation must contain only P01/P02 portrait-phone steps")
     menus = navigation.get("resource_menus", [])
     if len(menus) != 1 or menus[0].get("route") != "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources":
         fail("existing Design Manager Resources hash route changed")
-    if menus[0].get("resource_ids") != ["p01", "p02", "p03"] or menus[0].get("runtime_visual_authority") is not False:
+    if menus[0].get("resource_ids") != ["p01", "p02"] or menus[0].get("runtime_visual_authority") is not False:
         fail("Frozen page resources must remain outside Android runtime authority")
     if menus[0].get("frontend_asset_manifest") != "frontend_assets_manifest.json":
         fail("navigation must continue to link the separate front-end asset manifest")
@@ -165,10 +165,10 @@ def verify_candidate_manifest() -> dict:
         fail("owner approval record file is missing")
     assets = manifest.get("assets", [])
     expected_slots = {f"{page}_{role}" for page in PAGES for role in ROLES}
-    if len(assets) != 12 or {item.get("id") for item in assets} != expected_slots:
-        fail("manifest must enumerate exactly 12 page/role bindings")
-    if len({item.get("id") for item in assets}) != 12:
-        fail("asset slot IDs are not unique")
+    if len(assets) != 8 or {item.get("id") for item in assets} != expected_slots:
+        fail("manifest must enumerate exactly 8 active P01/P02 page/role bindings")
+    if len({item.get("id") for item in assets}) != 8:
+        fail("active asset slot IDs are not unique")
 
     by_slot = {}
     by_path = {}
@@ -180,7 +180,7 @@ def verify_candidate_manifest() -> dict:
         expected_orientation = "vertical" if page_id == "p02" else "horizontal"
         if asset.get("fish_orientation") != expected_orientation:
             fail(f"wrong fish orientation for {slot_id}: {asset.get('fish_orientation')}")
-        pages = ["p01", "p03"] if expected_orientation == "horizontal" else ["p02"]
+        pages = [page_id]
         if asset.get("page_refs") != pages:
             fail(f"{slot_id} page_refs must reflect shared physical file bindings {pages}")
         if asset.get("authority_state") != "OWNER_APPROVED_FOR_RUNTIME" or asset.get("candidate_status") != "OWNER_APPROVED_FOR_RUNTIME":
@@ -213,15 +213,15 @@ def verify_candidate_manifest() -> dict:
         by_path[path] = asset
 
     if len(by_path) != 8:
-        fail(f"12 slots must reference eight unique candidate source files, found {len(by_path)}")
+        fail(f"8 active slots must reference eight unique candidate source files, found {len(by_path)}")
     backgrounds = manifest.get("runtime_backgrounds", [])
     expected_backgrounds = {
-        "p01_p03_horizontal_background": {
+        "p01_portrait_phone_background": {
             "path": "assets/backgrounds/first_use_guide_bg_p01.jpg",
-            "pages": ["p01", "p03"], "width": 941, "height": 1672, "bytes": 124618,
+            "pages": ["p01"], "width": 941, "height": 1672, "bytes": 124618,
             "sha256": "544bbf91245ea0bc1a47fd5744effcd25b93f70748de926af1dd41c01e6498cf",
         },
-        "p02_vertical_background": {
+        "p02_portrait_phone_background": {
             "path": "assets/backgrounds/first_use_guide_bg_p02.jpg",
             "pages": ["p02"], "width": 941, "height": 1672, "bytes": 116538,
             "sha256": "75c61cd08ed4a7bf9fd522cdbaff564928a00198ccd96f54d65aa9ef00d8d823",
@@ -245,8 +245,6 @@ def verify_candidate_manifest() -> dict:
         if background.get("owner_approval_id") != APPROVAL_ID:
             fail(f"background approval record missing: {background['id']}")
     for role in ROLES:
-        if by_slot[f"p01_{role}"]["source_path"] != by_slot[f"p03_{role}"]["source_path"]:
-            fail(f"P01/P03 must explicitly share the same horizontal candidate for {role}")
         if by_slot[f"p02_{role}"]["source_path"] == by_slot[f"p01_{role}"]["source_path"]:
             fail(f"P02 vertical example must not reuse a horizontal source for {role}")
     reference_count = 0
@@ -262,12 +260,12 @@ def verify_candidate_manifest() -> dict:
                 fail(f"archive reference file was falsely presented as independently available: {asset['id']}")
             reference_count += 1
     counts = manifest.get("counts", {})
-    if counts.get("required_slots") != 12 or counts.get("candidate_slot_mappings") != 12:
-        fail("asset manifest counts do not reflect all 12 candidate bindings")
-    if counts.get("approved_independent_original_slots") != 0 or counts.get("blocked_original_source_slots") != 12:
-        fail("source original count must remain zero approved / 12 blocked")
-    if counts.get("unique_candidate_files") != 8 or counts.get("reference_only_archived_error_crops") != 9 or reference_count != 9:
-        fail("resource counts must remain eight generated files and nine archive-only crops")
+    if counts.get("required_slots") != 8 or counts.get("candidate_slot_mappings") != 8:
+        fail("asset manifest must declare exactly eight active page/role bindings")
+    if counts.get("approved_independent_original_slots") != 0 or counts.get("blocked_original_source_slots") != 8:
+        fail("source original count must remain zero approved / eight active slots blocked")
+    if counts.get("unique_candidate_files") != 8 or counts.get("reference_only_archived_error_crops") != 9 or reference_count != 6:
+        fail("resource counts must remain eight generated files, nine archive-only crops and six active linked references")
     if "Figma account connection confirmed" not in manifest.get("source_search", {}).get("figma_originals", ""):
         fail("Figma inventory note must accurately describe the connected account/current-file limitation")
     return manifest
@@ -276,10 +274,10 @@ def verify_candidate_manifest() -> dict:
 def verify_geometry_and_structure() -> None:
     geometry = load(GUIDE / "geometry_measurements.json")
     structure = load(GUIDE / "structured_pages.json")
-    if geometry.get("task_id") != TASK or set(geometry.get("pages", {})) != PAGES:
-        fail("geometry report must be keyed by the three stable page IDs")
-    if structure.get("task_id") != TASK or [page.get("id") for page in structure.get("pages", [])] != ["p01", "p02", "p03"]:
-        fail("structured page order/task ID changed")
+    if geometry.get("task_id") != TASK or set(geometry.get("pages", {})) != set(EXPECTED):
+        fail("geometry report must preserve P01/P02/P03 raster provenance, including archived P03")
+    if structure.get("task_id") != TASK or [page.get("id") for page in structure.get("pages", [])] != ["p01", "p02"]:
+        fail("active structured page order must contain only P01/P02")
     shared_ids = [item.get("id") for item in structure.get("shared_components", [])]
     if len(shared_ids) != len(set(shared_ids)):
         fail("shared component IDs must be unique")
@@ -292,10 +290,10 @@ def verify_geometry_and_structure() -> None:
         height = measurements["source_dimensions_px"]["height"]
         if page.get("outer_page_orientation") != "responsive; portrait frozen reference artboard":
             fail(f"{page_id} outer page orientation must remain viewport-responsive")
-        if page.get("outer_viewport_rotation") != "not prescribed by frozen V1; P03 must not imply landscape outer UI":
-            fail(f"{page_id} must not claim a frozen outer viewport rotation")
-        if page.get("capture_phone_orientation") != ("landscape" if page_id == "p03" else "portrait"):
-            fail(f"{page_id} capture direction is inconsistent with the V1 guide contract")
+        if page.get("outer_viewport_rotation") != "outer viewport follows runtime; active guide phone instruction remains portrait":
+            fail(f"{page_id} outer viewport/phone orientation contract changed")
+        if page.get("capture_phone_orientation") != "portrait":
+            fail(f"{page_id} must require portrait phone orientation")
         if len(page.get("nodes", [])) != 25:
             fail(f"{page_id} must keep 25 stable semantic layers")
         nodes = page["nodes"]
@@ -339,13 +337,11 @@ def verify_geometry_and_structure() -> None:
                 fail(f"unmeasured visible layer needs an explicit non-visible/NOT_RUN reason: {page_id}:{node_id}")
             if node_id in {"guide.background", "guide.overlay", "guide.hero"} and node.get("layer_separation_status") != "COMPOSITED_ONLY_SOURCE_LAYER_NOT_RECOVERABLE":
                 fail(f"flattened photographic layer must be explicitly COMPOSITED_ONLY: {page_id}:{node_id}")
-        if by_id.get("guide.previous_action", {}).get("visible_condition") != "P02_OR_P03_ONLY":
-            fail(f"previous-action visibility changed on {page_id}")
-        if page_id == "p03" and page.get("capture_phone_orientation") == "landscape" and page.get("outer_page_orientation").startswith("landscape"):
-            fail("P03 capture-phone orientation must not force the outer UI to landscape")
+        if by_id.get("guide.previous_action", {}).get("visible_condition") != "P02_ONLY":
+            fail(f"previous-action visibility must be P02-only on {page_id}")
     if structure.get("component_contract", {}).get("exact_pixel_geometry_status") != "MEASURED_FROM_FROZEN_RASTER":
         fail("pixel geometry must be tied to raster evidence")
-    print("PASS: 75 semantic layers and exact/native normalized geometry match the registered Frozen pixels; composited source style and interaction limits stay explicit.")
+    print("PASS: 50 active semantic layers and exact/native normalized geometry match P01/P02; archived P03 raster provenance remains intact.")
 
 
 def verify_responsive_and_readiness() -> None:
@@ -360,7 +356,7 @@ def verify_responsive_and_readiness() -> None:
         fail("readiness rows must use the required explicit state vocabulary")
     required_states = {
         "approved_independent_original_photos": "BLOCKED",
-        "generated_independent_candidate_photos": "CANDIDATE_PENDING_REVIEW",
+        "generated_independent_candidate_photos": "OWNER_APPROVED_FOR_RUNTIME",
         "flattened_source_style_and_hit_targets": "BLOCKED",
         "android_runtime_device_acceptance": "NOT_RUN",
     }
@@ -368,7 +364,7 @@ def verify_responsive_and_readiness() -> None:
     for row_id, state in required_states.items():
         if row_map.get(row_id, {}).get("status") != state:
             fail(f"readiness status mismatch for {row_id}: expected {state}")
-    if readiness.get("overall_status") != "PARTIAL_READY; ORIGINAL_PHOTO_APPROVAL_AND_NATIVE_RUNTIME_BLOCKED":
+    if readiness.get("overall_status") != "PARTIAL_READY; ORIGINAL_PHOTO_SOURCE_BLOCKED; ANDROID_RUNTIME_NOT_RUN":
         fail("full readiness cannot be claimed while source photo approval is blocked")
     profiles = responsive.get("viewport_matrix", [])
     required_profiles = {(320,480),(360,640),(390,844),(412,915),(430,932),(480,960),(640,360),(844,390),(915,412)}
@@ -383,10 +379,10 @@ def verify_responsive_and_readiness() -> None:
         fail("responsive 3-column breakpoint must be derived from 3×112dp cards + 2×8dp gaps + 2×16dp padding")
     if responsive.get("composition", {}).get("hero", {}).get("fit") != "contain" or responsive.get("composition", {}).get("actions", {}).get("target_min_dp") != 48:
         fail("responsive hero containment/48dp action invariants missing")
-    if "landscape capture-phone" not in responsive.get("coordinate_and_unit_contract", {}).get("p03_capture_direction", "") or "no page-specific forced rotation" not in responsive.get("coordinate_and_unit_contract", {}).get("outer_viewport_orientation", ""):
-        fail("P03 outer viewport vs camera capture direction must be explicitly separated")
-    if "ALL_ASSETS_FROZEN" not in freeze or "are **not** PASS" not in freeze or "CANDIDATE_NEEDS_APPROVAL" not in freeze:
-        fail("Freeze Decision must explicitly state photo candidates and prevent full-ready false PASS")
+    if responsive.get("coordinate_and_unit_contract", {}).get("phone_orientation_rule") != "Both active guide steps require the phone to remain portrait; fish orientation changes between P01 and P02.":
+        fail("both active guide steps must explicitly keep the phone portrait")
+    if "ALL_ASSETS_FROZEN" not in freeze or "are **not** PASS" not in freeze or "approved for Android Runtime" not in freeze or "GENERATED_CANDIDATE / NOT_FROZEN" not in freeze:
+        fail("Freeze Decision must separate Runtime approval from Frozen asset status and prevent full-ready false PASS")
     print("PASS: responsive matrix, viewport/inset/font contract, explicit candidate tuning, readiness states and partial-freeze boundary are consistent.")
 
 
@@ -408,8 +404,8 @@ def verify_registry_and_links(candidate_manifest: dict) -> None:
         fail("Design Manager registry must point to the canonical independent asset manifest")
     if "frontend_asset_slots" in resource:
         fail("Design Manager registry must not duplicate the canonical manifest slot data")
-    if len(candidate_manifest.get("assets", [])) != 12:
-        fail("canonical asset manifest must own all 12 page-role bindings")
+    if len(candidate_manifest.get("assets", [])) != 8:
+        fail("canonical asset manifest must own exactly eight active page-role bindings")
     for key in ("geometry_measurement_manifest", "responsive_contract_manifest", "readiness_matrix", "freeze_decision", "workspace_module"):
         target = resource.get(key)
         if not target or not (ROOT / target).is_file():
@@ -423,7 +419,7 @@ def main() -> None:
     verify_geometry_and_structure()
     verify_responsive_and_readiness()
     verify_registry_and_links(candidates)
-    print("PASS: 12 candidate bindings → 8 unique independent PNG files; all remain non-frozen and unapproved.")
+    print("PASS: 8 active P01/P02 bindings → 8 unique independent PNG files; all remain generated and non-Frozen.")
     print("PASS: nine archived composite example crops remain REFERENCE_ONLY; no full-page PNG is used as a photo slot.")
 
 

@@ -69,7 +69,7 @@ The system-level `recognition_result_v1.png` defines shared Result visual langua
 
 Design closure and Android Runtime alignment are tracked separately.
 
-## Recognition Capture · 首次拍照教学 V1
+## Recognition Capture · 首次拍照教学 V1.2
 
 `design/pages/recognition/first_use_camera_guide` 是 Recognition Capture 的首次进入教学 Overlay，已于 2026-10-16 冻结。
 
@@ -79,12 +79,12 @@ Design Manager 二级菜单：
 子菜单：
 - P01 · 竖屏拍摄示意 — FROZEN
 - P02 · 竖拍鱼类拍摄示意 — FROZEN
-- P03 · 横屏拍摄示意 — FROZEN
-- 资源 — Design Manager 静态资源目录，预览并下载 P01/P02/P03 原始 PNG；不映射到 Android 运行时
+- 原 P03「横屏拍摄示意」— 历史归档，不属于活动教学
+- 资源 — Design Manager 静态资源目录，仅展示两张活动 Frozen 页面与八张活动候选素材
 
-顶部 Hero 为唯一正确示范；下方固定 3 个错误示范：鱼头不在画面 / 鱼体过小 / 遮挡过多。P02 的错误示例全部使用竖直鱼体，P03 的错误示例全部使用横向鱼体。P01/P02 使用「下一张」，P03 使用「开始拍摄」；最后的「开始拍摄」仅关闭教学并回到 Capture Ready，不自动触发快门。
+两步均要求手机保持竖屏。每页 Hero 为唯一正确示范；下方固定三个错误示范：鱼头不在画面 / 鱼体过小 / 遮挡过多。P01 使用横向鱼体素材，P02 使用竖直鱼体素材。P01 使用「下一张」，P02 使用「开始拍摄」；开始拍摄只关闭教学并回到 Capture Ready，不自动触发快门。
 
-视觉权威、源文件 SHA 与冻结规则见 `design/pages/recognition/first_use_camera_guide/manifest.json` 与 `First_Use_Camera_Guide_Spec_V1.md`。
+当前权威为 `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md`、`PRODUCT_OWNER_DECISION_20261103.md` 与活动 manifest。原 P03 Frozen PNG 保留历史字节，不再展示为活动页面。
 
 ## Recognition Full Flow & Model Responsibilities
 

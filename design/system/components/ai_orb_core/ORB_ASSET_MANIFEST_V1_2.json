@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.2",
+  "task_id": "YUJIAN_AI_ORB_RESOURCE_FINAL_CLOSURE_V2",
+  "status": "ARCHIVAL_POINTER_SUPERSEDED_BY_MANIFEST_V1_2_JSON",
+  "superseded_by": "manifest_v1_2.json",
+  "historical_source_archive": {
+    "name": "PRELIMINARY_20261102_YuJian_AI_Orb_Gap_Closure_V1.zip",
+    "sha256": "3f2e2d102868314f954150297c14df7a41d7eeadbf819e249bad8c0a1d0d1c3e",
+    "status": "UNCHANGED_PRELIMINARY_LIBRARY_ITEM"
+  },
+  "current_release": "YuJian_AI_Orb_Gap_Closure_V1_FINAL.zip",
+  "current_archive_sha256": "ORB_RELEASE_RECORD_V1_2.json",
+  "note": "This retained compatibility pointer is not the authoritative resource inventory. Use manifest_v1_2.json for current V2 paths, hashes and status."
+}

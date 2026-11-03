@@ -116,7 +116,7 @@ gate_collect_evidence() {
   local first_guide_output="$YUJIAN_EVIDENCE_DIR/first_use_camera_guide"
   mkdir -p "$first_guide_output"
   local name
-  for name in P01_compose_component.png P02_compose_component.png P03_compose_component.png first_use_camera_guide_runtime_report.json; do
+  for name in P01_compose_component.png P02_compose_component.png first_use_camera_guide_runtime_report.json; do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
       "cache/recognition-first-use-camera-guide/${name}" \
       > "$first_guide_output/$name" 2>/dev/null || true
@@ -256,11 +256,6 @@ PY
   local rr09_production_name
   for rr09_production_name in \
     RR09_Production_K01_processing.png \
-    RR09_Production_K02_120ms.png \
-    RR09_Production_K03_290ms.png \
-    RR09_Production_K04_465ms.png \
-    RR09_Production_K05_610ms.png \
-    RR09_Production_K06_850ms.png \
     RR09_Production_Qualification_Report.json
   do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
@@ -272,6 +267,72 @@ PY
       return "$EXIT_FAIL_EVIDENCE"
     fi
   done
+  local rr09_source_name rr09_target_name rr09_frame
+  for rr09_frame in \
+    R0_000ms.png:RR09_Production_R0_000ms.png \
+    R0_5_100ms.png:RR09_Production_R0_5_100ms.png \
+    R1_200ms.png:RR09_Production_R1_200ms.png \
+    R2_380ms.png:RR09_Production_R2_380ms.png \
+    R3_550ms.png:RR09_Production_R3_550ms.png \
+    R4_680ms.png:RR09_Production_R4_680ms.png \
+    R5_850ms.png:RR09_Production_R5_850ms.png
+  do
+    rr09_source_name="${rr09_frame%%:*}"
+    rr09_target_name="${rr09_frame#*:}"
+    "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/rr09-gold-transfer-production/rr09-v4/${rr09_source_name}" \
+      > "$rr09_production_dir/${rr09_target_name}" 2>/dev/null || true
+    if [[ ! -s "$rr09_production_dir/${rr09_target_name}" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$rr09_production_dir/${rr09_target_name}" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "RR09_PRODUCTION_MODEL_FLOW_EVIDENCE_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+
+  local orb_waterlight_dir="$output_dir/AI_Orb_WaterLight_13_Stage_Runtime"
+  local orb_waterlight_processing_dir="$orb_waterlight_dir/13-stage"
+  local orb_waterlight_rr09_dir="$orb_waterlight_dir/rr09-v4"
+  mkdir -p "$orb_waterlight_processing_dir" "$orb_waterlight_rr09_dir"
+  local -a processing_times=(0 1 350 950 1075 1200 1550 1700 1950 2050 2600 2800)
+  local sample_ms sample_name
+  for sample_ms in "${processing_times[@]}"; do
+    printf -v sample_name 'processing_%04dms.png' "$sample_ms"
+    "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/rr09-gold-transfer-production/13-stage/${sample_name}" \
+      > "$orb_waterlight_processing_dir/${sample_name}" 2>/dev/null || true
+    if [[ ! -s "$orb_waterlight_processing_dir/${sample_name}" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$orb_waterlight_processing_dir/${sample_name}" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "AI_ORB_WATERLIGHT_PROCESSING_FRAME_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  local -a rr09_v4_frames=(R0_000ms.png R0_5_100ms.png R1_200ms.png R2_380ms.png R3_550ms.png R4_680ms.png R5_850ms.png)
+  for sample_name in "${rr09_v4_frames[@]}"; do
+    "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/rr09-gold-transfer-production/rr09-v4/${sample_name}" \
+      > "$orb_waterlight_rr09_dir/${sample_name}" 2>/dev/null || true
+    if [[ ! -s "$orb_waterlight_rr09_dir/${sample_name}" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$orb_waterlight_rr09_dir/${sample_name}" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "AI_ORB_WATERLIGHT_RR09_FRAME_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  for sample_name in AI_Orb_WaterLight_Runtime_Matrix.json; do
+    "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/rr09-gold-transfer-production/${sample_name}" \
+      > "$orb_waterlight_dir/${sample_name}" 2>/dev/null || true
+    if [[ ! -s "$orb_waterlight_dir/${sample_name}" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$orb_waterlight_dir/${sample_name}" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "AI_ORB_WATERLIGHT_RUNTIME_MATRIX_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  if ! python3 "$YUJIAN_REPO_ROOT/scripts/build_ai_orb_waterlight_13_stage_contact_sheet.py" \
+    --evidence-dir "$orb_waterlight_dir"; then
+    runtime_set_failure "EVIDENCE" "AI_ORB_WATERLIGHT_13_STAGE_CONTACT_SHEET_FAILED"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+
   "${YUJIAN_ADB_BIN}" pull "$YUJIAN_RECOGNITION_DEVICE_RECORDING" \
     "$rr09_production_dir/RR09_Production_Recognition_Flow_Recording.mp4" >/dev/null 2>&1 || true
   if [[ ! -s "$rr09_production_dir/RR09_Production_Recognition_Flow_Recording.mp4" ]]; then
@@ -338,11 +399,13 @@ production["recording_start_uptime_seconds"] = start_uptime
 production["recording_source"] = "API28 screenrecord started by the runtime gate before this production-data instrumentation class"
 production_frame_specs = [
     ("RR09_Production_K01_processing.png", None),
-    ("RR09_Production_K02_120ms.png", 120),
-    ("RR09_Production_K03_290ms.png", 290),
-    ("RR09_Production_K04_465ms.png", 465),
-    ("RR09_Production_K05_610ms.png", 610),
-    ("RR09_Production_K06_850ms.png", 850),
+    ("RR09_Production_R0_000ms.png", 0),
+    ("RR09_Production_R0_5_100ms.png", 100),
+    ("RR09_Production_R1_200ms.png", 200),
+    ("RR09_Production_R2_380ms.png", 380),
+    ("RR09_Production_R3_550ms.png", 550),
+    ("RR09_Production_R4_680ms.png", 680),
+    ("RR09_Production_R5_850ms.png", 850),
 ]
 manifest["production_model_flow"] = {
     "status": production.get("status"),

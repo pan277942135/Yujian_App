@@ -4,47 +4,116 @@ import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.RectF
+import android.graphics.Region
 import android.graphics.Shader
-import kotlin.math.sin
+import kotlin.math.ceil
+import kotlin.math.floor
 
-/** Glyph capture for a real classifier display name, sampled from the existing RR09 clock. */
+/**
+ * Forms the actual classifier-provided Chinese glyph from deterministic water-gold ink samples.
+ * The name is never replaced by a bitmap or a fixed species string.
+ */
 internal class SpeciesNameReveal {
-    private val waterPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val glintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = 1.1f
-        color = android.graphics.Color.rgb(235, 202, 143)
+    private data class InkPoint(val x: Float, val y: Float, val rank: Int)
+
+    private val inkPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private var cachedGlyph: Path? = null
+    private var inkPoints: List<InkPoint> = emptyList()
+
+    fun draw(
+        canvas: Canvas,
+        glyph: Path,
+        width: Float,
+        height: Float,
+        mode: RecognitionRevealTitleMode,
+        formationProgress: Float,
+        revealProgress: Float,
+    ) {
+        if (glyph.isEmpty || width <= 0f || height <= 0f || mode == RecognitionRevealTitleMode.HIDDEN ||
+            mode == RecognitionRevealTitleMode.STATIC || mode == RecognitionRevealTitleMode.VISIBLE
+        ) return
+        if (cachedGlyph !== glyph) {
+            cachedGlyph = glyph
+            inkPoints = sampleGlyph(glyph)
+        }
+        when (mode) {
+            RecognitionRevealTitleMode.FORMING -> drawFormingInk(canvas, glyph, width, height, formationProgress)
+            RecognitionRevealTitleMode.REVEALING -> drawReveal(canvas, glyph, width, height, revealProgress)
+            RecognitionRevealTitleMode.HIDDEN,
+            RecognitionRevealTitleMode.STATIC,
+            RecognitionRevealTitleMode.VISIBLE -> Unit
+        }
     }
 
-    fun draw(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float, elapsedMs: Long) {
-        if (glyph.isEmpty || width <= 0f || height <= 0f) return
+    private fun drawFormingInk(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float) {
         val p = progress.coerceIn(0f, 1f)
-        if (p <= 0f) return
+        if (p <= 0f || inkPoints.isEmpty()) return
+        val count = ceil(inkPoints.size * p).toInt().coerceIn(0, inkPoints.size)
         val save = canvas.save()
         try {
-            // A moving, soft front captures actual glyph pixels; no fixed name bitmap or second clock.
-            val lead = width * p
-            canvas.clipRect(0f, 0f, lead, height)
             canvas.clipPath(glyph)
-            val drift = if (p >= 1f) 0f else sin(elapsedMs.coerceAtLeast(0L) / 180f) * width * .035f
-            waterPaint.shader = LinearGradient(
-                -width * .15f + drift, height, width * 1.1f + drift, 0f,
-                intArrayOf(0xFF0B4A5B.toInt(), 0xFF2D9BA5.toInt(), 0xFF9BCFD2.toInt(), 0xFF153C55.toInt()),
-                null, Shader.TileMode.CLAMP,
-            )
-            waterPaint.alpha = (235 * p).toInt().coerceIn(0, 235)
-            canvas.drawPath(glyph, waterPaint)
-            waterPaint.shader = null
-            // The glint is a small local edge fragment at the active capture front.
-            if (p < 1f) {
-                val local = canvas.save()
-                canvas.clipRect((lead - width * .09f).coerceAtLeast(0f), 0f, lead, height)
-                glintPaint.alpha = (160 * (1f - p * .45f)).toInt()
-                canvas.drawPath(glyph, glintPaint)
-                canvas.restoreToCount(local)
+            inkPoints.take(count).forEachIndexed { index, point ->
+                val progressLocal = (index + 1f) / count.coerceAtLeast(1)
+                val radius = (1.1f + (point.rank % 5) * .23f) * (0.7f + .3f * progressLocal)
+                particlePaint.color = if (point.rank % 4 == 0) 0xFFF1D89D.toInt() else 0xFF5A9DA0.toInt()
+                particlePaint.alpha = (130 + point.rank % 70).coerceIn(0, 200)
+                canvas.drawCircle(point.x, point.y, radius, particlePaint)
             }
         } finally {
             canvas.restoreToCount(save)
         }
+    }
+
+    private fun drawReveal(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float) {
+        val p = progress.coerceIn(0f, 1f)
+        if (p <= 0f) return
+        val save = canvas.save()
+        try {
+            canvas.clipPath(glyph)
+            inkPaint.shader = LinearGradient(
+                0f, height, width, 0f,
+                intArrayOf(0xFF5C4329.toInt(), 0xFFD7B66F.toInt(), 0xFFFFE7AE.toInt(), 0xFF9A713B.toInt()),
+                floatArrayOf(0f, .32f, .58f, 1f), Shader.TileMode.CLAMP,
+            )
+            inkPaint.alpha = (245 * p).toInt().coerceIn(0, 245)
+            canvas.drawPath(glyph, inkPaint)
+            inkPaint.shader = null
+        } finally {
+            canvas.restoreToCount(save)
+        }
+    }
+
+    private fun sampleGlyph(glyph: Path): List<InkPoint> {
+        val bounds = RectF()
+        glyph.computeBounds(bounds, true)
+        if (bounds.width() <= 1f || bounds.height() <= 1f) return emptyList()
+        val clip = Region(
+            floor(bounds.left).toInt() - 2,
+            floor(bounds.top).toInt() - 2,
+            ceil(bounds.right).toInt() + 2,
+            ceil(bounds.bottom).toInt() + 2,
+        )
+        val region = Region().apply { setPath(glyph, clip) }
+        val step = maxOf(4, (minOf(bounds.width(), bounds.height()) / 9f).toInt())
+        val samples = ArrayList<InkPoint>(96)
+        var rank = 0
+        var y = floor(bounds.top).toInt()
+        while (y <= ceil(bounds.bottom).toInt()) {
+            var x = floor(bounds.left).toInt()
+            while (x <= ceil(bounds.right).toInt()) {
+                // Stable hash staggering avoids a mechanical grid and is independent of frame time.
+                val hash = ((x * 73856093) xor (y * 19349663)) and 0x7fffffff
+                val px = x + (hash % step).toFloat() / step
+                val py = y + ((hash / step) % step).toFloat() / step
+                if (region.contains(px.toInt(), py.toInt()) && hash % 3 != 0) {
+                    samples += InkPoint(px, py, hash % 97)
+                }
+                x += step
+            }
+            y += step
+        }
+        return samples.sortedBy(InkPoint::rank).take(120)
     }
 }

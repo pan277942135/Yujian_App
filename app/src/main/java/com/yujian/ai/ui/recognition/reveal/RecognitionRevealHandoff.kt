@@ -3,6 +3,7 @@ package com.yujian.ai.ui.recognition.reveal
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectQuality
+import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.DisplayPoint
 import com.yujian.ai.ui.identify.NormalizedSourceRect
@@ -70,6 +71,10 @@ data class RecognitionProcessingPhotoSnapshot(
     val sourceToViewport: RecognitionImageTransform,
     val photoBoundsInWindow: RecognitionRevealWindowRect? = null,
     val cornerRadiusPx: Float = 0f,
+    /** Original Processing Orb center in window coordinates; retained for RR09 energy return. */
+    val processingOrbCenterInWindow: DisplayPoint? = null,
+    /** Core diameter measured from the same Processing Orb instance, in physical pixels. */
+    val processingOrbCoreDiameterPx: Float = 0f,
 )
 
 data class RecognitionRevealHandoff(
@@ -95,6 +100,10 @@ data class RecognitionRevealHandoff(
     val handoffTimestampUptimeMs: Long,
     val processingPhotoClipBoundsInWindow: RecognitionRevealWindowRect? = null,
     val processingPhotoCornerRadiusPx: Float = 0f,
+    val processingOrbCenterInWindow: DisplayPoint? = null,
+    val processingOrbCoreDiameterPx: Float = 0f,
+    /** Final Classifier × SlimSAM decision captured before production Result navigation. */
+    val revealDecision: RecognitionRevealDecisionState? = null,
 )
 
 object RecognitionRevealHandoffFactory {
@@ -107,6 +116,7 @@ object RecognitionRevealHandoffFactory {
         processingPhoto: RecognitionProcessingPhotoSnapshot?,
         highConfidenceResult: Boolean,
         handoffTimestampUptimeMs: Long,
+        subjectStatus: SubjectStatus = if (subject == null) SubjectStatus.FAILED else SubjectStatus.READY,
     ): RecognitionRevealHandoff {
         val key = RecognitionRevealKey(recognitionSessionId, recognitionAttemptId)
         val primary = result.assessment.primary
@@ -125,6 +135,14 @@ object RecognitionRevealHandoffFactory {
             photoSha256 = image.photoSha256,
         )
         val maskTrusted = geometryTrust == RecognitionGeometryTrustState.TRUSTED_MASK
+        val decision = RecognitionRevealDecisionGate.decide(
+            classifier = if (result.ready) RecognitionClassifierTaskState.READY else RecognitionClassifierTaskState.FAILED,
+            subject = subjectStatus,
+            maskTrusted = maskTrusted,
+            contourValid = subject?.contour?.isNotEmpty() == true,
+            identityCurrent = recognitionSessionId.isNotBlank() && recognitionAttemptId.isNotBlank() &&
+                image.imageId.isNotBlank() && image.photoSha256.isNotBlank(),
+        )
         val photo = processingPhoto?.takeIf {
             it.imageId == image.imageId &&
                 it.viewportBoundsInWindow.isValid() &&
@@ -133,6 +151,11 @@ object RecognitionRevealHandoffFactory {
         }
         val photoClip = photo?.photoBoundsInWindow?.takeIf(RecognitionRevealWindowRect::isValid)
         val photoCornerRadius = photo?.cornerRadiusPx?.takeIf { it.isFinite() && it >= 0f } ?: 0f
+        val orbAnchor = photo?.processingOrbCenterInWindow?.takeIf { point ->
+            point.x.isFinite() && point.y.isFinite() &&
+                point.x in photo.viewportBoundsInWindow.left..photo.viewportBoundsInWindow.right &&
+                point.y in photo.viewportBoundsInWindow.top..photo.viewportBoundsInWindow.bottom
+        }
         val anchorSource = if (maskTrusted) {
             bottomContourAnchor(requireNotNull(subject).contour, subject.subjectBox,
                 subject.contourSourceSpace == "CANONICAL_PHOTO_NORMALIZED")
@@ -161,7 +184,7 @@ object RecognitionRevealHandoffFactory {
             highConfidenceResult = highConfidenceResult,
             geometryTrust = geometryTrust,
             processingPhotoValid = photo != null,
-            anchorValid = anchor != null,
+            anchorValid = anchor != null && orbAnchor != null,
         )
         val contour = if (maskTrusted) subject?.contour?.toList().orEmpty() else emptyList()
         val subjectBox = if (maskTrusted) subject?.subjectBox else null
@@ -188,6 +211,10 @@ object RecognitionRevealHandoffFactory {
             handoffTimestampUptimeMs = handoffTimestampUptimeMs,
             processingPhotoClipBoundsInWindow = photoClip,
             processingPhotoCornerRadiusPx = photoCornerRadius,
+            processingOrbCenterInWindow = orbAnchor,
+            processingOrbCoreDiameterPx = photo?.processingOrbCoreDiameterPx
+                ?.takeIf { it.isFinite() && it > 1f } ?: 0f,
+            revealDecision = decision,
         )
     }
 

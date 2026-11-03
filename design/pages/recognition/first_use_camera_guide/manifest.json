@@ -1,10 +1,10 @@
 {
   "schema_version": "1.1",
   "asset_id": "recognition_first_use_camera_guide_v1",
-  "status": "FROZEN",
+  "status": "FROZEN_ACTIVE_TWO_PAGE_V1_2",
   "runtime_visual_authority": false,
   "scope": "Recognition Capture first-use camera guide overlay",
-  "design_spec": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+  "design_spec": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md",
   "assets": [
     {
       "id": "p01",
@@ -30,25 +30,23 @@
     },
     {
       "id": "p03",
-      "title": "P03 · 横屏拍摄示意",
+      "title": "P03 · 横屏拍摄示意（历史归档，不参与首次引导）",
       "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
       "source_filename": "湖畔横屏拍摄指南(1).png",
       "width": 941,
       "height": 1672,
       "bytes": 2001322,
       "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
-      "status": "FROZEN"
+      "status": "ARCHIVED_NOT_ACTIVE"
     }
   ],
   "rules": {
     "sequence": [
       "p01",
-      "p02",
-      "p03"
+      "p02"
     ],
     "p01_primary_action": "下一张",
-    "p02_primary_action": "下一张",
-    "p03_primary_action": "开始拍摄",
+    "p02_primary_action": "开始拍摄",
     "skip_action": "跳过",
     "previous_action": "上一张",
     "shutter_auto_trigger": false,
@@ -59,7 +57,11 @@
       "鱼体过小",
       "遮挡过多"
     ],
-    "orientation_rule": "P01 errors horizontal fish; P02 errors vertical fish; P03 errors horizontal fish."
+    "orientation_rule": "Both active pages keep the phone portrait; P01 errors use horizontal fish and P02 errors use vertical fish. No landscape-phone capture instruction is active.",
+    "active_page_count": 2,
+    "archived_page_ids": [
+      "p03"
+    ]
   },
   "repository_binary_import": {
     "status": "PASS",

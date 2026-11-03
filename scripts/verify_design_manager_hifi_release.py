@@ -13,6 +13,8 @@ from pathlib import Path
 
 GUIDE = Path("pages/recognition/first_use_camera_guide")
 ASSETS = Path("system_v3/00_Product_Master_Flow/assets")
+ACTIVE_GUIDE = ("p01", "p02")
+# P03 remains hash-verified as an archive; it is not an active camera-guide step.
 EXPECTED_GUIDE = {
     "p01": (941, 1671, "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"),
     "p02": (941, 1671, "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"),
@@ -223,52 +225,60 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require("<svg " in flow_svg and "</svg>" in flow_svg and "DET_FISH" in flow_svg and "MODEL_M1" in flow_svg, "full-flow SVG content is incomplete")
     require(guide_view.get("title") == "07 · 首次拍照教学", "legacy 07 guide menu title changed")
     guide_children = {x.get("id"): x for x in guide_view.get("children", [])}
-    require(set(guide_children) == set(EXPECTED_GUIDE) | {"resources"}, "P01/P02/P03 and Resources direct children changed")
+    require(set(guide_children) == set(ACTIVE_GUIDE) | {"resources"}, "P01/P02 and Resources direct children changed")
     resource_view = guide_children["resources"]
     require(resource_view.get("title") == "资源", "guide Resources submenu title changed")
     require(resource_view.get("status") == "DESIGN_ONLY" and resource_view.get("authority_type") == "asset_catalog", "guide Resources must remain a Design Manager-only asset catalog")
     require(resource_view.get("render_mode") == "recognition_guide_resources", "guide Resources renderer is missing")
-    require(resource_view.get("resource_ids") == ["p01", "p02", "p03"], "guide Resources must expose the three active Frozen images")
+    require(resource_view.get("resource_ids") == list(ACTIVE_GUIDE), "guide Resources must expose exactly the two active Frozen images")
     require(resource_view.get("runtime_visual_authority") is False, "guide Resources cannot claim Android runtime visual authority")
 
     manifest = load_json(design / GUIDE / "manifest.json")
     nav = load_json(design / GUIDE / "navigation.json")
-    require(manifest.get("status") == "FROZEN", "first-use guide manifest is not FROZEN")
+    require(manifest.get("status") == "FROZEN_ACTIVE_TWO_PAGE_V1_2", "first-use guide must retain its frozen two-page authority")
     require(manifest.get("runtime_visual_authority") is False, "guide must not claim Android runtime visual authority")
     nav_children = {x.get("id"): x for x in nav.get("children", [])}
     require(nav.get("manager_parent") == "recognition_flow_v1_2", "guide manager parent changed")
-    require(set(nav_children) == set(EXPECTED_GUIDE), "navigation.json must retain exactly P01/P02/P03")
+    require(set(nav_children) == set(ACTIVE_GUIDE), "navigation.json must contain only the approved P01/P02 steps")
     resource_menus = nav.get("resource_menus", [])
     require(len(resource_menus) == 1, "navigation.json must register one separate Design Manager resource menu")
     require(resource_menus[0].get("id") == "resources" and resource_menus[0].get("title") == "资源", "guide resource menu identity changed")
     require(resource_menus[0].get("route") == "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources", "guide resource menu route changed")
-    require(resource_menus[0].get("manifest") == "manifest.json" and resource_menus[0].get("resource_ids") == ["p01", "p02", "p03"], "guide resource menu must use the existing manifest and frozen pages")
+    require(resource_menus[0].get("manifest") == "manifest.json" and resource_menus[0].get("resource_ids") == list(ACTIVE_GUIDE), "guide resource menu must list only P01/P02")
     require(resource_menus[0].get("runtime_visual_authority") is False, "guide resource menu cannot claim runtime visual authority")
     manifest_children = {x.get("id"): x for x in manifest.get("assets", [])}
-    require(set(manifest_children) == set(EXPECTED_GUIDE), "guide manifest P01/P02/P03 set changed")
+    require(set(manifest_children) == set(EXPECTED_GUIDE), "guide manifest must preserve P01/P02 plus archived P03")
+    require(manifest.get("rules", {}).get("sequence") == list(ACTIVE_GUIDE), "guide active sequence must be P01/P02")
+    require(manifest.get("rules", {}).get("archived_page_ids") == ["p03"], "P03 history must remain explicitly archived")
     require(resource_view.get("resource_manifest") == "design/" + (GUIDE / "manifest.json").as_posix(), "guide Resources must use the existing authoritative manifest")
 
     files: dict[str, dict] = {}
     for asset_id, (width, height, expected_sha) in EXPECTED_GUIDE.items():
         asset = manifest_children[asset_id]
-        child = guide_children[asset_id]
+        child = guide_children.get(asset_id)
         expected_path = f"design/pages/recognition/first_use_camera_guide/frozen/P{asset_id[-2:]}_First_Use_Camera_Guide_Frozen.png"
         require(asset.get("path") == expected_path, f"{asset_id} manifest path drift")
         require(asset.get("sha256") == expected_sha, f"{asset_id} manifest SHA drift")
         require((asset.get("width"), asset.get("height")) == (width, height), f"{asset_id} manifest dimensions drift")
-        require(child.get("status") == "FROZEN" and child.get("visual_status") == "FROZEN", f"{asset_id} manager status is not FROZEN")
-        require(child.get("visual_authority") == expected_path, f"{asset_id} Registry source path drift")
-        require(child.get("visual_authority_sha256") == expected_sha, f"{asset_id} Registry SHA drift")
-        require(child.get("page_id") == "recognition.capture.v3_1" and child.get("state_id") == asset_id.upper(), f"{asset_id} Page/State ID missing")
-        require(child.get("runtime_status") == "NOT_RUN", f"{asset_id} incorrectly upgrades Runtime status")
-        require(nav_children[asset_id].get("visual_authority") == f"frozen/P{asset_id[-2:]}_First_Use_Camera_Guide_Frozen.png", f"{asset_id} navigation source drift")
+        require(
+            asset.get("status") == ("FROZEN" if asset_id in ACTIVE_GUIDE else "ARCHIVED_NOT_ACTIVE"),
+            f"{asset_id} active/archive manifest status drift",
+        )
+        if asset_id in ACTIVE_GUIDE:
+            require(child is not None and child.get("status") == "FROZEN" and child.get("visual_status") == "FROZEN", f"{asset_id} manager status is not FROZEN")
+            require(child.get("visual_authority") == expected_path, f"{asset_id} Registry source path drift")
+            require(child.get("visual_authority_sha256") == expected_sha, f"{asset_id} Registry SHA drift")
+            require(child.get("page_id") == "recognition.capture.v3_1" and child.get("state_id") == asset_id.upper(), f"{asset_id} Page/State ID missing")
+            require(child.get("runtime_status") == "NOT_RUN", f"{asset_id} incorrectly upgrades Runtime status")
+            require(nav_children[asset_id].get("visual_authority") == f"frozen/P{asset_id[-2:]}_First_Use_Camera_Guide_Frozen.png", f"{asset_id} navigation source drift")
+        else:
+            require(child is None and asset_id not in nav_children, "archived P03 must not be a live Design Manager or navigation page")
         files[asset_id] = check_png(root / expected_path, expected_sha, (width, height))
 
     routes = {
         "00 overview": "#page/recognition_flow_v1_2/hifi/main_journey_overview",
         "guide P01": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p01",
         "guide P02": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02",
-        "guide P03": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03",
         "guide Resources": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources",
         "master board": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/master_board_v1",
         "review state": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/new_states_review",
@@ -276,7 +286,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         "permission visual gate": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/camera_permission_visual",
         "full flow and model responsibilities": "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models",
     }
-    for child_id in ("p01", "p02", "p03"):
+    for child_id in ACTIVE_GUIDE:
         child = guide_children[child_id]
         require(child.get("entry_conditions") and child.get("trigger") and child.get("input_contract"), f"{child_id} contract entry fields missing")
         require(child.get("user_actions") and child.get("next_page") and child.get("back_behavior"), f"{child_id} contract actions missing")
@@ -431,7 +441,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         expect_failure(lambda: check_png(temp_png, EXPECTED_GUIDE["p01"][2], (941, 1671)), "modified Frozen PNG SHA")
 
     return [
-        "DM-T01 P01-P03 SHA/dimensions",
+        "DM-T01 active P01/P02 and archived P03 SHA/dimensions",
         "DM-T01A overview and review SVG SHA",
         "DM-T02 Registry and guide navigation",
         "DM-T03 Frozen asset presence and negative integrity cases",

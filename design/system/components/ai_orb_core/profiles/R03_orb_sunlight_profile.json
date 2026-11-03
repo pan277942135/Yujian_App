@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "status": "TUNE_BASELINE",
+  "light": {
+    "sourceUV": [
+      0.24,
+      0.2
+    ],
+    "direction": "upper_left_to_lower_right",
+    "color": "#D8BC87",
+    "fixed_azimuth": true
+  },
+  "layers": {
+    "glass_specular": {
+      "alpha_max": 0.11,
+      "max_translation_D": 0.02,
+      "period_ms": 6400
+    },
+    "core_refraction": {
+      "alpha_max": 0.11,
+      "period_ms": 5200
+    },
+    "caustic_response": {
+      "profile": "R05_orb_caustics_profile.json",
+      "alpha_max": 0.14
+    },
+    "existing_grass_response": {
+      "alpha_max": 0.06,
+      "per_leaf_driving": false
+    },
+    "droplet_specular": {
+      "alpha_max": 0.32
+    }
+  },
+  "guards": {
+    "baked_highlight_must_not_double_expose": true,
+    "max_extra_additive_alpha": 0.22,
+    "no_whole_ball_flash": true
+  },
+  "master_sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee"
+}

@@ -1,7 +1,7 @@
 package com.yujian.ai.ui.waterlight
 
-import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.renderer.WaterCausticsField
 import com.yujian.ai.ui.waterlight.renderer.WaterCausticsRenderer
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +18,7 @@ class WaterCausticsRendererLifecycleTest {
     private val color = WaterCausticsField.Rgb(.3, .7, .8)
     private fun frame(photo: String, version: Long) = WaterLightFrame(
         sessionId = "session", photoSha256 = photo, elapsedMs = 1000,
-        opticalReferenceElapsedMs = 1000, phase = RecognitionPhase.OUTLINE,
+        opticalReferenceElapsedMs = 1000, phase = WaterLightPhase.PROCESSING,
         completion = .5f, reducedMotion = false, geometryVersion = version,
         attemptId = "attempt", imageId = photo,
     )

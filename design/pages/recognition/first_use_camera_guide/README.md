@@ -1,54 +1,33 @@
-# Recognition Capture · 首次拍照教学
+# 首次拍照引导 · Android Runtime / Design Authority
 
-**Status: FROZEN — three-page V1 for RECOGNITION-FIRST-USE-GUIDE-V1**
+当前有效版本：First_Use_Camera_Guide_Spec_V1_2.md  
+当前活动页数：2  
+手机方向：两步均保持竖屏；不再教学手机横屏拍摄。
 
-Design Manager 入口：`识别过程 → 07 · 首次拍照教学`
+## 当前两步教学
 
-## Active pages
+| 步骤 | 手机方向 | 鱼体方向 | 正确示范 | 错误示例 | 主操作 |
+|---|---|---|---|---|---|
+| P01 · 竖屏拍摄示意 | 竖屏 | 横向 | 完整鱼体横向入镜 | 鱼头出框 / 鱼体过小 / 遮挡过多 | 下一张 |
+| P02 · 竖拍鱼类拍摄示意 | 竖屏 | 竖直 | 完整鱼体竖直入镜 | 鱼头出框 / 鱼体过小 / 遮挡过多 | 开始拍摄 |
 
-| ID | Title | Phone | Fish |
-|---|---|---|---|
-| P01 | 竖屏拍摄示意 | Portrait | Horizontal |
-| P02 | 竖拍鱼类拍摄示意 | Portrait | Vertical |
-| P03 | 横屏拍摄示意 | Landscape | Horizontal |
+P02 的「开始拍摄」只关闭引导并回到 Capture Ready，不自动触发快门。跳过同样不触发快门。首次引导仍只在 Camera 权限已授予且 CameraX Preview Ready 后展示；相册入口不展示相机教学。
 
-**Active sequence:** P01 → P02 → P03
+## 图片资源
 
-P01 and P02 use `下一张`; P02/P03 expose `上一张`; P03 uses `开始拍摄`. Skip and final Start persist completion. Start returns to Capture Ready without taking a photo.
+当前活动 Runtime 使用 8 张独立候选图：
+- P01：4 张横向鱼体素材（正确示范 + 3 个错误示例）。
+- P02：4 张竖直鱼体素材（正确示范 + 3 个错误示例）。
 
-## Frozen assets
+两张页面背景分别来自第二轮 AI Studio ZIP。八张候选图保留原始字节、比例与 GENERATED_CANDIDATE 来源类型；已获准用于 Android Runtime，但不标记为 Frozen。资源身份、授权与 SHA 由 frontend_assets_manifest.json 和 OWNER_APPROVAL_20261102.md 管理。
 
-Frozen P01/P02/P03 full-page PNGs remain Design Manager visual authorities, not Android runtime backgrounds. Their original bytes are imported and verified in `asset_import_report.json`:
+原 P03「横屏拍摄示意」及其 Frozen PNG 仅作为历史设计档案保留，不属于活动导航、Runtime 页面、图片槽位或测试路径。
 
-- P01: 941×1671, 1,988,159 bytes, SHA-256 `dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50`
-- P02: 941×1671, 2,042,852 bytes, SHA-256 `fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f`
-- P03: 941×1672, 2,001,322 bytes, SHA-256 `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3`
+## 响应式与验收
 
-The task-scope resolution is recorded in `Scope_Resolution_20261016.md`. The later two-page freeze proposal remains preserved as history and does not replace this explicitly requested V1 task scope.
+- 手机拍摄教学始终竖屏；设备外层可用视口仍按真实 WindowInsets 和尺寸响应。
+- 正确示范使用 contain，完整保留鱼体，不旋转或拉伸素材。
+- 3 个错误示例按宽度在三列 / 两列间响应；短屏允许完整内容滚动。
+- 先完成单元测试、AndroidTest APK 编译、资源打包核验与 Lint。真机相机验证由产品负责人执行；本轮不执行 API 28 真机验证。
 
-## Product-owner asset approval and Android Runtime mapping
-
-`OWNER_APPROVAL_20261102.md` records the product owner's approval of the eight existing independent candidate PNGs for the guide Runtime and their source hashes. The two standalone P01/P02 background photos from the supplied second-round AI Studio ZIP are separately recorded in `frontend_assets_manifest.json` and are used as full-page photo backgrounds; P01/P03 share the horizontal scene and P02 uses the vertical scene. The 8 candidate photos provide the matching correct-example and three avoid-example bindings for horizontal and vertical fish orientations.
-
-## Design Manager workspaces
-
-`识别过程 → 07 · 首次拍照教学 → 资源` remains the existing hash route and opens the independent asset catalog by default. Its three tabs share the existing Design Manager renderer and registries; tab selection is preserved in `guide_workspace` and page selection in `guide_page` query parameters:
-
-- **结构化高保真**: P01/P02/P03 selector, semantic layer tree, one frozen reference canvas with selectable measured-box overlay, and pixel/normalized geometry inspector.
-- **响应式设计**: viewport preset/free-size controls, font-scale and inset simulation, responsive proposal preview, and the candidate/frozen boundary.
-- **资源**: the three unchanged Frozen page PNGs plus all 12 photo-role mappings to eight independent generated candidate files, with direct originals, metadata and byte-level hashes. Archive-derived example crops remain `REFERENCE_ONLY` and are not promoted.
-
-P03's landscape camera instruction and horizontal fish are inner teaching content; the outer page viewport remains responsive. Runtime backgrounds map P01/P03 to the horizontal P01 scene and P02 to the vertical P02 scene. These are separate photos, not crops of the Frozen page PNGs.
-
-## Structured pre-development handoff
-
-- `structured_pages.json` records three stable layer trees, parent/child links, visibility, candidate visual-order indices, shared component references and per-layer geometry status.
-- `geometry_measurements.json` records native frozen-raster bounds and normalized coordinates. Source font declarations, original z-index, layer alpha/effects, independent hero/photo layers and invisible touch targets cannot be recovered from the flattened source PNGs.
-- `responsive_contract.json` specifies inset-aware `dp` sizing, scrolling, wrapping, image containment, 48dp targets and a tested viewport × font-scale matrix. Browser simulation is not Android runtime acceptance.
-- `frontend_assets_manifest.json` binds one hero plus three error examples per page. The product owner approved the eight generated PNGs for Android Runtime on 2026-11-02; the 12 slots map horizontal assets to P01/P03 and vertical assets to P02. The candidates remain generated assets and are not marked Frozen. Original-source photo slots remain unavailable and are not used by this mapping.
-- The nine archived composite-derived error crops remain `REFERENCE_ONLY`. Neither they nor the Frozen full-page images are used as candidate source photos.
-- `PREDEV_READINESS_MATRIX.json` and `Freeze_Decision.md` preserve the pre-approval state recorded at their source SHA. `OWNER_APPROVAL_20261102.md` supersedes that record only for use of the eight generated candidates and the two ZIP2 backgrounds; it does not claim Android device acceptance or mark the page assets Frozen. Android Runtime acceptance remains NOT_RUN.
-
-## Validation
-
-Run `python3 scripts/verify_first_use_camera_guide_assets.py`, `python3 scripts/measure_first_use_camera_guide_geometry.py --check`, and the Design Manager navigation, hi-fi release, registry, and Chromium browser verification scripts. Exact-SHA CI, browser screenshots, deployment build marker, remaining blockers, and review links are recorded in the Issue #206 execution checkpoint and the implementation PR.
+资源核验入口：scripts/verify_first_use_camera_guide_assets.py。

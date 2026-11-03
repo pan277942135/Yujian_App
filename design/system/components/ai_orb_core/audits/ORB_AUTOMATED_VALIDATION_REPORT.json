@@ -1,0 +1,31 @@
+{
+  "task_id": "YUJIAN_AI_ORB_RESOURCE_FINAL_CLOSURE_V2",
+  "status": "PASS_WITH_SOURCE_LIMITATIONS",
+  "passed_checks": 344,
+  "failed_checks": 0,
+  "warnings": [
+    "Main runtime WebP raw bytes not in package: alpha and real runtime comparison remain unverified.",
+    "Visual boards are source-derived static design samples, not Android run-time acceptance."
+  ],
+  "failed": [],
+  "sample_passed": [
+    "original unchanged: 透明湖水玻璃球.png",
+    "original unchanged: 236493.png",
+    "original unchanged: 翡翠星光中的流光水晶球.png",
+    "image dimensions: R06_front_back_spatial_relationship.png",
+    "image dimensions: R00_core_asset_comparison.png",
+    "image dimensions: R04_S1_idle_visual.png",
+    "image dimensions: R06_four_motion_samples_final.png",
+    "image dimensions: R06_gold_filament_material_breakdown.png",
+    "image dimensions: R06_S2_motion_frames.png",
+    "image dimensions: R00_pixel_alpha_comparison.png",
+    "image dimensions: R03_sunlight_direction.png",
+    "image dimensions: R05_caustics_layer_visual.png",
+    "image dimensions: R06_14dp_vs_extended_candidate.png",
+    "image dimensions: R04_S2_active_visual.png",
+    "image dimensions: R04_S1_idle_final.png",
+    "image dimensions: R06_68dp_80dp_light_dark_final.png",
+    "image dimensions: R04_S2_active_final.png",
+    "image dimensions: R06_orb_filament_depth_layers.png"
+  ]
+}

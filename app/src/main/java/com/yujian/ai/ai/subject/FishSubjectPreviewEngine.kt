@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.model.SelectedImage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 data class SubjectCropConfig(val expandRatio: Float = 0.12f) {
@@ -25,15 +27,21 @@ class FishSubjectPreviewEngine(
     private val slimSamSegmenter: SlimSamSegmenter by lazy {
         SlimSamSegmenter(context, config.expandRatio)
     }
+    /** One native SlimSAM session is serialized across cancellation and photo replacement. */
+    private val generationMutex = Mutex()
 
     suspend fun generate(source: Bitmap, detectorBbox: NormalizedFishBox): FishSubjectResult =
-        withContext(Dispatchers.Default) {
-            slimSamSegmenter.segment(source, detectorBbox)
+        generationMutex.withLock {
+            withContext(Dispatchers.Default) {
+                slimSamSegmenter.segment(source, detectorBbox)
+            }
         }
 
     suspend fun generate(selected: SelectedImage, detectorBbox: NormalizedFishBox, sessionId: String, attemptId: String): FishSubjectResult =
-        withContext(Dispatchers.Default) {
-            slimSamSegmenter.segment(selected.bitmap, detectorBbox, sessionId, attemptId, selected.imageId, selected.photoSha256)
+        generationMutex.withLock {
+            withContext(Dispatchers.Default) {
+                slimSamSegmenter.segment(selected.bitmap, detectorBbox, sessionId, attemptId, selected.imageId, selected.photoSha256)
+            }
         }
 
     override fun close() {

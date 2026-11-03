@@ -2,8 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <activity
-            android:name=".ui.designsystem.DesignSystemPreviewActivity"
+            android:name=".ui.designsystem.lakeglass.LakeGlassShaderLabActivity"
             android:exported="true"
-            android:launchMode="singleTop" />
+            android:label="Lake Glass Shader Lab">
+            <intent-filter>
+                <action android:name="com.yujian.ai.DEBUG_LAKE_GLASS_SHADER_LAB" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.yujian.ai.ui.designsystem.components.aiorb.AIOrbRuntimeLabActivity"
+            android:exported="true"
+            android:label="AI Orb Runtime Lab" />
     </application>
 </manifest>

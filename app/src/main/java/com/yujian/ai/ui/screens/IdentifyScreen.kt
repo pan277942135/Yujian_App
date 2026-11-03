@@ -2,6 +2,8 @@ package com.yujian.ai.ui.screens
 
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCaptureVisualAssets
+import com.yujian.ai.ui.designsystem.components.CaptureButtonOptics
 
 import android.Manifest
 import android.app.Activity
@@ -90,6 +92,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
@@ -790,13 +793,15 @@ fun IdentifyScreen(
         captureRootPositionReady = true
     }) {
         CaptureFrostedBackground(Modifier.fillMaxSize())
-        val shutterDiameter = CaptureVisualTokens.buttonDiameter(maxWidth.value).dp
+        val homeCenter = CaptureNavigationTransition.homeCenter
+        val hasHomeCenter = !autoOpenGallery && homeCenter.x.isFinite() && homeCenter.y.isFinite()
+        val shutterDiameter = if (hasHomeCenter) CaptureNavigationTransition.homeDiameterDp.dp
+            else CaptureVisualTokens.buttonDiameter(maxWidth.value).dp
         val cameraDensity = LocalDensity.current
         val fontScale = cameraDensity.fontScale
         val panelContentHeight = if (maxHeight < 560.dp) 150.dp else 166.dp
         val defaultControlBottom = safeInsets.calculateBottomPadding() + (panelContentHeight - shutterDiameter) / 2f
-        val homeCenter = CaptureNavigationTransition.homeCenter
-        val hasHomeAnchor = captureRootPositionReady && homeCenter.x.isFinite() && homeCenter.y.isFinite()
+        val hasHomeAnchor = captureRootPositionReady && hasHomeCenter
         val anchoredControlBottom = if (hasHomeAnchor) {
             val localHomeCenterY = homeCenter.y - captureRootOrigin.y
             with(cameraDensity) { (maxHeight.toPx() - localHomeCenterY - shutterDiameter.toPx() / 2f).toDp() }
@@ -888,10 +893,33 @@ fun IdentifyScreen(
                 .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
                 .background(Brush.verticalGradient(listOf(Color(0xE0D7EFEB), Color(0xD1A1D6D2)))))
             if (captureTarget.x.isFinite()) {
-                val shutterSize = shutterDiameter.value * context.resources.displayMetrics.density
-                Image(painterResource(R.drawable.capture_button_main_v1), null,
-                    Modifier.offset { IntOffset((captureTarget.x - captureRootOrigin.x - shutterSize / 2f).roundToInt(),
-                        (captureTarget.y - captureRootOrigin.y - shutterSize / 2f).roundToInt()) }.size(shutterDiameter))
+                val density = context.resources.displayMetrics.density
+                val shutterSize = shutterDiameter.value * density
+                val opticsSizePx = shutterSize + 76f * density
+                Box(
+                    Modifier.offset {
+                        IntOffset(
+                            (captureTarget.x - captureRootOrigin.x - opticsSizePx / 2f).roundToInt(),
+                            (captureTarget.y - captureRootOrigin.y - opticsSizePx / 2f).roundToInt(),
+                        )
+                    }.size(shutterDiameter + 76.dp).zIndex(11f),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        painterResource(AIOrbCaptureVisualAssets.HOME_IDLE),
+                        contentDescription = null,
+                        modifier = Modifier.size(shutterDiameter),
+                    )
+                    shutterClickElapsed?.let { elapsed ->
+                        CaptureButtonOptics(
+                            visualSize = shutterDiameter,
+                            progress = CaptureVisualTokens.clickRippleProgress(elapsed),
+                            click = true,
+                            cameraReady = true,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
             }
         }
 
@@ -996,6 +1024,7 @@ fun IdentifyScreen(
                     .align(Alignment.BottomCenter)
                     .padding(bottom = panelControlBottom)
                     .size(shutterDiameter)
+                    .zIndex(10f)
                     .testTag("recognition-camera-shutter")
                     .onGloballyPositioned {
                         captureTarget = it.boundsInWindow().center
@@ -1012,12 +1041,19 @@ fun IdentifyScreen(
                     onClick = {
                         if (shutterClickElapsed == null) scope.launch {
                             val pressedAt = android.os.SystemClock.uptimeMillis()
-                            do {
-                                shutterClickElapsed = android.os.SystemClock.uptimeMillis() - pressedAt
-                                withFrameNanos { }
-                            } while (android.os.SystemClock.uptimeMillis() - pressedAt < 80L)
-                            capture()
-                            shutterClickElapsed = null
+                            try {
+                                do {
+                                    shutterClickElapsed = android.os.SystemClock.uptimeMillis() - pressedAt
+                                    withFrameNanos { }
+                                } while (android.os.SystemClock.uptimeMillis() - pressedAt < 80L)
+                                capture()
+                                while (android.os.SystemClock.uptimeMillis() - pressedAt < CaptureVisualTokens.ClickRippleDurationMs) {
+                                    shutterClickElapsed = android.os.SystemClock.uptimeMillis() - pressedAt
+                                    withFrameNanos { }
+                                }
+                            } finally {
+                                shutterClickElapsed = null
+                            }
                         }
                     },
                     enabled = !captureHandoffActive && cameraCanCapture() &&
@@ -1030,6 +1066,7 @@ fun IdentifyScreen(
                     clickElapsedMs = shutterClickElapsed,
                     onCaptureHaptic = { if (shutterClickElapsed == null) com.yujian.ai.ui.home.captureClickHaptic(context, view) },
                     frozenVisual = true,
+                    frozenVisualResource = AIOrbCaptureVisualAssets.HOME_IDLE,
                 )
             }
             Box(

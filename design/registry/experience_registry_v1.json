@@ -928,11 +928,6 @@
               "note": "FROZEN · 竖拍鱼类拍摄示意"
             },
             {
-              "label": "03 · 首次拍照教学 · P03",
-              "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03",
-              "note": "FROZEN · 横屏拍摄示意"
-            },
-            {
               "label": "04 · 相机拍摄",
               "route": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/capture_portrait",
               "note": "Manifest 标记 Frozen；PNG binary_import_status=PENDING"
@@ -3064,19 +3059,18 @@
           "status": "FROZEN",
           "authority_type": "group",
           "render_mode": "authority_gallery",
-          "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
-          "summary": "三页首次相机进入教学：P01 竖屏手机+横向鱼体；P02 竖屏手机+竖直鱼体；P03 横屏手机+横向鱼体。每页 Hero 为唯一正确示范，下方固定三个错误示范。",
+          "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md",
+          "summary": "两步首次相机进入教学：P01 手机竖屏+横向鱼体；P02 手机竖屏+竖直鱼体。两页均包含一个正确 Hero 和三个错误示范；不再包含手机横屏拍摄。",
           "menu_points": [
             "P01 · 竖屏拍摄示意",
             "P02 · 竖拍鱼类拍摄示意",
-            "P03 · 横屏拍摄示意",
             "Hero = 唯一正确示范",
             "错误示范 = 鱼头不在画面 / 鱼体过小 / 遮挡过多",
-            "P02 三个错误示例全部保持竖直鱼体；P03 三个错误示例全部保持横向鱼体",
-            "P01/P02 → 下一张；P03 → 开始拍摄",
-            "跳过/开始拍摄均不自动触发快门"
+            "P01 三个错误示例全部保持横向鱼体；P02 三个错误示例全部保持竖直鱼体",
+            "P01 → 下一张；P02 → 开始拍摄",
+            "手机两步均保持竖屏；跳过/开始拍摄均不自动触发快门"
           ],
-          "freeze_date": "2026-10-16",
+          "freeze_date": "2026-11-03",
           "children": [
             {
               "id": "p01",
@@ -3087,7 +3081,7 @@
               "menu_group": "visual",
               "render_mode": "repo_image",
               "visual_authority": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
-              "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+              "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md",
               "visual_authority_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
               "visual_authority_dimensions": {
                 "width": 941,
@@ -3103,7 +3097,7 @@
               "page_id": "recognition.capture.v3_1",
               "state_id": "P01",
               "state_id_scope": "First-use guide overlay; not an Android runtime state identifier",
-              "design_version": "First_Use_Camera_Guide_Spec_V1",
+              "design_version": "First_Use_Camera_Guide_Spec_V1_2",
               "authority_path": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
               "authority_path_available": true,
               "entry_conditions": "Camera permission granted and the camera provider/preview are Ready; the guide is incomplete.",
@@ -3116,8 +3110,8 @@
               "retake_behavior": "未定义；本教学页没有重拍动作。",
               "contract_links": [
                 {
-                  "label": "First-use Camera Guide Spec V1",
-                  "path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
+                  "label": "First-use Camera Guide Spec V1.2",
+                  "path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md"
                 },
                 {
                   "label": "Capture Page Contract V3.1",
@@ -3144,7 +3138,7 @@
               "menu_group": "visual",
               "render_mode": "repo_image",
               "visual_authority": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-              "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+              "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md",
               "visual_authority_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
               "visual_authority_dimensions": {
                 "width": 941,
@@ -3153,85 +3147,28 @@
               "visual_authority_bytes": 2042852,
               "visual_authority_sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
               "source_high_fidelity_png": "湖畔竖拍识鱼指南.png",
-              "summary": "P02：竖屏手机 + 竖直鱼体。顶部 Hero 为唯一正确示范；下方 3 个错误示范全部保持竖直鱼体，分别表达鱼头不在画面、鱼体过小、遮挡过多。主操作为下一张。",
+              "summary": "P02：竖屏手机 + 竖直鱼体。顶部 Hero 为唯一正确示范；下方 3 个错误示范全部保持竖直鱼体。主操作为开始拍摄。",
               "visual_status": "FROZEN",
               "repository_binary_import_status": "PASS",
               "image": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
               "page_id": "recognition.capture.v3_1",
               "state_id": "P02",
               "state_id_scope": "First-use guide overlay; not an Android runtime state identifier",
-              "design_version": "First_Use_Camera_Guide_Spec_V1",
+              "design_version": "First_Use_Camera_Guide_Spec_V1_2",
               "authority_path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
               "authority_path_available": true,
               "entry_conditions": "Camera permission granted and the camera provider/preview are Ready; the guide is incomplete.",
               "trigger": "Shown once after camera permission and camera provider/preview are Ready.",
               "input_contract": "Camera readiness and guide-completion flag; no media selection is introduced.",
-              "user_actions": "上一张 → P01；下一张 → P03；跳过 → 关闭教学，不触发快门。",
-              "next_page": "P03",
+              "user_actions": "上一张 → P01；开始拍摄 → 关闭教学并返回 Capture Ready，不自动触发快门；跳过 → 关闭教学，不触发快门。",
+              "next_page": "CAPTURE_READY",
               "back_behavior": "上一张返回 P01。",
               "cancel_behavior": "跳过 closes the guide without triggering the shutter; completion persists only after actual dismissal.",
               "retake_behavior": "未定义；本教学页没有重拍动作。",
               "contract_links": [
                 {
-                  "label": "First-use Camera Guide Spec V1",
-                  "path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
-                },
-                {
-                  "label": "Capture Page Contract V3.1",
-                  "path": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
-                },
-                {
-                  "label": "Guide Navigation",
-                  "path": "design/pages/recognition/first_use_camera_guide/navigation.json"
-                },
-                {
-                  "label": "Guide Asset Manifest",
-                  "path": "design/pages/recognition/first_use_camera_guide/manifest.json"
-                }
-              ],
-              "runtime_status": "NOT_RUN",
-              "runtime_note": "Frozen design does not establish Android runtime implementation or acceptance."
-            },
-            {
-              "id": "p03",
-              "code": "P03",
-              "title": "P03 · 横屏拍摄示意",
-              "status": "FROZEN",
-              "authority_type": "visual",
-              "menu_group": "visual",
-              "render_mode": "repo_image",
-              "visual_authority": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
-              "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
-              "visual_authority_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
-              "visual_authority_dimensions": {
-                "width": 941,
-                "height": 1672
-              },
-              "visual_authority_bytes": 2001322,
-              "visual_authority_sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
-              "source_high_fidelity_png": "湖畔横屏拍摄指南(1).png",
-              "summary": "P03：横屏手机 + 横向鱼体。顶部 Hero 为唯一正确示范；下方 3 个错误示范全部保持横向鱼体，分别表达鱼头不在画面、鱼体过小、遮挡过多。主操作为开始拍摄。",
-              "visual_status": "FROZEN",
-              "repository_binary_import_status": "PASS",
-              "image": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
-              "page_id": "recognition.capture.v3_1",
-              "state_id": "P03",
-              "state_id_scope": "First-use guide overlay; not an Android runtime state identifier",
-              "design_version": "First_Use_Camera_Guide_Spec_V1",
-              "authority_path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
-              "authority_path_available": true,
-              "entry_conditions": "Camera permission granted and the camera provider/preview are Ready; the guide is incomplete.",
-              "trigger": "Shown once after camera permission and camera provider/preview are Ready.",
-              "input_contract": "Camera readiness and guide-completion flag; no media selection is introduced.",
-              "user_actions": "上一张 → P02；开始拍摄 → 关闭教学并返回 Capture Ready，不自动触发快门。",
-              "next_page": "CAPTURE_READY",
-              "back_behavior": "上一张返回 P02。",
-              "cancel_behavior": "跳过 closes the guide without triggering the shutter; completion persists only after actual dismissal.",
-              "retake_behavior": "未定义；本教学页没有重拍动作。",
-              "contract_links": [
-                {
-                  "label": "First-use Camera Guide Spec V1",
-                  "path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
+                  "label": "First-use Camera Guide Spec V1.2",
+                  "path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md"
                 },
                 {
                   "label": "Capture Page Contract V3.1",
@@ -3262,17 +3199,16 @@
               "resource_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
               "resource_ids": [
                 "p01",
-                "p02",
-                "p03"
+                "p02"
               ],
               "runtime_visual_authority": false,
-              "summary": "首次拍照教学资源工作区：结构化高保真、响应式模拟与素材目录仍位于原 Resources 路由。产品负责人已批准 8 张独立 GENERATED_CANDIDATE 图片供 Android Runtime 使用，并登记 ZIP2 的 P01/P02 两张页面背景。候选图仍不是 Frozen；Frozen 整页 PNG 仅作设计参考，不作为 Runtime 照片或背景。CameraX Preview Ready 门禁不变，Android API 28 Runtime 验收仍 NOT_RUN。",
+              "summary": "首次拍照教学资源工作区：当前仅有 P01/P02 两步，手机始终竖屏。产品负责人已批准 8 张独立 GENERATED_CANDIDATE 图片用于 Android Runtime，分别绑定横向鱼体与竖直鱼体；候选仍不是 Frozen。原 P03 横屏手机页面只保留历史档案。CameraX Preview Ready 门禁不变，Android Runtime 真机验收仍 NOT_RUN。",
               "frontend_asset_manifest": "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json",
               "structured_page_manifest": "design/pages/recognition/first_use_camera_guide/structured_pages.json",
               "geometry_measurement_manifest": "design/pages/recognition/first_use_camera_guide/geometry_measurements.json",
               "responsive_contract_manifest": "design/pages/recognition/first_use_camera_guide/responsive_contract.json",
               "readiness_matrix": "design/pages/recognition/first_use_camera_guide/PREDEV_READINESS_MATRIX.json",
-              "freeze_decision": "design/pages/recognition/first_use_camera_guide/Freeze_Decision.md",
+              "freeze_decision": "design/pages/recognition/first_use_camera_guide/PRODUCT_OWNER_DECISION_20261103.md",
               "workspace_module": "design/manager/first_use_guide_workspace.js",
               "workspace_tabs": [
                 {
@@ -3290,7 +3226,8 @@
                   "title": "资源",
                   "status": "PASS_WITH_OWNER_APPROVED_RUNTIME_CANDIDATES_AND_SOURCE_BLOCKED"
                 }
-              ]
+              ],
+              "page_count": 2
             }
           ],
           "visual_status": "FROZEN",
@@ -3313,18 +3250,9 @@
               "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
               "width": 941,
               "height": 1671
-            },
-            {
-              "id": "p03",
-              "label": "P03 · 横屏拍摄示意",
-              "role": "FROZEN VISUAL AUTHORITY",
-              "path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
-              "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
-              "width": 941,
-              "height": 1672
             }
           ],
-          "page_count": 3
+          "page_count": 2
         },
         {
           "id": "boundary_state_release_gate",

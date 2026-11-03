@@ -3,30 +3,14 @@ package com.yujian.ai.ui.identify
 import androidx.annotation.DrawableRes
 import com.yujian.ai.R
 
-internal enum class RecognitionGuideFishOrientation {
-    HORIZONTAL,
-    VERTICAL,
-}
+internal enum class RecognitionGuideFishOrientation { HORIZONTAL, VERTICAL }
+internal enum class RecognitionGuideRuntimeAssetStatus { AVAILABLE, ASSET_SOURCE_BLOCKED }
+internal fun shouldStackRecognitionGuideActions(availableWidthDp: Float, fontScale: Float): Boolean =
+    availableWidthDp < 380f || fontScale >= 1.5f
 
-internal enum class RecognitionGuideRuntimeAssetStatus {
-    AVAILABLE,
-    ASSET_SOURCE_BLOCKED,
-}
-
-internal fun shouldStackRecognitionGuideActions(
-    availableWidthDp: Float,
-    fontScale: Float,
-): Boolean = availableWidthDp < 380f || fontScale >= 1.5f
-
-internal enum class RecognitionCaptureEntryDestination {
-    FIRST_CAPTURE_GUIDE,
-    CAMERA,
-    GALLERY,
-}
-
+internal enum class RecognitionCaptureEntryDestination { FIRST_CAPTURE_GUIDE, CAMERA, GALLERY }
 internal fun resolveFirstCaptureEntryDestination(
-    openGallery: Boolean,
-    guideCompleted: Boolean,
+    openGallery: Boolean, guideCompleted: Boolean,
 ): RecognitionCaptureEntryDestination = when {
     openGallery -> RecognitionCaptureEntryDestination.GALLERY
     !guideCompleted -> RecognitionCaptureEntryDestination.FIRST_CAPTURE_GUIDE
@@ -34,39 +18,23 @@ internal fun resolveFirstCaptureEntryDestination(
 }
 
 internal enum class RecognitionFirstCaptureGuidePage(val index: Int) {
-    P01(0),
-    P02(1),
-    P03(2),
-    ;
-
+    P01(0), P02(1);
     companion object {
         fun fromIndex(index: Int): RecognitionFirstCaptureGuidePage =
-            entries.getOrElse(index.coerceIn(0, entries.lastIndex)) { P01 }
+            entries[index.coerceIn(0, entries.lastIndex)]
     }
 }
-
-internal enum class RecognitionFirstCaptureGuideIntent {
-    NEXT,
-    PREVIOUS,
-    SKIP,
-    START,
-    BACK,
-    CLOSE,
-    OUTSIDE_TAP,
-}
-
+internal enum class RecognitionFirstCaptureGuideIntent { NEXT, PREVIOUS, SKIP, START, BACK, CLOSE, OUTSIDE_TAP }
 internal data class RecognitionFirstCaptureGuideState(
     val currentPage: RecognitionFirstCaptureGuidePage = RecognitionFirstCaptureGuidePage.P01,
     val visible: Boolean = true,
     val completed: Boolean = false,
 )
-
 internal data class RecognitionFirstCaptureGuideErrorExample(
     val label: String,
     val orientation: RecognitionGuideFishOrientation,
     @param:DrawableRes val imageRes: Int,
 )
-
 internal data class RecognitionFirstCaptureGuidePageSpec(
     val page: RecognitionFirstCaptureGuidePage,
     val phoneOrientationLabel: String,
@@ -83,67 +51,44 @@ internal data class RecognitionFirstCaptureGuidePageSpec(
 
 private val captureGuideErrorLabels = listOf("鱼头不在画面", "鱼体过小", "遮挡过多")
 
-internal fun recognitionFirstCaptureGuidePageSpec(
-    page: RecognitionFirstCaptureGuidePage,
-): RecognitionFirstCaptureGuidePageSpec {
+internal fun recognitionFirstCaptureGuidePageSpec(page: RecognitionFirstCaptureGuidePage): RecognitionFirstCaptureGuidePageSpec {
     val fishOrientation = if (page == RecognitionFirstCaptureGuidePage.P02) {
         RecognitionGuideFishOrientation.VERTICAL
-    } else {
-        RecognitionGuideFishOrientation.HORIZONTAL
-    }
-    val phoneOrientationLabel = when (page) {
-        RecognitionFirstCaptureGuidePage.P01,
-        RecognitionFirstCaptureGuidePage.P02 -> "竖向"
-        RecognitionFirstCaptureGuidePage.P03 -> "横向"
-    }
+    } else RecognitionGuideFishOrientation.HORIZONTAL
     val title = when (page) {
         RecognitionFirstCaptureGuidePage.P01 -> "竖屏拍摄示意"
         RecognitionFirstCaptureGuidePage.P02 -> "竖拍鱼类拍摄示意"
-        RecognitionFirstCaptureGuidePage.P03 -> "横屏拍摄示意"
     }
     val fishPose = if (fishOrientation == RecognitionGuideFishOrientation.VERTICAL) "竖直" else "横向"
-    val subtitle = "手机保持$phoneOrientationLabel，整条鱼${fishPose}完整放入取景范围"
+    val subtitle = "手机保持竖屏，整条鱼${fishPose}完整放入取景范围"
     val horizontal = fishOrientation == RecognitionGuideFishOrientation.HORIZONTAL
     val backgroundAsset = if (page == RecognitionFirstCaptureGuidePage.P02) {
         R.drawable.first_use_guide_bg_p02
-    } else {
-        R.drawable.first_use_guide_bg_p01
-    }
-    val heroAsset = if (horizontal) {
-        R.drawable.first_use_guide_horizontal_correct_hero
-    } else {
-        R.drawable.first_use_guide_vertical_correct_hero
-    }
-    val errorAssets = if (horizontal) {
-        listOf(
-            R.drawable.first_use_guide_horizontal_fish_head_out,
-            R.drawable.first_use_guide_horizontal_fish_too_small,
-            R.drawable.first_use_guide_horizontal_excessive_occlusion,
-        )
-    } else {
-        listOf(
-            R.drawable.first_use_guide_vertical_fish_head_out,
-            R.drawable.first_use_guide_vertical_fish_too_small,
-            R.drawable.first_use_guide_vertical_excessive_occlusion,
-        )
-    }
+    } else R.drawable.first_use_guide_bg_p01
+    val heroAsset = if (horizontal) R.drawable.first_use_guide_horizontal_correct_hero
+        else R.drawable.first_use_guide_vertical_correct_hero
+    val errorAssets = if (horizontal) listOf(
+        R.drawable.first_use_guide_horizontal_fish_head_out,
+        R.drawable.first_use_guide_horizontal_fish_too_small,
+        R.drawable.first_use_guide_horizontal_excessive_occlusion,
+    ) else listOf(
+        R.drawable.first_use_guide_vertical_fish_head_out,
+        R.drawable.first_use_guide_vertical_fish_too_small,
+        R.drawable.first_use_guide_vertical_excessive_occlusion,
+    )
     return RecognitionFirstCaptureGuidePageSpec(
         page = page,
-        phoneOrientationLabel = phoneOrientationLabel,
+        phoneOrientationLabel = "竖屏",
         fishOrientation = fishOrientation,
         title = title,
         subtitle = subtitle,
-        primaryActionLabel = if (page == RecognitionFirstCaptureGuidePage.P03) "开始拍摄" else "下一张",
+        primaryActionLabel = if (page == RecognitionFirstCaptureGuidePage.P02) "开始拍摄" else "下一张",
         backgroundAsset = backgroundAsset,
         heroAsset = heroAsset,
         errorAssets = errorAssets,
         runtimeAssetStatus = RecognitionGuideRuntimeAssetStatus.AVAILABLE,
         errors = captureGuideErrorLabels.mapIndexed { index, label ->
-            RecognitionFirstCaptureGuideErrorExample(
-                label = label,
-                orientation = fishOrientation,
-                imageRes = errorAssets[index],
-            )
+            RecognitionFirstCaptureGuideErrorExample(label, fishOrientation, errorAssets[index])
         },
     )
 }
@@ -154,20 +99,13 @@ internal fun reduceRecognitionFirstCaptureGuideState(
 ): RecognitionFirstCaptureGuideState {
     if (!state.visible) return state
     return when (intent) {
-        RecognitionFirstCaptureGuideIntent.NEXT -> {
-            val nextPage = RecognitionFirstCaptureGuidePage.fromIndex(state.currentPage.index + 1)
-            state.copy(currentPage = nextPage)
-        }
-        RecognitionFirstCaptureGuideIntent.PREVIOUS -> {
-            val previousPage = RecognitionFirstCaptureGuidePage.fromIndex(state.currentPage.index - 1)
-            state.copy(currentPage = previousPage)
-        }
+        RecognitionFirstCaptureGuideIntent.NEXT ->
+            state.copy(currentPage = RecognitionFirstCaptureGuidePage.fromIndex(state.currentPage.index + 1))
+        RecognitionFirstCaptureGuideIntent.PREVIOUS ->
+            state.copy(currentPage = RecognitionFirstCaptureGuidePage.fromIndex(state.currentPage.index - 1))
         RecognitionFirstCaptureGuideIntent.SKIP -> state.copy(visible = false, completed = true)
-        RecognitionFirstCaptureGuideIntent.START -> if (state.currentPage == RecognitionFirstCaptureGuidePage.P03) {
-            state.copy(visible = false, completed = true)
-        } else {
-            state
-        }
+        RecognitionFirstCaptureGuideIntent.START ->
+            if (state.currentPage == RecognitionFirstCaptureGuidePage.P02) state.copy(visible = false, completed = true) else state
         RecognitionFirstCaptureGuideIntent.BACK,
         RecognitionFirstCaptureGuideIntent.CLOSE,
         RecognitionFirstCaptureGuideIntent.OUTSIDE_TAP -> state.copy(visible = false)

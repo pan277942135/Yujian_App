@@ -1,0 +1,55 @@
+{
+  "task_id": "YUJIAN_AI_ORB_RESOURCE_FINAL_CLOSURE_V2",
+  "main_baseline": "10cda91218b1b8d5b1600ef95a9d676b2c040a07",
+  "runtime_webp": {
+    "path": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
+    "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+    "git_blob_sha": "a70a71c623d15355cecda5b0e834d9b0b871e568",
+    "size_bytes": 27632,
+    "dimensions_px": [
+      384,
+      384
+    ],
+    "decoded_mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "alpha_bbox": [
+      35,
+      37,
+      345,
+      345
+    ]
+  },
+  "source_master": {
+    "path": "assets/source/透明湖水玻璃球.png",
+    "sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee",
+    "dimensions_px": [
+      1254,
+      1254
+    ]
+  },
+  "comparison": {
+    "master_resize": "Lanczos 384x384, full canvas, no crop",
+    "alpha_iou_threshold_16": 0.99825019,
+    "alpha_mae_0_255": 0.170736,
+    "visible_rgb_mae_0_255": 8.545057,
+    "visible_rgb_p95": 28,
+    "semi_transparent_pixel_count": 73652,
+    "near_black_semi_transparent_pixel_count": 122,
+    "near_black_semi_transparent_share": 0.00165644,
+    "fully_transparent_rgb_mean": 25.026575,
+    "fully_transparent_rgb_max": 255
+  },
+  "cannot_pixel_compare_without_binary": false,
+  "qualitative_notes": [
+    "Actual WebP binary was independently fetched and decoded.",
+    "The source/runtime alpha silhouettes have high agreement.",
+    "RGB residue under zero-alpha pixels is measured and invisible after compositing.",
+    "Near-black semi-transparent pixels are recorded as a small measured population; Android edge rendering remains unreviewed."
+  ],
+  "disposition": "KEEP_CURRENT_RUNTIME_WEBP_UNCHANGED; source comparison complete; Android visual review pending",
+  "black_edge_measurement": "122 near-black semi-transparent pixels of 73652 (0.165644%); no binary-missing claim",
+  "android_render_acceptance": "PENDING_PRODUCT_OWNER"
+}

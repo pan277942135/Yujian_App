@@ -1492,33 +1492,38 @@ class RecognitionFrozenFlowEmulatorTest {
         // controller unit tests cover adaptive event gates and the masked peak hold.
         val presentationTimestampToleranceMs = 50L
 
+        val capturedMinimum = RecognitionVisualStateController.PHOTO_STABLE_MIN_MS
+        val detectingMinimum = RecognitionVisualStateController.ORB_WAKE_MIN_MS +
+            RecognitionVisualStateController.PERIMETER_SPREAD_MIN_MS +
+            RecognitionVisualStateController.PERIMETER_ARRIVAL_MIN_MS +
+            RecognitionVisualStateController.PATH_TO_FISH_MIN_MS
+        val outlineMinimum = RecognitionVisualStateController.CONTOUR_STAGE_MIN_MS * 3L
+        val classifyingMinimum = RecognitionVisualStateController.GOLD_PEAK_HOLD_MS +
+            RecognitionVisualStateController.ORB_RETURN_MIN_MS
         assertTrue(
-            "CAPTURED presentation interval was too short: ${capturedMs}ms",
-            capturedMs >= RecognitionVisualStateController.CAPTURED_MIN_MS - presentationTimestampToleranceMs,
+            "PHOTO_STABLE presentation interval was too short: ${capturedMs}ms",
+            capturedMs >= capturedMinimum - presentationTimestampToleranceMs,
         )
         assertTrue(
-            "DETECTING presentation interval was too short: ${detectingMs}ms",
-            detectingMs >= RecognitionVisualStateController.DETECTING_MIN_MS - presentationTimestampToleranceMs,
+            "13-stage Processing interval was too short: ${detectingMs}ms",
+            detectingMs >= detectingMinimum - presentationTimestampToleranceMs,
         )
         assertTrue(
-            "OUTLINE presentation interval was too short: ${outlineMs}ms",
-            outlineMs >= RecognitionVisualStateController.OUTLINE_MIN_MS - presentationTimestampToleranceMs,
+            "three contour stages were too short: ${outlineMs}ms",
+            outlineMs >= outlineMinimum - presentationTimestampToleranceMs,
         )
         assertTrue(
-            "CLASSIFYING beat was too short: ${classifyingMs}ms",
-            classifyingMs >= RecognitionVisualStateController.MASKED_CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
+            "fish gold peak + Orb return were too short: ${classifyingMs}ms",
+            classifyingMs >= classifyingMinimum - presentationTimestampToleranceMs,
         )
         assertTrue(
-            "nominal presentation interval was too short: ${totalMs}ms",
-            totalMs >= RecognitionVisualStateController.CAPTURED_MIN_MS +
-                RecognitionVisualStateController.DETECTING_MIN_MS +
-                RecognitionVisualStateController.OUTLINE_MIN_MS +
-                RecognitionVisualStateController.MASKED_CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
+            "nominal 13-stage presentation interval was too short: ${totalMs}ms",
+            totalMs >= capturedMinimum + detectingMinimum + outlineMinimum +
+                classifyingMinimum - presentationTimestampToleranceMs,
         )
         assertTrue(
             "final fish focus presentation interval was too short: ${fishFocusStableMs}ms",
-            fishFocusStableMs >= RecognitionVisualStateController.MASKED_CLASSIFYING_MIN_MS -
-                presentationTimestampToleranceMs,
+            fishFocusStableMs >= classifyingMinimum - presentationTimestampToleranceMs,
         )
 
         val primary = requireNotNull(result.assessment.primary)
@@ -1535,7 +1540,9 @@ class RecognitionFrozenFlowEmulatorTest {
         } ?: 0
         assertTrue("real-catch Level A fixture produced an empty contour", contourSegments > 0)
         File(evidenceDir, "recognition_processing_timing_v3_1.txt").writeText(
-            "Contract: CAPTURED>=220ms DETECTING>=320ms OUTLINE>=350ms CLASSIFYING>=250ms RESULT_READY=immediate\n" +
+            "Contract: PHOTO_STABLE>=120ms ORB_WAKE>=350ms ORB_RELEASE>=1200ms " +
+                "PERIMETER_ARRIVAL>=180ms PATH_TO_FISH>=220ms CONTOUR_A/B/C>=250ms each " +
+                "FISH_GOLD_PEAK>=450ms ORB_RETURN>=380ms RESULT_READY=immediate\n" +
                 "Runtime CAPTURED duration: ${capturedMs}ms\n" +
                 "Runtime DETECTING duration: ${detectingMs}ms\n" +
                 "Runtime OUTLINE duration: ${outlineMs}ms\n" +

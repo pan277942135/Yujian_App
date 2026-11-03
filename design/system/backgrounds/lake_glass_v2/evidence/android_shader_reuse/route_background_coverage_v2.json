@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0",
+  "taskId": "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1",
+  "sourceNavigationGraph": "app/src/main/java/com/yujian/ai/YujianApp.kt",
+  "sceneCoordinatesPx": [1440, 3120],
+  "backgroundHost": "LakeGlassBackgroundHost",
+  "routeStatus": "IMPLEMENTED_PENDING_EXACT_HEAD_ANDROID_CI",
+  "routes": [
+    {"route":"login","screen":"RedirectToAuthLogin","policy":"REDIRECT_ONLY","host":null,"evidence":"NOT_APPLICABLE"},
+    {"route":"auth/login","screen":"LoginV2Screen","policy":"LAKE_GLASS","host":"AuthV2Scaffold -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"register","screen":"RegisterV2Screen","policy":"LAKE_GLASS","host":"AuthV2Scaffold -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"home","screen":"HomeScreen","state":"NORMAL_WITH_CATCHES","policy":"LAKE_GLASS","host":"GeminiNormalHomeContent -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"home","screen":"HomeScreen","state":"EMPTY_NO_CATCHES","policy":"KEEP_EXISTING","host":"HomeEmptyScene / EmptyHomeSceneRenderer","reason":"Frozen Empty Home composition and assets are excluded from this migration.","evidence":"PROTECTED_PATH_AUDIT_PENDING"},
+    {"route":"memory_capture/{catchId}/{captureMode}","screen":"FishMemoryCaptureScreen","policy":"PROTECTED_OPAQUE_CONTENT","host":null,"reason":"Full-screen CameraX PreviewView and its native black preview surface are protected foreground content.","evidence":"ROUTE_OWNER_REVIEWED"},
+    {"route":"catch/{catchId}?section={section}","screen":"FishRecordDetailScreen","policy":"LAKE_GLASS","host":"BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"first_capture_guide?returnToHome={returnToHome}","screen":"IdentifyScreen","policy":"LAKE_GLASS","host":"CaptureFrostedBackground -> LakeGlassBackgroundHost","protection":"CameraX preview, photo, mask, controls and recognition timing remain foreground/unchanged.","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"identify?openGallery={openGallery}","screen":"IdentifyScreen","policy":"LAKE_GLASS","host":"CaptureFrostedBackground -> LakeGlassBackgroundHost","protection":"CameraX preview, photo, mask, controls and recognition timing remain foreground/unchanged.","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"recognizing","screen":"RecognizingScreen","policy":"LAKE_GLASS","host":"LakeGlassBackgroundHost","protection":"AI Orb x WaterLight and Recognition SceneClock remain independent and unchanged.","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"recognition_issue","screen":"RecognitionIssueScreen","policy":"LAKE_GLASS","host":"BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"result","screen":"RecognitionResultScreen","policy":"LAKE_GLASS","host":"BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"guide","screen":"FishGuideHomeScreen","policy":"LAKE_GLASS","host":"FishGuideBackground -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"species/{key}","screen":"FishSpeciesDetailScreen","policy":"LAKE_GLASS","host":"FishGuideBackground -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"my","screen":"AccountMyScreen","policy":"LAKE_GLASS","host":"AccountPrivacyPageScaffold -> BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"my_catches/day/{dayKey}","screen":"MyCatchesDayDetailScreen","policy":"LAKE_GLASS","host":"YuJianMorningLakeBackground compatibility wrapper -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"my_catches?speciesId={speciesId}","screen":"MyScreen","policy":"LAKE_GLASS","host":"YuJianMorningLakeBackground compatibility wrapper -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"edit_profile","screen":"EditProfileScreen","policy":"LAKE_GLASS","host":"AccountPrivacyPageScaffold -> BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"account_login","screen":"AccountLoginScreen","policy":"LAKE_GLASS","host":"AccountPrivacyPageScaffold -> BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"change_password","screen":"ChangePasswordScreen","policy":"LAKE_GLASS","host":"AccountPrivacyPageScaffold -> BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"data_privacy","screen":"DataPrivacyScreen","policy":"LAKE_GLASS","host":"AccountPrivacyPageScaffold -> BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"about","screen":"AboutYujianScreen","policy":"LAKE_GLASS","host":"AccountPrivacyPageScaffold -> BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"privacy_policy","screen":"LegalDocumentScreen","policy":"LAKE_GLASS","host":"AccountPrivacyPageScaffold -> BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"user_agreement","screen":"LegalDocumentScreen","policy":"LAKE_GLASS","host":"AccountPrivacyPageScaffold -> BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"}
+  ],
+  "androidEvidence": {
+    "api28StaticHost": "PENDING_CI",
+    "api33AgslHost": "PENDING_CI",
+    "viewportScreenshots": ["M01_320x480", "M02_360x640", "M03_390x844", "M04_430x932"],
+    "allRouteScreenshots": "NOT_CAPTURED",
+    "physicalDevice": "NOT_RUN"
+  },
+  "frozenAssetsModified": false,
+  "recognitionClockModified": false
+}

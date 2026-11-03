@@ -1,0 +1,53 @@
+{
+  "schema_version": "2.0",
+  "status": "VISUAL_CANDIDATE_PENDING_PRODUCT_REVIEW",
+  "life_states": [
+    "S1_IDLE",
+    "S2_ACTIVE"
+  ],
+  "core_asset": {
+    "repository_path": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
+    "derived_copy": "assets/derived/processing_water_core_v1.webp",
+    "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+    "git_blob_sha": "a70a71c623d15355cecda5b0e834d9b0b871e568",
+    "immutable": true,
+    "same_binary_for_all_states": true
+  },
+  "S1_IDLE": {
+    "core": "same runtime WebP, unchanged",
+    "filament_state": "RETRACTED_LOW_ENERGY",
+    "filament_alpha_multiplier": 0.0,
+    "moving_heads": false,
+    "external_glow": "none"
+  },
+  "S2_ACTIVE": {
+    "core": "same runtime WebP, unchanged",
+    "paths": [
+      "G01",
+      "G02",
+      "A01",
+      "A02",
+      "C01"
+    ],
+    "profile": "R06_orb_filament_profile.json",
+    "back_depth_before_core": true,
+    "front_depth_after_core": true,
+    "moving_heads_and_trails": true,
+    "release_return_inside_state": true
+  },
+  "transition": {
+    "S1_to_S2_ms": 450,
+    "entrance_morph_ms": 900,
+    "core_shape": "unchanged"
+  },
+  "supported_core_sizes_dp": [
+    68,
+    80
+  ],
+  "max_outside_dp": 14,
+  "states_excluded": [
+    "S3"
+  ],
+  "review": "pending product owner visual acceptance",
+  "android_runtime_evidence": false
+}

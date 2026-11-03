@@ -3,6 +3,7 @@ package com.yujian.ai.ui.home
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCaptureVisualAssets
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideStore
 
 import android.graphics.Bitmap
 import android.Manifest
@@ -72,7 +73,9 @@ internal fun HomeCameraButton(
     val context = LocalContext.current
     val view = LocalView.current
     val resolvedSize = visualSize ?: CaptureVisualTokens.ButtonDiameterDp.dp
+    val guideStore = remember(context) { RecognitionFirstCaptureGuideStore(context) }
     fun prewarmProvider() {
+        if (!guideStore.isCompleted()) return
         runCatching {
             val future = ProcessCameraProvider.getInstance(context.applicationContext)
             future.addListener({
@@ -82,8 +85,8 @@ internal fun HomeCameraButton(
             }, ContextCompat.getMainExecutor(context))
         }
     }
-    LaunchedEffect(context) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) prewarmProvider()
+    LaunchedEffect(context, guideStore) {
+        if (guideStore.isCompleted() && ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) prewarmProvider()
     }
     DisposableEffect(Unit) {
         onDispose {
@@ -95,9 +98,9 @@ internal fun HomeCameraButton(
         if (CaptureNavigationTransition.active.value) return
         CaptureNavigationTransition.homeDiameterDp = resolvedSize.value
         CaptureNavigationTransition.begin()
-        prewarmProvider()
+        if (guideStore.isCompleted()) prewarmProvider()
         activationJob[0] = scope.launch {
-            delay(CaptureVisualTokens.ActivationMs)
+            delay(CaptureNavigationTransition.HeroExpandMs)
             CaptureNavigationTransition.entering.value = true
             CaptureNavigationTransition.log("CAMERA_ENTERING")
             onClick()
@@ -127,14 +130,20 @@ internal fun HomeCameraButton(
     val sweep = cameraSweepState(sceneTime)
     AIOrbCore(state = AIOrbVisualState.CAPTURE_BUTTON_IDLE,
         onClick = {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) activate()
-            else permission.launch(Manifest.permission.CAMERA)
+            if (!guideStore.isCompleted()) {
+                onClick()
+            } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                activate()
+            } else {
+                permission.launch(Manifest.permission.CAMERA)
+            }
         },
-        modifier = modifier.alpha(if (CaptureNavigationTransition.entering.value) 0f else 1f)
-            .then(if (CaptureNavigationTransition.entering.value) Modifier.clearAndSetSemantics {} else Modifier)
+        modifier = modifier.alpha(if (transitionActive) 0f else 1f)
+            .then(if (transitionActive) Modifier.clearAndSetSemantics {} else Modifier)
             .onGloballyPositioned {
             val bounds = it.boundsInWindow()
             CaptureNavigationTransition.homeCenter = bounds.center
+            CaptureNavigationTransition.homeDiameterDp = resolvedSize.value
         },
         enabled = enabled,
         motionEnabled = active,

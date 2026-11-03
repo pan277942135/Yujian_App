@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "entrance_morph_ms": 900,
+  "preserve_existing_AIOrbMotion": true,
+  "S1_to_S2": {
+    "ms": 450,
+    "filament_alpha": "smoothstep",
+    "core_shape": "unchanged"
+  },
+  "S2_to_S1": {
+    "ms": 620,
+    "return_fade": true
+  },
+  "events_in_S2": [
+    "RELEASE",
+    "RETURN"
+  ],
+  "on_switch": "C1 velocity ramp, retain arc-length position, no clock reset"
+}
