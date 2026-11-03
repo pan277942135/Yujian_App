@@ -290,7 +290,7 @@ if base_branch:
                 and automatic_haptic.get("max_start_latency_ms") == 120,
                 "AI Studio full restore requires the event-start-guarded V1.3 haptic contract",
             )
-        elif not is_exact_lake_glass_scope and not is_consolidated_baseline_scope:
+        elif not is_exact_lake_glass_scope and not is_exact_nh01_v4_scope and not is_consolidated_baseline_scope:
             require(
                 motion_contract.get("contract_revision") == "EMPTY_HOME_MOTION_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
                 and ripple.get("count") == 3
