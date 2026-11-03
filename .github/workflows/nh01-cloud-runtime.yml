@@ -146,7 +146,7 @@ jobs:
           echo "ANDROID_AVD_HOME=$avd_home" >> "$GITHUB_ENV"
           echo "ANDROID_AVD_HOME=$avd_home"
 
-      - name: Check Linux KVM device for API 28 emulator
+      - name: Grant API 28 runner access to Linux KVM
         id: emulator_env
         run: |
           set -euo pipefail
@@ -158,7 +158,13 @@ jobs:
             echo "architecture=$(uname -m)"
             if [[ -c /dev/kvm ]]; then
               echo "kvm_device=PRESENT"
-              stat -c 'kvm_permissions=%A owner=%U group=%G' /dev/kvm
+              stat -c 'kvm_permissions_before=%A owner=%U group=%G' /dev/kvm
+              if [[ ! -r /dev/kvm || ! -w /dev/kvm ]]; then
+                runner_group="$(id -gn)"
+                sudo chgrp "$runner_group" /dev/kvm
+                sudo chmod g+rw /dev/kvm
+              fi
+              stat -c 'kvm_permissions_after=%A owner=%U group=%G' /dev/kvm
               if [[ -r /dev/kvm && -w /dev/kvm ]]; then
                 echo "kvm_access=READ_WRITE"
               else
