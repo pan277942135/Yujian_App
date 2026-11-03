@@ -235,12 +235,15 @@ if base_branch:
             and "Preserve Morning Lake V1 history byte-for-byte" in lake_glass_contract_text
             and "Do not add a `GLSurfaceView`" in lake_glass_contract_text
         )
+        nh01_contract_id_ok = f"`{NH01_V4_TASK_ID}`" in nh01_v4_contract_text
+        nh01_contract_priority_ok = "Priority: P0" in nh01_v4_contract_text
+        nh01_contract_file_set_ok = "Exact Android app file set" in nh01_v4_contract_text
         scope_diagnostic = (
             f"NH01 app_paths_exact={changed_app_paths == NH01_V4_ANDROID_APP_PATHS} "
             f"contract_changed={NH01_V4_TASK_CONTRACT_PATH in changed} "
-            f"contract_id={f"`{NH01_V4_TASK_ID}`" in nh01_v4_contract_text} "
-            f"priority={"Priority: P0" in nh01_v4_contract_text} "
-            f"exact_set_marker={"Exact Android app file set" in nh01_v4_contract_text}; "
+            f"contract_id={nh01_contract_id_ok} "
+            f"priority={nh01_contract_priority_ok} "
+            f"exact_set_marker={nh01_contract_file_set_ok}; "
             f"changed_app_paths={sorted(changed_app_paths)}"
         )
         require(
