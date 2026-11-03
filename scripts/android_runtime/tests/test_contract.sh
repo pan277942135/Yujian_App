@@ -193,7 +193,12 @@ SH
     cat "$tmp/output.log" >&2
     exit 1
   }
-  [[ "$(cat "$trace")" ==     cat "$trace" >&2 || true
+  [[ "$(sed -n '1p' "$trace")" == "legacy" &&
+     "$(sed -n '2p' "$trace")" == "matrix:M01,M07,M10,H499,H500" &&
+     "$(sed -n '3p' "$trace")" == "matrix:FULL" &&
+     "$(wc -l < "$trace" | tr -d ' ')" == "3" ]] || {
+    echo "targeted and full adaptive matrices did not run after the independent legacy failure" >&2
+    cat "$trace" >&2 || true
     exit 1
   }
   grep -q 'NH01_ADAPTIVE_DEVICE_MATRIX=PASS source_sha=fake-sha' "$tmp/output.log" || {
