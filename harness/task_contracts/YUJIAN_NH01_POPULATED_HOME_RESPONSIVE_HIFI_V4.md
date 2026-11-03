@@ -8,6 +8,7 @@
 - Exact Android app file set: only the following app files may change for this task.
 
   - `app/src/androidTest/java/com/yujian/ai/ui/home/GeminiHomeDeviceMatrixTest.kt`
+  - `app/src/androidTest/java/com/yujian/ai/ui/home/GeminiNormalHomeResponsiveTest.kt`
   - `app/src/main/java/com/yujian/ai/catches/CatchRepository.kt`
   - `app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt`
   - `app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt`

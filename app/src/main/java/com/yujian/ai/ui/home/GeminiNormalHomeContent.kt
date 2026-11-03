@@ -981,14 +981,17 @@ private fun GeminiCatchCard(
         onClick = onClick,
         semanticsTag = if (isActive) "gemini-home-catch-card-${item.id}" else "gemini-home-catch-neighbor-${item.id}",
         footerTag = "gemini-home-catch-footer-${item.id}",
-        footerModifier = Modifier.captureGeminiHomeBounds("gemini-home-catch-footer-${item.id}"),
         decoration = YuJianHeroDecoration(
             shadow = runtimeAssets?.fishCardShadow?.asImageBitmap(),
             gradient = runtimeAssets?.fishCardGradient?.asImageBitmap(),
             outline = runtimeAssets?.fishCardOutline?.asImageBitmap(),
         ),
         footerContent = {
-            if (isActive) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+                    .captureGeminiHomeBounds("gemini-home-catch-footer-${item.id}"),
+            ) {
+                if (isActive) {
                 Text(
                     text = species,
                     style = YuJianTypography.sectionTitle.copy(
@@ -1076,6 +1079,7 @@ private fun GeminiCatchCard(
                             .testTag("gemini-home-catch-metadata-${item.id}")
                             .captureGeminiHomeBounds("gemini-home-catch-metadata-${item.id}"),
                     )
+                }
                 }
             }
         },
