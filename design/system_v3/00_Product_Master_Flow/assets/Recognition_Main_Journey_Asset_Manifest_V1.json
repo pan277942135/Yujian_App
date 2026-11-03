@@ -99,6 +99,6 @@
     "status": "FROZEN",
     "manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
     "package": "design/pages/recognition/first_use_camera_guide/",
-    "note": "Three-page Capture guide P01/P02/P03 is the frozen first-use package: P01 portrait phone + horizontal fish; P02 portrait phone + vertical fish; P03 landscape phone + horizontal fish. All three original PNGs are byte-verified PASS in the V1 asset import report."
+    "note": "Two-step Capture guide P01/P02 is the active first-use package: P01 portrait phone + horizontal fish; P02 portrait phone + vertical fish. Both steps keep the phone portrait. The former P03 landscape-phone page is archived and not an active guide step. The two active Frozen PNGs remain byte-verified; eight independent generated candidate images are approved for Runtime under the separate asset manifest."
   }
 }
