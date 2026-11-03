@@ -981,6 +981,7 @@ private fun GeminiCatchCard(
         onClick = onClick,
         semanticsTag = if (isActive) "gemini-home-catch-card-${item.id}" else "gemini-home-catch-neighbor-${item.id}",
         footerTag = "gemini-home-catch-footer-${item.id}",
+        footerModifier = Modifier.captureGeminiHomeBounds("gemini-home-catch-footer-${item.id}"),
         decoration = YuJianHeroDecoration(
             shadow = runtimeAssets?.fishCardShadow?.asImageBitmap(),
             gradient = runtimeAssets?.fishCardGradient?.asImageBitmap(),

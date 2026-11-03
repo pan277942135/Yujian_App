@@ -70,6 +70,7 @@ fun YuJianHeroCard(
     onClick: (() -> Unit)? = null,
     semanticsTag: String? = null,
     footerTag: String? = null,
+    footerModifier: Modifier = Modifier,
     decoration: YuJianHeroDecoration = YuJianHeroDecoration(),
     footerContent: (@Composable ColumnScope.() -> Unit)? = null,
     mediaAction: (@Composable BoxScope.() -> Unit)? = null,
@@ -122,7 +123,8 @@ fun YuJianHeroCard(
                         horizontal = footerPaddingHorizontal ?: footerPadding,
                         vertical = footerPaddingVertical ?: footerPadding,
                     )
-                    .then(footerTagModifier),
+                    .then(footerTagModifier)
+                    .then(footerModifier),
             ) {
                 if (footerContent != null) {
                     footerContent()

@@ -931,10 +931,16 @@ class GeminiNormalHomeResponsiveTest {
                 previousStableFrame = null
                 false
             } else {
+                // Pager offset is fractional page distance. At rest, allow at most
+                // one measured pixel of sub-pixel rounding after a completed swipe.
+                val activeWidthPx = frame.activeBounds?.width() ?: 0f
+                val offsetWithinOnePixel = frame.offsetFraction?.let {
+                    activeWidthPx > 0f && abs(it) * activeWidthPx <= 1f
+                } == true
                 val stateMatches = frame.currentPage == expectedIndex &&
                     frame.targetPage == expectedIndex && frame.settledPage == expectedIndex &&
                     frame.isScrollInProgress == false &&
-                    frame.offsetFraction?.let { abs(it) <= 0.001f } == true &&
+                    offsetWithinOnePixel &&
                     frame.currentId == expectedId && frame.leftId == expectedLeftId && frame.rightId == expectedRightId
                 val activePresent = frame.activeBounds != null
                 val leftPresent = (expectedLeftId == null) == (frame.leftBounds == null)

@@ -26,11 +26,11 @@ profiles=(
   "M04 360 640 1.0" "M05 360 640 1.3" "M06 360 640 1.5"
   "M07 390 844 1.0" "M08 390 844 1.3" "M09 390 844 1.5"
   "M10 430 932 1.0" "M11 430 932 1.3" "M12 430 932 1.5"
-  # Height boundaries are safe-content dp heights. API 28 app insets are measured in
-  # instrumentation; these physical heights assume the observed 24dp top + 24dp bottom.
-  "H499 360 547 1.0 499" "H500 360 548 1.0 500"
-  "H699 360 747 1.0 699" "H700 360 748 1.0 700"
-  "H839 360 887 1.0 839" "H840 360 888 1.0 840"
+  # Safe-height probes use the measured API 28 Pixel 2 insets: 24dp status + 48dp navigation.
+  # Keep the requested safe-content heights unchanged and include both system insets in wm size.
+  "H499 360 571 1.0 499" "H500 360 572 1.0 500"
+  "H699 360 771 1.0 699" "H700 360 772 1.0 700"
+  "H839 360 911 1.0 839" "H840 360 912 1.0 840"
 )
 variants=("ADAPTIVE_V2" "V3_BASELINE")
 all_ok=1
@@ -393,32 +393,33 @@ PY
     "${ADB[@]}" logcat -c > "$case_dir/logcat_clear.stdout.log" 2> "$case_dir/logcat_clear.stderr.log" || true
     "${ADB[@]}" shell am force-stop "$YUJIAN_APP_PACKAGE" > "$case_dir/force_stop.stdout.log" 2> "$case_dir/force_stop.stderr.log" || true
     write_case_record "$profile" "$variant_token" "RUNNING" "null" "INSTRUMENTATION_STARTED" false false "$profile_settings_match"
+    instrumentation_args=(
+      -e class "$TEST_CLASS"
+      -e profile_id "$profile"
+      -e layout_variant "$variant"
+      -e font_scale "$font_scale"
+      -e expected_display_px "$requested"
+      -e source_sha "$BUILD_SHA"
+      -e scenario "$RECORD_SCENARIO"
+    )
+    if [[ -n "$expected_safe_height_dp" ]]; then
+      instrumentation_args+=(-e expected_safe_height_dp "$expected_safe_height_dp")
+    fi
+    instrumentation_command=(
+      "${ADB[@]}" shell am instrument -w -r
+      "${instrumentation_args[@]}"
+      "$YUJIAN_INSTRUMENTATION_TARGET"
+    )
     if command -v timeout >/dev/null 2>&1; then
-      timeout 300s "${ADB[@]}" shell am instrument -w -r \
-        -e class "$TEST_CLASS" \
-        -e profile_id "$profile" \
-        -e layout_variant "$variant" \
-        -e font_scale "$font_scale" \
-        -e expected_display_px "$requested" \
-        -e source_sha "$BUILD_SHA" \
-        -e scenario "$RECORD_SCENARIO" \
-        -e expected_safe_height_dp "$expected_safe_height_dp" \
-        "$YUJIAN_INSTRUMENTATION_TARGET" > "$stdout" 2> "$stderr"
+      timeout 300s "${instrumentation_command[@]}" > "$stdout" 2> "$stderr"
     else
-      "${ADB[@]}" shell am instrument -w -r \
-        -e class "$TEST_CLASS" \
-        -e profile_id "$profile" \
-        -e layout_variant "$variant" \
-        -e font_scale "$font_scale" \
-        -e expected_display_px "$requested" \
-        -e source_sha "$BUILD_SHA" \
-        -e scenario "$RECORD_SCENARIO" \
-        -e expected_safe_height_dp "$expected_safe_height_dp" \
-        "$YUJIAN_INSTRUMENTATION_TARGET" > "$stdout" 2> "$stderr"
+      "${instrumentation_command[@]}" > "$stdout" 2> "$stderr"
     fi
     instrumentation_rc=$?
     {
-      echo "COMMAND=adb shell am instrument -w -r -e class $TEST_CLASS -e profile_id $profile -e layout_variant $variant -e font_scale $font_scale -e expected_display_px $requested -e source_sha $BUILD_SHA -e scenario $RECORD_SCENARIO $YUJIAN_INSTRUMENTATION_TARGET"
+      printf 'COMMAND='
+      printf '%q ' "${instrumentation_command[@]}"
+      printf '\n'
       echo "EXIT_CODE=$instrumentation_rc"
       echo "--- stdout ---"
       cat "$stdout"
