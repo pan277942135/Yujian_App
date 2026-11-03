@@ -25,7 +25,7 @@
     {
       "id": "component_hierarchy_and_stable_ids",
       "status": "FROZEN",
-      "evidence": "structured_pages.json: P01/P02/P03 node trees, parent/children, candidate visual ordering, visibility, asset bindings, and shared component references"
+      "evidence": "structured_pages.json: active P01/P02 node trees, parent/children, candidate visual ordering, visibility, asset bindings, and shared component references; former P03 remains archived in the frozen manifest."
     },
     {
       "id": "visible_pixel_geometry",
@@ -39,8 +39,8 @@
     },
     {
       "id": "responsive_algorithm_and_viewport_invariants",
-      "status": "FROZEN",
-      "evidence": "responsive_contract.json; exact-head Chromium verified all 3 pages × 9 viewports × 2 font scales (54 cases) on source_sha b8fdb47985d123a08cae947065634ade2a5d451d; no horizontal overflow, clipped copy, group overlap, undersized target or unreachable primary action."
+      "status": "CANDIDATE_PENDING_REVIEW",
+      "evidence": "responsive_contract.json now covers the active two-page P01/P02 sequence. The former three-page 54-case browser result is historical; the current two-page × nine viewport × two font-scale matrix contains 36 cases and must be rerun on the V1.2 manager build."
     },
     {
       "id": "responsive_tuning_visual_approval",
@@ -50,7 +50,7 @@
     {
       "id": "frozen_interaction_copy",
       "status": "FROZEN",
-      "evidence": "First_Use_Camera_Guide_Spec_V1.md and navigation.json; skip/previous/next/final-action behavior retained; no shutter auto-trigger"
+      "evidence": "First_Use_Camera_Guide_Spec_V1_2.md and navigation.json; P01 next/P02 start/skip/previous behavior retained; phone portrait on both steps; no shutter auto-trigger."
     },
     {
       "id": "shared_components_and_tokens",

@@ -828,7 +828,7 @@
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "note": "RECOGNITION PROCESSING V1.2 — DESIGN FROZEN。三状态 State Timeline、Visual Keyframe Set、AI Edge Field / Layer Ownership、Motion V1.2、Degradation & Accessibility、Haptic NONE、Sound NONE 与 Runtime Evidence Contract 均已冻结；Runtime / Evidence 继续独立收口。 首次拍照引导 P01/P02/P03 原始 PNG 已按批准 SHA/尺寸/字节数原字节导入；Design Manager 视觉权威与 Android Compose Runtime 分别验收，Runtime 独立照片资产仍按独立来源状态管理。 Design Manager 00 overview and 08 boundary gate expose the real 2026-10-16 authority inventory; missing binaries remain BLOCKED_INTEGRITY/MISSING, and Runtime remains independently NOT_RUN.",
+      "note": "RECOGNITION PROCESSING V1.2 — DESIGN FROZEN。三状态 State Timeline、Visual Keyframe Set、AI Edge Field / Layer Ownership、Motion V1.2、Degradation & Accessibility、Haptic NONE、Sound NONE 与 Runtime Evidence Contract 均已冻结；Runtime / Evidence 继续独立收口。首次拍照引导当前仅活动 P01/P02 两步：手机始终竖屏，P01 横向鱼体、P02 竖直鱼体；原 P03 横屏手机 PNG 保留历史归档。Design Manager 与 Android Compose Runtime 分别验收，Runtime 独立照片资产仍按独立来源状态管理。",
       "display_name": "识别过程",
       "design_versions": [
         {
