@@ -195,7 +195,7 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
                     softEdgeHigh = OrbFluidOpticalProfileV1.CAUSTIC_SOFT_EDGE_HIGH,
                 )
                 val auxAlpha = (aux.alpha * OrbFluidOpticalProfileV1.CAUSTIC_AUX_ALPHA_MAX * edgeAlpha)
-                    .coerceIn(0.0, OrbFluidOpticalProfileV1.CAUSTIC_AUX_ALPHA_MAX)
+                    .coerceIn(0.0, OrbFluidOpticalProfileV1.CAUSTIC_AUX_ALPHA_MAX.toDouble())
                 val auxRemaining = 1.0 - auxAlpha
                 red = aux.red * auxAlpha + red * auxRemaining
                 green = aux.green * auxAlpha + green * auxRemaining
