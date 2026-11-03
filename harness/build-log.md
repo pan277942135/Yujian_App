@@ -88,3 +88,5 @@
 - Candidate source is uncommitted on this branch. Unit tests, lint, Debug APK, Release compilation, APK provenance, PR checks, and product-owner visual acceptance remain pending exact-head evidence.
 
 - Implementation source commit `b847baa6b9156be454dcae6cf6a90c387e06e5c5` is committed. Source asset, R01B path-to-runtime coordinate, shader boundary-clamp, and R06 timeline verifiers pass on this candidate. The full freeze archive verifier passes locally; Gradle tasks, PR CI, and APK provenance are pending.
+
+- Opened PR #315 (https://github.com/pan277942135/Yujian_App/pull/315) at exact head `fb2f5533a50bb8f5b6b77670639d16ac3cf4d2e0`, based on Main/P0-1 `b5f025ef9232ea3e2bb491d142b31f341584fe16`. Android CI and installable Debug APK are pending for this head; no device visual acceptance is claimed.

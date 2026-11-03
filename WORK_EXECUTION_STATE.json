@@ -12,8 +12,8 @@
   "stage": "E1",
   "status": "RUNNING",
   "source_sha": "b847baa6b9156be454dcae6cf6a90c387e06e5c5",
-  "checkpoint_updated_at": "2026-11-03T06:43:19Z",
-  "next_action": "Push the source branch, open the PR, and run the exact-head Android unit tests, lint, Debug APK assembly, and Release Kotlin compile.",
+  "checkpoint_updated_at": "2026-11-03T06:48:31Z",
+  "next_action": "Run the exact-head PR Android unit tests, lint, Debug APK assembly, and Release Kotlin compile; then verify and deliver the APK.",
   "dependencies": [
     "P5-02",
     "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
@@ -46,6 +46,13 @@
       "sha": "b847baa6b9156be454dcae6cf6a90c387e06e5c5",
       "message": "feat(android): integrate P0-2 Orb wake breath and R01B grass",
       "status": "COMMITTED"
+    },
+    "pull_request": {
+      "number": 315,
+      "url": "https://github.com/pan277942135/Yujian_App/pull/315",
+      "head_sha": "fb2f5533a50bb8f5b6b77670639d16ac3cf4d2e0",
+      "base_sha": "b5f025ef9232ea3e2bb491d142b31f341584fe16",
+      "status": "OPEN"
     }
   },
   "execution_v2": {

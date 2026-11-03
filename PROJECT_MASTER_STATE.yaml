@@ -6,6 +6,7 @@ project:
 state_control:
   execution_baseline_sha: b847baa6b9156be454dcae6cf6a90c387e06e5c5
   current_branch: feature/p0-2-ai-orb-wake-breath-release-v1-1
+  current_pr: 315
   base_sha: b5f025ef9232ea3e2bb491d142b31f341584fe16
   status: IN_PROGRESS
 source_of_truth:
@@ -16,7 +17,14 @@ repositories:
     name: pan277942135/Yujian_App
     branch: feature/p0-2-ai-orb-wake-breath-release-v1-1
     base_sha: b5f025ef9232ea3e2bb491d142b31f341584fe16
-pull_requests: {}
+pull_requests:
+  PR315:
+    number: 315
+    url: https://github.com/pan277942135/Yujian_App/pull/315
+    branch: feature/p0-2-ai-orb-wake-breath-release-v1-1
+    head_sha: fb2f5533a50bb8f5b6b77670639d16ac3cf4d2e0
+    base_sha: b5f025ef9232ea3e2bb491d142b31f341584fe16
+    status: OPEN
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -84,7 +92,7 @@ current_work:
   phase: P6
   task_id: YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3
   status: RUNNING
-  next_action: Push the source branch, open the PR, and run exact-head Android CI.
+  next_action: Complete exact-head Android CI and deliver the verified Debug APK.
 blockers: []
 protected_invariants:
   p0_1_unified_scene:
@@ -100,14 +108,14 @@ next_actions:
 - id: A1
   status: READY
   owner: Work
-  action: Push the committed source branch, open the PR, and run the exact-head Android checks.
+  action: Complete the PR exact-head unit tests, lint, Debug APK assembly, and Release Kotlin compile.
 completion_rules:
   implementation: Complete frozen V1.1 wake, breath, derived grass deformation, and five-filament local
     release without changing P0-1 ownership.
   visual_acceptance: NOT_RUN until product-owner device validation.
 state_update:
-  updated_at: '2026-11-03T06:43:19Z'
-  reason: Source candidate b847baa6b9156be454dcae6cf6a90c387e06e5c5 committed after admission and frozen V1.1 asset verification; exact-head Android CI and APK remain pending.
+  updated_at: '2026-11-03T06:48:31Z'
+  reason: PR #315 is open at fb2f5533a50bb8f5b6b77670639d16ac3cf4d2e0; CI and Debug APK provenance are pending exact-head checks.
 agent_recovery:
   resume_from: WORK_EXECUTION_STATE.json
   last_checkpoint: P0-2 source candidate committed at b847baa6b9156be454dcae6cf6a90c387e06e5c5; frozen package checks passed; Android CI and APK are pending.
