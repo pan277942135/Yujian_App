@@ -1,0 +1,115 @@
+schema_version: '1.0'
+state_id: YUJIAN-P0-UNIFIED-SCENE-CLOCK-13-STAGE-V1
+project:
+  name: 渔见 AI
+  repository: pan277942135/Yujian_App
+state_control:
+  execution_baseline_sha: 0e56da363ae99b99165c24c1588cd38e193fe298
+  current_branch: fix/p0-unified-recognition-scene-clock-13-stage-reveal-v1
+  base_sha: b9ec18d21188b4b28fb7ee6f721200567420c04c
+  current_pr: 313
+  status: IN_PROGRESS
+source_of_truth:
+  canonical_control_plane: main:CONTROL_PLANE_REGISTRY.yaml
+  current_work_state: WORK_EXECUTION_STATE.json
+repositories:
+  android:
+    name: pan277942135/Yujian_App
+    branch: fix/p0-unified-recognition-scene-clock-13-stage-reveal-v1
+    base_sha: b9ec18d21188b4b28fb7ee6f721200567420c04c
+pull_requests:
+  PR313:
+    number: 313
+    branch: fix/p0-unified-recognition-scene-clock-13-stage-reveal-v1
+    base_sha: b9ec18d21188b4b28fb7ee6f721200567420c04c
+    head_sha: 0e56da363ae99b99165c24c1588cd38e193fe298
+    status: DRAFT_OPEN_UNMERGED
+phases:
+  P0:
+    status: NOT_CONFIRMED
+  P1:
+    status: NOT_CONFIRMED
+  P2:
+    status: NOT_CONFIRMED
+  P3:
+    status: NOT_CONFIRMED
+  P4:
+    status: NOT_CONFIRMED
+  P5:
+    status: NOT_CONFIRMED
+  P6:
+    status: IN_PROGRESS
+    current_task: YUJIAN_ANDROID_P0_UNIFIED_RECOGNITION_SCENE_CLOCK_AND_13_STAGE_REVEAL_FIX_V1
+  P7:
+    status: NOT_CONFIRMED
+  P8:
+    status: NOT_CONFIRMED
+  P9:
+    status: NOT_CONFIRMED
+recognition_main_journey:
+  contract_status: FROZEN
+  route:
+  - J01
+  - J02
+  - J03
+  - J04
+  - J05
+  - J06
+  - J07
+  - J08
+  - J09
+  - J10
+  - J11
+  - J12
+  - J13
+  - J14
+  - J15
+  - J16
+  - J17
+  - J18
+  - J19
+  - J20
+runtime_gates:
+  exact_head:
+    sha: 0e56da363ae99b99165c24c1588cd38e193fe298
+    unit_tests: NOT_RUN
+    lint: NOT_RUN
+    debug_build: NOT_RUN
+    device_visual: NOT_RUN
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+apk_and_evidence:
+  debug_apk: PENDING_EXACT_HEAD_CI
+  source_sha: 0e56da363ae99b99165c24c1588cd38e193fe298
+  device_acceptance: NOT_RUN
+current_work:
+  exact_head: 0e56da363ae99b99165c24c1588cd38e193fe298
+  id: YUJIAN_ANDROID_P0_UNIFIED_RECOGNITION_SCENE_CLOCK_AND_13_STAGE_REVEAL_FIX_V1
+  phase: P6
+  task_id: YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3
+  status: FIX_READY_FOR_EXACT_HEAD_CI
+blockers: []
+protected_invariants:
+  photo_and_model_identity:
+  - Preserve Recognition Session, Attempt, Image, Photo SHA, bitmap and model inputs.
+  visual_and_timing:
+  - Preserve 700ms photo settling and 900ms camera Orb entry in parallel.
+  - Keep the 13 existing semantic stage names and RR09 local durations.
+  validation_scope:
+  - No emulator or API 28 run.
+  - Deliver a Debug APK for product-owner device and visual acceptance.
+next_actions:
+- id: A1
+  status: READY
+  owner: Work
+  action: Audit and repair the unified scene clock, diagnostic controls, Result handoff
+    and stages 10–13; run requested basic checks and build the exact-head Debug APK.
+completion_rules:
+  implementation: All uploaded task requirements must be addressed without scope reduction.
+  visual_acceptance: NOT_RUN until product-owner device validation.
+state_update:
+  updated_at: '2026-11-03T03:25:00Z'
+  reason: Implement unified scene clock, strict 13-stage control and Result reveal candidate; PR #313 awaits exact-head Android CI.
+agent_recovery:
+  resume_from: WORK_EXECUTION_STATE.json
+  last_checkpoint: E3 code checkpoint 0e56da363ae99b99165c24c1588cd38e193fe298 submitted as Draft PR #313; exact-head Android CI pending.

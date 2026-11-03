@@ -77,3 +77,19 @@
 - RR09 integration changes the 200 ms photo geometry to smoothstep, binds Mask trust to current session/attempt/image hash, scales the three Mask contour strokes with real fish geometry, and forms the Chinese title using its native glyph path. HIGH results without trusted Mask geometry keep the non-spatial Chinese title reveal; non-HIGH results remain static.
 - Added/updated targeted tests for the 2800 ms phase sequence, P0–P7 ambient strengths, P2–P7 fish-gold hold, R0.5 at 100 ms, title-only fallback, and stale Mask identities. Source tests and Debug APK are pending exact-head Android CI.
 - Local Kotlin/Gradle build and APK installation are `NOT_RUN`: this execution environment has Java 17 but no Gradle executable/wrapper, Android SDK, or `adb`. The exact `feature/**` push will invoke the repository Android workflow; physical-device runtime and product visual acceptance remain pending.
+
+## 2026-11-03 — YUJIAN_ANDROID_P0_UNIFIED_RECOGNITION_SCENE_CLOCK_AND_13_STAGE_REVEAL_FIX_V1 kickoff
+
+- Baseline: `b9ec18d21188b4b28fb7ee6f721200567420c04c` on `main`; canonical Control Plane Admission: PASS.
+- Work branch: `fix/p0-unified-recognition-scene-clock-13-stage-reveal-v1`; branch-local execution state initialized from canonical schemas.
+- Scope: shared recognition scene clock, manual/auto 13-stage control, strict stage-10 handoff, Result geometry recovery, Orb return/morph, glyph reveal and residue settle.
+- Device/API 28/emulator validation: NOT_RUN by task instruction; owner device acceptance remains pending.
+
+## 2026-11-03 — Unified recognition scene controller candidate
+
+- Refreshed Main and confirmed exact base `b9ec18d21188b4b28fb7ee6f721200567420c04c`; code checkpoint `0e56da363ae99b99165c24c1588cd38e193fe298` is based directly on that SHA.
+- Implemented a shared session/attempt-scoped `RecognitionSceneAnimationController` used by Processing, WaterLight, Orb and Result. Debug begins in MANUAL and waits for the presented photo frame; Release remains event-driven.
+- Tightened stage identity, model/geometry gates, exact stage-10 handoff, late Result geometry recovery, Orb-to-Glyph continuity, real classifier Glyph sweep and RR09 stage-local preview timing.
+- Added controller and scene-frame regressions for all 13 stages, 30-second MANUAL hold, Debug AUTO gates, identity invalidation, Result geometry recovery and stage 10–13 timing.
+- Draft PR #313 opened against Main; exact-head Android unit tests, Debug/AndroidTest APK builds, asset verification and lint are pending GitHub Actions.
+- Local Gradle wrapper/executable and Android SDK are absent. No emulator, device or API 28 validation was run, as required.
