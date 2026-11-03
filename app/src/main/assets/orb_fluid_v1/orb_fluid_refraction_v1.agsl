@@ -1,0 +1,103 @@
+uniform shader inputImage;
+uniform shader maskBackB1;
+uniform shader maskBackB2;
+uniform shader maskFrontF1;
+uniform shader maskFrontF2;
+uniform float2 surfaceSize;
+uniform float maskSize;
+uniform float sceneSeconds;
+uniform float visibleDiameterRatio;
+uniform float flowScaleA;
+uniform float flowScaleB;
+uniform float flowDomainWarp;
+uniform float flowMaxDisplacementD;
+uniform float flowTimeRateA;
+uniform float flowTimeRateB;
+uniform float refractionMaxDisplacementD;
+uniform float refractionEdgeBandD;
+uniform float refractionNormalStrength;
+uniform float waterMixMax;
+uniform float edgeRefractionMixMax;
+uniform float totalSampleMixMax;
+
+float2 boundedCoord(float2 p) {
+    return clamp(p, float2(0.0), max(surfaceSize - float2(1.0), float2(0.0)));
+}
+
+float leafCoverage(float2 coord) {
+    float2 maskCoord = coord / max(surfaceSize, float2(1.0)) * maskSize;
+    float b1 = clamp(maskBackB1.eval(maskCoord).r, 0.0, 1.0);
+    float b2 = clamp(maskBackB2.eval(maskCoord).r, 0.0, 1.0);
+    float f1 = clamp(maskFrontF1.eval(maskCoord).r, 0.0, 1.0);
+    float f2 = clamp(maskFrontF2.eval(maskCoord).r, 0.0, 1.0);
+    return max(max(b1, b2), max(f1, f2));
+}
+
+float2 liquidFlow(float2 uv) {
+    float2 p = (uv - float2(0.5)) * float2(6.0 * flowScaleA, 4.6 * flowScaleA);
+    float tA = sceneSeconds * flowTimeRateA;
+    float tB = sceneSeconds * flowTimeRateB;
+    float2 warp = float2(
+        sin(p.y * 0.73 + tA) + 0.35 * sin((p.x + p.y) * 0.41 - tB),
+        cos(p.x * 0.67 - tB) + 0.30 * cos((p.y - p.x) * 0.38 + tA)
+    ) * flowDomainWarp;
+    float2 q = p + warp;
+    float2 fieldA = float2(
+        sin(q.y * 1.17 + tA) + 0.25 * sin((q.x + q.y) * 0.63 - tB),
+        cos(q.x * 0.91 - tB) + 0.25 * cos((q.y - q.x) * 0.58 + tA)
+    );
+    float2 qB = q * (flowScaleB / max(flowScaleA, 0.001)) + float2(1.31, -0.82);
+    float2 fieldB = float2(
+        sin(qB.y * 0.79 + tB) + 0.18 * cos(qB.x * 0.54 - tA),
+        cos(qB.x * 0.72 - tA) + 0.18 * sin(qB.y * 0.49 + tB)
+    );
+    float2 combined = fieldA * 0.62 + fieldB * 0.38;
+    float magnitude = length(combined);
+    return magnitude > 1.0 ? combined / magnitude : combined;
+}
+
+half4 main(float2 coord) {
+    float2 safeCoord = boundedCoord(coord);
+    half4 base = inputImage.eval(safeCoord);
+    float baseAlpha = clamp(float(base.a), 0.0, 1.0);
+
+    float leaf = leafCoverage(safeCoord);
+    float2 uv = safeCoord / max(surfaceSize, float2(1.0));
+    float visibleDpx = min(surfaceSize.x, surfaceSize.y) * visibleDiameterRatio;
+    float flowMaxPx = visibleDpx * flowMaxDisplacementD;
+    float refractionMaxPx = visibleDpx * refractionMaxDisplacementD;
+    float edgeBandPx = visibleDpx * refractionEdgeBandD;
+
+    float alphaLeft = float(inputImage.eval(boundedCoord(safeCoord - float2(1.0, 0.0))).a);
+    float alphaRight = float(inputImage.eval(boundedCoord(safeCoord + float2(1.0, 0.0))).a);
+    float alphaTop = float(inputImage.eval(boundedCoord(safeCoord - float2(0.0, 1.0))).a);
+    float alphaBottom = float(inputImage.eval(boundedCoord(safeCoord + float2(0.0, 1.0))).a);
+    float2 alphaGradient = float2(alphaRight - alphaLeft, alphaBottom - alphaTop);
+    float gradientLength = length(alphaGradient);
+    float2 edgeNormal = alphaGradient / max(gradientLength, 0.0001);
+
+    float2 flowOffset = liquidFlow(uv) * flowMaxPx;
+    float edgeDistancePx = abs(baseAlpha - 0.5) * 2.0 / max(gradientLength, 0.001);
+    float edgeStrength = smoothstep(0.035, 0.38, gradientLength) *
+        smoothstep(0.002, 0.12, baseAlpha) *
+        (1.0 - smoothstep(edgeBandPx * 0.60, edgeBandPx, edgeDistancePx));
+    float2 edgeOffset = edgeNormal * refractionMaxPx * refractionNormalStrength * edgeStrength;
+    float2 displacement = flowOffset + edgeOffset;
+    float maxDisplacementPx = visibleDpx * (flowMaxDisplacementD + refractionMaxDisplacementD);
+    float displacementLength = length(displacement);
+    if (displacementLength > maxDisplacementPx) displacement *= maxDisplacementPx / displacementLength;
+
+    float2 refractedCoord = boundedCoord(safeCoord + displacement);
+    float refractedLeaf = leafCoverage(refractedCoord);
+    float waterRegion = (1.0 - smoothstep(0.02, 0.98, leaf)) *
+        (1.0 - smoothstep(0.02, 0.35, refractedLeaf));
+    float sampleMix = min(waterMixMax + edgeRefractionMixMax * edgeStrength, totalSampleMixMax) * waterRegion;
+    half4 refracted = inputImage.eval(refractedCoord);
+    float3 baseStraight = baseAlpha > 0.001 ? float3(base.rgb) / baseAlpha : float3(0.0);
+    float refractedAlpha = clamp(float(refracted.a), 0.0, 1.0);
+    float3 refractedStraight = refractedAlpha > 0.001 ? float3(refracted.rgb) / refractedAlpha : baseStraight;
+    float3 outputStraight = mix(baseStraight, refractedStraight, clamp(sampleMix, 0.0, 1.0));
+
+    // Keep the original alpha silhouette and premultiply only after straight-color interpolation.
+    return half4(half3(clamp(outputStraight, 0.0, 1.0) * baseAlpha), half(baseAlpha));
+}
