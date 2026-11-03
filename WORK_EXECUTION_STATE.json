@@ -11,9 +11,9 @@
   "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
   "stage": "E1",
   "status": "RUNNING",
-  "source_sha": "b5f025ef9232ea3e2bb491d142b31f341584fe16",
-  "checkpoint_updated_at": "2026-11-03T06:38:40Z",
-  "next_action": "Complete static source review, validate branch-local state, commit the candidate, and run exact-head Android CI.",
+  "source_sha": "b847baa6b9156be454dcae6cf6a90c387e06e5c5",
+  "checkpoint_updated_at": "2026-11-03T06:43:19Z",
+  "next_action": "Push the source branch, open the PR, and run the exact-head Android unit tests, lint, Debug APK assembly, and Release Kotlin compile.",
   "dependencies": [
     "P5-02",
     "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
@@ -41,6 +41,11 @@
       "sha256sum_rows": 18,
       "mask_source_alpha_outside_pixels": 0,
       "source_runtime_alpha_correlation": 0.999789
+    },
+    "implementation_commit": {
+      "sha": "b847baa6b9156be454dcae6cf6a90c387e06e5c5",
+      "message": "feat(android): integrate P0-2 Orb wake breath and R01B grass",
+      "status": "COMMITTED"
     }
   },
   "execution_v2": {
