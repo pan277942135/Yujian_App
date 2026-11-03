@@ -5,7 +5,7 @@
 **工作分支：** `feat/p0-ai-orb-external-optics-v2`
 **开发基线：** `main @ 99986f50944353b400594b4ceb0dd34be1df3b39`（PR #315 合入后）
 **候选配置：** `ORB-FLUID-OPTICS-CANDIDATE-V1`，状态 `CALIBRATION_CANDIDATE`
-**实现代码提交：** `a0a6d1b2f40313de52ae6dc6360f94e62bd77509`。
+**实现代码提交：** `b822d4ca9cc303b102a49a77d82d7af50e208959`（远端 GitHub 分支提交；tree SHA 与本地审计工作树一致）。
 **APK 源码 SHA：** `NOT_BUILT`；尚无 APK，因此没有 APK 对应的源码 SHA。任何后续 PR/构建必须使用当时的最新分支 HEAD。
 **APK：** 未构建（`NOT_PRODUCED`），不得据此报告 Android 编译或设备运行通过。
 
