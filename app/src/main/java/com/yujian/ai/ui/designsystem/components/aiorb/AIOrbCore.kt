@@ -226,7 +226,9 @@ private fun OrbVisual(
         }
     }
     SideEffect {
-        grassWarp?.update(if (reduceMotion) 0L else sharedFrame.elapsedMs, lifeProgress, wake.grassLight, coreTextureSizePx)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            grassWarp?.update(if (reduceMotion) 0L else sharedFrame.elapsedMs, lifeProgress, wake.grassLight, coreTextureSizePx)
+        }
     }
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
