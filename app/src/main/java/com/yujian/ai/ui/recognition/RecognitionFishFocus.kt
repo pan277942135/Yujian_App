@@ -179,7 +179,7 @@ internal class RecognitionContourPathCache(fullPath: Path) {
     }
 
     private fun measureAllContours(path: AndroidPath): List<Float> =
-        measureAllContours(path, ArrayList(4))
+        ArrayList<Float>(4).also { lengths -> measureAllContours(path, lengths) }
 
     private fun measureAllContours(path: AndroidPath, lengths: ArrayList<Float>) {
         lengths.clear()
