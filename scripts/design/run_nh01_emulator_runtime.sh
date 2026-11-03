@@ -73,12 +73,10 @@ if [[ "$prepared_font_scale" != "1.0" ]]; then
   exit 10
 fi
 metadata_rc=0
-if ! python3 scripts/design/capture_nh01_device_metadata.py --profile M04 \
+python3 scripts/design/capture_nh01_device_metadata.py --profile M04 \
   --output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" \
   --insets-dump "$YUJIAN_RUNTIME_EVIDENCE/infra/window_insets_dump.txt" \
-  --screencap-output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_screencap.png"; then
-  metadata_rc=$?
-fi
+  --screencap-output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_screencap.png" || metadata_rc=$?
 restore_font_rc=0
 if [[ "$original_font_scale" == "null" ]]; then
   "$ADB" -s "$selected_serial" shell settings delete system font_scale || restore_font_rc=$?

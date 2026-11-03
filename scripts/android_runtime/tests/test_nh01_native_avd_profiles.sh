@@ -65,7 +65,8 @@ metadata="$root/scripts/design/capture_nh01_device_metadata.py"
 runtime="$root/scripts/design/run_nh01_emulator_runtime.sh"
 if ! rg -q 'settings put system font_scale 1\.0' "$runtime" ||
    ! rg -q 'settings delete system font_scale' "$runtime" ||
-   ! rg -q 'font_scale_restored=' "$runtime"; then
+   ! rg -q 'font_scale_restored=' "$runtime" ||
+   ! rg -q '\|\| metadata_rc=\$\?' "$runtime"; then
   echo "initial metadata must capture the target FontScale and restore the preexisting setting" >&2
   exit 1
 fi
