@@ -977,12 +977,15 @@ private fun GeminiCatchCard(
         val combined = listOfNotNull(time, location).joinToString(" · ")
         when {
             combined.isBlank() -> ""
-            time != null && location != null &&
-                !geminiHomeTextFitsSingleLine(combined, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx) -> {
-                val fittedLocation = geminiHomeEllipsizeSingleLine(
-                    location, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx,
-                )
-                if (fittedLocation.isBlank()) time else "$time\n$fittedLocation"
+            time != null && location != null -> {
+                if (geminiHomeTextFitsSingleLine(combined, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx)) {
+                    combined
+                } else {
+                    val fittedLocation = geminiHomeEllipsizeSingleLine(
+                        location, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx,
+                    )
+                    if (fittedLocation.isBlank()) time else "$time\n$fittedLocation"
+                }
             }
             time != null -> time
             location != null -> geminiHomeEllipsizeSingleLine(
