@@ -216,7 +216,7 @@
       <div class="guide-resource-summary"><strong>8 张独立候选源图 → 8 个活动页面/角色绑定</strong><span>P01/P02 两步均保持手机竖屏；候选图已获准用于 Android Runtime，但仍为 GENERATED_CANDIDATE、未标记为 Frozen。真机验收仍由产品负责人执行。</span></div>
       <h4 class="guide-resource-section-title">Android Runtime 页面背景 · ${(assetManifest.runtime_backgrounds || []).length} 张</h4><div class="guide-candidate-grid" data-testid="guide-runtime-backgrounds">${runtimeBackgroundCards}</div>
       <h4 class="guide-resource-section-title">获批独立候选素材 · 8 个活动页面/角色槽位</h4><div class="guide-candidate-grid">${candidateCards}</div>
-      <details class="guide-reference-archive"><summary>归档对照裁切 · 9 项 REFERENCE_ONLY（不可作独立生产照片）</summary><p>这些归档条目来自扁平合成页面；为避免将复合截图裁切误作原片，本工作区只显示来源记录，不把它们作为可下载照片。</p><ul>${assets.filter(asset => asset.reference_package_asset).map(asset => `<li>${escapeHtml(asset.id)} — ${escapeHtml(asset.reference_package_asset.internal_path)} · ${escapeHtml(asset.reference_package_asset.sha256)}</li>`).join("")}</ul></details>
+      <details class="guide-reference-archive"><summary>活动页关联归档对照裁切 · 6 项 REFERENCE_ONLY（完整九项归档仍保留）</summary><p>这些活动页关联条目来自扁平合成页面；完整九项归档仍保留在来源包中。为避免将复合截图裁切误作原片，本工作区只显示来源记录，不把它们作为可下载照片。</p><ul>${assets.filter(asset => asset.reference_package_asset).map(asset => `<li>${escapeHtml(asset.id)} — ${escapeHtml(asset.reference_package_asset.internal_path)} · ${escapeHtml(asset.reference_package_asset.sha256)}</li>`).join("")}</ul></details>
       <h4 class="guide-resource-section-title">页面高保真资源 · 原图字节保持不变</h4><div class="guide-frozen-resource-grid">${frozenCards}</div>
       ${manifestLinks(root)}
     </section>`;

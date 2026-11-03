@@ -802,7 +802,7 @@ class RecognitionCameraRuntimeTest {
                     .put("offset_y_px", mapping.offsetYPx)
                     .put("runtime_width_px", mapping.runtimeWidthPx)
                     .put("runtime_height_px", mapping.runtimeHeightPx))
-                .put("visual_parity", "BLOCKED_ASSET_SOURCE"),
+                .put("visual_parity", "NOT_EVALUATED"),
         )
         record("FIRST_USE_GUIDE_${page.name}_SCREENSHOT", "PASS_REAL_IDENTIFY_ROUTE")
     }
@@ -812,10 +812,10 @@ class RecognitionCameraRuntimeTest {
         val report = JSONObject()
             .put("schema_version", "1.0")
             .put("task_id", "RECOGNITION-FIRST-USE-GUIDE-V1.2")
-            .put("status", "ASSET_SOURCE_BLOCKED")
+            .put("status", "RUNTIME_ROUTE_ONLY_NOT_VISUAL_PARITY")
             .put("runtime_evidence_status", "REAL_CAMERAX_IDENTIFY_ROUTE")
             .put("runtime_route_evidence", "PASS")
-            .put("visual_parity", "BLOCKED_ASSET_SOURCE")
+            .put("visual_parity", "NOT_EVALUATED")
             .put("source_commit_sha", JSONObject.NULL)
             .put("apk_sha256", sha256(appApk))
             .put("device", "${Build.MANUFACTURER} ${Build.MODEL}")
@@ -828,14 +828,14 @@ class RecognitionCameraRuntimeTest {
             .put("camera_ready_gate", "permission_granted_and_CameraX_preview_STREAMING_and_ImageCapture_ready")
             .put("shutter_invocation_count_while_guide_visible", 0)
             .put("completion_persisted_by", "P02_START")
-            .put("independent_photo_sources", "ASSET_SOURCE_BLOCKED")
+            .put("independent_photo_sources", "OWNER_APPROVED_GENERATED_CANDIDATES; ORIGINAL_PHOTOS_BLOCKED")
             .put("visual_observations", JSONArray()
                 .put("Screenshots were captured from the production IdentifyScreen after CameraX reported READY.")
                 .put("The guide overlays the live camera route and removes the underlying shutter and Gallery controls while visible.")
-                .put("Independent page-specific hero and error-example photographs are unavailable; visual parity is not accepted.")
-                .put("Frozen full-page PNGs were not used as runtime artwork."))
+                .put("Eight owner-approved generated candidate images are used as Runtime artwork; they remain GENERATED_CANDIDATE and are not Frozen masters.")
+                .put("This route report does not claim pixel parity against the full-page Frozen reference PNGs."))
             .put("pass", false)
-            .put("failure_classification", "ASSET_SOURCE_BLOCKED")
+            .put("failure_classification", "VISUAL_PARITY_NOT_EVALUATED")
         write("first_use_camera_guide_runtime_report.json", report.toString(2) + "\n")
     }
 

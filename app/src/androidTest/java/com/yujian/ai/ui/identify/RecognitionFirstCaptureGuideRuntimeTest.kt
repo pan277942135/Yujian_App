@@ -393,9 +393,10 @@ class RecognitionFirstCaptureGuideRuntimeTest {
                 "frozen_source_sha256",
                 JSONObject()
                     .put("P01", "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50")
-                    .put("P02", "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f")
-                    .put("active_page_count", 2),
+                    .put("P02", "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"),
             )
+            .put("active_guide_page_count", 2)
+            .put("capture_phone_orientation", "portrait_only")
             .put("device", "${Build.MANUFACTURER} ${Build.MODEL}")
             .put("api_level", Build.VERSION.SDK_INT)
             .put("density", context.resources.displayMetrics.density)
