@@ -145,13 +145,13 @@ run_adaptive_matrix_even_when_legacy_suite_fails() {
 #!/bin/sh
 case "$*" in
   "devices"|"devices -l")
-    printf 'List of devices attached\\nemulator-5554 device product:fake model:fake transport_id:1\\n'
+    printf 'List of devices attached\nemulator-5554 device product:fake model:fake transport_id:1\n'
     ;;
   *"get-state")
-    printf 'device\\n'
+    printf 'device\n'
     ;;
   *"getprop sys.boot_completed")
-    printf '1\\n'
+    printf '1\n'
     ;;
   *)
     exit 0
