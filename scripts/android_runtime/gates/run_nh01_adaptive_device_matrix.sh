@@ -78,6 +78,21 @@ if [[ -n "$profile_filter" ]]; then
   profiles=("${filtered_profiles[@]}")
 fi
 
+variant_filter="${YUJIAN_NH01_VARIANT_FILTER:-}"
+if [[ -n "$variant_filter" ]]; then
+  IFS=',' read -r -a requested_variants <<< "$variant_filter"
+  filtered_variants=()
+  for requested_variant in "${requested_variants[@]}"; do
+    for variant in "${variants[@]}"; do
+      if [[ "$variant" == "$requested_variant" ]]; then filtered_variants+=("$variant"); break; fi
+    done
+  done
+  if [[ "${#filtered_variants[@]}" -ne "${#requested_variants[@]}" ]]; then
+    record_setup_failure "VARIANT_FILTER_CONTAINS_UNKNOWN_OR_DUPLICATE_VARIANT"
+  fi
+  variants=("${filtered_variants[@]}")
+fi
+
 matrix_started_epoch="$(date +%s)"
 
 write_case_record() {
@@ -596,28 +611,33 @@ else
 fi
 
 aggregate_rc=0
-if [[ -n "$profile_filter" ]]; then
-  python3 - "$EXEC_DIR" "$profile_filter" "$YUJIAN_EVIDENCE_DIR/NH01_TARGETED_10_CASE_REPORT.md" "$YUJIAN_EVIDENCE_DIR/NH01_TARGETED_10_CASE_REPORT.json" "$BUILD_SHA" "$selected_serial" "$device_api" <<'PY'
+if [[ -n "$profile_filter" || -n "$variant_filter" ]]; then
+  report_stem="${YUJIAN_NH01_REPORT_STEM:-NH01_REPRESENTATIVE_DEVICE_REPORT}"
+  expected_case_count=$((${#profiles[@]} * ${#variants[@]}))
+  python3 - "$EXEC_DIR" "$profile_filter" "$variant_filter" "$YUJIAN_EVIDENCE_DIR/${report_stem}.md" "$YUJIAN_EVIDENCE_DIR/${report_stem}.json" "$expected_case_count" "$BUILD_SHA" "$selected_serial" "$device_api" <<'PY'
 import json, pathlib, sys
 execution_dir=pathlib.Path(sys.argv[1])
-profiles=sys.argv[2].split(",")
-md_path,json_path=map(pathlib.Path,sys.argv[3:5])
-source_sha,serial,api=sys.argv[5:8]
+profiles=sys.argv[2].split(",") if sys.argv[2] else []
+variants=[v.lower() for v in sys.argv[3].split(",") if v]
+md_path,json_path=map(pathlib.Path,sys.argv[4:6])
+expected_cases=int(sys.argv[6])
+source_sha,serial,api=sys.argv[7:10]
 rows=[]
 for profile in profiles:
-  for variant in ("adaptive_v2","v3_baseline"):
+  for variant in variants:
     path=execution_dir/f"{profile}-{variant}.json"
     data=json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {"status":"MISSING","reason":"execution record missing"}
     rows.append({"profile":profile,"variant":variant,"status":data.get("status","MISSING"),
                  "duration_seconds":data.get("duration_seconds"),"reason":data.get("reason",""),
                  "screenshot_evidence":data.get("required_screenshots_present"),
                  "settings_match":data.get("profile_settings_match"),"execution":data})
-result={"schema":"NH01_TARGETED_10_CASE_REPORT_V1","source_sha":source_sha,"device_api":api,
-        "adb_serial":serial,"status":"PASS" if len(rows)==10 and all(r["status"]=="PASS" for r in rows) else "FAIL",
-        "expected_cases":10,"executed_cases":len(rows),"cases":rows}
+result={"schema":"NH01_REPRESENTATIVE_DEVICE_MATRIX_REPORT_V1","source_sha":source_sha,"device_api":api,
+        "adb_serial":serial,"status":"PASS" if len(rows)==expected_cases and all(r["status"]=="PASS" for r in rows) else "FAIL",
+        "expected_cases":expected_cases,"executed_cases":len(rows),"cases":rows}
 json_path.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-lines=["# NH01 Targeted 10-Case API 28 Validation","",
+lines=["# NH01 Representative-Device API 28 Validation","",
        f"- Source SHA: `{source_sha}`",f"- API: {api}",f"- ADB serial: {serial}",
+       "- Profiles: " + ", ".join(profiles), "- Variants: " + ", ".join(variants),
        f"- Result: **{result['status']}**","",
        "| Profile | Mode | Duration (s) | Screenshot evidence | Device settings | Status | Reason |",
        "|---|---|---:|---|---|---|---|"]
@@ -643,7 +663,7 @@ MATRIX_STATUS="PASS"
 if [[ "$all_ok" -ne 1 ]]; then MATRIX_STATUS="FAIL"; fi
 MATRIX_STATUS="$MATRIX_STATUS" BUILD_SHA="$BUILD_SHA" SELECTED_SERIAL="$selected_serial" \
   DEVICE_API="$device_api" DEVICE_FINGERPRINT="$device_fingerprint" SETUP_REASON="$matrix_setup_reason" \
-  MATRIX_ELAPSED_SECONDS="$(( $(date +%s) - matrix_started_epoch ))" PROFILE_FILTER="$profile_filter" \
+  MATRIX_ELAPSED_SECONDS="$(( $(date +%s) - matrix_started_epoch ))" PROFILE_FILTER="$profile_filter" VARIANT_FILTER="$variant_filter" \
   python3 - "$MATRIX_DIR/execution_summary.json" "$EXEC_DIR" <<'PY'
 import json, os, sys
 from pathlib import Path
@@ -656,6 +676,7 @@ payload={"schema":"NH01_ADAPTIVE_MATRIX_EXECUTION_SUMMARY_V1","status":os.enviro
  "source_sha":os.environ["BUILD_SHA"],"adb_serial":os.environ.get("SELECTED_SERIAL") or None,
  "device_api":os.environ.get("DEVICE_API"),"device_fingerprint":os.environ.get("DEVICE_FINGERPRINT"),
  "setup_reason":os.environ.get("SETUP_REASON"),"profile_filter":os.environ.get("PROFILE_FILTER") or None,
+ "variant_filter":os.environ.get("VARIANT_FILTER") or None,
  "matrix_elapsed_seconds":int(os.environ.get("MATRIX_ELAPSED_SECONDS","0")),"execution_records":records}
 Path(sys.argv[1]).write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 PY

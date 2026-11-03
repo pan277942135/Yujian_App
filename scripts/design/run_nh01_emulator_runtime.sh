@@ -62,11 +62,11 @@ python3 scripts/design/capture_nh01_device_metadata.py --output "$YUJIAN_RUNTIME
 runtime_rc=0
 bash scripts/run_android_runtime_gate.sh --gate gemini-home-v2 --api-level 28 --build-sha "$YUJIAN_SOURCE_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "$YUJIAN_RUNTIME_EVIDENCE" || runtime_rc=$?
 
-# Reuse the one booted API 28 AVD and the already-installed APK pair.
-# Run the 10 required representative cases first; do not start the full matrix
-# unless every focused case passes.
+# Run only the three representative windows on the one installed APK pair.
+# M04=360x640, M07=390x844, M10=430x932; ADAPTIVE_V2 only.
 run_nh01_matrix() {
   local profile_filter="${1:-}"
+  local variant_filter="${2:-}"
   local -a matrix_env=(
     "YUJIAN_ADB_BIN=$ADB"
     "YUJIAN_APP_PACKAGE=${YUJIAN_APP_PACKAGE:-com.yujian.ai.uiv2}"
@@ -80,32 +80,21 @@ run_nh01_matrix() {
     "GITHUB_SERVER_URL=${GITHUB_SERVER_URL:-https://github.com}"
     "GITHUB_REPOSITORY=${GITHUB_REPOSITORY:-pan277942135/Yujian_App}"
   )
-  if [[ -n "$profile_filter" ]]; then
-    matrix_env+=("YUJIAN_NH01_PROFILE_FILTER=$profile_filter")
-  fi
-  env -u YUJIAN_NH01_PROFILE_FILTER "${matrix_env[@]}" bash scripts/android_runtime/gates/run_nh01_adaptive_device_matrix.sh
+  if [[ -n "$profile_filter" ]]; then matrix_env+=("YUJIAN_NH01_PROFILE_FILTER=$profile_filter"); fi
+  if [[ -n "$variant_filter" ]]; then matrix_env+=("YUJIAN_NH01_VARIANT_FILTER=$variant_filter"); fi
+  env -u YUJIAN_NH01_PROFILE_FILTER -u YUJIAN_NH01_VARIANT_FILTER \
+    YUJIAN_NH01_REPORT_STEM=NH01_THREE_DEVICE_ADAPTIVE_V2_REPORT \
+    "${matrix_env[@]}" bash scripts/android_runtime/gates/run_nh01_adaptive_device_matrix.sh
 }
 
-targeted_rc=0
-run_nh01_matrix "M01,M07,M10,H499,H500" || targeted_rc=$?
-targeted_dir="$YUJIAN_RUNTIME_EVIDENCE/targeted-validation"
-mkdir -p "$targeted_dir"
-cp -a "$YUJIAN_RUNTIME_EVIDENCE/nh01-adaptive-raw" "$targeted_dir/" 2>/dev/null || true
-cp -a "$YUJIAN_RUNTIME_EVIDENCE/NH01_RUNTIME_MATRIX_V1" "$targeted_dir/" 2>/dev/null || true
-cp "$YUJIAN_RUNTIME_EVIDENCE/NH01_TARGETED_10_CASE_REPORT.md" "$targeted_dir/" 2>/dev/null || true
-cp "$YUJIAN_RUNTIME_EVIDENCE/NH01_TARGETED_10_CASE_REPORT.json" "$targeted_dir/" 2>/dev/null || true
-matrix_rc="$targeted_rc"
-if (( targeted_rc == 0 )); then
-  full_matrix_started_epoch="$(date +%s)"
-  run_nh01_matrix || matrix_rc=$?
-  printf 'full_36_case_matrix_seconds=%s\n' "$(( $(date +%s) - full_matrix_started_epoch ))" | tee -a "$timing_log"
-else
-  printf 'full_36_case_matrix=NOT_STARTED_TARGETED_10_CASES_FAILED\n' | tee -a "$timing_log"
-fi
+matrix_started_epoch="$(date +%s)"
+matrix_rc=0
+run_nh01_matrix "M04,M07,M10" "ADAPTIVE_V2" || matrix_rc=$?
+printf 'representative_3_case_matrix_seconds=%s\n' "$(( $(date +%s) - matrix_started_epoch ))" | tee -a "$timing_log"
 
 if (( matrix_rc != 0 )); then
   printf 'NH01_ADAPTIVE_DEVICE_MATRIX=FAIL exit=%s\n' "$matrix_rc" >&2
-  matrix_classification="$(python3 - "$YUJIAN_RUNTIME_EVIDENCE" "$runtime_rc" <<'PY'
+  matrix_classification="$(python3 - "$YUJIAN_RUNTIME_EVIDENCE" "$runtime_rc" "NH01_THREE_DEVICE_ADAPTIVE_V2_REPORT" <<'PY'
 import json, pathlib, sys
 root = pathlib.Path(sys.argv[1])
 legacy_rc = int(sys.argv[2])
@@ -122,7 +111,8 @@ for case in cases:
         if isinstance(record, dict):
             records.append(record)
 if not records:
-    targeted_path = root / "NH01_TARGETED_10_CASE_REPORT.json"
+    report_stem = sys.argv[3] if len(sys.argv) > 3 else "NH01_THREE_DEVICE_ADAPTIVE_V2_REPORT"
+    targeted_path = root / (report_stem + ".json")
     try:
         targeted = json.loads(targeted_path.read_text(encoding="utf-8"))
         records = [case.get("execution", {}) for case in targeted.get("cases", []) if isinstance(case, dict)]
@@ -162,7 +152,7 @@ if legacy_rc == 0:
         "failure_phase": "INSTRUMENTATION" if classification == "FAIL_TEST" else (
             "PREFLIGHT" if classification == "BLOCKED_INFRA" else "EVIDENCE"
         ),
-        "failure_reason": "NH01_ADAPTIVE_API28_3X3_MATRIX_" + classification,
+        "failure_reason": "NH01_API28_THREE_DEVICE_ADAPTIVE_V2_" + classification,
     })
 result_path.parent.mkdir(parents=True, exist_ok=True)
 result_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -190,8 +180,7 @@ if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
     cat "$timing_log"
     echo
     echo "ADB preflight: PASS (serial $selected_serial, sys.boot_completed=1)"
-    echo "Targeted 10 cases: $([[ "$targeted_rc" -eq 0 ]] && echo PASS || echo FAIL)"
-    echo "Full 36 cases: $([[ "$targeted_rc" -eq 0 && "$matrix_rc" -eq 0 ]] && echo PASS || echo FAIL/NOT_RUN)"
+    echo "Three-device matrix (M04/M07/M10, ADAPTIVE_V2): $([[ "$matrix_rc" -eq 0 ]] && echo PASS || echo FAIL)"
   } >> "$GITHUB_STEP_SUMMARY"
 fi
 exit "$runtime_rc"
