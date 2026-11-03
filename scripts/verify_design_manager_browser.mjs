@@ -429,7 +429,7 @@ async function main() {
   await waitForHifiView(page);
   assert((await page.locator("#hifiViewTitle").innerText()).trim() === "资源", "Resources submenu must open its registered route");
   const routeSummary = await page.locator("#hifiViewSummary").innerText();
-  assert(routeSummary.includes("Android Runtime") && routeSummary.includes("Frozen 整页 PNG") && routeSummary.includes("NOT_RUN"), "Resources route must distinguish approved runtime photos, design-only page PNGs, and unrun API 28 acceptance");
+  assert(routeSummary.includes("Android Runtime") && routeSummary.includes("候选仍不是 Frozen") && routeSummary.includes("NOT_RUN") && routeSummary.includes("P01/P02"), "Resources route must distinguish approved runtime photos, design-only page PNGs, and unrun API 28 acceptance");
   await page.locator('[data-testid="first-use-guide-workspace"]').waitFor({state: "visible", timeout: 30000});
   await page.locator('[data-guide-tab="structure"]').waitFor({state: "visible", timeout: 30000});
   assert(await page.locator(".guide-workspace-tabs [data-guide-tab]").count() === 3, "Resources route must expose structure, responsive and assets workspaces");
