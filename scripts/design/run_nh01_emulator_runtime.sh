@@ -57,10 +57,41 @@ path.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="u
 PY
   exit 10
 fi
-python3 scripts/design/capture_nh01_device_metadata.py --profile M04 \
+# Android 9 leaves Settings.System.FONT_SCALE unset on a clean AVD; the
+# effective framework default is 1.0, but the read-only metadata gate must
+# observe an explicit value. Temporarily materialize the frozen test value,
+# capture it, then restore the original setting before the matrix starts.
+original_font_scale="$("$ADB" -s "$selected_serial" shell settings get system font_scale 2>/dev/null | tr -d '\r' || true)"
+if [[ -z "$original_font_scale" ]]; then original_font_scale="null"; fi
+printf 'initial_font_scale_before_metadata=%s\n' "$original_font_scale" | tee -a "$timing_log"
+if [[ "$original_font_scale" != "1.0" ]]; then
+  "$ADB" -s "$selected_serial" shell settings put system font_scale 1.0
+fi
+prepared_font_scale="$("$ADB" -s "$selected_serial" shell settings get system font_scale 2>/dev/null | tr -d '\r' || true)"
+if [[ "$prepared_font_scale" != "1.0" ]]; then
+  printf 'FONT_SCALE_PREPARE_FAILED expected=1.0 actual=%s\n' "$prepared_font_scale" >&2
+  exit 10
+fi
+metadata_rc=0
+if ! python3 scripts/design/capture_nh01_device_metadata.py --profile M04 \
   --output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" \
   --insets-dump "$YUJIAN_RUNTIME_EVIDENCE/infra/window_insets_dump.txt" \
-  --screencap-output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_screencap.png"
+  --screencap-output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_screencap.png"; then
+  metadata_rc=$?
+fi
+restore_font_rc=0
+if [[ "$original_font_scale" == "null" ]]; then
+  "$ADB" -s "$selected_serial" shell settings delete system font_scale || restore_font_rc=$?
+else
+  "$ADB" -s "$selected_serial" shell settings put system font_scale "$original_font_scale" || restore_font_rc=$?
+fi
+restored_font_scale="$("$ADB" -s "$selected_serial" shell settings get system font_scale 2>/dev/null | tr -d '\r' || true)"
+printf 'font_scale_metadata_value=%s\nfont_scale_restored=%s\n' "$prepared_font_scale" "$restored_font_scale" | tee -a "$timing_log"
+if (( metadata_rc != 0 )); then exit "$metadata_rc"; fi
+if (( restore_font_rc != 0 )); then
+  printf 'FONT_SCALE_RESTORE_FAILED original=%s current=%s\n' "$original_font_scale" "$restored_font_scale" >&2
+  exit 10
+fi
 
 APP_APK="${YUJIAN_APP_APK:-build/runtime-apks/app-debug.apk}"
 TEST_APK="${YUJIAN_TEST_APK:-build/runtime-apks/app-debug-androidTest.apk}"
