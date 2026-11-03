@@ -672,7 +672,7 @@ async function main() {
   await open(resourcesHash);
   await page.reload({ waitUntil: "networkidle" });
   assert(page.url().endsWith(resourcesHash), "refresh must preserve the direct Resources Hash");
-  assert(await page.locator(".guide-resource-card").count() === 3, "direct Resources Hash must render all source PNGs after refresh");
+  assert(await page.locator(".guide-resource-card").count() === 2, "direct Resources Hash must render the two active portrait-phone Frozen PNGs after refresh");
 
   const missingCases = [
     ["capture_portrait", "Recognition_Capture_Ready_Portrait_Horizontal_Fish_Frozen.png"],
