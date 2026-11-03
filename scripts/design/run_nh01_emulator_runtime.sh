@@ -182,7 +182,7 @@ matrix_rc=0
 run_nh01_matrix "M04,M07,M10" "ADAPTIVE_V2" || matrix_rc=$?
 printf 'representative_3_case_matrix_seconds=%s\n' "$(( $(date +%s) - matrix_started_epoch ))" | tee -a "$timing_log"
 
-matrix_classification="$(python3 - "$YUJIAN_RUNTIME_EVIDENCE" "$matrix_rc" "NH01_THREE_DEVICE_ADAPTIVE_V2_REPORT" <<'PY'
+matrix_classification="$(python3 - "$YUJIAN_RUNTIME_EVIDENCE" "$matrix_rc" "NH01_THREE_DEVICE_ADAPTIVE_V2_REPORT.json" <<'PY'
 import json, pathlib, sys
 root = pathlib.Path(sys.argv[1])
 matrix_rc = int(sys.argv[2])
