@@ -252,6 +252,8 @@ if [[ -n "$selected_serial" ]]; then
   initial_animator_scale="$("${ADB[@]}" shell settings get global animator_duration_scale 2>/dev/null | tr -d '\r' || true)"
   initial_transition_scale="$("${ADB[@]}" shell settings get global transition_animation_scale 2>/dev/null | tr -d '\r' || true)"
   initial_window_scale="$("${ADB[@]}" shell settings get global window_animation_scale 2>/dev/null | tr -d '\r' || true)"
+  [[ -z "$initial_size_override" ]] || record_setup_failure "INITIAL_WM_SIZE_OVERRIDE_NOT_ALLOWED_$initial_size_override"
+  [[ -z "$initial_density_override" ]] || record_setup_failure "INITIAL_WM_DENSITY_OVERRIDE_NOT_ALLOWED_$initial_density_override"
 fi
 if [[ -z "$initial_font" ]]; then initial_font="null"; fi
 if [[ -z "$initial_animator_scale" ]]; then initial_animator_scale="null"; fi
@@ -309,54 +311,45 @@ Path(sys.argv[1]).write_text(json.dumps(p,ensure_ascii=False,indent=2)+"\n",enco
 PY
 
 restore_device() {
-  [[ -n "$selected_serial" ]] || return 0
+  [ -n "$selected_serial" ] || return 0
   local rc=0
-  if [[ -n "$initial_size_override" ]]; then
-    "${ADB[@]}" shell wm size "$initial_size_override" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
+  if [ "$initial_font" = "null" ]; then
+    "$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings delete system font_scale >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
   else
-    "${ADB[@]}" shell wm size reset >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
-  fi
-  if [[ -n "$initial_density_override" ]]; then
-    "${ADB[@]}" shell wm density "$initial_density_override" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
-  else
-    "${ADB[@]}" shell wm density reset >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
-  fi
-  if [[ "$initial_font" == "null" ]]; then
-    "${ADB[@]}" shell settings delete system font_scale >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
-  else
-    "${ADB[@]}" shell settings put system font_scale "$initial_font" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
+    "$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings put system font_scale "$initial_font" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
   fi
   restore_global_setting() {
     local name="$1" value="$2"
-    if [[ "$value" == "null" ]]; then
-      "${ADB[@]}" shell settings delete global "$name" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
+    if [ "$value" = "null" ]; then
+      "$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings delete global "$name" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
     else
-      "${ADB[@]}" shell settings put global "$name" "$value" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
+      "$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings put global "$name" "$value" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
     fi
   }
   restore_global_setting animator_duration_scale "$initial_animator_scale"
   restore_global_setting transition_animation_scale "$initial_transition_scale"
   restore_global_setting window_animation_scale "$initial_window_scale"
   {
-    restored_size="$("${ADB[@]}" shell wm size 2>&1 || true)"
-    restored_density="$("${ADB[@]}" shell wm density 2>&1 || true)"
-    restored_font="$("${ADB[@]}" shell settings get system font_scale 2>&1 | tr -d '\r' || true)"
-    restored_animator="$("${ADB[@]}" shell settings get global animator_duration_scale 2>&1 | tr -d '\r' || true)"
-    restored_transition="$("${ADB[@]}" shell settings get global transition_animation_scale 2>&1 | tr -d '\r' || true)"
-    restored_window="$("${ADB[@]}" shell settings get global window_animation_scale 2>&1 | tr -d '\r' || true)"
-    restored_size_value="$(sed -n 's/^Override size: //p; s/^Physical size: //p' <<< "$restored_size" | tail -n 1 | tr -d '\r')"
-    restored_density_value="$(sed -n 's/^Override density: //p; s/^Physical density: //p' <<< "$restored_density" | tail -n 1 | tr -d '\r')"
-    expected_size_value="${initial_size_override:-$last_native_size}"
-    expected_density_value="${initial_density_override:-$last_native_density}"
-    printf 'wm_size=%s\n' "${restored_size//$'\n'/; }"
-    printf 'wm_density=%s\n' "${restored_density//$'\n'/; }"
+    restored_size="$("$YUJIAN_ADB_BIN" -s "$selected_serial" shell wm size 2>&1 || true)"
+    restored_density="$("$YUJIAN_ADB_BIN" -s "$selected_serial" shell wm density 2>&1 || true)"
+    restored_font="$("$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings get system font_scale 2>&1 | tr -d '\r' || true)"
+    restored_animator="$("$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings get global animator_duration_scale 2>&1 | tr -d '\r' || true)"
+    restored_transition="$("$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings get global transition_animation_scale 2>&1 | tr -d '\r' || true)"
+    restored_window="$("$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings get global window_animation_scale 2>&1 | tr -d '\r' || true)"
+    restored_physical_size="$(sed -n 's/^Physical size: //p' <<< "$restored_size" | head -n 1 | tr -d '\r')"
+    restored_size_override="$(sed -n 's/^Override size: //p' <<< "$restored_size" | head -n 1 | tr -d '\r')"
+    restored_physical_density="$(sed -n 's/^Physical density: //p' <<< "$restored_density" | head -n 1 | tr -d '\r')"
+    restored_density_override="$(sed -n 's/^Override density: //p' <<< "$restored_density" | head -n 1 | tr -d '\r')"
+    printf 'wm_size=%s\n' "$(tr '\n' ';' <<< "$restored_size")"
+    printf 'wm_density=%s\n' "$(tr '\n' ';' <<< "$restored_density")"
     printf 'font_scale=%s\n' "$restored_font"
     printf 'animator_duration_scale=%s\n' "$restored_animator"
     printf 'transition_animation_scale=%s\n' "$restored_transition"
     printf 'window_animation_scale=%s\n' "$restored_window"
-    if [[ "$restored_size_value" != "$expected_size_value" || "$restored_density_value" != "$expected_density_value" || \
-          "$restored_font" != "$initial_font" || "$restored_animator" != "$initial_animator_scale" || \
-          "$restored_transition" != "$initial_transition_scale" || "$restored_window" != "$initial_window_scale" ]]; then
+    if [ "$restored_physical_size" != "$last_native_size" ] || [ -n "$restored_size_override" ] ||
+       [ "$restored_physical_density" != "$last_native_density" ] || [ -n "$restored_density_override" ] ||
+       [ "$restored_font" != "$initial_font" ] || [ "$restored_animator" != "$initial_animator_scale" ] ||
+       [ "$restored_transition" != "$initial_transition_scale" ] || [ "$restored_window" != "$initial_window_scale" ]; then
       rc=1
     fi
   } > "$LOG_DIR/device_settings_after_restore.txt" 2>&1 || rc=1
@@ -420,113 +413,272 @@ fi
 
 restart_native_avd() {
   local profile="$1" width="$2" height="$3" density="$4"
-  local port="${selected_serial##*-}"
-  local boot_log="$LOG_DIR/${profile}_emulator_boot.log"
-  local deadline state boot_completed
+  local port
+  port="$(awk -F- '{print $NF}' <<< "$selected_serial")"
+  local boot_log="$LOG_DIR/"$profile"_emulator_boot.log"
+  local profile_dir="$LOG_DIR/display/$profile"
+  local deadline state boot_completed process_matches config_evidence
+  mkdir -p "$profile_dir"
 
-  if [[ -n "$selected_serial" ]]; then
-    "${ADB[@]}" -s "$selected_serial" emu kill > "$LOG_DIR/${profile}_emulator_stop.log" 2>&1 || true
+  if [ -n "$selected_serial" ]; then
+    "$YUJIAN_ADB_BIN" -s "$selected_serial" emu kill > "$LOG_DIR/"$profile"_emulator_stop.log" 2>&1 || true
     deadline="$(( $(date +%s) + 60 ))"
     while (( $(date +%s) < deadline )); do
-      state="$("${ADB[@]}" -s "$selected_serial" get-state 2>/dev/null | tr -d '\r' || true)"
-      [[ "$state" != "device" ]] && break
+      state="$("$YUJIAN_ADB_BIN" -s "$selected_serial" get-state 2>/dev/null | tr -d '\r' || true)"
+      process_matches="$(ps -eo pid=,args= | awk -v avd="-avd $AVD_NAME" -v port_arg="-port $port" '($2 ~ /(^|\/)emulator$/) && index($0, avd) && index($0, port_arg) {print $1}')"
+      if [ "$state" != "device" ] && [ -z "$process_matches" ]; then
+        break
+      fi
       sleep 1
     done
-    sleep 5
+    if [ "$state" = "device" ] || [ -n "$process_matches" ]; then
+      printf 'OLD_EMULATOR_NOT_STOPPED profile=%s state=%s pids=%s\n' "$profile" "$state" "$process_matches" >> "$LOG_DIR/"$profile"_emulator_stop.log"
+      return 1
+    fi
   fi
 
-  bash scripts/android_runtime/configure_nh01_api28_avd.sh "$AVD_NAME" "$profile" \
-    > "$LOG_DIR/${profile}_avd_config.log" 2>&1 || return 1
-
-  if [[ ! -x "$EMULATOR_BIN" ]]; then
+  config_evidence="$profile_dir/avd_config"
+  bash scripts/android_runtime/configure_nh01_api28_avd.sh "$AVD_NAME" "$profile" "$config_evidence" \
+    > "$LOG_DIR/"$profile"_avd_config.log" 2>&1 || return 1
+  sed -n 's/^AVD_CONFIG_PATH=//p' "$LOG_DIR/"$profile"_avd_config.log" | tail -n 1 > "$profile_dir/avd_config_path.txt"
+  if [ ! -x "$EMULATOR_BIN" ]; then
     printf 'emulator binary not executable: %s\n' "$EMULATOR_BIN" > "$boot_log"
     return 1
   fi
-  "$EMULATOR_BIN" -avd "$AVD_NAME" -port "$port" -skin "${width}x${height}" -dpi-device "$density" \
-    -no-window -gpu swiftshader -noaudio \
-    -no-boot-anim -camera-back none -partition-size 4096 -no-snapshot > "$boot_log" 2>&1 < /dev/null &
+  printf 'emulator_bin=%s\navd=%s\nprofile=%s\nrequested_native_display=%sx%s@%sdpi\navd_config_path=%s\n' \
+    "$EMULATOR_BIN" "$AVD_NAME" "$profile" "$width" "$height" "$density" \
+    "$(cat "$profile_dir/avd_config_path.txt")" > "$boot_log"
+  "$EMULATOR_BIN" -avd "$AVD_NAME" -port "$port" \
+    -no-window -gpu swiftshader -noaudio -no-boot-anim -camera-back none \
+    -partition-size 4096 -no-snapshot >> "$boot_log" 2>&1 < /dev/null &
   local emulator_pid=$!
-  printf 'emulator_pid=%s\navd=%s\nprofile=%s\nrequested_native_display=%sx%s@%sdpi\n' \
-    "$emulator_pid" "$AVD_NAME" "$profile" "$width" "$height" "$density" >> "$boot_log"
+  printf 'emulator_pid=%s\n' "$emulator_pid" >> "$boot_log"
 
   deadline="$(( $(date +%s) + 360 ))"
   while (( $(date +%s) < deadline )); do
-    state="$(timeout 10s "${ADB[@]}" -s "$selected_serial" get-state 2>/dev/null | tr -d '\r' || true)"
-    boot_completed="$(timeout 10s "${ADB[@]}" -s "$selected_serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
-    if [[ "$state" == "device" && "$boot_completed" == "1" ]]; then
+    state="$(timeout 10s "$YUJIAN_ADB_BIN" -s "$selected_serial" get-state 2>/dev/null | tr -d '\r' || true)"
+    boot_completed="$(timeout 10s "$YUJIAN_ADB_BIN" -s "$selected_serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+    if [ "$state" = "device" ] && [ "$boot_completed" = "1" ]; then
+      ps -eo pid=,args= > "$profile_dir/emulator_processes.txt"
+      "$YUJIAN_ADB_BIN" -s "$selected_serial" shell getprop ro.build.version.sdk > "$profile_dir/api_level_after_boot.txt" 2>&1 || true
+      "$YUJIAN_ADB_BIN" -s "$selected_serial" get-state > "$profile_dir/adb_state_after_boot.txt" 2>&1 || true
+      printf 'adb_state=%s\nsys.boot_completed=%s\n' "$state" "$boot_completed" >> "$boot_log"
       return 0
     fi
     sleep 2
   done
+  ps -eo pid=,args= > "$profile_dir/emulator_processes_timeout.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" devices -l > "$profile_dir/adb_devices_timeout.txt" 2>&1 || true
   printf 'INFRA_EMULATOR_BOOT_TIMEOUT profile=%s timeout_seconds=360 last_state=%s boot_completed=%s pid=%s\n' \
-    "$profile" "${state:-MISSING}" "${boot_completed:-MISSING}" "$emulator_pid" >> "$boot_log"
+    "$profile" "$state" "$boot_completed" "$emulator_pid" >> "$boot_log"
   return 1
 }
 
 capture_native_display_state() {
   local profile="$1" requested="$2" profile_dir="$LOG_DIR/display/$profile"
   mkdir -p "$profile_dir"
-  "${ADB[@]}" shell wm size > "$profile_dir/wm_size.txt" 2>&1 || true
-  "${ADB[@]}" shell wm density > "$profile_dir/wm_density.txt" 2>&1 || true
-  "${ADB[@]}" shell getprop qemu.sf.lcd_density > "$profile_dir/qemu_sf_lcd_density.txt" 2>&1 || true
-  "${ADB[@]}" shell getprop ro.sf.lcd_density > "$profile_dir/ro_sf_lcd_density.txt" 2>&1 || true
-  "${ADB[@]}" shell getprop ro.build.version.sdk > "$profile_dir/api_level.txt" 2>&1 || true
-  "${ADB[@]}" shell getprop ro.build.fingerprint > "$profile_dir/build_fingerprint.txt" 2>&1 || true
-  "${ADB[@]}" shell dumpsys display > "$profile_dir/dumpsys_display.txt" 2>&1 || true
-  "${ADB[@]}" shell dumpsys SurfaceFlinger > "$profile_dir/dumpsys_surfaceflinger.txt" 2>&1 || true
-  "${ADB[@]}" shell settings get secure accessibility_enabled > "$profile_dir/accessibility_enabled.txt" 2>&1 || true
-  "${ADB[@]}" shell settings get secure accessibility_display_magnification_enabled > "$profile_dir/accessibility_magnification_enabled.txt" 2>&1 || true
-  "${ADB[@]}" shell settings get secure enabled_accessibility_services > "$profile_dir/enabled_accessibility_services.txt" 2>&1 || true
-  "${ADB[@]}" shell dumpsys accessibility > "$profile_dir/dumpsys_accessibility.txt" 2>&1 || true
-  "${ADB[@]}" exec-out screencap -p > "$profile_dir/launcher_surface.png" 2> "$profile_dir/launcher_surface_stderr.log" || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell wm size > "$profile_dir/wm_size.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell wm density > "$profile_dir/wm_density.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell getprop qemu.sf.lcd_density > "$profile_dir/qemu_sf_lcd_density.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell getprop ro.sf.lcd_density > "$profile_dir/ro_sf_lcd_density.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell getprop ro.build.version.sdk > "$profile_dir/api_level.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell getprop ro.build.fingerprint > "$profile_dir/build_fingerprint.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell getprop ro.product.model > "$profile_dir/device_model.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings get system font_scale > "$profile_dir/font_scale.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell dumpsys display > "$profile_dir/dumpsys_display.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell dumpsys SurfaceFlinger > "$profile_dir/dumpsys_surfaceflinger.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell dumpsys window windows > "$profile_dir/dumpsys_window_windows.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings get secure accessibility_enabled > "$profile_dir/accessibility_enabled.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings get secure accessibility_display_magnification_enabled > "$profile_dir/accessibility_magnification_enabled.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell settings get secure enabled_accessibility_services > "$profile_dir/enabled_accessibility_services.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" shell dumpsys accessibility > "$profile_dir/dumpsys_accessibility.txt" 2>&1 || true
+  "$YUJIAN_ADB_BIN" -s "$selected_serial" exec-out screencap -p > "$profile_dir/launcher_surface.png" 2> "$profile_dir/launcher_surface_stderr.log" || true
 
-  local physical_size override_size physical_density override_density qemu_density ro_density screenshot_dimensions
-  local accessibility_enabled magnification_enabled accessibility_services magnification_scale api_level build_fingerprint
-  physical_size="$(sed -n 's/^Physical size: //p' "$profile_dir/wm_size.txt" | head -n 1 | tr -d '\r')"
-  override_size="$(sed -n 's/^Override size: //p' "$profile_dir/wm_size.txt" | head -n 1 | tr -d '\r')"
-  physical_density="$(sed -n 's/^Physical density: //p' "$profile_dir/wm_density.txt" | head -n 1 | tr -d '\r')"
-  override_density="$(sed -n 's/^Override density: //p' "$profile_dir/wm_density.txt" | head -n 1 | tr -d '\r')"
-  qemu_density="$(tr -d '\r\n' < "$profile_dir/qemu_sf_lcd_density.txt" 2>/dev/null || true)"
-  ro_density="$(tr -d '\r\n' < "$profile_dir/ro_sf_lcd_density.txt" 2>/dev/null || true)"
-  api_level="$(tr -d '\r\n' < "$profile_dir/api_level.txt" 2>/dev/null || true)"
-  build_fingerprint="$(tr -d '\r\n' < "$profile_dir/build_fingerprint.txt" 2>/dev/null || true)"
-  accessibility_enabled="$(tr -d '\r\n' < "$profile_dir/accessibility_enabled.txt" 2>/dev/null || true)"
-  magnification_enabled="$(tr -d '\r\n' < "$profile_dir/accessibility_magnification_enabled.txt" 2>/dev/null || true)"
-  accessibility_services="$(tr -d '\r\n' < "$profile_dir/enabled_accessibility_services.txt" 2>/dev/null || true)"
-  magnification_scale="$(grep -Eo 'scale[=:][[:space:]]*[0-9]+([.][0-9]+)?' "$profile_dir/dumpsys_accessibility.txt" | head -n 1 | tr -d ' ' || true)"
-  screenshot_dimensions="$(python3 - "$profile_dir/launcher_surface.png" <<'PY'
-import pathlib, struct, sys
-p=pathlib.Path(sys.argv[1])
-try:
-    data=p.read_bytes()
-    if data[:8] != b"\x89PNG\r\n\x1a\n": raise ValueError("invalid PNG signature")
-    print(f"{struct.unpack('>I',data[16:20])[0]}x{struct.unpack('>I',data[20:24])[0]}")
-except Exception:
-    print("INVALID")
-PY
-)"
-  PROFILE="$profile" REQUESTED="$requested" PHYSICAL_SIZE="$physical_size" OVERRIDE_SIZE="$override_size" \
-    PHYSICAL_DENSITY="$physical_density" OVERRIDE_DENSITY="$override_density" QEMU_DENSITY="$qemu_density" \
-  RO_DENSITY="$ro_density" SCREENSHOT_DIMENSIONS="$screenshot_dimensions" \
-  API_LEVEL_VALUE="$api_level" BUILD_FINGERPRINT_VALUE="$build_fingerprint" \
-  ACCESSIBILITY_ENABLED="$accessibility_enabled" MAGNIFICATION_ENABLED="$magnification_enabled" \
-  ACCESSIBILITY_SERVICES="$accessibility_services" MAGNIFICATION_SCALE="$magnification_scale" \
+  local config_log="$LOG_DIR/"$profile"_avd_config.log"
+  local config_path runtime_config_path
+  config_path="$(sed -n 's/^AVD_CONFIG_PATH=//p' "$config_log" 2>/dev/null | tail -n 1 | tr -d '\r')"
+  if [ -z "$config_path" ] && [ -s "$profile_dir/avd_config_path.txt" ]; then
+    config_path="$(tr -d '\r\n' < "$profile_dir/avd_config_path.txt")"
+  fi
+  runtime_config_path=""
+  if [ -n "$config_path" ] && [ -f "$config_path" ]; then
+    cp "$config_path" "$profile_dir/config.ini.runtime_readback"
+    runtime_config_path="$(dirname "$config_path")/hardware-qemu.ini"
+    if [ -f "$runtime_config_path" ]; then
+      cp "$runtime_config_path" "$profile_dir/hardware-qemu.ini.runtime"
+    else
+      runtime_config_path=""
+    fi
+  fi
+  ps -eo pid=,args= > "$profile_dir/emulator_processes.txt" 2>&1 || true
+  "$EMULATOR_BIN" -list-avds > "$profile_dir/emulator_list_avds.txt" 2>&1 || true
+
+  PROFILE="$profile" REQUESTED="$requested" PROFILE_DIR="$profile_dir" \
+    CONFIG_PATH="$config_path" RUNTIME_CONFIG_PATH="$runtime_config_path" \
     python3 - "$profile_dir/native_display_validation.json" <<'PY'
-import json, os, pathlib, sys
-p={"profile_id":os.environ["PROFILE"],"requested_physical_size":os.environ["REQUESTED"],
-   "wm_physical_size":os.environ["PHYSICAL_SIZE"],"wm_override_size":os.environ["OVERRIDE_SIZE"] or None,
-   "wm_physical_density_dpi":os.environ["PHYSICAL_DENSITY"],"wm_override_density_dpi":os.environ["OVERRIDE_DENSITY"] or None,
-   "qemu_sf_lcd_density":os.environ["QEMU_DENSITY"],"ro_sf_lcd_density":os.environ["RO_DENSITY"],
-   "api_level":os.environ["API_LEVEL_VALUE"],"build_fingerprint":os.environ["BUILD_FINGERPRINT_VALUE"],
-   "accessibility_enabled":os.environ["ACCESSIBILITY_ENABLED"],
-   "accessibility_display_magnification_enabled":os.environ["MAGNIFICATION_ENABLED"],
-   "enabled_accessibility_services":os.environ["ACCESSIBILITY_SERVICES"],
-   "accessibility_magnification_scale":os.environ["MAGNIFICATION_SCALE"],
-   "launcher_screencap_dimensions":os.environ["SCREENSHOT_DIMENSIONS"],
-   "native_viewport_pass":os.environ["PHYSICAL_SIZE"]==os.environ["REQUESTED"] and not os.environ["OVERRIDE_SIZE"] and
-       os.environ["PHYSICAL_DENSITY"]=="160" and not os.environ["OVERRIDE_DENSITY"] and
-       os.environ["SCREENSHOT_DIMENSIONS"]==os.environ["REQUESTED"] and os.environ["API_LEVEL_VALUE"]=="28"}
-pathlib.Path(sys.argv[1]).write_text(json.dumps(p,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+import json
+import os
+import pathlib
+import re
+import struct
+import sys
+
+root = pathlib.Path(os.environ["PROFILE_DIR"])
+profile = os.environ["PROFILE"]
+requested = os.environ["REQUESTED"]
+expected_width, expected_height = (int(value) for value in requested.split("x"))
+expected_size = (expected_width, expected_height)
+expected_density = 160
+
+def read(name):
+    try:
+        return (root / name).read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+def wm_value(name, label):
+    match = re.search(rf"^{label}: (.+)$", read(name), re.MULTILINE)
+    return match.group(1).strip() if match else ""
+
+def ini(path):
+    result, counts = {}, {}
+    if not path:
+        return result, counts
+    try:
+        lines = pathlib.Path(path).read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return result, counts
+    for line in lines:
+        key, sep, value = line.partition("=")
+        if sep:
+            key = key.strip()
+            counts[key] = counts.get(key, 0) + 1
+            result[key] = value.strip()
+    return result, counts
+
+wm_size_raw = read("wm_size.txt")
+wm_density_raw = read("wm_density.txt")
+physical_size_text = wm_value("wm_size.txt", "Physical size")
+override_size_text = wm_value("wm_size.txt", "Override size")
+physical_density_text = wm_value("wm_density.txt", "Physical density")
+override_density_text = wm_value("wm_density.txt", "Override density")
+physical_size = tuple(map(int, physical_size_text.split("x"))) if re.fullmatch(r"\d+x\d+", physical_size_text) else None
+override_size = tuple(map(int, override_size_text.split("x"))) if re.fullmatch(r"\d+x\d+", override_size_text) else None
+physical_density = int(physical_density_text) if physical_density_text.isdigit() else None
+override_density = int(override_density_text) if override_density_text.isdigit() else None
+qemu_density = read("qemu_sf_lcd_density.txt")
+ro_density = read("ro_sf_lcd_density.txt")
+api = read("api_level.txt")
+fingerprint = read("build_fingerprint.txt")
+model = read("device_model.txt")
+font_text = read("font_scale.txt")
+try:
+    font_scale = float(font_text)
+except ValueError:
+    font_scale = None
+png_path = root / "launcher_surface.png"
+screenshot_size = None
+try:
+    png = png_path.read_bytes()
+    if png[:8] == b"\x89PNG\r\n\x1a\n" and len(png) >= 24:
+        screenshot_size = struct.unpack(">II", png[16:24])
+except OSError:
+    pass
+
+config_path = os.environ.get("CONFIG_PATH", "")
+runtime_config_path = os.environ.get("RUNTIME_CONFIG_PATH", "")
+config_values, config_counts = ini(config_path)
+runtime_values, runtime_counts = ini(runtime_config_path)
+display_dump = read("dumpsys_display.txt")
+built_in = re.search(r'DisplayDeviceInfo\{"Built-in Screen"[^}]*\}', display_dump, re.S)
+display_info = None
+if built_in:
+    dimension_match = re.search(r"(\d+)\s*x\s*(\d+).*?\bdensity\s+(\d+)\b", built_in.group(0), re.S)
+    if dimension_match:
+        display_info = {
+            "width_px": int(dimension_match.group(1)),
+            "height_px": int(dimension_match.group(2)),
+            "density_dpi": int(dimension_match.group(3)),
+            "raw": built_in.group(0),
+        }
+
+target = {"profile_id": profile, "resolution_px": [expected_width, expected_height], "density_dpi": expected_density}
+config_target = {
+    "width_px": config_values.get("hw.lcd.width"),
+    "height_px": config_values.get("hw.lcd.height"),
+    "density_dpi": config_values.get("hw.lcd.density"),
+}
+failures = []
+if api != "28":
+    failures.append(f"API_LEVEL_EXPECTED_28_GOT_{api or 'MISSING'}")
+if config_target != {"width_px": str(expected_width), "height_px": str(expected_height), "density_dpi": str(expected_density)}:
+    failures.append(f"AVD_CONFIG_READBACK_MISMATCH_{config_target}")
+for key in ("hw.lcd.width", "hw.lcd.height", "hw.lcd.density"):
+    if config_counts.get(key) != 1:
+        failures.append(f"AVD_CONFIG_DUPLICATE_OR_MISSING_{key}")
+if physical_size != expected_size:
+    failures.append(f"WM_PHYSICAL_SIZE_EXPECTED_{requested}_GOT_{physical_size}")
+if override_size is not None:
+    failures.append(f"WM_OVERRIDE_SIZE_PRESENT_{override_size}")
+if physical_density != expected_density:
+    failures.append(f"WM_PHYSICAL_DENSITY_EXPECTED_{expected_density}_GOT_{physical_density}")
+if override_density is not None:
+    failures.append(f"WM_DENSITY_OVERRIDE_PRESENT_{override_density}")
+if qemu_density != str(expected_density):
+    failures.append(f"QEMU_DENSITY_EXPECTED_{expected_density}_GOT_{qemu_density or 'MISSING'}")
+if font_scale != 1.0:
+    failures.append(f"FONT_SCALE_EXPECTED_1.0_GOT_{font_scale}")
+if screenshot_size != expected_size:
+    failures.append(f"FRAMEBUFFER_EXPECTED_{requested}_GOT_{screenshot_size}")
+if display_info is None:
+    failures.append("DUMPSYS_DISPLAY_BUILT_IN_SCREEN_UNPARSEABLE")
+elif (display_info["width_px"], display_info["height_px"]) != expected_size or display_info["density_dpi"] != expected_density:
+    failures.append(f"DUMPSYS_DISPLAY_READBACK_MISMATCH_{display_info}")
+if runtime_values:
+    runtime_display = {
+        "width_px": runtime_values.get("hw.lcd.width"),
+        "height_px": runtime_values.get("hw.lcd.height"),
+        "density_dpi": runtime_values.get("hw.lcd.density"),
+    }
+    if any(runtime_display.values()) and runtime_display != config_target:
+        failures.append(f"RUNTIME_HARDWARE_QEMU_MISMATCH_{runtime_display}")
+
+payload = {
+    "profile_id": profile,
+    "target": target,
+    "avd_config_path": config_path or None,
+    "avd_runtime_hardware_qemu_path": runtime_config_path or None,
+    "avd_config_target_readback": config_target,
+    "avd_config_display_key_counts": {key: config_counts.get(key, 0) for key in ("hw.lcd.width", "hw.lcd.height", "hw.lcd.density")},
+    "runtime_hardware_qemu_display_readback": {
+        "width_px": runtime_values.get("hw.lcd.width"),
+        "height_px": runtime_values.get("hw.lcd.height"),
+        "density_dpi": runtime_values.get("hw.lcd.density"),
+        "display_key_counts": {key: runtime_counts.get(key, 0) for key in ("hw.lcd.width", "hw.lcd.height", "hw.lcd.density")},
+    } if runtime_values else None,
+    "api_level": int(api) if api.isdigit() else api,
+    "device_model": model,
+    "build_fingerprint": fingerprint,
+    "wm_size_raw": wm_size_raw,
+    "wm_physical_size": physical_size_text or None,
+    "wm_override_size": override_size_text or None,
+    "wm_density_raw": wm_density_raw,
+    "wm_physical_density_dpi": physical_density,
+    "wm_override_density_dpi": override_density,
+    "qemu_sf_lcd_density": qemu_density or None,
+    "ro_sf_lcd_density": ro_density or None,
+    "font_scale": font_scale,
+    "dumpsys_display_readback": display_info,
+    "launcher_screencap_dimensions": f"{screenshot_size[0]}x{screenshot_size[1]}" if screenshot_size else "INVALID",
+    "launcher_screencap_path": str(png_path),
+    "accessibility_enabled": read("accessibility_enabled.txt"),
+    "accessibility_display_magnification_enabled": read("accessibility_display_magnification_enabled.txt"),
+    "enabled_accessibility_services": read("enabled_accessibility_services.txt"),
+    "accessibility_magnification_scale": re.search(r"scale[=:]\s*[0-9.]+", read("dumpsys_accessibility.txt")).group(0) if re.search(r"scale[=:]\s*[0-9.]+", read("dumpsys_accessibility.txt")) else None,
+    "native_viewport_pass": not failures,
+    "validation_failures": failures,
+}
+pathlib.Path(sys.argv[1]).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
 }
 
@@ -552,8 +704,10 @@ for row in "${profiles[@]}"; do
         native_boot_ok=false
       fi
     else
-      bash scripts/android_runtime/configure_nh01_api28_avd.sh "$AVD_NAME" "$profile" \
-        > "$LOG_DIR/${profile}_avd_config.log" 2>&1 || native_boot_ok=false
+      config_evidence="$LOG_DIR/display/$profile/avd_config"
+      bash scripts/android_runtime/configure_nh01_api28_avd.sh "$AVD_NAME" "$profile" "$config_evidence" --verify-only \
+        > "$LOG_DIR/"$profile"_avd_config.log" 2>&1 || native_boot_ok=false
+      sed -n 's/^AVD_CONFIG_PATH=//p' "$LOG_DIR/"$profile"_avd_config.log" | tail -n 1 > "$LOG_DIR/display/$profile/avd_config_path.txt"
     fi
     profile_boot_seconds="$(( $(date +%s) - config_started ))"
   else
@@ -959,7 +1113,7 @@ lines = [
     "- Display method: AVD hardware LCD width / height / density configured before boot; no runtime `wm size` override.",
     "- Pager contract: fling is explicitly capped at one page; test swipe is one 600 ms real touch gesture.", "",
     "## Root causes and corrections", "",
-    "- The earlier M07/M10 runs changed `wm size` on a 1080×1920 AVD. That changed the logical display but left the emulator's physical surface at the Pixel 2 dimensions; the retained 96/97 px black edge also appeared on Launcher after the app exited. Each profile now has its own versioned `hw.lcd.width`, `hw.lcd.height`, and `hw.lcd.density` file applied before boot, with `-skin`/`-dpi-device` on profile restarts. Physical size, override absence, density, and launcher screencap dimensions are gates.",
+    "- Earlier profile setup did not prove that the Emulator consumed the AVD config it had rewritten, and a deprecated density launch flag was ignored. Each run now records the resolved AVD path, config before/after and readback, runtime QEMU config, active display dump, physical WindowManager values, and raw launcher framebuffer dimensions. No WindowManager display override or emulator skin/density launch override is used for native geometry.",
     "- The earlier swipe used Compose test's default `swipeLeft()` gesture and settled at page 2. The production pager now uses `PagerSnapDistance.atMost(1)`. The test injects one slow 72%→28% Pager-width touch over 600 ms, captures the settled state and transition history, and preserves the second-state screenshot before checking the final record ID.", "",
     "| Profile | Requested physical viewport | WM physical | WM override | Density | Launcher screencap | Native viewport | Case | Initial | After swipe |",
     "|---|---:|---:|---:|---:|---:|---|---|---|---|",
