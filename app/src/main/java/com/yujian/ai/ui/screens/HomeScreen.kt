@@ -73,7 +73,7 @@ import com.yujian.ai.ui.home.rememberHomeMotionState
 
 private val Ink = Color(0xFF18324A)
 @Composable
-fun HomeScreen(
+internal fun HomeScreen(
     nickname: String,
     statistics: CatchStatistics,
     recentCatches: List<RemoteCatch>,
