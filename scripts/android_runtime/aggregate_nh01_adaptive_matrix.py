@@ -20,9 +20,9 @@ CASES = (
 )
 VARIANTS = {"ADAPTIVE_V2": "adaptive_v2", "V3_BASELINE": "v3_baseline"}
 BOUNDARY_CASES = (
-    ("H499", 360, 547, 499.0), ("H500", 360, 548, 500.0),
-    ("H699", 360, 747, 699.0), ("H700", 360, 748, 700.0),
-    ("H839", 360, 887, 839.0), ("H840", 360, 888, 840.0),
+    ("H499", 360, 571, 499.0), ("H500", 360, 572, 500.0),
+    ("H699", 360, 771, 699.0), ("H700", 360, 772, 700.0),
+    ("H839", 360, 911, 839.0), ("H840", 360, 912, 840.0),
 )
 REQUIRED_FONT_SIZE_TAGS = (
     "gemini-home-stat-species-value", "gemini-home-stat-species-label",
