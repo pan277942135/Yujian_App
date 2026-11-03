@@ -43,7 +43,7 @@ class RecognitionRevealPolicyTest {
     }
 
     @Test
-    fun titleOnlyAndNonHighFallbacksNeverEmitGoldParticles() {
+    fun orbOnlyFallbackKeepsItsReturnAndResidueOpticsWithoutFishGold() {
         val titleOnly = handoff(RecognitionRevealEligibility.TITLE_FADE_ONLY)
         val titleFrame = frame(120, titleOnly, RecognitionRevealMotionPolicy())
         assertTrue(titleFrame.fallback)
@@ -51,6 +51,11 @@ class RecognitionRevealPolicyTest {
         assertEquals(RecognitionRevealTitleMode.HIDDEN, titleFrame.titleMode)
         assertEquals(RecognitionRevealTitleMode.FORMING, frame(400, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
         assertEquals(RecognitionRevealTitleMode.REVEALING, frame(600, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
+        assertTrue(frame(200L, titleOnly, RecognitionRevealMotionPolicy()).visibleParticleCount > 0)
+        assertTrue(frame(680L, titleOnly, RecognitionRevealMotionPolicy()).afterglowAlpha > 0f)
+        assertTrue(frame(849L, titleOnly, RecognitionRevealMotionPolicy()).drawOpticalLayer)
+        assertTrue(frame(849L, titleOnly, RecognitionRevealMotionPolicy()).afterglowAlpha > 0f)
+        assertEquals(0f, frame(850L, titleOnly, RecognitionRevealMotionPolicy()).afterglowAlpha, 0f)
         listOf(200L, 379L, 380L, 549L, 550L, 679L, 680L, 849L).forEach { elapsed ->
             assertTrue("Orb-only optics must remain active through RR09 at ${elapsed}ms",
                 frame(elapsed, titleOnly, RecognitionRevealMotionPolicy()).drawOpticalLayer)
@@ -194,7 +199,7 @@ class RecognitionRevealPolicyTest {
         )
 
         assertTrue(canStart())
-        assertTrue(canStart(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY, revealGeometry = false))
+        assertFalse(canStart(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY, revealGeometry = false))
         assertFalse(canStart(photoGeometry = false))
         assertFalse(canStart(hero = false))
         assertFalse(canStart(title = false))

@@ -49,7 +49,10 @@ fun RecognitionStepDiagnosticControls(
     modelStatus: String,
     detectorStatus: String = "待机",
     classifierStatus: String = "待机",
+    slimSamStatus: String = "PENDING",
     maskStatus: String,
+    geometryStatus: String = "PENDING",
+    sceneStatus: String = "RUNNING",
     stepStatus: String,
     normalProgressText: String,
     canGoPrevious: Boolean,
@@ -150,9 +153,11 @@ fun RecognitionStepDiagnosticControls(
                     if (detailsExpanded) {
                         Text(modelStatus, color = Color(0xFF567577), fontSize = 9.sp, maxLines = 1)
                         Text(
-                            "D:$detectorStatus · C:$classifierStatus · $maskStatus",
+                            "Detector:$detectorStatus · Classifier:$classifierStatus",
                             color = Color(0xFF567577), fontSize = 8.sp, maxLines = 2,
                         )
+                        Text("SlimSAM:$slimSamStatus · $maskStatus", color = Color(0xFF567577), fontSize = 8.sp, maxLines = 2)
+                        Text("Geometry:$geometryStatus · Scene:$sceneStatus", color = Color(0xFF567577), fontSize = 8.sp, maxLines = 2)
                     }
                     Canvas(Modifier.fillMaxWidth().height(10.dp)) {
                         val current = stage.ordinal

@@ -36,6 +36,12 @@ data class EnergyEvent(
     val pathGeometry: WaterLightPathGeometry? = null,
     /** Ordered cubic segments; RETURN stores the outward route in reverse order and direction. */
     val pathSegments: List<WaterLightPathGeometry> = emptyList(),
+    val eventSequence: Long = 0L,
+    val monotonicTimestampMs: Long = 0L,
+    val sourceHost: String? = null,
+    val targetHost: String? = null,
+    val renderStatus: String = "PENDING",
+    val stage: RecognitionSceneStage = RecognitionSceneStage.PHOTO_STABLE,
 ) {
     fun matches(frame: WaterLightFrame): Boolean =
         sessionId == frame.sessionId && attemptId == frame.attemptId && imageId == frame.imageId &&
@@ -101,7 +107,14 @@ object WaterLightEnergy {
                 EnergyFeedback.SETTLE -> "glyph-to-residue"
             },
             pathGeometry = pathGeometry?.takeIf(WaterLightPathGeometry::isValid),
-            pathSegments = pathSegments.filter(WaterLightPathGeometry::isValid))
+            pathSegments = pathSegments.filter(WaterLightPathGeometry::isValid),
+            eventSequence = scene.eventSequence,
+            monotonicTimestampMs = scene.monotonicTimestampMs,
+            sourceHost = from.name,
+            targetHost = to.name,
+            renderStatus = if (pathGeometry?.isValid() == true || pathSegments.any(WaterLightPathGeometry::isValid)) "READY" else "PATH_PENDING",
+            stage = scene.stage,
+        )
     }
 
     private data class Quad(

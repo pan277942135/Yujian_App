@@ -109,6 +109,7 @@ import com.yujian.ai.ui.screens.RecognizingScreen
 import com.yujian.ai.ui.screens.RecognitionSubjectAttemptRunner
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.home.CatchArchiveState
 import com.yujian.ai.ui.home.HomeState
@@ -235,6 +236,7 @@ fun YujianApp() {
 
     fun clearRecognitionSession(preserveSession: Boolean = false) {
         subjectAttemptRunner.cancel()
+        diagnosticPlaybackController.cancelSession()
         revealSessionStore.clearAttempt(preserveSession)
         activeRecognitionAttemptId = null
         sessionImage = null
@@ -297,7 +299,8 @@ fun YujianApp() {
 
     fun handleIdentifyImageReady(selected: SelectedImage) {
         subjectAttemptRunner.cancel()
-        if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
+        // Each newly selected or captured photo owns a fresh Recognition session.
+        recognitionSessionId = UUID.randomUUID().toString()
         sessionImage = selected
         activeRecognitionAttemptId = UUID.randomUUID().toString()
         revealSessionStore.beginAttempt(
@@ -310,9 +313,19 @@ fun YujianApp() {
         } else {
             RecognitionProgressDisplayMode.NORMAL_PROGRESS
         }
-        // A new image starts the shared scene clock in AUTO. Debug controls can
-        // explicitly seek or pause after the scene is visible.
-        diagnosticPlaybackController.playProductionTimeline(0L, SystemClock.uptimeMillis())
+        // Both camera and gallery enter the same one-clock lifecycle. Debug stays at
+        // PHOTO_STABLE/MANUAL until the real photo first frame is presented.
+        diagnosticPlaybackController.beginNewSession(
+            RecognitionSceneIdentity(
+                sessionId = requireNotNull(recognitionSessionId),
+                attemptId = requireNotNull(activeRecognitionAttemptId),
+                imageId = selected.imageId,
+                photoSha256 = selected.photoSha256,
+                photoContentVersion = selected.bitmap.generationId.toLong().coerceAtLeast(0L),
+            ),
+            debugBuild = BuildConfig.DEBUG,
+            nowMs = SystemClock.uptimeMillis(),
+        )
         productionResult = null
         recognitionTechnicalFailure = false
         subjectResult = FishSubjectResult(SubjectStatus.IDLE)
