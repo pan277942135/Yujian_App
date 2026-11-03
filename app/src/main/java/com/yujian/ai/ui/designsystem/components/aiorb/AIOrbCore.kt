@@ -221,10 +221,16 @@ private fun OrbVisual(
         }
     }
     DisposableEffect(coreOpticalEffect) {
-        onDispose { coreOpticalEffect?.close() }
+        onDispose {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                coreOpticalEffect?.close()
+            }
+        }
     }
     SideEffect {
-        coreOpticalEffect?.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            coreOpticalEffect?.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
+        }
     }
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
