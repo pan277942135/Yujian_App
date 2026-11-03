@@ -477,7 +477,7 @@ async function main() {
   assert(await page.locator(".guide-reference-only").count() === 6, "Six active-page linked composite crops must remain REFERENCE_ONLY; the full nine-crop archive stays preserved separately");
   assert(await page.locator(".guide-asset-slot[data-asset-id^='p02_']").count() === 4, "P02 must have four vertical-orientation candidate bindings");
   const candidatePaths = await page.locator(".guide-asset-slot").evaluateAll(nodes => nodes.map(node => node.dataset.sourcePath));
-  assert(new Set(candidatePaths).size === 8, `12 page/role bindings must reuse exactly eight original candidate files: ${new Set(candidatePaths).size}`);
+  assert(new Set(candidatePaths).size === 8, `8 active page/role slots must use eight original candidate files: ${new Set(candidatePaths).size}`);
   for (const asset of await page.locator(".guide-asset-slot").all()) {
     await asset.scrollIntoViewIfNeeded();
     const preview = asset.locator(".guide-candidate-preview img");

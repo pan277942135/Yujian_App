@@ -213,7 +213,7 @@ def verify_candidate_manifest() -> dict:
         by_path[path] = asset
 
     if len(by_path) != 8:
-        fail(f"12 slots must reference eight unique candidate source files, found {len(by_path)}")
+        fail(f"8 active slots must reference eight unique candidate source files, found {len(by_path)}")
     backgrounds = manifest.get("runtime_backgrounds", [])
     expected_backgrounds = {
         "p01_portrait_phone_background": {
@@ -356,7 +356,7 @@ def verify_responsive_and_readiness() -> None:
         fail("readiness rows must use the required explicit state vocabulary")
     required_states = {
         "approved_independent_original_photos": "BLOCKED",
-        "generated_independent_candidate_photos": "CANDIDATE_PENDING_REVIEW",
+        "generated_independent_candidate_photos": "OWNER_APPROVED_FOR_RUNTIME",
         "flattened_source_style_and_hit_targets": "BLOCKED",
         "android_runtime_device_acceptance": "NOT_RUN",
     }
@@ -364,7 +364,7 @@ def verify_responsive_and_readiness() -> None:
     for row_id, state in required_states.items():
         if row_map.get(row_id, {}).get("status") != state:
             fail(f"readiness status mismatch for {row_id}: expected {state}")
-    if readiness.get("overall_status") != "PARTIAL_READY; ORIGINAL_PHOTO_APPROVAL_AND_NATIVE_RUNTIME_BLOCKED":
+    if readiness.get("overall_status") != "PARTIAL_READY; ORIGINAL_PHOTO_SOURCE_BLOCKED; ANDROID_RUNTIME_NOT_RUN":
         fail("full readiness cannot be claimed while source photo approval is blocked")
     profiles = responsive.get("viewport_matrix", [])
     required_profiles = {(320,480),(360,640),(390,844),(412,915),(430,932),(480,960),(640,360),(844,390),(915,412)}
@@ -381,8 +381,8 @@ def verify_responsive_and_readiness() -> None:
         fail("responsive hero containment/48dp action invariants missing")
     if responsive.get("coordinate_and_unit_contract", {}).get("phone_orientation_rule") != "Both active guide steps require the phone to remain portrait; fish orientation changes between P01 and P02.":
         fail("both active guide steps must explicitly keep the phone portrait")
-    if "ALL_ASSETS_FROZEN" not in freeze or "are **not** PASS" not in freeze or "CANDIDATE_NEEDS_APPROVAL" not in freeze:
-        fail("Freeze Decision must explicitly state photo candidates and prevent full-ready false PASS")
+    if "ALL_ASSETS_FROZEN" not in freeze or "are **not** PASS" not in freeze or "OWNER_APPROVED_FOR_RUNTIME" not in freeze or "NOT_FROZEN" not in freeze:
+        fail("Freeze Decision must separate Runtime approval from Frozen asset status and prevent full-ready false PASS")
     print("PASS: responsive matrix, viewport/inset/font contract, explicit candidate tuning, readiness states and partial-freeze boundary are consistent.")
 
 

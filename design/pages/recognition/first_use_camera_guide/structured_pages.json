@@ -2091,7 +2091,7 @@
         "tagline": "用一张清晰的照片，记录你的每一次相遇",
         "title": "竖拍鱼类拍摄示意",
         "instruction": "手机保持竖屏，整条鱼竖直完整放入取景范围",
-        "primary": "下一张",
+        "primary": "开始拍摄",
         "previous": "上一张"
       },
       "nodes": [
@@ -3853,8 +3853,8 @@
             }
           },
           "shared_component_ref": "action.primary_button",
-          "label": "下一张",
-          "action": "next_to_p03",
+          "label": "开始拍摄",
+          "action": "dismiss_to_capture_ready_without_shutter",
           "geometry_ref": "geometry_measurements.json#/pages/p02/components/guide.primary_action",
           "geometry_status": "MEASURED_FROM_FROZEN_RASTER",
           "geometry_px": {
