@@ -57,7 +57,10 @@ path.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="u
 PY
   exit 10
 fi
-python3 scripts/design/capture_nh01_device_metadata.py --output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" --insets-dump "$YUJIAN_RUNTIME_EVIDENCE/infra/window_insets_dump.txt"
+python3 scripts/design/capture_nh01_device_metadata.py --profile M04 \
+  --output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" \
+  --insets-dump "$YUJIAN_RUNTIME_EVIDENCE/infra/window_insets_dump.txt" \
+  --screencap-output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_screencap.png"
 
 APP_APK="${YUJIAN_APP_APK:-build/runtime-apks/app-debug.apk}"
 TEST_APK="${YUJIAN_TEST_APK:-build/runtime-apks/app-debug-androidTest.apk}"
