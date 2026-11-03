@@ -91,8 +91,8 @@ for(const [width,height] of profiles){
     assert.ok(r.peekGap>=contract.preview_engine.parameters.neighbor.peek_gap.minimum_dp&&r.peekGap<=contract.preview_engine.parameters.neighbor.peek_gap.maximum_dp);
     assert.ok(r.pagerContentHeight>=r.heroHeight+r.indicatorGap+r.indicatorHeight-1e-5);
     assert.ok(r.rects['capture-action-group'].y+r.hC<=height-24+.5,'Footer must stay inside bottom safe inset');
-    if(font===1)assert.ok(r.hC<130,'static CTA text must not create a redundant 48dp touch box');
-    else assert.ok(r.hC<146,'larger text must fit without a duplicate CTA touch container');
+    const footerFormula=r.footerTopPadding+r.ctaLineHeight+r.ctaCameraGap+r.cameraTouchSize+r.footerBottomPadding;
+    assert.ok(Math.abs(r.hC-footerFormula)<1e-5,'Footer height must equal its active top padding, CTA line, gap, camera target, and bottom padding');
     if(width===320&&height===480&&font===1){
       assert.ok(r.actualHeroWidth>=contract.preview_engine.parameters.hero.short_screen_exception.minimum_width_dp-1e-5,'M01 preserves minimum Hero width');
       assert.ok(r.heroHeight>=contract.preview_engine.parameters.hero.short_screen_exception.minimum_readable_floor_dp-1e-5,'M01 preserves minimum-readable floor');
