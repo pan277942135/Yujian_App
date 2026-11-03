@@ -80,7 +80,7 @@ def main() -> None:
     checks.append((
         "camera_artwork_scales_with_canvas_and_has_separate_touch_bounds",
         "geminiHomeCameraVisualSize(safeWidth.value, safeHeight.value).dp" in page
-        and "cameraTouchSize = maxOf(72.dp, cameraVisualSize)" in page
+        and "val cameraTouchSize = cameraVisualSize.coerceIn(72.dp, 88.dp)" in page
         and v4_camera_policy
         and "visualModifier = Modifier.testTag(\"gemini-home-camera-art\")" in camera_button,
         "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt + HomeCameraButton.kt",

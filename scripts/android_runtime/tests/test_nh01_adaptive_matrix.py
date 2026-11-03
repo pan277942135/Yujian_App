@@ -85,7 +85,7 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp.cleanup()
 
-    def test_accepts_actual_runtime_report_with_complete_two_catch_evidence(self) -> None:
+    def test_accepts_actual_runtime_report_with_complete_three_catch_evidence(self) -> None:
         self.assertEqual([], validate_case(
             self.payload, "M01", 320, 480, 1.0, "ADAPTIVE_V2", "a" * 40, self.raw,
         ))
