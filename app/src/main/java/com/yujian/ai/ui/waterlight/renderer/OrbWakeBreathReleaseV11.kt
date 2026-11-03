@@ -29,6 +29,10 @@ internal object OrbWakeBreathReleaseV11 {
     /** Frozen ease-out cubic-bezier(0.16, 1.0, 0.30, 1.0), solved for x. */
     fun wakeEase(value: Float): Float {
         val x = value.coerceIn(0f, 1f)
+        // Preserve the frozen keyframe boundaries exactly; bisection would leave
+        // a tiny positive residue for x=0 and break the 80/220 ms start frames.
+        if (x <= 0f) return 0f
+        if (x >= 1f) return 1f
         var lo = 0f
         var hi = 1f
         repeat(18) {
