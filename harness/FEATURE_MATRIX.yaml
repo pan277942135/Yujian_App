@@ -107,7 +107,7 @@ features:
         authority: "design/pages/home/normal_home/spec/Behavior_Spec_V1.md"
       visual:
         status: "PARTIAL"
-        authority: "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V1.json"
+        authority: "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json"
       motion:
         status: "FROZEN"
         authority: "design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md"
@@ -130,9 +130,12 @@ features:
       - "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.envelope.json"
       - "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.profile.json"
       - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
-      - "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V1.json"
-      - "design/pages/home/normal_home/authority/authority_map_v1_3.json"
+      - "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V2.json"
+      - "design/pages/home/normal_home/authority/authority_map_v1_4.json"
       - "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json"
+      - "design/pages/home/normal_home/engineering/NH01_V4_VISUAL_BASELINE_MANIFEST.json"
+      - "scripts/design/compare_nh01_v4_visual.py"
+      - "design/pages/home/normal_home/engineering/NH01_POPULATED_HOME_HIFI_V4_ACCEPTANCE.json"
       - "design/pages/home/normal_home/Page_Resource_Binding_V1.json"
     design_units:
       - "NH01"
@@ -175,9 +178,10 @@ features:
       execution_task_refs:
         - "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1"
         - "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1"
+        - "YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4"
     known_gaps:
       - "Runtime/evidence remain partial; Hero F01-F08 fixture matrix and camera optical parity are open (B003/B004)."
-      - "NH01 Responsive Layout V2 is SPEC_FROZEN as the sole current Gemini responsive machine contract. The V1 static archive remains immutable; the remaining Normal Home gap is exact-SHA Android implementation and runtime evidence, which is still NOT_VERIFIED."
+      - "NH01 Responsive Layout V2.1 is SPEC_FROZEN as the sole current Gemini responsive machine contract. The V1 static archive remains immutable; V4 exact-SHA Android implementation, three full visual-audit rounds and runtime evidence remain NOT_VERIFIED until independently executed."
   record_date_v2:
     sequence: 3
     name: "记录日期"
