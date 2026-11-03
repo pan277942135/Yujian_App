@@ -629,7 +629,7 @@ class GeminiHomeDeviceMatrixTest {
             "gemini-home-stat-catches-value", "gemini-home-stat-catches-label",
             "gemini-home-stat-record-days-value", "gemini-home-stat-record-days-label",
             "gemini-home-catch-card-nh01-catch-001", "gemini-home-catch-media-nh01-catch-001",
-            *listOfNotNull(initialLeftId, initialRightId).map { "gemini-home-catch-neighbor-$it" },
+            *listOfNotNull(initialLeftId, initialRightId).map { "gemini-home-catch-neighbor-$it" }.toTypedArray(),
             "gemini-home-footer-cta", "gemini-home-cta-decorated-label",
             "gemini-home-cta-rule-leading", "gemini-home-cta-label", "gemini-home-cta-rule-trailing",
             "gemini-home-camera", "gemini-home-camera-art",
