@@ -6,7 +6,7 @@ import com.yujian.ai.ui.identify.NormalizedSourceRect
 
 /** Pure trust and eligibility rules shared by production handoff and unit tests. */
 object RecognitionRevealPolicy {
-    /** RR09 is locked to the first Result frame; unavailable geometry means a static handoff. */
+    /** RR09 starts only after the real Result and Orb/Photo/Glyph geometry are ready. */
     fun canStartOnFirstResultFrame(
         eligibility: RecognitionRevealEligibility,
         photoIdentityMatches: Boolean,
@@ -21,7 +21,9 @@ object RecognitionRevealPolicy {
         }
         return when (eligibility) {
             RecognitionRevealEligibility.FULL_REVEAL -> revealGeometryReady
-            RecognitionRevealEligibility.TITLE_FADE_ONLY -> true
+            // Orb-only still needs real Orb/photo/title geometry for the energy
+            // return and glyph formation. It only omits the fish contour.
+            RecognitionRevealEligibility.TITLE_FADE_ONLY -> revealGeometryReady
             RecognitionRevealEligibility.PHOTO_ONLY,
             RecognitionRevealEligibility.STATIC_RESULT -> false
         }

@@ -107,6 +107,15 @@ object RecognitionRevealClock {
             val fallbackFormation = if (!fallback || t < GOLD_TRANSFER_END_MS) 0f else
                 ((t - GOLD_TRANSFER_END_MS).toFloat() /
                     (NAME_FORMATION_END_MS - GOLD_TRANSFER_END_MS)).coerceIn(0f, 1f)
+            val fallbackAfterglow = if (t < NAME_REVEAL_END_MS) 1f else
+                1f - ((t - NAME_REVEAL_END_MS).toFloat() /
+                    (TOTAL_DURATION_MS - NAME_REVEAL_END_MS)).coerceIn(0f, 1f)
+            val particleLimit = if (policy.lowPerformance) LOW_PARTICLE_LIMIT else FULL_PARTICLE_LIMIT
+            val fallbackParticles = when {
+                !fallback || t < PHOTO_END_MS || t >= TOTAL_DURATION_MS -> 0
+                t < NAME_REVEAL_END_MS -> (particleLimit * (1f - fallbackFormation * .65f)).toInt().coerceAtLeast(2)
+                else -> (particleLimit * fallbackAfterglow).toInt()
+            }.coerceIn(0, particleLimit)
             return RecognitionRevealFrame(
                 elapsedMs = t,
                 phase = when {
@@ -119,7 +128,9 @@ object RecognitionRevealClock {
                 },
                 photoProgress = photoProgress,
                 fishHaloAlpha = 0f,
-                transferProgress = 0f,
+                transferProgress = if (fallback && t >= PHOTO_END_MS) {
+                    easeInOut(((t - PHOTO_END_MS).toFloat() / (GOLD_TRANSFER_END_MS - PHOTO_END_MS)).coerceIn(0f, 1f))
+                } else 0f,
                 titleMode = when {
                     !fallback -> RecognitionRevealTitleMode.STATIC
                     t < GOLD_TRANSFER_END_MS -> RecognitionRevealTitleMode.HIDDEN
@@ -129,9 +140,9 @@ object RecognitionRevealClock {
                 },
                 titleFormationProgress = fallbackFormation,
                 titleRevealProgress = fallbackProgress,
-                titleSweepProgress = 0f,
-                afterglowAlpha = 0f,
-                visibleParticleCount = 0,
+                titleSweepProgress = fallbackProgress,
+                afterglowAlpha = fallbackAfterglow,
+                visibleParticleCount = fallbackParticles,
                 // TITLE_FADE_ONLY is the production Orb-only branch: it has no fish contour,
                 // but the measured perimeter-to-Orb return, Orb-to-glyph translation and
                 // residue remain visible for the complete RR09 window. PHOTO_ONLY never
