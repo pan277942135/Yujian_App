@@ -371,6 +371,44 @@ class GeminiHomeDeviceMatrixTest {
         assertLayoutContract(nextCatch.id, initialCatch.id, finalCatch.id, afterSwipeLayout, metrics)
         completeStep("SWIPE_DATA_SWITCH_AND_SECOND_SCREENSHOT_PASSED")
 
+        val stateBeforeSecondGesture = requireNotNull(GeminiHomeGeometryProbe.pagerState())
+        assertEquals("second physical swipe starts on the second fish", 1, stateBeforeSecondGesture.currentPage)
+        assertEquals("second swipe starts from the settled second page", 1, stateBeforeSecondGesture.settledPage)
+        assertEquals(nextCatch.id, stateBeforeSecondGesture.currentId)
+        val secondPagerHistoryStart = GeminiHomeGeometryProbe.pagerStateHistory().size
+        pagerTag.performTouchInput {
+            down(end)
+            repeat(30) { step ->
+                val fraction = (step + 1) / 30f
+                moveTo(
+                    Offset(
+                        x = end.x + (start.x - end.x) * fraction,
+                        y = end.y,
+                    ),
+                    delayMillis = 20,
+                )
+            }
+            up()
+        }
+        awaitUi(10_000, "pager settles after the second physical gesture") {
+            val state = GeminiHomeGeometryProbe.pagerState()
+            state != null && !state.isScrollInProgress && state.targetPage == state.currentPage
+        }
+        val stateAfterSecondGesture = requireNotNull(GeminiHomeGeometryProbe.pagerState())
+        val secondPagerGestureTrace = GeminiHomeGeometryProbe.pagerStateHistory().drop(secondPagerHistoryStart)
+        assertTrue("second physical swipe must advance only one page", secondPagerGestureTrace.all {
+            it.currentPage in 1..2 && it.targetPage in 1..2 && it.settledPage in 1..2
+        })
+        assertTrue("second physical swipe reaches the third page", secondPagerGestureTrace.any {
+            it.currentPage == 2 || it.targetPage == 2 || it.settledPage == 2
+        })
+        awaitPager(2, finalCatch.id, nextCatch.id, null)
+        awaitUi(30_000, "third fish photo rendered after the second gesture") {
+            val state = RemoteImageRuntimeProbe.snapshot(finalCatch.id)
+            state?.loadStatus == "READY" && state.rendered == true
+        }
+        completeStep("PAGER_SECOND_SINGLE_PAGE_GESTURE_PASSED")
+
         val report = JSONObject().apply {
             put("schema", "NH01_THREE_DEVICE_PRODUCTION_ROUTE_CASE_V3")
             put("status", "PASS")
@@ -423,6 +461,24 @@ class GeminiHomeDeviceMatrixTest {
             put("visible_bounds_after_swipe_clipped_window_px", afterSwipeVisibleBounds)
             put("comparison_tags_initial", comparisonTags(initialCatch.id, null, nextCatch.id))
             put("comparison_tags_after_swipe", comparisonTags(nextCatch.id, initialCatch.id, finalCatch.id))
+            put("pager_gesture", JSONObject().apply {
+                put("first_swipe", JSONObject().apply {
+                    put("before", pagerStateJson(pagerBeforeGesture))
+                    put("after_physical_gesture", pagerStateJson(stateAfterGesture))
+                    put("observed_states", JSONArray().apply {
+                        pagerGestureTrace.forEach { put(pagerStateJson(it)) }
+                    })
+                })
+                put("second_swipe", JSONObject().apply {
+                    put("before", pagerStateJson(stateBeforeSecondGesture))
+                    put("after_physical_gesture", pagerStateJson(stateAfterSecondGesture))
+                    put("observed_states", JSONArray().apply {
+                        secondPagerGestureTrace.forEach { put(pagerStateJson(it)) }
+                    })
+                })
+                put("second_swipe_after_index", stateAfterSecondGesture.currentPage)
+                put("second_swipe_after_record_id", stateAfterSecondGesture.currentId ?: JSONObject.NULL)
+            })
             put("screenshots", JSONObject().apply {
                 put("startup", "${profileId}_${expectedDisplay}_startup.png")
                 put("initial", initialScreenshot.name)
