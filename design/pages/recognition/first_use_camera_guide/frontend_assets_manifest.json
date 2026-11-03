@@ -2,7 +2,7 @@
   "schema_version": "1.1",
   "task_id": "YUJIAN_FIRST_USE_GUIDE_PREDEV_CONTRACT_ASSETS_RESPONSIVE_FREEZE_V1",
   "status": "OWNER_APPROVED_GENERATED_CANDIDATES_AVAILABLE; ORIGINAL_PHOTOS_NOT_REQUIRED_FOR_RUNTIME",
-  "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+  "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md",
   "frozen_page_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
   "structured_page_manifest": "design/pages/recognition/first_use_camera_guide/structured_pages.json",
   "usage_boundary": "Design Manager source catalog and explicit Android Runtime mappings; Frozen full-page reference PNGs remain design-only.",
@@ -51,12 +51,6 @@
       "title": "P02 · 竖拍鱼类拍摄示意",
       "phone_orientation": "portrait",
       "fish_orientation": "vertical"
-    },
-    {
-      "page_id": "p03",
-      "title": "P03 · 横屏拍摄示意",
-      "phone_orientation": "landscape",
-      "fish_orientation": "horizontal"
     }
   ],
   "assets": [
@@ -78,8 +72,7 @@
       "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
       "approved_for_frontend": true,
       "page_refs": [
-        "p01",
-        "p03"
+        "p01"
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "A complete horizontal fish held clearly above a calm dawn lake.",
@@ -97,7 +90,7 @@
         0.5,
         0.52
       ],
-      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "shared_file_rule": "P01 uses the horizontal-fish candidate file for the portrait-phone horizontal-fish step only.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
       "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
@@ -135,8 +128,7 @@
         "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
       },
       "page_refs": [
-        "p01",
-        "p03"
+        "p01"
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "The fish head is cropped completely beyond the left frame edge.",
@@ -154,7 +146,7 @@
         0.5,
         0.52
       ],
-      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "shared_file_rule": "P01 uses the horizontal-fish candidate file for the portrait-phone horizontal-fish step only.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
       "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
@@ -192,8 +184,7 @@
         "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
       },
       "page_refs": [
-        "p01",
-        "p03"
+        "p01"
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "The horizontal fish is intentionally small within a wide scene.",
@@ -211,7 +202,7 @@
         0.5,
         0.52
       ],
-      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "shared_file_rule": "P01 uses the horizontal-fish candidate file for the portrait-phone horizontal-fish step only.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
       "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
@@ -249,8 +240,7 @@
         "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
       },
       "page_refs": [
-        "p01",
-        "p03"
+        "p01"
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "A hand and jacket cover a substantial part of the fish body.",
@@ -268,7 +258,7 @@
         0.5,
         0.52
       ],
-      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "shared_file_rule": "P01 uses the horizontal-fish candidate file for the portrait-phone horizontal-fish step only.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
       "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
@@ -312,7 +302,7 @@
         0.5,
         0.52
       ],
-      "shared_file_rule": "P02 references a vertical candidate file.",
+      "shared_file_rule": "P02 uses the vertical-fish candidate file for the portrait-phone vertical-fish step only.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
       "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
@@ -368,7 +358,7 @@
         0.5,
         0.52
       ],
-      "shared_file_rule": "P02 references a vertical candidate file.",
+      "shared_file_rule": "P02 uses the vertical-fish candidate file for the portrait-phone vertical-fish step only.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
       "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
@@ -424,7 +414,7 @@
         0.5,
         0.52
       ],
-      "shared_file_rule": "P02 references a vertical candidate file.",
+      "shared_file_rule": "P02 uses the vertical-fish candidate file for the portrait-phone vertical-fish step only.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
       "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
@@ -480,223 +470,7 @@
         0.5,
         0.52
       ],
-      "shared_file_rule": "P02 references a vertical candidate file.",
-      "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
-      "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
-      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
-      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
-    },
-    {
-      "id": "p03_correct_hero",
-      "page_id": "p03",
-      "page_title": "P03 · 横屏拍摄示意",
-      "role": "correct_hero",
-      "fish_orientation": "horizontal",
-      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/correct_hero_generated_candidate.png",
-      "source_filename": "correct_hero_generated_candidate.png",
-      "mime_type": "image/png",
-      "width": 1448,
-      "height": 1086,
-      "bytes": 2160330,
-      "sha256": "ac8098537f5a2b33fc989479650604483b32fbb161663e944aef8bb20dc98b8e",
-      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
-      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
-      "approved_for_frontend": true,
-      "page_refs": [
-        "p01",
-        "p03"
-      ],
-      "source_type": "GENERATED_CANDIDATE",
-      "semantic_description": "A complete horizontal fish held clearly above a calm dawn lake.",
-      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
-      "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": true,
-      "allowed_use": [
-        "Design Manager candidate preview",
-        "layout and responsive development discussion",
-        "YuJian Android first-use guide runtime"
-      ],
-      "fit": "contain",
-      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
-      "focal_point_normalized": [
-        0.5,
-        0.52
-      ],
-      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
-      "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
-      "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
-      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
-      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
-    },
-    {
-      "id": "p03_fish_head_out_of_frame",
-      "page_id": "p03",
-      "page_title": "P03 · 横屏拍摄示意",
-      "role": "fish_head_out_of_frame",
-      "label": "鱼头不在画面",
-      "fish_orientation": "horizontal",
-      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/fish_head_out_generated_candidate.png",
-      "source_filename": "fish_head_out_generated_candidate.png",
-      "mime_type": "image/png",
-      "width": 1448,
-      "height": 1086,
-      "bytes": 2278993,
-      "sha256": "c0491f107e19da5753b6b94f9dd980ca9dc290b5e3c710e0e9e805f3a3dcddda",
-      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
-      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
-      "approved_for_frontend": true,
-      "reference_package_asset": {
-        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
-        "internal_path": "05_P03/images/guide_avoid_1_no_head_3x_native.png",
-        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
-        "method": "native_pixel_crop_lossless",
-        "sha256": "5ee1fe2f6347620cb3754976882190320e85111b881979301713568e10e093e7",
-        "bytes": 77415,
-        "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
-        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
-      },
-      "page_refs": [
-        "p01",
-        "p03"
-      ],
-      "source_type": "GENERATED_CANDIDATE",
-      "semantic_description": "The fish head is cropped completely beyond the left frame edge.",
-      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
-      "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": true,
-      "allowed_use": [
-        "Design Manager candidate preview",
-        "layout and responsive development discussion",
-        "YuJian Android first-use guide runtime"
-      ],
-      "fit": "contain",
-      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
-      "focal_point_normalized": [
-        0.5,
-        0.52
-      ],
-      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
-      "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
-      "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
-      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
-      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
-    },
-    {
-      "id": "p03_fish_too_small",
-      "page_id": "p03",
-      "page_title": "P03 · 横屏拍摄示意",
-      "role": "fish_too_small",
-      "label": "鱼体过小",
-      "fish_orientation": "horizontal",
-      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/fish_too_small_generated_candidate.png",
-      "source_filename": "fish_too_small_generated_candidate.png",
-      "mime_type": "image/png",
-      "width": 1448,
-      "height": 1086,
-      "bytes": 1734238,
-      "sha256": "0233634df7918b5dc9b1f1fc9a9db1c37addf28efa07c849cb5710c65a2e3a0d",
-      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
-      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
-      "approved_for_frontend": true,
-      "reference_package_asset": {
-        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
-        "internal_path": "05_P03/images/guide_avoid_2_too_small_3x_native.png",
-        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
-        "method": "native_pixel_crop_lossless",
-        "sha256": "a814a26b0c9d6177215021657f105441b06a13b60200694c077dc1a481cf697c",
-        "bytes": 73182,
-        "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
-        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
-      },
-      "page_refs": [
-        "p01",
-        "p03"
-      ],
-      "source_type": "GENERATED_CANDIDATE",
-      "semantic_description": "The horizontal fish is intentionally small within a wide scene.",
-      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
-      "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": true,
-      "allowed_use": [
-        "Design Manager candidate preview",
-        "layout and responsive development discussion",
-        "YuJian Android first-use guide runtime"
-      ],
-      "fit": "contain",
-      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
-      "focal_point_normalized": [
-        0.5,
-        0.52
-      ],
-      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
-      "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
-      "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
-      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
-      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
-    },
-    {
-      "id": "p03_excessive_occlusion",
-      "page_id": "p03",
-      "page_title": "P03 · 横屏拍摄示意",
-      "role": "excessive_occlusion",
-      "label": "遮挡过多",
-      "fish_orientation": "horizontal",
-      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/excessive_occlusion_generated_candidate.png",
-      "source_filename": "excessive_occlusion_generated_candidate.png",
-      "mime_type": "image/png",
-      "width": 1448,
-      "height": 1086,
-      "bytes": 1974238,
-      "sha256": "3d2d84ec2b2979d75ed62517f4899785b7c2641b96b3f9188b7fafd320d9bacc",
-      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
-      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
-      "approved_for_frontend": true,
-      "reference_package_asset": {
-        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
-        "internal_path": "05_P03/images/guide_avoid_3_occluded_3x_native.png",
-        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
-        "method": "native_pixel_crop_lossless",
-        "sha256": "5a003ceceb2773efb1d31628a4a8b0c61aab4fb6eb420da88b07bfd937bd8920",
-        "bytes": 71279,
-        "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
-        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
-      },
-      "page_refs": [
-        "p01",
-        "p03"
-      ],
-      "source_type": "GENERATED_CANDIDATE",
-      "semantic_description": "A hand and jacket cover a substantial part of the fish body.",
-      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
-      "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": true,
-      "allowed_use": [
-        "Design Manager candidate preview",
-        "layout and responsive development discussion",
-        "YuJian Android first-use guide runtime"
-      ],
-      "fit": "contain",
-      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
-      "focal_point_normalized": [
-        0.5,
-        0.52
-      ],
-      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "shared_file_rule": "P02 uses the vertical-fish candidate file for the portrait-phone vertical-fish step only.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
       "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
@@ -733,15 +507,15 @@
     "searched_by": "Stage A source inventory recorded in Issue #206 comment 6384719528 and historical-branch follow-up 6384905355."
   },
   "counts": {
-    "required_slots": 12,
-    "candidate_slot_mappings": 12,
+    "required_slots": 8,
+    "candidate_slot_mappings": 8,
     "approved_independent_original_slots": 0,
-    "blocked_original_source_slots": 12,
+    "blocked_original_source_slots": 8,
     "unique_candidate_files": 8,
     "reference_only_archived_error_crops": 9,
     "runtime_background_files": 2
   },
-  "asset_authority_note": "The 12 page/role entries bind eight independent generated candidates. The product owner approved these eight files for Android runtime on 2026-11-02; approval does not mark candidate images as frozen. P01/P03 share the horizontal set, P02 uses the vertical set. The separate P01/P02 photo backgrounds are registered under runtime_backgrounds. Frozen full-page PNGs remain design-only.",
+  "asset_authority_note": "The 8 active P01/P02 page-role entries bind eight independent generated candidates. The product owner approved these eight files for Android Runtime on 2026-11-02; approval does not mark candidates as Frozen. P01 uses four horizontal-fish examples; P02 uses four vertical-fish examples. Both steps keep the phone portrait. The separate P01/P02 portrait-phone backgrounds are registered under runtime_backgrounds. The former P03 landscape-phone page is archived and is not an active guide step.",
   "owner_approval": {
     "approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102",
     "approved_by": "Product owner",
@@ -752,18 +526,18 @@
     "approved_for_frontend": true,
     "approved_for_android_runtime": true,
     "page_orientation_mapping": {
-      "p01": "horizontal",
-      "p02": "vertical",
-      "p03": "horizontal"
+      "p01": "portrait_phone+horizontal_fish",
+      "p02": "portrait_phone+vertical_fish"
     },
-    "native_android_runtime_acceptance": "NOT_RUN"
+    "native_android_runtime_acceptance": "NOT_RUN",
+    "active_page_role_slots": 8,
+    "superseding_product_decision": "design/pages/recognition/first_use_camera_guide/PRODUCT_OWNER_DECISION_20261103.md"
   },
   "runtime_backgrounds": [
     {
-      "id": "p01_p03_horizontal_background",
+      "id": "p01_portrait_phone_background",
       "page_refs": [
-        "p01",
-        "p03"
+        "p01"
       ],
       "fish_orientation": "horizontal",
       "source_path": "design/pages/recognition/first_use_camera_guide/assets/backgrounds/first_use_guide_bg_p01.jpg",
@@ -779,7 +553,7 @@
       "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
-      "id": "p02_vertical_background",
+      "id": "p02_portrait_phone_background",
       "page_refs": [
         "p02"
       ],
