@@ -310,6 +310,8 @@ if base_branch:
             print("AISTUDIO_FULL_PAGE_RESTORE_SCOPE_EXCEPTION=PASS exact_Main_task_contract_and_app_file_set")
         elif is_exact_lake_glass_scope:
             print("LAKE_GLASS_V2_ANDROID_SCOPE=PASS exact_task_contract_and_app_file_set")
+        elif is_exact_nh01_v4_scope:
+            print("NH01_V4_ANDROID_SCOPE=PASS exact_task_contract_and_app_file_set")
         else:
             print("EMPTY_HOME_V22_RIPPLE_HAPTIC_SCOPE_EXCEPTION=PASS exact_file_set_and_approved_contracts")
     allowed_app_paths = EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS | AISTUDIO_FULL_RESTORE_APP_PATHS | LAKE_GLASS_ANDROID_APP_PATHS | NH01_V4_ANDROID_APP_PATHS
