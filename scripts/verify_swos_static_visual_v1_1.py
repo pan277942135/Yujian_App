@@ -235,9 +235,17 @@ if base_branch:
             and "Preserve Morning Lake V1 history byte-for-byte" in lake_glass_contract_text
             and "Do not add a `GLSurfaceView`" in lake_glass_contract_text
         )
+        scope_diagnostic = (
+            f"NH01 app_paths_exact={changed_app_paths == NH01_V4_ANDROID_APP_PATHS} "
+            f"contract_changed={NH01_V4_TASK_CONTRACT_PATH in changed} "
+            f"contract_id={f"`{NH01_V4_TASK_ID}`" in nh01_v4_contract_text} "
+            f"priority={"Priority: P0" in nh01_v4_contract_text} "
+            f"exact_set_marker={"Exact Android app file set" in nh01_v4_contract_text}; "
+            f"changed_app_paths={sorted(changed_app_paths)}"
+        )
         require(
             changed_app_paths == EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS or is_exact_full_restore_scope or is_exact_lake_glass_scope or is_exact_nh01_v4_scope or is_consolidated_baseline_scope,
-            "scope boundary violated by app changes outside an exact approved task file set",
+            "scope boundary violated by app changes outside an exact approved task file set; " + scope_diagnostic,
         )
         amendment_spec = (ROOT / "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md").read_text(encoding="utf-8")
         motion_contract = read_json(ROOT / "app/src/main/assets/empty_home_runtime_v2/config/motion_contract.json")
