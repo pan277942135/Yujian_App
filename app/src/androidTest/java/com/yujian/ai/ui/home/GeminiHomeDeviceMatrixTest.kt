@@ -191,11 +191,13 @@ class GeminiHomeDeviceMatrixTest {
             state?.loadStatus == "READY" && state.rendered == true
         }
         awaitPager(0, initialCatch.id, null, nextCatch.id)
+        awaitStableProductionFrame()
         completeStep("PRODUCTION_HOME_FIXTURE_AND_PHOTO_RENDERED")
 
         val initialScreenshotName = "${profileId}_${expectedDisplay}_initial.png"
         val afterSwipeScreenshotName = "${profileId}_${expectedDisplay}_after_swipe.png"
         val initialCapture = captureScreenshotSet(initialScreenshotName)
+        requestHostAdbScreencap("initial")
         val initialScreenshot = initialCapture.canonical
         val initialHierarchy = writeHierarchy("${profileId}_initial_hierarchy.txt")
         val initialBounds = componentBounds(initialCatch.id, nextCatch.id, null)
@@ -299,10 +301,24 @@ class GeminiHomeDeviceMatrixTest {
             put("after_physical_gesture", pagerStateJson(stateAfterGesture))
             put("observed_states", JSONArray().apply { pagerGestureTrace.forEach { put(pagerStateJson(it)) } })
         })
+        assertTrue("one physical swipe must not skip over the next page", pagerGestureTrace.all {
+            it.currentPage <= 1 && it.targetPage <= 1 && it.settledPage <= 1
+        })
+        assertTrue("gesture trace observes transition to exactly the next page", pagerGestureTrace.any {
+            it.currentPage == 1 || it.targetPage == 1 || it.settledPage == 1
+        })
+        awaitPager(1, nextCatch.id, initialCatch.id, finalCatch.id)
+        awaitUi(30_000, "next fish photo rendered") {
+            val state = RemoteImageRuntimeProbe.snapshot(nextCatch.id)
+            state?.loadStatus == "READY" && state.rendered == true
+        }
+        awaitStableProductionFrame()
+
         val observedCatch = catches.getOrNull(stateAfterGesture.currentPage)
         val observedLeft = catches.getOrNull(stateAfterGesture.currentPage - 1)
         val observedRight = catches.getOrNull(stateAfterGesture.currentPage + 1)
         val afterSwipeCapture = captureScreenshotSet(afterSwipeScreenshotName)
+        requestHostAdbScreencap("after_swipe")
         val afterSwipeScreenshot = afterSwipeCapture.canonical
         val afterSwipeHierarchy = writeHierarchy("${profileId}_after_swipe_hierarchy.txt")
         val afterSwipeBounds = componentBounds(
@@ -334,17 +350,6 @@ class GeminiHomeDeviceMatrixTest {
             put("screenshot_sources", afterSwipeCapture.sources)
         })
         assertScreenshotCapture(afterSwipeCapture, expectedSize)
-        assertTrue("one physical swipe must not skip over the next page", pagerGestureTrace.all {
-            it.currentPage <= 1 && it.targetPage <= 1 && it.settledPage <= 1
-        })
-        assertTrue("gesture trace observes transition to exactly the next page", pagerGestureTrace.any {
-            it.currentPage == 1 || it.targetPage == 1 || it.settledPage == 1
-        })
-        awaitPager(1, nextCatch.id, initialCatch.id, finalCatch.id)
-        awaitUi(30_000, "next fish photo rendered") {
-            val state = RemoteImageRuntimeProbe.snapshot(nextCatch.id)
-            state?.loadStatus == "READY" && state.rendered == true
-        }
 
         compose.onNodeWithTag("gemini-home-catch-card-${nextCatch.id}", useUnmergedTree = true).assertIsDisplayed()
         compose.onNodeWithTag("gemini-home-catch-species-${nextCatch.id}", useUnmergedTree = true)
@@ -422,7 +427,7 @@ class GeminiHomeDeviceMatrixTest {
                 put("startup", "${profileId}_${expectedDisplay}_startup.png")
                 put("initial", initialScreenshot.name)
                 put("after_swipe", afterSwipeScreenshot.name)
-                put("capture", "UiAutomation.takeScreenshot from Android Emulator window")
+                put("capture", "host adb exec-out screencap -p while MainActivity is foreground")
             })
             put("interactions", JSONObject().apply {
                 put("camera_has_click_action", true)
@@ -660,16 +665,48 @@ class GeminiHomeDeviceMatrixTest {
         return file
     }
 
+    private fun awaitStableProductionFrame() {
+        repeat(3) {
+            compose.mainClock.advanceTimeByFrame()
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+            Thread.sleep(50)
+        }
+    }
+
+    private fun requestHostAdbScreencap(phase: String) {
+        require(phase == "initial" || phase == "after_swipe")
+        val output = requireNotNull(activeOutput).apply { mkdirs() }
+        val token = "${profileId}_${expectedDisplay}_${phase}_host_adb_exec_out"
+        val request = File(output, "$token.request")
+        val completion = File(output, "$token.done")
+        request.delete()
+        completion.delete()
+        request.writeText(sourceSha)
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(20)
+        while (System.nanoTime() < deadline) {
+            if (completion.isFile) {
+                val result = completion.readText().trim()
+                completion.delete()
+                request.delete()
+                assertEquals("host adb exec-out screencap completed for $phase", "PASS", result)
+                return
+            }
+            Thread.sleep(50)
+        }
+        throw AssertionError("Timed out waiting for host adb exec-out screencap phase=$phase profile=$profileId")
+    }
+
     private fun captureScreenshotSet(name: String): ScreenshotCapture {
         val output = requireNotNull(activeOutput).apply { mkdirs() }
         val stem = name.removeSuffix(".png")
         val sources = JSONObject()
         val canonical = File(output, name)
+        val uiAutomationFile = File(output, "${stem}_ui_automation.png")
         runCatching {
             val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
-            saveBitmap(bitmap, canonical)
+            saveBitmap(bitmap, uiAutomationFile)
             bitmap.recycle()
-            sources.put("ui_automation", screenshotSource(canonical))
+            sources.put("ui_automation", screenshotSource(uiAutomationFile))
         }.onFailure { sources.put("ui_automation", JSONObject().put("error", it.toString())) }
 
         val adbFile = File(output, "${stem}_adb.png")
@@ -683,6 +720,7 @@ class GeminiHomeDeviceMatrixTest {
                 pipe.close()
             }
             check(adbFile.isFile && adbFile.length() > 0L) { "adb screencap returned no image" }
+            check(adbFile.copyTo(canonical, overwrite = true).length() > 0L) { "canonical screencap copy failed" }
             sources.put("adb_screencap", screenshotSource(adbFile))
         }.onFailure { sources.put("adb_screencap", JSONObject().put("error", it.toString())) }
 
