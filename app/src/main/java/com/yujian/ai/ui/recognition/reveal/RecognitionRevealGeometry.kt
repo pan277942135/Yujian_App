@@ -222,7 +222,7 @@ object RecognitionRevealGeometryResolver {
         rootBoundsInWindow: RecognitionRevealWindowRect,
     ): RecognitionRevealGeometryResolution {
         val photoGeometry = resolvePhoto(handoff, hero, rootBoundsInWindow)
-            ?: return rejected("PHOTO_GEOMETRY_INVALID")
+            ?: return rejected("INVALID_PHOTO_GEOMETRY")
         if (handoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY) {
             return resolveDegradedOrbToGlyph(handoff, photoGeometry, titleBoundsInWindow, rootBoundsInWindow)
         }

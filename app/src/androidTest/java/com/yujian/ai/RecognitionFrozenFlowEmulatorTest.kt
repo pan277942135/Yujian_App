@@ -453,7 +453,6 @@ class RecognitionFrozenFlowEmulatorTest {
                     productionResult = high,
                     availableSpecies = listOf(catalogEntry),
                     revealHandoff = handoff,
-                    revealElapsedOverrideMs = 290L,
                     onBack = {},
                     onRetry = {},
                     onSave = { _, _, _ -> saveCalls.incrementAndGet() },
@@ -551,7 +550,6 @@ class RecognitionFrozenFlowEmulatorTest {
                                     prediction = requireNotNull(high.prediction),
                                     productionResult = high,
                                     availableSpecies = catalog,
-                                    revealElapsedOverrideMs = 850L,
                                     onBack = {},
                                     onRetry = {},
                                     onSave = { _, _, _ -> },
@@ -625,7 +623,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
         val evidence = File(targetContext.cacheDir, "rr09-gold-transfer").apply { mkdirs() }
         val stage = mutableStateOf("processing")
-        val elapsed = mutableStateOf<Long?>(0L)
+        val semanticFrame = mutableStateOf<com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame?>(null)
         val geometry = AtomicReference<RecognitionSubjectGeometrySnapshot?>()
         val processingPhoto = AtomicReference<RecognitionProcessingPhotoSnapshot?>()
         val geometryResolution = AtomicReference<RecognitionRevealGeometryResolution?>()
@@ -671,7 +669,7 @@ class RecognitionFrozenFlowEmulatorTest {
                         productionResult = high,
                         availableSpecies = listOf(catalogEntry),
                         revealHandoff = handoffState.value,
-                        revealElapsedOverrideMs = elapsed.value,
+                        sceneFrameOverrideForTest = semanticFrame.value,
                         revealMotionPolicyOverride = motionPolicy.value,
                         revealGeometryResolutionObserver = { geometryResolution.set(it) },
                         onBack = {},
@@ -697,8 +695,26 @@ class RecognitionFrozenFlowEmulatorTest {
             handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
         )
         assertEquals(RecognitionRevealEligibility.FULL_REVEAL, handoff.eligibility)
+        fun sceneFrame(stage: com.yujian.ai.ui.waterlight.core.RecognitionSceneStage, progress: Float) =
+            com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator.frameForStage(
+                identity = com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity(
+                    sessionId = handoff.key.recognitionSessionId,
+                    attemptId = handoff.key.recognitionAttemptId,
+                    imageId = handoff.imageId,
+                    photoSha256 = photo.photoSha256,
+                    photoContentVersion = photo.bitmap.generationId.toLong().coerceAtLeast(0L),
+                ),
+                sceneElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+                opticalReferenceElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+                geometryVersion = 0L,
+                stage = stage,
+                stageElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+                stageProgress = progress,
+                stageEventComplete = stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.RESIDUE_SETTLE && progress >= 1f,
+            )
         Snapshot.withMutableSnapshot {
             handoffState.value = handoff
+            semanticFrame.value = sceneFrame(com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RETURN, 0f)
             stage.value = "result"
         }
         fun assertRevealGeometryResolved() {
@@ -752,11 +768,18 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.waitForIdle()
         assertRevealGeometryResolved()
 
-        val frames = listOf(120L, 290L, 465L, 610L, 850L)
-        frames.forEachIndexed { index, timeMs ->
-            elapsed.value = timeMs
+        val frames = listOf(
+            com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RETURN to .25f,
+            com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RETURN to .75f,
+            com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_TO_NAME to .5f,
+            com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.SPECIES_NAME_REVEAL to .5f,
+            com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.RESIDUE_SETTLE to .5f,
+            com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.RESIDUE_SETTLE to 1f,
+        )
+        frames.forEachIndexed { index, (sceneStage, progress) ->
+            semanticFrame.value = sceneFrame(sceneStage, progress)
             composeRule.waitForIdle()
-            saveRevealFrame(evidence, "K${index + 2}_${timeMs}ms.png")
+            saveRevealFrame(evidence, "K${index + 2}_${sceneStage.name}_${(progress * 100).toInt()}.png")
         }
         composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
         val heroBounds = composeRule.onNodeWithTag("recognition-result-hero").fetchSemanticsNode().boundsInWindow
@@ -769,9 +792,9 @@ class RecognitionFrozenFlowEmulatorTest {
             "[${rect.left},${rect.top},${rect.right},${rect.bottom}]"
         val sourceTransform = requireNotNull(processingPhoto.get()).sourceToViewport
 
-        elapsed.value = 0L
         Snapshot.withMutableSnapshot {
             handoffState.value = null
+            semanticFrame.value = null
             stage.value = "processing"
         }
         composeRule.waitUntil(timeoutMillis = 5_000L) {
@@ -780,13 +803,13 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.waitForIdle()
         Snapshot.withMutableSnapshot {
             handoffState.value = handoff
+            semanticFrame.value = sceneFrame(com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RETURN, 0f)
             stage.value = "result"
         }
         assertRevealGeometryResolved()
 
-        // Switch to the real monotonic clock once so FrameMetrics measure
-        // native playback. The API28 gate captures the continuous screen
-        // recording outside instrumentation.
+        // Keep one explicit semantic scene frame while FrameMetrics measures
+        // the native result host surface.
         val frameTimesNs = Collections.synchronizedList(mutableListOf<Long>())
         val metricThread = android.os.HandlerThread("rr09-frame-metrics").apply { start() }
         val frameMetricsListener = android.view.Window.OnFrameMetricsAvailableListener { _, metrics, _ ->
@@ -796,11 +819,8 @@ class RecognitionFrozenFlowEmulatorTest {
             frameMetricsListener,
             android.os.Handler(metricThread.looper),
         )
-        // Compose's instrumentation clock is virtual: waitForIdle() would
-        // fast-forward the whole reveal before Android can emit frame metrics.
-        // Drive one frame at a time, allowing each frame to reach Window/SurfaceFlinger.
+        // Drive one frame at a time so each host frame reaches Window/SurfaceFlinger.
         composeRule.mainClock.autoAdvance = false
-        elapsed.value = null
         repeat(60) {
             composeRule.mainClock.advanceTimeByFrame()
             Thread.sleep(16L)
@@ -882,27 +902,27 @@ class RecognitionFrozenFlowEmulatorTest {
               "scientific_name": "$scientificName",
               "manual_alpha_fixture": true,
               "production_model_or_species_claim": false,
-              "first_result_frame_t0_rule": "Result page first frame",
-              "frame_sampling_mode": "Deterministic test clock; injected elapsed values are exact inputs, not wall-clock sample readings",
+              "first_result_frame_t0_rule": "Shared semantic scene frame",
+              "frame_sampling_mode": "Test injects explicit stage identity and local stage progress; production uses the App-scoped controller",
               "frames": [
-                {"file":"K01_processing_fixture_final.png","processing_visual_clock_ms":3200,"reveal_elapsed_ms":0,"source":"fixed processing fixture"},
-                {"file":"K02_120ms.png","sample_ms":120,"source":"deterministic RR09 clock override"},
-                {"file":"K03_290ms.png","sample_ms":290,"source":"deterministic RR09 clock override"},
-                {"file":"K04_465ms.png","sample_ms":465,"source":"deterministic RR09 clock override"},
-                {"file":"K05_610ms.png","sample_ms":610,"source":"deterministic RR09 clock override"},
-                {"file":"K06_850ms.png","sample_ms":850,"source":"deterministic RR09 clock override"}
+                {"file":"K01_processing_fixture_final.png","source":"fixed processing fixture"},
+                {"file":"K02_ORB_RETURN_25.png","stage":"ORB_RETURN","stage_progress":0.25},
+                {"file":"K03_ORB_RETURN_75.png","stage":"ORB_RETURN","stage_progress":0.75},
+                {"file":"K04_ORB_TO_NAME_50.png","stage":"ORB_TO_NAME","stage_progress":0.5},
+                {"file":"K05_SPECIES_NAME_REVEAL_50.png","stage":"SPECIES_NAME_REVEAL","stage_progress":0.5},
+                {"file":"K06_RESIDUE_SETTLE_50.png","stage":"RESIDUE_SETTLE","stage_progress":0.5},
+                {"file":"K07_RESIDUE_SETTLE_100.png","stage":"RESIDUE_SETTLE","stage_progress":1.0}
               ]
             }
         """.trimIndent()
         File(evidence, "RR09_Frames_Manifest.json").writeText(manifest)
-        val trace = (listOf(0L, 120L, 200L, 290L, 380L, 465L, 550L, 610L, 680L, 850L))
-            .joinToString(",\n", "[\n", "\n]\n") { timeMs ->
+        val trace = frames.joinToString(",\n", "[\n", "\n]\n") { (sceneStage, progress) ->
             val frame = com.yujian.ai.ui.recognition.reveal.RecognitionRevealClock.evaluate(
-                elapsedMs = timeMs,
+                scene = sceneFrame(sceneStage, progress),
                 handoff = handoff,
                 policy = com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy(),
             )
-            "  {\"elapsed_ms\":$timeMs,\"phase\":\"${frame.phase}\",\"title_mode\":\"${frame.titleMode}\",\"particles\":${frame.visibleParticleCount},\"photo_progress\":${frame.photoProgress}}"
+            "  {\"stage\":\"${frame.stage}\",\"stage_progress\":${frame.stageProgress},\"phase\":\"${frame.phase}\",\"title_mode\":\"${frame.titleMode}\",\"particles\":${frame.visibleParticleCount},\"photo_progress\":${frame.photoProgress}}"
         }
         File(evidence, "RR09_Motion_Trace.json").writeText(trace)
         File(evidence, "RR09_API28_Test_Report.json").writeText(
@@ -1494,7 +1514,7 @@ class RecognitionFrozenFlowEmulatorTest {
 
         val capturedMinimum = RecognitionVisualStateController.PHOTO_STABLE_MIN_MS
         val detectingMinimum = RecognitionVisualStateController.ORB_WAKE_MIN_MS +
-            RecognitionVisualStateController.PERIMETER_SPREAD_MIN_MS +
+            RecognitionVisualStateController.ORB_RELEASE_MIN_MS +
             RecognitionVisualStateController.PERIMETER_ARRIVAL_MIN_MS +
             RecognitionVisualStateController.PATH_TO_FISH_MIN_MS
         val outlineMinimum = RecognitionVisualStateController.CONTOUR_STAGE_MIN_MS * 3L

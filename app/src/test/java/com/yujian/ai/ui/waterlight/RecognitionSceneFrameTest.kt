@@ -33,39 +33,36 @@ class RecognitionSceneFrameTest {
         )
     }
 
-    @Test fun mapsAllThirteenStagesAtFrozenBoundaries() {
-        val boundaries = listOf(
-            0L to RecognitionSceneStage.PHOTO_STABLE,
-            1L to RecognitionSceneStage.ORB_WAKE,
-            350L to RecognitionSceneStage.ORB_RELEASE,
-            950L to RecognitionSceneStage.PERIMETER_ARRIVAL,
-            1_075L to RecognitionSceneStage.PATH_TO_FISH,
-            1_200L to RecognitionSceneStage.CONTOUR_A,
-            1_450L to RecognitionSceneStage.CONTOUR_B,
-            1_700L to RecognitionSceneStage.CONTOUR_C,
-            1_950L to RecognitionSceneStage.FISH_GOLD_PEAK,
-            2_800L to RecognitionSceneStage.ORB_RETURN,
-            3_180L to RecognitionSceneStage.ORB_TO_NAME,
-            3_350L to RecognitionSceneStage.SPECIES_NAME_REVEAL,
-            3_480L to RecognitionSceneStage.RESIDUE_SETTLE,
+    @Test fun explicitSemanticStageIsIndependentOfCumulativeSceneTime() {
+        val frame = RecognitionSceneCoordinator.frameForStage(
+            identity = identity,
+            sceneElapsedMs = 45_000L,
+            opticalReferenceElapsedMs = 45_000L,
+            geometryVersion = 9L,
+            stage = RecognitionSceneStage.ORB_RETURN,
+            stageElapsedMs = 190L,
+            stageProgress = .5f,
         )
-        boundaries.forEach { (time, stage) ->
-            val frame = RecognitionSceneCoordinator.frameAt(identity, time, time, 9L)
-            assertEquals("reference=$time", stage, frame.stage)
-            assertTrue(frame.stageProgress in 0f..1f)
-            assertEquals(9L, frame.geometryVersion)
-        }
-        assertEquals(1f, RecognitionSceneCoordinator.frameAt(identity, 3_650L, 3_650L, 9L).stageProgress, .0001f)
+        assertEquals(RecognitionSceneStage.ORB_RETURN, frame.stage)
+        assertEquals(.5f, frame.stageProgress, .0001f)
+        assertEquals(45_000L, frame.sceneElapsedMs)
+        assertEquals(9L, frame.geometryVersion)
     }
 
     @Test fun projectionsRemainDeterministicAndPhotoOrbMotionUsesSceneTime() {
-        val first = RecognitionSceneCoordinator.frameAt(identity, 1_550L, 1_550L, 9L)
-        assertEquals(first, RecognitionSceneCoordinator.frameAt(identity, 1_550L, 1_550L, 9L))
+        val first = RecognitionSceneCoordinator.frameForStage(
+            identity, 1_550L, 1_550L, 9L, RecognitionSceneStage.CONTOUR_B, 125L, .5f,
+        )
+        assertEquals(first, RecognitionSceneCoordinator.frameForStage(
+            identity, 1_550L, 1_550L, 9L, RecognitionSceneStage.CONTOUR_B, 125L, .5f,
+        ))
         assertTrue(first.isIdentityValid)
         assertEquals(RecognitionSceneStage.CONTOUR_B, first.stage)
 
         listOf(0L, 150L, 350L, 650L, 700L, 899L, 900L).forEach { time ->
-            val frame = RecognitionSceneCoordinator.frameAt(identity, time, time, 9L)
+            val frame = RecognitionSceneCoordinator.frameForStage(
+                identity, time, time, 9L, RecognitionSceneStage.PHOTO_STABLE, 0L, 0f,
+            )
             assertEquals((time.toFloat() / 700f).coerceIn(0f, 1f),
                 RecognitionSceneTimelineProjection.photoEntryProgress(frame.sceneElapsedMs), .0001f)
             assertEquals(time.coerceAtMost(900L), RecognitionSceneTimelineProjection.orbEntranceElapsedMs(frame.sceneElapsedMs))

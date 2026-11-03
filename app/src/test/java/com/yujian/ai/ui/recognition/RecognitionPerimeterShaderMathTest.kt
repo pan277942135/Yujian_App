@@ -5,6 +5,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 
 class RecognitionPerimeterShaderMathTest {
     @Test
@@ -113,11 +116,27 @@ class RecognitionPerimeterShaderMathTest {
     @Test
     fun perimeterLifetimeFollowsRecognitionPhaseInsteadOfAnAbsoluteElapsedCutoff() {
         assertTrue(recognitionPerimeterActive(true, RecognitionPhase.CLASSIFYING))
-        assertEquals(.10f, recognitionPerimeterOpacity(true, false, 2_600L), .0001f)
-        // P7's frozen optical curve reaches zero, while slow classification is still
-        // allowed to retain the compositor and keep the real photo layer alive.
-        assertEquals(0f, recognitionPerimeterOpacity(true, false, 2_800L), 0f)
+        assertEquals(0f, recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.ORB_WAKE, 1f)), 0f)
+        assertEquals(.12f, recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.ORB_RELEASE, 0f)), .0001f)
+        assertEquals(1f, recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.ORB_RELEASE, 1f)), 0f)
+        assertEquals(.10f, recognitionPerimeterOpacity(true, true, frame(RecognitionSceneStage.ORB_RELEASE, 0f)), .0001f)
         assertTrue(recognitionPerimeterActive(true, RecognitionPhase.CLASSIFYING))
         assertFalse(recognitionPerimeterActive(true, RecognitionPhase.RESULT))
     }
+
+    private fun frame(stage: RecognitionSceneStage, progress: Float) = WaterLightFrame(
+        sessionId = "session",
+        photoSha256 = "a".repeat(64),
+        elapsedMs = 0L,
+        opticalReferenceElapsedMs = 0L,
+        phase = WaterLightPhase.PROCESSING,
+        completion = 0f,
+        reducedMotion = false,
+        geometryVersion = 0L,
+        attemptId = "attempt",
+        imageId = "image",
+        sceneStageOverride = stage,
+        sceneStageElapsedMsOverride = (stage.minimumVisibleMs * progress).toLong(),
+        sceneStageProgressOverride = progress,
+    )
 }

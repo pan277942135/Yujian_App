@@ -2,6 +2,7 @@ package com.yujian.ai.ui.waterlight
 
 import com.yujian.ai.ui.waterlight.core.EnergyAnchor
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometryFactory
@@ -11,50 +12,96 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WaterLightEnergyTest {
-    private fun frame(ms: Long, session: String = "photo-A") = WaterLightFrame(
-        session, "photo-hash-A", ms, ms, WaterLightPhase.PROCESSING, .5f, false, 7L,
-        attemptId = "attempt-A", imageId = session, photoContentVersion = 1L,
-    )
+    private fun frame(
+        stage: RecognitionSceneStage,
+        progress: Float = .5f,
+        session: String = "photo-A",
+    ): WaterLightFrame {
+        val localElapsedMs = (stage.minimumVisibleMs * progress).toLong()
+        return WaterLightFrame(
+            sessionId = session,
+            photoSha256 = "photo-hash-A",
+            elapsedMs = localElapsedMs,
+            opticalReferenceElapsedMs = localElapsedMs,
+            phase = WaterLightPhase.PROCESSING,
+            completion = progress,
+            reducedMotion = false,
+            geometryVersion = 7L,
+            attemptId = "attempt-A",
+            imageId = session,
+            photoContentVersion = 1L,
+            sceneStageOverride = stage,
+            sceneStageElapsedMsOverride = localElapsedMs,
+            sceneStageProgressOverride = progress,
+        )
+    }
 
-    @Test fun stageAndPhotoIdentityAreDeterministic() {
-        assertNull(WaterLightEnergy.at(frame(349), true))
-        val release = WaterLightEnergy.at(frame(650), false)!!
+    @Test fun energyIsDrivenBySharedSemanticStageAndPhotoIdentity() {
+        assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.ORB_WAKE, 1f), true))
+        val releaseFrame = frame(RecognitionSceneStage.ORB_RELEASE, .5f)
+        val release = WaterLightEnergy.at(releaseFrame, false)!!
         assertEquals(EnergyAnchor.ORB_RIBBON, release.source)
         assertEquals(EnergyAnchor.PHOTO_PERIMETER, release.target)
         assertEquals(EnergyFeedback.RELEASE, release.feedback)
         assertEquals(.5f, release.level, .001f)
-        assertEquals(release, WaterLightEnergy.at(frame(650), false))
+        assertEquals(release, WaterLightEnergy.at(releaseFrame, false))
         assertEquals("photo-hash-A", release.photoSha256)
         assertEquals(7L, release.geometryVersion)
         assertEquals("attempt-A", release.attemptId)
         assertEquals("photo-A", release.imageId)
         assertEquals(1L, release.photoContentVersion)
         assertEquals("orb-to-photo", release.pathId)
-        assertEquals(EnergyFeedback.ARRIVE, WaterLightEnergy.at(frame(1000), false)?.feedback)
-        assertNull(WaterLightEnergy.at(frame(1_100L), false))
-        assertNull(WaterLightEnergy.at(frame(1550), false))
-        assertNull(WaterLightEnergy.at(frame(1550), true))
-        assertEquals(EnergyAnchor.FISH_CONTOUR, WaterLightEnergy.at(frame(1549), true)?.target)
-        assertNull(WaterLightEnergy.at(frame(2800), true)) // A slow real classifier holds at P7; no early return event.
-        assertNull(WaterLightEnergy.at(frame(3000), true))
-        assertEquals(EnergyFeedback.RETURN, WaterLightEnergy.at(frame(2800), true, successfulRevealAllowed = true)?.feedback)
-        assertEquals(EnergyAnchor.ORB_CORE, WaterLightEnergy.at(frame(3000), true, successfulRevealAllowed = true)?.target)
-        assertNull(WaterLightEnergy.at(frame(3180), true))
-        assertNull(WaterLightEnergy.at(frame(3350), true))
-        assertNull(WaterLightEnergy.at(frame(3650), true))
-        assertEquals(EnergyFeedback.TRANSLATE, WaterLightEnergy.at(frame(3180), true, successfulRevealAllowed = true)?.feedback)
-        assertEquals(EnergyFeedback.REVEAL, WaterLightEnergy.at(frame(3350), true, successfulRevealAllowed = true)?.feedback)
-        assertEquals(EnergyFeedback.SETTLE, WaterLightEnergy.at(frame(3650), true, successfulRevealAllowed = true)?.feedback)
-        assertNull(WaterLightEnergy.at(frame(3651), true))
-        assertNull(WaterLightEnergy.at(frame(3000), false))
-        assertEquals("photo-B", WaterLightEnergy.at(frame(650, "photo-B"), true)?.sessionId)
+
+        val arrival = WaterLightEnergy.at(frame(RecognitionSceneStage.PERIMETER_ARRIVAL, 1f), false)!!
+        assertEquals(EnergyFeedback.ARRIVE, arrival.feedback)
+        assertEquals(1f, arrival.level, 0f)
+
+        assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.PATH_TO_FISH), false))
+        val fishPath = WaterLightEnergy.at(frame(RecognitionSceneStage.PATH_TO_FISH), true)!!
+        assertEquals(EnergyAnchor.FISH_CONTOUR, fishPath.target)
+        assertEquals(EnergyFeedback.ABSORB, fishPath.feedback)
+        assertEquals(.125f, fishPath.level, .001f)
+        assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_A), false))
+        assertEquals(EnergyFeedback.ABSORB, WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_B), true)?.feedback)
+
+        assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.ORB_RETURN, .5f), true))
+        val returned = WaterLightEnergy.at(
+            frame(RecognitionSceneStage.ORB_RETURN, .5f), true, successfulRevealAllowed = true,
+        )!!
+        assertEquals(EnergyAnchor.FISH_CONTOUR, returned.source)
+        assertEquals(EnergyAnchor.ORB_CORE, returned.target)
+        assertEquals(EnergyFeedback.RETURN, returned.feedback)
+        assertEquals(.5f, returned.level, 0f)
+        assertEquals("fish-to-original-orb", returned.pathId)
+
+        val translate = WaterLightEnergy.at(
+            frame(RecognitionSceneStage.ORB_TO_NAME, .25f), true, successfulRevealAllowed = true,
+        )!!
+        assertEquals(EnergyFeedback.TRANSLATE, translate.feedback)
+        assertEquals(.25f, translate.level, 0f)
+        val reveal = WaterLightEnergy.at(
+            frame(RecognitionSceneStage.SPECIES_NAME_REVEAL, .75f), true, successfulRevealAllowed = true,
+        )!!
+        assertEquals(EnergyFeedback.REVEAL, reveal.feedback)
+        assertEquals(.75f, reveal.level, 0f)
+        val settle = WaterLightEnergy.at(
+            frame(RecognitionSceneStage.RESIDUE_SETTLE, 1f), true, successfulRevealAllowed = true,
+        )!!
+        assertEquals(EnergyFeedback.SETTLE, settle.feedback)
+        assertEquals(1f, settle.level, 0f)
+        assertNull(WaterLightEnergy.at(
+            frame(RecognitionSceneStage.ORB_TO_NAME), false, successfulRevealAllowed = true,
+        ))
+
+        assertEquals("photo-B", WaterLightEnergy.at(
+            frame(RecognitionSceneStage.ORB_RELEASE, session = "photo-B"), true,
+        )?.sessionId)
     }
 
     @Test fun missingAttemptOrImageIdentityCannotEmitEnergy() {
-        val missingAttempt = frame(650).copy(attemptId = "")
-        val missingImage = frame(650).copy(imageId = "")
-        assertNull(WaterLightEnergy.at(missingAttempt, false))
-        assertNull(WaterLightEnergy.at(missingImage, false))
+        val valid = frame(RecognitionSceneStage.ORB_RELEASE)
+        assertNull(WaterLightEnergy.at(valid.copy(attemptId = ""), false))
+        assertNull(WaterLightEnergy.at(valid.copy(imageId = ""), false))
     }
 
     @Test fun orbOnlyBranchReturnsPerimeterEnergyAndKeepsRealGlyphEvents() {
@@ -63,8 +110,9 @@ class WaterLightEnergyTest {
             WaterLightPathPoint(260f, 520f),
             seed = 17,
         )!!
+        val returnFrame = frame(RecognitionSceneStage.ORB_RETURN, .5f)
         val returned = WaterLightEnergy.at(
-            frame(2_900L),
+            returnFrame,
             trustedMask = false,
             successfulRevealAllowed = true,
             pathGeometry = perimeterPath,
@@ -74,34 +122,35 @@ class WaterLightEnergyTest {
         assertEquals(EnergyAnchor.ORB_CORE, returned.target)
         assertEquals(EnergyFeedback.RETURN, returned.feedback)
         assertEquals("photo-perimeter-to-original-orb", returned.pathId)
-        assertTrue(returned.matches(frame(2_900L)))
+        assertTrue(returned.matches(returnFrame))
 
-        assertEquals(
-            EnergyFeedback.TRANSLATE,
-            WaterLightEnergy.at(frame(3_180L), false, successfulRevealAllowed = true,
-                orbOnlyRevealAllowed = true)?.feedback,
-        )
-        assertEquals(
-            EnergyFeedback.REVEAL,
-            WaterLightEnergy.at(frame(3_350L), false, successfulRevealAllowed = true,
-                orbOnlyRevealAllowed = true)?.feedback,
-        )
-        assertEquals(
-            EnergyFeedback.SETTLE,
-            WaterLightEnergy.at(frame(3_650L), false, successfulRevealAllowed = true,
-                orbOnlyRevealAllowed = true)?.feedback,
-        )
-        assertNull(WaterLightEnergy.at(frame(2_900L), false, successfulRevealAllowed = true,
-            pathGeometry = perimeterPath))
-        assertNull(WaterLightEnergy.at(frame(2_900L), false, successfulRevealAllowed = false,
-            pathGeometry = perimeterPath, orbOnlyRevealAllowed = true))
+        assertEquals(EnergyFeedback.TRANSLATE, WaterLightEnergy.at(
+            frame(RecognitionSceneStage.ORB_TO_NAME), false, successfulRevealAllowed = true,
+            orbOnlyRevealAllowed = true,
+        )?.feedback)
+        assertEquals(EnergyFeedback.REVEAL, WaterLightEnergy.at(
+            frame(RecognitionSceneStage.SPECIES_NAME_REVEAL), false, successfulRevealAllowed = true,
+            orbOnlyRevealAllowed = true,
+        )?.feedback)
+        assertEquals(EnergyFeedback.SETTLE, WaterLightEnergy.at(
+            frame(RecognitionSceneStage.RESIDUE_SETTLE), false, successfulRevealAllowed = true,
+            orbOnlyRevealAllowed = true,
+        )?.feedback)
+        assertNull(WaterLightEnergy.at(
+            returnFrame, false, successfulRevealAllowed = true, pathGeometry = perimeterPath,
+        ))
+        assertNull(WaterLightEnergy.at(
+            returnFrame, false, successfulRevealAllowed = false,
+            pathGeometry = perimeterPath, orbOnlyRevealAllowed = true,
+        ))
     }
 
     @Test fun energyPathCarriesMeasuredAnchorsAndRejectsInvalidGeometry() {
         val start = WaterLightPathPoint(112f, 568f)
         val end = WaterLightPathPoint(308f, 276f)
         val geometry = WaterLightPathGeometryFactory.between(start, end, seed = 42)!!
-        val event = WaterLightEnergy.at(frame(650), trustedMask = false, pathGeometry = geometry)!!
+        val eventFrame = frame(RecognitionSceneStage.ORB_RELEASE)
+        val event = WaterLightEnergy.at(eventFrame, trustedMask = false, pathGeometry = geometry)!!
         assertEquals(start, event.pathGeometry?.start)
         assertEquals(end, event.pathGeometry?.end)
         assertTrue(event.pathGeometry!!.isValid())
@@ -109,15 +158,15 @@ class WaterLightEnergyTest {
         assertEquals("attempt-A", event.attemptId)
         assertEquals("photo-hash-A", event.photoSha256)
         assertEquals(7L, event.geometryVersion)
-        assertTrue(event.matches(frame(650)))
-        assertFalse(event.matches(frame(650).copy(attemptId = "attempt-old")))
-        assertFalse(event.matches(frame(650).copy(photoContentVersion = 2L)))
-        assertFalse(event.matches(frame(650).copy(geometryVersion = 8L)))
+        assertTrue(event.matches(eventFrame))
+        assertFalse(event.matches(eventFrame.copy(attemptId = "attempt-old")))
+        assertFalse(event.matches(eventFrame.copy(photoContentVersion = 2L)))
+        assertFalse(event.matches(eventFrame.copy(geometryVersion = 8L)))
 
         assertNull(WaterLightPathGeometryFactory.between(start, WaterLightPathPoint(Float.NaN, 1f), seed = 42))
         val badSpace = geometry.copy(coordinateSpace = "RAW_BITMAP")
         assertFalse(badSpace.isValid())
-        assertNull(WaterLightEnergy.at(frame(650), false, pathGeometry = badSpace)?.pathGeometry)
-        assertNull(WaterLightEnergy.at(frame(650).copy(sessionId = ""), false))
+        assertNull(WaterLightEnergy.at(eventFrame, false, pathGeometry = badSpace)?.pathGeometry)
+        assertNull(WaterLightEnergy.at(eventFrame.copy(sessionId = ""), false))
     }
 }

@@ -197,12 +197,14 @@ private fun OrbVisual(
     val effectiveMotionStartMs = if (activeEnergyEvent != null && orbMotionEvent == OrbRuntimeProfileV1.MotionEvent.NONE) {
         (sharedFrame.opticalReferenceElapsedMs - sharedFrame.sceneFrame.stageElapsedMs).coerceAtLeast(0L)
     } else orbMotionEventStartOpticalMs
-    val wake = OrbWakeBreathReleaseV11.wake(sharedFrame.opticalReferenceElapsedMs)
-    val lifeProgress = OrbWakeBreathReleaseV11.s2Progress(sharedFrame.opticalReferenceElapsedMs)
+    val sceneFrame = sharedFrame.sceneFrame
+    val wake = OrbWakeBreathReleaseV11.wake(sceneFrame.stage, sceneFrame.stageProgress)
+    val lifeProgress = OrbWakeBreathReleaseV11.s2Progress(sceneFrame.stage, sceneFrame.stageProgress)
     val candidateLifeAlpha = orbLifeAlpha ?: lifeProgress
     val breath = OrbWakeBreathReleaseV11.breathScale(
         sceneElapsedMs = sharedFrame.elapsedMs,
-        opticalReferenceElapsedMs = sharedFrame.opticalReferenceElapsedMs,
+        stage = sceneFrame.stage,
+        stageProgress = sceneFrame.stageProgress,
         reducedMotion = reduceMotion,
     )
     val context = LocalContext.current

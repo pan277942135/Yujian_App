@@ -39,6 +39,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
@@ -52,11 +53,27 @@ private const val NODE_POSITION_FLOATS = RecognitionPerimeterShaderMath.SPARKLE_
 internal fun recognitionPerimeterOpacity(
     processingClockStarted: Boolean,
     reduceMotion: Boolean,
-    opticalReferenceElapsedMs: Long,
-): Float = when {
-    !processingClockStarted -> 0f
-    reduceMotion -> .10f
-    else -> processingEnvironmentStrength(opticalReferenceElapsedMs.coerceAtLeast(0L)) / 100f
+    frame: WaterLightFrame,
+): Float {
+    if (!processingClockStarted) return 0f
+    if (reduceMotion) return .10f
+    val scene = frame.sceneFrame
+    return when (scene.stage) {
+        RecognitionSceneStage.PHOTO_STABLE,
+        RecognitionSceneStage.ORB_WAKE -> 0f
+        RecognitionSceneStage.ORB_RELEASE -> (.12f + .88f * scene.stageProgress).coerceIn(0f, 1f)
+        else -> 1f
+    }
+}
+
+internal fun recognitionPerimeterProgress(frame: WaterLightFrame): Float {
+    val scene = frame.sceneFrame
+    return when (scene.stage) {
+        RecognitionSceneStage.PHOTO_STABLE,
+        RecognitionSceneStage.ORB_WAKE -> 0f
+        RecognitionSceneStage.ORB_RELEASE -> (.16f + .84f * scene.stageProgress).coerceIn(0f, 1f)
+        else -> 1f
+    }
 }
 
 internal fun recognitionPerimeterActive(processingClockStarted: Boolean, phase: RecognitionPhase): Boolean =
@@ -109,11 +126,11 @@ internal fun RecognitionPerimeterShaderOverlay(
     }
     val shaderElapsedMs = if (waterLightFrame.reducedMotion) 0L else waterLightFrame.elapsedMs
     val timeSec = RecognitionPerimeterShaderMath.sourceTimeSec(shaderElapsedMs, speed = SOURCE_SPEED)
-    val progress = if (waterLightFrame.reducedMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(waterLightFrame.opticalReferenceElapsedMs)
+    val progress = if (waterLightFrame.reducedMotion) 1f else recognitionPerimeterProgress(waterLightFrame)
     val perimeterOpacity = recognitionPerimeterOpacity(
         processingClockStarted = processingClockStarted,
         reduceMotion = reduceMotion,
-        opticalReferenceElapsedMs = opticalReferenceElapsedMs,
+        frame = waterLightFrame,
     )
     val nodes = RecognitionPerimeterShaderMath.sparkles(
         path = path,

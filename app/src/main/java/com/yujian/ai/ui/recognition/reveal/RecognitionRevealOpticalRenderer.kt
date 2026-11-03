@@ -26,6 +26,7 @@ import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.renderer.WaterGrassRenderer
 import kotlin.math.roundToInt
 
@@ -181,7 +182,7 @@ internal fun RecognitionRevealOpticalOverlay(
 
             // V4: fish energy starts returning while the photo continuity morph runs during 0–200 ms.
             if (activeRevealGeometry != null && orbReturnMeasure != null &&
-                frame.elapsedMs in 0 until RecognitionRevealClock.PHOTO_END_MS
+                frame.stage == RecognitionSceneStage.ORB_RETURN
             ) {
                 val progress = frame.photoProgress.coerceIn(0f, 1f)
                 val headDistance = orbReturnMeasure.length * progress
@@ -227,7 +228,7 @@ internal fun RecognitionRevealOpticalOverlay(
 
             // V4: the recovered Orb stretches along its measured path and becomes real glyph ink.
             if (activeRevealGeometry != null && orbToGlyphMeasure != null &&
-                frame.elapsedMs in RecognitionRevealClock.ORB_RETURN_END_MS until RecognitionRevealClock.ORB_TO_NAME_END_MS
+                frame.stage == RecognitionSceneStage.ORB_TO_NAME
             ) {
                 val p = frame.titleFormationProgress.coerceIn(0f, 1f)
                 val distance = orbToGlyphMeasure.length * p
@@ -248,7 +249,7 @@ internal fun RecognitionRevealOpticalOverlay(
             }
 
             // Localized residue settles around the real title bounds and reaches zero at R5.
-            if (activeRevealGeometry != null && frame.elapsedMs in RecognitionRevealClock.SPECIES_NAME_REVEAL_END_MS until RecognitionRevealClock.TOTAL_DURATION_MS) {
+            if (activeRevealGeometry != null && frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && !frame.isComplete) {
                 val bounds = activeRevealGeometry.titleBoundsLocal
                 val alpha = (96 * frame.afterglowAlpha * material.opacity).toInt().coerceIn(0, 96)
                 if (glyphResidueMeasure != null) {
@@ -273,11 +274,11 @@ internal fun RecognitionRevealOpticalOverlay(
             }
 
             // Water grass is a restrained residue around the measured real glyph bounds.
-            // It uses the same global scene sample and fades with the RR09 afterglow.
+            // It uses the shared scene frame and fades with the RESIDUE_SETTLE stage.
             val residueFrame = waterLightFrame
             val glyphBounds = activeRevealGeometry?.titleBoundsLocal
             if (residueFrame != null && glyphBounds != null &&
-                frame.elapsedMs in RecognitionRevealClock.SPECIES_NAME_REVEAL_END_MS until RecognitionRevealClock.TOTAL_DURATION_MS
+                frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && !frame.isComplete
             ) {
                 val sideWidth = glyphBounds.width * .18f
                 val fieldHeight = glyphBounds.height * .52f
@@ -298,12 +299,12 @@ internal fun RecognitionRevealOpticalOverlay(
         }
     }
     val orbDiameterPx = handoff.processingOrbCoreDiameterPx
-    if (activeRevealGeometry != null && orbCenter != null && orbDiameterPx > 1f &&
-        frame.elapsedMs < RecognitionRevealClock.ORB_TO_NAME_END_MS
+    if (frame.drawOpticalLayer && activeRevealGeometry != null && orbCenter != null && orbDiameterPx > 1f &&
+        frame.stage in setOf(RecognitionSceneStage.ORB_RETURN, RecognitionSceneStage.ORB_TO_NAME)
     ) {
         val coreSize = with(density) { orbDiameterPx.toDp() }
         val outerSizePx = with(density) { (coreSize + 28.dp).toPx() }
-        val morph = frame.titleFormationProgress.coerceIn(0f, 1f)
+        val morph = if (frame.stage == RecognitionSceneStage.ORB_TO_NAME) frame.titleFormationProgress.coerceIn(0f, 1f) else 0f
         AIOrbCore(
             state = AIOrbVisualState.ORB_ACTIVE,
             modifier = Modifier.offset {

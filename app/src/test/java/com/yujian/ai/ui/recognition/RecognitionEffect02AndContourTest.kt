@@ -3,6 +3,9 @@ package com.yujian.ai.ui.recognition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 
 class RecognitionEffect02AndContourTest {
 
@@ -24,18 +27,23 @@ class RecognitionEffect02AndContourTest {
     }
 
     @Test
-    fun processingEnvironmentStrengthMatchesFrozenP0ThroughP7() {
-        assertEquals(0f, processingEnvironmentStrength(0), 0f)
-        assertEquals(10f, processingEnvironmentStrength(350), 0f)
-        assertEquals(45f, processingEnvironmentStrength(950), 0f)
-        assertEquals(75f, processingEnvironmentStrength(1_200), 0f)
-        assertEquals(60f, processingEnvironmentStrength(1_550), 0f)
-        assertEquals(60f, processingEnvironmentStrength(1_550), 0f)
-        assertEquals(35f, processingEnvironmentStrength(2_050), 0f)
-        assertEquals(10f, processingEnvironmentStrength(2_600), 0f)
-        assertEquals(0f, processingEnvironmentStrength(2_800), 0f)
-        assertEquals(0f, processingEnvironmentStrength(10_000), 0f)
+    fun processingEnvironmentStrengthUsesTheSharedSemanticStageFrame() {
+        assertEquals(45f, processingEnvironmentStrength(scene(RecognitionSceneStage.ORB_RELEASE, 1f)), 0f)
+        assertEquals(60f, processingEnvironmentStrength(scene(RecognitionSceneStage.PATH_TO_FISH, 1f)), 0f)
+        assertEquals(22.5f, processingEnvironmentStrength(scene(RecognitionSceneStage.CONTOUR_A, .5f)), .001f)
+        assertEquals(0f, processingEnvironmentStrength(scene(RecognitionSceneStage.RESIDUE_SETTLE, 1f)), 0f)
     }
+
+    private fun scene(stage: RecognitionSceneStage, progress: Float) =
+        RecognitionSceneCoordinator.frameForStage(
+            identity = RecognitionSceneIdentity("session", "attempt", "image", "a".repeat(64), 0L),
+            sceneElapsedMs = 0L,
+            opticalReferenceElapsedMs = 0L,
+            geometryVersion = 0L,
+            stage = stage,
+            stageElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+            stageProgress = progress,
+        )
 
     @Test
     fun goldContourV11TimelineKeyframesAndMutualExclusion() {

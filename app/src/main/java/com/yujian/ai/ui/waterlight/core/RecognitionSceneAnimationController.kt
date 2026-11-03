@@ -34,7 +34,6 @@ class RecognitionSceneAnimationController(
     private var geometryGateStartedAtMs: Long? = null
     private var geometryFrozenElapsedMs = 0L
     private var resultGeometryVersions: Set<Long> = emptySet()
-    private var virtualReferenceBaseMs = 0L
     private var eventSequence = 0L
     private var lastAcceptedEventSequence = 0L
     private var lastAcceptedEventTimestampMs = 0L
@@ -387,7 +386,6 @@ class RecognitionSceneAnimationController(
         if (elapsed < required || !canAdvance(currentStage, successfulRevealAllowed)) return currentStage
         val next = next(currentStage, successfulRevealAllowed)
         if (next == currentStage) return currentStage
-        virtualReferenceBaseMs += elapsed
         currentStage = next
         stageStartedAtMs = nowMs
         stageElapsedBeforePauseMs = 0L
@@ -422,11 +420,7 @@ class RecognitionSceneAnimationController(
         nowMs: Long,
         @Suppress("UNUSED_PARAMETER") trustedMask: Boolean = false,
         @Suppress("UNUSED_PARAMETER") subjectTerminal: Boolean = false,
-    ): Long = when {
-        mode == ScenePlaybackMode.MANUAL -> RecognitionSceneCoordinator.previewReferenceMs(currentStage, previewElapsedMsWithoutUpdate(nowMs))
-        diagnosticAuto -> RecognitionSceneCoordinator.previewReferenceMs(currentStage, autoStageElapsedMs(nowMs).coerceAtMost(DIAGNOSTIC_STEP_DURATION_MS))
-        else -> virtualReferenceBaseMs + stageElapsedMs(nowMs)
-    }
+    ): Long = sceneElapsedMs(nowMs)
 
     fun currentFrame(
         currentIdentity: RecognitionSceneIdentity,
@@ -455,32 +449,14 @@ class RecognitionSceneAnimationController(
             eventSequence = eventSequence,
             monotonicTimestampMs = nowMs.coerceAtLeast(0L),
             energyEvent = energyEvent,
+            stageEventComplete = stageEventComplete(currentStage),
         )
     }
 
-    /** RR09 local time is a projection of the same stage clock, never a second Result timer. */
-    fun revealElapsedMs(nowMs: Long): Long = when (currentStage) {
-        RecognitionSceneStage.ORB_RETURN -> revealStageElapsedMs(currentStage, nowMs)
-        RecognitionSceneStage.ORB_TO_NAME -> RecognitionSceneStage.ORB_RETURN.durationMs +
-            revealStageElapsedMs(currentStage, nowMs)
-        RecognitionSceneStage.SPECIES_NAME_REVEAL -> RecognitionSceneStage.ORB_RETURN.durationMs +
-            RecognitionSceneStage.ORB_TO_NAME.durationMs + revealStageElapsedMs(currentStage, nowMs)
-        RecognitionSceneStage.RESIDUE_SETTLE -> RecognitionSceneStage.ORB_RETURN.durationMs +
-            RecognitionSceneStage.ORB_TO_NAME.durationMs + RecognitionSceneStage.SPECIES_NAME_REVEAL.durationMs +
-            revealStageElapsedMs(currentStage, nowMs)
-        else -> 0L
-    }
-
-    private fun revealStageElapsedMs(stage: RecognitionSceneStage, nowMs: Long): Long {
-        val durationMs = stage.durationMs
-        if (durationMs <= 0L) return 0L
-        val stageElapsed = stageElapsedMs(nowMs)
-        if (mode == ScenePlaybackMode.MANUAL || diagnosticAuto) {
-            return (durationMs * (stageElapsed.toFloat() / DIAGNOSTIC_STEP_DURATION_MS).coerceIn(0f, 1f))
-                .toLong().coerceIn(0L, durationMs)
-        }
-        return stageElapsed.coerceIn(0L, durationMs)
-    }
+    /** Compatibility accessor projects the selected reveal stage into its stage-local time domain. */
+    fun revealElapsedMs(nowMs: Long): Long = if (currentStage.ordinal >= RecognitionSceneStage.ORB_RETURN.ordinal) {
+        (minimum(currentStage) * stageProgress(nowMs)).toLong()
+    } else 0L
 
     /** Handoff eligibility is an exact stage-10 check plus the real model join and original Orb anchor. */
     fun resultVisualReady(nowMs: Long): Boolean = !failed && photoFirstFramePresented &&
@@ -491,7 +467,7 @@ class RecognitionSceneAnimationController(
         @Suppress("UNUSED_VARIABLE") val compatibilityReference = authoritativeReferenceMs.coerceAtLeast(0L)
         if (mode == ScenePlaybackMode.MANUAL) {
             updatePreviewCompletion(nowMs)
-            return RecognitionSceneCoordinator.previewReferenceMs(currentStage, previewElapsedMsWithoutUpdate(nowMs))
+            return sceneElapsedMs(nowMs)
         }
         return opticalReferenceElapsedMs(nowMs)
     }
@@ -655,6 +631,22 @@ class RecognitionSceneAnimationController(
         RecognitionSceneStage.RESIDUE_SETTLE -> successfulRevealAllowed && residueSettleComplete
     }
 
+    private fun stageEventComplete(stage: RecognitionSceneStage): Boolean = when (stage) {
+        RecognitionSceneStage.PHOTO_STABLE -> photoFirstFramePresented
+        RecognitionSceneStage.ORB_WAKE -> orbAnchorReady
+        RecognitionSceneStage.ORB_RELEASE -> releasePathReady
+        RecognitionSceneStage.PERIMETER_ARRIVAL -> perimeterArrivalPresented
+        RecognitionSceneStage.PATH_TO_FISH -> revealDecisionReady
+        RecognitionSceneStage.CONTOUR_A,
+        RecognitionSceneStage.CONTOUR_B -> maskTrusted && contourValid
+        RecognitionSceneStage.CONTOUR_C -> maskTrusted && contourValid && contourClosed
+        RecognitionSceneStage.FISH_GOLD_PEAK -> fishGoldComplete
+        RecognitionSceneStage.ORB_RETURN -> orbReturnComplete
+        RecognitionSceneStage.ORB_TO_NAME -> orbToGlyphComplete
+        RecognitionSceneStage.SPECIES_NAME_REVEAL -> glyphRevealComplete
+        RecognitionSceneStage.RESIDUE_SETTLE -> residueSettleComplete
+    }
+
     private fun next(stage: RecognitionSceneStage, successfulRevealAllowed: Boolean): RecognitionSceneStage = when (stage) {
         RecognitionSceneStage.PHOTO_STABLE -> RecognitionSceneStage.ORB_WAKE
         RecognitionSceneStage.ORB_WAKE -> RecognitionSceneStage.ORB_RELEASE
@@ -785,7 +777,6 @@ class RecognitionSceneAnimationController(
         stageStartedAtMs = nowMs
         sceneStartedAtMs = nowMs
         stageElapsedBeforePauseMs = 0L
-        virtualReferenceBaseMs = 0L
         eventSequence = 1L
         lastAcceptedEventSequence = 0L
         lastAcceptedEventTimestampMs = 0L
@@ -875,7 +866,6 @@ class RecognitionSceneAnimationController(
     companion object {
         const val PHOTO_STABLE_MIN_MS = 120L
         const val ORB_WAKE_MIN_MS = 350L
-        const val PERIMETER_SPREAD_MIN_MS = 1_200L // Legacy WaterLight spread-layer duration, not a stage minimum.
         const val ORB_RELEASE_MIN_MS = 600L
         const val PERIMETER_ARRIVAL_MIN_MS = 125L
         const val PATH_TO_FISH_MIN_MS = 125L

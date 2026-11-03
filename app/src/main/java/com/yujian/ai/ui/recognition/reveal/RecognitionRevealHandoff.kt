@@ -71,7 +71,7 @@ data class RecognitionProcessingPhotoSnapshot(
     val sourceToViewport: RecognitionImageTransform,
     val photoBoundsInWindow: RecognitionRevealWindowRect? = null,
     val cornerRadiusPx: Float = 0f,
-    /** Original Processing Orb center in window coordinates; retained for RR09 energy return. */
+    /** Original Processing Orb center in window coordinates; retained for shared-stage energy return. */
     val processingOrbCenterInWindow: DisplayPoint? = null,
     /** Core diameter measured from the same Processing Orb instance, in physical pixels. */
     val processingOrbCoreDiameterPx: Float = 0f,

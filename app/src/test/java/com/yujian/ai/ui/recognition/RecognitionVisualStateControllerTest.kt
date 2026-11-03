@@ -72,7 +72,7 @@ class RecognitionVisualStateControllerTest {
         assertEquals(0L, controller.previewElapsedMs(500L))
     }
 
-    @Test fun resultRevealTimeProjectsStagesTenThroughThirteenAndReplayRestartsThatStage() {
+    @Test fun resultRevealTimeIsLocalToTheSelectedStageAndReplayRestartsThatStage() {
         val controller = SceneMotionCoordinator()
         controller.beginNewSession(identity, debugBuild = true, nowMs = 0L)
         controller.markPhotoFirstFramePresented(identity, 100L)
@@ -81,17 +81,17 @@ class RecognitionVisualStateControllerTest {
         assertEquals(190L, controller.revealElapsedMs(1_700L))
         assertEquals(380L, controller.revealElapsedMs(3_200L))
         controller.beginStepPreview(RecognitionSceneStage.ORB_TO_NAME, 400L)
-        assertEquals(380L, controller.revealElapsedMs(400L))
-        assertEquals(465L, controller.revealElapsedMs(1_900L))
+        assertEquals(0L, controller.revealElapsedMs(400L))
+        assertEquals(85L, controller.revealElapsedMs(1_900L))
         controller.restartCurrentStage(500L)
-        assertEquals(380L, controller.revealElapsedMs(500L))
-        assertEquals(550L, controller.revealElapsedMs(3_500L))
+        assertEquals(0L, controller.revealElapsedMs(500L))
+        assertEquals(170L, controller.revealElapsedMs(3_500L))
 
         controller.beginStepPreview(RecognitionSceneStage.SPECIES_NAME_REVEAL, 600L)
-        assertEquals(550L, controller.revealElapsedMs(600L))
+        assertEquals(0L, controller.revealElapsedMs(600L))
         controller.beginStepPreview(RecognitionSceneStage.RESIDUE_SETTLE, 700L)
-        assertEquals(680L, controller.revealElapsedMs(700L))
-        assertEquals(850L, controller.revealElapsedMs(3_700L))
+        assertEquals(0L, controller.revealElapsedMs(700L))
+        assertEquals(170L, controller.revealElapsedMs(3_700L))
     }
 
     @Test fun geometryGateRecoversLateAndDoesNotOverrideUserPause() {

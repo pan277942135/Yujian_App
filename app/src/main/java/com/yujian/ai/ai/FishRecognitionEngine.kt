@@ -216,9 +216,15 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
     }
 
     private val interpreterLazy = lazy {
-        val buffer = ByteBuffer.allocateDirect(modelBytes.size).order(ByteOrder.nativeOrder())
-        buffer.put(modelBytes).rewind()
-        Interpreter(buffer, Interpreter.Options().apply { setNumThreads(4) })
+        try {
+            val buffer = ByteBuffer.allocateDirect(modelBytes.size).order(ByteOrder.nativeOrder())
+            buffer.put(modelBytes).rewind()
+            Interpreter(buffer, Interpreter.Options().apply { setNumThreads(4) })
+        } catch (failure: RecognitionStageFailureException) {
+            throw failure
+        } catch (error: Throwable) {
+            throw RecognitionStageFailureException(RecognitionFailureCode.MODEL_LOAD_FAILED, error)
+        }
     }
     private val interpreter get() = interpreterLazy.value
 

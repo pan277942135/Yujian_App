@@ -283,20 +283,19 @@ fun RecognitionAmbientField(
         if (lowPerformance) RecognitionQualityLevel.LITE else RecognitionQualityLevel.FULL,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
     photoTransform: RecognitionImageTransform? = null,
-    processingElapsedMs: Long = visualClockMs ?: 0L,
     includeEdgeField: Boolean = false,
     waterLightFrame: WaterLightFrame? = null,
 ) {
     if (waterLightFrame != null && !waterLightFrame.sceneFrame.isIdentityValid) return
     val nowMs = visualClockMs ?: 0L
-    val elapsedMs = (waterLightFrame?.opticalReferenceElapsedMs ?: processingElapsedMs).coerceAtLeast(0L)
+    val sceneFrame = waterLightFrame?.sceneFrame
     val scanFrame = if (reduceMotion) {
-        upwardCausticFrame(UpwardCausticSurgeCalibration.durationMs)
+        upwardCausticFrame(1f)
     } else {
-        upwardCausticFrame(elapsedMs)
+        sceneFrame?.let(::upwardCausticFrame) ?: upwardCausticFrame(0f)
     }
     val scanProgress = if (reduceMotion) 1f else scanFrame.progress
-    val spreadProgress = if (reduceMotion) 1f else effect01SpreadProgress(elapsedMs)
+    val spreadProgress = if (reduceMotion) 1f else sceneFrame?.let(::effect01SpreadProgress) ?: 0f
     val accumulator = remember(motionSessionKey) { EdgeFieldMotionAccumulator() }
     val cachedGeometry = remember(photoTransform?.photoContentRect) {
         photoTransform?.photoContentRect?.let(::buildOpticalPathCache)
@@ -352,7 +351,7 @@ fun RecognitionAmbientField(
         ).coerceIn(0f, 1f)
         val baseRevealPath = buildBottomUpRevealPath(fieldRect, baseMaskProgress)
         val scanRevealPath = buildBottomUpRevealPath(fieldRect, scanProgress)
-        val perimeterTimeline = processingEnvironmentStrength(elapsedMs) / 100f
+        val perimeterTimeline = sceneFrame?.let(::processingEnvironmentStrength)?.div(100f) ?: 0f
         val renderFrame = frame.copy(
             stateStrength = frame.stateStrength * Effect01NativeCalibration.intensity * perimeterTimeline,
         )

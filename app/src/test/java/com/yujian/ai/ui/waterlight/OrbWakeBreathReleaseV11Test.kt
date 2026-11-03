@@ -4,7 +4,6 @@ import com.yujian.ai.ui.waterlight.renderer.OrbGrassMotionProfileV11
 import com.yujian.ai.ui.waterlight.renderer.OrbFilamentPathMathV1
 import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
 import com.yujian.ai.ui.waterlight.renderer.OrbWakeBreathReleaseV11
-import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -13,37 +12,39 @@ import org.junit.Test
 import kotlin.math.abs
 
 class OrbWakeBreathReleaseV11Test {
-    @Test fun wakeAndS1ToS2EnvelopesUseFrozenOpticalTimes() {
-        assertEquals(0f, OrbWakeBreathReleaseV11.wake(0L).optics, 0f)
-        assertEquals(0f, OrbWakeBreathReleaseV11.wake(79L).optics, 0f)
-        assertEquals(0f, OrbWakeBreathReleaseV11.wake(80L).optics, 0f)
-        assertTrue(OrbWakeBreathReleaseV11.wake(81L).optics > 0f)
-        assertEquals(0f, OrbWakeBreathReleaseV11.wake(219L).waterCore, 0f)
-        assertEquals(0f, OrbWakeBreathReleaseV11.wake(219L).grassLight, 0f)
-        assertEquals(0f, OrbWakeBreathReleaseV11.wake(220L).waterCore, 0f)
-        assertEquals(1f, OrbWakeBreathReleaseV11.wake(350L).optics, 0f)
-        assertEquals(1f, OrbWakeBreathReleaseV11.wake(350L).waterCore, 0f)
-        assertEquals(1f, OrbWakeBreathReleaseV11.wake(350L).grassLight, 0f)
-        assertEquals(0f, OrbWakeBreathReleaseV11.s2Progress(0L), 0f)
-        assertTrue(OrbWakeBreathReleaseV11.s2Progress(350L) > .85f)
-        assertEquals(1f, OrbWakeBreathReleaseV11.s2Progress(450L), 0f)
+    @Test fun wakeAndS1ToS2EnvelopesUseSemanticStageProgress() {
+        assertEquals(0f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.PHOTO_STABLE, 1f).optics, 0f)
+        assertEquals(0f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, 0f).optics, 0f)
+        assertTrue(OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, .24f).optics > 0f)
+        assertEquals(0f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, .62f).waterCore, 0f)
+        assertTrue(OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, .64f).grassLight > 0f)
+        assertEquals(1f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, 1f).optics, 0f)
+        assertEquals(1f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, 1f).waterCore, 0f)
+        assertEquals(1f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_RELEASE, 0f).grassLight, 0f)
+        assertEquals(0f, OrbWakeBreathReleaseV11.s2Progress(RecognitionSceneStage.PHOTO_STABLE, 1f), 0f)
+        assertTrue(OrbWakeBreathReleaseV11.s2Progress(RecognitionSceneStage.ORB_WAKE, .5f) in 0f..1f)
+        assertEquals(1f, OrbWakeBreathReleaseV11.s2Progress(RecognitionSceneStage.ORB_RELEASE, 1f), 0f)
     }
 
-    @Test fun breathIsSceneClockedAndUsesFrozenS1AndS2Profiles() {
-        val s1Quarter = OrbWakeBreathReleaseV11.breathScale(1500L, 0L, false)
-        val s2Quarter = OrbWakeBreathReleaseV11.breathScale(1200L, 450L, false)
+    @Test fun breathUsesOneSceneClockAcrossStageChangesAndFrozenProfiles() {
+        val s1Quarter = OrbWakeBreathReleaseV11.breathScale(1500L, RecognitionSceneStage.ORB_WAKE, 0f, false)
+        val s2Quarter = OrbWakeBreathReleaseV11.breathScale(1200L, RecognitionSceneStage.ORB_RELEASE, 1f / 6f, false)
         assertEquals(1.008f, s1Quarter, .00001f)
         assertEquals(1.018f, s2Quarter, .00001f)
-        assertEquals(1f, OrbWakeBreathReleaseV11.breathScale(1500L, 0L, true), 0f)
+        assertEquals(1f, OrbWakeBreathReleaseV11.breathScale(
+            1500L, RecognitionSceneStage.ORB_WAKE, 0f, true,
+        ), 0f)
         // A MANUAL pause holds the shared scene timestamp; resuming from that timestamp
         // and changing the recognition stage do not start a new breathing cycle at zero.
-        val beforePause = OrbWakeBreathReleaseV11.breathScale(7137L, 450L, false)
-        val resumedFromSameClock = OrbWakeBreathReleaseV11.breathScale(7137L, 450L, false)
-        val afterStageSwitch = OrbWakeBreathReleaseV11.breathScale(7137L, 620L, false)
+        val beforePause = OrbWakeBreathReleaseV11.breathScale(7137L, RecognitionSceneStage.ORB_WAKE, 1f, false)
+        val resumedFromSameClock = OrbWakeBreathReleaseV11.breathScale(7137L, RecognitionSceneStage.ORB_WAKE, 1f, false)
+        val afterStageSwitch = OrbWakeBreathReleaseV11.breathScale(7137L, RecognitionSceneStage.ORB_RELEASE, 0f, false)
         assertEquals(beforePause, resumedFromSameClock, 0f)
         assertEquals(beforePause, afterStageSwitch, 0f)
         assertTrue(abs(beforePause - 1f) > .001f)
-        assertTrue(abs(OrbWakeBreathReleaseV11.breathScale(7138L, 620L, false) - beforePause) > 0f)
+        assertTrue(abs(OrbWakeBreathReleaseV11.breathScale(
+            7138L, RecognitionSceneStage.ORB_RELEASE, 0f, false,
+        ) - beforePause) > 0f)
         assertTrue(abs(s2Quarter - s1Quarter) > .009f)
     }
 
@@ -77,25 +78,33 @@ class OrbWakeBreathReleaseV11Test {
         assertFalse(leaves[2].phaseDegrees == leaves[3].phaseDegrees)
     }
 
-    @Test fun localReleaseTimelineDoesNotChangeRecognitionStageAndReturnsWithoutResettingScenePhase() {
-        assertEquals(OrbWakeBreathReleaseV11.LocalRelease.AMBIENT,
-            OrbWakeBreathReleaseV11.localRelease(349L))
-        assertEquals(OrbWakeBreathReleaseV11.LocalRelease.OUTWARD,
-            OrbWakeBreathReleaseV11.localRelease(350L))
-        assertEquals(OrbWakeBreathReleaseV11.LocalRelease.OUTWARD,
-            OrbWakeBreathReleaseV11.localRelease(450L))
-        assertEquals(OrbWakeBreathReleaseV11.LocalRelease.RETURN,
-            OrbWakeBreathReleaseV11.localRelease(690L))
-        assertEquals(OrbWakeBreathReleaseV11.LocalRelease.AMBIENT,
-            OrbWakeBreathReleaseV11.localRelease(950L))
+    @Test fun orbReleaseCurveUsesStageLocalProgressAndReturnsWithoutResettingScenePhase() {
         val pathLengthD = .7f
         val diameterDp = 80f
         val peakArcFraction = OrbWakeBreathReleaseV11.R06_MAX_EXTENSION_DP / (pathLengthD * diameterDp)
-        assertEquals(0f, OrbWakeBreathReleaseV11.releaseOffset(350L, peakArcFraction), 0f)
-        assertEquals(peakArcFraction, OrbWakeBreathReleaseV11.releaseOffset(690L, peakArcFraction), .0001f)
-        assertEquals(peakArcFraction * .5f, OrbWakeBreathReleaseV11.releaseOffset(820L, peakArcFraction), .0001f)
-        assertEquals(0f, OrbWakeBreathReleaseV11.releaseOffset(950L, peakArcFraction), 0f)
-        assertEquals(.5f, OrbWakeBreathReleaseV11.returnDirectionProgress(820L), .0001f)
+        val turnProgress = 34f / 60f
+        val halfReturnProgress = turnProgress + (1f - turnProgress) * .5f
+        assertEquals(OrbWakeBreathReleaseV11.LocalRelease.AMBIENT,
+            OrbWakeBreathReleaseV11.localRelease(RecognitionSceneStage.ORB_WAKE, 1f))
+        assertEquals(OrbWakeBreathReleaseV11.LocalRelease.OUTWARD,
+            OrbWakeBreathReleaseV11.localRelease(RecognitionSceneStage.ORB_RELEASE, .25f))
+        assertEquals(OrbWakeBreathReleaseV11.LocalRelease.RETURN,
+            OrbWakeBreathReleaseV11.localRelease(RecognitionSceneStage.ORB_RELEASE, .75f))
+        assertEquals(0f, OrbWakeBreathReleaseV11.releaseOffset(
+            RecognitionSceneStage.ORB_RELEASE, 0f, peakArcFraction,
+        ), 0f)
+        assertEquals(peakArcFraction, OrbWakeBreathReleaseV11.releaseOffset(
+            RecognitionSceneStage.ORB_RELEASE, turnProgress, peakArcFraction,
+        ), .0001f)
+        assertEquals(peakArcFraction * .5f, OrbWakeBreathReleaseV11.releaseOffset(
+            RecognitionSceneStage.ORB_RELEASE, halfReturnProgress, peakArcFraction,
+        ), .0001f)
+        assertEquals(0f, OrbWakeBreathReleaseV11.releaseOffset(
+            RecognitionSceneStage.ORB_RELEASE, 1f, peakArcFraction,
+        ), 0f)
+        assertEquals(.5f, OrbWakeBreathReleaseV11.returnDirectionProgress(
+            RecognitionSceneStage.ORB_RELEASE, halfReturnProgress,
+        ), .0001f)
         assertEquals(1.28f, OrbWakeBreathReleaseV11.R06_ALPHA_GAIN, 0f)
         assertEquals(.82f, OrbWakeBreathReleaseV11.R06_ALPHA_CAP, 0f)
         assertEquals(1.15f, OrbWakeBreathReleaseV11.R06_MOVING_HIGHLIGHT_GAIN, 0f)
@@ -103,16 +112,31 @@ class OrbWakeBreathReleaseV11Test {
         assertEquals(14f, OrbWakeBreathReleaseV11.R06_MAX_EXTENSION_DP, 0f)
         assertEquals(5, OrbRuntimeProfileV1.paths.size)
         assertEquals(listOf("G01", "G02", "A01", "A02", "C01"), OrbRuntimeProfileV1.paths.map { it.id })
-        assertEquals(RecognitionSceneStage.ORB_RELEASE, RecognitionSceneCoordinator.stageAt(350L))
-        assertEquals(RecognitionSceneStage.ORB_RETURN, RecognitionSceneCoordinator.stageAt(2800L))
+        assertEquals(OrbWakeBreathReleaseV11.LocalRelease.OUTWARD,
+            OrbWakeBreathReleaseV11.localRelease(RecognitionSceneStage.ORB_RELEASE, .25f))
+        assertEquals(OrbWakeBreathReleaseV11.LocalRelease.RETURN,
+            OrbWakeBreathReleaseV11.localRelease(RecognitionSceneStage.ORB_RELEASE, .75f))
+        assertEquals(1f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, 1f).optics, 0f)
+        assertEquals(1f, OrbWakeBreathReleaseV11.s2Progress(RecognitionSceneStage.ORB_RETURN, 0f), 0f)
 
         val spec = OrbRuntimeProfileV1.paths.first()
-        val before = OrbFilamentPathMathV1.localReleaseMovement(spec, 5000L, 349L, false, pathLengthD, diameterDp)
-        val start = OrbFilamentPathMathV1.localReleaseMovement(spec, 5000L, 350L, false, pathLengthD, diameterDp)
-        val returnStart = OrbFilamentPathMathV1.localReleaseMovement(spec, 5000L, 690L, false, pathLengthD, diameterDp)
-        val end = OrbFilamentPathMathV1.localReleaseMovement(spec, 8000L, 950L, false, pathLengthD, diameterDp)
+        val before = OrbFilamentPathMathV1.localReleaseMovementForStage(
+            spec, 5000L, RecognitionSceneStage.ORB_WAKE, 1f, false, pathLengthD, diameterDp,
+        )
+        val start = OrbFilamentPathMathV1.localReleaseMovementForStage(
+            spec, 5000L, RecognitionSceneStage.ORB_RELEASE, 0f, false, pathLengthD, diameterDp,
+        )
+        val outward = OrbFilamentPathMathV1.localReleaseMovementForStage(
+            spec, 5000L, RecognitionSceneStage.ORB_RELEASE, .25f, false, pathLengthD, diameterDp,
+        )
+        val returnStart = OrbFilamentPathMathV1.localReleaseMovementForStage(
+            spec, 5000L, RecognitionSceneStage.ORB_RELEASE, turnProgress, false, pathLengthD, diameterDp,
+        )
+        val end = OrbFilamentPathMathV1.localReleaseMovementForStage(
+            spec, 8000L, RecognitionSceneStage.ORB_RELEASE, 1f, false, pathLengthD, diameterDp,
+        )
         assertEquals(before.u, start.u, .0001f)
-        assertTrue(returnStart.u > start.u)
+        assertTrue(returnStart.u > outward.u && outward.u > start.u)
         assertTrue(abs(end.unclampedU - OrbFilamentPathMathV1.movement(
             spec, 8000L, false, OrbRuntimeProfileV1.MotionEvent.NONE, 0L,
         ).unclampedU) < .0001f)

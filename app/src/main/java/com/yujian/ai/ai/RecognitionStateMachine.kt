@@ -27,7 +27,22 @@ enum class RecognitionFailureCode {
     DETECTOR_FAILED,
     INVALID_CROP,
     CLASSIFIER_FAILED,
+    DETECTOR_TIMEOUT,
+    CLASSIFIER_TIMEOUT,
+    SLIMSAM_TIMEOUT,
+    MODEL_LOAD_FAILED,
+    MODEL_INFERENCE_FAILED,
+    NO_FISH_DETECTED,
+    MASK_UNTRUSTED,
+    INVALID_PHOTO_GEOMETRY,
+    CANCELLED,
+    STALE_ATTEMPT,
 }
+
+class RecognitionStageFailureException(
+    val failureCode: RecognitionFailureCode,
+    cause: Throwable,
+) : IllegalStateException("RECOGNITION_FAILURE_${failureCode.name}", cause)
 
 sealed interface RecognitionEvent {
     data object CaptureReady : RecognitionEvent

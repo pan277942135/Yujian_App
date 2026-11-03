@@ -160,10 +160,14 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                 val material = cache.material
                 val lut = cache.lut
                 if (!frame.reducedMotion) OrbFilamentPathMathV1.fillLut(spec, sceneMs, lut)
-                val localRelease = OrbWakeBreathReleaseV11.localRelease(opticalMs) != OrbWakeBreathReleaseV11.LocalRelease.AMBIENT
+                val sceneFrame = frame.sceneFrame
+                val localRelease = OrbWakeBreathReleaseV11.localRelease(
+                    sceneFrame.stage, sceneFrame.stageProgress,
+                ) != OrbWakeBreathReleaseV11.LocalRelease.AMBIENT
                 val move = when {
-                    localRelease -> OrbFilamentPathMathV1.localReleaseMovement(
-                        spec, sceneMs, opticalMs, frame.reducedMotion, lut.cumulativeD.last(), diameterDp,
+                    localRelease -> OrbFilamentPathMathV1.localReleaseMovementForStage(
+                        spec, sceneMs, sceneFrame.stage, sceneFrame.stageProgress,
+                        frame.reducedMotion, lut.cumulativeD.last(), diameterDp,
                     )
                     event != OrbRuntimeProfileV1.MotionEvent.NONE ->
                         OrbFilamentPathMathV1.movement(spec, opticalMs, frame.reducedMotion, event, eventStartMs)

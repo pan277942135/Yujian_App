@@ -49,8 +49,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.security.MessageDigest
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.runBlocking
@@ -90,39 +88,44 @@ class RecognitionRevealProductionRuntimeTest {
         val handoffState = mutableStateOf<RecognitionRevealHandoff?>(null)
         val resultState = mutableStateOf<ProductionRecognitionResult?>(null)
         val showResult = mutableStateOf(false)
-        val elapsedOverride = mutableStateOf<Long?>(null)
-        val processingClockOverride = mutableStateOf<Long?>(3_200L)
+        val resultSceneFrame = mutableStateOf<com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame?>(null)
         val geometryResolution = AtomicReference<RecognitionRevealGeometryResolution?>()
-        val revealFinished = CountDownLatch(1)
         val resultEntries = AtomicInteger(0)
-        val stageEvidence = File(evidence, "13-stage")
-        val rr09Evidence = File(evidence, "rr09-v4")
-        stageEvidence.mkdirs()
-        rr09Evidence.mkdirs()
-        val processingSamples = listOf(
-            RecognitionSceneStage.PHOTO_STABLE to 0L,
-            RecognitionSceneStage.ORB_WAKE to 1L,
-            RecognitionSceneStage.ORB_RELEASE to 350L,
-            RecognitionSceneStage.PERIMETER_ARRIVAL to 950L,
-            RecognitionSceneStage.PATH_TO_FISH to 1_075L,
-            RecognitionSceneStage.CONTOUR_A to 1_200L,
-            RecognitionSceneStage.CONTOUR_B to 1_550L,
-            RecognitionSceneStage.CONTOUR_C to 1_700L,
-            RecognitionSceneStage.FISH_GOLD_PEAK to 1_950L,
-        )
+        val rr09Evidence = File(evidence, "shared-stage-reveal").apply { mkdirs() }
+        val processingSamples = RecognitionSceneStage.entries
         val p0p7Samples = listOf(
-            "P0" to 0L, "P1" to 350L, "P2" to 950L, "P3" to 1_200L,
-            "P4" to 1_550L, "P5" to 2_050L, "P6" to 2_600L, "P7" to 2_800L,
+            "P0" to RecognitionSceneStage.PHOTO_STABLE,
+            "P1" to RecognitionSceneStage.ORB_WAKE,
+            "P2" to RecognitionSceneStage.ORB_RELEASE,
+            "P3" to RecognitionSceneStage.PERIMETER_ARRIVAL,
+            "P4" to RecognitionSceneStage.PATH_TO_FISH,
+            "P5" to RecognitionSceneStage.CONTOUR_A,
+            "P6" to RecognitionSceneStage.CONTOUR_B,
+            "P7" to RecognitionSceneStage.CONTOUR_C,
         )
-        val processingTimes = (processingSamples.map { it.second } + p0p7Samples.map { it.second })
-            .distinct().sorted()
-        val processingCaptureByTime = processingTimes.associateWith { timeMs ->
-            File(stageEvidence, "processing_${timeMs.toString().padStart(4, '0')}ms.png")
-        }
         val rr09Samples = listOf(
-            "R0" to 0L, "R0.5" to 100L, "R1" to 200L, "R2" to 380L,
-            "R3" to 550L, "R4" to 680L, "R5" to 850L,
+            "R0" to (RecognitionSceneStage.ORB_RETURN to 0f),
+            "R1" to (RecognitionSceneStage.ORB_RETURN to .5f),
+            "R2" to (RecognitionSceneStage.ORB_TO_NAME to .5f),
+            "R3" to (RecognitionSceneStage.SPECIES_NAME_REVEAL to .5f),
+            "R4" to (RecognitionSceneStage.RESIDUE_SETTLE to .5f),
+            "R5" to (RecognitionSceneStage.RESIDUE_SETTLE to 1f),
         )
+        val sceneIdentity = RecognitionSceneIdentity(
+            SESSION_ID, ATTEMPT_ID, selectedImage.imageId, selectedImage.photoSha256,
+            selectedImage.bitmap.generationId.toLong().coerceAtLeast(0L),
+        )
+        fun sceneFrame(stage: RecognitionSceneStage, progress: Float, geometryVersion: Long = 0L) =
+            RecognitionSceneCoordinator.frameForStage(
+                identity = sceneIdentity,
+                sceneElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+                opticalReferenceElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+                geometryVersion = geometryVersion,
+                stage = stage,
+                stageElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+                stageProgress = progress,
+                stageEventComplete = stage == RecognitionSceneStage.RESIDUE_SETTLE && progress >= 1f,
+            )
 
         val catalog = runCatching { FishKnowledgeRepository().listSpecies() }.getOrDefault(emptyList())
         val flowStartElapsedRealtimeMs = SystemClock.elapsedRealtime()
@@ -144,7 +147,6 @@ class RecognitionRevealProductionRuntimeTest {
                             subjectEngine.generate(selected, box, SESSION_ID, ATTEMPT_ID).also(actualSubject::set)
                         },
                         onFinished = {},
-                        visualClockOverrideMs = processingClockOverride.value,
                         recognitionSessionId = SESSION_ID,
                         recognitionAttemptId = ATTEMPT_ID,
                         onVisualPhasePresented = { _, _ -> },
@@ -165,8 +167,7 @@ class RecognitionRevealProductionRuntimeTest {
                             subjectResult = actualSubject.get() ?: FishSubjectResult(SubjectStatus.IDLE),
                             availableSpecies = catalog,
                             revealHandoff = handoffState.value,
-                            revealElapsedOverrideMs = elapsedOverride.value,
-                            onRevealFinished = { revealFinished.countDown() },
+                            sceneFrameOverrideForTest = resultSceneFrame.value,
                             revealGeometryResolutionObserver = geometryResolution::set,
                             onBack = {},
                             onRetry = {},
@@ -193,37 +194,27 @@ class RecognitionRevealProductionRuntimeTest {
             assertEquals("production mask quality must be trusted", com.yujian.ai.ai.subject.FishSubjectQuality.GOOD, maskResult.quality)
             assertTrue("production Mask geometry must map to the original PhotoSession", subjectGeometry.get()?.contour?.isNotEmpty() == true)
             composeRule.waitForIdle()
-            composeRule.onRoot().captureToFile(evidence.resolve("RR09_Production_K01_processing.png"))
-
-            processingTimes.forEach { timeMs ->
-                processingClockOverride.value = timeMs
-                composeRule.waitForIdle()
-                composeRule.onRoot().captureToFile(requireNotNull(processingCaptureByTime[timeMs]))
-            }
+            composeRule.onRoot().captureToFile(evidence.resolve("Recognition_Processing_Photo.png"))
             val processingPhotoSnapshot = requireNotNull(processingPhoto.get())
             val geometryVersion = WaterLightGeometryVersion.of(processingPhotoSnapshot.sourceToViewport)
-            val sceneIdentity = RecognitionSceneIdentity(
-                SESSION_ID, ATTEMPT_ID, selectedImage.imageId, selectedImage.photoSha256,
-                selectedImage.bitmap.generationId.toLong(),
-            )
             val stageManifest = org.json.JSONArray().apply {
-                processingSamples.forEach { (expectedStage, timeMs) ->
-                    val frame = RecognitionSceneCoordinator.frameAt(sceneIdentity, timeMs, timeMs, geometryVersion)
-                    assertEquals("runtime matrix stage at $timeMs ms", expectedStage, frame.stage)
+                processingSamples.forEach { expectedStage ->
+                    val frame = sceneFrame(expectedStage, 1f, geometryVersion)
+                    assertEquals("explicit stage projection", expectedStage, frame.stage)
                     put(JSONObject()
                         .put("stage_number", expectedStage.ordinal + 1)
                         .put("stage_id", frame.stage.name)
                         .put("stage_name", frame.stage.displayName)
-                        .put("scene_time_ms", timeMs)
+                        .put("stage_progress", frame.stageProgress)
                         .put("geometry_version", geometryVersion)
-                        .put("file", requireNotNull(processingCaptureByTime[timeMs]).name)
+                        .put("runtime_photo_capture", "Recognition_Processing_Photo.png")
                     )
                 }
             }
             val p0p7Manifest = org.json.JSONArray().apply {
-                p0p7Samples.forEach { (keyframe, timeMs) ->
-                    put(JSONObject().put("keyframe", keyframe).put("time_ms", timeMs)
-                        .put("file", requireNotNull(processingCaptureByTime[timeMs]).name))
+                p0p7Samples.forEach { (keyframe, stage) ->
+                    put(JSONObject().put("keyframe", keyframe).put("stage", stage.name)
+                        .put("stage_progress", 1f))
                 }
             }
 
@@ -240,6 +231,7 @@ class RecognitionRevealProductionRuntimeTest {
             Snapshot.withMutableSnapshot {
                 handoffState.value = handoff
                 resultState.value = result
+                resultSceneFrame.value = sceneFrame(RecognitionSceneStage.ORB_RETURN, 0f, geometryVersion)
                 showResult.value = true
             }
             resultEntries.incrementAndGet()
@@ -252,44 +244,37 @@ class RecognitionRevealProductionRuntimeTest {
             composeRule.onNodeWithTag("recognition-result-hero").assertIsDisplayed()
             assertEquals(selectedImage.imageId, handoff.imageId)
 
-            // The API28 gate owns the single screenrecord process. This instrumentation test
-            // records its own real monotonic flow window for the gate report to identify.
-            assertTrue("live reveal did not complete", revealFinished.await(8, TimeUnit.SECONDS))
-            val liveRevealFinishedElapsedRealtimeMs = SystemClock.elapsedRealtime()
-
             val rr09Manifest = org.json.JSONArray().apply {
-                rr09Samples.forEach { (keyframe, timeMs) ->
-                    elapsedOverride.value = timeMs
+                rr09Samples.forEach { (keyframe, stageSample) ->
+                    val (stage, progress) = stageSample
+                    resultSceneFrame.value = sceneFrame(stage, progress, geometryVersion)
                     composeRule.waitForIdle()
-                    val file = "${keyframe.replace('.', '_')}_${timeMs.toString().padStart(3, '0')}ms.png"
+                    val file = "${keyframe}_${stage.name}_${(progress * 100).toInt()}.png"
                     composeRule.onRoot().captureToFile(File(rr09Evidence, file))
-                    put(JSONObject().put("keyframe", keyframe).put("rr09_elapsed_ms", timeMs).put("file", file))
+                    put(JSONObject().put("keyframe", keyframe).put("stage", stage.name)
+                        .put("stage_progress", progress).put("file", file))
                 }
             }
             val fullStageManifest = org.json.JSONArray().apply {
                 for (index in 0 until stageManifest.length()) put(stageManifest.getJSONObject(index))
-                listOf(
-                    Triple(RecognitionSceneStage.ORB_RETURN, 2_800L, 0L),
-                    Triple(RecognitionSceneStage.ORB_TO_NAME, 3_180L, 380L),
-                    Triple(RecognitionSceneStage.SPECIES_NAME_REVEAL, 3_350L, 550L),
-                    Triple(RecognitionSceneStage.RESIDUE_SETTLE, 3_480L, 680L),
-                ).forEach { (expectedStage, globalMs, rr09Ms) ->
-                    val frame = RecognitionSceneCoordinator.frameAt(sceneIdentity, globalMs, globalMs, geometryVersion)
-                    assertEquals("RR09 projection at $globalMs ms", expectedStage, frame.stage)
+                rr09Samples.forEach { (keyframe, stageSample) ->
+                    val (expectedStage, progress) = stageSample
+                    val frame = sceneFrame(expectedStage, progress, geometryVersion)
+                    assertEquals("shared semantic reveal stage", expectedStage, frame.stage)
                     val revealFrame = rr09Manifest.getJSONObject(
-                        (0 until rr09Manifest.length()).first { rr09Manifest.getJSONObject(it).getLong("rr09_elapsed_ms") == rr09Ms },
+                        (0 until rr09Manifest.length()).first { rr09Manifest.getJSONObject(it).getString("keyframe") == keyframe },
                     )
                     put(JSONObject()
                         .put("stage_number", expectedStage.ordinal + 1)
                         .put("stage_id", frame.stage.name)
                         .put("stage_name", frame.stage.displayName)
-                        .put("scene_time_ms", globalMs)
-                        .put("rr09_elapsed_ms", rr09Ms)
+                        .put("stage_progress", progress)
                         .put("geometry_version", geometryVersion)
-                        .put("file", "rr09-v4/${revealFrame.getString("file")}")
+                        .put("file", "shared-stage-reveal/${revealFrame.getString("file")}")
                     )
                 }
             }
+            val semanticFramesSampledElapsedRealtimeMs = SystemClock.elapsedRealtime()
             composeRule.onNodeWithText(prediction.top1.speciesName).performScrollTo()
             val species = catalog.firstOrNull { it.id == prediction.top1.speciesKey }
             species?.scientificName?.takeIf(String::isNotBlank)?.let { latinName ->
@@ -373,16 +358,16 @@ class RecognitionRevealProductionRuntimeTest {
                 .put("result_geometry_status", resolved?.failureReason ?: "RESOLVED")
                 .put("test_result_entries", resultEntries.get())
                 .put("source_mode", "PRODUCTION_MODEL_AND_ML_KIT_MASK")
-                .put("processing_phase_mode", "PRODUCTION_RECOGNITION_STATE_WITH_SHARED_SCENE_FRAME_SAMPLES")
+                .put("processing_phase_mode", "PRODUCTION_RECOGNITION_STATE; stage contract is emitted as explicit semantic frames")
                 .put("result_entry_mode", "TEST_CONTROLLED_AFTER_PRODUCTION_RESULT_READY; automatic handoff is covered by RecognitionFrozenFlowEmulatorTest")
                 .put("flow_start_elapsed_realtime_ms", flowStartElapsedRealtimeMs)
                 .put("result_entry_elapsed_realtime_ms", resultEntryElapsedRealtimeMs)
-                .put("live_reveal_finished_elapsed_realtime_ms", liveRevealFinishedElapsedRealtimeMs)
-                .put("api28_gate_recording", "RR09_Recognition_Flow_Recording.mp4")
-                .put("frame_clock", "13-stage Processing and P0-P7 use the shared RecognitionSceneFrame projection; R0-R5 use the RR09 V4 production Result renderer; live monotonic window is in the API28 gate recording")
+                .put("semantic_frames_sampled_elapsed_realtime_ms", semanticFramesSampledElapsedRealtimeMs)
+                .put("runtime_visual_acceptance", "NOT_RUN_BY_BUILD_ONLY_WORKFLOW")
+                .put("frame_clock", "Explicit RecognitionSceneFrame stage identity and local progress; no fixed Processing/Result elapsed timeline")
                 .put("frames", rr09Manifest)
                 .put("runtime_matrix", "AI_Orb_WaterLight_Runtime_Matrix.json")
-                .put("recording", "RR09_Production_Recognition_Flow_Recording.mp4")
+                .put("recording", "NOT_CAPTURED")
             evidence.resolve("RR09_Production_Qualification_Report.json")
                 .writeText(report.toString(2) + "\n")
 

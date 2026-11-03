@@ -34,6 +34,8 @@ import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 
 internal fun recognitionMaskContourEnabled(
     phase: RecognitionPhase,
@@ -55,22 +57,20 @@ internal fun recognitionDisplayedFishFocusLevel(
     else -> RecognitionFishFocusLevel.B
 }
 
-private fun smoothFraction(value: Float): Float {
-    val t = value.coerceIn(0f, 1f)
-    return t * t * (3f - 2f * t)
-}
-
-internal fun recognitionFishGoldStrength(elapsedMs: Long, reduceMotion: Boolean = false): Float {
+internal fun recognitionFishGoldStrength(scene: RecognitionSceneFrame, reduceMotion: Boolean = false): Float {
     if (reduceMotion) return 0.18f
-    val t = elapsedMs.coerceAtLeast(0L)
-    val keys = longArrayOf(0L, 350L, 950L, 1_200L, 1_550L, 2_050L, 2_600L, 2_800L)
-    val values = floatArrayOf(0f, 0f, .15f, .45f, 1f, 1f, 1f, 1f)
-    if (t <= keys.first()) return values.first()
-    val upper = keys.indexOfFirst { it >= t }.let { if (it < 0) keys.lastIndex else it }
-    if (upper == 0) return values[0]
-    val lower = upper - 1
-    val p = smoothFraction((t - keys[lower]).toFloat() / (keys[upper] - keys[lower]).toFloat())
-    return values[lower] + (values[upper] - values[lower]) * p
+    val p = scene.stageProgress.coerceIn(0f, 1f)
+    return when (scene.stage) {
+        RecognitionSceneStage.CONTOUR_A -> .15f * p
+        RecognitionSceneStage.CONTOUR_B -> .15f + .30f * p
+        RecognitionSceneStage.CONTOUR_C -> .45f + .55f * p
+        RecognitionSceneStage.FISH_GOLD_PEAK,
+        RecognitionSceneStage.ORB_RETURN,
+        RecognitionSceneStage.ORB_TO_NAME,
+        RecognitionSceneStage.SPECIES_NAME_REVEAL,
+        RecognitionSceneStage.RESIDUE_SETTLE -> 1f
+        else -> 0f
+    }
 }
 
 /** Web-derived contour values are Android calibration candidates, not frozen device values. */
@@ -90,8 +90,6 @@ internal object RecognitionContourMaterialCandidate {
     )
 }
 
-internal const val RECOGNITION_MASK_CONTOUR_REVEAL_MS = 750L
-
 internal fun recognitionMaskAcceptanceOpen(phase: RecognitionPhase): Boolean = when (phase) {
     RecognitionPhase.CAPTURED,
     RecognitionPhase.DETECTING,
@@ -102,34 +100,113 @@ internal fun recognitionMaskAcceptanceOpen(phase: RecognitionPhase): Boolean = w
 }
 
 internal fun recognitionMaskContourRevealProgress(
-    processingElapsedMs: Long,
-    revealStartedAtMs: Long?,
+    stage: RecognitionSceneStage,
+    stageProgress: Float,
+    trustedMask: Boolean,
     reduceMotion: Boolean = false,
 ): Float {
+    if (!trustedMask) return 0f
     if (reduceMotion) return 1f
-    val start = revealStartedAtMs ?: return 0f
-    val elapsed = (processingElapsedMs - start).coerceAtLeast(0L)
-    return smoothFraction(elapsed.toFloat() / RECOGNITION_MASK_CONTOUR_REVEAL_MS)
+    val p = stageProgress.coerceIn(0f, 1f)
+    return when (stage) {
+        RecognitionSceneStage.CONTOUR_A -> p / 3f
+        RecognitionSceneStage.CONTOUR_B -> 1f / 3f + p / 3f
+        RecognitionSceneStage.CONTOUR_C -> 2f / 3f + p / 3f
+        RecognitionSceneStage.FISH_GOLD_PEAK,
+        RecognitionSceneStage.ORB_RETURN,
+        RecognitionSceneStage.ORB_TO_NAME,
+        RecognitionSceneStage.SPECIES_NAME_REVEAL,
+        RecognitionSceneStage.RESIDUE_SETTLE -> 1f
+        else -> 0f
+    }.coerceIn(0f, 1f)
 }
 
 internal const val FISH_FOCUS_A_PROMOTION_DELAY_MS = 420L
 
 /** Reveal every closed island in the trusted mask, including fins separated by the raster grid. */
 internal fun revealedRecognitionContour(path: AndroidPath, progress: Float): AndroidPath {
-    val out = AndroidPath()
-    val fraction = progress.coerceIn(0f, 1f)
-    if (fraction <= 0f) return out
-    val measure = AndroidPathMeasure(path, false)
-    var total = 0f
-    do { total += measure.length } while (measure.nextContour())
-    var remaining = total * fraction
-    measure.setPath(path, false)
-    do {
-        val length = measure.length
-        if (remaining > 0f && length > 0f) measure.getSegment(0f, remaining.coerceAtMost(length), out, true)
-        remaining -= length
-    } while (remaining > 0f && measure.nextContour())
-    return out
+    val cache = RecognitionContourPathCache(path.asComposePath())
+    return cache.reveal(progress).asAndroidPath()
+}
+
+/** Reuses Android paths and PathMeasure for each frame of the trusted contour reveal. */
+internal class RecognitionContourPathCache(fullPath: Path) {
+    private val sourceComposePath = fullPath
+    private val sourcePath = fullPath.asAndroidPath()
+    private val revealPath: Path = AndroidPath().asComposePath()
+    private val revealAndroidPath = revealPath.asAndroidPath()
+    private val glintPath: Path = AndroidPath().asComposePath()
+    private val glintAndroidPath = glintPath.asAndroidPath()
+    private val measure = AndroidPathMeasure()
+    private val contourLengthScratch = ArrayList<Float>(4)
+    private val sourceContourLengths = measureAllContours(sourcePath).toList()
+    private val sourceLength = sourceContourLengths.sum()
+
+    fun reveal(progress: Float): Path {
+        revealAndroidPath.reset()
+        var remaining = sourceLength * progress.coerceIn(0f, 1f)
+        if (remaining <= 0f) return revealPath
+        measure.setPath(sourcePath, false)
+        var contourIndex = 0
+        do {
+            val contourLength = sourceContourLengths.getOrElse(contourIndex) { measure.length }
+            if (remaining > 0f && contourLength > 0f) {
+                measure.getSegment(0f, remaining.coerceAtMost(contourLength), revealAndroidPath, true)
+            }
+            remaining -= contourLength
+            contourIndex++
+        } while (remaining > 0f && measure.nextContour())
+        return revealPath
+    }
+
+    fun glint(displayPath: Path, progress: Float, arcRatio: Float): Path {
+        glintAndroidPath.reset()
+        val androidPath = when {
+            displayPath === sourceComposePath -> sourcePath
+            displayPath === revealPath -> revealAndroidPath
+            else -> displayPath.asAndroidPath()
+        }
+        measureAllContours(androidPath, contourLengthScratch)
+        val totalLength = contourLengthScratch.sum()
+        if (totalLength <= 1f) return glintPath
+
+        val start = progress.coerceIn(0f, 1f) * totalLength
+        val arcLength = arcRatio.coerceIn(0f, 1f) * totalLength
+        val end = start + arcLength
+        appendRange(androidPath, contourLengthScratch, start, minOf(end, totalLength), glintAndroidPath)
+        if (end > totalLength) appendRange(androidPath, contourLengthScratch, 0f, end - totalLength, glintAndroidPath)
+        return glintPath
+    }
+
+    private fun measureAllContours(path: AndroidPath): List<Float> =
+        measureAllContours(path, ArrayList(4))
+
+    private fun measureAllContours(path: AndroidPath, lengths: ArrayList<Float>) {
+        lengths.clear()
+        measure.setPath(path, false)
+        do { lengths += measure.length } while (measure.nextContour())
+    }
+
+    private fun appendRange(
+        path: AndroidPath,
+        contourLengths: List<Float>,
+        rangeStart: Float,
+        rangeEnd: Float,
+        out: AndroidPath,
+    ) {
+        if (rangeEnd <= rangeStart) return
+        measure.setPath(path, false)
+        var consumed = 0f
+        var index = 0
+        do {
+            val length = contourLengths.getOrElse(index) { measure.length }
+            val localStart = (rangeStart - consumed).coerceAtLeast(0f)
+            val localEnd = (rangeEnd - consumed).coerceAtMost(length)
+            if (localEnd > localStart) measure.getSegment(localStart, localEnd, out, true)
+            consumed += length
+            index++
+        } while (consumed < rangeEnd && measure.nextContour())
+    }
 }
 
 data class RecognitionContourSegment(
@@ -216,6 +293,9 @@ fun RecognitionFishFocus(
             null
         }
     }
+    val contourPathCache = remember(cachedContourPath) {
+        cachedContourPath?.let(::RecognitionContourPathCache)
+    }
     val contourBlurPaints = remember { RecognitionBlurPaintCache() }
     val subjectImage = remember(subjectBitmap) { subjectBitmap.asImageBitmap() }
     val warmGoldMaskFilter = remember {
@@ -239,7 +319,7 @@ fun RecognitionFishFocus(
         // The contour path already reveals spatially through maskRevealProgress.
         // Multiplying the optical intensity by that progress a second time made
         // the trusted mask nearly invisible during the reveal.
-        val timelineGold = recognitionFishGoldStrength(opticalReferenceElapsedMs, reduceMotion)
+        val timelineGold = waterLightFrame?.sceneFrame?.let { recognitionFishGoldStrength(it, reduceMotion) } ?: 0f
         val eventMatches = energyEvent?.let { event -> waterLightFrame?.let(event::matches) } == true
         val goldStrength = if (!eventMatches) timelineGold else when (energyEvent?.feedback) {
             EnergyFeedback.RETURN -> timelineGold * (1f - .72f * energyEvent.level.coerceIn(0f, 1f))
@@ -257,7 +337,7 @@ fun RecognitionFishFocus(
             val haloWidth = (fishAxis * .05f).coerceIn(12f, 28f)
             val growthProgress = maskRevealProgress.coerceIn(0f, 1f)
             val pathToDraw = if (growthProgress >= .999f) realContour else if (growthProgress <= .001f) null else {
-                revealedRecognitionContour(realContour.asAndroidPath(), growthProgress).asComposePath()
+                contourPathCache?.reveal(growthProgress)
             }
             val coreAlpha = (.58f * goldStrength).coerceIn(0f, .70f)
             val softGlowAlpha = (.25f * goldStrength).coerceIn(0f, .32f)
@@ -357,13 +437,13 @@ fun RecognitionFishFocus(
                     val glintProgress = (opticalReferenceElapsedMs.coerceAtLeast(0L) %
                         RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS).toFloat() /
                         RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS
-                    val glintPath = recognitionContourGlintPath(
-                        pathToDraw.asAndroidPath(),
+                    val glintPath = requireNotNull(contourPathCache).glint(
+                        pathToDraw,
                         glintProgress,
                         RecognitionContourMaterialCandidate.GOLD_GLINT_ARC_RATIO,
                     )
                     if (!glintPath.isEmpty) drawPath(
-                        glintPath.asComposePath(),
+                        glintPath,
                         Color(RecognitionContourMaterialCandidate.GOLD_GLINT_COLOR).copy(
                             alpha = coreAlpha * RecognitionContourMaterialCandidate.GOLD_GLINT_INTENSITY,
                         ),
@@ -384,38 +464,9 @@ internal fun recognitionContourGlintPath(
     progress: Float,
     arcRatio: Float,
 ): AndroidPath {
-    val result = AndroidPath()
-    val measure = AndroidPathMeasure(path, false)
-    var totalLength = 0f
-    do {
-        totalLength += measure.length
-    } while (measure.nextContour())
-    if (totalLength <= 1f) return result
-
-    val start = (progress.coerceIn(0f, 1f) * totalLength).coerceIn(0f, totalLength)
-    val arcLength = (arcRatio.coerceIn(0f, 1f) * totalLength).coerceAtMost(totalLength)
-    val end = start + arcLength
-    appendRecognitionContourRange(path, start, minOf(end, totalLength), result)
-    if (end > totalLength) appendRecognitionContourRange(path, 0f, end - totalLength, result)
-    return result
-}
-
-private fun appendRecognitionContourRange(
-    path: AndroidPath,
-    rangeStart: Float,
-    rangeEnd: Float,
-    out: AndroidPath,
-) {
-    if (rangeEnd <= rangeStart) return
-    val measure = AndroidPathMeasure(path, false)
-    var consumed = 0f
-    do {
-        val contourLength = measure.length
-        val localStart = (rangeStart - consumed).coerceAtLeast(0f)
-        val localEnd = (rangeEnd - consumed).coerceAtMost(contourLength)
-        if (localEnd > localStart) measure.getSegment(localStart, localEnd, out, true)
-        consumed += contourLength
-    } while (consumed < rangeEnd && measure.nextContour())
+    return RecognitionContourPathCache(path.asComposePath()).glint(
+        displayPath = path.asComposePath(), progress = progress, arcRatio = arcRatio,
+    ).asAndroidPath()
 }
 
 private fun DrawScope.drawLocalContourBlur(

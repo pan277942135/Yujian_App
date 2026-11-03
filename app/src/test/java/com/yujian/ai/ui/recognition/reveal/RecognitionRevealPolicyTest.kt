@@ -7,6 +7,10 @@ import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -14,56 +18,55 @@ import org.junit.Test
 
 class RecognitionRevealPolicyTest {
     @Test
-    fun timelineHasFrozenBoundariesAndOneMonotonicProgression() {
+    fun sharedSemanticStagesDriveRevealWithoutAnAggregateTimeline() {
         val handoff = handoff()
         val policy = RecognitionRevealMotionPolicy()
 
-        assertEquals(RecognitionRevealPhase.PHOTO_CONTINUITY, frame(0, handoff, policy).phase)
-        assertEquals(0f, frame(0, handoff, policy).photoProgress, 0f)
-        assertEquals(RecognitionRevealPhase.PHOTO_CONTINUITY, frame(120, handoff, policy).phase)
-        assertTrue(frame(120, handoff, policy).photoProgress in 0f..1f)
-        assertEquals(0.5f, frame(100, handoff, policy).photoProgress, 0.0001f)
-        assertEquals(RecognitionRevealPhase.ORB_RETURN, frame(200, handoff, policy).phase)
-        assertEquals(0f, frame(200, handoff, policy).orbReturnProgress, 0f)
-        assertEquals(.5f, frame(290, handoff, policy).orbReturnProgress, .0001f)
-        assertEquals(RecognitionRevealClock.FULL_PARTICLE_LIMIT, frame(200, handoff, policy).visibleParticleCount)
-        assertEquals(RecognitionRevealPhase.ORB_RETURN, frame(379, handoff, policy).phase)
-        assertEquals(0, frame(380, handoff, policy).visibleParticleCount)
-        assertEquals(RecognitionRevealPhase.ORB_TO_NAME, frame(380, handoff, policy).phase)
-        assertEquals(0f, frame(380, handoff, policy).orbToNameProgress, 0f)
-        assertEquals(RecognitionRevealTitleMode.FORMING, frame(549, handoff, policy).titleMode)
-        assertEquals(RecognitionRevealPhase.SPECIES_NAME_REVEAL, frame(550, handoff, policy).phase)
-        assertEquals(RecognitionRevealTitleMode.REVEALING, frame(610, handoff, policy).titleMode)
-        assertEquals(RecognitionRevealPhase.RESIDUE_SETTLE, frame(680, handoff, policy).phase)
-        assertEquals(1f, frame(680, handoff, policy).afterglowAlpha, 0f)
-        assertEquals(RecognitionRevealTitleMode.VISIBLE, frame(680, handoff, policy).titleMode)
-        assertEquals(RecognitionRevealPhase.COMPLETE, frame(850, handoff, policy).phase)
-        assertEquals(0, frame(850, handoff, policy).visibleParticleCount)
-        assertFalse(frame(850, handoff, policy).drawOpticalLayer)
+        val returnStart = frame(RecognitionSceneStage.ORB_RETURN, 0f, handoff, policy)
+        assertEquals(RecognitionRevealPhase.ORB_RETURN, returnStart.phase)
+        assertEquals(0f, returnStart.photoProgress, 0f)
+        assertEquals(RecognitionRevealClock.FULL_PARTICLE_LIMIT, returnStart.visibleParticleCount)
+        val returnMiddle = frame(RecognitionSceneStage.ORB_RETURN, .5f, handoff, policy)
+        assertEquals(.5f, returnMiddle.photoProgress, .0001f)
+        assertEquals(.5f, returnMiddle.orbReturnProgress, .0001f)
+
+        val toName = frame(RecognitionSceneStage.ORB_TO_NAME, .5f, handoff, policy)
+        assertEquals(RecognitionRevealPhase.ORB_TO_NAME, toName.phase)
+        assertEquals(RecognitionRevealTitleMode.FORMING, toName.titleMode)
+        assertEquals(.5f, toName.orbToNameProgress, .0001f)
+        val species = frame(RecognitionSceneStage.SPECIES_NAME_REVEAL, .5f, handoff, policy)
+        assertEquals(RecognitionRevealPhase.SPECIES_NAME_REVEAL, species.phase)
+        assertEquals(RecognitionRevealTitleMode.REVEALING, species.titleMode)
+        val residue = frame(RecognitionSceneStage.RESIDUE_SETTLE, .5f, handoff, policy)
+        assertEquals(RecognitionRevealPhase.RESIDUE_SETTLE, residue.phase)
+        assertEquals(.5f, residue.afterglowAlpha, .0001f)
+        assertTrue(residue.drawOpticalLayer)
+        val settled = frame(RecognitionSceneStage.RESIDUE_SETTLE, 1f, handoff, policy, stageEventComplete = true)
+        assertEquals(RecognitionRevealPhase.COMPLETE, settled.phase)
+        assertFalse(settled.drawOpticalLayer)
     }
 
     @Test
     fun orbOnlyFallbackKeepsItsReturnAndResidueOpticsWithoutFishGold() {
         val titleOnly = handoff(RecognitionRevealEligibility.TITLE_FADE_ONLY)
-        val titleFrame = frame(120, titleOnly, RecognitionRevealMotionPolicy())
+        val titleFrame = frame(RecognitionSceneStage.ORB_RETURN, .5f, titleOnly, RecognitionRevealMotionPolicy())
         assertTrue(titleFrame.fallback)
         assertEquals(0, titleFrame.visibleParticleCount)
         assertEquals(RecognitionRevealTitleMode.HIDDEN, titleFrame.titleMode)
-        assertEquals(RecognitionRevealTitleMode.FORMING, frame(400, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
-        assertEquals(RecognitionRevealTitleMode.REVEALING, frame(600, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
-        assertTrue(frame(200L, titleOnly, RecognitionRevealMotionPolicy()).visibleParticleCount > 0)
-        assertTrue(frame(680L, titleOnly, RecognitionRevealMotionPolicy()).afterglowAlpha > 0f)
-        assertTrue(frame(849L, titleOnly, RecognitionRevealMotionPolicy()).drawOpticalLayer)
-        assertTrue(frame(849L, titleOnly, RecognitionRevealMotionPolicy()).afterglowAlpha > 0f)
-        assertEquals(0f, frame(850L, titleOnly, RecognitionRevealMotionPolicy()).afterglowAlpha, 0f)
-        listOf(200L, 379L, 380L, 549L, 550L, 679L, 680L, 849L).forEach { elapsed ->
-            assertTrue("Orb-only optics must remain active through RR09 at ${elapsed}ms",
-                frame(elapsed, titleOnly, RecognitionRevealMotionPolicy()).drawOpticalLayer)
-        }
-        assertFalse(frame(850L, titleOnly, RecognitionRevealMotionPolicy()).drawOpticalLayer)
+        assertEquals(RecognitionRevealTitleMode.FORMING,
+            frame(RecognitionSceneStage.ORB_TO_NAME, .5f, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
+        assertEquals(RecognitionRevealTitleMode.REVEALING,
+            frame(RecognitionSceneStage.SPECIES_NAME_REVEAL, .5f, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
+        val residue = frame(RecognitionSceneStage.RESIDUE_SETTLE, .5f, titleOnly, RecognitionRevealMotionPolicy())
+        assertTrue(residue.drawOpticalLayer)
+        assertTrue(residue.afterglowAlpha > 0f)
+        val settled = frame(RecognitionSceneStage.RESIDUE_SETTLE, 1f, titleOnly,
+            RecognitionRevealMotionPolicy(), stageEventComplete = true)
+        assertEquals(0f, settled.afterglowAlpha, 0f)
+        assertFalse(settled.drawOpticalLayer)
 
         val nonHigh = handoff(RecognitionRevealEligibility.PHOTO_ONLY)
-        val nonHighFrame = frame(290, nonHigh, RecognitionRevealMotionPolicy())
+        val nonHighFrame = frame(RecognitionSceneStage.ORB_RETURN, .5f, nonHigh, RecognitionRevealMotionPolicy())
         assertEquals(1f, nonHighFrame.photoProgress, 0f)
         assertEquals(0f, nonHighFrame.transferProgress, 0f)
         assertEquals(0, nonHighFrame.visibleParticleCount)
@@ -74,14 +77,14 @@ class RecognitionRevealPolicyTest {
     @Test
     fun reduceMotionIsImmediateAndLowPerformanceRespectsParticleBudget() {
         val full = handoff()
-        val reduced = frame(290, full, RecognitionRevealMotionPolicy(reduceMotion = true))
+        val reduced = frame(RecognitionSceneStage.ORB_RETURN, .5f, full, RecognitionRevealMotionPolicy(reduceMotion = true))
         assertFalse(reduced.drawOpticalLayer)
         assertEquals(0, reduced.visibleParticleCount)
         assertEquals(RecognitionRevealTitleMode.VISIBLE, reduced.titleMode)
         assertTrue(reduced.ctaEnabled)
 
-        val low = frame(290, full, RecognitionRevealMotionPolicy(lowPerformance = true))
-        val regular = frame(290, full, RecognitionRevealMotionPolicy())
+        val low = frame(RecognitionSceneStage.ORB_RETURN, .5f, full, RecognitionRevealMotionPolicy(lowPerformance = true))
+        val regular = frame(RecognitionSceneStage.ORB_RETURN, .5f, full, RecognitionRevealMotionPolicy())
         assertTrue(low.visibleParticleCount in 0..RecognitionRevealClock.LOW_PARTICLE_LIMIT)
         assertTrue(regular.visibleParticleCount in 0..RecognitionRevealClock.FULL_PARTICLE_LIMIT)
         assertTrue(low.ctaEnabled)
@@ -254,10 +257,27 @@ class RecognitionRevealPolicyTest {
     }
 
     private fun frame(
-        timeMs: Long,
+        stage: RecognitionSceneStage,
+        progress: Float,
         handoff: RecognitionRevealHandoff,
         policy: RecognitionRevealMotionPolicy,
-    ) = RecognitionRevealClock.evaluate(timeMs, handoff, policy)
+        stageEventComplete: Boolean = false,
+    ): RecognitionRevealFrame {
+        val frame = RecognitionSceneFrame(
+            identity = RecognitionSceneIdentity("session-a", "attempt-a", "image-a", "hash", 1L),
+            sceneElapsedMs = 60_000L,
+            opticalReferenceElapsedMs = 60_000L,
+            stage = stage,
+            stageElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+            stageProgress = progress,
+            playbackMode = ScenePlaybackMode.AUTO,
+            paused = false,
+            reducedMotion = policy.reduceMotion,
+            geometryVersion = 1L,
+            stageEventComplete = stageEventComplete,
+        )
+        return RecognitionRevealClock.evaluate(frame, handoff, policy)
+    }
 
     private fun handoff(
         eligibility: RecognitionRevealEligibility = RecognitionRevealEligibility.FULL_REVEAL,

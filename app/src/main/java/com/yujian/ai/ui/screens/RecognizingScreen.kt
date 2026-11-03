@@ -85,8 +85,12 @@ import com.yujian.ai.R
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.ProductionRecognitionResult
+import com.yujian.ai.ai.RecognitionAttemptDeadline
+import com.yujian.ai.ai.RecognitionAttemptFailureCode
+import com.yujian.ai.ai.RecognitionFailureCode
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ai.RecognitionProgress
+import com.yujian.ai.ai.RecognitionStageFailureException
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.SubjectStatus
@@ -100,6 +104,7 @@ import com.yujian.ai.ui.recognition.PhotoShockwaveTransform
 import com.yujian.ai.ui.recognition.RecognitionAmbientField
 import com.yujian.ai.ui.recognition.photoShockwaveTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
+import com.yujian.ai.ui.recognition.RecognitionMaskContourExtractor
 import com.yujian.ai.ui.recognition.RecognitionFishFocus
 import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
@@ -137,7 +142,6 @@ import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
 
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
-import com.yujian.ai.ui.recognition.RECOGNITION_MASK_CONTOUR_REVEAL_MS
 import com.yujian.ai.ui.recognition.recognitionMaskContourRevealProgress
 import com.yujian.ai.ui.recognition.reveal.RecognitionProcessingPhotoSnapshot
 import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
@@ -166,16 +170,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlin.math.min
-import java.util.ArrayDeque
-import java.util.LinkedHashSet
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt
 
-private const val OUTLINE_THRESHOLD = 36
-// Two-pixel sampling keeps the contour faithful to fins and tail. Rendering is
-// still bounded to three local path draws in RecognitionFishFocus.
-private const val OUTLINE_STRIDE = 2
 private const val LOG_TAG = "RecognitionProcessingScene"
 
 private fun recognitionMonotonicNowMs(): Long = SystemClock.uptimeMillis()
@@ -198,6 +195,7 @@ fun RecognizingScreen(
     onDiagnosticRevealRequested: ((ProductionRecognitionResult) -> String?)? = null,
     diagnosticReturnRevision: Int = 0,
     generateSubjectWithConfidence: (suspend (SelectedImage, NormalizedFishBox, Float) -> FishSubjectResult)? = null,
+    recognitionAttemptDeadline: RecognitionAttemptDeadline? = null,
 ) = RecognitionProcessingScene(
     image, onBack, recognize, generateSubject, onFinished, onFailure,
     phaseOverride, visualClockOverrideMs, motionPolicyOverride = motionPolicyOverride,
@@ -211,6 +209,7 @@ fun RecognizingScreen(
     onDiagnosticRevealRequested = onDiagnosticRevealRequested,
     diagnosticReturnRevision = diagnosticReturnRevision,
     generateSubjectWithConfidence = generateSubjectWithConfidence,
+    recognitionAttemptDeadline = recognitionAttemptDeadline,
 )
 
 /** Presentation-only shell: it never changes detector, crop, classifier, or result semantics. */
@@ -235,6 +234,7 @@ fun RecognitionProcessingScene(
     onDiagnosticRevealRequested: ((ProductionRecognitionResult) -> String?)? = null,
     diagnosticReturnRevision: Int = 0,
     generateSubjectWithConfidence: (suspend (SelectedImage, NormalizedFishBox, Float) -> FishSubjectResult)? = null,
+    recognitionAttemptDeadline: RecognitionAttemptDeadline? = null,
 ) {
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     val pageContext = LocalContext.current
@@ -260,6 +260,9 @@ fun RecognitionProcessingScene(
         recognitionAttemptId,
     ) {
         "${image?.imageId.orEmpty()}|${image?.photoSha256.orEmpty()}|${recognitionSessionId.orEmpty()}|${recognitionAttemptId.orEmpty()}"
+    }
+    val attemptDeadline = recognitionAttemptDeadline ?: remember(sceneKey) {
+        RecognitionAttemptDeadline(recognitionMonotonicNowMs())
     }
     var localDisplayMode by remember(sceneKey) {
         mutableStateOf(if (BuildConfig.DEBUG) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC else RecognitionProgressDisplayMode.NORMAL_PROGRESS)
@@ -288,7 +291,6 @@ fun RecognitionProcessingScene(
     var subjectBox by remember(sceneKey) { mutableStateOf<NormalizedFishBox?>(null) }
     var contour by remember(sceneKey) { mutableStateOf(emptyList<RecognitionContourSegment>()) }
     var trustedSubjectMask by remember(sceneKey) { mutableStateOf(false) }
-    var trustedMaskRevealStartedAtMs by remember(sceneKey) { mutableStateOf<Long?>(null) }
     var subjectResult by remember(sceneKey) { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
     var finishedResult by remember(sceneKey) { mutableStateOf<ProductionRecognitionResult?>(null) }
     var pipelineError by remember(sceneKey) { mutableStateOf<Throwable?>(null) }
@@ -411,24 +413,29 @@ fun RecognitionProcessingScene(
             "SLIMSAM_START session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
                 "image=${selected.imageId} sha256=${selected.photoSha256} bbox=${primary.box} uptime_ms=$startedAtMs",
         )
-        val result = try {
-            withTimeout(RECOGNITION_MODEL_WATCHDOG_MS) {
+                val result = try {
+            withTimeout(attemptDeadline.remainingMs(recognitionMonotonicNowMs())) {
                 generateSubjectWithConfidence?.invoke(selected, primary.box, primary.confidence)
                     ?: generateSubject?.invoke(selected, primary.box)
                     ?: return@withTimeout null
             }
         } catch (cancellation: CancellationException) {
             if (cancellation is TimeoutCancellationException) {
-                val timeout = IllegalStateException("SLIMSAM_WATCHDOG_TIMEOUT_${RECOGNITION_MODEL_WATCHDOG_MS}MS", cancellation)
-                Log.e(LOG_TAG, "MODEL_WATCHDOG_TIMEOUT stage=SLIMSAM session=${recognitionSessionId.orEmpty()} " +
-                    "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} timeout_ms=$RECOGNITION_MODEL_WATCHDOG_MS", timeout)
-                pipelineError = timeout
-                subjectResult = FishSubjectResult(SubjectStatus.FAILED, errorCode = "SLIMSAM_WATCHDOG_TIMEOUT")
-                controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs(), currentIdentity = sceneIdentity)
-                if (!manualStepDiagnosticState.value && !delivered) {
-                    delivered = true
-                    onFailure(timeout)
-                }
+                val failureCode = RecognitionAttemptFailureCode.SLIMSAM_TIMEOUT
+                val timeout = IllegalStateException(
+                    "RECOGNITION_ATTEMPT_DEADLINE_EXCEEDED_${failureCode}_" +
+                        "${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS}MS",
+                    cancellation,
+                )
+                Log.e(LOG_TAG, "ATTEMPT_DEADLINE_EXCEEDED stage=SLIMSAM session=${recognitionSessionId.orEmpty()} " +
+                    "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} " +
+                    "attempt_timeout_ms=${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS} remaining_ms=0 " +
+                    "failure_code=$failureCode", timeout)
+                subjectResult = FishSubjectResult(SubjectStatus.FAILED, errorCode = failureCode)
+                controller.onMaskTerminal(
+                    trusted = false, contourValid = false, contourClosed = false,
+                    failedTerminal = true, currentIdentity = sceneIdentity,
+                )
                 return@LaunchedEffect
             }
             Log.i(LOG_TAG, "SLIMSAM_CANCEL session=${recognitionSessionId.orEmpty()} image=${selected.imageId} duration_ms=${recognitionMonotonicNowMs() - startedAtMs}")
@@ -438,6 +445,22 @@ fun RecognitionProcessingScene(
             null
         }
         currentCoroutineContext().ensureActive()
+        if (attemptDeadline.isExpired(recognitionMonotonicNowMs())) {
+            val failureCode = RecognitionAttemptFailureCode.SLIMSAM_TIMEOUT
+            Log.e(
+                LOG_TAG,
+                "ATTEMPT_DEADLINE_EXCEEDED stage=SLIMSAM session=${recognitionSessionId.orEmpty()} " +
+                    "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} " +
+                    "attempt_timeout_ms=${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS} " +
+                    "failure_code=$failureCode late_native_return=true",
+            )
+            subjectResult = FishSubjectResult(SubjectStatus.FAILED, errorCode = failureCode)
+            controller.onMaskTerminal(
+                trusted = false, contourValid = false, contourClosed = false,
+                failedTerminal = true, currentIdentity = sceneIdentity,
+            )
+            return@LaunchedEffect
+        }
         Log.i(
             LOG_TAG,
             "SLIMSAM_END session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
@@ -544,13 +567,6 @@ fun RecognitionProcessingScene(
                 val acceptedAtMs = recognitionMonotonicNowMs()
                 latestPhotoPresentedAtMs?.let { photoStartMs ->
                     controller.onTrustedMaskAvailable(acceptedAtMs, sceneIdentity)
-                    if (trustedMaskRevealStartedAtMs == null) {
-                        trustedMaskRevealStartedAtMs = controller.opticalReferenceElapsedMs(
-                            acceptedAtMs,
-                            trustedMask = true,
-                            subjectTerminal = true,
-                        ).coerceAtLeast(1_200L)
-                    }
                     Log.i(
                         LOG_TAG,
                         "MASK_TRUSTED_ACCEPT session=${recognitionSessionId.orEmpty()} " +
@@ -646,11 +662,12 @@ fun RecognitionProcessingScene(
                 "image=${selected.imageId} sha256=${selected.photoSha256} uptime_ms=${recognitionMonotonicNowMs()}",
         )
         assessment = null
+        var activeModelTimeoutCode = RecognitionAttemptFailureCode.DETECTOR_TIMEOUT
         val result = try {
             var lastPipelinePhase: RecognitionPhase? = null
             var detectorStartedAtMs: Long? = null
             var classifierStartedAtMs: Long? = null
-            withTimeout(RECOGNITION_MODEL_WATCHDOG_MS) {
+            withTimeout(attemptDeadline.remainingMs(recognitionMonotonicNowMs())) {
             recognize { progress ->
                 assessment = progress.assessment ?: assessment
                 realPhase = progress.phase
@@ -664,6 +681,7 @@ fun RecognitionProcessingScene(
                     )
                     when (progress.phase) {
                         RecognitionPhase.DETECTING -> {
+                            activeModelTimeoutCode = RecognitionAttemptFailureCode.DETECTOR_TIMEOUT
                             detectorStartedAtMs = eventAtMs
                             Log.i(
                                 LOG_TAG,
@@ -681,6 +699,7 @@ fun RecognitionProcessingScene(
                             }
                         }
                         RecognitionPhase.CLASSIFYING -> {
+                            activeModelTimeoutCode = RecognitionAttemptFailureCode.CLASSIFIER_TIMEOUT
                             if (classifierStartedAtMs == null) classifierStartedAtMs = eventAtMs
                             Log.i(
                                 LOG_TAG,
@@ -728,13 +747,31 @@ fun RecognitionProcessingScene(
             }
             }
         } catch (timeout: TimeoutCancellationException) {
-            Log.e(LOG_TAG, "MODEL_WATCHDOG_TIMEOUT stage=DETECTOR_CLASSIFIER session=${recognitionSessionId.orEmpty()} " +
-                "attempt=${recognitionAttemptId.orEmpty()} image=${image.imageId} timeout_ms=$RECOGNITION_MODEL_WATCHDOG_MS", timeout)
-            throw IllegalStateException("RECOGNITION_MODEL_WATCHDOG_TIMEOUT_${RECOGNITION_MODEL_WATCHDOG_MS}MS", timeout)
+            val stage = activeModelTimeoutCode.removeSuffix("_TIMEOUT")
+            Log.e(LOG_TAG, "ATTEMPT_DEADLINE_EXCEEDED stage=$stage session=${recognitionSessionId.orEmpty()} " +
+                "attempt=${recognitionAttemptId.orEmpty()} image=${image.imageId} " +
+                "attempt_timeout_ms=${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS} " +
+                "remaining_ms=${attemptDeadline.remainingMs(recognitionMonotonicNowMs())} " +
+                "failure_code=$activeModelTimeoutCode", timeout)
+            val failure = IllegalStateException(
+                "RECOGNITION_ATTEMPT_DEADLINE_EXCEEDED_${activeModelTimeoutCode}_" +
+                    "${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS}MS",
+                timeout,
+            )
+            realPhase = RecognitionPhase.FAILURE
+            pipelineError = failure
+            controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs(), currentIdentity = sceneIdentity)
+            if (!manualStepDiagnosticState.value && !delivered) {
+                delivered = true
+                onFailure(failure)
+            }
+            return@LaunchedEffect
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Throwable) {
-            Log.e(LOG_TAG, "Recognition runtime failed", error)
+            val failureCode = (error as? RecognitionStageFailureException)?.failureCode?.name
+                ?: RecognitionFailureCode.MODEL_INFERENCE_FAILED.name
+            Log.e(LOG_TAG, "Recognition runtime failed failure_code=$failureCode", error)
             realPhase = RecognitionPhase.FAILURE
             pipelineError = error
             if (latestPhotoPresentedAtMs != null) {
@@ -743,6 +780,24 @@ fun RecognitionProcessingScene(
             if (!manualStepDiagnosticState.value && !delivered) {
                 delivered = true
                 onFailure(error)
+            }
+            return@LaunchedEffect
+        }
+        if (attemptDeadline.isExpired(recognitionMonotonicNowMs())) {
+            val failureCode = activeModelTimeoutCode
+            val failure = IllegalStateException(
+                "RECOGNITION_ATTEMPT_DEADLINE_EXCEEDED_${failureCode}_" +
+                    "${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS}MS_LATE_NATIVE_RETURN",
+            )
+            Log.e(LOG_TAG, "ATTEMPT_DEADLINE_EXCEEDED stage=${failureCode.removeSuffix("_TIMEOUT")} " +
+                "session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                "image=${image.imageId} late_native_return=true failure_code=$failureCode", failure)
+            realPhase = RecognitionPhase.FAILURE
+            pipelineError = failure
+            controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs(), currentIdentity = sceneIdentity)
+            if (!manualStepDiagnosticState.value && !delivered) {
+                delivered = true
+                onFailure(failure)
             }
             return@LaunchedEffect
         }
@@ -832,18 +887,12 @@ fun RecognitionProcessingScene(
                 }
                 if (nextVisualPhase != visualPhase) {
                     visualPhase = nextVisualPhase
-                    if (nextVisualPhase == RecognitionPhase.OUTLINE && latestTrustedMask.value &&
-                        trustedMaskRevealStartedAtMs == null
-                    ) {
-                        trustedMaskRevealStartedAtMs = (visualNowMs - requireNotNull(photoPresentedAtMs))
-                            .coerceAtLeast(0L)
-                    }
                     phasePresentedCallback(nextVisualPhase, visualNowMs)
                 }
                 if (nextSceneStage == RecognitionSceneStage.ORB_RETURN && latestFinishedResult.value?.ready == true &&
                     controller.resultVisualReady(visualNowMs) && !delivered && !diagnosticStepDisplayState.value) {
-                    // The adaptive visual beats and real model result are both ready.
-                    // RR09 starts from Result's first presented frame.
+                    // The adaptive beats and real model result are both ready. Result
+                    // continues from this same controller frame at ORB_RETURN.
                     delivered = true
                     Log.i(LOG_TAG, "delivering RESULT_READY at monotonic=$visualNowMs")
                     Log.i(LOG_TAG, "ORB_COMPLETION_START image=${image?.imageId} sha256=${image?.photoSha256}")
@@ -1070,35 +1119,15 @@ fun RecognitionProcessingScene(
     energyPathLedger.bind(waterLightFrame)
     waterLightEngine.activate(waterLightFrame)
     DisposableEffect(waterLightEngine) { onDispose { waterLightEngine.release() } }
-    LaunchedEffect(sceneKey, rendered, trustedSubjectMask, photoPresentedAtMs) {
-        if (photoPresentedAtMs != null && trustedSubjectMask &&
-            (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) &&
-            trustedMaskRevealStartedAtMs == null
-        ) {
-            trustedMaskRevealStartedAtMs = opticalReferenceElapsedMs.coerceAtLeast(1_200L)
-            Log.i(
-                LOG_TAG,
-                "MASK_CONTOUR_REVEAL_START session=${recognitionSessionId.orEmpty()} " +
-                    "attempt=${recognitionAttemptId.orEmpty()} image=${image?.imageId.orEmpty()} " +
-                    "processing_elapsed_ms=$processingElapsedMs duration_ms=$RECOGNITION_MASK_CONTOUR_REVEAL_MS",
-            )
-        }
-    }
     val activeSceneStage = if (stepDiagnosticActive) diagnosticSceneFrame.stage else productionSceneStage
     val activeStageProgress = if (stepDiagnosticActive) diagnosticSceneFrame.stageProgress else productionStageProgress
-    val stageContourProgress = when (activeSceneStage) {
-        RecognitionSceneStage.CONTOUR_A -> activeStageProgress / 3f
-        RecognitionSceneStage.CONTOUR_B -> 1f / 3f + activeStageProgress / 3f
-        RecognitionSceneStage.CONTOUR_C -> 2f / 3f + activeStageProgress / 3f
-        RecognitionSceneStage.FISH_GOLD_PEAK,
-        RecognitionSceneStage.ORB_RETURN,
-        RecognitionSceneStage.ORB_TO_NAME,
-        RecognitionSceneStage.SPECIES_NAME_REVEAL,
-        RecognitionSceneStage.RESIDUE_SETTLE -> 1f
-        else -> 0f
-    }.coerceIn(0f, 1f)
-    val maskContourRevealProgress = if (trustedSubjectMask) stageContourProgress else 0f
-    val photoShockwave = photoShockwaveTransform(sceneElapsedMs, motionPolicy.reduceMotion)
+    val maskContourRevealProgress = recognitionMaskContourRevealProgress(
+        stage = activeSceneStage,
+        stageProgress = activeStageProgress,
+        trustedMask = trustedSubjectMask,
+        reduceMotion = motionPolicy.reduceMotion,
+    )
+    val photoShockwave = photoShockwaveTransform(diagnosticSceneFrame, motionPolicy.reduceMotion)
     val phaseElapsedMs = when {
         stepDiagnosticActive -> diagnosticSceneFrame.stageElapsedMs
         phaseOverride != null -> 1_000L
@@ -1417,7 +1446,10 @@ fun RecognitionProcessingScene(
                 reduceMotion = motionPolicy.reduceMotion,
                 lowPerformance = motionPolicy.lowPerformance,
                 fromCamera = capture != null,
-                orbLifeState = if (waterLightFrame.opticalReferenceElapsedMs < 350L) {
+                orbLifeState = if (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.PHOTO_STABLE ||
+                    (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE &&
+                        waterLightFrame.sceneFrame.stageProgress < .5f)
+                ) {
                     OrbRuntimeProfileV1.LifeState.S1_IDLE
                 } else OrbRuntimeProfileV1.LifeState.S2_ACTIVE,
                 waterLightFrame = waterLightFrame,
@@ -1647,7 +1679,7 @@ private fun RecognitionPhoto(
     }
     // Candidate additive material only after the frozen P0/P2/P3 samples.
     val additiveMaterialActive = pathReady && waterLightFrame.phase == WaterLightPhase.PROCESSING &&
-        waterLightFrame.opticalReferenceElapsedMs in 1_550L..2_600L &&
+        waterLightFrame.sceneFrame.stage.ordinal in RecognitionSceneStage.PATH_TO_FISH.ordinal..RecognitionSceneStage.FISH_GOLD_PEAK.ordinal &&
         !waterLightFrame.reducedMotion && !motionPolicy.lowPerformance
     LaunchedEffect(causticsRenderer, waterLightFrame, photoBounds, additiveMaterialActive) {
         if (additiveMaterialActive) causticsRenderer.request(
@@ -1787,7 +1819,6 @@ private fun RecognitionPhoto(
                 visualClockMs,
                 motionSessionKey = motionSessionKey,
                 deterministicMotion = deterministicMotion,
-                processingElapsedMs = opticalReferenceElapsedMs,
                 lowPerformance = motionPolicy.lowPerformance,
                 reduceMotion = motionPolicy.reduceMotion,
                 qualityLevel = motionPolicy.qualityLevel,
@@ -1886,7 +1917,6 @@ private fun RecognitionPhoto(
 }
 
 internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n请重新拍摄或选择照片"
-private const val RECOGNITION_MODEL_WATCHDOG_MS = 60_000L
 internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String = GENERIC_RECOGNITION_FAILURE_MESSAGE
 
 private fun recognitionMaskAnchor(
@@ -1936,186 +1966,14 @@ private fun orbSurfaceAnchor(center: Offset, target: Offset, radiusPx: Float): O
 }
 
 internal fun extractContour(bitmap: Bitmap): List<RecognitionContourSegment> {
-    val width = bitmap.width; val height = bitmap.height
+    val width = bitmap.width
+    val height = bitmap.height
     if (width <= 1 || height <= 1) return emptyList()
-    val pixels = IntArray(width * height); bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-    val gridWidth = (width + OUTLINE_STRIDE - 1) / OUTLINE_STRIDE
-    val gridHeight = (height + OUTLINE_STRIDE - 1) / OUTLINE_STRIDE
-    val foreground = BooleanArray(gridWidth * gridHeight)
-    for (gridY in 0 until gridHeight) {
-        for (gridX in 0 until gridWidth) {
-            val x = (gridX * OUTLINE_STRIDE).coerceAtMost(width - 1)
-            val y = (gridY * OUTLINE_STRIDE).coerceAtMost(height - 1)
-            foreground[gridY * gridWidth + gridX] =
-                android.graphics.Color.alpha(pixels[y * width + x]) >= OUTLINE_THRESHOLD
-        }
-    }
-
-    // Keep the largest connected subject and discard tiny alpha islands before
-    // raster edges become visible. This preserves fins/tail while removing
-    // segmentation speckles that otherwise read as broken neon noise.
-    val labels = IntArray(foreground.size) { -1 }
-    val componentSizes = ArrayList<Int>()
-    var nextLabel = 0
-    val queue = ArrayDeque<Int>()
-    for (index in foreground.indices) {
-        if (!foreground[index] || labels[index] >= 0) continue
-        labels[index] = nextLabel
-        queue.add(index)
-        var size = 0
-        while (queue.isNotEmpty()) {
-            val current = queue.removeFirst()
-            size += 1
-            val x = current % gridWidth
-            val y = current / gridWidth
-            for (dy in -1..1) for (dx in -1..1) {
-                if (dx == 0 && dy == 0) continue
-                val nx = x + dx
-                val ny = y + dy
-                if (nx !in 0 until gridWidth || ny !in 0 until gridHeight) continue
-                val neighbor = ny * gridWidth + nx
-                if (foreground[neighbor] && labels[neighbor] < 0) {
-                    labels[neighbor] = nextLabel
-                    queue.add(neighbor)
-                }
-            }
-        }
-        componentSizes += size
-        nextLabel += 1
-    }
-    val largest = componentSizes.maxOrNull() ?: return emptyList()
-    val minimumComponent = maxOf(4, largest / 200)
-    val keep = componentSizes.map { it >= minimumComponent }
-
-    val boundaryEdges = ArrayList<GridBoundaryEdge>()
-    fun kept(gridX: Int, gridY: Int): Boolean {
-        if (gridX !in 0 until gridWidth || gridY !in 0 until gridHeight) return false
-        val label = labels[gridY * gridWidth + gridX]
-        return label >= 0 && keep[label]
-    }
-    for (gridY in 0 until gridHeight) {
-        for (gridX in 0 until gridWidth) {
-            if (!kept(gridX, gridY)) continue
-            if (!kept(gridX, gridY - 1)) {
-                boundaryEdges += GridBoundaryEdge(GridPoint(gridX, gridY), GridPoint(gridX + 1, gridY))
-            }
-            if (!kept(gridX + 1, gridY)) {
-                boundaryEdges += GridBoundaryEdge(GridPoint(gridX + 1, gridY), GridPoint(gridX + 1, gridY + 1))
-            }
-            if (!kept(gridX, gridY + 1)) {
-                boundaryEdges += GridBoundaryEdge(GridPoint(gridX + 1, gridY + 1), GridPoint(gridX, gridY + 1))
-            }
-            if (!kept(gridX - 1, gridY)) {
-                boundaryEdges += GridBoundaryEdge(GridPoint(gridX, gridY + 1), GridPoint(gridX, gridY))
-            }
-        }
-    }
-    fun normalized(point: GridPoint) = ContourPoint(
-        x = min(point.x * OUTLINE_STRIDE, width) / width.toFloat(),
-        y = min(point.y * OUTLINE_STRIDE, height) / height.toFloat(),
-    )
-    return traceGridContours(boundaryEdges).flatMap { gridLoop ->
-        val points = simplifyGridLoop(gridLoop).map(::normalized)
-        if (points.size < 4) return@flatMap emptyList()
-        points.indices.map { index ->
-            val previous = points[(index - 1 + points.size) % points.size]
-            val current = points[index]
-            val next = points[(index + 1) % points.size]
-            val start = midpoint(previous, current)
-            val end = midpoint(current, next)
-            val control1 = interpolate(start, current, 2f / 3f)
-            val control2 = interpolate(end, current, 2f / 3f)
-            RecognitionContourSegment(
-                startX = start.x,
-                startY = start.y,
-                endX = end.x,
-                endY = end.y,
-                control1X = control1.x,
-                control1Y = control1.y,
-                control2X = control2.x,
-                control2Y = control2.y,
-                beginsContour = index == 0,
-                closesContour = index == points.lastIndex,
-            )
-        }
-    }
+    val pixels = IntArray(width * height)
+    bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+    val alpha = ByteArray(pixels.size) { index -> android.graphics.Color.alpha(pixels[index]).toByte() }
+    return RecognitionMaskContourExtractor.extract(width, height, alpha)
 }
-
-private data class GridPoint(val x: Int, val y: Int)
-
-private data class GridBoundaryEdge(val start: GridPoint, val end: GridPoint) {
-    val direction: Int
-        get() = when {
-            end.x > start.x -> 0 // east
-            end.y > start.y -> 1 // south
-            end.x < start.x -> 2 // west
-            else -> 3 // north
-        }
-}
-
-private data class ContourPoint(val x: Float, val y: Float)
-
-private fun traceGridContours(edges: List<GridBoundaryEdge>): List<List<GridPoint>> {
-    if (edges.isEmpty()) return emptyList()
-    val outgoing = edges.groupBy(GridBoundaryEdge::start)
-    val remaining = LinkedHashSet(edges)
-    val comparator = compareBy<GridBoundaryEdge> { it.start.y }
-        .thenBy { it.start.x }
-        .thenBy { it.direction }
-    val contours = ArrayList<List<GridPoint>>()
-
-    while (remaining.isNotEmpty()) {
-        val first = remaining.minWithOrNull(comparator) ?: break
-        val points = ArrayList<GridPoint>()
-        points += first.start
-        var edge = first
-        var closed = false
-        var visited = 0
-        while (visited <= edges.size) {
-            if (!remaining.remove(edge)) break
-            points += edge.end
-            visited += 1
-            if (edge.end == first.start) {
-                closed = true
-                break
-            }
-            val candidates = outgoing[edge.end].orEmpty().filter(remaining::contains)
-            if (candidates.isEmpty()) break
-            edge = candidates.minBy { candidate ->
-                val turn = (candidate.direction - edge.direction + 4) % 4
-                when (turn) {
-                    1 -> 0 // keep the foreground on the right at diagonal contacts
-                    0 -> 1
-                    3 -> 2
-                    else -> 3
-                }
-            }
-        }
-        if (closed && points.size >= 5) contours += points.dropLast(1)
-    }
-    return contours
-}
-
-private fun simplifyGridLoop(points: List<GridPoint>): List<GridPoint> {
-    if (points.size < 4) return points
-    return points.filterIndexed { index, point ->
-        val previous = points[(index - 1 + points.size) % points.size]
-        val next = points[(index + 1) % points.size]
-        val vertical = previous.x == point.x && point.x == next.x
-        val horizontal = previous.y == point.y && point.y == next.y
-        !vertical && !horizontal
-    }
-}
-
-private fun midpoint(left: ContourPoint, right: ContourPoint) = ContourPoint(
-    x = (left.x + right.x) / 2f,
-    y = (left.y + right.y) / 2f,
-)
-
-private fun interpolate(start: ContourPoint, end: ContourPoint, fraction: Float) = ContourPoint(
-    x = start.x + (end.x - start.x) * fraction,
-    y = start.y + (end.y - start.y) * fraction,
-)
 
 private fun logFocusDiagnostic(
     subject: FishSubjectResult,
