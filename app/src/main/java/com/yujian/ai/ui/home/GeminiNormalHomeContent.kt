@@ -100,6 +100,14 @@ private const val GeminiHomeNeighborHeightFraction = 0.667f
 private val GeminiHomePeekTopOffset = 15.dp
 private val GeminiHomeVisualNavy = YuJianColors.NormalHomeNavy
 private val GeminiHomeStatisticsDivider = YuJianColors.NormalHomeAccentAqua
+
+private data class GeminiHomePagerSnapObservation(
+    val currentPage: Int,
+    val targetPage: Int,
+    val settledPage: Int,
+    val isScrollInProgress: Boolean,
+    val offsetFraction: Float,
+)
 // NH01_AVATAR_VISUAL_V1_1: frozen mist glass and lake-ink profile illustration.
 private val GeminiMistAvatarFill = Color(0xFFEEF3F2).copy(alpha = 0.36f)
 private val GeminiMistAvatarBorder = Color.White.copy(alpha = 0.48f)
@@ -794,6 +802,30 @@ private fun GeminiCatchCarousel(
             )
         }.distinctUntilChanged().collect { state ->
             GeminiHomeGeometryProbe.recordPagerState(state)
+        }
+    }
+    val pagerPageWidthPx = with(LocalDensity.current) { cardWidth.toPx() }
+    LaunchedEffect(pagerState, records, pagerPageWidthPx) {
+        snapshotFlow {
+            GeminiHomePagerSnapObservation(
+                currentPage = pagerState.currentPage,
+                targetPage = pagerState.targetPage,
+                settledPage = pagerState.settledPage,
+                isScrollInProgress = pagerState.isScrollInProgress,
+                offsetFraction = pagerState.currentPageOffsetFraction,
+            )
+        }.distinctUntilChanged().collect { observed ->
+            val atRestOnCurrentPage = !observed.isScrollInProgress &&
+                observed.targetPage == observed.currentPage &&
+                observed.settledPage == observed.currentPage
+            val subpixelResidual = abs(observed.offsetFraction) * pagerPageWidthPx
+            if (atRestOnCurrentPage && observed.currentPage in records.indices &&
+                subpixelResidual in 0.01f..1f
+            ) {
+                // Fixed-width pages can leave a subpixel offset after density rounding.
+                // Snap only when the measured residual is at most one physical pixel.
+                pagerState.scrollToPage(observed.currentPage)
+            }
         }
     }
     Box(
