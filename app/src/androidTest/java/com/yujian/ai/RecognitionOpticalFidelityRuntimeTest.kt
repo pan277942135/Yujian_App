@@ -61,6 +61,15 @@ class RecognitionOpticalFidelityRuntimeTest {
 
     @After
     fun releaseFrameMetricsListener() {
+        // The frame-metrics test intentionally keeps CLASSIFYING live while it
+        // samples FULL/LITE output. Dispose that production scene before the
+        // ActivityScenarioRule closes the activity so Compose cancels its frame
+        // loop and the API 28 emulator can finish instrumentation teardown.
+        activityRule.scenario.onActivity { activity ->
+            Log.i(LOG_TAG, "Milestone: teardown-scene-start")
+            activity.setContent { }
+            Log.i(LOG_TAG, "Milestone: teardown-scene-complete")
+        }
         val window = frameMetricsWindow
         val listener = frameMetricsListener
         if (window != null && listener != null) {
@@ -99,6 +108,7 @@ class RecognitionOpticalFidelityRuntimeTest {
         val unexpectedResultCount = AtomicInteger(0)
         val fullMotionSampleCount = AtomicInteger(0)
         val liteMotionSampleCount = AtomicInteger(0)
+        val liteMotionSampleStarted = CountDownLatch(1)
         val presentedPhases = Collections.synchronizedList(mutableListOf<RecognitionPhase>())
         val refreshRate = AtomicReference(60.0)
         val activeProfile = AtomicReference<String?>(null)
@@ -163,6 +173,7 @@ class RecognitionOpticalFidelityRuntimeTest {
                         onMotionFrame = { sample ->
                             if (sample.qualityLevel.name == "LITE") {
                                 if (liteMotionSampleCount.incrementAndGet() == 1) {
+                                    liteMotionSampleStarted.countDown()
                                     Log.i(LOG_TAG, "Milestone: first-motion-sample=LITE")
                                 }
                             } else {
@@ -199,11 +210,18 @@ class RecognitionOpticalFidelityRuntimeTest {
         Log.i(LOG_TAG, "Milestone: full-frame-metrics-complete count=${fullFrames.size}")
         assertTrue("live FULL compositing did not report motion samples", fullMotionSampleCount.get() >= MIN_MOTION_SAMPLES)
 
-        activityRule.scenario.onActivity {
-            Log.i(LOG_TAG, "Milestone: lite-profile-change-start")
-            activeProfile.set("LITE")
-            policy.value = RecognitionMotionPolicy(degradationLevel = RecognitionDegradationLevel.D2)
-        }
+        // Do not synchronously dispatch to ActivityScenario here. On API 28,
+        // the live FULL optical pass can keep the main thread too busy to service
+        // onActivity(), which stalls the instrumentation until its timeout. The
+        // snapshot state write is thread-safe; wait for the live scene to report
+        // LITE before taking the profile screenshot.
+        Log.i(LOG_TAG, "Milestone: lite-profile-change-start")
+        activeProfile.set("LITE")
+        policy.value = RecognitionMotionPolicy(degradationLevel = RecognitionDegradationLevel.D2)
+        assertTrue(
+            "live scene did not accept the LITE motion policy",
+            liteMotionSampleStarted.await(8, TimeUnit.SECONDS),
+        )
         Log.i(LOG_TAG, "Milestone: lite-profile-change-complete")
         Log.i(LOG_TAG, "Milestone: lite-screenshot-start")
         saveScreenshot(outputDir, "optical_fidelity_lite.png")
