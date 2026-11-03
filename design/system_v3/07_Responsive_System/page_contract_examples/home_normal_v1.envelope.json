@@ -34,7 +34,7 @@
       "authority_ref_id": "nh01-responsive-v2",
       "role": "RESPONSIVE_NUMERIC_AUTHORITY",
       "path": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
-      "sha256": "125e610144b05f6e29c885d5e8bd28f2368dd27dca827f04835acf55038a00e1"
+      "sha256": "8349016b54f1b9759416dc6532c107be3fbc474c4452027fd30a05f6bdf9fc19"
     },
     {
       "authority_ref_id": "normal-home-visual",
@@ -44,7 +44,7 @@
     },
     {
       "authority_ref_id": "nh01-v4-baseline-manifest",
-      "role": "VISUAL_BASELINE_METADATA",
+      "role": "OTHER",
       "path": "design/pages/home/normal_home/engineering/NH01_V4_VISUAL_BASELINE_MANIFEST.json",
       "sha256": "3532d29a878b9a8b57dabda831d2095306adb7ee62e2722ec7d543db36be704b"
     }

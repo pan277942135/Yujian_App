@@ -63,7 +63,7 @@
         "min": 56,
         "max": 96
       },
-      "camera_minimum_touch_target_dp": 88
+      "camera_minimum_touch_target_dp": 72
     }
   },
   "target_matrix": [

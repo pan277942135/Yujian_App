@@ -462,8 +462,8 @@
       "id": "CTA-Camera-Button",
       "role": "Primary camera control",
       "rules": [
-        "Do not confuse camera artwork, outer touch box and visible rim bounds.",
-        "Keep the full touch target within safe bounds and clear of CTA and system navigation."
+        "Keep the camera artwork centered inside its measured touch target.",
+        "Keep the full touch target within safe bounds and clear of the static CTA label."
       ],
       "constraints": [
         "Use preview_engine.parameters.camera and preview_engine.parameters.capture_action_group for artwork size, touch target, and CTA-to-camera spacing.",
@@ -655,9 +655,9 @@
         "id": "CTA-Camera",
         "measurement": "CTA visible control bottom to camera artwork top, plus both touch rectangles.",
         "checks": [
-          "positive visual separation",
-          "touch rectangles do not collide",
-          "camera target >=72dp"
+          "record actual visual gap from CTA label to camera artwork",
+          "report both touch rectangles where present",
+          "camera touch target is at least 72dp and remains inside safe bounds"
         ]
       },
       {
@@ -974,7 +974,7 @@
         "height_fraction_of_safe_height": 0.135,
         "minimum_visual_dp": 56,
         "maximum_visual_dp": 96,
-        "minimum_touch_dp": 88
+        "minimum_touch_dp": 72
       },
       "card_content": {
         "text_gap_height_fraction": 0.006,

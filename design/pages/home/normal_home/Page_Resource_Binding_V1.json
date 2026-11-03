@@ -6,7 +6,7 @@
     "normal_home_v1"
   ],
   "owner_path": "design/pages/home/normal_home",
-  "authority_version": "2.1",
+  "authority_version": "2.0",
   "page_identity_authority": {
     "authority_id": "experience",
     "json_pointer": "/features/1",
@@ -23,7 +23,7 @@
     {
       "authority_id": "experience",
       "path": "design/registry/experience_registry_v1.json",
-      "sha256": "c1005cb20ee5fb9938087c664baad6174de3e4c4ce4c1560146d4399432d43b3",
+      "sha256": "82075244769734b79e90186a01a59e6a8588fe503feea2e018edc7481faa977b",
       "purpose": "experience"
     },
     {
@@ -59,7 +59,7 @@
     {
       "authority_id": "nhresponsive",
       "path": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
-      "sha256": "125e610144b05f6e29c885d5e8bd28f2368dd27dca827f04835acf55038a00e1",
+      "sha256": "8349016b54f1b9759416dc6532c107be3fbc474c4452027fd30a05f6bdf9fc19",
       "purpose": "nhresponsive"
     },
     {
@@ -119,7 +119,7 @@
     {
       "authority_id": "nh01_authority_v14",
       "path": "design/pages/home/normal_home/authority/authority_map_v1_4.json",
-      "sha256": "67d034857c3709351cb8bf39988ae7f65321a23305c95884c6da4be7cfd60e08",
+      "sha256": "7c68f5fda6e744a4eb3a058053f5dea100a38c45e1184b2b0e567dedafb87bd2",
       "purpose": "Versioned authority map binding the selected visual reference and immutable prior composition history."
     },
     {
