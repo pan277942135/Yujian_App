@@ -113,6 +113,23 @@ class RecognitionVisualStateControllerTest {
         assertEquals(750L, controller.stageElapsedMs(6_250L))
     }
 
+    @Test fun geometryGatePreservesDiagnosticAutoProgressWhenPausedBeforeLateRecovery() {
+        val controller = SceneMotionCoordinator()
+        controller.beginNewSession(identity, debugBuild = true, nowMs = 0L)
+        controller.markPhotoFirstFramePresented(identity, 100L)
+        controller.beginStepPreview(RecognitionSceneStage.ORB_RETURN, 200L)
+        controller.playDiagnosticAuto(0L, 700L)
+        controller.setResultGeometryState(SceneGeometryState.PENDING, 700L, identity)
+
+        controller.pause(0L, 2_000L)
+        controller.setResultGeometryState(SceneGeometryState.READY, 5_000L, identity)
+        assertEquals(500L, controller.stageElapsedMs(6_000L))
+        assertTrue(controller.paused)
+
+        controller.resume(0L, 6_000L)
+        assertEquals(750L, controller.stageElapsedMs(6_250L))
+    }
+
     @Test fun handoffIsValidOnlyAtExactStageTenAfterClassifierMaskJoinAndOrbAnchor() {
         val controller = SceneMotionCoordinator()
         controller.beginNewSession(identity, debugBuild = true, nowMs = 0L)

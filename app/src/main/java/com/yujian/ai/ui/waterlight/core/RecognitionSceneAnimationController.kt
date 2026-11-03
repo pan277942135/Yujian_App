@@ -555,11 +555,19 @@ class RecognitionSceneAnimationController(
     fun pause(@Suppress("UNUSED_PARAMETER") authoritativeReferenceMs: Long, nowMs: Long) {
         if (paused) return
         if (mode == ScenePlaybackMode.MANUAL) {
-            previewElapsedBeforePauseMs = previewElapsedMsWithoutUpdate(nowMs).coerceIn(0L, DIAGNOSTIC_STEP_DURATION_MS)
+            previewElapsedBeforePauseMs = (if (geometryGateStartedAtMs != null) {
+                geometryFrozenElapsedMs
+            } else {
+                previewElapsedMsWithoutUpdate(nowMs)
+            }).coerceIn(0L, DIAGNOSTIC_STEP_DURATION_MS)
             previewStartedAtMs = null
             previewCompleted = previewElapsedBeforePauseMs >= DIAGNOSTIC_STEP_DURATION_MS
         } else if (diagnosticAuto) {
-            autoElapsedBeforePauseMs = autoStageElapsedMs(nowMs).coerceAtMost(DIAGNOSTIC_STEP_DURATION_MS)
+            autoElapsedBeforePauseMs = (if (geometryGateStartedAtMs != null) {
+                geometryFrozenElapsedMs
+            } else {
+                autoStageElapsedMs(nowMs)
+            }).coerceAtMost(DIAGNOSTIC_STEP_DURATION_MS)
             autoStartedAtMs = null
         } else {
             stageElapsedBeforePauseMs = stageElapsedMs(nowMs)
