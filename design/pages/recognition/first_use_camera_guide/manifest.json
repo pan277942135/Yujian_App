@@ -72,5 +72,10 @@
     ],
     "method": "byte-identical Git blob import from approved original PNG files",
     "report": "design/pages/recognition/first_use_camera_guide/asset_import_report.json"
-  }
+  },
+  "product_owner_decision": "design/pages/recognition/first_use_camera_guide/PRODUCT_OWNER_DECISION_20261103.md",
+  "active_page_count": 2,
+  "archived_page_ids": [
+    "p03"
+  ]
 }

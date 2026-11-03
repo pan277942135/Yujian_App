@@ -86,7 +86,7 @@ def main() -> int:
     require(resources.get("title") == "资源" and resources.get("render_mode") == "recognition_guide_resources",
             "live guide Resources menu definition changed")
     require(resources.get("resource_ids") == ["p01", "p02"] and resources.get("runtime_visual_authority") is False,
-            "live guide Resources must expose the three design-only source PNGs")
+            "live guide Resources must expose only the two active design-only source PNGs")
 
     guide_manifest_raw, _ = fetch(urljoin(parent_url, "design/pages/recognition/first_use_camera_guide/manifest.json"))
     guide_manifest = json.loads(guide_manifest_raw)

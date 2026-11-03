@@ -522,7 +522,7 @@
     "approved_at": "2026-11-02",
     "approval_record": "design/pages/recognition/first_use_camera_guide/OWNER_APPROVAL_20261102.md",
     "approved_unique_candidate_count": 8,
-    "approved_page_role_slots": 12,
+    "approved_page_role_slots": 8,
     "approved_for_frontend": true,
     "approved_for_android_runtime": true,
     "page_orientation_mapping": {
@@ -531,7 +531,8 @@
     },
     "native_android_runtime_acceptance": "NOT_RUN",
     "active_page_role_slots": 8,
-    "superseding_product_decision": "design/pages/recognition/first_use_camera_guide/PRODUCT_OWNER_DECISION_20261103.md"
+    "superseding_product_decision": "design/pages/recognition/first_use_camera_guide/PRODUCT_OWNER_DECISION_20261103.md",
+    "historical_approved_page_role_slots": 12
   },
   "runtime_backgrounds": [
     {
