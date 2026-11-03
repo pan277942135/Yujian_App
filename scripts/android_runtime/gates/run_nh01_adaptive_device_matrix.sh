@@ -59,12 +59,34 @@ record_setup_failure() {
   fi
 }
 
+profile_filter="${YUJIAN_NH01_PROFILE_FILTER:-}"
+if [[ -n "$profile_filter" ]]; then
+  IFS=',' read -r -a requested_profiles <<< "$profile_filter"
+  filtered_profiles=()
+  for row in "${profiles[@]}"; do
+    read -r row_profile _ <<< "$row"
+    for requested_profile in "${requested_profiles[@]}"; do
+      if [[ "$row_profile" == "$requested_profile" ]]; then
+        filtered_profiles+=("$row")
+        break
+      fi
+    done
+  done
+  if [[ "${#filtered_profiles[@]}" -ne "${#requested_profiles[@]}" ]]; then
+    record_setup_failure "PROFILE_FILTER_CONTAINS_UNKNOWN_OR_DUPLICATE_PROFILE"
+  fi
+  profiles=("${filtered_profiles[@]}")
+fi
+
+matrix_started_epoch="$(date +%s)"
+
 write_case_record() {
   local profile="$1" variant="$2" status="$3" exit_code="$4" reason="$5"
-  local report_present="$6" screenshots_present="$7" settings_match="$8" output="$EXEC_DIR/${profile}-${variant}.json"
+  local report_present="$6" screenshots_present="$7" settings_match="$8" duration_seconds="${9:-}"
+  local output="$EXEC_DIR/${profile}-${variant}.json"
   PROFILE_ID="$profile" LAYOUT_VARIANT="$variant" CASE_STATUS="$status" CASE_EXIT_CODE="$exit_code" \
     CASE_REASON="$reason" REPORT_PRESENT="$report_present" SCREENSHOTS_PRESENT="$screenshots_present" \
-    SETTINGS_MATCH="$settings_match" SOURCE_SHA="$BUILD_SHA" APP_PACKAGE="$YUJIAN_APP_PACKAGE" \
+    SETTINGS_MATCH="$settings_match" CASE_DURATION_SECONDS="$duration_seconds" SOURCE_SHA="$BUILD_SHA" APP_PACKAGE="$YUJIAN_APP_PACKAGE" \
     INSTRUMENTATION_TARGET="$YUJIAN_INSTRUMENTATION_TARGET" REMOTE_DIR_VALUE="$REMOTE_DIR" \
     HOST_CASE_DIR="$LOG_DIR/diagnostics/${profile}_${variant}" python3 - "$output" <<'PY'
 import datetime
@@ -92,6 +114,7 @@ payload = {
     "device_report_present": os.environ["REPORT_PRESENT"] == "true",
     "required_screenshots_present": os.environ["SCREENSHOTS_PRESENT"] == "true",
     "profile_settings_match": os.environ["SETTINGS_MATCH"] == "true",
+    "duration_seconds": float(os.environ["CASE_DURATION_SECONDS"]) if os.environ.get("CASE_DURATION_SECONDS") else None,
     "app_package": os.environ["APP_PACKAGE"],
     "instrumentation_target": os.environ["INSTRUMENTATION_TARGET"],
     "remote_output_directory": os.environ["REMOTE_DIR_VALUE"],
@@ -317,10 +340,12 @@ if [[ -n "$selected_serial" ]]; then
   "${ADB[@]}" shell rm -rf "$REMOTE_DIR" > "$LOG_DIR/clear_remote_output.log" 2>&1 || {
     record_setup_failure "COULD_NOT_CLEAR_REMOTE_OUTPUT_DIRECTORY"
   }
+  printf '%s\n' "System animations were disabled once by android-emulator-runner." > "$LOG_DIR/disable_system_animations.log"
   for setting in animator_duration_scale transition_animation_scale window_animation_scale; do
-    "${ADB[@]}" shell settings put global "$setting" 0.0 >> "$LOG_DIR/disable_system_animations.log" 2>&1 || {
-      record_setup_failure "COULD_NOT_DISABLE_SYSTEM_ANIMATION_$setting"
-    }
+    current_scale="$("${ADB[@]}" shell settings get global "$setting" 2>/dev/null | tr -d '\r' || true)"
+    if [[ "$current_scale" != "0.0" ]]; then
+      record_setup_failure "SYSTEM_ANIMATION_NOT_PRE_DISABLED_$setting=${current_scale:-UNKNOWN}"
+    fi
   done
 fi
 
@@ -390,6 +415,7 @@ PY
       continue
     fi
 
+    case_started_epoch="$(date +%s)"
     "${ADB[@]}" logcat -c > "$case_dir/logcat_clear.stdout.log" 2> "$case_dir/logcat_clear.stderr.log" || true
     "${ADB[@]}" shell am force-stop "$YUJIAN_APP_PACKAGE" > "$case_dir/force_stop.stdout.log" 2> "$case_dir/force_stop.stderr.log" || true
     write_case_record "$profile" "$variant_token" "RUNNING" "null" "INSTRUMENTATION_STARTED" false false "$profile_settings_match"
@@ -416,6 +442,7 @@ PY
       "${instrumentation_command[@]}" > "$stdout" 2> "$stderr"
     fi
     instrumentation_rc=$?
+    case_elapsed_seconds="$(( $(date +%s) - case_started_epoch ))"
     {
       printf 'COMMAND='
       printf '%q ' "${instrumentation_command[@]}"
@@ -461,7 +488,25 @@ except Exception:
 PY
 )"
     fi
-    if [[ -s "$RAW_CASE_DIR/$initial_name" && -s "$RAW_CASE_DIR/$swipe_name" ]]; then screenshots_present=true; fi
+    if [[ -s "$device_report" ]]; then
+      screenshots_present="$(python3 - "$device_report" "$RAW_CASE_DIR/$initial_name" "$RAW_CASE_DIR/$swipe_name" "$RAW_CASE_DIR/$profile-${variant_token}-failure.png" <<'PY'
+import json, pathlib, sys
+report_path, initial_path, swipe_path, failure_path = map(pathlib.Path, sys.argv[1:])
+try:
+    report=json.loads(report_path.read_text(encoding="utf-8"))
+except (OSError, json.JSONDecodeError):
+    print("false"); raise SystemExit
+screens=report.get("screenshots") or {}
+status=str(report.get("status","")).upper()
+required=[initial_path]
+if status=="PASS" or screens.get("after_swipe"):
+    required.append(swipe_path)
+if status=="FAIL":
+    required.append(failure_path)
+print("true" if all(path.is_file() and path.stat().st_size for path in required) else "false")
+PY
+)"
+    fi
 
     reason=""
     case_status="PASS"
@@ -526,7 +571,7 @@ PY
       cat "$case_dir/logcat_after_failure.txt" >> "$LOG_DIR/${case_key}_failure_logcat.txt" 2>/dev/null || true
       "${ADB[@]}" pull "$REMOTE_DIR" "$RAW_DIR" >> "$pull_log" 2>&1 || true
     fi
-    write_case_record "$profile" "$variant_token" "$case_status" "$instrumentation_rc" "$reason" "$report_present" "$screenshots_present" "$profile_settings_match"
+    write_case_record "$profile" "$variant_token" "$case_status" "$instrumentation_rc" "$reason" "$report_present" "$screenshots_present" "$profile_settings_match" "$case_elapsed_seconds"
     printf 'CASE %s %s status=%s rc=%s report=%s screenshots=%s reason=%s\n' \
       "$profile" "$variant" "$case_status" "$instrumentation_rc" "$report_present" "$screenshots_present" "$reason"
   done
@@ -551,20 +596,54 @@ else
 fi
 
 aggregate_rc=0
-python3 scripts/android_runtime/aggregate_nh01_adaptive_matrix.py \
-  --raw-dir "$RAW_CASE_DIR" \
-  --execution-dir "$EXEC_DIR" \
-  --output-dir "$YUJIAN_EVIDENCE_DIR" \
-  --source-sha "$BUILD_SHA" \
-  --run-id "${GITHUB_RUN_ID:-local}" \
-  --run-url "${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-pan277942135/Yujian_App}/actions/runs/${GITHUB_RUN_ID:-local}" \
-  --contract design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md || aggregate_rc=$?
+if [[ -n "$profile_filter" ]]; then
+  python3 - "$EXEC_DIR" "$profile_filter" "$YUJIAN_EVIDENCE_DIR/NH01_TARGETED_10_CASE_REPORT.md" "$YUJIAN_EVIDENCE_DIR/NH01_TARGETED_10_CASE_REPORT.json" "$BUILD_SHA" "$selected_serial" "$device_api" <<'PY'
+import json, pathlib, sys
+execution_dir=pathlib.Path(sys.argv[1])
+profiles=sys.argv[2].split(",")
+md_path,json_path=map(pathlib.Path,sys.argv[3:5])
+source_sha,serial,api=sys.argv[5:8]
+rows=[]
+for profile in profiles:
+  for variant in ("adaptive_v2","v3_baseline"):
+    path=execution_dir/f"{profile}-{variant}.json"
+    data=json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {"status":"MISSING","reason":"execution record missing"}
+    rows.append({"profile":profile,"variant":variant,"status":data.get("status","MISSING"),
+                 "duration_seconds":data.get("duration_seconds"),"reason":data.get("reason",""),
+                 "screenshot_evidence":data.get("required_screenshots_present"),
+                 "settings_match":data.get("profile_settings_match"),"execution":data})
+result={"schema":"NH01_TARGETED_10_CASE_REPORT_V1","source_sha":source_sha,"device_api":api,
+        "adb_serial":serial,"status":"PASS" if len(rows)==10 and all(r["status"]=="PASS" for r in rows) else "FAIL",
+        "expected_cases":10,"executed_cases":len(rows),"cases":rows}
+json_path.write_text(json.dumps(result,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+lines=["# NH01 Targeted 10-Case API 28 Validation","",
+       f"- Source SHA: `{source_sha}`",f"- API: {api}",f"- ADB serial: {serial}",
+       f"- Result: **{result['status']}**","",
+       "| Profile | Mode | Duration (s) | Screenshot evidence | Device settings | Status | Reason |",
+       "|---|---|---:|---|---|---|---|"]
+for row in rows:
+  lines.append(f"| {row['profile']} | {row['variant']} | {row['duration_seconds']} | {row['screenshot_evidence']} | {row['settings_match']} | {row['status']} | {row['reason']} |")
+md_path.write_text("\n".join(lines)+"\n",encoding="utf-8")
+if result["status"]!="PASS": raise SystemExit(1)
+PY
+  aggregate_rc=$?
+else
+  python3 scripts/android_runtime/aggregate_nh01_adaptive_matrix.py \
+    --raw-dir "$RAW_CASE_DIR" \
+    --execution-dir "$EXEC_DIR" \
+    --output-dir "$YUJIAN_RUNTIME_EVIDENCE" \
+    --source-sha "$BUILD_SHA" \
+    --run-id "${GITHUB_RUN_ID:-local}" \
+    --run-url "${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-pan277942135/Yujian_App}/actions/runs/${GITHUB_RUN_ID:-local}" \
+    --contract design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md || aggregate_rc=$?
+fi
 if [[ "$aggregate_rc" -ne 0 ]]; then all_ok=0; fi
 
 MATRIX_STATUS="PASS"
 if [[ "$all_ok" -ne 1 ]]; then MATRIX_STATUS="FAIL"; fi
 MATRIX_STATUS="$MATRIX_STATUS" BUILD_SHA="$BUILD_SHA" SELECTED_SERIAL="$selected_serial" \
   DEVICE_API="$device_api" DEVICE_FINGERPRINT="$device_fingerprint" SETUP_REASON="$matrix_setup_reason" \
+  MATRIX_ELAPSED_SECONDS="$(( $(date +%s) - matrix_started_epoch ))" PROFILE_FILTER="$profile_filter" \
   python3 - "$MATRIX_DIR/execution_summary.json" "$EXEC_DIR" <<'PY'
 import json, os, sys
 from pathlib import Path
@@ -576,7 +655,8 @@ for path in sorted(root.glob("*.json")):
 payload={"schema":"NH01_ADAPTIVE_MATRIX_EXECUTION_SUMMARY_V1","status":os.environ["MATRIX_STATUS"],
  "source_sha":os.environ["BUILD_SHA"],"adb_serial":os.environ.get("SELECTED_SERIAL") or None,
  "device_api":os.environ.get("DEVICE_API"),"device_fingerprint":os.environ.get("DEVICE_FINGERPRINT"),
- "setup_reason":os.environ.get("SETUP_REASON"),"execution_records":records}
+ "setup_reason":os.environ.get("SETUP_REASON"),"profile_filter":os.environ.get("PROFILE_FILTER") or None,
+ "matrix_elapsed_seconds":int(os.environ.get("MATRIX_ELAPSED_SECONDS","0")),"execution_records":records}
 Path(sys.argv[1]).write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 PY
 

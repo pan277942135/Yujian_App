@@ -139,8 +139,12 @@ if (( preflight_rc != EXIT_PASS )); then
 fi
 YUJIAN_PREFLIGHT_STATUS="PASS"
 
+install_started_epoch="$(date +%s)"
 android_runtime_install_apks "$APP_APK" "$TEST_APK"
 install_rc=$?
+install_elapsed_seconds="$(( $(date +%s) - install_started_epoch ))"
+mkdir -p "$YUJIAN_EVIDENCE_DIR/infra"
+printf 'apk_install_seconds=%s\n' "$install_elapsed_seconds" | tee -a "$YUJIAN_EVIDENCE_DIR/infra/runtime_timings.log"
 if (( install_rc != EXIT_PASS )); then
   YUJIAN_INSTALL_STATUS="FAIL"
   if (( install_rc == EXIT_FAIL_ARTIFACT )); then

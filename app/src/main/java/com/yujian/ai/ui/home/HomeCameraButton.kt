@@ -155,7 +155,7 @@ internal fun HomeCameraButton(
             sweepAlpha = sweep.alpha,
         ),
         visualSize = resolvedSize,
-        touchTargetSize = maxOf(resolvedSize, touchTargetSize ?: resolvedSize),
+        touchTargetSize = touchTargetSize ?: resolvedSize,
         visualModifier = Modifier.testTag("gemini-home-camera-art"),
         frozenVisual = true,
         frozenVisualResource = AIOrbCaptureVisualAssets.HOME_IDLE,

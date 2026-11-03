@@ -1,28 +1,107 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+runtime_started_epoch="$(date +%s)"
 mkdir -p "$YUJIAN_RUNTIME_EVIDENCE/infra"
+export ADB="$(command -v adb)"
+timing_log="$YUJIAN_RUNTIME_EVIDENCE/infra/runtime_timings.log"
+: > "$timing_log"
+boot_marker="${RUNNER_TEMP:-/tmp}/nh01_emulator_boot_started_epoch"
+if [[ -s "$boot_marker" ]]; then
+  boot_started_epoch="$(cat "$boot_marker")"
+  boot_seconds="$(( $(date +%s) - boot_started_epoch ))"
+  printf 'emulator_boot_seconds=%s\n' "$boot_seconds" | tee -a "$timing_log"
+else
+  printf 'emulator_boot_seconds=UNAVAILABLE_NO_WORKFLOW_MARKER\n' | tee -a "$timing_log"
+fi
+
+adb_wait_started_epoch="$(date +%s)"
+adb_wait_deadline="$((adb_wait_started_epoch + 360))"
+selected_serial=""
+adb_ready=false
+while (( $(date +%s) < adb_wait_deadline )); do
+  device_list="$(timeout 10s "$ADB" devices -l 2>&1 || true)"
+  online_serials="$(awk 'NR > 1 && $2 == "device" {print $1}' <<< "$device_list")"
+  online_count="$(awk 'NF {n++} END {print n+0}' <<< "$online_serials")"
+  if [[ "$online_count" -eq 1 ]]; then
+    candidate="$(awk 'NF {print; exit}' <<< "$online_serials")"
+    state="$(timeout 10s "$ADB" -s "$candidate" get-state 2>/dev/null | tr -d '\r' || true)"
+    boot_completed="$(timeout 10s "$ADB" -s "$candidate" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+    if [[ "$state" == "device" && "$boot_completed" == "1" ]]; then
+      selected_serial="$candidate"
+      adb_ready=true
+      break
+    fi
+  fi
+  {
+    printf 'elapsed_seconds=%s\n' "$(( $(date +%s) - adb_wait_started_epoch ))"
+    printf '%s\n' "$device_list"
+  } > "$YUJIAN_RUNTIME_EVIDENCE/infra/adb_wait_last_state.log"
+  sleep 1
+done
+adb_wait_seconds="$(( $(date +%s) - adb_wait_started_epoch ))"
+printf 'adb_ready_seconds=%s\nadb_serial=%s\n' "$adb_wait_seconds" "${selected_serial:-MISSING}" | tee -a "$timing_log"
+if [[ "$adb_ready" != true ]]; then
+  printf 'INFRA_EMULATOR_BOOT_TIMEOUT api=28 timeout_seconds=360 last_state=%s\n' \
+    "$(tr '\n' ';' < "$YUJIAN_RUNTIME_EVIDENCE/infra/adb_wait_last_state.log" 2>/dev/null || true)" >&2
+  python3 - "$YUJIAN_RUNTIME_EVIDENCE/runtime_gate_result.json" "$YUJIAN_SOURCE_SHA" "$adb_wait_seconds" <<'PY'
+import json, pathlib, sys
+path=pathlib.Path(sys.argv[1])
+payload={"schema":"NH01_RUNTIME_GATE_RESULT_V1","gate":"gemini-home-v2","api_level":28,
+         "source_sha":sys.argv[2],"preflight":"BLOCKED","install":"NOT_RUN",
+         "instrumentation":"NOT_RUN","evidence":"NOT_RUN","classification":"BLOCKED_INFRA",
+         "failure_phase":"EMULATOR_BOOT","failure_reason":"INFRA_EMULATOR_BOOT_TIMEOUT",
+         "adb_ready_seconds":int(sys.argv[3])}
+path.parent.mkdir(parents=True,exist_ok=True)
+path.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+PY
+  exit 10
+fi
 python3 scripts/design/capture_nh01_device_metadata.py --output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" --insets-dump "$YUJIAN_RUNTIME_EVIDENCE/infra/window_insets_dump.txt"
 
-export ADB="$(command -v adb)"
 runtime_rc=0
 bash scripts/run_android_runtime_gate.sh --gate gemini-home-v2 --api-level 28 --build-sha "$YUJIAN_SOURCE_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "$YUJIAN_RUNTIME_EVIDENCE" || runtime_rc=$?
 
-# Keep the NH01 adaptive matrix independent from the existing Gemini runtime
-# suite: a failure in that suite must not suppress the requested 3×3 evidence.
-matrix_rc=0
-YUJIAN_ADB_BIN="$ADB" \
-  YUJIAN_APP_PACKAGE="${YUJIAN_APP_PACKAGE:-com.yujian.ai.uiv2}" \
-  YUJIAN_INSTRUMENTATION_TARGET="${YUJIAN_INSTRUMENTATION_TARGET:-com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner}" \
-  YUJIAN_APP_APK="build/runtime-apks/app-debug.apk" \
-  YUJIAN_TEST_APK="build/runtime-apks/app-debug-androidTest.apk" \
-  YUJIAN_AAPT_BIN="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}/build-tools/35.0.0/aapt" \
-  YUJIAN_EVIDENCE_DIR="$YUJIAN_RUNTIME_EVIDENCE" \
-  BUILD_SHA="$YUJIAN_SOURCE_SHA" \
-  GITHUB_RUN_ID="${GITHUB_RUN_ID:-local}" \
-  GITHUB_SERVER_URL="${GITHUB_SERVER_URL:-https://github.com}" \
-  GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-pan277942135/Yujian_App}" \
-  bash scripts/android_runtime/gates/run_nh01_adaptive_device_matrix.sh || matrix_rc=$?
+# Reuse the one booted API 28 AVD and the already-installed APK pair.
+# Run the 10 required representative cases first; do not start the full matrix
+# unless every focused case passes.
+run_nh01_matrix() {
+  local profile_filter="${1:-}"
+  local -a matrix_env=(
+    "YUJIAN_ADB_BIN=$ADB"
+    "YUJIAN_APP_PACKAGE=${YUJIAN_APP_PACKAGE:-com.yujian.ai.uiv2}"
+    "YUJIAN_INSTRUMENTATION_TARGET=${YUJIAN_INSTRUMENTATION_TARGET:-com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner}"
+    "YUJIAN_APP_APK=build/runtime-apks/app-debug.apk"
+    "YUJIAN_TEST_APK=build/runtime-apks/app-debug-androidTest.apk"
+    "YUJIAN_AAPT_BIN=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}/build-tools/35.0.0/aapt"
+    "YUJIAN_EVIDENCE_DIR=$YUJIAN_RUNTIME_EVIDENCE"
+    "BUILD_SHA=$YUJIAN_SOURCE_SHA"
+    "GITHUB_RUN_ID=${GITHUB_RUN_ID:-local}"
+    "GITHUB_SERVER_URL=${GITHUB_SERVER_URL:-https://github.com}"
+    "GITHUB_REPOSITORY=${GITHUB_REPOSITORY:-pan277942135/Yujian_App}"
+  )
+  if [[ -n "$profile_filter" ]]; then
+    matrix_env+=("YUJIAN_NH01_PROFILE_FILTER=$profile_filter")
+  fi
+  env -u YUJIAN_NH01_PROFILE_FILTER "${matrix_env[@]}" bash scripts/android_runtime/gates/run_nh01_adaptive_device_matrix.sh
+}
+
+targeted_rc=0
+run_nh01_matrix "M01,M07,M10,H499,H500" || targeted_rc=$?
+targeted_dir="$YUJIAN_RUNTIME_EVIDENCE/targeted-validation"
+mkdir -p "$targeted_dir"
+cp -a "$YUJIAN_RUNTIME_EVIDENCE/nh01-adaptive-raw" "$targeted_dir/" 2>/dev/null || true
+cp -a "$YUJIAN_RUNTIME_EVIDENCE/NH01_RUNTIME_MATRIX_V1" "$targeted_dir/" 2>/dev/null || true
+cp "$YUJIAN_RUNTIME_EVIDENCE/NH01_TARGETED_10_CASE_REPORT.md" "$targeted_dir/" 2>/dev/null || true
+cp "$YUJIAN_RUNTIME_EVIDENCE/NH01_TARGETED_10_CASE_REPORT.json" "$targeted_dir/" 2>/dev/null || true
+matrix_rc="$targeted_rc"
+if (( targeted_rc == 0 )); then
+  full_matrix_started_epoch="$(date +%s)"
+  run_nh01_matrix || matrix_rc=$?
+  printf 'full_36_case_matrix_seconds=%s\n' "$(( $(date +%s) - full_matrix_started_epoch ))" | tee -a "$timing_log"
+else
+  printf 'full_36_case_matrix=NOT_STARTED_TARGETED_10_CASES_FAILED\n' | tee -a "$timing_log"
+fi
 
 if (( matrix_rc != 0 )); then
   printf 'NH01_ADAPTIVE_DEVICE_MATRIX=FAIL exit=%s\n' "$matrix_rc" >&2
@@ -42,6 +121,13 @@ for case in cases:
         record = case.get(key)
         if isinstance(record, dict):
             records.append(record)
+if not records:
+    targeted_path = root / "NH01_TARGETED_10_CASE_REPORT.json"
+    try:
+        targeted = json.loads(targeted_path.read_text(encoding="utf-8"))
+        records = [case.get("execution", {}) for case in targeted.get("cases", []) if isinstance(case, dict)]
+    except (OSError, json.JSONDecodeError):
+        records = []
 failures = [record for record in records if str(record.get("status", "")).upper() == "FAIL"]
 if failures:
     test_failure = any(
@@ -95,4 +181,17 @@ else
   printf 'NH01_ADAPTIVE_DEVICE_MATRIX=PASS source_sha=%s\n' "$YUJIAN_SOURCE_SHA"
 fi
 
+runtime_total_seconds="$(( $(date +%s) - runtime_started_epoch ))"
+printf 'runtime_script_total_seconds=%s\n' "$runtime_total_seconds" | tee -a "$timing_log"
+if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  {
+    echo "### NH01 API 28 runtime timings"
+    echo
+    cat "$timing_log"
+    echo
+    echo "ADB preflight: PASS (serial $selected_serial, sys.boot_completed=1)"
+    echo "Targeted 10 cases: $([[ "$targeted_rc" -eq 0 ]] && echo PASS || echo FAIL)"
+    echo "Full 36 cases: $([[ "$targeted_rc" -eq 0 && "$matrix_rc" -eq 0 ]] && echo PASS || echo FAIL/NOT_RUN)"
+  } >> "$GITHUB_STEP_SUMMARY"
+fi
 exit "$runtime_rc"

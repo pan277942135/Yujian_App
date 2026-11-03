@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -704,9 +705,8 @@ private fun GeminiSectionHeader(
                 .testTag("gemini-home-section-title")
                 .captureGeminiHomeBounds("gemini-home-section-title"),
         )
-        Row(
-            modifier = Modifier.requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                .offset(y = actionVerticalOffset)
+        Box(
+            modifier = Modifier.requiredSize(48.dp)
                 .semantics(mergeDescendants = true) {
                     contentDescription = "全部鱼获"
                     role = Role.Button
@@ -714,9 +714,13 @@ private fun GeminiSectionHeader(
                 .clickable(role = Role.Button, onClick = onCatchesClick)
                 .testTag("gemini-home-section-all")
                 .captureGeminiHomeBounds("gemini-home-section-all"),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            contentAlignment = Alignment.Center,
         ) {
+            Row(
+                modifier = Modifier.offset(y = actionVerticalOffset),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
             Text(
                 text = "全部",
                 style = YuJianTypography.body.copy(
@@ -742,6 +746,7 @@ private fun GeminiSectionHeader(
                     .semantics { this[GeminiHomeRenderedFontSizeSp] = actionFontSize.value }
                     .testTag("gemini-home-section-chevron"),
             )
+            }
         }
     }
 }

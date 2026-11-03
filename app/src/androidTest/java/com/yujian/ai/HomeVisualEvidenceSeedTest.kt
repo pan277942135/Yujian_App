@@ -59,6 +59,14 @@ class HomeVisualEvidenceSeedTest {
         assertEquals("reference screenshot has one record day", 1, capturedDays.size)
         assertTrue("normalized reference fixture was not persisted", preferences.edit()
             .putString(GUEST_RECORDS_KEY, records.toString()).commit())
+        val repositoryRecords = runBlocking { GuestCatchRepository(context).listCatches() }
+        assertEquals("the running app repository must expose all three seeded catches", 3, repositoryRecords.size)
+        assertEquals("fixture catch IDs must be unique", 3, repositoryRecords.map { it.id }.toSet().size)
+        val repositoryGrassCatch = repositoryRecords.single { it.speciesName == "草鱼" }
+        assertEquals("repository preserves fixture length", 42.6, repositoryGrassCatch.lengthCm!!.toDouble(), 0.01)
+        assertEquals("repository preserves fixture weight", 1.28, repositoryGrassCatch.weightKg!!.toDouble(), 0.01)
+        assertEquals("repository preserves fixture location", "浙江 · 千岛湖", repositoryGrassCatch.location)
+        assertTrue("all seeded image files must resolve locally", repositoryRecords.all { File(it.imageUrl).isFile })
         assertEquals("seed must leave the user in guest state", null, UserSessionManager(context).current())
     }
 

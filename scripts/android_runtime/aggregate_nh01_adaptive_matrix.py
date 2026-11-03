@@ -483,7 +483,8 @@ def main() -> int:
                 if payload.get("scenario") != "three_unique_catches":
                     problems.append(f"fixture scenario mismatch: {payload.get('scenario')}")
                 metrics = payload.get("metrics", {})
-                measured_safe_height = metrics.get("safe_height_dp")
+                data = payload.get("data", {})
+                measured_safe_height = data.get("safe_height_dp", metrics.get("safe_height_dp"))
                 if not isinstance(measured_safe_height, (int, float)) or abs(float(measured_safe_height) - expected_safe_height) > 0.25:
                     problems.append(f"safe content height {measured_safe_height}dp != requested {expected_safe_height}dp")
                 insets = payload.get("safe_insets_dp", {})

@@ -56,6 +56,7 @@ jobs:
           test "$actual" = "$YUJIAN_SOURCE_SHA"
           echo "sha=$actual" >> "$GITHUB_OUTPUT"
           echo "NH01_GEMINI_SOURCE_SHA=$actual"
+          date +%s > "$RUNNER_TEMP/nh01_workflow_started_epoch"
 
       - name: Set up Python evidence dependencies
         uses: actions/setup-python@v6
@@ -155,6 +156,13 @@ jobs:
             echo "available=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Record API 28 emulator boot start
+        if: steps.emulator_env.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          date +%s > "$RUNNER_TEMP/nh01_emulator_boot_started_epoch"
+          echo "emulator_boot_started_epoch=$(cat "$RUNNER_TEMP/nh01_emulator_boot_started_epoch")"
+
       - name: Run Gemini V3 Android gate on Pixel 2 API 28
         id: emulator_runtime
         if: steps.emulator_env.outputs.available == 'true'
@@ -168,7 +176,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader -noaudio -no-boot-anim -camera-back none -partition-size 4096
           disable-linux-hw-accel: false
           disable-animations: true
-          emulator-boot-timeout: 900
+          emulator-boot-timeout: 360
           script: |
             bash scripts/design/run_nh01_emulator_runtime.sh
 
@@ -256,3 +264,20 @@ jobs:
           if result.get("classification") != "PASS":
               raise SystemExit("NH01_GEMINI_ANDROID_RUNTIME_NOT_PASS: " + str(result.get("classification")))
           PY
+
+      - name: Record NH01 workflow runtime
+        if: always()
+        run: |
+          set -euo pipefail
+          start="$RUNNER_TEMP/nh01_workflow_started_epoch"
+          if [[ -s "$start" ]]; then
+            elapsed="$(( $(date +%s) - $(cat "$start") ))"
+            echo "workflow_seconds=$elapsed"
+            {
+              echo "### NH01 total workflow time"
+              echo
+              echo "- Runtime after source checkout: $elapsed seconds"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "workflow_seconds=UNAVAILABLE"
+          fi

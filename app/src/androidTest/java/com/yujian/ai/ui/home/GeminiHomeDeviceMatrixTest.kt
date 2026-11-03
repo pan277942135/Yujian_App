@@ -7,6 +7,7 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.core.view.WindowCompat
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalDensity
@@ -200,6 +201,9 @@ class GeminiHomeDeviceMatrixTest {
         GeminiHomeGeometryProbe.beginCapture()
         RemoteImageRuntimeProbe.beginCapture()
         beginStep("COMPOSE_PRODUCTION_HOME_SCREEN")
+        // Match MainActivity: it enables edge-to-edge before the first Compose
+        // WindowInsets read. HomeScreen's DisposableEffect runs after composition.
+        WindowCompat.setDecorFitsSystemWindows(compose.activity.window, false)
         compose.setContent {
             val density = LocalDensity.current
             val insets = rememberSafeDrawingInsets()
@@ -251,6 +255,77 @@ class GeminiHomeDeviceMatrixTest {
         }
         completeStep("MAIN_CATCH_CARD_COMPOSED")
 
+        val screenshotName = "$profileId-${variant.name.lowercase(Locale.US)}.png"
+        val caseHierarchyName = "$profileId-${variant.name.lowercase(Locale.US)}-initial-hierarchy.txt"
+        fun captureEvidenceScreenshot(name: String): Pair<File, IntArray> {
+            val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            val file = File(output, name)
+            val size = intArrayOf(bitmap.width, bitmap.height)
+            file.outputStream().use { sink ->
+                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, sink)) { "screenshot must save: $name" }
+            }
+            bitmap.recycle()
+            return file to size
+        }
+        fun updateEvidenceReport(key: String, value: JSONObject) {
+            val reportFile = caseReportFile() ?: return
+            val report = if (reportFile.isFile) {
+                runCatching { JSONObject(reportFile.readText()) }.getOrDefault(JSONObject())
+            } else JSONObject()
+            report.put(key, value)
+            val temporary = File(reportFile.parentFile, reportFile.name + ".tmp")
+            temporary.writeText(report.toString(2) + "\n")
+            android.system.Os.rename(temporary.absolutePath, reportFile.absolutePath)
+        }
+        fun captureInitialEvidence(stage: String) {
+            val (screenshot, screenshotSize) = captureEvidenceScreenshot(screenshotName)
+            val metrics = DisplayMetrics()
+            @Suppress("DEPRECATION")
+            compose.activity.windowManager.defaultDisplay.getRealMetrics(metrics)
+            val probe = requireNotNull(densityProbe.get()) { "runtime density probe is unavailable" }
+            val bounds = JSONObject()
+            listOf(
+                "gemini-home-screen", "gemini-home-section-all", "gemini-home-section-all-label",
+                "gemini-home-catch-card-nh01-catch-001", "gemini-home-catch-metadata-nh01-catch-001",
+                "gemini-home-camera", "gemini-home-camera-art", "gemini-home-footer-cta",
+            ).forEach { tag ->
+                bounds.put(tag, runCatching { rect(tag).toJson() }.getOrNull() ?: JSONObject.NULL)
+            }
+            val hierarchyFile = File(output, caseHierarchyName)
+            val hierarchy = runCatching {
+                compose.onRoot(useUnmergedTree = true).printToString()
+            }.getOrElse { "UI hierarchy capture failed: $it" }
+            hierarchyFile.writeText(hierarchy)
+            updateEvidenceReport("pre_assertion_evidence", JSONObject().apply {
+                put("stage", stage)
+                put("api_level", Build.VERSION.SDK_INT)
+                put("device_resolution_px", JSONArray(listOf(metrics.widthPixels, metrics.heightPixels)))
+                put("density_dpi", metrics.densityDpi)
+                put("screenshot_size_px", JSONArray(listOf(screenshotSize[0], screenshotSize[1])))
+                put("compose_density", probe.density)
+                put("font_scale", probe.fontScale)
+                put("safe_insets_dp", JSONObject().apply {
+                    put("top", probe.insets.top.value); put("bottom", probe.insets.bottom.value)
+                    put("start", probe.insets.start.value); put("end", probe.insets.end.value)
+                })
+                put("component_bounds_px", bounds)
+                put("screenshot", screenshot.name)
+                put("ui_hierarchy", hierarchyFile.name)
+            })
+            val reportFile = caseReportFile()
+            if (reportFile != null && reportFile.isFile) {
+                val report = JSONObject(reportFile.readText())
+                val screenshots = report.optJSONObject("screenshots") ?: JSONObject()
+                screenshots.put("initial", screenshot.name)
+                report.put("screenshots", screenshots)
+                val temporary = File(reportFile.parentFile, reportFile.name + ".tmp")
+                temporary.writeText(report.toString(2) + "\n")
+                android.system.Os.rename(temporary.absolutePath, reportFile.absolutePath)
+            }
+            Log.i("NH01_MATRIX_CASE", "INITIAL_SCREENSHOT_CAPTURED profile=$profileId variant=$variant stage=$stage file=${screenshot.name}")
+        }
+        captureInitialEvidence("fixture_composed_before_photo_decode")
+
         beginStep("WAIT_FOR_FISH_PHOTO_RENDER")
         val initialPhotoId = "nh01-catch-001"
         advanceFramesUntil(20_000, timeoutDiagnostic = {
@@ -269,6 +344,7 @@ class GeminiHomeDeviceMatrixTest {
         )
         assertEquals("READY must follow an actual rendered fish-photo Image composition", true,
             photoSnapshot(initialPhotoId)?.rendered)
+        captureInitialEvidence("fish_photo_ready_before_layout_assertions")
         completeStep("FISH_PHOTO_RENDERED")
 
         val profile = requireNotNull(densityProbe.get()) { "Compose density/insets were not observed" }
@@ -288,6 +364,7 @@ class GeminiHomeDeviceMatrixTest {
             .assertTextEquals("42.6 cm · 1.28 kg")
         compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
             .assertTextContains("昨天 18:20", substring = true)
+            .assertTextContains("浙江 · 千岛湖", substring = true)
         val requiredCardTextTags = listOf(
             "gemini-home-catch-species-nh01-catch-001",
             "gemini-home-catch-measurement-nh01-catch-001",
@@ -805,6 +882,12 @@ class GeminiHomeDeviceMatrixTest {
                 put("gAB_error_dp", actualGapBeforeAddition - expectedEqualGapAddition)
                 put("gBC_error_dp", actualGapAfterAddition - expectedEqualGapAddition)
                 put("card_bounds_dp", activeCard.toJson())
+                put("camera_touch_bounds_dp", camera.toJson())
+                put("camera_art_bounds_dp", cameraArt.toJson())
+                put("camera_art_expected_size_dp", expectedCameraArtSize)
+                put("camera_touch_target_min_dp", 72f)
+                put("camera_touch_target_max_dp", 88f)
+                put("section_action_touch_bounds_dp", sectionAction.toJson())
                 put("card_target_width_dp", targetCardWidthDp)
                 put("card_actual_width_dp", activeCardLayoutWidthDp)
                 put("card_actual_height_dp", activeCardLayoutHeightDp)
@@ -948,7 +1031,7 @@ class GeminiHomeDeviceMatrixTest {
         assertTrue("footer remains on screen", footer.bottom <= root.bottom - profile.insets.bottom.value + 1f)
         completeStep("BOUNDS_AND_LAYOUT_ASSERTIONS_PASSED")
 
-        beginStep("CAPTURE_INITIAL_ANDROID_SCREENSHOT")
+        beginStep("VERIFY_MATRIX_DISPLAY_DIMENSIONS")
         val windowManager = compose.activity.windowManager
         val displayMetrics = DisplayMetrics()
         @Suppress("DEPRECATION")
@@ -959,12 +1042,7 @@ class GeminiHomeDeviceMatrixTest {
             .split("x").map { it.toInt() }
         assertEquals("Android must apply the requested physical pixel width", expectedDisplay[0], displayMetrics.widthPixels)
         assertEquals("Android must apply the requested physical pixel height", expectedDisplay[1], displayMetrics.heightPixels)
-        val imageCapture = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
-        val screenshotName = "$profileId-${variant.name.lowercase(Locale.US)}.png"
-        val screenshot = File(output, screenshotName)
-        screenshot.outputStream().use { sink -> assertTrue("screenshot must save", imageCapture.compress(Bitmap.CompressFormat.PNG, 100, sink)) }
-        imageCapture.recycle()
-        completeStep("INITIAL_SCREENSHOT_CAPTURED")
+        completeStep("DISPLAY_DIMENSIONS_VERIFIED")
 
         if (scenario == "image_failure") {
             val geometryTags = listOf(
@@ -1187,6 +1265,21 @@ class GeminiHomeDeviceMatrixTest {
         val afterSwipeLeftId = catchesState.value.getOrNull(afterSwipeIndex - 1)?.id
         val afterSwipeRightId = catchesState.value.getOrNull(afterSwipeIndex + 1)?.id
         compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true).performTouchInput { swipeLeft() }
+        val afterSwipe = File(output, "$profileId-${variant.name.lowercase(Locale.US)}-after-swipe.png")
+        fun recordAfterSwipeScreenshot() {
+            val (imageFile, _) = captureEvidenceScreenshot(afterSwipe.name)
+            val reportFile = caseReportFile()
+            if (reportFile != null && reportFile.isFile) {
+                val report = JSONObject(reportFile.readText())
+                val screenshots = report.optJSONObject("screenshots") ?: JSONObject()
+                screenshots.put("after_swipe", imageFile.name)
+                report.put("screenshots", screenshots)
+                val temporary = File(reportFile.parentFile, reportFile.name + ".tmp")
+                temporary.writeText(report.toString(2) + "\n")
+                android.system.Os.rename(temporary.absolutePath, reportFile.absolutePath)
+            }
+        }
+        recordAfterSwipeScreenshot()
         waitForPagerSettled(
             targetIndex = afterSwipeIndex,
             targetId = afterSwipeId,
@@ -1194,6 +1287,7 @@ class GeminiHomeDeviceMatrixTest {
             expectedLeftId = afterSwipeLeftId,
             expectedRightId = afterSwipeRightId,
         )
+        recordAfterSwipeScreenshot()
         assertSingleNode("gemini-home-catch-card-$afterSwipeId")
         afterSwipeLeftId?.let { assertSingleNode("gemini-home-catch-neighbor-$it") }
         afterSwipeRightId?.let { assertSingleNode("gemini-home-catch-neighbor-$it") }
@@ -1325,10 +1419,6 @@ class GeminiHomeDeviceMatrixTest {
             afterSwipeLeftId?.let { put("gemini-home-catch-neighbor-$it", visibleRect("gemini-home-catch-neighbor-$it").toJson()) }
             afterSwipeRightId?.let { put("gemini-home-catch-neighbor-$it", visibleRect("gemini-home-catch-neighbor-$it").toJson()) }
         }
-        val afterSwipe = File(output, "$profileId-${variant.name.lowercase(Locale.US)}-after-swipe.png")
-        val afterSwipeBitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
-        afterSwipe.outputStream().use { sink -> assertTrue(afterSwipeBitmap.compress(Bitmap.CompressFormat.PNG, 100, sink)) }
-        afterSwipeBitmap.recycle()
         completeStep("HORIZONTAL_SWIPE_AND_SECOND_SCREENSHOT_PASSED")
 
         val density = compose.activity.resources.displayMetrics.density

@@ -289,20 +289,21 @@ gate_collect_evidence() {
   "$YUJIAN_ADB_BIN" shell settings put system font_scale 1.0 >/dev/null
   "$YUJIAN_ADB_BIN" shell wm density 480 >/dev/null
   "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 0.0 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 0.0 >/dev/null
-  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 0.0 >/dev/null
+  # Animation scales are disabled once by android-emulator-runner before this gate.
   gemini_v2_run_seed seedGeminiReferenceGuestHome || {
     runtime_set_failure "EVIDENCE" "GEMINI_REFERENCE_GUEST_SEED_FAILED"
     return "$EXIT_FAIL_EVIDENCE"
   }
 
   "$YUJIAN_ADB_BIN" shell am force-stop "$app_package"
+  home_launch_started_epoch="$(date +%s)"
   "$YUJIAN_ADB_BIN" shell monkey -p "$app_package" -c android.intent.category.LAUNCHER 1 >/dev/null
   gemini_v2_wait_for_app 1080x1920 || {
     runtime_set_failure "EVIDENCE" "GEMINI_HOME_API28_DID_NOT_RENDER_1080X1920"
     return "$EXIT_FAIL_EVIDENCE"
   }
+  home_launch_seconds="$(( $(date +%s) - home_launch_started_epoch ))"
+  printf 'home_launch_1080x1920_seconds=%s\n' "$home_launch_seconds" | tee -a "$YUJIAN_EVIDENCE_DIR/infra/runtime_timings.log"
   local bounds_1920
   bounds_1920="$(gemini_v2_wait_for_reference_home api28_1080x1920)" || {
     runtime_set_failure "EVIDENCE" "GEMINI_REFERENCE_HOME_DATA_OR_ROUTE_NOT_VERIFIED_1080X1920"
@@ -365,9 +366,6 @@ gate_collect_evidence() {
   "$YUJIAN_ADB_BIN" shell wm size 1080x1920 >/dev/null 2>&1 || true
   "$YUJIAN_ADB_BIN" shell wm density 480 >/dev/null 2>&1 || true
   "$YUJIAN_ADB_BIN" shell settings put system font_scale 1.0 >/dev/null || true
-  "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 1.0 >/dev/null || true
-  "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 >/dev/null || true
-  "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 >/dev/null || true
 
   local compose_root="$YUJIAN_EVIDENCE_DIR/compose-simulation"
   if ! gemini_v2_pull_compose_evidence "$compose_root" "$output/compose_evidence_pull.log"; then
