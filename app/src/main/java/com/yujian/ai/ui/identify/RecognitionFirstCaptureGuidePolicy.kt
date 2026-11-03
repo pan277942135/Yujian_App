@@ -60,7 +60,7 @@ internal fun recognitionFirstCaptureGuidePageSpec(page: RecognitionFirstCaptureG
         RecognitionFirstCaptureGuidePage.P02 -> "竖拍鱼类拍摄示意"
     }
     val fishPose = if (fishOrientation == RecognitionGuideFishOrientation.VERTICAL) "竖直" else "横向"
-    val subtitle = "手机保持竖屏，整条鱼\${fishPose}完整放入取景范围"
+    val subtitle = "手机保持竖屏，整条鱼${fishPose}完整放入取景范围"
     val horizontal = fishOrientation == RecognitionGuideFishOrientation.HORIZONTAL
     val backgroundAsset = if (page == RecognitionFirstCaptureGuidePage.P02) {
         R.drawable.first_use_guide_bg_p02
