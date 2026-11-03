@@ -116,7 +116,7 @@ gate_collect_evidence() {
   local first_guide_output="$YUJIAN_EVIDENCE_DIR/first_use_camera_guide"
   mkdir -p "$first_guide_output"
   local name
-  for name in P01_compose_component.png P02_compose_component.png P03_compose_component.png first_use_camera_guide_runtime_report.json; do
+  for name in P01_compose_component.png P02_compose_component.png first_use_camera_guide_runtime_report.json; do
     "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
       "cache/recognition-first-use-camera-guide/${name}" \
       > "$first_guide_output/$name" 2>/dev/null || true

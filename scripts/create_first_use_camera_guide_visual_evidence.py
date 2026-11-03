@@ -29,12 +29,6 @@ PAGE_FILES = {
         "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
         1671,
     ),
-    "P03": (
-        "P03_runtime.png",
-        "P03_First_Use_Camera_Guide_Frozen.png",
-        "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
-        1672,
-    ),
 }
 
 
@@ -151,6 +145,8 @@ def main() -> int:
     report["apk_bytes_host"] = args.apk.stat().st_size
     report["apk_sha256_match"] = report.get("apk_sha256") == report["apk_sha256_host"]
     report["frozen_source_sha256"] = {page: PAGE_FILES[page][2] for page in PAGE_FILES}
+    report["active_guide_page_count"] = 2
+    report["capture_phone_orientation"] = "portrait_only"
     report["visual_evidence_dir"] = str(args.output_dir)
     report["pages"] = visual_pages
     report["canonical_profile"] = {"api_level": 28, "viewport_px": {"width": 1080, "height": 1920}, "font_scale": 1.0}
