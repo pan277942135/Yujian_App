@@ -138,7 +138,7 @@ def resized_component(source: Image.Image, crop: tuple[int, int, int, int], size
     return patch
 
 
-def project(source: Image.Image, size: tuple[int, int], runtime: dict[str, Any]) -> tuple[Image.Image, dict[str, Any], dict[str, tuple[int, int, int, int]]]:
+def project(source: Image.Image, size: tuple[int, int], runtime: dict[str, Any], state: str = "initial") -> tuple[Image.Image, dict[str, Any], dict[str, tuple[int, int, int, int]]]:
     if min(size) <= 0:
         raise ValueError(f"Projection dimensions must be positive, got {size}")
     design = source.convert("RGB").resize(DESIGN_DP, Image.Resampling.LANCZOS)
@@ -163,10 +163,14 @@ def project(source: Image.Image, size: tuple[int, int], runtime: dict[str, Any])
 
     layout = get_bounds(runtime, "layout_bounds_logical_window_px")
     visible = get_bounds(runtime, "visible_bounds_clipped_window_px")
+    tag_overrides = runtime.get(f"comparison_tags_{state}", {})
     start, top, end, bottom = safe_insets(runtime)
     projected: dict[str, tuple[int, int, int, int]] = {}
     source_w, source_h = source.size
-    for name, source_box, tag, bounds_kind in COMPONENTS:
+    for name, source_box, default_tag, bounds_kind in COMPONENTS:
+        tag = tag_overrides.get(name, default_tag) if isinstance(tag_overrides, dict) else default_tag
+        if not isinstance(tag, str) or not tag:
+            continue
         bound_map = visible if bounds_kind.startswith("visible") else layout
         bounds = bound_map.get(tag)
         if not isinstance(bounds, dict):
@@ -206,9 +210,18 @@ def mean_abs_rgb(a: Image.Image, b: Image.Image) -> float:
 
 
 def compare(reference: Image.Image, screenshot: Image.Image, output: Path,
-            bounds: tuple[int, int, int, int] | None, runtime: dict[str, Any], manifest: dict[str, Any]) -> dict[str, Any]:
+            bounds: tuple[int, int, int, int] | None, runtime: dict[str, Any], manifest: dict[str, Any],
+            state: str = "initial") -> dict[str, Any]:
     actual, safe_bounds = crop_safe_content(screenshot, runtime, bounds)
-    target, target_meta, component_bounds = project(reference, actual.size, runtime)
+    projection_runtime = dict(runtime)
+    if state == "after_swipe":
+        projection_runtime["layout_bounds_logical_window_px"] = runtime.get(
+            "layout_bounds_after_swipe_logical_window_px", runtime.get("layout_bounds_logical_window_px", {})
+        )
+        projection_runtime["visible_bounds_clipped_window_px"] = runtime.get(
+            "visible_bounds_after_swipe_clipped_window_px", runtime.get("visible_bounds_clipped_window_px", {})
+        )
+    target, target_meta, component_bounds = project(reference, actual.size, projection_runtime, state)
     target_rgb = target.convert("RGB")
     target.save(output / "NH01_RESPONSIVE_REFERENCE_PROJECTION.png", optimize=True)
     pair = Image.new("RGB", (actual.width * 2, actual.height), (245, 247, 249))
@@ -252,6 +265,7 @@ def main() -> int:
                         help="Optional x,y,width,height safe-content crop; takes precedence over measured Insets.")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--profile-id", default="UNKNOWN")
+    parser.add_argument("--state", choices=("initial", "after_swipe"), default="initial")
     parser.add_argument("--api-level", type=int, default=None)
     parser.add_argument("--avd-id", default=None)
     args = parser.parse_args()
@@ -267,11 +281,13 @@ def main() -> int:
             screenshot = image.copy()
     except OSError as error:
         raise SystemExit(f"RUNTIME_SCREENSHOT_BLOCKED: cannot decode image: {error}") from error
-    record = compare(reference, screenshot, args.output_dir, args.content_bounds, runtime, manifest)
+    record = compare(reference, screenshot, args.output_dir, runtime=runtime, manifest=manifest,
+                     bounds=args.content_bounds, state=args.state)
     record.update({
         "render_sha256": sha256(args.render),
         "runtime_metrics_file": str(args.metrics_json),
         "profile_id": args.profile_id,
+        "state": args.state,
         "api_level": args.api_level,
         "avd_id": args.avd_id,
         "baseline_source_file": manifest["filename"],

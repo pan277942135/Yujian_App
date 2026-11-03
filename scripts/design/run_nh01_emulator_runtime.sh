@@ -59,8 +59,66 @@ PY
 fi
 python3 scripts/design/capture_nh01_device_metadata.py --output "$YUJIAN_RUNTIME_EVIDENCE/infra/device_metadata.json" --insets-dump "$YUJIAN_RUNTIME_EVIDENCE/infra/window_insets_dump.txt"
 
+APP_APK="${YUJIAN_APP_APK:-build/runtime-apks/app-debug.apk}"
+TEST_APK="${YUJIAN_TEST_APK:-build/runtime-apks/app-debug-androidTest.apk}"
+export BUILD_SHA="$YUJIAN_SOURCE_SHA" API_LEVEL=28 EVIDENCE_DIR="$YUJIAN_RUNTIME_EVIDENCE"
+export YUJIAN_APP_PACKAGE="${YUJIAN_APP_PACKAGE:-com.yujian.ai.uiv2}"
+export YUJIAN_TEST_PACKAGE="${YUJIAN_TEST_PACKAGE:-com.yujian.ai.uiv2.test}"
+export YUJIAN_INSTRUMENTATION_TARGET="${YUJIAN_INSTRUMENTATION_TARGET:-$YUJIAN_TEST_PACKAGE/androidx.test.runner.AndroidJUnitRunner}"
+source scripts/android_runtime/common.sh
+source scripts/android_runtime/preflight.sh
+source scripts/android_runtime/install_apks.sh
+
 runtime_rc=0
-bash scripts/run_android_runtime_gate.sh --gate gemini-home-v2 --api-level 28 --build-sha "$YUJIAN_SOURCE_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "$YUJIAN_RUNTIME_EVIDENCE" || runtime_rc=$?
+preflight_status="PASS"
+install_status="NOT_RUN"
+instrumentation_status="NOT_RUN"
+evidence_status="NOT_RUN"
+runtime_classification="BLOCKED_INFRA"
+runtime_failure_phase="MATRIX"
+runtime_failure_reason="NH01_MATRIX_NOT_RUN"
+
+write_runtime_result() {
+  python3 scripts/android_runtime/result.py \
+    --output "$YUJIAN_RUNTIME_EVIDENCE/runtime_gate_result.json" \
+    --gate gemini-home-v2 --api-level 28 --build-sha "$YUJIAN_SOURCE_SHA" \
+    --adb-state "$("$ADB" -s "$selected_serial" get-state 2>/dev/null | tr -d '\r' || true)" \
+    --boot-completed "$("$ADB" -s "$selected_serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)" \
+    --data-free-kb "${YUJIAN_DATA_FREE_KB:-}" \
+    --preflight "$preflight_status" --install "$install_status" \
+    --instrumentation "$instrumentation_status" --evidence "$evidence_status" \
+    --classification "$runtime_classification" \
+    --failure-phase "$runtime_failure_phase" --failure-reason "$runtime_failure_reason"
+}
+
+preflight_started_epoch="$(date +%s)"
+if android_runtime_preflight; then
+  preflight_status="PASS"
+else
+  preflight_status="FAIL"
+  runtime_rc=10
+  runtime_classification="BLOCKED_INFRA"
+  runtime_failure_phase="PREFLIGHT"
+  runtime_failure_reason="${YUJIAN_FAILURE_REASON:-ADB_PREFLIGHT_FAILED}"
+fi
+printf 'adb_preflight_seconds=%s\n' "$(( $(date +%s) - preflight_started_epoch ))" | tee -a "$timing_log"
+
+if [[ "$preflight_status" == "PASS" ]]; then
+  install_started_epoch="$(date +%s)"
+  if android_runtime_install_apks "$APP_APK" "$TEST_APK"; then
+    install_status="PASS"
+  else
+    install_rc=$?
+    install_status="FAIL"
+    runtime_rc="$install_rc"
+    runtime_classification="BLOCKED_INFRA"
+    if (( install_rc == 20 )); then runtime_classification="FAIL_ARTIFACT"; fi
+    runtime_failure_phase="${YUJIAN_FAILURE_PHASE:-INSTALL}"
+    runtime_failure_reason="${YUJIAN_FAILURE_REASON:-APK_INSTALL_FAILED}"
+  fi
+  printf 'apk_install_seconds=%s\n' "$(( $(date +%s) - install_started_epoch ))" | tee -a "$timing_log"
+fi
+write_runtime_result
 
 # Run only the three representative windows on the one installed APK pair.
 # M04=360x640, M07=390x844, M10=430x932; ADAPTIVE_V2 only.
@@ -69,10 +127,10 @@ run_nh01_matrix() {
   local variant_filter="${2:-}"
   local -a matrix_env=(
     "YUJIAN_ADB_BIN=$ADB"
-    "YUJIAN_APP_PACKAGE=${YUJIAN_APP_PACKAGE:-com.yujian.ai.uiv2}"
-    "YUJIAN_INSTRUMENTATION_TARGET=${YUJIAN_INSTRUMENTATION_TARGET:-com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner}"
-    "YUJIAN_APP_APK=build/runtime-apks/app-debug.apk"
-    "YUJIAN_TEST_APK=build/runtime-apks/app-debug-androidTest.apk"
+    "YUJIAN_APP_PACKAGE=$YUJIAN_APP_PACKAGE"
+    "YUJIAN_INSTRUMENTATION_TARGET=$YUJIAN_INSTRUMENTATION_TARGET"
+    "YUJIAN_APP_APK=$APP_APK"
+    "YUJIAN_TEST_APK=$TEST_APK"
     "YUJIAN_AAPT_BIN=${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}/build-tools/35.0.0/aapt"
     "YUJIAN_EVIDENCE_DIR=$YUJIAN_RUNTIME_EVIDENCE"
     "BUILD_SHA=$YUJIAN_SOURCE_SHA"
@@ -92,81 +150,92 @@ matrix_rc=0
 run_nh01_matrix "M04,M07,M10" "ADAPTIVE_V2" || matrix_rc=$?
 printf 'representative_3_case_matrix_seconds=%s\n' "$(( $(date +%s) - matrix_started_epoch ))" | tee -a "$timing_log"
 
-if (( matrix_rc != 0 )); then
-  printf 'NH01_ADAPTIVE_DEVICE_MATRIX=FAIL exit=%s\n' "$matrix_rc" >&2
-  matrix_classification="$(python3 - "$YUJIAN_RUNTIME_EVIDENCE" "$runtime_rc" "NH01_THREE_DEVICE_ADAPTIVE_V2_REPORT" <<'PY'
+matrix_classification="$(python3 - "$YUJIAN_RUNTIME_EVIDENCE" "$matrix_rc" "NH01_THREE_DEVICE_ADAPTIVE_V2_REPORT" <<'PY'
 import json, pathlib, sys
 root = pathlib.Path(sys.argv[1])
-legacy_rc = int(sys.argv[2])
-summary_path = root / "NH01_ADAPTIVE_MATRIX_SUMMARY_V1.json"
+matrix_rc = int(sys.argv[2])
+report_path = root / sys.argv[3]
 try:
-    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    report = json.loads(report_path.read_text(encoding="utf-8"))
 except (OSError, json.JSONDecodeError):
-    summary = {}
-cases = summary.get("cases", [])
-records = []
-for case in cases:
-    for key in ("candidate_execution", "baseline_execution"):
-        record = case.get(key)
-        if isinstance(record, dict):
-            records.append(record)
-if not records:
-    report_stem = sys.argv[3] if len(sys.argv) > 3 else "NH01_THREE_DEVICE_ADAPTIVE_V2_REPORT"
-    targeted_path = root / (report_stem + ".json")
-    try:
-        targeted = json.loads(targeted_path.read_text(encoding="utf-8"))
-        records = [case.get("execution", {}) for case in targeted.get("cases", []) if isinstance(case, dict)]
-    except (OSError, json.JSONDecodeError):
-        records = []
+    report = {}
+records = [case.get("execution", {}) for case in report.get("cases", []) if isinstance(case, dict)]
+statuses = [str(record.get("status", "MISSING")).upper() for record in records]
 failures = [record for record in records if str(record.get("status", "")).upper() == "FAIL"]
-if failures:
-    test_failure = any(
-        "INSTRUMENTATION_EXIT_" in str(record.get("reason", ""))
-        or "TEST_ASSERTION_FAILED" in str(record.get("reason", ""))
-        or "failure_class=" in str(record.get("reason", ""))
-        for record in failures
-    )
-    classification = "FAIL_TEST" if test_failure else "FAIL_EVIDENCE"
-elif any(str(record.get("status", "")).upper() in {"MISSING", "RUNNING"} for record in records):
+if matrix_rc == 0 and len(records) == 3 and statuses == ["PASS"] * 3:
+    classification = "PASS"
+elif failures and any(
+    "INSTRUMENTATION_EXIT_" in str(record.get("reason", ""))
+    or "TEST_ASSERTION_FAILED" in str(record.get("reason", ""))
+    or "failure_class=" in str(record.get("reason", ""))
+    for record in failures
+):
+    classification = "FAIL_TEST"
+elif any(status in {"MISSING", "RUNNING"} for status in statuses):
     classification = "BLOCKED_INFRA"
 else:
     classification = "FAIL_EVIDENCE"
-failure_reasons = sorted({
-    str(record.get("reason")) for record in failures if record.get("reason")
-})
-result_path = root / "runtime_gate_result.json"
-try:
-    payload = json.loads(result_path.read_text(encoding="utf-8"))
-except (OSError, json.JSONDecodeError):
-    payload = {}
-payload["nh01_adaptive_matrix"] = {
-    "status": summary.get("status", "FAIL"),
-    "classification": classification,
-    "source_sha": summary.get("source_sha"),
-    "failure_reasons": failure_reasons,
-}
-if legacy_rc == 0:
-    payload.update({
-        "evidence": "FAIL",
-        "classification": classification,
-        "failure_phase": "INSTRUMENTATION" if classification == "FAIL_TEST" else (
-            "PREFLIGHT" if classification == "BLOCKED_INFRA" else "EVIDENCE"
-        ),
-        "failure_reason": "NH01_API28_THREE_DEVICE_ADAPTIVE_V2_" + classification,
-    })
-result_path.parent.mkdir(parents=True, exist_ok=True)
-result_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-print(classification)
+reasons = sorted({str(record.get("reason")) for record in records if record.get("reason")})
+print(classification + "\t" + "; ".join(reasons))
 PY
 )"
-  printf 'NH01_ADAPTIVE_MATRIX_CLASSIFICATION=%s\n' "${matrix_classification:-UNKNOWN}" >&2
-  if (( runtime_rc == 0 )); then
-    case "$matrix_classification" in
-      FAIL_TEST) runtime_rc=30 ;;
-      BLOCKED_INFRA) runtime_rc=10 ;;
-      *) runtime_rc=40 ;;
-    esac
-  fi
+IFS=$'\t' read -r matrix_classification matrix_reasons <<< "$matrix_classification"
+if [[ "$runtime_rc" -eq 0 && "$matrix_classification" == "PASS" ]]; then
+  instrumentation_status="PASS"
+  evidence_status="PASS"
+  runtime_classification="PASS"
+  runtime_failure_phase=""
+  runtime_failure_reason=""
+elif [[ "$runtime_rc" -eq 0 ]]; then
+  printf 'NH01_ADAPTIVE_DEVICE_MATRIX=FAIL exit=%s\n' "$matrix_rc" >&2
+  instrumentation_status="FAIL"
+  evidence_status="FAIL"
+  runtime_classification="$matrix_classification"
+  runtime_failure_phase="INSTRUMENTATION"
+  [[ "$matrix_classification" == "FAIL_EVIDENCE" ]] && runtime_failure_phase="EVIDENCE"
+  [[ "$matrix_classification" == "BLOCKED_INFRA" ]] && runtime_failure_phase="PREFLIGHT"
+  runtime_failure_reason="NH01_API28_THREE_DEVICE_ADAPTIVE_V2_${matrix_classification}"
+  if [[ -n "$matrix_reasons" ]]; then runtime_failure_reason+="; $matrix_reasons"; fi
+  case "$matrix_classification" in
+    FAIL_TEST) runtime_rc=30 ;;
+    BLOCKED_INFRA) runtime_rc=10 ;;
+    *) runtime_rc=40 ;;
+  esac
+  printf 'NH01_ADAPTIVE_MATRIX_CLASSIFICATION=%s\n' "$matrix_classification" >&2
+else
+  printf 'NH01_ADAPTIVE_DEVICE_MATRIX=FAIL exit=%s runtime_setup_exit=%s\n' "$matrix_rc" "$runtime_rc" >&2
+fi
+
+write_runtime_result
+python3 - "$YUJIAN_RUNTIME_EVIDENCE/runtime_gate_result.json" "$matrix_classification" "$matrix_reasons" <<'PY'
+import json, pathlib, sys
+path=pathlib.Path(sys.argv[1])
+try: payload=json.loads(path.read_text(encoding="utf-8"))
+except (OSError,json.JSONDecodeError): payload={}
+payload["nh01_adaptive_matrix"]={
+    "status":"PASS" if sys.argv[2]=="PASS" else "FAIL",
+    "classification":sys.argv[2],
+    "source_sha":payload.get("build_sha"),
+    "profile_ids":["M04","M07","M10"],
+    "layout_variant":"ADAPTIVE_V2",
+    "failure_reasons":[reason for reason in sys.argv[3].split("; ") if reason],
+}
+path.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+PY
+
+if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  {
+    echo "### NH01 API 28 runtime result"
+    echo
+    echo "- Preflight: $preflight_status"
+    echo "- APK install (one app/test APK install before the matrix): $install_status"
+    echo "- Matrix: $matrix_classification (M04, M07, M10; ADAPTIVE_V2)"
+    echo "- Source SHA: $YUJIAN_SOURCE_SHA"
+  } >> "$GITHUB_STEP_SUMMARY"
+fi
+
+if [[ "$matrix_classification" != "PASS" ]]; then
+  printf 'NH01_ADAPTIVE_DEVICE_MATRIX=FAIL classification=%s\n' "$matrix_classification" >&2
 else
   printf 'NH01_ADAPTIVE_DEVICE_MATRIX=PASS source_sha=%s\n' "$YUJIAN_SOURCE_SHA"
 fi

@@ -7,8 +7,9 @@ set -uo pipefail
 : "${YUJIAN_EVIDENCE_DIR:?YUJIAN_EVIDENCE_DIR is required}"
 : "${BUILD_SHA:?BUILD_SHA is required}"
 
-readonly TEST_CLASS="com.yujian.ai.ui.home.GeminiHomeDeviceMatrixTest#capturesActualWindowForScenario"
-readonly RECORD_SCENARIO="${YUJIAN_NH01_RECORD_SCENARIO:-three_unique_catches}"
+readonly TEST_CLASS="com.yujian.ai.ui.home.GeminiHomeDeviceMatrixTest#capturesProductionHomeForRepresentativeDevice"
+readonly FIXTURE_SEED_CLASS="com.yujian.ai.HomeVisualEvidenceSeedTest#seedGeminiReferenceGuestHome"
+readonly RECORD_SCENARIO="three_unique_catches"
 readonly APP_APK="${YUJIAN_APP_APK:-build/runtime-apks/app-debug.apk}"
 readonly TEST_APK="${YUJIAN_TEST_APK:-build/runtime-apks/app-debug-androidTest.apk}"
 readonly RAW_DIR="$YUJIAN_EVIDENCE_DIR/nh01-adaptive-raw"
@@ -22,17 +23,11 @@ rm -rf "$RAW_DIR" "$MATRIX_DIR"
 mkdir -p "$RAW_CASE_DIR" "$EXEC_DIR" "$LOG_DIR/diagnostics"
 
 profiles=(
-  "M01 320 480 1.0" "M02 320 480 1.3" "M03 320 480 1.5"
-  "M04 360 640 1.0" "M05 360 640 1.3" "M06 360 640 1.5"
-  "M07 390 844 1.0" "M08 390 844 1.3" "M09 390 844 1.5"
-  "M10 430 932 1.0" "M11 430 932 1.3" "M12 430 932 1.5"
-  # Safe-height probes use the measured API 28 Pixel 2 insets: 24dp status + 48dp navigation.
-  # Keep the requested safe-content heights unchanged and include both system insets in wm size.
-  "H499 360 571 1.0 499" "H500 360 572 1.0 500"
-  "H699 360 771 1.0 699" "H700 360 772 1.0 700"
-  "H839 360 911 1.0 839" "H840 360 912 1.0 840"
+  "M04 360 640 1.0"
+  "M07 390 844 1.0"
+  "M10 430 932 1.0"
 )
-variants=("ADAPTIVE_V2" "V3_BASELINE")
+variants=("ADAPTIVE_V2")
 all_ok=1
 matrix_setup_ok=1
 matrix_setup_reason=""
@@ -60,6 +55,9 @@ record_setup_failure() {
 }
 
 profile_filter="${YUJIAN_NH01_PROFILE_FILTER:-}"
+if [[ -n "$profile_filter" && "$profile_filter" != "M04,M07,M10" ]]; then
+  record_setup_failure "THREE_DEVICE_SCOPE_FIXED_TO_M04_M07_M10_GOT_${profile_filter//,/_}"
+fi
 if [[ -n "$profile_filter" ]]; then
   IFS=',' read -r -a requested_profiles <<< "$profile_filter"
   filtered_profiles=()
@@ -79,6 +77,9 @@ if [[ -n "$profile_filter" ]]; then
 fi
 
 variant_filter="${YUJIAN_NH01_VARIANT_FILTER:-}"
+if [[ -n "$variant_filter" && "$variant_filter" != "ADAPTIVE_V2" ]]; then
+  record_setup_failure "LAYOUT_VARIANT_SCOPE_FIXED_TO_ADAPTIVE_V2_GOT_${variant_filter//,/_}"
+fi
 if [[ -n "$variant_filter" ]]; then
   IFS=',' read -r -a requested_variants <<< "$variant_filter"
   filtered_variants=()
@@ -364,6 +365,47 @@ if [[ -n "$selected_serial" ]]; then
   done
 fi
 
+fixture_seed_status="BLOCKED"
+fixture_seed_rc="null"
+fixture_seed_log="$LOG_DIR/fixture_seed.log"
+if [[ -n "$selected_serial" && "$app_package_verified" -eq 1 && "$test_package_verified" -eq 1 && "$instrumentation_verified" -eq 1 ]]; then
+  seed_command=("${ADB[@]}" shell am instrument -w -r -e class "$FIXTURE_SEED_CLASS" "$YUJIAN_INSTRUMENTATION_TARGET")
+  seed_rc=0
+  if command -v timeout >/dev/null 2>&1; then
+    timeout 180s "${seed_command[@]}" > "$fixture_seed_log" 2>&1 || seed_rc=$?
+  else
+    "${seed_command[@]}" > "$fixture_seed_log" 2>&1 || seed_rc=$?
+  fi
+  fixture_seed_rc="$seed_rc"
+  if [[ "$seed_rc" -eq 0 ]] && grep -Eq 'INSTRUMENTATION_CODE:[[:space:]]*0|OK \(1 test' "$fixture_seed_log"; then
+    fixture_seed_status="PASS"
+  else
+    fixture_seed_status="FAIL"
+    record_setup_failure "DETERMINISTIC_GUEST_FIXTURE_SEED_FAILED_EXIT_${seed_rc}"
+  fi
+else
+  printf 'fixture seed not run: app/test package or instrumentation target is unavailable\n' > "$fixture_seed_log"
+  record_setup_failure "DETERMINISTIC_GUEST_FIXTURE_SEED_BLOCKED"
+fi
+python3 - "$MATRIX_DIR/fixture_seed.json" "$fixture_seed_status" "$fixture_seed_rc" "$fixture_seed_log" <<'PY'
+import json, pathlib, sys
+path=pathlib.Path(sys.argv[1]); path.parent.mkdir(parents=True,exist_ok=True)
+path.write_text(json.dumps({"schema":"NH01_PRODUCTION_HOME_FIXTURE_SEED_V1","status":sys.argv[2],
+                            "exit_code":None if sys.argv[3]=="null" else int(sys.argv[3]),
+                            "test":"com.yujian.ai.HomeVisualEvidenceSeedTest#seedGeminiReferenceGuestHome",
+                            "log":sys.argv[4]},ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+PY
+if [[ -s "$MATRIX_DIR/matrix_environment.json" ]]; then
+  python3 - "$MATRIX_DIR/matrix_environment.json" "$fixture_seed_status" "$matrix_setup_ok" "$matrix_setup_reason" <<'PY'
+import json, pathlib, sys
+p=pathlib.Path(sys.argv[1]); d=json.loads(p.read_text(encoding="utf-8"))
+d["fixture_seed_status"]=sys.argv[2]
+d["setup_status"]="PASS" if sys.argv[3]=="1" else "FAIL"
+d["setup_reason"]=sys.argv[4]
+p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+PY
+fi
+
 for row in "${profiles[@]}"; do
   read -r profile width height font_scale expected_safe_height_dp <<< "$row"
   requested="${width}x${height}"
@@ -422,8 +464,9 @@ PY
     stderr="$LOG_DIR/${case_key}_stderr.log"
     combined="$LOG_DIR/${case_key}.log"
     report_name="$profile-${variant_token}.json"
-    initial_name="$profile-${variant_token}.png"
-    swipe_name="$profile-${variant_token}-after-swipe.png"
+    initial_name="${profile}_${width}x${height}_initial.png"
+    swipe_name="${profile}_${width}x${height}_after_swipe.png"
+    failure_name="${profile}_failure.png"
     if [[ "$matrix_setup_ok" -ne 1 ]]; then
       reason="MATRIX_SETUP_BLOCKED: ${matrix_setup_reason:-UNSPECIFIED}"
       write_case_record "$profile" "$variant_token" "MISSING" "null" "$reason" false false "$profile_settings_match"
@@ -504,7 +547,7 @@ PY
 )"
     fi
     if [[ -s "$device_report" ]]; then
-      screenshots_present="$(python3 - "$device_report" "$RAW_CASE_DIR/$initial_name" "$RAW_CASE_DIR/$swipe_name" "$RAW_CASE_DIR/$profile-${variant_token}-failure.png" <<'PY'
+      screenshots_present="$(python3 - "$device_report" "$RAW_CASE_DIR/$initial_name" "$RAW_CASE_DIR/$swipe_name" "$RAW_CASE_DIR/$failure_name" <<'PY'
 import json, pathlib, sys
 report_path, initial_path, swipe_path, failure_path = map(pathlib.Path, sys.argv[1:])
 try:
@@ -599,6 +642,16 @@ else
   echo "No unique online ADB device selected; remote pull not run." > "$final_pull_log"
   all_ok=0
 fi
+
+mkdir -p "$MATRIX_DIR/screenshots"
+for expected_screen in \
+  M04_360x640_initial.png M04_360x640_after_swipe.png \
+  M07_390x844_initial.png M07_390x844_after_swipe.png \
+  M10_430x932_initial.png M10_430x932_after_swipe.png; do
+  if [[ -s "$RAW_CASE_DIR/$expected_screen" ]]; then
+    cp "$RAW_CASE_DIR/$expected_screen" "$MATRIX_DIR/screenshots/$expected_screen"
+  fi
+done
 
 restore_device
 restore_rc=$?

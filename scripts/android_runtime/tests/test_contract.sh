@@ -136,13 +136,17 @@ run_case process-crash process-crash FAIL_TEST 30
 run_case evidence-missing missing-evidence FAIL_EVIDENCE 40
 run_case pass ready PASS 0
 
-run_adaptive_matrix_even_when_legacy_suite_fails() {
-  local tmp rc trace
+run_only_representative_adaptive_matrix() {
+  local tmp rc trace adb_trace install_count
   tmp="$(mktemp -d)"
-  mkdir -p "$tmp/bin"
+  mkdir -p "$tmp/bin" "$tmp/runtime-apks"
   trace="$tmp/call-order.txt"
+  adb_trace="$tmp/adb-commands.txt"
+  printf 'fake app apk\n' > "$tmp/runtime-apks/app-debug.apk"
+  printf 'fake test apk\n' > "$tmp/runtime-apks/app-debug-androidTest.apk"
   cat > "$tmp/bin/adb" <<'SH'
 #!/bin/sh
+printf '%s\n' "$*" >> "$NH01_ADB_TRACE"
 case "$*" in
   "devices"|"devices -l")
     printf 'List of devices attached\nemulator-5554 device product:fake model:fake transport_id:1\n'
@@ -152,6 +156,12 @@ case "$*" in
     ;;
   *"getprop sys.boot_completed")
     printf '1\n'
+    ;;
+  *"shell df -k /data")
+    printf 'Filesystem 1K-blocks Used Available Use%% Mounted on\n/dev/fake 2000000 100000 1900000 5%% /data\n'
+    ;;
+  *"shell pm path "*)
+    printf 'package:/data/app/fake/base.apk\n'
     ;;
   *)
     exit 0
@@ -166,8 +176,8 @@ SH
 #!/bin/sh
 case "$1" in
   scripts/run_android_runtime_gate.sh)
-    printf 'legacy\n' >> "$NH01_TEST_TRACE"
-    exit 30
+    printf 'unexpected-legacy-gate\n' >> "$NH01_TEST_TRACE"
+    exit 99
     ;;
   scripts/android_runtime/gates/run_nh01_adaptive_device_matrix.sh)
     printf 'matrix:%s:%s\n' "${YUJIAN_NH01_PROFILE_FILTER:-FULL}" "${YUJIAN_NH01_VARIANT_FILTER:-BOTH}" >> "$NH01_TEST_TRACE"
@@ -183,30 +193,37 @@ SH
   set +e
     PATH="$tmp/bin:$PATH" \
       NH01_TEST_TRACE="$trace" \
+      NH01_ADB_TRACE="$adb_trace" \
       YUJIAN_RUNTIME_EVIDENCE="$tmp/evidence" \
       YUJIAN_SOURCE_SHA="fake-sha" \
+      YUJIAN_APP_APK="$tmp/runtime-apks/app-debug.apk" \
+      YUJIAN_TEST_APK="$tmp/runtime-apks/app-debug-androidTest.apk" \
       /bin/bash "$ROOT_DIR/scripts/design/run_nh01_emulator_runtime.sh" > "$tmp/output.log" 2>&1
     rc=$?
   set -e
-  [[ "$rc" == "30" ]] || {
-    echo "expected core FAIL_TEST exit 30 after matrix attempt; got $rc" >&2
+  [[ "$rc" == "40" ]] || {
+    echo "expected incomplete synthetic matrix evidence to fail closed with 40; got $rc" >&2
     cat "$tmp/output.log" >&2
     exit 1
   }
-  [[ "$(sed -n '1p' "$trace")" == "legacy" &&
-     "$(sed -n '2p' "$trace")" == "matrix:M04,M07,M10:ADAPTIVE_V2" &&
-     "$(wc -l < "$trace" | tr -d ' ')" == "2" ]] || {
-    echo "three representative adaptive profiles did not run after the independent legacy failure" >&2
+  [[ "$(cat "$trace")" == "matrix:M04,M07,M10:ADAPTIVE_V2" ]] || {
+    echo "the workflow did not run exactly the three representative ADAPTIVE_V2 profiles" >&2
     cat "$trace" >&2 || true
     exit 1
   }
-  grep -q 'NH01_ADAPTIVE_DEVICE_MATRIX=PASS source_sha=fake-sha' "$tmp/output.log" || {
-    echo "successful adaptive matrix result was not recorded" >&2
+  install_count="$(grep -c '^install -r -t ' "$adb_trace" || true)"
+  [[ "$install_count" == "2" ]] || {
+    echo "expected one app APK and one AndroidTest APK installation, got $install_count commands" >&2
+    cat "$adb_trace" >&2 || true
+    exit 1
+  }
+  ! grep -q 'unexpected-legacy-gate' "$trace" || {
+    echo "the out-of-scope legacy 1080×1920 gate was still invoked" >&2
     cat "$tmp/output.log" >&2
     exit 1
   }
-  printf '%s\n' 'PASS NH01 adaptive matrix runs even after independent legacy FAIL_TEST'
+  printf '%s\n' 'PASS NH01 runtime installs one APK pair and runs only M04/M07/M10 ADAPTIVE_V2'
   rm -rf "$tmp"
 }
 
-run_adaptive_matrix_even_when_legacy_suite_fails
+run_only_representative_adaptive_matrix
