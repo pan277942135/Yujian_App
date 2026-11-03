@@ -170,7 +170,7 @@ case "$1" in
     exit 30
     ;;
   scripts/android_runtime/gates/run_nh01_adaptive_device_matrix.sh)
-    printf 'matrix\n' >> "$NH01_TEST_TRACE"
+    printf 'matrix:%s\n' "${YUJIAN_NH01_PROFILE_FILTER:-FULL}" >> "$NH01_TEST_TRACE"
     exit 0
     ;;
   *)
@@ -193,8 +193,21 @@ SH
     cat "$tmp/output.log" >&2
     exit 1
   }
-  [[ "$(cat "$trace")" == $'legacy\nmatrix' ]] || {
-    echo "adaptive matrix did not run after the independent legacy failure" >&2
+  [[ "$(cat "$trace")" ==     cat "$trace" >&2 || true
+    exit 1
+  }
+  grep -q 'NH01_ADAPTIVE_DEVICE_MATRIX=PASS source_sha=fake-sha' "$tmp/output.log" || {
+    echo "successful adaptive matrix result was not recorded" >&2
+    cat "$tmp/output.log" >&2
+    exit 1
+  }
+  printf '%s\n' 'PASS NH01 adaptive matrix runs even after independent legacy FAIL_TEST'
+  rm -rf "$tmp"
+}
+
+run_adaptive_matrix_even_when_legacy_suite_fails
+legacy\nmatrix:M01,M07,M10,H499,H500\nmatrix:FULL' ]] || {
+    echo "targeted and full adaptive matrices did not run after the independent legacy failure" >&2
     cat "$trace" >&2 || true
     exit 1
   }
