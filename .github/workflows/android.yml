@@ -79,9 +79,9 @@ permissions:
   contents: read
 
 env:
-  YUJIAN_API_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
-  YUJIAN_FISH_KNOWLEDGE_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
-  YUJIAN_FEEDBACK_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
+  YUJIAN_API_BASE_URL: https://81.71.1.11
+  YUJIAN_FISH_KNOWLEDGE_BASE_URL: https://81.71.1.11
+  YUJIAN_FEEDBACK_BASE_URL: https://81.71.1.11
 
 jobs:
   build:
