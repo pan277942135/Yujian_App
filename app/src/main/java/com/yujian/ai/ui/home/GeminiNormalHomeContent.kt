@@ -95,7 +95,6 @@ import kotlin.math.abs
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-private const val GeminiHomeBackground = "normal_home_runtime_v1/static/scene_base.png"
 private const val GeminiHomeCardAspectRatio = 247f / 293f
 private const val GeminiHomeNeighborHeightFraction = 0.667f
 private val GeminiHomePeekTopOffset = 15.dp

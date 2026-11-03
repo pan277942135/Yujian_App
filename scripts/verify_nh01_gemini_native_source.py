@@ -58,6 +58,7 @@ def main() -> None:
     gemini_contract = gemini_contract_path.read_text(encoding="utf-8")
     remote_image = (ROOT / "app/src/main/java/com/yujian/ai/ui/components/RemoteImage.kt").read_text(encoding="utf-8")
     camera_button = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeCameraButton.kt").read_text(encoding="utf-8")
+    policy_text = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text(encoding="utf-8")
     orb_core = (ROOT / "app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text(encoding="utf-8")
     gemini_loader = runtime.split("private fun loadGeminiNormalHomeRuntimeAssets", 1)[-1].split("\n@Composable", 1)[0]
 
@@ -73,11 +74,17 @@ def main() -> None:
         and "R.drawable.ai_orb_camera_activated_v1" in orb_core,
         "GeminiNormalHomeContent.kt + HomeCameraButton.kt + AIOrbCore.kt",
     ))
+    legacy_camera_policy = all(token in policy_text for token in (
+        "contentWidthDp * 0.18f", "safeHeightDp * 0.10f", "heightBound, 80f",
+    ))
+    v4_camera_policy = all(token in policy_text for token in (
+        "contentWidthDp * (85f / 360f)", "safeHeightDp * 0.135f", "heightBound, 96f",
+    ))
     checks.append((
         "camera_artwork_scales_with_canvas_and_has_separate_touch_bounds",
         "geminiHomeCameraVisualSize(safeWidth.value, safeHeight.value).dp" in page
         and "cameraTouchSize = maxOf(72.dp, cameraVisualSize)" in page
-        and "CaptureVisualTokens.buttonDiameter(safeWidthDp)" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
+        and (legacy_camera_policy or v4_camera_policy)
         and "visualModifier = Modifier.testTag(\"gemini-home-camera-art\")" in camera_button,
         "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt + HomeCameraButton.kt",
     ))
@@ -92,12 +99,19 @@ def main() -> None:
         and "coerceIn(1f, 1.2f)" in policy_text,
         "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt",
     ))
+    legacy_footer_policy = "if (exactM01Exception) 124f else 148f" in policy_text
+    v4_footer_policy = (
+        "geminiHomeHeroFooterPaddingVertical" in policy_text
+        and "geminiHomeHeroFooterPaddingHorizontal" in policy_text
+        and "0.042f).coerceIn(10f, 14f)" in policy_text
+        and "0.074f).coerceIn(12f, 20f)" in policy_text
+    )
     checks.append((
         "short_viewport_compacts_footer_and_avoids_unnecessary_scroll",
         "safeHeight.value < 460f" in page
         and "compactViewport -> 2.dp" in page
         and "if (compactViewport) 6.dp else 11.dp" in page
-        and "safeHeightDp < 460f && fontScale < 1.3f) 124f else 148f" in policy_text,
+        and (legacy_footer_policy or v4_footer_policy),
         "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt",
     ))
     checks.append((
