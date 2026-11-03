@@ -104,7 +104,7 @@ for(const [width,height] of profiles){
 assert.ok(observedPositiveSurplus,'matrix must exercise positive surplus');
 const normal=calculate(390,844,1,24,24,contract,authorityConflict,previewRules);
 assert.ok(Math.abs(normal.actualHeroWidth-273)<.01);
-assert.ok(normal.hC>=90&&normal.hC<=125,'CaptureActionGroup should fit measured CTA line and camera target');
+assert.ok(Math.abs(normal.hC-(normal.footerTopPadding+normal.ctaLineHeight+normal.ctaCameraGap+normal.cameraTouchSize+normal.footerBottomPadding))<1e-5,'CaptureActionGroup follows the active footer formula');
 assert.equal(normal.gapABExtra,normal.S/2);
 assert.equal(normal.gapBCExtra,normal.S/2);
 assert.ok(calculate(390,844,1,24,24,contract,true,previewRules).conflicts.some(x=>x.includes('SPEC_CONFLICT')&&x.includes('Markdown')));
