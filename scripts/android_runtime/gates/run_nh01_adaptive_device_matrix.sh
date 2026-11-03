@@ -511,7 +511,8 @@ PY
     all_ok=0
   fi
 
-  "${ADB[@]}" shell "printf '%s\\n' '$HOST_CAPTURE_STATUS' > '$REMOTE_DIR/$done_name'" \
+  local ack_tmp="$REMOTE_DIR/$done_name.tmp"
+  "${ADB[@]}" shell "printf '%s\\n' '$HOST_CAPTURE_STATUS' > '$ack_tmp' && mv '$ack_tmp' '$REMOTE_DIR/$done_name'" \
     > "$output_dir/${phase}_ack.log" 2>&1 || {
       HOST_CAPTURE_STATUS="FAIL"
       all_ok=0
