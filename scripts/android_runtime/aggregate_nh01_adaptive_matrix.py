@@ -187,7 +187,7 @@ def validate_case(payload: dict[str, Any], profile: str, width: int, height: int
         problems.append("missing bounds: " + ", ".join(missing))
     after_swipe = payload.get("bounds_after_swipe_in_window_px", {})
     required_after_swipe = (
-        "gemini-home-carousel-track", "gemini-home-catch-card-nh01-catch-002",
+        "gemini-home-carousel-track", "gemini-home-catch-card-nh01-catch-003",
         "gemini-home-catch-neighbor-nh01-catch-001",
     )
     missing_after_swipe = [tag for tag in required_after_swipe if tag not in after_swipe]
