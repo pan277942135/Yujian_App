@@ -1,0 +1,107 @@
+name: Orb PHOTO_STABLE Closure
+
+on:
+  push:
+    branches:
+      - feature/orb-photo-stable-visual-closure-v1
+    paths:
+      - "app/**"
+      - ".github/workflows/orb-photo-stable-closure.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orb-photo-stable-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  photo-stable-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SOURCE_SHA: ${{ github.sha }}
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+
+      - name: Verify source identity
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+
+      - name: Set up Python image verification dependency
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Pillow
+        run: python -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 9.3.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
+
+      - name: Resolve stable SDK AAPT2
+        run: |
+          YUJIAN_AAPT2="$ANDROID_HOME/build-tools/35.0.0/aapt2"
+          test -x "$YUJIAN_AAPT2"
+          echo "YUJIAN_AAPT2=$YUJIAN_AAPT2" >> "$GITHUB_ENV"
+
+      - name: Verify PHOTO_STABLE source assets and contracts
+        run: |
+          python3 scripts/verify_capture_presentation_assets.py
+          python3 scripts/android_runtime/verify_orb_runtime_asset.py
+          python3 scripts/verify_recognition_runtime_contract.py
+
+      - name: Bootstrap and verify production model assets
+        run: |
+          python3 scripts/bootstrap_android_recognition_assets.py
+          python3 scripts/verify_production_model.py
+        env:
+          YUJIAN_GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run Android unit tests
+        run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:testDebugUnitTest --stacktrace --no-daemon --max-workers=2
+
+      - name: Provision CI-only debug signing keystore
+        run: |
+          keytool -genkeypair -noprompt \
+            -keystore debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Assemble Debug APKs
+        run: |
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebug --stacktrace --no-daemon --max-workers=2
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2
+
+      - name: Verify packaged PHOTO_STABLE core asset
+        run: |
+          python3 scripts/verify_capture_presentation_assets.py --apk app/build/outputs/apk/debug/app-debug.apk
+          python3 scripts/android_runtime/verify_orb_runtime_asset.py --apk app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Stage APKs and SHA-256
+        run: |
+          mkdir -p build/orb-photo-stable
+          cp app/build/outputs/apk/debug/app-debug.apk build/orb-photo-stable/YuJian-PhotoStable-Debug.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk build/orb-photo-stable/YuJian-PhotoStable-AndroidTest.apk
+          (cd build/orb-photo-stable && sha256sum *.apk > SHA256SUMS)
+
+      - name: Upload PHOTO_STABLE APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-PhotoStable-${{ env.SOURCE_SHA }}
+          path: build/orb-photo-stable
+          if-no-files-found: error
+          retention-days: 14
