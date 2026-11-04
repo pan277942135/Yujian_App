@@ -151,8 +151,8 @@ class RecognitionRevealSessionStore : ViewModel() {
     fun releaseAnimationGeometry(key: RecognitionRevealKey) {
         val current = snapshot ?: return
         if (!current.matches(key)) return
-        // These compact identity-bound snapshots are needed if SlimSAM or host geometry
-        // completes after the 850 ms reveal. They are released with the recognition attempt.
+        // These compact identity-bound snapshots are needed while SlimSAM or host geometry
+        // is still resolving. They are released with the recognition attempt.
     }
 
     private fun rebuildHandoff(

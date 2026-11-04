@@ -1,16 +1,13 @@
 package com.yujian.ai.ui.waterlight.renderer
 
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import kotlin.math.PI
 import kotlin.math.sin
 
-/** Pure projections from the two time values already carried by the shared Recognition frame. */
+/** Pure projections from the shared scene frame and its semantic stage-local progress. */
 internal object OrbWakeBreathReleaseV11 {
-    const val WAKE_DURATION_MS = 350L
-    const val FILAMENT_TRANSITION_MS = 450L
-    const val RELEASE_START_MS = 350L
-    const val RELEASE_RETURN_MS = 690L
-    const val RELEASE_END_MS = 950L
-    const val RELEASE_DIRECTION_RAMP_MS = 260L
+    private const val S2_TRANSITION_LOCAL_MS = 450f
+    private const val RELEASE_RETURN_PROGRESS = 34f / 60f
     const val R06_ALPHA_GAIN = 1.28f
     const val R06_ALPHA_CAP = .82f
     const val R06_MOVING_HIGHLIGHT_GAIN = 1.15f
@@ -49,48 +46,62 @@ internal object OrbWakeBreathReleaseV11 {
         return 3f * inv * inv * t * p1 + 3f * inv * t * t * p2 + t * t * t
     }
 
-    /** Stage envelopes use opticalReferenceElapsedMs; all returned layers remain clock-free. */
-    fun wake(opticalReferenceElapsedMs: Long): Wake {
-        val t = opticalReferenceElapsedMs.coerceAtLeast(0L)
-        val optics = if (t < 80L) 0f else wakeEase((t - 80L).toFloat() / (WAKE_DURATION_MS - 80L))
-        val water = if (t < 220L) 0f else wakeEase((t - 220L).toFloat() / (WAKE_DURATION_MS - 220L))
-        val grass = if (t < 220L) 0f else wakeEase((t - 220L).toFloat() / (WAKE_DURATION_MS - 220L))
-        return Wake(optics, water, grass)
+    fun wake(stage: RecognitionSceneStage, progress: Float): Wake {
+        val p = progress.coerceIn(0f, 1f)
+        if (stage == RecognitionSceneStage.PHOTO_STABLE) return Wake(0f, 0f, 0f)
+        if (stage != RecognitionSceneStage.ORB_WAKE) return Wake(1f, 1f, 1f)
+        val localMs = p * RecognitionSceneStage.ORB_WAKE.minimumVisibleMs
+        val optics = if (localMs < 80f) 0f else wakeEase(
+            (localMs - 80f) / (RecognitionSceneStage.ORB_WAKE.minimumVisibleMs - 80f),
+        )
+        val water = if (localMs < 220f) 0f else wakeEase(
+            (localMs - 220f) / (RecognitionSceneStage.ORB_WAKE.minimumVisibleMs - 220f),
+        )
+        return Wake(optics, water, water)
     }
 
-    fun s2Progress(opticalReferenceElapsedMs: Long): Float =
-        smoothstep(opticalReferenceElapsedMs.coerceAtLeast(0L).toFloat() / FILAMENT_TRANSITION_MS)
+    fun s2Progress(stage: RecognitionSceneStage, progress: Float): Float {
+        val p = progress.coerceIn(0f, 1f)
+        val localSceneMs = when (stage) {
+            RecognitionSceneStage.PHOTO_STABLE -> 0f
+            RecognitionSceneStage.ORB_WAKE -> p * RecognitionSceneStage.ORB_WAKE.minimumVisibleMs
+            RecognitionSceneStage.ORB_RELEASE -> RecognitionSceneStage.ORB_WAKE.minimumVisibleMs +
+                p * RecognitionSceneStage.ORB_RELEASE.minimumVisibleMs
+            else -> S2_TRANSITION_LOCAL_MS
+        }
+        return smoothstep(localSceneMs / S2_TRANSITION_LOCAL_MS)
+    }
 
-    /** A single sine phase from sceneElapsedMs; state changes alter amplitude/period without resetting time. */
-    fun breathScale(sceneElapsedMs: Long, opticalReferenceElapsedMs: Long, reducedMotion: Boolean): Float {
+    fun breathScale(
+        sceneElapsedMs: Long,
+        stage: RecognitionSceneStage,
+        stageProgress: Float,
+        reducedMotion: Boolean,
+    ): Float {
         if (reducedMotion) return 1f
-        val p = s2Progress(opticalReferenceElapsedMs)
+        val p = s2Progress(stage, stageProgress)
         val amplitude = .008f + (.018f - .008f) * p
         val periodMs = 6000f + (4800f - 6000f) * p
         val phase = 2f * PI.toFloat() * sceneElapsedMs.coerceAtLeast(0L) / periodMs
         return 1f + amplitude * sin(phase)
     }
 
-    fun localRelease(opticalReferenceElapsedMs: Long): LocalRelease = when (opticalReferenceElapsedMs) {
-        in RELEASE_START_MS until RELEASE_RETURN_MS -> LocalRelease.OUTWARD
-        in RELEASE_RETURN_MS until RELEASE_END_MS -> LocalRelease.RETURN
-        else -> LocalRelease.AMBIENT
+    fun localRelease(stage: RecognitionSceneStage, progress: Float): LocalRelease = when {
+        stage != RecognitionSceneStage.ORB_RELEASE -> LocalRelease.AMBIENT
+        progress.coerceIn(0f, 1f) < RELEASE_RETURN_PROGRESS -> LocalRelease.OUTWARD
+        else -> LocalRelease.RETURN
     }
 
-    /** Zero at both ends; the return shoulder is a 260 ms C1 envelope. */
-    fun releaseOffset(opticalReferenceElapsedMs: Long, peakArcFraction: Float): Float {
-        val t = opticalReferenceElapsedMs
-        return when {
-            t < RELEASE_START_MS || t >= RELEASE_END_MS -> 0f
-            t < RELEASE_RETURN_MS -> peakArcFraction * smoothstep(
-                (t - RELEASE_START_MS).toFloat() / (RELEASE_RETURN_MS - RELEASE_START_MS),
-            )
-            else -> peakArcFraction * (1f - smoothstep(
-                (t - RELEASE_RETURN_MS).toFloat() / RELEASE_DIRECTION_RAMP_MS,
-            ))
-        }
+    fun releaseOffset(stage: RecognitionSceneStage, progress: Float, peakArcFraction: Float): Float {
+        if (stage != RecognitionSceneStage.ORB_RELEASE) return 0f
+        val p = progress.coerceIn(0f, 1f)
+        return if (p < RELEASE_RETURN_PROGRESS) peakArcFraction * smoothstep(p / RELEASE_RETURN_PROGRESS)
+        else peakArcFraction * (1f - smoothstep((p - RELEASE_RETURN_PROGRESS) / (1f - RELEASE_RETURN_PROGRESS)))
     }
 
-    fun returnDirectionProgress(opticalReferenceElapsedMs: Long): Float =
-        smoothstep((opticalReferenceElapsedMs - RELEASE_RETURN_MS).toFloat() / RELEASE_DIRECTION_RAMP_MS)
+    fun returnDirectionProgress(stage: RecognitionSceneStage, progress: Float): Float {
+        if (stage != RecognitionSceneStage.ORB_RELEASE) return 0f
+        return smoothstep((progress.coerceIn(0f, 1f) - RELEASE_RETURN_PROGRESS) /
+            (1f - RELEASE_RETURN_PROGRESS))
+    }
 }

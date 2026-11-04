@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>渔见 · AI 鱼体光学验收</title>
+    <link rel="stylesheet" href="viewer.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="wordmark" href="#top"><span class="mark">渔</span><span>FISH OPTICS / V2.2</span></a>
+      <div class="topbar-meta"><span id="source-head">SOURCE · 等待证据</span><span class="live-dot">NATIVE RUNTIME</span></div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">AI ORB × WATERLIGHT × FISH CONTOUR</p>
+          <h1>从照片边缘，<em>走到鱼体轮廓。</em></h1>
+          <p class="lede">在同一条识别时间轴上检查外围水光、真实 Mask、金色轮廓和结果页交接。所有画面来自 Android 原生运行；确定性阶段帧会单独标注。</p>
+        </div>
+        <div class="hero-state">
+          <span class="state-label">验收状态</span>
+          <strong id="overall-status">等待运行证据</strong>
+          <span id="physical-status">Huawei CMS-AL20 · NOT_RUN</span>
+        </div>
+      </section>
+
+      <section class="evidence-loader panel">
+        <div>
+          <p class="eyebrow">EVIDENCE BUNDLE</p>
+          <h2>载入 GitHub Actions 证据目录</h2>
+          <p>下载本次运行的 evidence artifact 并解压，然后选择解压目录。也可依次添加 Demo 与 Android 的证据目录。</p>
+        </div>
+        <label class="file-button">添加证据目录<input id="evidence-input" type="file" webkitdirectory multiple></label>
+        <div id="loaded-files" class="loaded-files">尚未载入文件</div>
+      </section>
+
+      <section class="gate-section">
+        <div class="section-heading"><div><p class="eyebrow">GATES</p><h2>运行与验收门禁</h2></div><span id="run-link" class="muted">等待 CI 元数据</span></div>
+        <div id="gate-grid" class="gate-grid"></div>
+      </section>
+
+      <section class="panel compare-panel">
+        <div class="section-heading"><div><p class="eyebrow">VISUAL COMPARISON</p><h2>Demo / Android 原生画面对照</h2></div><span id="compare-size" class="muted">选择两张真实截图</span></div>
+        <div class="compare-controls">
+          <label>Android 截图<select id="android-image"></select></label>
+          <label>Demo 参考<select id="demo-image"></select></label>
+          <label>ROI<select id="roi-select">
+            <option value="full">完整画面</option><option value="perimeter">照片外围</option>
+            <option value="tl">左上角</option><option value="tr">右上角</option>
+            <option value="bl">左下角</option><option value="br">右下角</option>
+            <option value="bottom">底部焦散</option><option value="fish">鱼体区域</option>
+          </select></label>
+          <label>叠加透明度 <input id="opacity" type="range" min="0" max="100" value="50"><output id="opacity-label">50%</output></label>
+        </div>
+        <div class="compare-grid">
+          <figure><figcaption>ANDROID · NATIVE SCREENSHOT</figcaption><div id="android-frame" class="image-frame"><img id="android-preview" alt="Android 原生运行截图"><span class="empty-state">请先载入 artifact</span></div></figure>
+          <figure><figcaption>DEMO · PINNED REFERENCE</figcaption><div id="demo-frame" class="image-frame"><img id="demo-preview" alt="Demo 参考截图"><span class="empty-state">请先载入 Demo artifact</span></div></figure>
+          <figure class="overlay-figure"><figcaption>QUALITATIVE OVERLAY · DRAG THE SLIDER</figcaption><div id="overlay-frame" class="image-frame overlay-frame"><img id="overlay-android" alt="Android 底图"><img id="overlay-demo" alt="Demo 叠加图"><span class="empty-state">选择两张截图以叠加</span></div></figure>
+          <figure><figcaption>SAME-SOURCE PHOTO PIXEL DIFFERENCE</figcaption><div class="image-frame"><canvas id="heatmap"></canvas><span id="heatmap-empty" class="empty-state">仅当双方报告确认同一原始照片且提供照片裁切时计算差异</span></div></figure>
+        </div>
+        <div class="roi-legend"><span>当前 Demo 与 Android 使用不同照片；叠加仅供材质与空间分布定性参考</span><span>原始用户视频 243393.mp4 / 243394.mp4 未包含在当前证据目录</span><span id="diff-summary">不同照片：已禁用像素差</span></div>
+      </section>
+
+      <section class="panel stage-panel">
+        <div class="section-heading"><div><p class="eyebrow">ONE SCENE CONTROLLER · 13 STAGES</p><h2>完整阶段关键帧</h2></div><div class="stage-tools"><label>设备 Profile<select id="profile-select"><option value="M07">M07</option></select></label><div class="capture-legend"><span class="tag native">实时录屏</span><span class="tag deterministic">确定性测试帧</span></div></div></div>
+        <p class="section-note">下方阶段卡片对应原生截图。实时播放证据来自整段 screenrecord；P0–P7、R0–R5 和 0/50/100% 图片属于截图专用 SceneFrame 投影。</p>
+        <div id="stage-grid" class="stage-grid"></div>
+      </section>
+
+      <section class="panel video-panel">
+        <div class="section-heading"><div><p class="eyebrow">REAL-TIME PLAYBACK</p><h2>Processing → Result 原生录屏</h2></div><span id="video-source" class="muted">等待 Android screenrecord</span></div>
+        <video id="runtime-video" controls playsinline preload="metadata"></video>
+        <p class="section-note">录屏是设备运行直接产生的连续视频，不拼接关键帧。各视口独立保留，避免将 AVD 表现误作 Huawei GPU 性能。</p>
+      </section>
+
+      <section class="detail-grid">
+        <article class="panel"><p class="eyebrow">GEOMETRY</p><h2>照片与光学坐标</h2><pre id="geometry-data">等待几何报告</pre></article>
+        <article class="panel"><p class="eyebrow">SHADER / MASK</p><h2>真实运行记录</h2><pre id="runtime-data">等待运行报告</pre></article>
+      </section>
+
+      <section class="panel issue-panel">
+        <div class="section-heading"><div><p class="eyebrow">SELF-HEALING</p><h2>问题台账</h2></div><span id="issue-count" class="muted">0 项</span></div>
+        <div class="table-wrap"><table><thead><tr><th>ID / 状态</th><th>类别</th><th>现象与根因</th><th>修复 / 回归</th><th>证据</th></tr></thead><tbody id="issue-rows"><tr><td colspan="5" class="empty-row">载入 FISH_OPTICS_VISUAL_ISSUE_REGISTER.csv</td></tr></tbody></table></div>
+      </section>
+    </main>
+
+    <footer><span>渔见 AI · Visual Acceptance</span><span>PR #316 · Open / Draft / Unmerged</span></footer>
+    <script src="viewer.js"></script>
+  </body>
+</html>

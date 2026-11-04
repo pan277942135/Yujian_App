@@ -3,6 +3,8 @@ package com.yujian.ai.ui.recognition
 import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.math.sqrt
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 
 /**
  * Android-native projection of the frozen Effect 01 contract.
@@ -35,7 +37,6 @@ internal object UpwardCausticSurgeCalibration {
 }
 
 internal object PhotoShockwaveCalibration {
-    const val triggerMs = 850L
     const val durationMs = 260L
     const val maxUpwardTranslationDp = -3f
     const val maxReboundTranslationDp = 2f
@@ -59,22 +60,18 @@ internal data class PhotoShockwaveTransform(
     val scale: Float = 1f,
 )
 
-internal fun upwardCausticFrame(elapsedMs: Long): UpwardCausticFrame {
-    val progress = smoothStep01(
-        elapsedMs.coerceAtLeast(0L).toFloat() /
-            UpwardCausticSurgeCalibration.durationMs.toFloat(),
-    )
-    val eased = smoothStep01(progress)
-    val arc = -sin(progress * PI).toFloat() *
+internal fun upwardCausticFrame(progress: Float): UpwardCausticFrame {
+    val boundedProgress = progress.coerceIn(0f, 1f)
+    val easedProgress = smoothStep01(boundedProgress)
+    val arc = -sin(boundedProgress * PI).toFloat() *
         UpwardCausticSurgeCalibration.maxArcHeightRatio
-    val rise = progress * progress * sqrt(progress)
-    val release = 1f - smoothStep01((progress - .92f) / .08f)
-    val opacity = UpwardCausticSurgeCalibration.maxCompositeOpacity *
-        rise * release
+    val rise = boundedProgress * boundedProgress * sqrt(boundedProgress)
+    val release = 1f - smoothStep01((boundedProgress - .92f) / .08f)
+    val opacity = UpwardCausticSurgeCalibration.maxCompositeOpacity * rise * release
 
     return UpwardCausticFrame(
-        progress = progress,
-        centerYFraction = 1f - eased,
+        progress = boundedProgress,
+        centerYFraction = 1f - easedProgress,
         arcOffsetFraction = arc,
         bodyWidthFraction = UpwardCausticSurgeCalibration.bodyWidthHeightRatio,
         crestWidthFraction = UpwardCausticSurgeCalibration.crestWidthHeightRatio,
@@ -83,32 +80,63 @@ internal fun upwardCausticFrame(elapsedMs: Long): UpwardCausticFrame {
     )
 }
 
-internal fun effect01SpreadProgress(elapsedMs: Long): Float =
-    smoothStep01(
-        elapsedMs.coerceAtLeast(0L).toFloat() /
-            Effect01NativeCalibration.spreadDurationMs.toFloat(),
-    )
+internal fun upwardCausticFrame(scene: RecognitionSceneFrame): UpwardCausticFrame =
+    upwardCausticFrame(when (scene.stage) {
+        RecognitionSceneStage.ORB_RELEASE -> scene.stageProgress
+        RecognitionSceneStage.PERIMETER_ARRIVAL,
+        RecognitionSceneStage.PATH_TO_FISH,
+        RecognitionSceneStage.CONTOUR_A,
+        RecognitionSceneStage.CONTOUR_B,
+        RecognitionSceneStage.CONTOUR_C -> 1f
+        else -> 0f
+    })
 
-/** Relative SWOS environment intensity; zero is exact at P0 and P7. */
-internal fun processingEnvironmentStrength(elapsedMs: Long): Float {
-    val keys = longArrayOf(0L, 350L, 950L, 1_200L, 1_550L, 2_050L, 2_600L, 2_800L)
-    val values = floatArrayOf(0f, 10f, 45f, 75f, 60f, 35f, 10f, 0f)
-    val t = elapsedMs.coerceIn(keys.first(), keys.last())
-    val upper = keys.indexOfFirst { it >= t }.let { if (it < 0) keys.lastIndex else it }
-    if (upper == 0) return values[0]
-    val lower = upper - 1
-    val p = (t - keys[lower]).toFloat() / (keys[upper] - keys[lower]).toFloat()
-    return values[lower] + (values[upper] - values[lower]) * smoothStep01(p)
+internal fun effect01SpreadProgress(scene: RecognitionSceneFrame): Float {
+    val p = smoothStep01(scene.stageProgress)
+    return when (scene.stage) {
+        RecognitionSceneStage.PHOTO_STABLE -> 0f
+        RecognitionSceneStage.ORB_WAKE -> .10f * p
+        RecognitionSceneStage.ORB_RELEASE -> .10f + .40f * p
+        RecognitionSceneStage.PERIMETER_ARRIVAL -> .50f + .30f * p
+        RecognitionSceneStage.PATH_TO_FISH -> .80f + .20f * p
+        else -> 1f
+    }.coerceIn(0f, 1f)
 }
 
-/** Returns the photo-only transform; zero motion is exact outside the bounded impact window. */
+/** Frozen P0-P7 optical envelope projected onto the shared semantic scene stages. */
+internal fun processingEnvironmentStrength(scene: RecognitionSceneFrame): Float {
+    val p = smoothStep01(scene.stageProgress)
+    val (from, to) = when (scene.stage) {
+        RecognitionSceneStage.PHOTO_STABLE -> return 0f
+        RecognitionSceneStage.ORB_WAKE -> 0f to 10f
+        RecognitionSceneStage.ORB_RELEASE -> 10f to 45f
+        RecognitionSceneStage.PERIMETER_ARRIVAL -> 45f to 75f
+        RecognitionSceneStage.PATH_TO_FISH -> 75f to 60f
+        RecognitionSceneStage.CONTOUR_A -> 60f to 35f
+        RecognitionSceneStage.CONTOUR_B -> 35f to 10f
+        RecognitionSceneStage.CONTOUR_C -> 10f to 0f
+        RecognitionSceneStage.FISH_GOLD_PEAK,
+        RecognitionSceneStage.ORB_RETURN,
+        RecognitionSceneStage.ORB_TO_NAME,
+        RecognitionSceneStage.SPECIES_NAME_REVEAL,
+        RecognitionSceneStage.RESIDUE_SETTLE -> return 0f
+    }
+    return from + (to - from) * p
+}
+
 internal fun photoShockwaveTransform(
-    processingElapsedMs: Long,
+    scene: RecognitionSceneFrame,
     reduceMotion: Boolean = false,
 ): PhotoShockwaveTransform {
-    if (reduceMotion) return PhotoShockwaveTransform()
-    val localMs = processingElapsedMs - PhotoShockwaveCalibration.triggerMs
-    if (localMs <= 0L || localMs >= PhotoShockwaveCalibration.durationMs) {
+    if (scene.stage != RecognitionSceneStage.ORB_RELEASE) return PhotoShockwaveTransform()
+    return photoShockwaveLocalTransform(scene.stageElapsedMs, reduceMotion)
+}
+
+private fun photoShockwaveLocalTransform(
+    localMs: Long,
+    reduceMotion: Boolean,
+): PhotoShockwaveTransform {
+    if (reduceMotion || localMs <= 0L || localMs >= PhotoShockwaveCalibration.durationMs) {
         return PhotoShockwaveTransform()
     }
 
@@ -124,13 +152,11 @@ internal fun photoShockwaveTransform(
         localMs <= 120L -> {
             val p = smoothStep01((localMs - 60L) / 60f)
             PhotoShockwaveTransform(
-                translationYDp =
-                    PhotoShockwaveCalibration.maxUpwardTranslationDp +
-                        (PhotoShockwaveCalibration.maxReboundTranslationDp -
-                            PhotoShockwaveCalibration.maxUpwardTranslationDp) * p,
-                rotationDegrees =
-                    PhotoShockwaveCalibration.maxRotationDegrees -
-                        2f * PhotoShockwaveCalibration.maxRotationDegrees * p,
+                translationYDp = PhotoShockwaveCalibration.maxUpwardTranslationDp +
+                    (PhotoShockwaveCalibration.maxReboundTranslationDp -
+                        PhotoShockwaveCalibration.maxUpwardTranslationDp) * p,
+                rotationDegrees = PhotoShockwaveCalibration.maxRotationDegrees -
+                    2f * PhotoShockwaveCalibration.maxRotationDegrees * p,
                 scale = PhotoShockwaveCalibration.peakScale +
                     (1f - PhotoShockwaveCalibration.peakScale) * p,
             )

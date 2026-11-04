@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.waterlight
 
 import com.yujian.ai.ui.waterlight.core.EnergyAnchor
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
@@ -33,39 +34,36 @@ class RecognitionSceneFrameTest {
         )
     }
 
-    @Test fun mapsAllThirteenStagesAtFrozenBoundaries() {
-        val boundaries = listOf(
-            0L to RecognitionSceneStage.PHOTO_STABLE,
-            1L to RecognitionSceneStage.ORB_WAKE,
-            350L to RecognitionSceneStage.ORB_RELEASE,
-            950L to RecognitionSceneStage.PERIMETER_ARRIVAL,
-            1_075L to RecognitionSceneStage.PATH_TO_FISH,
-            1_200L to RecognitionSceneStage.CONTOUR_A,
-            1_450L to RecognitionSceneStage.CONTOUR_B,
-            1_700L to RecognitionSceneStage.CONTOUR_C,
-            1_950L to RecognitionSceneStage.FISH_GOLD_PEAK,
-            2_800L to RecognitionSceneStage.ORB_RETURN,
-            3_180L to RecognitionSceneStage.ORB_TO_NAME,
-            3_350L to RecognitionSceneStage.SPECIES_NAME_REVEAL,
-            3_480L to RecognitionSceneStage.RESIDUE_SETTLE,
+    @Test fun explicitSemanticStageIsIndependentOfCumulativeSceneTime() {
+        val frame = RecognitionSceneCoordinator.frameForStage(
+            identity = identity,
+            sceneElapsedMs = 45_000L,
+            opticalReferenceElapsedMs = 45_000L,
+            geometryVersion = 9L,
+            stage = RecognitionSceneStage.ORB_RETURN,
+            stageElapsedMs = 190L,
+            stageProgress = .5f,
         )
-        boundaries.forEach { (time, stage) ->
-            val frame = RecognitionSceneCoordinator.frameAt(identity, time, time, 9L)
-            assertEquals("reference=$time", stage, frame.stage)
-            assertTrue(frame.stageProgress in 0f..1f)
-            assertEquals(9L, frame.geometryVersion)
-        }
-        assertEquals(1f, RecognitionSceneCoordinator.frameAt(identity, 3_650L, 3_650L, 9L).stageProgress, .0001f)
+        assertEquals(RecognitionSceneStage.ORB_RETURN, frame.stage)
+        assertEquals(.5f, frame.stageProgress, .0001f)
+        assertEquals(45_000L, frame.sceneElapsedMs)
+        assertEquals(9L, frame.geometryVersion)
     }
 
     @Test fun projectionsRemainDeterministicAndPhotoOrbMotionUsesSceneTime() {
-        val first = RecognitionSceneCoordinator.frameAt(identity, 1_550L, 1_550L, 9L)
-        assertEquals(first, RecognitionSceneCoordinator.frameAt(identity, 1_550L, 1_550L, 9L))
+        val first = RecognitionSceneCoordinator.frameForStage(
+            identity, 1_550L, 1_550L, 9L, RecognitionSceneStage.CONTOUR_B, 125L, .5f,
+        )
+        assertEquals(first, RecognitionSceneCoordinator.frameForStage(
+            identity, 1_550L, 1_550L, 9L, RecognitionSceneStage.CONTOUR_B, 125L, .5f,
+        ))
         assertTrue(first.isIdentityValid)
         assertEquals(RecognitionSceneStage.CONTOUR_B, first.stage)
 
         listOf(0L, 150L, 350L, 650L, 700L, 899L, 900L).forEach { time ->
-            val frame = RecognitionSceneCoordinator.frameAt(identity, time, time, 9L)
+            val frame = RecognitionSceneCoordinator.frameForStage(
+                identity, time, time, 9L, RecognitionSceneStage.PHOTO_STABLE, 0L, 0f,
+            )
             assertEquals((time.toFloat() / 700f).coerceIn(0f, 1f),
                 RecognitionSceneTimelineProjection.photoEntryProgress(frame.sceneElapsedMs), .0001f)
             assertEquals(time.coerceAtMost(900L), RecognitionSceneTimelineProjection.orbEntranceElapsedMs(frame.sceneElapsedMs))
@@ -126,6 +124,60 @@ class RecognitionSceneFrameTest {
         assertFalse(playback.recordEnergyEvent(scene, requireNotNull(event)))
         assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(1_072L))
     }
+
+    @Test fun perimeterArrivalCanBecomeRenderableAfterDetectorTargetArrives() {
+        val playback = SceneMotionCoordinator()
+        playback.beginNewSession(identity, debugBuild = false, nowMs = 0L)
+        playback.markPhotoFirstFramePresented(identity, 0L)
+        playback.onOrbAnchorAvailable(true, identity)
+        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(120L))
+        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(470L))
+
+        val releaseScene = playback.currentFrame(identity, 1_070L, 9L)
+        val releasePath = WaterLightPathGeometryFactory.between(
+            WaterLightPathPoint(200f, 360f), WaterLightPathPoint(200f, 24f), seed = 7,
+        )!!
+        val release = WaterLightEnergy.at(waterLightFrame(releaseScene), false, pathGeometry = releasePath)!!
+        assertTrue(playback.recordEnergyEvent(releaseScene, release))
+        assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(1_071L))
+        playback.onDetectorTargetAvailable(true, identity)
+        playback.onPhotoTransformAvailable(true, identity)
+
+        val pendingScene = playback.currentFrame(identity, 1_196L, 9L)
+        val pending = WaterLightEnergy.at(waterLightFrame(pendingScene), trustedMask = false)!!
+        assertEquals(EnergyFeedback.ARRIVE, pending.feedback)
+        assertEquals("PATH_PENDING", pending.renderStatus)
+        assertFalse(playback.recordEnergyEvent(pendingScene, pending))
+        assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(1_197L))
+
+        val readyScene = playback.currentFrame(identity, 1_197L, 9L)
+        val arrivalPath = WaterLightPathGeometryFactory.between(
+            WaterLightPathPoint(200f, 24f), WaterLightPathPoint(200f, 220f), seed = 7,
+        )!!
+        val ready = WaterLightEnergy.at(
+            waterLightFrame(readyScene), trustedMask = false, pathGeometry = arrivalPath,
+        )!!
+        assertEquals(EnergyFeedback.ARRIVE, ready.feedback)
+        assertEquals("READY", ready.renderStatus)
+        assertTrue(playback.recordEnergyEvent(readyScene, ready))
+        assertEquals(RecognitionSceneStage.PATH_TO_FISH, playback.currentSceneStage(1_198L))
+    }
+
+    private fun waterLightFrame(scene: com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame) = WaterLightFrame(
+        sessionId = scene.identity.sessionId,
+        photoSha256 = scene.identity.photoSha256,
+        elapsedMs = scene.sceneElapsedMs,
+        opticalReferenceElapsedMs = scene.opticalReferenceElapsedMs,
+        phase = WaterLightPhase.PROCESSING,
+        completion = scene.stageProgress,
+        reducedMotion = scene.reducedMotion,
+        geometryVersion = scene.geometryVersion,
+        attemptId = scene.identity.attemptId,
+        imageId = scene.identity.imageId,
+        photoContentVersion = scene.identity.photoContentVersion,
+        eventSequence = scene.eventSequence,
+        sceneFrameOverride = scene,
+    )
 
     @Test fun resultHandoffAndFramesCarryTheExactControllerStageAndIdentity() {
         val playback = SceneMotionCoordinator()

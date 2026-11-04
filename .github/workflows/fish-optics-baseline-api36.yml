@@ -1,0 +1,152 @@
+name: Fish Optics V2.2 Baseline API 36 Runtime
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/fish-optics-baseline-api36.yml"
+      - "scripts/design/fish_optics_baseline_api36.sh"
+      - "scripts/design/measure_fish_demo_geometry.mjs"
+
+concurrency:
+  group: fish-optics-baseline-api36-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  baseline-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      SOURCE_SHA: e0288964190015c262f43e730f6d40650cd49caf
+      HARNESS_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      EVIDENCE_DIR: evidence/fish-optics-v2-2/baseline
+      APK_DIR: build/baseline-runtime-apks
+      ANDROID_AVD_HOME: ${{ github.workspace }}/.android-avd
+
+    steps:
+      - name: Checkout QA harness revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up API 36 Android SDK and AVD packages
+        uses: android-actions/setup-android@v3
+        with:
+          packages: >-
+            platform-tools
+            emulator
+            build-tools;35.0.0
+            system-images;android-36;google_apis;x86_64
+
+      - name: Enable KVM access for the hosted runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -r /dev/kvm && test -w /dev/kvm
+          ls -l /dev/kvm
+
+      - name: Install evidence dependencies
+        run: python3 -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Download the frozen e0288964 APK pair without rebuilding
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-e0288964190015c262f43e730f6d40650cd49caf-MODEL_CROP_M1_v0.2
+          path: build/baseline-runtime-apks
+          repository: ${{ github.repository }}
+          run-id: 41771912698
+          github-token: ${{ github.token }}
+
+      - name: Run the frozen APK on a native API 36 M07 AVD
+        run: bash scripts/design/fish_optics_baseline_api36.sh
+
+      - name: Upload baseline runtime and visual evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fish-optics-baseline-api36-e0288964-${{ github.run_id }}
+          path: evidence/fish-optics-v2-2/baseline
+          if-no-files-found: warn
+          retention-days: 30
+
+  demo-geometry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      FISH_DEMO_EXPECTED_SHA: a790f145620ab32f96fe525bc38dd902653bd960
+      FISH_DEMO_ROOT: ${{ github.workspace }}/build/demo-lab
+      FISH_OPTICS_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+      FISH_OPTICS_HARNESS_SHA: ${{ github.event.pull_request.head.sha }}
+      EVIDENCE_DIR: evidence/fish-optics-v2-2/demo-runtime/M07
+
+    steps:
+      - name: Checkout QA harness revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Checkout the pinned Demo reference
+        uses: actions/checkout@v4
+        with:
+          repository: 18694061757-ctrl/Fish-Mask-Gold-Contour-Lab
+          ref: a790f145620ab32f96fe525bc38dd902653bd960
+          path: build/demo-lab
+
+      - name: Install Demo and Playwright packages
+        working-directory: build/demo-lab
+        run: npm install --legacy-peer-deps --no-save --package-lock=false --ignore-scripts playwright@1.64.1
+
+      - name: Install headless Chromium
+        working-directory: build/demo-lab
+        run: npx playwright install --with-deps chromium
+
+      - name: Measure Demo CSS geometry and canvas backing store at M07
+        run: |
+          set -euo pipefail
+          mkdir -p build/demo-lab-log "${EVIDENCE_DIR}"
+          npm --prefix build/demo-lab run dev -- --host 127.0.0.1 \
+            > build/demo-lab-log/vite.log 2>&1 &
+          vite_pid=$!
+          trap 'kill "$vite_pid" >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3000/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:3000/ >/dev/null
+          FISH_DEMO_ACTUAL_SHA="$(git -C build/demo-lab rev-parse HEAD)" \
+            FISH_DEMO_ROOT="$FISH_DEMO_ROOT" \
+            FISH_OPTICS_SOURCE_SHA="$FISH_OPTICS_SOURCE_SHA" \
+            FISH_OPTICS_HARNESS_SHA="$FISH_OPTICS_HARNESS_SHA" \
+            GITHUB_RUN_ID="$GITHUB_RUN_ID" \
+            node scripts/design/measure_fish_demo_geometry.mjs \
+              --url http://127.0.0.1:3000/ \
+              --output "$EVIDENCE_DIR" \
+              --profile M07 \
+              --demo-sha "$FISH_DEMO_EXPECTED_SHA"
+
+      - name: Upload measured Demo geometry evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fish-optics-demo-geometry-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}
+          path: evidence/fish-optics-v2-2/demo-runtime/M07
+          if-no-files-found: warn
+          retention-days: 30

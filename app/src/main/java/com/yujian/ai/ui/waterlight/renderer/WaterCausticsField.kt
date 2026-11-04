@@ -76,4 +76,50 @@ object WaterCausticsField {
             tint.green + (color.green - tint.green) * mix,
             tint.blue + (color.blue - tint.blue) * mix, alpha)
     }
+
+    /**
+     * Soft, domain-warped auxiliary caustic field inspired by low-frequency FBM techniques.
+     * Broad folds replace sharp Voronoi edges so this layer cannot form a dense luminous net.
+     */
+    fun sampleSoftDomainWarpedCaustic(
+        fragX: Double,
+        fragY: Double,
+        resX: Double,
+        resY: Double,
+        time: Double,
+        scale: Double,
+        intensity: Double,
+        color: Rgb,
+        tint: Rgb,
+        tintStrength: Double,
+        domainWarp: Double,
+        softEdgeLow: Double,
+        softEdgeHigh: Double,
+    ): Sample {
+        val denom = max(resY, 1.0)
+        val x = ((fragX * 2.0 - resX) / denom) * 1.35 * scale
+        val y = ((fragY * 2.0 - resY) / denom) * 1.35 * scale
+        val warpX = sin(y * 0.91 + time) * domainWarp +
+            sin((x + y) * 0.47 - time * 0.62) * domainWarp * 0.38
+        val warpY = cos(x * 0.83 - time * 0.81) * domainWarp +
+            cos((y - x) * 0.53 + time * 0.54) * domainWarp * 0.34
+        val px = x + warpX
+        val py = y + warpY
+
+        // Two broad, advected folds provide organic variation without a bright cell network.
+        val foldA = 1.0 - abs(sin((px + py * 0.64) * 1.73 + time * 0.36))
+        val foldB = 1.0 - abs(cos((px * 0.57 - py) * 1.29 - time * 0.27))
+        val broadField = foldA * 0.54 + foldB * 0.46
+        val soft = smoothstep(softEdgeLow, softEdgeHigh, broadField)
+        val haze = smoothstep(0.18, 0.78, broadField) * 0.16
+        val glow = min(max((soft * 0.56 + haze) * intensity, 0.0), 1.0)
+        val mix = min(max(glow, 0.0), 1.0)
+        val alpha = min(max(tintStrength + glow * (0.72 - tintStrength * 0.25), 0.0), 1.0)
+        return Sample(
+            tint.red + (color.red - tint.red) * mix,
+            tint.green + (color.green - tint.green) * mix,
+            tint.blue + (color.blue - tint.blue) * mix,
+            alpha,
+        )
+    }
 }

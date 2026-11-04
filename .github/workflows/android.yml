@@ -325,6 +325,77 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  fish-optics-api36-runtime:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 316 }}
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        profile: [M04, M07, M10, HUAWEI_CMS_AL20]
+    permissions:
+      actions: read
+      contents: read
+    env:
+      SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+      HARNESS_SHA: ${{ needs.build.outputs.source_sha }}
+      PROFILE: ${{ matrix.profile }}
+      EVIDENCE_DIR: evidence/fish-optics-v2-2/round-1/${{ matrix.profile }}
+      APK_DIR: build/runtime-apks
+      ANDROID_AVD_HOME: ${{ github.workspace }}/.android-avd
+
+    steps:
+      - name: Checkout exact PR source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.source_sha }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up API 36 Android SDK and AVD packages
+        uses: android-actions/setup-android@v3
+        with:
+          packages: >-
+            platform-tools
+            emulator
+            build-tools;35.0.0
+            system-images;android-36;google_apis;x86_64
+
+      - name: Enable KVM access for hosted runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -r /dev/kvm && test -w /dev/kvm
+
+      - name: Install evidence dependency
+        run: python3 -m pip install --disable-pip-version-check Pillow==11.3.0
+
+      - name: Download the exact-head APK pair from the single Android CI build
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          path: build/runtime-apks
+
+      - name: Run exact-head APK on native API 36 ${{ matrix.profile }} AVD
+        run: bash scripts/design/fish_optics_baseline_api36.sh
+
+      - name: Upload API 36 fish optics evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fish-optics-api36-${{ matrix.profile }}-${{ needs.build.outputs.source_sha }}-${{ github.run_id }}
+          path: evidence/fish-optics-v2-2/round-1/${{ matrix.profile }}
+          if-no-files-found: warn
+          retention-days: 30
+
   # One job, one Harness, and one frozen APK pair.  The optional parity row is
   # part of this same matrix so it cannot grow a second ADB/install path.
   orb-visual-evidence:

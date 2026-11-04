@@ -2,6 +2,7 @@ package com.yujian.ai.ai
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import com.yujian.ai.model.RecognitionPrediction
 import kotlinx.coroutines.CancellationException
 
@@ -49,6 +50,12 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
         onProgress: (RecognitionProgress) -> Unit,
         modelIdentity: RecognitionModelIdentity?,
     ): ProductionRecognitionResult {
+        if (bitmap.width <= 0 || bitmap.height <= 0) {
+            throw RecognitionStageFailureException(
+                RecognitionFailureCode.INVALID_PHOTO_GEOMETRY,
+                IllegalArgumentException("Recognition source bitmap must have positive dimensions"),
+            )
+        }
         val stateMachine = RecognitionStateMachine()
         fun advance(event: RecognitionEvent, assessment: FishInputAssessment? = null) {
             val state = stateMachine.dispatch(event)
@@ -58,14 +65,25 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
         advance(RecognitionEvent.CaptureReady)
         advance(RecognitionEvent.DetectionStarted)
 
-        val detectorRun = RecognitionModelWatchdog.execute(
-            modelName = "DETECTOR",
-            identity = modelIdentity,
-        ) { detector.detect(bitmap) }
+        val detectorRun = try {
+            RecognitionModelWatchdog.execute(
+                modelName = "DETECTOR",
+                identity = modelIdentity,
+            ) { detector.detect(bitmap) }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: RecognitionStageFailureException) {
+            throw failure
+        } catch (error: Throwable) {
+            throw RecognitionStageFailureException(RecognitionFailureCode.MODEL_INFERENCE_FAILED, error)
+        }
         val assessment = FishDetectionQualityGate.assess(detectorRun.detections)
         InferenceTrace.detectorOutcome(detectorRun, assessment.primary?.box)
 
         if (!assessment.isClassifierEligible) {
+            if (assessment.status == FishInputStatus.NO_FISH) {
+                Log.i("FishRecognitionPipeline", "RECOGNITION_TERMINAL failure_code=${RecognitionFailureCode.NO_FISH_DETECTED}")
+            }
             val route = if (assessment.status == FishInputStatus.FISH_TOO_SMALL) {
                 DetectionRoute.TOO_FAR
             } else {
@@ -130,10 +148,18 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
 
         advance(RecognitionEvent.ClassificationStarted, assessment)
         return try {
-            val prediction = RecognitionModelWatchdog.execute(
-                modelName = "CLASSIFIER",
-                identity = modelIdentity,
-            ) { classifier.recognize(crop, traceContext) }
+            val prediction = try {
+                RecognitionModelWatchdog.execute(
+                    modelName = "CLASSIFIER",
+                    identity = modelIdentity,
+                ) { classifier.recognize(crop, traceContext) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: RecognitionStageFailureException) {
+                throw failure
+            } catch (error: Throwable) {
+                throw RecognitionStageFailureException(RecognitionFailureCode.MODEL_INFERENCE_FAILED, error)
+            }
             val route = when {
                 prediction.top1.confidence < 0.45f -> ClassificationRoute.UNKNOWN
                 prediction.candidates.getOrNull(1)?.let {
@@ -152,15 +178,25 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
             ready
         } catch (cancelled: CancellationException) {
             throw cancelled
-        } catch (error: Exception) {
-            stateMachine.dispatch(RecognitionEvent.Failed(RecognitionFailureCode.CLASSIFIER_FAILED))
+        } catch (failure: RecognitionStageFailureException) {
+            stateMachine.dispatch(RecognitionEvent.Failed(failure.failureCode))
             ProductionRecognitionResult(
                 status = assessment.status,
                 detectorRun = detectorRun,
                 assessment = assessment,
                 prediction = null,
                 cropPixels = pixels,
-                failureCode = RecognitionFailureCode.CLASSIFIER_FAILED,
+                failureCode = failure.failureCode,
+            )
+        } catch (error: Exception) {
+            stateMachine.dispatch(RecognitionEvent.Failed(RecognitionFailureCode.MODEL_INFERENCE_FAILED))
+            ProductionRecognitionResult(
+                status = assessment.status,
+                detectorRun = detectorRun,
+                assessment = assessment,
+                prediction = null,
+                cropPixels = pixels,
+                failureCode = RecognitionFailureCode.MODEL_INFERENCE_FAILED,
             )
         } finally {
             if (crop !== bitmap && !crop.isRecycled) crop.recycle()

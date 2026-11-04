@@ -84,22 +84,44 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val weights: Array<IntArray>,
     )
 
-    private val environment: OrtEnvironment = OrtEnvironment.getEnvironment()
+    private val environment: OrtEnvironment by lazy {
+        try {
+            OrtEnvironment.getEnvironment()
+        } catch (error: Throwable) {
+            throw RecognitionStageFailureException(RecognitionFailureCode.MODEL_LOAD_FAILED, error)
+        }
+    }
 
-    private val verifiedModel: VerifiedModel by lazy { verifyModelBundle() }
+    private val verifiedModel: VerifiedModel by lazy {
+        try {
+            verifyModelBundle()
+        } catch (failure: RecognitionStageFailureException) {
+            throw failure
+        } catch (error: Throwable) {
+            throw RecognitionStageFailureException(RecognitionFailureCode.MODEL_LOAD_FAILED, error)
+        }
+    }
 
     private val sessionLazy = lazy {
-        val options = OrtSession.SessionOptions()
         try {
-            environment.createSession(verifiedModel.bytes, options)
-        } finally {
-            options.close()
-        }.also { session ->
-            require(session.inputNames.size == 1) { "DET_FISH_v0.1 必须只有一个输入 tensor" }
-            require(session.outputNames.size == 1) { "DET_FISH_v0.1 必须只有一个输出 tensor" }
-            require(session.inputNames.first() == verifiedModel.inputName) {
-                "DET_FISH_v0.1 输入名不一致：runtime=${session.inputNames.first()} metadata=${verifiedModel.inputName}"
+            val options = OrtSession.SessionOptions()
+            options.setIntraOpNumThreads(DETECTOR_INTRA_OP_THREADS)
+            options.setInterOpNumThreads(1)
+            try {
+                environment.createSession(verifiedModel.bytes, options)
+            } finally {
+                options.close()
+            }.also { session ->
+                require(session.inputNames.size == 1) { "DET_FISH_v0.1 必须只有一个输入 tensor" }
+                require(session.outputNames.size == 1) { "DET_FISH_v0.1 必须只有一个输出 tensor" }
+                require(session.inputNames.first() == verifiedModel.inputName) {
+                    "DET_FISH_v0.1 输入名不一致：runtime=${session.inputNames.first()} metadata=${verifiedModel.inputName}"
+                }
             }
+        } catch (failure: RecognitionStageFailureException) {
+            throw failure
+        } catch (error: Throwable) {
+            throw RecognitionStageFailureException(RecognitionFailureCode.MODEL_LOAD_FAILED, error)
         }
     }
 
@@ -424,6 +446,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         const val EXPECTED_INPUT_SIZE = 416
         const val YOLOX_FILL = 114
         const val ORIENTATION_RETRY_POLICY_VERSION = "DETECTOR_ORIENTATION_RETRY_v2"
+        private const val DETECTOR_INTRA_OP_THREADS = 2
         val ORIENTATION_ATTEMPTS = listOf(
             DetectorOrientationAttempt.ORIGINAL,
             DetectorOrientationAttempt.CW90,

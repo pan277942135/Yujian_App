@@ -1,0 +1,45 @@
+{
+  "task_id": "YUJIAN_ANDROID_FISH_CONTOUR_PERIMETER_DEMO_FULL_FUSION_P0_V2_2",
+  "demo_repository": "18694061757-ctrl/Fish-Mask-Gold-Contour-Lab",
+  "demo_commit": "a790f145620ab32f96fe525bc38dd902653bd960",
+  "app_repository": "pan277942135/Yujian_App",
+  "pr_number": 316,
+  "app_main_commit": "99986f50944353b400594b4ceb0dd34be1df3b39",
+  "pr_baseline_commit": "f33b78a5a0086b907b8ac9089bb0f9512f6c6be9",
+  "demo_source_sha256": {
+    "src/components/FishContourGlowRenderer.tsx": "c7d90ed020b8a2353fa9c728c58e794f580e9b360113d219e76b37e92891a439",
+    "src/components/FishCatchWaterOverlay.ts": "d0b231c73e073bfb63a68a15a3fa9100981a23573faa33c3b37778c5a840b931",
+    "src/components/CanvasViewport.tsx": "dfa303da1fa7eab737a3c5282e590a35b9e0223fa25e8d8fb0150c1af2864f48",
+    "src/utils/contourExtraction.ts": "f71665f1e79b5d2f52336ee051dadad17ac3c8643f526353513a98b1c7fced33",
+    "src/App.tsx": "2af90a75b9bce68bbdc1e2b8a523e28624dbba7ed7161fd64200e3b0ef5993a3"
+  },
+  "user_supplied_video_metadata": [
+    {
+      "file": "243393.mp4",
+      "sha256": "7fa04d587cf96c8f0e5b5910f49c5dadb6ce0b742997d75ba920b4c530da7f74",
+      "width": 868,
+      "height": 1918,
+      "duration_seconds": 3.358567,
+      "avg_frame_rate_reported": "3330000/100757",
+      "binary_in_repository": false
+    },
+    {
+      "file": "243394.mp4",
+      "sha256": "fe61ece5dd7c4cd169cb372ccdcb0c0a4476bb9550ad42e329a1b644fa07293b",
+      "width": 868,
+      "height": 1920,
+      "duration_seconds": 10.816,
+      "avg_frame_rate_reported": "16875000/478349",
+      "binary_in_repository": false
+    }
+  ],
+  "visual_capture": {
+    "demo_source_audit": "SOURCE_VERIFIED",
+    "video_review": "QUALITATIVE_REFERENCE_ONLY",
+    "demo_static_keyframes_exported": false,
+    "android_capture": "NOT_RUN",
+    "device_validation": "NOT_RUN",
+    "source_css_dpr_backing_store_tuple": "UNVERIFIED",
+    "notes": "Video files and derived contact sheets are not included in this public repository. No synthetic Android screenshot is used as evidence."
+  }
+}

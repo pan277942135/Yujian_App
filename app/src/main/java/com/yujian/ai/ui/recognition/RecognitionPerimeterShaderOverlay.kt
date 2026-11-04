@@ -39,25 +39,48 @@ import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.roundToInt
 
-private const val SOURCE_SPEED = 1f
 private const val PERIMETER_LOG_TAG = "RecognitionPerimeter"
 private const val NODE_POSITION_FLOATS = RecognitionPerimeterShaderMath.SPARKLE_COUNT * 2
 
 internal fun recognitionPerimeterOpacity(
     processingClockStarted: Boolean,
     reduceMotion: Boolean,
-    opticalReferenceElapsedMs: Long,
-): Float = when {
-    !processingClockStarted -> 0f
-    reduceMotion -> .10f
-    else -> processingEnvironmentStrength(opticalReferenceElapsedMs.coerceAtLeast(0L)) / 100f
+    frame: WaterLightFrame,
+): Float {
+    if (!processingClockStarted) return 0f
+    val scene = frame.sceneFrame
+    if (reduceMotion) return when (scene.stage) {
+        RecognitionSceneStage.PHOTO_STABLE,
+        RecognitionSceneStage.ORB_WAKE -> 0f
+        RecognitionSceneStage.ORB_RETURN,
+        RecognitionSceneStage.ORB_TO_NAME,
+        RecognitionSceneStage.SPECIES_NAME_REVEAL,
+        RecognitionSceneStage.RESIDUE_SETTLE -> .04f
+        else -> .10f
+    }
+    return when (scene.stage) {
+        RecognitionSceneStage.PHOTO_STABLE,
+        RecognitionSceneStage.ORB_WAKE -> 0f
+        RecognitionSceneStage.ORB_RELEASE -> scene.stageProgress.coerceIn(0f, 1f)
+        RecognitionSceneStage.ORB_RETURN -> 1f - .82f * scene.stageProgress.coerceIn(0f, 1f)
+        RecognitionSceneStage.ORB_TO_NAME -> .18f * (1f - scene.stageProgress.coerceIn(0f, 1f))
+        RecognitionSceneStage.SPECIES_NAME_REVEAL -> .08f
+        RecognitionSceneStage.RESIDUE_SETTLE -> .08f * (1f - scene.stageProgress.coerceIn(0f, 1f))
+        else -> 1f
+    }
 }
+
+internal fun recognitionPerimeterProgress(
+    frame: WaterLightFrame,
+    profile: RecognitionPerimeterOpticalProfileV1 = RecognitionPerimeterOpticalProfileV1.EFFECT_02,
+): Float = RecognitionPerimeterShaderMath.expansionProgress(frame.sceneFrame, profile)
 
 internal fun recognitionPerimeterActive(processingClockStarted: Boolean, phase: RecognitionPhase): Boolean =
     processingClockStarted && phase != RecognitionPhase.RESULT && phase != RecognitionPhase.FAILURE
@@ -72,7 +95,6 @@ internal fun RecognitionPerimeterShaderOverlay(
     bitmap: Bitmap,
     photoTransform: RecognitionImageTransform,
     elapsedMs: Long,
-    opticalReferenceElapsedMs: Long = elapsedMs,
     processingClockStarted: Boolean,
     sessionKey: Any?,
     recognitionSessionId: String,
@@ -83,6 +105,7 @@ internal fun RecognitionPerimeterShaderOverlay(
     reduceMotion: Boolean = false,
     referenceMetrics: RecognitionPerimeterReferenceMetrics? = null,
     material: WaterLightMaterialProfile = WaterLightMaterialProfile.PERIMETER,
+    opticalProfile: RecognitionPerimeterOpticalProfileV1 = RecognitionPerimeterOpticalProfileV1.EFFECT_02,
     energyEvent: EnergyEvent? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -103,17 +126,27 @@ internal fun RecognitionPerimeterShaderOverlay(
     val path = remember(
         sourceCssWidth,
         sourceCssHeight,
+        opticalProfile.marginRatio,
+        opticalProfile.cornerRadiusRatio,
         mapping.isMeasured,
     ) {
-        RecognitionPerimeterShaderMath.generatePerimeterPath(sourceCssWidth, sourceCssHeight)
+        RecognitionPerimeterShaderMath.generatePerimeterPath(
+            width = sourceCssWidth,
+            height = sourceCssHeight,
+            margin = minOf(sourceCssWidth, sourceCssHeight) * opticalProfile.marginRatio,
+            cornerRadius = minOf(sourceCssWidth, sourceCssHeight) * opticalProfile.cornerRadiusRatio,
+        )
     }
-    val shaderElapsedMs = if (waterLightFrame.reducedMotion) 0L else waterLightFrame.elapsedMs
-    val timeSec = RecognitionPerimeterShaderMath.sourceTimeSec(shaderElapsedMs, speed = SOURCE_SPEED)
-    val progress = if (waterLightFrame.reducedMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(waterLightFrame.opticalReferenceElapsedMs)
+    val sceneFrame = waterLightFrame.sceneFrame
+    val effectiveReduceMotion = reduceMotion || waterLightFrame.reducedMotion
+    val timeSec = if (effectiveReduceMotion) 0f else
+        RecognitionPerimeterShaderMath.sourceTimeSec(sceneFrame, opticalProfile.speed)
+    val progress = if (effectiveReduceMotion) 1f else
+        recognitionPerimeterProgress(waterLightFrame, opticalProfile)
     val perimeterOpacity = recognitionPerimeterOpacity(
         processingClockStarted = processingClockStarted,
-        reduceMotion = reduceMotion,
-        opticalReferenceElapsedMs = opticalReferenceElapsedMs,
+        reduceMotion = effectiveReduceMotion,
+        frame = waterLightFrame,
     )
     val nodes = RecognitionPerimeterShaderMath.sparkles(
         path = path,
@@ -145,7 +178,7 @@ internal fun RecognitionPerimeterShaderOverlay(
         imageId = imageId,
         photoSha256 = photoSha256,
         elapsedMs = elapsedMs.coerceAtLeast(0L),
-        opticalReferenceElapsedMs = opticalReferenceElapsedMs.coerceAtLeast(0L),
+        opticalReferenceElapsedMs = sceneFrame.opticalReferenceElapsedMs,
         timeSec = timeSec,
         progress = progress,
         perimeterOpacity = perimeterOpacity * material.opacity,
@@ -153,8 +186,8 @@ internal fun RecognitionPerimeterShaderOverlay(
         pathCoordinateScale = mapping.pathPxPerCssUnit,
         nodePositions = positions,
         coordinateMappingMeasured = mapping.isMeasured,
-        glowSizeSource = material.glowWidth * context.resources.displayMetrics.density / mapping.shaderPxPerSourceUnit.coerceAtLeast(.0001f),
         material = material,
+        opticalProfile = opticalProfile,
         energyLevel = energyEvent?.takeIf {
             it.matches(waterLightFrame) && it.imageId == imageId && it.photoSha256 == photoSha256 &&
                 it.feedback in setOf(EnergyFeedback.RELEASE, EnergyFeedback.ARRIVE)
@@ -207,8 +240,8 @@ private data class PerimeterFrame(
     val pathCoordinateScale: Float,
     val nodePositions: FloatArray,
     val coordinateMappingMeasured: Boolean,
-    val glowSizeSource: Float,
     val material: WaterLightMaterialProfile,
+    val opticalProfile: RecognitionPerimeterOpticalProfileV1,
     val energyLevel: Float,
     val active: Boolean,
 )
@@ -387,6 +420,7 @@ private class RecognitionPerimeterGlRenderer {
     private var surfaceHeight = 1
     private var lastMappingLogKey: String? = null
     private var firstOpticalFrameLogged = false
+    private var uniformLocations: Map<String, Int> = emptyMap()
     private var positionBuffer = 0
     private var photoTexture = 0
     private var uploadedBitmap: Bitmap? = null
@@ -434,9 +468,20 @@ private class RecognitionPerimeterGlRenderer {
 
         val shaderStartedAtMs = android.os.SystemClock.uptimeMillis()
         program = createProgram(VERTEX_SHADER, PERIMETER_FRAGMENT_SHADER, "perimeter")
+        if (program != 0) {
+            uniformLocations = buildList {
+                addAll(listOf(
+                    "uPhoto", "uViewport", "uPhotoBounds", "uImageRect", "uMotion",
+                    "uPerimeterOpacity", "uEnergyLevel", "uNodePositions",
+                    "uGoldColor", "uCyanColor", "uGreenColor",
+                    "uSparkleGoldCoreColor", "uSparkleCyanCoreColor",
+                ))
+                repeat(10) { add("uProfile$it") }
+            }.associateWith { GLES20.glGetUniformLocation(program, it) }
+        }
         val shaderFinishedAtMs = android.os.SystemClock.uptimeMillis()
         if (program != 0) {
-            Log.i(TAG, "PERIMETER_SHADER_COMPILE=PASS source=$SOURCE_SHA started_uptime_ms=$shaderStartedAtMs completed_uptime_ms=$shaderFinishedAtMs $frameIdentity")
+            Log.i(TAG, "PERIMETER_SHADER_COMPILE=PASS demo_source=$DEMO_SOURCE_SHA started_uptime_ms=$shaderStartedAtMs completed_uptime_ms=$shaderFinishedAtMs $frameIdentity")
             Log.i(TAG, "PERIMETER_SHADER_LINK=PASS uptime_ms=$shaderFinishedAtMs $frameIdentity")
         } else {
             Log.e(TAG, "PERIMETER_SHADER_COMPILE=FAIL; transparent photo-safe fallback started_uptime_ms=$shaderStartedAtMs completed_uptime_ms=$shaderFinishedAtMs $frameIdentity")
@@ -501,10 +546,10 @@ private class RecognitionPerimeterGlRenderer {
         GLES20.glUseProgram(p)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
-        GLES20.glUniform1i(GLES20.glGetUniformLocation(p, "uPhoto"), 0)
+        GLES20.glUniform1i(uniform("uPhoto"), 0)
         bindQuad(p)
         setCommonUniforms(p, frame)
-        GLES20.glUniform4fv(GLES20.glGetUniformLocation(p, "uNodePositions"), 8, frame.nodePositions, 0)
+        GLES20.glUniform4fv(uniform("uNodePositions"), 8, frame.nodePositions, 0)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         val error = GLES20.glGetError()
@@ -557,44 +602,56 @@ private class RecognitionPerimeterGlRenderer {
             ((value shr 8) and 255).toFloat() / 255f,
             (value and 255).toFloat() / 255f,
         )
-        GLES20.glUniform3fv(GLES20.glGetUniformLocation(programId, "uDeepPeacock"), 1, rgb(frame.material.primaryColor), 0)
-        GLES20.glUniform3fv(GLES20.glGetUniformLocation(programId, "uWaterGreen"), 1, rgb(frame.material.secondaryColor), 0)
-        GLES20.glUniform3fv(GLES20.glGetUniformLocation(programId, "uIceWhite"), 1, rgb(frame.material.highlightColor), 0)
+        val optical = frame.opticalProfile
+        GLES20.glUniform3fv(uniform("uGoldColor"), 1, rgb(optical.goldColor), 0)
+        GLES20.glUniform3fv(uniform("uCyanColor"), 1, rgb(optical.cyanColor), 0)
+        GLES20.glUniform3fv(uniform("uGreenColor"), 1, rgb(optical.greenColor), 0)
+        GLES20.glUniform3fv(uniform("uSparkleGoldCoreColor"), 1, rgb(optical.sparkleGoldCoreColor), 0)
+        GLES20.glUniform3fv(uniform("uSparkleCyanCoreColor"), 1, rgb(optical.sparkleCyanCoreColor), 0)
         GLES20.glUniform2f(
-            GLES20.glGetUniformLocation(programId, "uViewport"),
+            uniform("uViewport"),
             surfaceWidth.toFloat(),
             surfaceHeight.toFloat(),
         )
         GLES20.glUniform4f(
-            GLES20.glGetUniformLocation(programId, "uPhotoBounds"),
+            uniform("uPhotoBounds"),
             frame.photoBounds.left,
             frame.photoBounds.top,
             frame.photoBounds.width,
             frame.photoBounds.height,
         )
-        GLES20.glUniform4f(GLES20.glGetUniformLocation(programId, "uImageRect"),
+        GLES20.glUniform4f(uniform("uImageRect"),
             frame.imageBounds.left, frame.imageBounds.top,
             frame.imageBounds.width, frame.imageBounds.height)
         GLES20.glUniform1f(
-            GLES20.glGetUniformLocation(programId, "uPerimeterOpacity"),
+            uniform("uPerimeterOpacity"),
             frame.perimeterOpacity.coerceIn(0f, 1f),
         )
         GLES20.glUniform4f(
-            GLES20.glGetUniformLocation(programId, "uMotion"),
+            uniform("uMotion"),
             frame.timeSec,
             frame.progress,
             frame.shaderCoordinateScale,
             frame.pathCoordinateScale,
         )
         GLES20.glUniform1f(
-            GLES20.glGetUniformLocation(programId, "uGlowSizeSource"),
-            frame.glowSizeSource,
-        )
-        GLES20.glUniform1f(
-            GLES20.glGetUniformLocation(programId, "uEnergyLevel"),
+            uniform("uEnergyLevel"),
             frame.energyLevel.coerceIn(0f, 1f),
         )
+        val p = optical
+        GLES20.glUniform4f(uniform("uProfile0"), p.intensity, p.speed, p.marginRatio, p.cornerRadiusRatio)
+        GLES20.glUniform4f(uniform("uProfile1"), p.wave1Frequency, p.wave1AmplitudeSourcePx, p.wave1Speed, p.wave2Frequency)
+        GLES20.glUniform4f(uniform("uProfile2"), p.wave2AmplitudeSourcePx, p.wave2Speed, p.glowSizeSourcePx, p.wideHaloDecay)
+        GLES20.glUniform4f(uniform("uProfile3"), p.wideHaloGlowFactor, p.wideHaloWeight, p.mediumBloomDecay, p.mediumBloomGlowFactor)
+        GLES20.glUniform4f(uniform("uProfile4"), p.mediumBloomWeight, p.sharpCoreNear, p.sharpCoreFar, p.sharpCoreWeight)
+        GLES20.glUniform4f(uniform("uProfile5"), p.bottomMaskStrength, p.blendRatio, p.bottomMaskFloor, p.bottomGradientLift)
+        GLES20.glUniform4f(uniform("uProfile6"), p.bottomGradientExponent, p.causticsUvScale, p.bottomContributionScale, p.perimeterContributionScale)
+        GLES20.glUniform4f(uniform("uProfile7"), p.specularStart, p.specularEnd, p.specularMix, p.specularBoost)
+        GLES20.glUniform4f(uniform("uProfile8"), p.sparkleBaseSizeCssPx, p.sparkleSizeStepCssPx, p.sparkleHaloScale, p.sparkleCoreScale)
+        GLES20.glUniform4f(uniform("uProfile9"), p.sparkleHaloOpacity, p.sparkleCoreOpacity, p.flourishHalfWidthCssPx, p.flourishPeakHeightCssPx)
     }
+
+    private fun uniform(name: String): Int = uniformLocations[name] ?: -1
 
     private fun logMappingIfChanged(frame: PerimeterFrame) {
         val key = "${frame.photoBounds.width}x${frame.photoBounds.height}:" +
@@ -609,6 +666,7 @@ private class RecognitionPerimeterGlRenderer {
                 "source_coordinate_scale=${frame.shaderCoordinateScale} " +
                 "path_css_scale=${frame.pathCoordinateScale} measured=${frame.coordinateMappingMeasured}",
         )
+        Log.i(TAG, "OPTICAL_PROFILE=${frame.opticalProfile.version} blend=${frame.opticalProfile.blendMode} margin=${frame.opticalProfile.marginRatio} corner=${frame.opticalProfile.cornerRadiusRatio} glow_source_px=${frame.opticalProfile.glowSizeSourcePx}")
         if (!frame.coordinateMappingMeasured) {
             Log.w(TAG, "${identityLabel(frame)} COORDINATE_MAPPING=NOT_VERIFIED; identity candidate only; source DPR/CSS/backing dimensions not supplied")
         }
@@ -627,6 +685,7 @@ private class RecognitionPerimeterGlRenderer {
         photoTexture = 0
         uploadedBitmap = null
         uploadedIdentity = null
+        uniformLocations = emptyMap()
     }
 
     private fun checkGl(stage: String, identity: String = "") {
@@ -637,7 +696,7 @@ private class RecognitionPerimeterGlRenderer {
     companion object {
         private const val FLOAT_SIZE_BYTES = 4
         private const val TAG = "RecognitionPerimeter"
-        private const val SOURCE_SHA = "794e7f2698525761bbb2f3e5d775b5dae8d7a25a"
+        private const val DEMO_SOURCE_SHA = "a790f145620ab32f96fe525bc38dd902653bd960"
 
         private const val VERTEX_SHADER = """
             attribute vec2 aPosition;
@@ -646,7 +705,7 @@ private class RecognitionPerimeterGlRenderer {
             }
         """
 
-        /** Source FISH_CATCH_FRAG_SRC perimeter branch, emitted as a transparent optical overlay. */
+        /** Port of the Demo's final WebGL shader plus its 2D accents in the same GLES2 pass. */
         private const val PERIMETER_FRAGMENT_SHADER = """
             #ifdef GL_FRAGMENT_PRECISION_HIGH
             precision highp float;
@@ -658,26 +717,39 @@ private class RecognitionPerimeterGlRenderer {
             uniform vec2 uViewport;
             uniform vec4 uPhotoBounds;
             uniform vec4 uImageRect;
-            // x=timeSec, y=linear spread progress, z=source shader-unit scale, w=source CSS-unit scale.
+            // x=timeSec, y=bottom-up expansion, z=target px/source backing px, w=target px/source CSS px.
             uniform vec4 uMotion;
-            // SWOS timeline envelope is applied after the source perimeter math; P7 is exact zero.
             uniform float uPerimeterOpacity;
-            uniform float uGlowSizeSource;
             uniform float uEnergyLevel;
-            // Two node positions per vector; constant-index branches keep GLES2 fragment indexing portable.
             uniform vec4 uNodePositions[8];
+            uniform vec3 uGoldColor;
+            uniform vec3 uCyanColor;
+            uniform vec3 uGreenColor;
+            uniform vec3 uSparkleGoldCoreColor;
+            uniform vec3 uSparkleCyanCoreColor;
+            // Profile uniforms, packed to keep GLES2 uniform binding compact.
+            uniform vec4 uProfile0; // intensity, speed, margin ratio, corner radius ratio
+            uniform vec4 uProfile1; // wave 1 frequency/amplitude/speed, wave 2 frequency
+            uniform vec4 uProfile2; // wave 2 amplitude/speed, glow size, wide halo decay
+            uniform vec4 uProfile3; // wide halo glow factor/weight, bloom decay/glow factor
+            uniform vec4 uProfile4; // bloom weight, sharp near/far/weight
+            uniform vec4 uProfile5; // bottom mask strength, blend ratio, mask floor, gradient lift
+            uniform vec4 uProfile6; // gradient exponent, caustic UV scale, bottom/perimeter contribution
+            uniform vec4 uProfile7; // specular start/end/mix/boost
+            uniform vec4 uProfile8; // sparkle size/step/halo/core
+            uniform vec4 uProfile9; // halo/core opacity, flourish half width/height
 
             const float PI = 3.14159265358979323846;
-            const float INTENSITY = 1.50;
-            const float MARGIN_RATIO = 0.060;
-            const float BLEND_RATIO = 0.75;
-            uniform vec3 uDeepPeacock;
-            uniform vec3 uWaterGreen;
-            uniform vec3 uIceWhite;
+
+            vec2 rotate(vec2 p, float a) {
+                float c = cos(a);
+                float s = sin(a);
+                return vec2(c * p.x - s * p.y, s * p.x + c * p.y);
+            }
 
             float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
                 r.xy = (p.x > 0.0) ? r.xy : r.zw;
-                r.x  = (p.y > 0.0) ? r.x  : r.y;
+                r.x = (p.y > 0.0) ? r.x : r.y;
                 vec2 q = abs(p) - b + r.x;
                 return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r.x;
             }
@@ -686,6 +758,63 @@ private class RecognitionPerimeterGlRenderer {
                 vec3 low = 2.0 * backdrop * source;
                 vec3 high = 1.0 - 2.0 * (1.0 - backdrop) * (1.0 - source);
                 return mix(low, high, step(vec3(0.5), backdrop));
+            }
+
+            float hash(vec2 p) {
+                p = fract(p * vec2(123.34, 456.21));
+                p += dot(p, p + 45.32);
+                return fract(p.x * p.y);
+            }
+
+            float causticOctave(vec2 uv, float t, float fi) {
+                vec2 p = rotate(uv, 0.45 + fi * 2.39996);
+                for (int k = 0; k < 2; k++) {
+                    float fk = float(k);
+                    vec2 w = vec2(
+                        sin(p.y * (1.18 + fi * 0.17 + fk * 0.12) + p.x * (0.24 + fi * 0.08) + t * (0.42 + fi * 0.06) + fi * 1.57 + fk),
+                        cos(p.x * (0.92 + fi * 0.15 + fk * 0.10) - p.y * (0.31 + fi * 0.08) - t * (0.38 + fi * 0.05) + fi * 1.18)
+                    );
+                    p += w * (0.45 / (1.0 + fi * 0.18 + fk * 0.12));
+                }
+                vec2 d1 = vec2(1.02 + fi * 0.19, 0.35 + fi * 0.11);
+                vec2 d2 = vec2(-0.48 - fi * 0.09, 1.12 + fi * 0.07);
+                float ridge = sin(dot(p, d1) + t * 0.14) * sin(dot(p, d2) - t * 0.11);
+                return 0.17 / (abs(ridge) * 5.4 + 0.22);
+            }
+
+            float causticField(vec2 uv, float t) {
+                vec2 p = uv + vec2(
+                    sin(uv.y * 0.42 + t * 0.24) * 0.38,
+                    cos(uv.x * 0.36 - t * 0.18) * 0.38
+                );
+                float a = causticOctave(p, t, 0.0);
+                vec2 p2 = rotate(p * 1.618 + vec2(1.72, -1.18), 1.15);
+                float b = causticOctave(p2, t * 0.82, 1.0);
+                vec2 p3 = rotate(p * 2.54 + vec2(2.31, -0.65), 1.52);
+                float c = causticOctave(p3, t * 0.65, 2.0);
+                float acc = max(a * 1.15, b * 0.82) + c * 0.38;
+                return pow(clamp(acc, 0.0, 2.0), 1.35);
+            }
+
+            float lightSpotsField(vec2 uv, float t) {
+                vec2 p = uv * 3.6;
+                vec2 ip = floor(p);
+                vec2 fp = fract(p) - 0.5;
+                float minDist = 1.0;
+                for (int y = -1; y <= 1; y++) {
+                    for (int x = -1; x <= 1; x++) {
+                        vec2 neighbor = vec2(float(x), float(y));
+                        vec2 cellId = ip + neighbor;
+                        float h = hash(cellId);
+                        vec2 offset = vec2(
+                            sin(t * 1.25 + h * 6.28) * 0.32,
+                            cos(t * 1.55 + h * 6.28) * 0.32
+                        );
+                        minDist = min(minDist, length(neighbor + offset - fp));
+                    }
+                }
+                float spot = 1.0 - smoothstep(0.08, 0.65, minDist);
+                return pow(spot, 1.8);
             }
 
             vec2 nodePosition(int index) {
@@ -717,10 +846,15 @@ private class RecognitionPerimeterGlRenderer {
                 return 1.0 - smoothstep(max(0.0, radius - aaWidth), radius + aaWidth, distanceToCenter);
             }
 
+            float segmentDistance(vec2 p, vec2 a, vec2 b) {
+                vec2 ab = b - a;
+                float h = clamp(dot(p - a, ab) / max(dot(ab, ab), 0.0001), 0.0, 1.0);
+                return length(p - a - h * ab);
+            }
+
             void screenOver(inout vec3 dstPremul, inout float dstAlpha, vec3 sourceColor, float sourceAlpha) {
                 float a = clamp(sourceAlpha, 0.0, 1.0);
-                vec3 sourcePremul = sourceColor * a;
-                dstPremul = sourcePremul + dstPremul * (1.0 - a);
+                dstPremul = sourceColor * a + dstPremul * (1.0 - a);
                 dstAlpha = a + dstAlpha * (1.0 - a);
             }
 
@@ -736,9 +870,7 @@ private class RecognitionPerimeterGlRenderer {
                 vec2 photoUv = (pTop - uImageRect.xy) / max(uImageRect.zw, vec2(1.0));
                 vec3 base = texture2D(uPhoto, photoUv).rgb;
 
-                // The source shader uses gl_FragCoord with a bottom-left origin and its
-                // canvas backing-store resolution. Convert the Android photo surface to
-                // those source units through the measured uniform scale.
+                // Source shader coordinates are bottom-left-origin WebGL backing pixels.
                 float sourceScale = max(uMotion.z, 0.0001);
                 vec2 frag = vec2(pTop.x - uPhotoBounds.x, uPhotoBounds.y + uPhotoBounds.w - pTop.y) / sourceScale;
                 vec2 res = uPhotoBounds.zw / sourceScale;
@@ -746,57 +878,66 @@ private class RecognitionPerimeterGlRenderer {
                 float normY = frag.y / max(res.y, 1.0);
                 float t = uMotion.x * 0.42;
 
-                float revealedMask = (uMotion.y >= 1.0)
+                float revealedMask = uMotion.y >= 1.0
                     ? 1.0
                     : smoothstep(normY - 0.14, normY + 0.02, uMotion.y * 1.08 - 0.04);
                 revealedMask = clamp(revealedMask, 0.0, 1.0);
 
                 vec2 halfRes = res * 0.5;
                 vec2 centeredPos = frag - halfRes;
-                float margin = min(res.x, res.y) * MARGIN_RATIO;
+                float shortSide = min(res.x, res.y);
+                float margin = shortSide * uProfile0.z;
                 vec2 boxHalf = halfRes - vec2(margin);
-                float cornerR = min(res.x, res.y) * 0.12;
+                float cornerR = shortSide * uProfile0.w;
                 float perimAngle = atan(centeredPos.y, centeredPos.x);
-                float perimWave = sin(perimAngle * 5.0 + t * 2.2) * 4.5 +
-                    cos(perimAngle * 9.0 - t * 1.5) * 2.6;
+                float perimWave = sin(perimAngle * uProfile1.x + t * uProfile1.z) * uProfile1.y +
+                    cos(perimAngle * uProfile1.w - t * uProfile2.y) * uProfile2.x;
                 float dBox = abs(sdRoundedBox(centeredPos, boxHalf, vec4(cornerR)) + perimWave);
 
-                float effectiveGlow = max(8.0, uGlowSizeSource);
-                float wideHalo = exp(-dBox * (0.07 / (effectiveGlow * 0.12)));
-                float mediumBloom = exp(-dBox * (0.16 / (effectiveGlow * 0.10)));
-                // Source uses reversed smoothstep edges. This descending form is defined by GLSL.
-                float sharpCore = 1.0 - smoothstep(0.3, 2.8, dBox);
-                float perimeterAura = (wideHalo * 0.35 + mediumBloom * 0.65 + sharpCore * 0.95) * revealedMask;
+                float effectiveGlow = max(8.0, uProfile2.z);
+                float wideHalo = exp(-dBox * (uProfile2.w / (effectiveGlow * uProfile3.x)));
+                float mediumBloom = exp(-dBox * (uProfile3.z / (effectiveGlow * uProfile3.w)));
+                float sharpCore = 1.0 - smoothstep(uProfile4.y, uProfile4.z, dBox);
+                float perimeterAura = (wideHalo * uProfile3.y + mediumBloom * uProfile4.x + sharpCore * uProfile4.w) * revealedMask;
 
-                float filamentAngleT = (perimAngle + 3.14159) / 6.28318;
-                float filamentGoldBias = smoothstep(0.18, 0.82, sin(filamentAngleT * 3.14159 + 0.7));
-                vec3 perimeterColor = mix(uWaterGreen, uDeepPeacock, filamentGoldBias);
-                perimeterColor = mix(perimeterColor, uWaterGreen, sin(filamentAngleT * 6.28 + t * 0.5) * 0.2 + 0.2);
+                float filamentAngleT = (perimAngle + PI) / (2.0 * PI);
+                float filamentGoldBias = smoothstep(0.18, 0.82, sin(filamentAngleT * PI + 0.7));
+                vec3 perimeterColor = mix(uCyanColor, uGoldColor, filamentGoldBias);
+                perimeterColor = mix(perimeterColor, uGreenColor, sin(filamentAngleT * 6.28 + t * 0.5) * 0.2 + 0.2);
 
-                float perimContrib = perimeterAura * BLEND_RATIO;
-                float totalLight = perimContrib * INTENSITY;
+                // Demo's three-octave domain-warped caustics, bottom-up mask and sunlight spots.
+                float bottomGrad = pow(clamp(1.0 - normY * uProfile5.w, 0.0, 1.0), uProfile6.x);
+                float causticsMask = mix(uProfile5.z, 1.0, bottomGrad * uProfile5.x) * revealedMask;
+                float cVal = causticField(uv * uProfile6.y, t);
+                float veins = smoothstep(0.16, 1.10, cVal);
+                float haze = smoothstep(0.03, 0.78, cVal) * 0.35;
+                float causticGlow = veins * 0.92 + haze;
+                float spots = lightSpotsField(uv * 1.25, t * 0.85);
+                float waterLight = causticGlow * 0.88 + spots * 0.95;
+                float colorFlow = sin(uv.x * 2.2 + uv.y * 1.5 + t * 0.75) * 0.5 + 0.5;
+                vec3 waterSpectrum = mix(uCyanColor, uGreenColor, clamp(colorFlow * 0.85 + 0.1, 0.0, 1.0));
+                float sunCatch = smoothstep(0.28, 0.88, waterLight * 0.55 + colorFlow * 0.45);
+                vec3 bottomCausticColor = mix(waterSpectrum, uGoldColor, clamp(sunCatch * uProfile5.y, 0.0, 1.0));
+
+                float bottomContrib = waterLight * causticsMask * uProfile6.z;
+                float perimContrib = perimeterAura * uProfile6.w;
+                float totalLight = (bottomContrib + perimContrib) * uProfile0.x;
                 float finalAlpha = clamp(totalLight, 0.0, 0.96);
-                float totalWeight = max(0.001, perimContrib);
-                vec3 finalRgb = (perimeterColor * perimContrib) / totalWeight;
-                float coreSpark = smoothstep(0.85, 1.75, totalLight);
-                finalRgb = mix(finalRgb, uIceWhite, coreSpark * 0.48);
-                finalRgb = mix(finalRgb, uIceWhite, clamp(uEnergyLevel * 0.08, 0.0, 0.08));
-                finalRgb *= (1.0 + coreSpark * 0.3);
+                float totalWeight = max(0.001, bottomContrib + perimContrib);
+                vec3 finalRgb = (bottomCausticColor * bottomContrib + perimeterColor * perimContrib) / totalWeight;
+                float coreSpark = smoothstep(uProfile7.x, uProfile7.y, totalLight);
+                finalRgb = mix(finalRgb, vec3(0.99, 0.99, 0.96), coreSpark * uProfile7.z);
+                finalRgb = mix(finalRgb, vec3(0.99, 0.99, 0.96), clamp(uEnergyLevel * 0.08, 0.0, 0.08));
+                finalRgb *= (1.0 + coreSpark * uProfile7.w);
 
-                // First source stage: WebGL SRC_ALPHA / ONE_MINUS_SRC_ALPHA over transparent.
-                // The same factors apply to alpha in the source, producing alpha^2.
-                vec3 shaderLayerPremul = clamp(finalRgb * finalAlpha, 0.0, 1.0);
-                float shaderLayerAlpha = clamp(finalAlpha * finalAlpha, 0.0, 1.0);
-                vec3 shaderLayerColor = clamp(shaderLayerPremul / max(shaderLayerAlpha, 0.0001), 0.0, 1.0);
-                // Second source stage: the 2D accent canvas screens its 16 halo/core disks
-                // into transparency, then CSS Overlay blends that completed canvas over the
-                // already perimeter-composited photo. No bottom flourish is ported.
+                // Demo WebGL canvas is SRC_ALPHA composited, then CSS Overlay blended over the photo.
+                float shaderAlpha = clamp(finalAlpha * finalAlpha, 0.0, 1.0) * uPerimeterOpacity;
+                vec3 perimeterComposite = mix(base, overlayBlend(base, clamp(finalRgb, 0.0, 1.0)), shaderAlpha);
+
+                // The existing 16 nodes keep the Demo's two expanding bottom branches and screen-style cores.
                 vec3 accentPremul = vec3(0.0);
                 float accentAlpha = 0.0;
-                float canvasGlobalAlpha = 1.0;
-                // Canvas antialiasing is defined in source backing pixels; map that
-                // half-pixel footprint through the same backing-unit transform.
-                float edgeAa = max(0.0001, uMotion.z * 0.5);
+                float edgeAa = max(0.0001, sourceScale * 0.5);
                 if (uMotion.y > 0.05) {
                     for (int i = 0; i < 16; i++) {
                         vec2 node = nodePosition(i);
@@ -805,40 +946,68 @@ private class RecognitionPerimeterGlRenderer {
                             float nodeSpeed = 0.012 + mod(fi, 3.0) * 0.007;
                             float pPos = mod(fi / 16.0 + uMotion.x * nodeSpeed, 1.0);
                             float pulse = 0.65 + 0.35 * sin(uMotion.x * 3.4 + seededPhase(fi));
-                            bool isBright = pPos > 0.45;
-                            vec3 glowColor = isBright ? uWaterGreen : uDeepPeacock;
-                            vec3 coreColor = isBright ? uIceWhite : uWaterGreen;
-                            float nodeSize = (2.2 + mod(fi, 4.0) * 0.7) * uMotion.w;
-
-                            float haloRadius = nodeSize * 3.2 * pulse;
-                            float haloCoverage = circleCoverage(length(pTop - node), haloRadius, edgeAa);
-                            float haloAlpha = 0.42 * pulse * INTENSITY * canvasGlobalAlpha * haloCoverage;
-                            screenOver(accentPremul, accentAlpha, glowColor, haloAlpha);
-
-                            float coreAlphaCandidate = 0.92 * pulse * INTENSITY;
-                            // CanvasRenderingContext2D ignores globalAlpha assignments outside [0, 1].
-                            if (coreAlphaCandidate <= 1.0) canvasGlobalAlpha = coreAlphaCandidate;
-                            float coreRadius = nodeSize * 1.15 * pulse;
-                            float coreCoverage = circleCoverage(length(pTop - node), coreRadius, edgeAa);
-                            screenOver(accentPremul, accentAlpha, coreColor, canvasGlobalAlpha * coreCoverage);
+                            bool isGold = pPos > 0.45;
+                            vec3 glowColor = isGold ? uGoldColor : uCyanColor;
+                            vec3 coreColor = isGold ? uSparkleGoldCoreColor : uSparkleCyanCoreColor;
+                            float nodeSize = (uProfile8.x + mod(fi, 4.0) * uProfile8.y) * uMotion.w;
+                            float haloCoverage = circleCoverage(length(pTop - node), nodeSize * uProfile8.z * pulse, edgeAa);
+                            screenOver(accentPremul, accentAlpha, glowColor,
+                                uProfile9.x * pulse * uProfile0.x * haloCoverage * uPerimeterOpacity);
+                            float coreAlpha = min(1.0, uProfile9.y * pulse * uProfile0.x);
+                            float coreCoverage = circleCoverage(length(pTop - node), nodeSize * uProfile8.w * pulse, edgeAa);
+                            screenOver(accentPremul, accentAlpha, coreColor, coreAlpha * coreCoverage * uPerimeterOpacity);
                         }
                     }
                 }
+
+                // Demo bottom-center white core, symmetric gold water lines and pearl tips.
+                float flourishReveal = smoothstep(0.15, 0.30, uMotion.y) * uPerimeterOpacity;
+                if (flourishReveal > 0.001) {
+                    float cssScale = max(uMotion.w, 0.0001);
+                    vec2 localCss = (pTop - uPhotoBounds.xy) / cssScale;
+                    float cssShortSide = min(uPhotoBounds.z, uPhotoBounds.w) / cssScale;
+                    vec2 center = vec2(uPhotoBounds.z / cssScale * 0.5,
+                        uPhotoBounds.w / cssScale - cssShortSide * uProfile0.z);
+                    float bPulse = 0.75 + 0.25 * sin(uMotion.x * 2.4);
+                    float centerDist = length(localCss - center);
+                    float centerAa = edgeAa / cssScale;
+                    float centerHalo = circleCoverage(centerDist, 8.0, centerAa);
+                    screenOver(accentPremul, accentAlpha, uGoldColor, centerHalo * 0.22 * flourishReveal);
+                    float centerCore = circleCoverage(centerDist, 3.0 * bPulse, centerAa);
+                    screenOver(accentPremul, accentAlpha, vec3(1.0), centerCore * min(1.0, 0.95 * uProfile0.x) * flourishReveal);
+
+                    float leftDistance = 100000.0;
+                    float rightDistance = 100000.0;
+                    vec2 leftPrev = center + vec2(-uProfile9.z, 0.0);
+                    vec2 rightPrev = center + vec2(6.0, 0.0);
+                    for (int j = 1; j <= 12; j++) {
+                        float q = float(j) / 12.0;
+                        vec2 leftNext = mix(mix(center + vec2(-uProfile9.z, 0.0), center + vec2(-uProfile9.z * 0.5, -2.0 * uProfile9.w), q),
+                            mix(center + vec2(-uProfile9.z * 0.5, -2.0 * uProfile9.w), center + vec2(-6.0, 0.0), q), q);
+                        vec2 rightNext = mix(mix(center + vec2(6.0, 0.0), center + vec2(uProfile9.z * 0.5, 2.0 * uProfile9.w), q),
+                            mix(center + vec2(uProfile9.z * 0.5, 2.0 * uProfile9.w), center + vec2(uProfile9.z, 0.0), q), q);
+                        leftDistance = min(leftDistance, segmentDistance(localCss, leftPrev, leftNext));
+                        rightDistance = min(rightDistance, segmentDistance(localCss, rightPrev, rightNext));
+                        leftPrev = leftNext;
+                        rightPrev = rightNext;
+                    }
+                    float lineAA = max(0.06, centerAa);
+                    float wingCoverage = max(1.0 - smoothstep(0.65, 0.65 + lineAA, leftDistance),
+                        1.0 - smoothstep(0.65, 0.65 + lineAA, rightDistance));
+                    screenOver(accentPremul, accentAlpha, uGoldColor,
+                        wingCoverage * min(1.0, 0.65 * uProfile0.x) * flourishReveal);
+                    float pearlRadius = 1.4;
+                    float leftPearl = circleCoverage(length(localCss - (center + vec2(-uProfile9.z, 0.0))), pearlRadius, centerAa);
+                    float rightPearl = circleCoverage(length(localCss - (center + vec2(uProfile9.z, 0.0))), pearlRadius, centerAa);
+                    float pearlGlow = max(circleCoverage(length(localCss - (center + vec2(-uProfile9.z, 0.0))), 4.0, centerAa),
+                        circleCoverage(length(localCss - (center + vec2(uProfile9.z, 0.0))), 4.0, centerAa));
+                    screenOver(accentPremul, accentAlpha, uGoldColor, pearlGlow * 0.18 * flourishReveal);
+                    screenOver(accentPremul, accentAlpha, vec3(1.0), max(leftPearl, rightPearl) * flourishReveal);
+                }
+
                 vec3 accentColor = accentPremul / max(accentAlpha, 0.0001);
-                float effectiveAccentAlpha = accentAlpha * uPerimeterOpacity;
-                float perimeterAlpha = shaderLayerAlpha * uPerimeterOpacity;
-                float outputAlpha = effectiveAccentAlpha + perimeterAlpha * (1.0 - effectiveAccentAlpha);
-                vec3 perimeterComposite = mix(
-                    base,
-                    overlayBlend(base, shaderLayerColor),
-                    perimeterAlpha
-                );
-                vec3 outputColor = mix(
-                    perimeterComposite,
-                    overlayBlend(perimeterComposite, accentColor),
-                    effectiveAccentAlpha
-                );
-                // The same opaque output owns the photo and its positive optical delta.
+                vec3 outputColor = mix(perimeterComposite, overlayBlend(perimeterComposite, accentColor), accentAlpha);
+                // Preserve the APP photo texture contract and prevent CSS Overlay from darkening it.
                 outputColor = max(outputColor, base);
                 gl_FragColor = vec4(clamp(outputColor, 0.0, 1.0), 1.0);
             }

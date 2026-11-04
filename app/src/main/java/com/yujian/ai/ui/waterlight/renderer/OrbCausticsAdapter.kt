@@ -3,6 +3,7 @@ package com.yujian.ai.ui.waterlight.renderer
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
@@ -178,6 +179,28 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
                     blue = sample.blue * layerAlpha + blue * remaining
                     alpha = layerAlpha + alpha * remaining
                 }
+                val aux = WaterCausticsField.sampleSoftDomainWarpedCaustic(
+                    fragX = x + .5,
+                    fragY = y + .5,
+                    resX = size.toDouble(),
+                    resY = size.toDouble(),
+                    time = if (frameSeconds == 0.0) 0.0 else frameSeconds * OrbFluidOpticalProfileV1.CAUSTIC_TIME_RATE,
+                    scale = OrbFluidOpticalProfileV1.CAUSTIC_FLOW_SCALE,
+                    intensity = OrbFluidOpticalProfileV1.CAUSTIC_AUX_INTENSITY,
+                    color = normalColor,
+                    tint = waterTint,
+                    tintStrength = 0.0,
+                    domainWarp = OrbFluidOpticalProfileV1.CAUSTIC_DOMAIN_WARP,
+                    softEdgeLow = OrbFluidOpticalProfileV1.CAUSTIC_SOFT_EDGE_LOW,
+                    softEdgeHigh = OrbFluidOpticalProfileV1.CAUSTIC_SOFT_EDGE_HIGH,
+                )
+                val auxAlpha = (aux.alpha * OrbFluidOpticalProfileV1.CAUSTIC_AUX_ALPHA_MAX * edgeAlpha)
+                    .coerceIn(0.0, OrbFluidOpticalProfileV1.CAUSTIC_AUX_ALPHA_MAX.toDouble())
+                val auxRemaining = 1.0 - auxAlpha
+                red = aux.red * auxAlpha + red * auxRemaining
+                green = aux.green * auxAlpha + green * auxRemaining
+                blue = aux.blue * auxAlpha + blue * auxRemaining
+                alpha = auxAlpha + alpha * auxRemaining
                 val boundedAlpha = min(alpha, OrbRuntimeProfileV1.R03_CAUSTIC_RESPONSE_ALPHA_MAX.toDouble())
                 val scaleToBound = if (alpha <= 0.0) 0.0 else boundedAlpha / alpha
                 val unpremultiply = if (boundedAlpha <= 0.0) 0.0 else scaleToBound / boundedAlpha
@@ -313,7 +336,22 @@ internal class OrbSunlightRenderer {
         strokeJoin = Paint.Join.ROUND
         color = Color.rgb(sunRed, sunGreen, sunBlue)
     }
+    private val sunlightRayA = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
+        color = Color.rgb(sunRed, sunGreen, sunBlue)
+    }
+    private val sunlightRayB = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
+        color = Color.rgb(sunRed, sunGreen, sunBlue)
+    }
     private val path = android.graphics.Path()
+    private val rayPathA = android.graphics.Path()
+    private val rayPathB = android.graphics.Path()
+    private val rayShaderKey = FloatArray(8) { Float.NaN }
 
     fun draw(canvas: Canvas, coreSizePx: Float, frame: WaterLightFrame, wakeAlpha: Float) {
         val sceneMs = if (frame.reducedMotion) 0L else frame.elapsedMs
@@ -340,9 +378,70 @@ internal class OrbSunlightRenderer {
         path.cubicTo(sourceX + radius * .14f, sourceY + radius * .10f,
             canvas.width * .5f + radius * .52f, canvas.height * .5f + radius * .19f,
             canvas.width * .5f + radius * .66f, canvas.height * .5f + radius * .31f)
-        refraction.alpha = (255f * refractionAlpha).toInt().coerceIn(0, 255)
         refraction.strokeWidth = maxOf(.3f, coreSizePx * .004f)
+        val rayShare = OrbFluidOpticalProfileV1.SUNLIGHT_RAY_ALPHA_SHARE
+        val rayAlphaNorm = minOf(
+            refractionAlpha * rayShare,
+            OrbFluidOpticalProfileV1.SUNLIGHT_MIX_MAX * wakeAlpha,
+        )
+        refraction.alpha = (255f * (refractionAlpha - rayAlphaNorm)).toInt().coerceIn(0, 255)
         canvas.drawPath(path, refraction)
-        // R03 explicitly leaves per-leaf water-grass driving disabled to preserve baked anatomy.
+
+        // Two local, fixed-azimuth rays share the existing refraction opacity budget.
+        val rayAlpha = (255f * rayAlphaNorm * .5f).toInt().coerceIn(0, 255)
+        sunlightRayA.alpha = rayAlpha
+        sunlightRayB.alpha = rayAlpha
+        sunlightRayA.strokeWidth = maxOf(.25f, coreSizePx * OrbFluidOpticalProfileV1.SUNLIGHT_RAY_WIDTH_D)
+        sunlightRayB.strokeWidth = sunlightRayA.strokeWidth * .72f
+        rayPathA.rewind()
+        rayPathA.moveTo(sourceX + radius * .045f, sourceY + radius * .04f)
+        rayPathA.cubicTo(sourceX + radius * .20f, sourceY + radius * .16f,
+            canvas.width * .5f + radius * .44f, canvas.height * .5f + radius * .06f,
+            canvas.width * .5f + radius * .58f, canvas.height * .5f + radius * .18f)
+        rayPathB.rewind()
+        rayPathB.moveTo(sourceX + radius * .02f, sourceY + radius * .075f)
+        rayPathB.cubicTo(sourceX + radius * .16f, sourceY + radius * .22f,
+            canvas.width * .5f + radius * .32f, canvas.height * .5f + radius * .12f,
+            canvas.width * .5f + radius * .48f, canvas.height * .5f + radius * .27f)
+        updateRayShaders(
+            sourceX + radius * .045f, sourceY + radius * .04f,
+            canvas.width * .5f + radius * .58f, canvas.height * .5f + radius * .18f,
+            sourceX + radius * .02f, sourceY + radius * .075f,
+            canvas.width * .5f + radius * .48f, canvas.height * .5f + radius * .27f,
+        )
+        canvas.drawPath(rayPathA, sunlightRayA)
+        canvas.drawPath(rayPathB, sunlightRayB)
+        // R03 leaves per-leaf water-grass driving disabled; only mask-projected warping is enabled.
+    }
+
+    private fun updateRayShaders(
+        startAX: Float, startAY: Float, endAX: Float, endAY: Float,
+        startBX: Float, startBY: Float, endBX: Float, endBY: Float,
+    ) {
+        val changed = kotlin.math.abs(startAX - rayShaderKey[0]) >= 0.01f ||
+            kotlin.math.abs(startAY - rayShaderKey[1]) >= 0.01f ||
+            kotlin.math.abs(endAX - rayShaderKey[2]) >= 0.01f ||
+            kotlin.math.abs(endAY - rayShaderKey[3]) >= 0.01f ||
+            kotlin.math.abs(startBX - rayShaderKey[4]) >= 0.01f ||
+            kotlin.math.abs(startBY - rayShaderKey[5]) >= 0.01f ||
+            kotlin.math.abs(endBX - rayShaderKey[6]) >= 0.01f ||
+            kotlin.math.abs(endBY - rayShaderKey[7]) >= 0.01f
+        if (!changed) return
+        rayShaderKey[0] = startAX
+        rayShaderKey[1] = startAY
+        rayShaderKey[2] = endAX
+        rayShaderKey[3] = endAY
+        rayShaderKey[4] = startBX
+        rayShaderKey[5] = startBY
+        rayShaderKey[6] = endBX
+        rayShaderKey[7] = endBY
+        val colors = intArrayOf(
+            Color.rgb(sunRed, sunGreen, sunBlue),
+            Color.argb((255f * OrbFluidOpticalProfileV1.SUNLIGHT_RAY_FADE_MID_ALPHA).toInt(), sunRed, sunGreen, sunBlue),
+            Color.argb((255f * OrbFluidOpticalProfileV1.SUNLIGHT_RAY_FADE_END_ALPHA).toInt(), sunRed, sunGreen, sunBlue),
+        )
+        val positions = floatArrayOf(0f, OrbFluidOpticalProfileV1.SUNLIGHT_RAY_FADE_MIDPOINT, 1f)
+        sunlightRayA.shader = LinearGradient(startAX, startAY, endAX, endAY, colors, positions, android.graphics.Shader.TileMode.CLAMP)
+        sunlightRayB.shader = LinearGradient(startBX, startBY, endBX, endBY, colors, positions, android.graphics.Shader.TileMode.CLAMP)
     }
 }

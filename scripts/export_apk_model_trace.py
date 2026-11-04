@@ -56,6 +56,7 @@ def main() -> int:
     trace = {
         "build_sha": args.build_sha,
         "apk_sha256": sha256_bytes(args.apk.read_bytes()),
+        "apk_bytes": args.apk.stat().st_size,
         **snapshot_summary(verified),
         "MODEL_RELEASE_TAG": verified["release_tag"],
         "MODEL_ID": verified["model_id"],

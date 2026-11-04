@@ -117,6 +117,7 @@ class ProductionModelContractTest(unittest.TestCase):
                 "--build-sha", "abc123",
             ], check=True, capture_output=True, text=True)
             trace = json.loads((output_dir / "apk_model_trace.json").read_text(encoding="utf-8"))
+            self.assertEqual(apk.stat().st_size, trace["apk_bytes"])
             self.assertEqual("MODEL_CROP_M1_v0.2", trace["MODEL_ID"])
             self.assertEqual("DS_M1_v1.1", trace["DATASET_ID"])
             self.assertEqual(15, trace["MODEL_CLASS_COUNT"])

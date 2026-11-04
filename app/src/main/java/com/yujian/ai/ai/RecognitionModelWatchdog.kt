@@ -38,10 +38,12 @@ object RecognitionModelWatchdog {
         return try {
             block().also { log(endRecord("READY")) }
         } catch (cancelled: CancellationException) {
-            log(endRecord("CANCELLED"))
+            log(endRecord("CANCELLED", "failure_code=${RecognitionFailureCode.CANCELLED}"))
             throw cancelled
         } catch (error: Throwable) {
-            log(endRecord("FAILED", "error=${error::class.java.simpleName}"))
+            val failureCode = (error as? RecognitionStageFailureException)?.failureCode?.name
+                ?: RecognitionFailureCode.MODEL_INFERENCE_FAILED.name
+            log(endRecord("FAILED", "failure_code=$failureCode error=${error::class.java.simpleName}"))
             throw error
         }
     }

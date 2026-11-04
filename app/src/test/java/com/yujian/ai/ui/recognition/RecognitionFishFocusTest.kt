@@ -1,24 +1,25 @@
 package com.yujian.ai.ui.recognition
 
 import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecognitionFishFocusTest {
     @Test
-    fun goldStrengthRisesContinuouslyFromZeroAndHoldsThroughP7() {
-        assertEquals(0f, recognitionFishGoldStrength(0), 0f)
-        assertEquals(0f, recognitionFishGoldStrength(350), 0f)
-        assertTrue(recognitionFishGoldStrength(949) in 0f..0.15f)
-        assertEquals(.15f, recognitionFishGoldStrength(950), 0f)
-        assertEquals(.45f, recognitionFishGoldStrength(1_200), 0f)
-        assertEquals(1f, recognitionFishGoldStrength(1_550), 0f)
-        assertEquals(1f, recognitionFishGoldStrength(2_050), 0f)
-        assertEquals(1f, recognitionFishGoldStrength(2_600), 0f)
-        assertEquals(1f, recognitionFishGoldStrength(2_800), 0f)
-        assertEquals(.18f, recognitionFishGoldStrength(2_800, reduceMotion = true), 0f)
+    fun goldStrengthFollowsSemanticContourStagesAndHoldsThroughResultStages() {
+        assertEquals(0f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_A, 0f)), 0f)
+        assertEquals(.15f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_A, 1f)), 0f)
+        assertEquals(.15f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_B, 0f)), 0f)
+        assertEquals(.45f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_B, 1f)), .0001f)
+        assertEquals(1f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_C, 1f)), 0f)
+        assertEquals(1f, recognitionFishGoldStrength(scene(RecognitionSceneStage.RESIDUE_SETTLE, 1f)), 0f)
+        assertEquals(.18f, recognitionFishGoldStrength(scene(RecognitionSceneStage.CONTOUR_C, 1f), reduceMotion = true), 0f)
     }
 
     @Test
@@ -42,12 +43,15 @@ class RecognitionFishFocusTest {
     }
 
     @Test
-    fun trustedMaskContourRevealsOnTheSharedAdaptiveProcessingClock() {
-        assertEquals(0f, recognitionMaskContourRevealProgress(1_900L, null), 0f)
-        assertEquals(0f, recognitionMaskContourRevealProgress(2_100L, 2_100L), 0f)
-        assertEquals(.5f, recognitionMaskContourRevealProgress(2_475L, 2_100L), 0.0001f)
-        assertEquals(1f, recognitionMaskContourRevealProgress(2_850L, 2_100L), 0f)
-        assertEquals(1f, recognitionMaskContourRevealProgress(2_100L, null, reduceMotion = true), 0f)
+    fun trustedMaskContourRevealsAcrossTheThreeSemanticContourStages() {
+        assertEquals(0f, recognitionMaskContourRevealProgress(RecognitionSceneStage.CONTOUR_A, 0f, true), 0f)
+        assertEquals(1f / 3f, recognitionMaskContourRevealProgress(RecognitionSceneStage.CONTOUR_A, 1f, true), .0001f)
+        assertEquals(.5f, recognitionMaskContourRevealProgress(RecognitionSceneStage.CONTOUR_B, .5f, true), .0001f)
+        assertEquals(1f, recognitionMaskContourRevealProgress(RecognitionSceneStage.CONTOUR_C, 1f, true), 0f)
+        assertEquals(1f, recognitionMaskContourRevealProgress(
+            RecognitionSceneStage.CONTOUR_A, 0f, true, reduceMotion = true,
+        ), 0f)
+        assertEquals(0f, recognitionMaskContourRevealProgress(RecognitionSceneStage.CONTOUR_A, 1f, false), 0f)
     }
 
     @Test
@@ -78,4 +82,36 @@ class RecognitionFishFocusTest {
         assertEquals(2_200L, RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS)
         assertEquals(.20f, RecognitionContourMaterialCandidate.GOLD_GLINT_ARC_RATIO, 0f)
     }
+
+    @Test
+    fun contourCacheIdentityInvalidatesOnEveryRecognitionBoundary() {
+        val base = RecognitionContourCacheIdentity(
+            sessionId = "session-1",
+            attemptId = "attempt-1",
+            imageId = "image-1",
+            photoSha256 = "a".repeat(64),
+            maskVersion = 7L,
+            contourHash = 13,
+            geometryVersion = 11L,
+        )
+        assertEquals(base, base.copy())
+        assertNotEquals(base, base.copy(sessionId = "session-2"))
+        assertNotEquals(base, base.copy(attemptId = "attempt-2"))
+        assertNotEquals(base, base.copy(imageId = "image-2"))
+        assertNotEquals(base, base.copy(photoSha256 = "b".repeat(64)))
+        assertNotEquals(base, base.copy(maskVersion = 8L))
+        assertNotEquals(base, base.copy(contourHash = 14))
+        assertNotEquals(base, base.copy(geometryVersion = 12L))
+    }
+
+    private fun scene(stage: RecognitionSceneStage, progress: Float) =
+        RecognitionSceneCoordinator.frameForStage(
+            identity = RecognitionSceneIdentity("session", "attempt", "image", "a".repeat(64), 0L),
+            sceneElapsedMs = 0L,
+            opticalReferenceElapsedMs = 0L,
+            geometryVersion = 0L,
+            stage = stage,
+            stageElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+            stageProgress = progress,
+        )
 }

@@ -6,7 +6,7 @@ import com.yujian.ai.ui.identify.NormalizedSourceRect
 
 /** Pure trust and eligibility rules shared by production handoff and unit tests. */
 object RecognitionRevealPolicy {
-    /** RR09 starts only after the real Result and Orb/Photo/Glyph geometry are ready. */
+    /** Orb return is eligible only after the real Result and Orb/Photo/Glyph geometry are ready. */
     fun canStartOnFirstResultFrame(
         eligibility: RecognitionRevealEligibility,
         photoIdentityMatches: Boolean,

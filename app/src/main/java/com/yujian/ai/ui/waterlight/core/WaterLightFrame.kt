@@ -61,11 +61,14 @@ data class WaterLightFrame(
             reducedMotion = reducedMotion,
             eventSequence = eventSequence,
             monotonicTimestampMs = elapsedMs,
-        ) else RecognitionSceneCoordinator.frameAt(
+        ) else RecognitionSceneCoordinator.frameForStage(
             identity = identity,
             sceneElapsedMs = elapsedMs,
             opticalReferenceElapsedMs = opticalReferenceElapsedMs,
             geometryVersion = geometryVersion,
+            stage = RecognitionSceneStage.PHOTO_STABLE,
+            stageElapsedMs = 0L,
+            stageProgress = 0f,
             playbackMode = playbackMode,
             paused = playbackPaused,
             reducedMotion = reducedMotion,

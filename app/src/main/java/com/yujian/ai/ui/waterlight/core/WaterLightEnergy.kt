@@ -63,7 +63,6 @@ object WaterLightEnergy {
         val photo = frame.photoSha256?.takeIf(String::isNotBlank) ?: return null
         val scene = frame.sceneFrame
         if (!scene.isIdentityValid) return null
-        val t = scene.opticalReferenceElapsedMs
         val (from, to, feedback, level) = when {
             scene.stage == RecognitionSceneStage.ORB_RELEASE -> Quad(EnergyAnchor.ORB_RIBBON,
                 EnergyAnchor.PHOTO_PERIMETER, EnergyFeedback.RELEASE, scene.stageProgress)
@@ -73,9 +72,9 @@ object WaterLightEnergy {
                 EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB, scene.stageProgress * .25f)
             trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_A -> Quad(EnergyAnchor.PHOTO_PATH,
                 EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB, .25f + scene.stageProgress * .25f)
-            trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_B && t < 1_550L -> Quad(
+            trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_B -> Quad(
                 EnergyAnchor.PHOTO_PATH, EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB,
-                .5f + ((t - 1_450L) / 200f).coerceIn(0f, .5f))
+                .5f + scene.stageProgress * .5f)
             trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.ORB_RETURN -> Quad(EnergyAnchor.FISH_CONTOUR,
                 EnergyAnchor.ORB_CORE, EnergyFeedback.RETURN, scene.stageProgress)
             !trustedMask && orbOnlyRevealAllowed && successfulRevealAllowed &&
@@ -93,7 +92,7 @@ object WaterLightEnergy {
             else -> return null
         }
         return EnergyEvent(frame.sessionId, photo, from, to, feedback, level,
-            t, frame.geometryVersion, frame.attemptId, frame.imageId, frame.photoContentVersion,
+            scene.opticalReferenceElapsedMs, frame.geometryVersion, frame.attemptId, frame.imageId, frame.photoContentVersion,
             pathId = pathIdOverride ?: when (feedback) {
                 EnergyFeedback.RELEASE -> "orb-to-photo"
                 EnergyFeedback.ARRIVE, EnergyFeedback.ABSORB -> "photo-to-fish"

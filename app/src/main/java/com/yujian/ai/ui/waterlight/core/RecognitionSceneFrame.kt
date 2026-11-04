@@ -1,27 +1,24 @@
 package com.yujian.ai.ui.waterlight.core
 
-/** The optical timeline is sampled from Recognition's existing monotonic clock. */
-enum class RecognitionSceneStage(val startMs: Long, val endMs: Long, val displayName: String) {
-    PHOTO_STABLE(0L, 0L, "照片稳定"),
-    ORB_WAKE(0L, 350L, "光球苏醒"),
-    ORB_RELEASE(350L, 950L, "光球释放水光"),
-    PERIMETER_ARRIVAL(950L, 1_075L, "照片外围激活"),
-    PATH_TO_FISH(1_075L, 1_200L, "水光寻鱼"),
-    CONTOUR_A(1_200L, 1_450L, "鱼体轮廓初显"),
-    CONTOUR_B(1_450L, 1_700L, "鱼体轮廓形成"),
-    CONTOUR_C(1_700L, 1_950L, "鱼体轮廓闭合"),
-    FISH_GOLD_PEAK(1_950L, 2_800L, "鱼体金光稳定"),
-    ORB_RETURN(2_800L, 3_180L, "能量返回光球"),
-    ORB_TO_NAME(3_180L, 3_350L, "光球舒展凝字"),
-    SPECIES_NAME_REVEAL(3_350L, 3_480L, "鱼种名称揭晓"),
-    RESIDUE_SETTLE(3_480L, 3_650L, "水光余辉收束");
+/** Semantic scene states. Durations are local minimum visibility targets, never a global timeline. */
+enum class RecognitionSceneStage(val minimumVisibleMs: Long, val displayName: String) {
+    PHOTO_STABLE(120L, "照片稳定"),
+    ORB_WAKE(350L, "光球苏醒"),
+    ORB_RELEASE(600L, "光球释放水光"),
+    PERIMETER_ARRIVAL(125L, "照片外围激活"),
+    PATH_TO_FISH(125L, "水光寻鱼"),
+    CONTOUR_A(250L, "鱼体轮廓初显"),
+    CONTOUR_B(250L, "鱼体轮廓形成"),
+    CONTOUR_C(250L, "鱼体轮廓闭合"),
+    FISH_GOLD_PEAK(850L, "鱼体金光稳定"),
+    ORB_RETURN(380L, "能量返回光球"),
+    ORB_TO_NAME(170L, "光球舒展凝字"),
+    SPECIES_NAME_REVEAL(130L, "鱼种名称揭晓"),
+    RESIDUE_SETTLE(170L, "水光余辉收束");
 
-    val durationMs: Long get() = endMs - startMs
-
-    /** The zero-time PHOTO_STABLE marker precedes the first animated frame at 1 ms. */
-    val seekTimeMs: Long get() = if (this == ORB_WAKE) 1L else startMs
-
-    val timeAnchorLabel: String get() = if (durationMs == 0L) "0ms" else "$startMs–${endMs}ms"
+    /** Compatibility alias for consumers that need a local envelope length. */
+    val durationMs: Long get() = minimumVisibleMs
+    val timeAnchorLabel: String get() = "≥${minimumVisibleMs}ms / 本阶段"
 }
 
 enum class ScenePlaybackMode { AUTO, MANUAL }
@@ -56,6 +53,7 @@ data class RecognitionSceneIdentity(
 data class RecognitionSceneFrame(
     val identity: RecognitionSceneIdentity,
     val sceneElapsedMs: Long,
+    /** Scene-wide monotonic sample for ambient motion only; never selects or completes a stage. */
     val opticalReferenceElapsedMs: Long,
     val stage: RecognitionSceneStage,
     val stageElapsedMs: Long,
@@ -68,6 +66,7 @@ data class RecognitionSceneFrame(
     val eventSequence: Long = 0L,
     val monotonicTimestampMs: Long = 0L,
     val energyEvent: EnergyEvent? = null,
+    val stageEventComplete: Boolean = false,
 ) {
     init {
         require(sceneElapsedMs >= 0L && opticalReferenceElapsedMs >= 0L && stageElapsedMs >= 0L)
@@ -79,46 +78,9 @@ data class RecognitionSceneFrame(
         identity.attemptId.isNotBlank() && identity.imageId.isNotBlank() &&
         !identity.photoSha256.isNullOrBlank() && identity.photoContentVersion >= 0L
 }
-/** Stateless projection only: this class never advances or owns a clock. */
+
+/** Stateless projection only: stage identity and local progress must be supplied by the controller. */
 object RecognitionSceneCoordinator {
-    const val PROCESSING_END_MS = 2_800L
-    const val RR09_END_MS = 3_650L
-
-    fun frameAt(
-        identity: RecognitionSceneIdentity,
-        sceneElapsedMs: Long,
-        opticalReferenceElapsedMs: Long,
-        geometryVersion: Long,
-        playbackMode: ScenePlaybackMode = ScenePlaybackMode.AUTO,
-        paused: Boolean = false,
-        reducedMotion: Boolean = false,
-        modelGates: RecognitionSceneModelGates = RecognitionSceneModelGates(),
-        eventSequence: Long = 0L,
-        monotonicTimestampMs: Long = 0L,
-        energyEvent: EnergyEvent? = null,
-    ): RecognitionSceneFrame {
-        val reference = opticalReferenceElapsedMs.coerceAtLeast(0L)
-        val segment = stageAt(reference)
-        return RecognitionSceneFrame(
-            identity = identity,
-            sceneElapsedMs = sceneElapsedMs.coerceAtLeast(0L),
-            opticalReferenceElapsedMs = reference,
-            stage = segment,
-            stageElapsedMs = (reference - segment.startMs).coerceAtLeast(0L),
-            stageProgress = if (segment.durationMs == 0L) 1f else
-                ((reference - segment.startMs).toFloat() / segment.durationMs).coerceIn(0f, 1f),
-            playbackMode = playbackMode,
-            paused = paused,
-            reducedMotion = reducedMotion,
-            geometryVersion = geometryVersion,
-            modelGates = modelGates,
-            eventSequence = eventSequence,
-            monotonicTimestampMs = monotonicTimestampMs,
-            energyEvent = energyEvent,
-        )
-    }
-
-    /** Production projection: stage identity and local progress come from the event-driven controller. */
     fun frameForStage(
         identity: RecognitionSceneIdentity,
         sceneElapsedMs: Long,
@@ -134,6 +96,7 @@ object RecognitionSceneCoordinator {
         eventSequence: Long = 0L,
         monotonicTimestampMs: Long = 0L,
         energyEvent: EnergyEvent? = null,
+        stageEventComplete: Boolean = false,
     ): RecognitionSceneFrame = RecognitionSceneFrame(
         identity = identity,
         sceneElapsedMs = sceneElapsedMs.coerceAtLeast(0L),
@@ -149,26 +112,11 @@ object RecognitionSceneCoordinator {
         eventSequence = eventSequence,
         monotonicTimestampMs = monotonicTimestampMs,
         energyEvent = energyEvent,
+        stageEventComplete = stageEventComplete,
     )
-
-    fun stageAt(t: Long): RecognitionSceneStage = when {
-        t == 0L -> RecognitionSceneStage.PHOTO_STABLE
-        else -> RecognitionSceneStage.entries.drop(1).firstOrNull { t < it.endMs }
-            ?: RecognitionSceneStage.RESIDUE_SETTLE
-    }
-
-    fun previewReferenceMs(stage: RecognitionSceneStage, elapsedMs: Long): Long {
-        if (stage == RecognitionSceneStage.PHOTO_STABLE) return 0L
-        val progress = (elapsedMs.coerceIn(0L, DIAGNOSTIC_STEP_DURATION_MS).toDouble() /
-            DIAGNOSTIC_STEP_DURATION_MS.toDouble())
-        val lastSample = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) stage.endMs else stage.endMs - 1L
-        val firstSample = stage.seekTimeMs
-        return (firstSample + ((lastSample - firstSample) * progress).toLong())
-            .coerceIn(firstSample, lastSample)
-    }
 }
 
-/** Parallel page-entry projections share the same sample from RecognitionSceneFrame. */
+/** Page-entry projections keep their original 700/900 ms behavior, separate from recognition gates. */
 object RecognitionSceneTimelineProjection {
     const val PHOTO_SETTLE_DURATION_MS = 700L
     const val ORB_ENTRANCE_DURATION_MS = 900L

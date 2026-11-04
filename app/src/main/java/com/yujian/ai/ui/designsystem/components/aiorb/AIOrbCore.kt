@@ -27,7 +27,7 @@ import com.yujian.ai.ui.waterlight.renderer.OrbCoreOpticalEffects
 import com.yujian.ai.ui.waterlight.renderer.OrbFilamentRendererMode
 import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
 import com.yujian.ai.ui.waterlight.renderer.OrbWakeBreathReleaseV11
-import com.yujian.ai.ui.waterlight.renderer.OrbGrassWarpProgramV11
+import com.yujian.ai.ui.waterlight.renderer.OrbCoreImageOpticalEffect
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
@@ -197,37 +197,39 @@ private fun OrbVisual(
     val effectiveMotionStartMs = if (activeEnergyEvent != null && orbMotionEvent == OrbRuntimeProfileV1.MotionEvent.NONE) {
         (sharedFrame.opticalReferenceElapsedMs - sharedFrame.sceneFrame.stageElapsedMs).coerceAtLeast(0L)
     } else orbMotionEventStartOpticalMs
-    val wake = OrbWakeBreathReleaseV11.wake(sharedFrame.opticalReferenceElapsedMs)
-    val lifeProgress = OrbWakeBreathReleaseV11.s2Progress(sharedFrame.opticalReferenceElapsedMs)
+    val sceneFrame = sharedFrame.sceneFrame
+    val wake = OrbWakeBreathReleaseV11.wake(sceneFrame.stage, sceneFrame.stageProgress)
+    val lifeProgress = OrbWakeBreathReleaseV11.s2Progress(sceneFrame.stage, sceneFrame.stageProgress)
     val candidateLifeAlpha = orbLifeAlpha ?: lifeProgress
     val breath = OrbWakeBreathReleaseV11.breathScale(
         sceneElapsedMs = sharedFrame.elapsedMs,
-        opticalReferenceElapsedMs = sharedFrame.opticalReferenceElapsedMs,
+        stage = sceneFrame.stage,
+        stageProgress = sceneFrame.stageProgress,
         reducedMotion = reduceMotion,
     )
     val context = LocalContext.current
     val density = LocalDensity.current
     val coreTextureSizePx = with(density) { (coreSize / .84f).toPx() }
-    val grassWarp = remember(context, android.os.Build.VERSION.SDK_INT) {
+    val coreOpticalEffect = remember(context, android.os.Build.VERSION.SDK_INT, lowPerformance) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            runCatching { OrbGrassWarpProgramV11.create(context.applicationContext) }
-                .onFailure { android.util.Log.w("OrbGrassWarpV11", "R01B AGSL unavailable; source core and clipped light fallback active", it) }
+            runCatching { OrbCoreImageOpticalEffect.create(context.applicationContext, lowPerformance) }
+                .onFailure { android.util.Log.w("OrbCoreOpticalEffect", "candidate and V1.1 AGSL unavailable; source core and clipped light fallback active", it) }
                 .getOrNull()
         } else {
-            android.util.Log.i("OrbGrassWarpV11", "API < 33 fallback: original static grass with scene-clock clipped light")
+            android.util.Log.i("OrbCoreOpticalEffect", "API < 33 fallback: original static core with scene-clock clipped Canvas light")
             null
         }
     }
-    DisposableEffect(grassWarp) {
+    DisposableEffect(coreOpticalEffect) {
         onDispose {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                grassWarp?.close()
+                coreOpticalEffect?.close()
             }
         }
     }
     SideEffect {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            grassWarp?.update(if (reduceMotion) 0L else sharedFrame.elapsedMs, lifeProgress, wake.grassLight, coreTextureSizePx)
+            coreOpticalEffect?.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
         }
     }
     Box(
@@ -248,7 +250,7 @@ private fun OrbVisual(
                 alpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
                 scaleX = 1f
                 scaleY = 1f
-                grassWarp?.let { renderEffect = it.renderEffect }
+                coreOpticalEffect?.renderEffect?.let { renderEffect = it }
             },
         )
         OrbCoreOpticalEffects(

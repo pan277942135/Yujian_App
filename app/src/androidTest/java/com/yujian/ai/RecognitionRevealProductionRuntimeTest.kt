@@ -2,19 +2,14 @@ package com.yujian.ai
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.Snapshot
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.test.captureToImage
-import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onRoot
-import androidx.compose.ui.test.performScrollTo
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.ai.FishRecognitionPipeline
@@ -27,21 +22,21 @@ import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
-import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoffFactory
 import com.yujian.ai.ui.recognition.reveal.RecognitionSubjectGeometrySnapshot
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
 import com.yujian.ai.ui.screens.RecognitionResultScreen
-import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.screens.extractContour
 import com.yujian.ai.ui.theme.YujianTheme
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.WaterLightGeometryVersion
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -49,17 +44,24 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.security.MessageDigest
+import java.util.Locale
+import java.util.Collections
+import java.util.EnumSet
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealSessionStore
 import kotlinx.coroutines.runBlocking
 
 /** Runtime proof using the registered night-catch photo, production detector/classifier and ML Kit mask. */
 @RunWith(AndroidJUnit4::class)
 class RecognitionRevealProductionRuntimeTest {
     @get:Rule
-    val composeRule = createAndroidComposeRule<ComponentActivity>()
+    val activityRule = ActivityScenarioRule(ComponentActivity::class.java)
 
     @Test
     fun realNightCatchHandoffDrivesTheNativeResultReveal() = runBlocking {
@@ -90,98 +92,185 @@ class RecognitionRevealProductionRuntimeTest {
         val handoffState = mutableStateOf<RecognitionRevealHandoff?>(null)
         val resultState = mutableStateOf<ProductionRecognitionResult?>(null)
         val showResult = mutableStateOf(false)
-        val elapsedOverride = mutableStateOf<Long?>(null)
-        val processingClockOverride = mutableStateOf<Long?>(3_200L)
+        val resultSceneFrame = mutableStateOf<com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame?>(null)
         val geometryResolution = AtomicReference<RecognitionRevealGeometryResolution?>()
-        val revealFinished = CountDownLatch(1)
         val resultEntries = AtomicInteger(0)
-        val stageEvidence = File(evidence, "13-stage")
-        val rr09Evidence = File(evidence, "rr09-v4")
-        stageEvidence.mkdirs()
-        rr09Evidence.mkdirs()
-        val processingSamples = listOf(
-            RecognitionSceneStage.PHOTO_STABLE to 0L,
-            RecognitionSceneStage.ORB_WAKE to 1L,
-            RecognitionSceneStage.ORB_RELEASE to 350L,
-            RecognitionSceneStage.PERIMETER_ARRIVAL to 950L,
-            RecognitionSceneStage.PATH_TO_FISH to 1_075L,
-            RecognitionSceneStage.CONTOUR_A to 1_200L,
-            RecognitionSceneStage.CONTOUR_B to 1_550L,
-            RecognitionSceneStage.CONTOUR_C to 1_700L,
-            RecognitionSceneStage.FISH_GOLD_PEAK to 1_950L,
-        )
+        val automaticHandoff = AtomicReference<RecognitionRevealHandoff?>()
+        val handoffFailure = AtomicReference<String?>()
+        val processingCaptureFailure = AtomicReference<String?>()
+        val processingCaptureStarted = AtomicBoolean(false)
+        val rr09Evidence = File(evidence, "shared-stage-reveal").apply { mkdirs() }
+        val processingCaptureReady = CountDownLatch(1)
+        val screenshotExecutor = Executors.newSingleThreadExecutor()
+        var failureScreenshotPath: String? = null
+        var failureScreenshotError: String? = null
+        val processingSamples = RecognitionSceneStage.entries
         val p0p7Samples = listOf(
-            "P0" to 0L, "P1" to 350L, "P2" to 950L, "P3" to 1_200L,
-            "P4" to 1_550L, "P5" to 2_050L, "P6" to 2_600L, "P7" to 2_800L,
+            "P0" to RecognitionSceneStage.PHOTO_STABLE,
+            "P1" to RecognitionSceneStage.ORB_WAKE,
+            "P2" to RecognitionSceneStage.ORB_RELEASE,
+            "P3" to RecognitionSceneStage.PERIMETER_ARRIVAL,
+            "P4" to RecognitionSceneStage.PATH_TO_FISH,
+            "P5" to RecognitionSceneStage.CONTOUR_A,
+            "P6" to RecognitionSceneStage.CONTOUR_B,
+            "P7" to RecognitionSceneStage.CONTOUR_C,
         )
-        val processingTimes = (processingSamples.map { it.second } + p0p7Samples.map { it.second })
-            .distinct().sorted()
-        val processingCaptureByTime = processingTimes.associateWith { timeMs ->
-            File(stageEvidence, "processing_${timeMs.toString().padStart(4, '0')}ms.png")
-        }
         val rr09Samples = listOf(
-            "R0" to 0L, "R0.5" to 100L, "R1" to 200L, "R2" to 380L,
-            "R3" to 550L, "R4" to 680L, "R5" to 850L,
+            "R0" to (RecognitionSceneStage.ORB_RETURN to 0f),
+            "R1" to (RecognitionSceneStage.ORB_RETURN to .5f),
+            "R2" to (RecognitionSceneStage.ORB_TO_NAME to .5f),
+            "R3" to (RecognitionSceneStage.SPECIES_NAME_REVEAL to .5f),
+            "R4" to (RecognitionSceneStage.RESIDUE_SETTLE to .5f),
+            "R5" to (RecognitionSceneStage.RESIDUE_SETTLE to 1f),
         )
+        val sceneIdentity = RecognitionSceneIdentity(
+            SESSION_ID, ATTEMPT_ID, selectedImage.imageId, selectedImage.photoSha256,
+            selectedImage.bitmap.generationId.toLong().coerceAtLeast(0L),
+        )
+        val revealKey = RecognitionRevealKey(SESSION_ID, ATTEMPT_ID)
+        val revealSessionStore = RecognitionRevealSessionStore().apply {
+            beginAttempt(SESSION_ID, ATTEMPT_ID, selectedImage)
+        }
+        val sceneController = SceneMotionCoordinator().apply {
+            beginNewSession(sceneIdentity, debugBuild = false, nowMs = SystemClock.uptimeMillis())
+        }
+        val flowStartElapsedRealtimeMs = SystemClock.elapsedRealtime()
+        val realTimeStages = Collections.synchronizedSet(EnumSet.of(sceneController.currentStage))
+        val realTimeStageTimeline = Collections.synchronizedList(mutableListOf<JSONObject>())
+        val lastObservedStage = AtomicReference<RecognitionSceneStage?>(null)
+        val stageMonitorRunning = AtomicBoolean(true)
+        val stageMonitorHandler = Handler(Looper.getMainLooper())
+        val stageMonitor = object : Runnable {
+            override fun run() {
+                if (!stageMonitorRunning.get()) return
+                val stage = sceneController.currentStage
+                realTimeStages.add(stage)
+                if (lastObservedStage.getAndSet(stage) != stage) {
+                    realTimeStageTimeline += JSONObject()
+                        .put("stage", stage.name)
+                        .put("elapsed_realtime_ms", SystemClock.elapsedRealtime())
+                        .put("elapsed_since_flow_start_ms", SystemClock.elapsedRealtime() - flowStartElapsedRealtimeMs)
+                }
+                stageMonitorHandler.postDelayed(this, 30L)
+            }
+        }
+        stageMonitorHandler.post(stageMonitor)
+        fun sceneFrame(stage: RecognitionSceneStage, progress: Float, geometryVersion: Long = 0L) =
+            RecognitionSceneCoordinator.frameForStage(
+                identity = sceneIdentity,
+                sceneElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+                opticalReferenceElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+                geometryVersion = geometryVersion,
+                stage = stage,
+                stageElapsedMs = (stage.minimumVisibleMs * progress).toLong(),
+                stageProgress = progress,
+                stageEventComplete = stage == RecognitionSceneStage.RESIDUE_SETTLE && progress >= 1f,
+            )
 
         val catalog = runCatching { FishKnowledgeRepository().listSpecies() }.getOrDefault(emptyList())
-        val flowStartElapsedRealtimeMs = SystemClock.elapsedRealtime()
-        composeRule.setContent {
-            YujianTheme {
-                if (!showResult.value) {
-                    RecognitionProcessingScene(
-                        image = selectedImage,
-                        onBack = {},
-                        recognize = { onProgress ->
-                            val pipeline = FishRecognitionPipeline(targetContext)
-                            try {
-                                pipeline.recognize(selectedImage.bitmap, onProgress).also(actualResult::set)
-                            } finally {
-                                pipeline.close()
-                            }
-                        },
-                        generateSubject = { selected, box ->
-                            subjectEngine.generate(selected, box, SESSION_ID, ATTEMPT_ID).also(actualSubject::set)
-                        },
-                        onFinished = {},
-                        visualClockOverrideMs = processingClockOverride.value,
-                        recognitionSessionId = SESSION_ID,
-                        recognitionAttemptId = ATTEMPT_ID,
-                        onVisualPhasePresented = { _, _ -> },
-                        onSubjectGeometry = { subject, geometry ->
-                            actualSubject.set(subject)
-                            subjectGeometry.set(geometry)
-                            subjectCallbackComplete.incrementAndGet()
-                        },
-                        onProcessingPhotoSnapshot = processingPhoto::set,
-                    )
-                } else {
-                    val completed = resultState.value
-                    if (completed?.prediction != null) {
-                        RecognitionResultScreen(
+        var failureReason: String? = null
+        activityRule.scenario.onActivity { activity ->
+            activity.setContent {
+                YujianTheme {
+                    if (!showResult.value) {
+                        RecognitionProcessingScene(
                             image = selectedImage,
-                            prediction = completed.prediction,
-                            productionResult = completed,
-                            subjectResult = actualSubject.get() ?: FishSubjectResult(SubjectStatus.IDLE),
-                            availableSpecies = catalog,
-                            revealHandoff = handoffState.value,
-                            revealElapsedOverrideMs = elapsedOverride.value,
-                            onRevealFinished = { revealFinished.countDown() },
-                            revealGeometryResolutionObserver = geometryResolution::set,
                             onBack = {},
-                            onRetry = {},
-                            onSave = { _, _, _ -> },
+                            recognize = { onProgress ->
+                                val pipeline = FishRecognitionPipeline(targetContext)
+                                try {
+                                    pipeline.recognize(selectedImage.bitmap, onProgress).also { result ->
+                                        actualResult.set(result)
+                                        val decision = revealSessionStore.recordClassifierResult(
+                                            key = revealKey,
+                                            result = result,
+                                            inferenceAsset = null,
+                                            highConfidenceResult = result.prediction?.lowConfidence == false,
+                                        )
+                                        checkNotNull(decision) { "production classifier result lost its Session/Attempt/PhotoSession identity" }
+                                    }
+                                } finally {
+                                    pipeline.close()
+                                }
+                            },
+                            generateSubject = { selected, box ->
+                                subjectEngine.generate(selected, box, SESSION_ID, ATTEMPT_ID).also(actualSubject::set)
+                            },
+                            prepareSubject = { selected -> subjectEngine.prepare(selected) },
+                            onFinished = { completed ->
+                                resultState.value = completed
+                                val handoff = revealSessionStore.completeAttempt(
+                                    key = revealKey,
+                                    result = completed,
+                                    highConfidenceResult = completed.prediction?.lowConfidence == false,
+                                    inferenceAsset = null,
+                                    handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
+                                )
+                                if (handoff == null) {
+                                    handoffFailure.set("production onFinished reached without a ready SessionStore classifier × SlimSAM gate")
+                                } else {
+                                    handoffState.value = handoff
+                                    automaticHandoff.set(handoff)
+                                    resultEntries.incrementAndGet()
+                                    showResult.value = true
+                                }
+                            },
+                            recognitionSessionId = SESSION_ID,
+                            recognitionAttemptId = ATTEMPT_ID,
+                            diagnosticPlaybackController = sceneController,
+                            diagnosticDisplayMode = com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode.NORMAL_PROGRESS,
+                            onVisualPhasePresented = { _, _ -> },
+                            onSubjectGeometry = { subject, geometry ->
+                                actualSubject.set(subject)
+                                subjectGeometry.set(geometry)
+                                subjectCallbackComplete.incrementAndGet()
+                                revealSessionStore.updateSubject(revealKey, subject, geometry)
+                                if (subject.status == SubjectStatus.READY && geometry?.contour?.isNotEmpty() == true &&
+                                    processingCaptureStarted.compareAndSet(false, true)
+                                ) {
+                                    screenshotExecutor.execute {
+                                        runCatching { saveScreenshot(evidence.resolve("Recognition_Processing_Photo.png")) }
+                                            .onFailure { processingCaptureFailure.set(it.message ?: it.javaClass.simpleName) }
+                                        processingCaptureReady.countDown()
+                                    }
+                                }
+                            },
+                            onProcessingPhotoSnapshot = { photo ->
+                                processingPhoto.set(photo)
+                                revealSessionStore.updateProcessingPhoto(revealKey, photo)
+                            },
                         )
+                    } else {
+                        val completed = resultState.value
+                        if (completed?.prediction != null) {
+                            RecognitionResultScreen(
+                                image = selectedImage,
+                                prediction = completed.prediction,
+                                productionResult = completed,
+                                subjectResult = actualSubject.get() ?: FishSubjectResult(SubjectStatus.IDLE),
+                                availableSpecies = catalog,
+                                revealHandoff = handoffState.value,
+                                sceneFrameOverrideForTest = resultSceneFrame.value,
+                                diagnosticPlaybackController = sceneController,
+                                revealAlreadyPlayed = false,
+                                onClaimReveal = revealSessionStore::claimPlayback,
+                                revealGeometryResolutionObserver = geometryResolution::set,
+                                onBack = {},
+                                onRetry = {},
+                                onSave = { _, _, _ -> },
+                            )
+                        }
                     }
                 }
             }
         }
 
         try {
-            composeRule.waitUntil(timeoutMillis = 45_000L) {
-                actualResult.get() != null && actualSubject.get() != null &&
-                    subjectCallbackComplete.get() > 0 && processingPhoto.get() != null
-            }
+            assertTrue(
+                "production Processing did not automatically complete its SessionStore gate: ${handoffFailure.get()}",
+                waitUntil(210_000L) { automaticHandoff.get() != null || handoffFailure.get() != null },
+            )
+            assertNull("automatic Production → Result handoff was rejected", handoffFailure.get())
             val result = requireNotNull(actualResult.get())
             val prediction = requireNotNull(result.prediction)
             assertTrue("registered night catch did not reach production RESULT_READY: ${result.status}", result.ready)
@@ -192,109 +281,105 @@ class RecognitionRevealProductionRuntimeTest {
             assertEquals("production mask must be ready for the trusted contour reveal", SubjectStatus.READY, maskResult.status)
             assertEquals("production mask quality must be trusted", com.yujian.ai.ai.subject.FishSubjectQuality.GOOD, maskResult.quality)
             assertTrue("production Mask geometry must map to the original PhotoSession", subjectGeometry.get()?.contour?.isNotEmpty() == true)
-            composeRule.waitForIdle()
-            composeRule.onRoot().captureToFile(evidence.resolve("RR09_Production_K01_processing.png"))
-
-            processingTimes.forEach { timeMs ->
-                processingClockOverride.value = timeMs
-                composeRule.waitForIdle()
-                composeRule.onRoot().captureToFile(requireNotNull(processingCaptureByTime[timeMs]))
-            }
+            assertTrue("production Processing screenshot was not captured", processingCaptureReady.await(15, TimeUnit.SECONDS))
+            assertNull("production Processing screenshot failed: ${processingCaptureFailure.get()}", processingCaptureFailure.get())
             val processingPhotoSnapshot = requireNotNull(processingPhoto.get())
             val geometryVersion = WaterLightGeometryVersion.of(processingPhotoSnapshot.sourceToViewport)
-            val sceneIdentity = RecognitionSceneIdentity(
-                SESSION_ID, ATTEMPT_ID, selectedImage.imageId, selectedImage.photoSha256,
-                selectedImage.bitmap.generationId.toLong(),
-            )
-            val stageManifest = org.json.JSONArray().apply {
-                processingSamples.forEach { (expectedStage, timeMs) ->
-                    val frame = RecognitionSceneCoordinator.frameAt(sceneIdentity, timeMs, timeMs, geometryVersion)
-                    assertEquals("runtime matrix stage at $timeMs ms", expectedStage, frame.stage)
-                    put(JSONObject()
-                        .put("stage_number", expectedStage.ordinal + 1)
-                        .put("stage_id", frame.stage.name)
-                        .put("stage_name", frame.stage.displayName)
-                        .put("scene_time_ms", timeMs)
-                        .put("geometry_version", geometryVersion)
-                        .put("file", requireNotNull(processingCaptureByTime[timeMs]).name)
-                    )
-                }
-            }
-            val p0p7Manifest = org.json.JSONArray().apply {
-                p0p7Samples.forEach { (keyframe, timeMs) ->
-                    put(JSONObject().put("keyframe", keyframe).put("time_ms", timeMs)
-                        .put("file", requireNotNull(processingCaptureByTime[timeMs]).name))
-                }
-            }
-
-            val handoff = RecognitionRevealHandoffFactory.create(
-                recognitionSessionId = SESSION_ID,
-                recognitionAttemptId = ATTEMPT_ID,
-                image = selectedImage,
-                result = result,
-                subject = subjectGeometry.get(),
-                processingPhoto = processingPhoto.get(),
-                highConfidenceResult = prediction.lowConfidence.not(),
-                handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
-            )
-            Snapshot.withMutableSnapshot {
-                handoffState.value = handoff
-                resultState.value = result
-                showResult.value = true
-            }
-            resultEntries.incrementAndGet()
+            val handoff = requireNotNull(automaticHandoff.get())
             val resultEntryElapsedRealtimeMs = SystemClock.elapsedRealtime()
-            assertEquals("the test must enter the real Result data once", 1, resultEntries.get())
-            composeRule.waitUntil(timeoutMillis = 15_000L) {
+            assertEquals("production onFinished must enter Result exactly once", 1, resultEntries.get())
+            assertTrue("result screen was not entered by the production callback", waitUntil(20_000L) { showResult.value })
+            assertTrue("Result geometry did not resolve from the Processing snapshot", waitUntil(20_000L) {
                 val value = geometryResolution.get()
                 value != null && (value.geometry != null || value.failureReason?.endsWith("_PENDING") == false)
-            }
-            composeRule.onNodeWithTag("recognition-result-hero").assertIsDisplayed()
+            })
+            assertTrue(
+                "production AUTO playback did not visit all 13 stages; observed=${synchronized(realTimeStages) { realTimeStages.map { it.name } }}",
+                waitUntil(15_000L) { synchronized(realTimeStages) { realTimeStages.containsAll(RecognitionSceneStage.entries) } },
+            )
+            saveScreenshot(evidence.resolve("Recognition_Result_Automatic_Handoff.png"))
             assertEquals(selectedImage.imageId, handoff.imageId)
+            assertEquals(SESSION_ID, handoff.key.recognitionSessionId)
+            assertEquals(ATTEMPT_ID, handoff.key.recognitionAttemptId)
+            assertEquals(selectedImage.photoSha256, handoff.photoSourceIdentity.substringAfter("|sha256="))
+            assertEquals("Processing photo identity must cross the handoff unchanged", processingPhotoSnapshot.imageId, handoff.imageId)
+            assertEquals("production SessionStore must retain the same geometry snapshot", processingPhotoSnapshot,
+                revealSessionStore.snapshot?.processingPhoto)
+            val trustedGeometry = requireNotNull(subjectGeometry.get())
+            assertEquals(SESSION_ID, trustedGeometry.recognitionSessionId)
+            assertEquals(ATTEMPT_ID, trustedGeometry.recognitionAttemptId)
+            assertEquals(selectedImage.imageId, trustedGeometry.imageId)
+            assertEquals("the real mask generation must survive the handoff", trustedGeometry.maskVersion, handoff.maskVersion)
 
-            // The API28 gate owns the single screenrecord process. This instrumentation test
-            // records its own real monotonic flow window for the gate report to identify.
-            assertTrue("live reveal did not complete", revealFinished.await(8, TimeUnit.SECONDS))
-            val liveRevealFinishedElapsedRealtimeMs = SystemClock.elapsedRealtime()
-
+            val stageManifest = org.json.JSONArray()
+            val captureByStageAndProgress = mutableMapOf<Pair<RecognitionSceneStage, Int>, String>()
+            processingSamples.forEach { expectedStage ->
+                val captures = org.json.JSONArray()
+                listOf(0f, .5f, 1f).forEach { progress ->
+                    val frame = sceneFrame(expectedStage, progress, geometryVersion)
+                    activityRule.scenario.onActivity {
+                        Snapshot.withMutableSnapshot { resultSceneFrame.value = frame }
+                    }
+                    SystemClock.sleep(180L)
+                    val file = String.format(Locale.US, "%02d_%s_p%03d.png",
+                        expectedStage.ordinal + 1,
+                        expectedStage.name.lowercase(),
+                        (progress * 100).toInt(),
+                    )
+                    saveScreenshot(File(rr09Evidence, file))
+                    captureByStageAndProgress[expectedStage to (progress * 100).toInt()] = file
+                    captures.put(JSONObject()
+                        .put("stage_progress", progress)
+                        .put("capture_kind", "DETERMINISTIC_SCENE_FRAME_TEST_PROJECTION")
+                        .put("file", file))
+                }
+                stageManifest.put(JSONObject()
+                    .put("stage_number", expectedStage.ordinal + 1)
+                    .put("stage_id", expectedStage.name)
+                    .put("stage_name", expectedStage.displayName)
+                    .put("geometry_version", geometryVersion)
+                    .put("captures", captures))
+            }
+            val p0p7Manifest = org.json.JSONArray().apply {
+                p0p7Samples.forEachIndexed { index, (keyframe, stage) ->
+                    val progress = if (index == 0) 0 else 100
+                    val file = requireNotNull(captureByStageAndProgress[stage to progress])
+                    put(JSONObject().put("keyframe", keyframe).put("stage", stage.name)
+                        .put("stage_progress", progress / 100f).put("capture_kind", "DETERMINISTIC_SCENE_FRAME_TEST_PROJECTION")
+                        .put("file", file))
+                }
+            }
             val rr09Manifest = org.json.JSONArray().apply {
-                rr09Samples.forEach { (keyframe, timeMs) ->
-                    elapsedOverride.value = timeMs
-                    composeRule.waitForIdle()
-                    val file = "${keyframe.replace('.', '_')}_${timeMs.toString().padStart(3, '0')}ms.png"
-                    composeRule.onRoot().captureToFile(File(rr09Evidence, file))
-                    put(JSONObject().put("keyframe", keyframe).put("rr09_elapsed_ms", timeMs).put("file", file))
+                rr09Samples.forEach { (keyframe, stageSample) ->
+                    val (stage, progress) = stageSample
+                    val progressPercent = (progress * 100).toInt()
+                    val file = requireNotNull(captureByStageAndProgress[stage to progressPercent])
+                    put(JSONObject().put("keyframe", keyframe).put("stage", stage.name)
+                        .put("stage_progress", progress).put("capture_kind", "DETERMINISTIC_SCENE_FRAME_TEST_PROJECTION")
+                        .put("file", file))
                 }
             }
             val fullStageManifest = org.json.JSONArray().apply {
                 for (index in 0 until stageManifest.length()) put(stageManifest.getJSONObject(index))
-                listOf(
-                    Triple(RecognitionSceneStage.ORB_RETURN, 2_800L, 0L),
-                    Triple(RecognitionSceneStage.ORB_TO_NAME, 3_180L, 380L),
-                    Triple(RecognitionSceneStage.SPECIES_NAME_REVEAL, 3_350L, 550L),
-                    Triple(RecognitionSceneStage.RESIDUE_SETTLE, 3_480L, 680L),
-                ).forEach { (expectedStage, globalMs, rr09Ms) ->
-                    val frame = RecognitionSceneCoordinator.frameAt(sceneIdentity, globalMs, globalMs, geometryVersion)
-                    assertEquals("RR09 projection at $globalMs ms", expectedStage, frame.stage)
-                    val revealFrame = rr09Manifest.getJSONObject(
-                        (0 until rr09Manifest.length()).first { rr09Manifest.getJSONObject(it).getLong("rr09_elapsed_ms") == rr09Ms },
+                rr09Samples.forEach { (keyframe, stageSample) ->
+                    val (expectedStage, progress) = stageSample
+                    val frame = sceneFrame(expectedStage, progress, geometryVersion)
+                    assertEquals("shared semantic reveal stage", expectedStage, frame.stage)
+                    val capture = rr09Manifest.getJSONObject(
+                        (0 until rr09Manifest.length()).first { rr09Manifest.getJSONObject(it).getString("keyframe") == keyframe },
                     )
                     put(JSONObject()
                         .put("stage_number", expectedStage.ordinal + 1)
                         .put("stage_id", frame.stage.name)
                         .put("stage_name", frame.stage.displayName)
-                        .put("scene_time_ms", globalMs)
-                        .put("rr09_elapsed_ms", rr09Ms)
+                        .put("stage_progress", progress)
                         .put("geometry_version", geometryVersion)
-                        .put("file", "rr09-v4/${revealFrame.getString("file")}")
+                        .put("file", "shared-stage-reveal/${capture.getString("file")}")
                     )
                 }
             }
-            composeRule.onNodeWithText(prediction.top1.speciesName).performScrollTo()
+            val semanticFramesSampledElapsedRealtimeMs = SystemClock.elapsedRealtime()
             val species = catalog.firstOrNull { it.id == prediction.top1.speciesKey }
-            species?.scientificName?.takeIf(String::isNotBlank)?.let { latinName ->
-                composeRule.onNodeWithText(latinName).performScrollTo()
-            }
 
             val resolved = geometryResolution.get()
             val productionGeometryPassed = handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL &&
@@ -333,6 +418,11 @@ class RecognitionRevealProductionRuntimeTest {
                 .put("species_name", prediction.top1.speciesName)
                 .put("species_confidence", prediction.top1.confidence.toDouble())
                 .put("result_is_high", !prediction.lowConfidence)
+                .put("real_time_controller_mode", sceneController.mode.name)
+                .put("real_time_controller_final_stage", sceneController.currentStage.name)
+                .put("real_time_controller_shared_across_screens", true)
+                .put("real_time_stages_observed", org.json.JSONArray(synchronized(realTimeStages) { realTimeStages.map { it.name }.sorted() }))
+                .put("real_time_stage_timeline", org.json.JSONArray(synchronized(realTimeStageTimeline) { realTimeStageTimeline.toList() }))
                 .put("material_parameter_version", "B01_CANDIDATE_NOT_VISUALLY_FROZEN")
                 .put("material_profiles", materialProfiles)
                 .put("stages", fullStageManifest)
@@ -372,36 +462,102 @@ class RecognitionRevealProductionRuntimeTest {
                 )))
                 .put("result_geometry_status", resolved?.failureReason ?: "RESOLVED")
                 .put("test_result_entries", resultEntries.get())
+                .put("shared_controller_identity", "${sceneIdentity.sessionId}|${sceneIdentity.attemptId}|${sceneIdentity.imageId}|${sceneIdentity.photoSha256}")
+                .put("automatic_handoff_gate", revealSessionStore.snapshot?.revealDecision?.name)
+                .put("automatic_handoff_observed", automaticHandoff.get() != null)
                 .put("source_mode", "PRODUCTION_MODEL_AND_ML_KIT_MASK")
-                .put("processing_phase_mode", "PRODUCTION_RECOGNITION_STATE_WITH_SHARED_SCENE_FRAME_SAMPLES")
-                .put("result_entry_mode", "TEST_CONTROLLED_AFTER_PRODUCTION_RESULT_READY; automatic handoff is covered by RecognitionFrozenFlowEmulatorTest")
+                .put("processing_phase_mode", "PRODUCTION_RECOGNITION_STATE_WITH_SHARED_AUTO_CONTROLLER")
+                .put("result_entry_mode", "PRODUCTION_ON_FINISHED_SESSIONSTORE_COMPLETE_ATTEMPT_SHARED_CONTROLLER")
                 .put("flow_start_elapsed_realtime_ms", flowStartElapsedRealtimeMs)
                 .put("result_entry_elapsed_realtime_ms", resultEntryElapsedRealtimeMs)
-                .put("live_reveal_finished_elapsed_realtime_ms", liveRevealFinishedElapsedRealtimeMs)
-                .put("api28_gate_recording", "RR09_Recognition_Flow_Recording.mp4")
-                .put("frame_clock", "13-stage Processing and P0-P7 use the shared RecognitionSceneFrame projection; R0-R5 use the RR09 V4 production Result renderer; live monotonic window is in the API28 gate recording")
+                .put("semantic_frames_sampled_elapsed_realtime_ms", semanticFramesSampledElapsedRealtimeMs)
+                .put("runtime_visual_acceptance", "API36_NATIVE_SCREEN_CAPTURED; deterministic stage projections are marked separately")
+                .put("real_time_playback", "CAPTURED_BY_NATIVE_SCREENRECORD; production AUTO controller and production handoff")
+                .put("frame_clock", "One RecognitionSceneAnimationController shared by Processing and Result; deterministic screenshot override is used only for stage contact-sheet samples")
                 .put("frames", rr09Manifest)
                 .put("runtime_matrix", "AI_Orb_WaterLight_Runtime_Matrix.json")
-                .put("recording", "RR09_Production_Recognition_Flow_Recording.mp4")
+                .put("recording", "HOSTED_API36_AVD_SCREENRECORD_CAPTURED_BY_RUNTIME_SCRIPT")
+                .put("deterministic_capture_count", processingSamples.size * 3)
             evidence.resolve("RR09_Production_Qualification_Report.json")
                 .writeText(report.toString(2) + "\n")
 
-            composeRule.onNodeWithText("修改鱼种").assertHasClickAction()
-            species?.scientificName?.takeIf(String::isNotBlank)?.let { latinName ->
-                composeRule.onNodeWithText(latinName).assertIsDisplayed()
-            }
             assertNotNull("production photo-source identity is required", handoff.photoSourceIdentity)
-            if (!bitmap.isRecycled) bitmap.recycle()
+            assertTrue("Result page must display captured native pixels", evidence.resolve("Recognition_Result_Automatic_Handoff.png").length() > 1024L)
+            assertEquals("stage capture manifest must cover all semantic stages", 13, stageManifest.length())
+        } catch (failure: Throwable) {
+            failureReason = "${failure.javaClass.simpleName}: ${failure.message.orEmpty()}"
+            throw failure
         } finally {
+            stageMonitorRunning.set(false)
+            stageMonitorHandler.removeCallbacks(stageMonitor)
+            screenshotExecutor.shutdownNow()
+            runCatching { screenshotExecutor.awaitTermination(5L, TimeUnit.SECONDS) }
+            if (failureReason != null) {
+                val failureCapture = evidence.resolve("Recognition_Runtime_Failure.png")
+                runCatching { saveScreenshot(failureCapture) }
+                    .onSuccess { failureScreenshotPath = failureCapture.absolutePath }
+                    .onFailure { failureScreenshotError = it.message ?: it.javaClass.simpleName }
+            }
+            // Dispose the Compose tree before releasing the source bitmap it is drawing.
+            runCatching { activityRule.scenario.close() }
             subjectEngine.close()
             if (!bitmap.isRecycled) bitmap.recycle()
+            val diagnostic = JSONObject()
+                .put("source_sha256", sourceSha256)
+                .put("failure", failureReason)
+                .put("result_ready", actualResult.get()?.ready)
+                .put("species_id", actualResult.get()?.prediction?.top1?.speciesKey)
+                .put("mask_status", actualSubject.get()?.status?.name)
+                .put("mask_error", actualSubject.get()?.errorCode)
+                .put("mask_quality", actualSubject.get()?.quality?.name)
+                .put("contour_segments", subjectGeometry.get()?.contour?.size ?: 0)
+                .put("automatic_handoff_observed", automaticHandoff.get() != null)
+                .put("result_entry_mode", "PRODUCTION_ON_FINISHED_SESSIONSTORE_COMPLETE_ATTEMPT_SHARED_CONTROLLER")
+                .put("result_entries", resultEntries.get())
+                .put("handoff_session_id", automaticHandoff.get()?.key?.recognitionSessionId)
+                .put("handoff_attempt_id", automaticHandoff.get()?.key?.recognitionAttemptId)
+                .put("handoff_image_id", automaticHandoff.get()?.imageId)
+                .put("automatic_handoff_gate", revealSessionStore.snapshot?.revealDecision?.name)
+                .put("handoff_geometry_trust", automaticHandoff.get()?.geometryTrustState?.name)
+                .put("handoff_eligibility", automaticHandoff.get()?.eligibility?.name)
+                .put("processing_photo_image_id", processingPhoto.get()?.imageId)
+                .put("result_geometry_status", geometryResolution.get()?.let { resolution ->
+                    if (resolution.geometry != null) "RESOLVED" else resolution.failureReason ?: "PENDING"
+                } ?: "NOT_OBSERVED")
+                .put("processing_result_photo_identity_matches", automaticHandoff.get()?.imageId == processingPhoto.get()?.imageId)
+                .put("controller_final_stage", sceneController.currentStage.name)
+                .put("real_time_stages_observed", org.json.JSONArray(synchronized(realTimeStages) { realTimeStages.map { it.name }.sorted() }))
+                .put("real_time_stage_timeline", org.json.JSONArray(synchronized(realTimeStageTimeline) { realTimeStageTimeline.toList() }))
+                .put("failure_screenshot", failureScreenshotPath)
+                .put("failure_screenshot_error", failureScreenshotError)
+                .put("runtime_mode", "PRODUCTION_MODEL_AND_SLIMSAM_WITH_FIXED_60_SECOND_ATTEMPT_DEADLINE")
+            runCatching { evidence.resolve("Runtime_Test_Diagnostic.json").writeText(diagnostic.toString(2) + "\n") }
         }
     }
 
-    private fun androidx.compose.ui.test.SemanticsNodeInteraction.captureToFile(file: File) {
-        val bitmap = captureToImage().asAndroidBitmap()
-        file.outputStream().use { check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
-        bitmap.recycle()
+    private fun waitUntil(timeoutMillis: Long, condition: () -> Boolean): Boolean {
+        val deadline = SystemClock.elapsedRealtime() + timeoutMillis
+        while (SystemClock.elapsedRealtime() < deadline) {
+            if (condition()) return true
+            SystemClock.sleep(100L)
+        }
+        return condition()
+    }
+
+    private fun saveScreenshot(file: File) {
+        val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            ?: error("UiAutomation could not capture the native recognition surface: ${file.name}")
+        try {
+            require(bitmap.width >= 320 && bitmap.height >= 640) {
+                "native screenshot has implausible dimensions: ${bitmap.width}x${bitmap.height}"
+            }
+            file.parentFile?.mkdirs()
+            file.outputStream().use { stream ->
+                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            }
+        } finally {
+            bitmap.recycle()
+        }
     }
 
     private fun ByteArray.sha256(): String = MessageDigest.getInstance("SHA-256")

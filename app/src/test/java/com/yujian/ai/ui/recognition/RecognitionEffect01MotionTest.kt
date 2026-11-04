@@ -3,6 +3,9 @@ package com.yujian.ai.ui.recognition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 
 class RecognitionEffect01MotionTest {
     @Test
@@ -28,14 +31,14 @@ class RecognitionEffect01MotionTest {
 
     @Test
     fun upwardWaveIsDeterministicMonotoneAndBounded() {
-        val times = listOf(0L, 350L, 600L, 950L, 1_100L)
-        val frames = times.map(::upwardCausticFrame)
+        val progress = listOf(0f, .25f, .5f, .9f, 1f)
+        val frames = progress.map(::upwardCausticFrame)
 
         assertEquals(0f, frames.first().progress, 0f)
         assertEquals(1f, frames.last().progress, 0f)
         assertEquals(1f, frames.first().centerYFraction, 0f)
         assertEquals(0f, frames.last().centerYFraction, 0f)
-        assertEquals(frames[3], upwardCausticFrame(950L))
+        assertEquals(frames[3], upwardCausticFrame(.9f))
         assertTrue(frames.zipWithNext().all { (a, b) -> b.progress >= a.progress })
         assertTrue(frames.all {
             kotlin.math.abs(it.arcOffsetFraction) <=
@@ -46,42 +49,63 @@ class RecognitionEffect01MotionTest {
         })
         assertEquals(0f, frames.first().opacity, 0f)
         assertEquals(0f, frames.last().opacity, 0f)
-        assertEquals(0f, effect01SpreadProgress(0L), 0f)
-        assertEquals(1f, effect01SpreadProgress(1_200L), 0f)
+        assertEquals(0f, effect01SpreadProgress(scene(RecognitionSceneStage.PHOTO_STABLE)), 0f)
+        assertEquals(.5f, effect01SpreadProgress(scene(RecognitionSceneStage.ORB_RELEASE, 1f)), 0f)
+        assertEquals(1f, effect01SpreadProgress(scene(RecognitionSceneStage.PATH_TO_FISH, 1f)), 0f)
     }
 
     @Test
-    fun processingEnvironmentEnvelopeMatchesP0ThroughP7AndEndsAtZero() {
-        assertEquals(0f, processingEnvironmentStrength(0), 0f)
-        assertEquals(10f, processingEnvironmentStrength(350), 0f)
-        assertEquals(45f, processingEnvironmentStrength(950), 0f)
-        assertEquals(75f, processingEnvironmentStrength(1_200), 0f)
-        assertEquals(60f, processingEnvironmentStrength(1_550), 0f)
-        assertEquals(35f, processingEnvironmentStrength(2_050), 0f)
-        assertEquals(10f, processingEnvironmentStrength(2_600), 0f)
-        assertEquals(0f, processingEnvironmentStrength(2_800), 0f)
-        assertEquals(0f, processingEnvironmentStrength(10_000), 0f)
+    fun processingEnvironmentEnvelopeUsesSemanticStageBoundaries() {
+        val stages = listOf(
+            RecognitionSceneStage.PHOTO_STABLE,
+            RecognitionSceneStage.ORB_WAKE,
+            RecognitionSceneStage.ORB_RELEASE,
+            RecognitionSceneStage.PERIMETER_ARRIVAL,
+            RecognitionSceneStage.PATH_TO_FISH,
+            RecognitionSceneStage.CONTOUR_A,
+            RecognitionSceneStage.CONTOUR_B,
+            RecognitionSceneStage.CONTOUR_C,
+        )
+        val expected = listOf(0f, 10f, 45f, 75f, 60f, 35f, 10f, 0f)
+        stages.zip(expected).forEach { (stage, value) ->
+            assertEquals(value, processingEnvironmentStrength(scene(stage, 1f)), 0f)
+        }
+        assertEquals(0f, processingEnvironmentStrength(scene(RecognitionSceneStage.RESIDUE_SETTLE, 1f)), 0f)
     }
 
     @Test
-    fun shockwaveHonorsSingleImpactBoundariesAndRestoresExactly() {
-        assertEquals(PhotoShockwaveTransform(), photoShockwaveTransform(849L))
-        assertEquals(PhotoShockwaveTransform(), photoShockwaveTransform(850L))
+    fun shockwaveIsBoundToOrbReleaseStageLocalTime() {
+        assertEquals(PhotoShockwaveTransform(), photoShockwaveTransform(scene(RecognitionSceneStage.ORB_WAKE, 1f, 350L)))
+        assertEquals(PhotoShockwaveTransform(), photoShockwaveTransform(scene(RecognitionSceneStage.ORB_RELEASE, 0f, 0L)))
 
-        val upstroke = photoShockwaveTransform(910L)
+        val upstroke = photoShockwaveTransform(scene(RecognitionSceneStage.ORB_RELEASE, .1f, 60L))
         assertEquals(-3f, upstroke.translationYDp, .001f)
         assertEquals(.15f, upstroke.rotationDegrees, .001f)
         assertEquals(1.004f, upstroke.scale, .0001f)
 
-        val rebound = photoShockwaveTransform(970L)
+        val rebound = photoShockwaveTransform(scene(RecognitionSceneStage.ORB_RELEASE, .2f, 120L))
         assertEquals(2f, rebound.translationYDp, .001f)
         assertEquals(-.15f, rebound.rotationDegrees, .001f)
         assertEquals(1f, rebound.scale, .0001f)
 
-        assertEquals(PhotoShockwaveTransform(), photoShockwaveTransform(1_110L))
+        assertEquals(PhotoShockwaveTransform(), photoShockwaveTransform(scene(RecognitionSceneStage.ORB_RELEASE, .5f, 260L)))
         assertEquals(
             PhotoShockwaveTransform(),
-            photoShockwaveTransform(910L, reduceMotion = true),
+            photoShockwaveTransform(scene(RecognitionSceneStage.ORB_RELEASE, .1f, 60L), reduceMotion = true),
         )
     }
+
+    private fun scene(
+        stage: RecognitionSceneStage,
+        progress: Float = 0f,
+        localElapsedMs: Long = (stage.minimumVisibleMs * progress).toLong(),
+    ) = RecognitionSceneCoordinator.frameForStage(
+        identity = RecognitionSceneIdentity("session", "attempt", "image", "a".repeat(64), 0L),
+        sceneElapsedMs = localElapsedMs,
+        opticalReferenceElapsedMs = localElapsedMs,
+        geometryVersion = 0L,
+        stage = stage,
+        stageElapsedMs = localElapsedMs,
+        stageProgress = progress,
+    )
 }
