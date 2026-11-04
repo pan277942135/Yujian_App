@@ -122,6 +122,14 @@ for k in ("hw.lcd.width", "hw.lcd.height", "hw.lcd.density", "skin.name", "hw.gp
 PY
 cp "$AVD_HOME/${AVD_NAME}.avd/config.ini" "$EVIDENCE_DIR/device-metadata/avd-config-before-boot.ini"
 
+if ! "$EMULATOR" -accel-check > "$EVIDENCE_DIR/device-metadata/emulator-acceleration-check.txt" 2>&1; then
+  FAILURE_REASON="ANDROID_HARDWARE_ACCELERATION_UNAVAILABLE"
+  RESULT=BLOCKED_INFRA
+  cat "$EVIDENCE_DIR/device-metadata/emulator-acceleration-check.txt" >&2
+  exit 10
+fi
+cat "$EVIDENCE_DIR/device-metadata/emulator-acceleration-check.txt"
+
 "$ADB" start-server
 if ! "$ADB" devices | awk 'NR>1 && $2=="device" {found=1} END {exit !found}'; then
   "$EMULATOR" -avd "$AVD_NAME" -no-window -no-snapshot -wipe-data -noaudio -no-boot-anim \
