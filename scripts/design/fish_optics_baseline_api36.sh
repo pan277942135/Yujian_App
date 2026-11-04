@@ -144,6 +144,20 @@ if ! timeout 180s "$ADB" wait-for-device; then
   cat "$EVIDENCE_DIR/device-metadata/emulator.log" >&2 || true
   exit 10
 fi
+boot_completed=""
+for attempt in $(seq 1 90); do
+  boot_completed="$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+  [[ "$boot_completed" == 1 ]] && break
+  sleep 2
+done
+if [[ "$boot_completed" != 1 ]]; then
+  FAILURE_REASON="ANDROID_BOOT_COMPLETED_TIMEOUT"
+  RESULT=BLOCKED_INFRA
+  printf 'Android boot did not reach sys.boot_completed=1.\n' >&2
+  "$ADB" shell getprop >&2 || true
+  exit 10
+fi
+printf 'sys.boot_completed=%s\n' "$boot_completed" | tee "$EVIDENCE_DIR/device-metadata/boot-completed.txt"
 sdk="$("$ADB" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
 [[ "$sdk" == 36 ]] || { FAILURE_REASON="API36_SDK_MISMATCH:$sdk"; RESULT=BLOCKED_INFRA; exit 10; }
 "$ADB" devices -l > "$EVIDENCE_DIR/device-metadata/adb-devices.txt"

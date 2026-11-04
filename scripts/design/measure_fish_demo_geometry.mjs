@@ -70,16 +70,39 @@ try {
     const imageStyle = image ? getComputedStyle(image) : null;
     const measuredCanvas = (canvas, index) => {
       const bounds = rect(canvas);
+      const isPhotoSpaceCanvas = Boolean(image &&
+        canvas.width === image.naturalWidth && canvas.height === image.naturalHeight);
+      const role = canvas.dataset.waterCaustics === 'webgl'
+        ? 'perimeter-webgl'
+        : isPhotoSpaceCanvas
+          ? 'photo-source-resolution-mask'
+          : 'perimeter-2d-accents';
+      const expectedScaleX = role === 'photo-source-resolution-mask'
+        ? (image?.naturalWidth ?? 0) / bounds.width
+        : Math.min(window.devicePixelRatio || 1, 2);
+      const expectedScaleY = role === 'photo-source-resolution-mask'
+        ? (image?.naturalHeight ?? 0) / bounds.height
+        : Math.min(window.devicePixelRatio || 1, 2);
+      const photoBounds = image ? rect(image) : null;
       return {
         index,
+        role,
         dataset: { ...canvas.dataset },
         boundsCssPx: bounds,
         backingWidthPx: canvas.width,
         backingHeightPx: canvas.height,
         scaleX: canvas.width / bounds.width,
         scaleY: canvas.height / bounds.height,
-        cssBackingDeltaX: canvas.width / bounds.width - Math.min(window.devicePixelRatio || 1, 2),
-        cssBackingDeltaY: canvas.height / bounds.height - Math.min(window.devicePixelRatio || 1, 2),
+        expectedScaleX,
+        expectedScaleY,
+        cssBackingDeltaX: canvas.width / bounds.width - expectedScaleX,
+        cssBackingDeltaY: canvas.height / bounds.height - expectedScaleY,
+        photoContentAlignmentDeltaCssPx: photoBounds ? {
+          left: bounds.left - photoBounds.left,
+          top: bounds.top - photoBounds.top,
+          width: bounds.width - photoBounds.width,
+          height: bounds.height - photoBounds.height,
+        } : null,
       };
     };
     const webglParameter = (key) => {
@@ -161,10 +184,14 @@ try {
   if (report.demo.sourceCommitVerified !== true) throw new Error('Demo source SHA did not match the pinned commit');
   if (measured.renderer.kind !== 'webgl') throw new Error('Demo perimeter WebGL context was unavailable');
   if (measured.canvases.length < 2) throw new Error(`Expected both overlay canvases, got ${measured.canvases.length}`);
-  for (const canvas of measured.canvases) {
+  for (const canvas of measured.canvases.filter((entry) => entry.role !== 'photo-source-resolution-mask')) {
     if (Math.abs(canvas.cssBackingDeltaX) > 0.02 || Math.abs(canvas.cssBackingDeltaY) > 0.02) {
       throw new Error(`Canvas backing scale mismatch for overlay ${canvas.index}`);
     }
+  }
+  const sourceMask = measured.canvases.find((entry) => entry.role === 'photo-source-resolution-mask');
+  if (sourceMask && Object.values(sourceMask.photoContentAlignmentDeltaCssPx ?? {}).some((delta) => Math.abs(delta) > 0.5)) {
+    throw new Error('Source-resolution mask canvas is not aligned to the displayed photo content');
   }
 } finally {
   await browser.close();
