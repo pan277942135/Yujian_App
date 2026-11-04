@@ -37,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.core.view.WindowCompat
 import com.yujian.ai.R
 import com.yujian.ai.catches.CatchStatistics
@@ -309,7 +311,12 @@ private fun EmptyHomeContent(
         Image(
             painter = painterResource(R.drawable.empty_home_title_v2),
             contentDescription = "现在，轮到你记录第一条鱼",
-            modifier = Modifier.captureHomeExit()
+            modifier = Modifier
+                // Hero is page-owned foreground artwork. Keep it above every
+                // environmental canvas layer on physical-device composition.
+                .zIndex(2f)
+                .testTag("empty-home-hero")
+                .captureHomeExit()
                 .offset(
                     x = layoutMapping.heroBounds.left.dp,
                     // At compact width with an accessibility font scale, the

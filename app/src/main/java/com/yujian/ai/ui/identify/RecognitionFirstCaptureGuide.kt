@@ -277,9 +277,9 @@ internal fun RecognitionFirstCaptureGuideOverlay(
                             }
                         },
                         modifier = Modifier
-                            .height(48.dp)
-                            .widthIn(min = 146.dp)
-                            .shadow(elevation = 6.dp, shape = CircleShape)
+                            .height(44.dp)
+                            .widthIn(min = 140.dp)
+                            .shadow(elevation = 4.dp, shape = CircleShape)
                             .testTag("recognition-guide-primary-action")
                             .semantics {
                                 contentDescription = if (isFinalPage) "开始拍摄，返回拍摄页面" else "下一张教学示例"
@@ -289,12 +289,12 @@ internal fun RecognitionFirstCaptureGuideOverlay(
                             contentColor = Color(0xFF102D44),
                         ),
                         shape = CircleShape,
-                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp),
+                        contentPadding = PaddingValues(horizontal = 22.dp, vertical = 8.dp),
                     ) {
                         Text(
                             text = if (isFinalPage) "开始拍摄 →" else "下一张 →",
                             textAlign = TextAlign.Center,
-                            fontSize = 15.5.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
                         )
                     }
@@ -354,21 +354,21 @@ private fun RecognitionFirstCaptureGuidePageContent(
                 .fillMaxWidth()
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 4.dp)
-                .padding(bottom = 18.dp),
+                .padding(horizontal = 8.dp, vertical = 2.dp)
+                .padding(bottom = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 52.dp)
-                    .padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                    .heightIn(min = 64.dp)
+                    .padding(top = 2.dp),
             ) {
                 IconButton(
                     onClick = onDismiss,
                     modifier = Modifier
+                        .align(Alignment.TopStart)
                         .sizeIn(minWidth = 44.dp, minHeight = 44.dp)
                         .testTag("recognition-guide-back")
                         .semantics { contentDescription = "返回拍摄页面" },
@@ -376,35 +376,38 @@ private fun RecognitionFirstCaptureGuidePageContent(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = Color(0xFF102D44),
                     )
                 }
                 Column(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .padding(horizontal = 48.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
                         text = "拍照识鱼",
-                        color = Color.White,
-                        fontSize = 17.5.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF102D44),
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.Medium,
                     )
-                    Spacer(Modifier.height(2.dp))
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = "用一张清晰的照片，记录你的每一次相遇",
-                        color = Color.White.copy(alpha = 0.90f),
-                        fontSize = 12.sp,
+                        color = Color(0xFF183A51).copy(alpha = 0.90f),
+                        fontSize = 11.5.sp,
                         textAlign = TextAlign.Center,
+                        maxLines = 1,
                     )
                 }
-                Box(Modifier.sizeIn(minWidth = 44.dp, minHeight = 44.dp))
             }
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .heightIn(min = 138.dp, max = if (isVerticalFish) 236.dp else 190.dp)
+                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                    .heightIn(min = 132.dp, max = if (isVerticalFish) 202.dp else 166.dp)
                     .aspectRatio(if (isVerticalFish) 0.82f else 1.55f)
                     .semantics {
                         contentDescription = "正确示范区域，$orientationLabel，鱼体完整，可拍摄"
@@ -412,16 +415,9 @@ private fun RecognitionFirstCaptureGuidePageContent(
                     .testTag("recognition-guide-hero-${page.index + 1}"),
                 contentAlignment = Alignment.Center,
             ) {
-                Image(
-                    painter = painterResource(spec.heroAsset),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(10.dp))
-                        .border(0.75.dp, Color(0x66FFFFFF), RoundedCornerShape(10.dp))
-                        .testTag("recognition-guide-hero-image-${page.index + 1}"),
-                    contentScale = ContentScale.Fit,
-                )
+                // The approved page background already contains the complete
+                // correct-example fish. Do not place a second photo card over
+                // it; keep only the framing guide on the continuous scene.
                 CornerFrameMarkers(
                     modifier = Modifier.fillMaxSize(),
                     strokeWidth = 2.5f,
@@ -433,7 +429,7 @@ private fun RecognitionFirstCaptureGuidePageContent(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 2.dp, bottom = 4.dp)
+                    .padding(top = 0.dp, bottom = 2.dp)
                     .semantics(mergeDescendants = true) {
                         selected = true
                         stateDescription = "第${page.index + 1}页，共2页"
@@ -456,16 +452,16 @@ private fun RecognitionFirstCaptureGuidePageContent(
                     Text(
                         text = spec.title,
                         color = Color.White,
-                        fontSize = 25.sp,
-                        lineHeight = 31.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp,
+                        lineHeight = 27.sp,
+                        fontWeight = FontWeight.Medium,
                         modifier = Modifier.testTag("recognition-guide-page-title-${page.index + 1}"),
                     )
                     Box(
                         modifier = Modifier
                             .padding(top = 4.dp, bottom = 6.dp)
+                            .width(if (isVerticalFish) 220.dp else 170.dp)
                             .height(1.5.dp)
-                            .fillMaxWidth()
                             .background(
                                 Brush.horizontalGradient(
                                     0f to Color(0xFFE7C96D),
@@ -479,8 +475,8 @@ private fun RecognitionFirstCaptureGuidePageContent(
                 Text(
                     text = spec.subtitle,
                     color = Color.White.copy(alpha = 0.92f),
-                    fontSize = 14.5.sp,
-                    lineHeight = 21.sp,
+                    fontSize = 14.sp,
+                    lineHeight = 19.sp,
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -489,13 +485,16 @@ private fun RecognitionFirstCaptureGuidePageContent(
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 6.dp, bottom = 2.dp),
+                    .padding(top = 2.dp, bottom = 0.dp),
             ) {
-                val wrapToTwoColumns = maxWidth < 352.dp
+                // Keep all three teaching errors visible on ordinary portrait
+                // phones. Only genuinely narrow content widths reflow to two
+                // columns and rely on the registered short-screen scroll.
+                val wrapToTwoColumns = maxWidth < 296.dp
                 if (wrapToTwoColumns) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -553,7 +552,7 @@ private fun RecognitionFirstCaptureGuidePageContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp, bottom = 6.dp),
+                    .padding(top = 2.dp, bottom = 2.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -570,7 +569,7 @@ private fun RecognitionFirstCaptureGuidePageContent(
                 Text(
                     text = "鱼体完整，可拍摄",
                     color = Color(0xFFF4D581),
-                    fontSize = 13.5.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     letterSpacing = 0.2.sp,
                     modifier = Modifier.testTag("recognition-guide-hero-caption-${page.index + 1}"),
@@ -722,7 +721,7 @@ private fun RecognitionFirstCaptureGuidePageIndicator(
 ) {
     Row(
         modifier = modifier
-            .height(30.dp)
+            .height(24.dp)
             .semantics(mergeDescendants = true) {
                 contentDescription = "教学页码"
                 stateDescription = "第${currentPage + 1}页，共2页"

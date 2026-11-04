@@ -27,30 +27,26 @@ import kotlin.random.Random
 
 internal const val REFERENCE_SCENE_WIDTH = 1080f
 internal const val REFERENCE_SCENE_HEIGHT = 1920f
-// V2.2 Fishing Composition anchors, measured from the committed 941x1672
-// authority and normalized uniformly to the 1080x1920 reference canvas.
+// V2.2 Fishing Composition anchors with the approved V2.3 physical-device
+// correction for the line, bobber and open-water contact point.
 internal const val EMPTY_HOME_V2_ROD_X = 0f
 internal const val EMPTY_HOME_V2_ROD_Y = 1180f
-internal const val EMPTY_HOME_V2_ROD_TIP_X = 337f
-internal const val EMPTY_HOME_V2_ROD_TIP_Y = 1184f
-internal const val EMPTY_HOME_V2_LINE_START_X = 337f
-internal const val EMPTY_HOME_V2_LINE_START_Y = 1184f
-// W5 user-directed runtime candidate, mapped to the 1080x1920 scene canvas.
-// The canonical anchor contract stays frozen until this visual candidate is approved.
+internal const val EMPTY_HOME_V2_ROD_TIP_X = 335f
+internal const val EMPTY_HOME_V2_ROD_TIP_Y = 1180f
+internal const val EMPTY_HOME_V2_LINE_START_X = 335f
+internal const val EMPTY_HOME_V2_LINE_START_Y = 1180f
 internal const val EMPTY_HOME_V2_LINE_C1_X = 390f
-internal const val EMPTY_HOME_V2_LINE_C1_Y = 1184f
-internal const val EMPTY_HOME_V2_LINE_C2_X = 531f
-internal const val EMPTY_HOME_V2_LINE_C2_Y = 1086f
-internal const val EMPTY_HOME_V2_LINE_END_X = 531f
-internal const val EMPTY_HOME_V2_LINE_END_Y = 1195f
-internal const val EMPTY_HOME_V2_BOBBER_X = 519f
-internal const val EMPTY_HOME_V2_BOBBER_Y = 1122f
-internal const val EMPTY_HOME_V2_REFLECTION_X = 525f
-internal const val EMPTY_HOME_V2_REFLECTION_Y = 1194f
-internal const val EMPTY_HOME_V2_RIPPLE_X = 412f
-internal const val EMPTY_HOME_V2_RIPPLE_Y = 1154f
-internal const val EMPTY_HOME_V2_WATER_CONTACT_X = 531f
-internal const val EMPTY_HOME_V2_WATER_CONTACT_Y = 1195f
+internal const val EMPTY_HOME_V2_LINE_C1_Y = 1218f
+internal const val EMPTY_HOME_V2_LINE_C2_X = 470f
+internal const val EMPTY_HOME_V2_LINE_C2_Y = 1090f
+internal const val EMPTY_HOME_V2_LINE_END_X = 560f
+internal const val EMPTY_HOME_V2_LINE_END_Y = 1128f
+internal const val EMPTY_HOME_V2_BOBBER_X = 548f
+internal const val EMPTY_HOME_V2_BOBBER_Y = 1036f
+internal const val EMPTY_HOME_V2_RIPPLE_X = 441f
+internal const val EMPTY_HOME_V2_RIPPLE_Y = 1079f
+internal const val EMPTY_HOME_V2_WATER_CONTACT_X = 560f
+internal const val EMPTY_HOME_V2_WATER_CONTACT_Y = 1120f
 internal const val EMPTY_HOME_V2_FISHING_PROTECTED_LEFT = 0f
 internal const val EMPTY_HOME_V2_FISHING_PROTECTED_RIGHT = 660f
 
