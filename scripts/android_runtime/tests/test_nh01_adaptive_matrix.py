@@ -59,11 +59,14 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
                 "left_peek_after_swipe_edge_feasible": True,
             },
             "data": {
-                "catch_ids": ["nh01-catch-001", "nh01-catch-002"],
-                "unique_catch_count": 2,
-                "pager_page_count": 2,
+                "catch_ids": ["nh01-catch-002", "nh01-catch-001", "nh01-catch-003"],
+                "unique_catch_count": 3,
+                "pager_page_count": 3,
+                "initial_active_record_id": "nh01-catch-001",
+                "initial_active_page_index": 1,
+                "initial_visible_card_ids": ["nh01-catch-002", "nh01-catch-001", "nh01-catch-003"],
                 "same_time_duplicate_ids": False,
-                "swipe_reached_second_id": True,
+                "swipe_reached_next_unique_id": True,
                 "required_card_text_accessible": True,
                 "required_card_text_no_visual_overflow": True,
                 "metadata_line_count_initial": 2,
@@ -74,7 +77,7 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
             "screenshots": {"initial": "M01-adaptive_v2.png"},
             "bounds_after_swipe_in_window_px": {
                 "gemini-home-carousel-track": {"left": 0, "top": 0, "right": 320, "bottom": 480},
-                "gemini-home-catch-card-nh01-catch-002": {"left": 0, "top": 0, "right": 1, "bottom": 1},
+                "gemini-home-catch-card-nh01-catch-003": {"left": 0, "top": 0, "right": 1, "bottom": 1},
                 "gemini-home-catch-neighbor-nh01-catch-001": {"left": 0, "top": 0, "right": 1, "bottom": 1},
             },
         }
@@ -82,7 +85,7 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp.cleanup()
 
-    def test_accepts_actual_runtime_report_with_complete_two_catch_evidence(self) -> None:
+    def test_accepts_actual_runtime_report_with_complete_three_catch_evidence(self) -> None:
         self.assertEqual([], validate_case(
             self.payload, "M01", 320, 480, 1.0, "ADAPTIVE_V2", "a" * 40, self.raw,
         ))
@@ -94,7 +97,7 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
             self.payload, "M01", 320, 640, 1.0, "ADAPTIVE_V2", "a" * 40, self.raw,
         )
         self.assertTrue(any("card ratio" in problem for problem in problems), problems)
-        self.assertTrue(any("two-catch IDs/uniqueness" in problem for problem in problems), problems)
+        self.assertTrue(any("three-catch IDs/uniqueness" in problem for problem in problems), problems)
 
     def test_execution_status_preserves_assertion_crash_and_evidence_failures(self) -> None:
         status, reason = classify_execution(None)

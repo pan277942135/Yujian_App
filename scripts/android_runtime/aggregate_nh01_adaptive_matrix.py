@@ -19,6 +19,11 @@ CASES = (
     ("M10", 430, 932, 1.0), ("M11", 430, 932, 1.3), ("M12", 430, 932, 1.5),
 )
 VARIANTS = {"ADAPTIVE_V2": "adaptive_v2", "V3_BASELINE": "v3_baseline"}
+BOUNDARY_CASES = (
+    ("H499", 360, 571, 499.0), ("H500", 360, 572, 500.0),
+    ("H699", 360, 771, 699.0), ("H700", 360, 772, 700.0),
+    ("H839", 360, 911, 839.0), ("H840", 360, 912, 840.0),
+)
 REQUIRED_FONT_SIZE_TAGS = (
     "gemini-home-stat-species-value", "gemini-home-stat-species-label",
     "gemini-home-stat-catches-value", "gemini-home-stat-catches-label",
@@ -182,7 +187,7 @@ def validate_case(payload: dict[str, Any], profile: str, width: int, height: int
         problems.append("missing bounds: " + ", ".join(missing))
     after_swipe = payload.get("bounds_after_swipe_in_window_px", {})
     required_after_swipe = (
-        "gemini-home-carousel-track", "gemini-home-catch-card-nh01-catch-002",
+        "gemini-home-carousel-track", "gemini-home-catch-card-nh01-catch-003",
         "gemini-home-catch-neighbor-nh01-catch-001",
     )
     missing_after_swipe = [tag for tag in required_after_swipe if tag not in after_swipe]
@@ -242,11 +247,16 @@ def validate_case(payload: dict[str, Any], profile: str, width: int, height: int
         problems.append("camera touches or overlaps the safe bottom inset")
     data = payload.get("data", {})
     ids = data.get("catch_ids", [])
-    if ids != ["nh01-catch-001", "nh01-catch-002"] or data.get("unique_catch_count") != 2:
-        problems.append(f"two-catch IDs/uniqueness failed: {ids}")
-    if data.get("pager_page_count") != 2 or data.get("same_time_duplicate_ids") is not False:
-        problems.append("finite two-page uniqueness assertion failed")
-    if data.get("swipe_reached_second_id") is not True:
+    expected_ids = ["nh01-catch-002", "nh01-catch-001", "nh01-catch-003"]
+    if ids != expected_ids or data.get("unique_catch_count") != 3:
+        problems.append(f"three-catch IDs/uniqueness failed: {ids}")
+    if data.get("pager_page_count") != 3 or data.get("same_time_duplicate_ids") is not False:
+        problems.append("finite three-page uniqueness assertion failed")
+    if data.get("initial_active_record_id") != "nh01-catch-001" or data.get("initial_active_page_index") != 1:
+        problems.append("the target catch is not selected in the center page initially")
+    if data.get("initial_visible_card_ids") != expected_ids:
+        problems.append(f"both unique side peeks must flank the active catch initially: {data.get('initial_visible_card_ids')}")
+    if data.get("swipe_reached_next_unique_id") is not True:
         problems.append("real-ID horizontal swipe was not verified")
     if data.get("required_card_text_accessible") is not True:
         problems.append("species, measurement, and metadata accessibility assertion failed")
@@ -435,12 +445,12 @@ def main() -> int:
                                 "required_card_text_accessible": data_metrics.get("required_card_text_accessible"),
                                 "required_card_text_no_visual_overflow": data_metrics.get("required_card_text_no_visual_overflow"),
                                 "middle_scroll_enabled": data_metrics.get("middle_scroll_enabled"),
-                                "catch_ids_unique": data_metrics.get("unique_catch_count") == 2,
+                                "catch_ids_unique": data_metrics.get("unique_catch_count") == 3,
                                 "card_width_fraction": 0.70 if variant_name == "ADAPTIVE_V2" else 0.686,
                                 "card_aspect_ratio_target": 247 / 293, "status": status})
         if candidate is not None:
             regression_rows.append({"profile": profile, **candidate.get("data", {}),
-                                    "visible_card_ids_unique": len(set(candidate.get("data", {}).get("initial_visible_card_ids", []))) == 2,
+                                    "visible_card_ids_unique": len(set(candidate.get("data", {}).get("initial_visible_card_ids", []))) == 3,
                                     "status": candidate_status})
         if baseline is not None and candidate is not None:
             pair_file = matrix_dir / "COMPARISON" / f"{profile}_V3_vs_Adaptive.png"
@@ -452,6 +462,64 @@ def main() -> int:
 
     monotonicity_problems = apply_cross_profile_monotonicity_gates(report_rows, metric_rows)
     all_problems.extend(monotonicity_problems)
+
+    boundary_rows: list[dict[str, Any]] = []
+    for profile, width, physical_height, expected_safe_height in BOUNDARY_CASES:
+        for variant in ("ADAPTIVE_V2", "V3_BASELINE"):
+            variant_key = VARIANTS[variant]
+            payload = read_case(raw, profile, variant_key)
+            execution = read_execution(execution_dir, profile, variant)
+            execution_status, execution_reason = classify_execution(execution)
+            problems: list[str] = []
+            if execution_status != "PASS":
+                problems.append(f"execution {execution_status}: {execution_reason}")
+            if payload is None:
+                problems.append("device runtime report missing or invalid")
+            else:
+                if str(payload.get("status", "")).upper() != "PASS":
+                    problems.append(f"device report status={payload.get('status')}")
+                if payload.get("source_commit") != args.source_sha:
+                    problems.append("runtime source SHA does not match the tested commit")
+                if payload.get("scenario") != "three_unique_catches":
+                    problems.append(f"fixture scenario mismatch: {payload.get('scenario')}")
+                metrics = payload.get("metrics", {})
+                data = payload.get("data", {})
+                measured_safe_height = data.get("safe_height_dp", metrics.get("safe_height_dp"))
+                if not isinstance(measured_safe_height, (int, float)) or abs(float(measured_safe_height) - expected_safe_height) > 0.25:
+                    problems.append(f"safe content height {measured_safe_height}dp != requested {expected_safe_height}dp")
+                insets = payload.get("safe_insets_dp", {})
+                measured_window = payload.get("window_bounds_dp", {})
+                derived_safe_height = float(measured_window.get("height", 0)) - float(insets.get("top", 0)) - float(insets.get("bottom", 0))
+                if abs(derived_safe_height - expected_safe_height) > 0.25:
+                    problems.append(f"window/inset derivation gives {derived_safe_height}dp, expected {expected_safe_height}dp")
+                screenshot_name = payload.get("screenshots", {}).get("initial")
+                screenshot_path = raw / str(screenshot_name) if screenshot_name else None
+                if screenshot_path is None or not screenshot_path.is_file():
+                    problems.append("actual boundary screenshot missing")
+                elif Image.open(screenshot_path).size != (width, physical_height):
+                    problems.append(f"screenshot size {Image.open(screenshot_path).size} != {(width, physical_height)}")
+            row = {
+                "profile": profile, "layout_variant": variant,
+                "display_px": [width, physical_height], "expected_safe_height_dp": expected_safe_height,
+                "execution_status": execution_status, "device_status": None if payload is None else payload.get("status"),
+                "metrics": {} if payload is None else payload.get("metrics", {}),
+                "window_bounds_dp": None if payload is None else payload.get("window_bounds_dp"),
+                "safe_insets_dp": None if payload is None else payload.get("safe_insets_dp"),
+                "screenshot": None if payload is None else payload.get("screenshots", {}).get("initial"),
+                "status": "PASS" if not problems else "FAIL", "problems": problems,
+            }
+            boundary_rows.append(row)
+            all_problems.extend(f"{profile}/{variant}: {problem}" for problem in problems)
+
+    boundary_status = "PASS" if len(boundary_rows) == len(BOUNDARY_CASES) * len(VARIANTS) and all(
+        row["status"] == "PASS" for row in boundary_rows
+    ) else "FAIL"
+    (output / "NH01_HEIGHT_BOUNDARY_MATRIX_V1.json").write_text(json.dumps({
+        "schema": "NH01_HEIGHT_BOUNDARY_MATRIX_V1", "source_sha": args.source_sha,
+        "workflow_run_id": args.run_id, "workflow_run_url": args.run_url,
+        "execution_mode": "ANDROID_API28_EMULATOR_RUNTIME", "status": boundary_status,
+        "boundaries": boundary_rows,
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     (output / "NH01_BOUNDS_MATRIX_V1.json").write_text(json.dumps({
         "schema": "NH01_BOUNDS_MATRIX_V1", "source_sha": args.source_sha,
@@ -466,9 +534,10 @@ def main() -> int:
         "baseline_parameters": {"width_fraction": 0.686, "max_width_dp": 337.2, "aspect_ratio": "247:293"},
         "profiles": metric_rows,
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (output / "NH01_TWO_CATCH_REGRESSION_V1.json").write_text(json.dumps({
-        "schema": "NH01_TWO_CATCH_REGRESSION_V1", "source_sha": args.source_sha,
-        "test_fixture_ids": ["nh01-catch-001", "nh01-catch-002"],
+    (output / "NH01_THREE_CATCH_REGRESSION_V1.json").write_text(json.dumps({
+        "schema": "NH01_THREE_CATCH_REGRESSION_V1", "source_sha": args.source_sha,
+        "test_fixture_ids_in_order": ["nh01-catch-002", "nh01-catch-001", "nh01-catch-003"],
+        "initial_active_record_id": "nh01-catch-001",
         "profiles": regression_rows,
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -479,7 +548,7 @@ def main() -> int:
         f"- Source SHA: `{args.source_sha}`",
         f"- Android runtime: [API 28 emulator workflow run {args.run_id}]({args.run_url})",
         "- Physical Android handset: `NOT_RUN`; the CI API 28 Pixel 2 emulator is reported separately.",
-        "- Candidate uses the production `HomeScreen`; exactly two stable catch IDs are injected per case.",
+        "- Candidate uses production `HomeScreen`; three unique catch IDs are injected and catch-001 starts in the center page.",
         "- Full-resolution Android screenshots: `NH01_RUNTIME_MATRIX_V1/`; paired same-runtime V3 screenshots are in `NH01_RUNTIME_MATRIX_V1/COMPARISON/`.",
         "", "| Case | Display | System font | Adaptive V2 | V3 baseline | Result | Details |",
         "|---|---:|---:|---|---|---|---|",
@@ -488,7 +557,7 @@ def main() -> int:
         problems = "; ".join(row["problems"]) or "all asserted bounds and interactions passed"
         lines.append(f"| {row['profile']} | {row['size_dp'][0]}×{row['size_dp'][1]}dp | {row['font_scale']:.1f}× | "
                      f"{row['candidate_status']} | {row['baseline_status']} | {row['status']} | {problems} |")
-    final_status = "PASS" if len(report_rows) == 12 and all(row["status"] == "PASS" for row in report_rows) else (
+    final_status = "PASS" if len(report_rows) == 12 and all(row["status"] == "PASS" for row in report_rows) and boundary_status == "PASS" else (
         "FAIL" if any(row["status"] == "FAIL" for row in report_rows) else "MISSING"
     )
     (output / "NH01_ADAPTIVE_MATRIX_SUMMARY_V1.json").write_text(json.dumps({
@@ -497,6 +566,7 @@ def main() -> int:
         "workflow_run_url": args.run_url, "execution_mode": "ANDROID_API28_EMULATOR_RUNTIME",
         "physical_handset_status": "NOT_RUN",
         "profile_count": len(report_rows), "passed_profiles": sum(row["status"] == "PASS" for row in report_rows),
+        "height_boundary_status": boundary_status, "height_boundary_cases": boundary_rows,
         "cases": report_rows,
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     lines.extend([
@@ -506,7 +576,7 @@ def main() -> int:
         "", "The side-by-side image is a contact sheet of same-profile full-window Android captures. The raw case PNGs remain the visual source of record.",
     ])
     (output / "NH01_VISUAL_ACCEPTANCE_REPORT_V1.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"NH01_ADAPTIVE_MATRIX={final_status} profiles={sum(row['status'] == 'PASS' for row in report_rows)}/12 source_sha={args.source_sha}")
+    print(f"NH01_ADAPTIVE_MATRIX={final_status} profiles={sum(row['status'] == 'PASS' for row in report_rows)}/12 height_boundaries={sum(row['status'] == 'PASS' for row in boundary_rows)}/{len(boundary_rows)} source_sha={args.source_sha}")
     if all_problems:
         for problem in all_problems:
             print(f"FAIL {problem}")

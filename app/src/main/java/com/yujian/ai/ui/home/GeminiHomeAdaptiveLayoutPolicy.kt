@@ -343,9 +343,19 @@ internal fun geminiHomeCameraVisualSize(safeWidthDp: Float, safeHeightDp: Float)
     require(safeWidthDp > 0f)
     require(safeHeightDp > 0f)
     val contentWidthDp = minOf(safeWidthDp, 560f)
-    val widthBound = contentWidthDp * 0.18f
-    val heightBound = safeHeightDp * 0.10f
-    return minOf(widthBound, heightBound, 80f).coerceAtLeast(56f)
+    val widthBound = contentWidthDp * (85f / 360f)
+    val heightBound = safeHeightDp * 0.135f
+    return minOf(widthBound, heightBound, 96f).coerceAtLeast(56f)
+}
+
+internal fun geminiHomeHeroFooterPaddingVertical(cardHeightDp: Float): Float {
+    require(cardHeightDp > 0f)
+    return (cardHeightDp * 0.042f).coerceIn(10f, 14f)
+}
+
+internal fun geminiHomeHeroFooterPaddingHorizontal(cardWidthDp: Float): Float {
+    require(cardWidthDp > 0f)
+    return (cardWidthDp * 0.074f).coerceIn(12f, 20f)
 }
 
 /** NH01 Avatar Visual V1.1: based on safe width, never on tall-window height. */

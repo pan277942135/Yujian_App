@@ -25,7 +25,7 @@ def classify_emulator_outcome(available: bool, step_outcome: str) -> EmulatorOut
         return EmulatorOutcome(
             classification="BLOCKED_INFRA",
             failure_phase="EMULATOR_RUNNER",
-            failure_reason="STANDARD_INTEL_MACOS_EMULATOR_RUNNER_UNAVAILABLE",
+            failure_reason="API28_EMULATOR_DEVICE_UNAVAILABLE",
         )
 
     if outcome == "cancelled":

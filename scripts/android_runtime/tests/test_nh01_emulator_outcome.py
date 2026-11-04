@@ -24,7 +24,7 @@ class Nh01EmulatorOutcomeTest(unittest.TestCase):
     def test_unavailable_hosted_runner_is_reported_separately(self) -> None:
         result = classify_emulator_outcome(False, "skipped")
         self.assertEqual("BLOCKED_INFRA", result.classification)
-        self.assertEqual("STANDARD_INTEL_MACOS_EMULATOR_RUNNER_UNAVAILABLE", result.failure_reason)
+        self.assertEqual("API28_EMULATOR_DEVICE_UNAVAILABLE", result.failure_reason)
 
     def test_success_without_runtime_json_is_an_evidence_failure(self) -> None:
         result = classify_emulator_outcome(True, "success")

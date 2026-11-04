@@ -222,6 +222,10 @@ class GuestCatchRepository(context: Context) {
                 .sortedByDescending { it.value }
                 .map { (id, count) -> SpeciesCatchCount(id, names[id]?.speciesName.orEmpty(), count) },
             recentSpecies = catches.lastOrNull()?.speciesName?.takeIf(String::isNotBlank),
+            recordDays = catches.map { it.capturedAt.ifBlank { it.createdAt }.take(10) }
+                .filter(String::isNotBlank)
+                .distinct()
+                .size,
         )
     }
 

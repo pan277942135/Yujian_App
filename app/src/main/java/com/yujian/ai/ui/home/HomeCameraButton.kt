@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.layout.boundsInWindow
@@ -60,6 +61,7 @@ internal fun HomeCameraButton(
     runtimeAssets: HomeCameraRasterAssets? = null,
     visualSize: Dp? = null,
     touchTargetSize: Dp? = null,
+    allowVisualOverflow: Boolean = false,
 ) {
     val scope = rememberCoroutineScope()
     val activationJob = remember { arrayOfNulls<Job>(1) }
@@ -155,8 +157,10 @@ internal fun HomeCameraButton(
             sweepAlpha = sweep.alpha,
         ),
         visualSize = resolvedSize,
-        touchTargetSize = maxOf(resolvedSize, touchTargetSize ?: resolvedSize),
-        visualModifier = Modifier.testTag("gemini-home-camera-art"),
+        touchTargetSize = touchTargetSize ?: resolvedSize,
+        visualModifier = Modifier.testTag("gemini-home-camera-art")
+            .then(if (allowVisualOverflow) Modifier.requiredSize(resolvedSize) else Modifier)
+            .captureGeminiHomeBounds("gemini-home-camera-art"),
         frozenVisual = true,
         frozenVisualResource = AIOrbCaptureVisualAssets.HOME_IDLE,
         onCaptureHaptic = { if (!transitionActive) captureClickHaptic(context, view) },

@@ -19,12 +19,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -95,10 +98,19 @@ import kotlin.math.abs
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-private const val GeminiHomeBackground = "normal_home_runtime_v1/static/scene_base.png"
 private const val GeminiHomeCardAspectRatio = 247f / 293f
 private const val GeminiHomeNeighborHeightFraction = 0.667f
 private val GeminiHomePeekTopOffset = 15.dp
+private val GeminiHomeVisualNavy = YuJianColors.NormalHomeNavy
+private val GeminiHomeStatisticsDivider = YuJianColors.NormalHomeAccentAqua
+
+private data class GeminiHomePagerSnapObservation(
+    val currentPage: Int,
+    val targetPage: Int,
+    val settledPage: Int,
+    val isScrollInProgress: Boolean,
+    val offsetFraction: Float,
+)
 // NH01_AVATAR_VISUAL_V1_1: frozen mist glass and lake-ink profile illustration.
 private val GeminiMistAvatarFill = Color(0xFFEEF3F2).copy(alpha = 0.36f)
 private val GeminiMistAvatarBorder = Color.White.copy(alpha = 0.48f)
@@ -146,6 +158,7 @@ internal fun GeminiNormalHomeContent(
     safeInsets: SafeDrawingInsetsDp = SafeDrawingInsetsDp(),
     layoutVariant: GeminiHomeLayoutVariant = GeminiHomeLayoutVariant.ADAPTIVE_V2,
     modifier: Modifier = Modifier,
+    initialSelectedCatchId: String? = null,
 ) {
     val records = remember(recentCatches) { orderedHomeRecords(recentCatches) }
     BoxWithConstraints(modifier = modifier.testTag("gemini-home-screen")
@@ -165,7 +178,7 @@ internal fun GeminiNormalHomeContent(
         }
         val avatarSize = geminiHomeAvatarVisualSize(safeWidth.value).dp
         val cameraVisualSize = geminiHomeCameraVisualSize(safeWidth.value, safeHeight.value).dp
-        val cameraTouchSize = maxOf(72.dp, cameraVisualSize)
+        val cameraTouchSize = cameraVisualSize.coerceIn(72.dp, 88.dp)
 
         Box(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize().testTag("gemini-layer-bg-scenic-group")) {
@@ -217,6 +230,7 @@ internal fun GeminiNormalHomeContent(
                     runtimeAssets = runtimeAssets,
                     layoutSpec = layoutSpec,
                     layoutVariant = layoutVariant,
+                    initialSelectedCatchId = initialSelectedCatchId,
                     onCatchesClick = onCatchesClick,
                     onCatchClick = onCatchClick,
                 )
@@ -433,7 +447,7 @@ private fun GeminiStatsBar(
         )
         Box(
             Modifier.width(1.dp).height(dividerHeight)
-                .background(YuJianColors.TextPrimary.copy(alpha = 0.20f))
+                .background(GeminiHomeStatisticsDivider)
                 .testTag("gemini-home-stats-divider"),
         )
         GeminiStatItem(
@@ -443,7 +457,7 @@ private fun GeminiStatsBar(
         )
         Box(
             Modifier.width(1.dp).height(dividerHeight)
-                .background(YuJianColors.TextPrimary.copy(alpha = 0.20f))
+.background(GeminiHomeStatisticsDivider)
                 .testTag("gemini-home-stats-divider"),
         )
         GeminiStatItem(
@@ -476,7 +490,7 @@ private fun RowScope.GeminiStatItem(
         Text(
             text = value,
             style = YuJianTypography.dataNumber.copy(
-                color = YuJianColors.TextPrimary,
+                color = GeminiHomeVisualNavy,
                 fontSize = valueFontSize,
                 lineHeight = (valueFontSize.value * 1.14f).sp,
             ),
@@ -490,7 +504,7 @@ private fun RowScope.GeminiStatItem(
         Text(
             text = label,
             style = YuJianTypography.caption.copy(
-                color = YuJianColors.TextPrimary.copy(alpha = 0.78f),
+                color = GeminiHomeVisualNavy,
                 fontWeight = FontWeight.Normal,
                 fontSize = labelFontSize,
                 lineHeight = (labelFontSize.value * 1.2f).sp,
@@ -516,6 +530,7 @@ private fun GeminiMiddleSection(
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
     layoutSpec: GeminiHomeLayoutSpec,
     layoutVariant: GeminiHomeLayoutVariant,
+    initialSelectedCatchId: String?,
     onCatchesClick: () -> Unit,
     onCatchClick: (String) -> Unit,
 ) {
@@ -651,6 +666,7 @@ private fun GeminiMiddleSection(
                     cardHeight = cardHeight,
                     runtimeAssets = runtimeAssets,
                     layoutVariant = layoutVariant,
+                    initialSelectedCatchId = initialSelectedCatchId,
                     onCatchClick = onCatchClick,
                 )
             }
@@ -679,10 +695,9 @@ private fun GeminiSectionHeader(
         Text(
             text = "最近鱼获",
             style = YuJianTypography.sectionTitle.copy(
-                color = YuJianColors.OnDark,
+                color = GeminiHomeVisualNavy,
                 fontSize = titleFontSize,
                 lineHeight = (titleFontSize.value * 1.2f).sp,
-                shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.45f), blurRadius = 3f),
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -692,9 +707,8 @@ private fun GeminiSectionHeader(
                 .testTag("gemini-home-section-title")
                 .captureGeminiHomeBounds("gemini-home-section-title"),
         )
-        Row(
-            modifier = Modifier.requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                .offset(y = actionVerticalOffset)
+        Box(
+            modifier = Modifier.requiredSize(48.dp)
                 .semantics(mergeDescendants = true) {
                     contentDescription = "全部鱼获"
                     role = Role.Button
@@ -702,16 +716,19 @@ private fun GeminiSectionHeader(
                 .clickable(role = Role.Button, onClick = onCatchesClick)
                 .testTag("gemini-home-section-all")
                 .captureGeminiHomeBounds("gemini-home-section-all"),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            contentAlignment = Alignment.Center,
         ) {
+            Row(
+                modifier = Modifier.offset(y = actionVerticalOffset),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
             Text(
                 text = "全部",
                 style = YuJianTypography.body.copy(
-                    color = YuJianColors.OnDark.copy(alpha = 0.95f),
+                    color = GeminiHomeVisualNavy,
                     fontSize = actionFontSize,
                     lineHeight = (actionFontSize.value * 1.2f).sp,
-                    shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.45f), blurRadius = 3f),
                 ),
                 maxLines = 1,
                 modifier = Modifier
@@ -722,7 +739,7 @@ private fun GeminiSectionHeader(
             Text(
                 text = "›",
                 style = YuJianTypography.body.copy(
-                    color = YuJianColors.OnDark.copy(alpha = 0.95f),
+                    color = GeminiHomeVisualNavy,
                     fontSize = actionFontSize,
                     lineHeight = (actionFontSize.value * 1.2f).sp,
                 ),
@@ -731,6 +748,7 @@ private fun GeminiSectionHeader(
                     .semantics { this[GeminiHomeRenderedFontSizeSp] = actionFontSize.value }
                     .testTag("gemini-home-section-chevron"),
             )
+            }
         }
     }
 }
@@ -747,11 +765,16 @@ private fun GeminiCatchCarousel(
     cardHeight: Dp,
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
     layoutVariant: GeminiHomeLayoutVariant,
+    initialSelectedCatchId: String?,
     onCatchClick: (String) -> Unit,
 ) {
     val pageCount = records.size
     val hasNeighborPages = pageCount > 1
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { pageCount })
+    val initialPage = remember(records, initialSelectedCatchId) {
+        records.indexOfFirst { it.id == initialSelectedCatchId }
+            .takeIf { initialSelectedCatchId != null && it >= 0 } ?: 0
+    }
+    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { pageCount })
     val trackWidth = safeWidth.coerceAtMost(560.dp)
     val pageSpacing = clampDp(trackWidth.value * 0.025f, 8f, 12f)
     val neighborWidth = (if (layoutVariant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
@@ -786,6 +809,30 @@ private fun GeminiCatchCarousel(
             )
         }.distinctUntilChanged().collect { state ->
             GeminiHomeGeometryProbe.recordPagerState(state)
+        }
+    }
+    val pagerPageWidthPx = with(LocalDensity.current) { cardWidth.toPx() }
+    LaunchedEffect(pagerState, records, pagerPageWidthPx) {
+        snapshotFlow {
+            GeminiHomePagerSnapObservation(
+                currentPage = pagerState.currentPage,
+                targetPage = pagerState.targetPage,
+                settledPage = pagerState.settledPage,
+                isScrollInProgress = pagerState.isScrollInProgress,
+                offsetFraction = pagerState.currentPageOffsetFraction,
+            )
+        }.distinctUntilChanged().collect { observed ->
+            val atRestOnCurrentPage = !observed.isScrollInProgress &&
+                observed.targetPage == observed.currentPage &&
+                observed.settledPage == observed.currentPage
+            val subpixelResidual = abs(observed.offsetFraction) * pagerPageWidthPx
+            if (atRestOnCurrentPage && observed.currentPage in records.indices &&
+                subpixelResidual in 0.01f..1f
+            ) {
+                // Fixed-width pages can leave a subpixel offset after density rounding.
+                // Snap only when the measured residual is at most one physical pixel.
+                pagerState.scrollToPage(observed.currentPage)
+            }
         }
     }
     Box(
@@ -824,6 +871,10 @@ private fun GeminiCatchCarousel(
                 .testTag("gemini-home-catch-pager")
                 .captureGeminiHomeBounds("gemini-home-catch-pager"),
             pageSize = PageSize.Fixed(cardWidth),
+            flingBehavior = PagerDefaults.flingBehavior(
+                state = pagerState,
+                pagerSnapDistance = PagerSnapDistance.atMost(1),
+            ),
             contentPadding = PaddingValues(horizontal = contentInset),
             pageSpacing = pageSpacing,
             beyondViewportPageCount = if (hasNeighborPages) 1 else 0,
@@ -844,7 +895,7 @@ private fun GeminiCatchCarousel(
                     scaleX = 1f - distance * (1f - sideScaleX)
                     scaleY = 1f - distance * (1f - sideScaleY)
                     translationY = if (active) 0f else neighborTranslationY
-                    alpha = 1f - distance * 0.08f
+                    alpha = 1f
                 }.testTag(pageTag).captureGeminiHomeBounds("$pageTag-${record.id}"),
                 contentAlignment = Alignment.TopCenter,
             ) {
@@ -897,11 +948,11 @@ private fun GeminiCatchCard(
     val speciesSize = responsiveSp(safeHeight, safeWidth, 0.036f, 20f, 26f)
     val measurementSize = responsiveSp(safeHeight, safeWidth, 0.023f, 13f, 16f)
     val metadataSize = responsiveSp(safeHeight, safeWidth, 0.019f, 11f, 13f)
-    val footerVerticalPadding = clampDp(cardHeight.value * 0.07f, 10f, 20f)
+    val footerVerticalPadding = geminiHomeHeroFooterPaddingVertical(cardHeight.value).dp
     val footerHorizontalPadding = if (layoutVariant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
         // Scale the inner inset continuously so the long metadata line budget gets
         // usable width on compact cards without changing the Hero's outer geometry.
-        clampDp(cardWidth.value * 0.06f, 8f, 20f)
+        geminiHomeHeroFooterPaddingHorizontal(cardWidth.value).dp
     } else {
         if (cardWidth.value < 190f) 12.dp else 20.dp
     }
@@ -932,12 +983,15 @@ private fun GeminiCatchCard(
         val combined = listOfNotNull(time, location).joinToString(" · ")
         when {
             combined.isBlank() -> ""
-            time != null && location != null &&
-                !geminiHomeTextFitsSingleLine(combined, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx) -> {
-                val fittedLocation = geminiHomeEllipsizeSingleLine(
-                    location, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx,
-                )
-                if (fittedLocation.isBlank()) time else "$time\n$fittedLocation"
+            time != null && location != null -> {
+                if (geminiHomeTextFitsSingleLine(combined, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx)) {
+                    combined
+                } else {
+                    val fittedLocation = geminiHomeEllipsizeSingleLine(
+                        location, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx,
+                    )
+                    if (fittedLocation.isBlank()) time else "$time\n$fittedLocation"
+                }
             }
             time != null -> time
             location != null -> geminiHomeEllipsizeSingleLine(
@@ -966,7 +1020,7 @@ private fun GeminiCatchCard(
             if (isActive) "gemini-home-catch-card-${item.id}" else "gemini-home-catch-neighbor-${item.id}",
         ),
         heightOverride = cardHeight,
-        cornerRadius = 22.dp,
+        cornerRadius = 14.dp,
         footerPaddingHorizontal = footerHorizontalPadding,
         footerPaddingVertical = footerVerticalPadding,
         footerContentFillWidth = true,
@@ -979,7 +1033,11 @@ private fun GeminiCatchCard(
             outline = runtimeAssets?.fishCardOutline?.asImageBitmap(),
         ),
         footerContent = {
-            if (isActive) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+                    .captureGeminiHomeBounds("gemini-home-catch-footer-${item.id}"),
+            ) {
+                if (isActive) {
                 Text(
                     text = species,
                     style = YuJianTypography.sectionTitle.copy(
@@ -1068,6 +1126,7 @@ private fun GeminiCatchCard(
                             .captureGeminiHomeBounds("gemini-home-catch-metadata-${item.id}"),
                     )
                 }
+                }
             }
         },
         media = {
@@ -1102,6 +1161,20 @@ private fun GeminiCatchCard(
             }
         },
     )
+}
+
+@Composable
+private fun GeminiHomeCtaRule(modifier: Modifier) {
+    Canvas(modifier.width(23.dp).height(1.dp)) {
+        val centerY = size.height / 2f
+        drawLine(
+            color = YuJianColors.OnDark.copy(alpha = 0.80f),
+            start = Offset(0f, centerY),
+            end = Offset(size.width, centerY),
+            strokeWidth = 1.dp.toPx(),
+            cap = StrokeCap.Round,
+        )
+    }
 }
 
 @Composable
@@ -1145,34 +1218,48 @@ private fun GeminiFooterSection(
         verticalArrangement = Arrangement.spacedBy(gap),
     ) {
         if (!isResolving) {
-            Text(
-                text = "记录下一条鱼",
-                style = YuJianTypography.body.copy(
-                    color = YuJianColors.OnDark.copy(alpha = 0.96f),
-                    fontSize = labelSize,
-                    lineHeight = (labelSize.value * 1.25f).sp,
-                    shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.40f), blurRadius = 3f),
-                ),
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                onTextLayout = {
-                    ctaTextOverflow.value = it.hasVisualOverflow
-                    ctaLineCount.value = it.lineCount
-                    ctaLineRanges.value = (0 until it.lineCount).joinToString(";") { line ->
-                        "${it.getLineStart(line)}:${it.getLineEnd(line, visibleEnd = true)}"
-                    }
-                },
-                modifier = Modifier
-                    .semantics {
-                        this[GeminiHomeRenderedFontSizeSp] = labelSize.value
-                        this[GeminiHomeTextHasVisualOverflow] = ctaTextOverflow.value
-                        this[GeminiHomeTextLineCount] = ctaLineCount.value
-                        this[GeminiHomeTextLineRanges] = ctaLineRanges.value
-                    }
-                    .testTag("gemini-home-cta-label")
-                    .captureGeminiHomeBounds("gemini-home-cta-label"),
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(9.dp),
+                modifier = Modifier.testTag("gemini-home-cta-decorated-label")
+                    .captureGeminiHomeBounds("gemini-home-cta-decorated-label"),
+            ) {
+                GeminiHomeCtaRule(
+                    modifier = Modifier.testTag("gemini-home-cta-rule-leading")
+                        .captureGeminiHomeBounds("gemini-home-cta-rule-leading"),
+                )
+                Text(
+                    text = "记录下一条鱼",
+                    style = YuJianTypography.body.copy(
+                        color = YuJianColors.OnDark.copy(alpha = 0.96f),
+                        fontSize = labelSize,
+                        lineHeight = (labelSize.value * 1.25f).sp,
+                    ),
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    onTextLayout = {
+                        ctaTextOverflow.value = it.hasVisualOverflow
+                        ctaLineCount.value = it.lineCount
+                        ctaLineRanges.value = (0 until it.lineCount).joinToString(";") { line ->
+                            "${it.getLineStart(line)}:${it.getLineEnd(line, visibleEnd = true)}"
+                        }
+                    },
+                    modifier = Modifier
+                        .semantics {
+                            this[GeminiHomeRenderedFontSizeSp] = labelSize.value
+                            this[GeminiHomeTextHasVisualOverflow] = ctaTextOverflow.value
+                            this[GeminiHomeTextLineCount] = ctaLineCount.value
+                            this[GeminiHomeTextLineRanges] = ctaLineRanges.value
+                        }
+                        .testTag("gemini-home-cta-label")
+                        .captureGeminiHomeBounds("gemini-home-cta-label"),
+                )
+                GeminiHomeCtaRule(
+                    modifier = Modifier.testTag("gemini-home-cta-rule-trailing")
+                        .captureGeminiHomeBounds("gemini-home-cta-rule-trailing"),
+                )
+            }
         }
         if (runtimeAssets != null) {
             HomeCameraButton(
@@ -1183,6 +1270,7 @@ private fun GeminiFooterSection(
                 runtimeAssets = runtimeAssets,
                 visualSize = cameraVisualSize,
                 touchTargetSize = cameraTouchSize,
+                allowVisualOverflow = true,
             )
         } else {
             // Show the approved camera art while runtime motion masks decode.

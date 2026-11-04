@@ -55,6 +55,22 @@ class HomeStatsSemanticsTest {
     }
 
     @Test
+    fun aggregateRecordDaysTakePrecedenceOverOnlyTheLoadedRecentRows() {
+        compose.setContent {
+            HomeStats(
+                statistics = CatchStatistics(totalCatches = 38, speciesCount = 12, recordDays = 7),
+                catches = listOf(record("one"), record("two")),
+                onSpeciesClick = {},
+                onCatchesClick = {},
+            )
+        }
+
+        compose.onNodeWithTag("normal-home-stat-record-days-value")
+            .fetchSemanticsNode()
+            .let { assertEquals("7", it.config[androidx.compose.ui.semantics.SemanticsProperties.Text].first().text) }
+    }
+
+    @Test
     fun unresolvedStatsUseDashesAndExposeNoArchiveNavigation() {
         compose.setContent {
             HomeStats(

@@ -175,6 +175,20 @@ LAKE_GLASS_ANDROID_APP_PATHS = {
     "app/src/test/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassRuntimeContractTest.kt",
 }
 
+NH01_V4_TASK_ID = "YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4"
+NH01_V4_TASK_CONTRACT_PATH = "harness/task_contracts/YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4.md"
+NH01_V4_ANDROID_APP_PATHS = {
+    "app/src/androidTest/java/com/yujian/ai/ui/home/GeminiHomeDeviceMatrixTest.kt",
+    "app/src/main/java/com/yujian/ai/catches/CatchRepository.kt",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/color/YuJianColors.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/HomeStats.kt",
+    "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt",
+    "app/src/test/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicyTest.kt",
+    "app/src/androidTest/java/com/yujian/ai/ui/home/HomeStatsSemanticsTest.kt",
+}
+
 base_branch = os.environ.get("GITHUB_BASE_REF")
 if base_branch:
     base_ref = f"origin/{base_branch}"
@@ -203,6 +217,15 @@ if base_branch:
             and "本次不是 Empty Home 专项修复" in task_contract_text
             and "首次拍照引导页面" in task_contract_text
         )
+        nh01_v4_contract_path = ROOT / NH01_V4_TASK_CONTRACT_PATH
+        nh01_v4_contract_text = nh01_v4_contract_path.read_text(encoding="utf-8") if nh01_v4_contract_path.is_file() else ""
+        is_exact_nh01_v4_scope = (
+            changed_app_paths == NH01_V4_ANDROID_APP_PATHS
+            and NH01_V4_TASK_CONTRACT_PATH in changed
+            and f"`{NH01_V4_TASK_ID}`" in nh01_v4_contract_text
+            and "Priority: P0" in nh01_v4_contract_text
+            and "Exact Android app file set" in nh01_v4_contract_text
+        )
         lake_glass_contract_path = ROOT / LAKE_GLASS_TASK_CONTRACT_PATH
         lake_glass_contract_text = lake_glass_contract_path.read_text(encoding="utf-8") if lake_glass_contract_path.is_file() else ""
         is_exact_lake_glass_scope = (
@@ -212,9 +235,20 @@ if base_branch:
             and "Preserve Morning Lake V1 history byte-for-byte" in lake_glass_contract_text
             and "Do not add a `GLSurfaceView`" in lake_glass_contract_text
         )
+        nh01_contract_id_ok = f"`{NH01_V4_TASK_ID}`" in nh01_v4_contract_text
+        nh01_contract_priority_ok = "Priority: P0" in nh01_v4_contract_text
+        nh01_contract_file_set_ok = "Exact Android app file set" in nh01_v4_contract_text
+        scope_diagnostic = (
+            f"NH01 app_paths_exact={changed_app_paths == NH01_V4_ANDROID_APP_PATHS} "
+            f"contract_changed={NH01_V4_TASK_CONTRACT_PATH in changed} "
+            f"contract_id={nh01_contract_id_ok} "
+            f"priority={nh01_contract_priority_ok} "
+            f"exact_set_marker={nh01_contract_file_set_ok}; "
+            f"changed_app_paths={sorted(changed_app_paths)}"
+        )
         require(
-            changed_app_paths == EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS or is_exact_full_restore_scope or is_exact_lake_glass_scope or is_consolidated_baseline_scope,
-            "scope boundary violated by app changes outside an exact approved task file set",
+            changed_app_paths == EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS or is_exact_full_restore_scope or is_exact_lake_glass_scope or is_exact_nh01_v4_scope or is_consolidated_baseline_scope,
+            "scope boundary violated by app changes outside an exact approved task file set; " + scope_diagnostic,
         )
         amendment_spec = (ROOT / "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md").read_text(encoding="utf-8")
         motion_contract = read_json(ROOT / "app/src/main/assets/empty_home_runtime_v2/config/motion_contract.json")
@@ -256,7 +290,7 @@ if base_branch:
                 and automatic_haptic.get("max_start_latency_ms") == 120,
                 "AI Studio full restore requires the event-start-guarded V1.3 haptic contract",
             )
-        elif not is_exact_lake_glass_scope and not is_consolidated_baseline_scope:
+        elif not is_exact_lake_glass_scope and not is_exact_nh01_v4_scope and not is_consolidated_baseline_scope:
             require(
                 motion_contract.get("contract_revision") == "EMPTY_HOME_MOTION_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
                 and ripple.get("count") == 3
@@ -287,9 +321,11 @@ if base_branch:
             print("AISTUDIO_FULL_PAGE_RESTORE_SCOPE_EXCEPTION=PASS exact_Main_task_contract_and_app_file_set")
         elif is_exact_lake_glass_scope:
             print("LAKE_GLASS_V2_ANDROID_SCOPE=PASS exact_task_contract_and_app_file_set")
+        elif is_exact_nh01_v4_scope:
+            print("NH01_V4_ANDROID_SCOPE=PASS exact_task_contract_and_app_file_set")
         else:
             print("EMPTY_HOME_V22_RIPPLE_HAPTIC_SCOPE_EXCEPTION=PASS exact_file_set_and_approved_contracts")
-    allowed_app_paths = EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS | AISTUDIO_FULL_RESTORE_APP_PATHS | LAKE_GLASS_ANDROID_APP_PATHS
+    allowed_app_paths = EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS | AISTUDIO_FULL_RESTORE_APP_PATHS | LAKE_GLASS_ANDROID_APP_PATHS | NH01_V4_ANDROID_APP_PATHS
     for path in changed:
         require(not path.startswith("android/") and not path.startswith("design/manager/rr09_motion/"), f"scope boundary violated by {path}")
         if is_consolidated_baseline_scope:

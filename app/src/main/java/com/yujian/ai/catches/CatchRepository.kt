@@ -76,6 +76,7 @@ data class CatchStatistics(
     val speciesCount: Int = 0,
     val topSpecies: List<SpeciesCatchCount> = emptyList(),
     val recentSpecies: String? = null,
+    val recordDays: Int = 0,
 )
 
 data class CatchSaveDraft(
@@ -231,6 +232,7 @@ class CatchRepository(
                 SpeciesCatchCount(item.optString("species_id"), item.optString("species"), item.optInt("count"))
             },
             recentSpecies = response.optString("recent_species").takeIf(String::isNotBlank),
+            recordDays = response.optInt("record_days"),
         )
     }
 

@@ -40,6 +40,7 @@ internal object GeminiHomeGeometryProbe {
     @Volatile
     private var captureEnabled = false
     private val measured = ConcurrentHashMap<String, Bounds>()
+    private val pagerHistory = ArrayList<PagerState>()
     @Volatile
     private var pagerState: PagerState? = null
     @Volatile
@@ -47,6 +48,7 @@ internal object GeminiHomeGeometryProbe {
 
     fun beginCapture() {
         measured.clear()
+        synchronized(pagerHistory) { pagerHistory.clear() }
         pagerState = null
         scrollState = null
         captureEnabled = true
@@ -62,10 +64,16 @@ internal object GeminiHomeGeometryProbe {
 
     fun pagerState(): PagerState? = pagerState
 
+    fun pagerStateHistory(): List<PagerState> = synchronized(pagerHistory) { pagerHistory.toList() }
+
     fun scrollState(): ScrollState? = scrollState
 
     internal fun recordPagerState(state: PagerState) {
-        if (captureEnabled) pagerState = state
+        if (!captureEnabled) return
+        synchronized(pagerHistory) {
+            if (pagerHistory.lastOrNull() != state) pagerHistory += state
+        }
+        pagerState = state
     }
 
     internal fun recordScrollState(state: ScrollState) {
