@@ -221,6 +221,7 @@ def main() -> int:
     test_sha = sha256(args.test_apk)
     shutil.copy2(args.apk, artifact / "app-debug.apk")
     shutil.copy2(args.apk, artifact / "NH01_GEMINI_VALIDATION_DEBUG.apk")
+    shutil.copy2(args.apk, artifact / "NH01_VISUAL_QA_SELF_HEALING_DEBUG.apk")
     shutil.copy2(args.test_apk, artifact / "app-debug-androidTest.apk")
     copy_if_present(args.device_metadata, artifact / "device_metadata.json")
     copy_if_present(args.source_audit, artifact / "source_audit.txt")
@@ -329,7 +330,7 @@ def main() -> int:
         f"- Source SHA: {args.source_sha}",
         f"- GitHub Actions run: [{args.run_id}]({args.run_url})",
         f"- Runtime classification: {classification}",
-        f"- Debug APK size / SHA-256: {args.apk.stat().st_size} bytes / {app_sha}",
+        f"- NH01_VISUAL_QA_SELF_HEALING_DEBUG.apk size / SHA-256: {args.apk.stat().st_size} bytes / {app_sha}",
         f"- AndroidTest APK size / SHA-256: {args.test_apk.stat().st_size} bytes / {test_sha}",
         f"- Frozen visual authority SHA-256: {baseline_sha} (metadata only; source bytes and image derivatives are excluded from CI and Git)",
         "",

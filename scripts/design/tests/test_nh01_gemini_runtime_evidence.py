@@ -167,6 +167,7 @@ class Nh01GeminiRuntimeEvidencePackageTest(unittest.TestCase):
         manifest = json.loads((artifact / "NH01_Gemini_Runtime_Manifest_V3.json").read_text())
         report = (artifact / "NH01_Gemini_Native_Validation_Report.md").read_text()
         self.assertEqual("PASS", manifest["classification"])
+        self.assertEqual((artifact / "app-debug.apk").read_bytes(), (artifact / "NH01_VISUAL_QA_SELF_HEALING_DEBUG.apk").read_bytes())
         self.assertEqual(
             ["M04", "M07", "M10"],
             [row["profile_id"] for row in manifest["native_api28_matrix"]["profiles"]],

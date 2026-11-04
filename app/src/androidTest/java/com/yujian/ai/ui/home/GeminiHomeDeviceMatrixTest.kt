@@ -566,8 +566,11 @@ class GeminiHomeDeviceMatrixTest {
         assertTrue("section action retains its 48dp touch target: $sectionAction",
             sectionAction.width() / density >= 48f && sectionAction.height() / density >= 48f)
         assertTrue("CTA label does not overlap the camera", cta.bottom <= camera.top + density)
+        assertTrue("CTA label does not overlap visible camera artwork", cta.bottom <= cameraArt.top + density)
         assertTrue("footer and camera remain above the actual safe bottom inset", footer.bottom <= root.bottom - metrics.insets.optDouble("bottom") * density + density)
         assertTrue("camera remains above the actual safe bottom inset", camera.bottom <= root.bottom - metrics.insets.optDouble("bottom") * density + density)
+        assertTrue("camera artwork remains above the actual safe bottom inset",
+            cameraArt.bottom <= root.bottom - metrics.insets.optDouble("bottom") * density + density)
         listOfNotNull(leftId, rightId).forEach { sideId ->
             val side = rect("gemini-home-catch-neighbor-$sideId")
             assertTrue("side card width stays within 82%: $sideId", side.width() <= active.width() * 0.82f + density)

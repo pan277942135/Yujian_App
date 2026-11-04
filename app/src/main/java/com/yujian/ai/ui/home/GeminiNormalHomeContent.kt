@@ -1270,6 +1270,7 @@ private fun GeminiFooterSection(
                 runtimeAssets = runtimeAssets,
                 visualSize = cameraVisualSize,
                 touchTargetSize = cameraTouchSize,
+                allowVisualOverflow = true,
             )
         } else {
             // Show the approved camera art while runtime motion masks decode.

@@ -182,38 +182,7 @@ matrix_rc=0
 run_nh01_matrix "M04,M07,M10" "ADAPTIVE_V2" || matrix_rc=$?
 printf 'representative_3_case_matrix_seconds=%s\n' "$(( $(date +%s) - matrix_started_epoch ))" | tee -a "$timing_log"
 
-matrix_classification="$(python3 - "$YUJIAN_RUNTIME_EVIDENCE" "$matrix_rc" "NH01_THREE_DEVICE_ADAPTIVE_V2_REPORT.json" <<'PY'
-import json, pathlib, sys
-root = pathlib.Path(sys.argv[1])
-matrix_rc = int(sys.argv[2])
-report_path = root / sys.argv[3]
-try:
-    report = json.loads(report_path.read_text(encoding="utf-8"))
-except (OSError, json.JSONDecodeError):
-    report = {}
-records = [case.get("execution", {}) for case in report.get("cases", []) if isinstance(case, dict)]
-statuses = [str(record.get("status", "MISSING")).upper() for record in records]
-failures = [record for record in records if str(record.get("status", "")).upper() == "FAIL"]
-if matrix_rc == 0 and len(records) == 3 and statuses == ["PASS"] * 3:
-    classification = "PASS"
-elif failures and any(
-    "INSTRUMENTATION_EXIT_" in str(record.get("reason", ""))
-    or "TEST_ASSERTION_FAILED" in str(record.get("reason", ""))
-    or "FAIL_CAPTURE_PIPELINE" in str(record.get("reason", ""))
-    or "PAGER_SINGLE_PAGE_INTERACTION_FAILED" in str(record.get("reason", ""))
-    or "SWIPE_TO_NEXT_REAL_REPOSITORY_CATCH" in str(record.get("reason", ""))
-    or "failure_class=" in str(record.get("reason", ""))
-    for record in failures
-):
-    classification = "FAIL_TEST"
-elif any(status in {"MISSING", "RUNNING"} for status in statuses):
-    classification = "BLOCKED_INFRA"
-else:
-    classification = "FAIL_EVIDENCE"
-reasons = sorted({str(record.get("reason")) for record in records if record.get("reason")})
-print(classification + "\t" + "; ".join(reasons))
-PY
-)"
+matrix_classification="$(python3 -m scripts.android_runtime.nh01_matrix_classification "$YUJIAN_RUNTIME_EVIDENCE/NH01_THREE_DEVICE_ADAPTIVE_V2_REPORT.json" "$matrix_rc")"
 IFS=$'\t' read -r matrix_classification matrix_reasons <<< "$matrix_classification"
 if [[ "$runtime_rc" -eq 0 && "$matrix_classification" == "PASS" ]]; then
   instrumentation_status="PASS"
