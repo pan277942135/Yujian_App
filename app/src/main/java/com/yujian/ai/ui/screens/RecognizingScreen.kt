@@ -1373,7 +1373,22 @@ fun RecognitionProcessingScene(
             )
             val fishEnergyAnchor = if (fishEnergyAllowed)
                 recognitionMaskAnchor(assessment?.primary?.box, contour, currentPhotoTransform) else null
-            val perimeterEnergyAnchor = fishEnergyAnchor?.let {
+            // The initial perimeter-arrival path is allowed to use the production
+            // detector target while SlimSAM is still running. This anchor only
+            // drives PHOTO_PATH arrival; fish contour energy remains mask-gated.
+            val detectorPathAnchor = assessment?.primary?.box?.let { box ->
+                val mapped = currentPhotoTransform.mapNormalized(
+                    (box.x1 + box.x2) * .5f,
+                    (box.y1 + box.y2) * .5f,
+                )
+                Offset(mapped.x, mapped.y).takeIf { it.x.isFinite() && it.y.isFinite() }
+            }
+            val energyTargetAnchor = if (baseOrbEvent?.feedback == EnergyFeedback.ARRIVE) {
+                detectorPathAnchor
+            } else {
+                fishEnergyAnchor
+            }
+            val perimeterEnergyAnchor = energyTargetAnchor?.let {
                 nearestPhotoPerimeterAnchor(currentPhotoTransform.photoContentRect, it)
             }
             val orbPathGeometry = when (baseOrbEvent?.feedback) {
@@ -1384,7 +1399,13 @@ fun RecognitionProcessingScene(
                         waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
                     )?.also { energyPathLedger.recordRelease(waterLightFrame, it) }
                 }
-                EnergyFeedback.ARRIVE, EnergyFeedback.ABSORB -> if (fishEnergyAnchor != null && perimeterEnergyAnchor != null)
+                EnergyFeedback.ARRIVE -> if (detectorPathAnchor != null && perimeterEnergyAnchor != null)
+                    WaterLightPathGeometryFactory.between(
+                        WaterLightPathPoint(perimeterEnergyAnchor.x, perimeterEnergyAnchor.y),
+                        WaterLightPathPoint(detectorPathAnchor.x, detectorPathAnchor.y),
+                        waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
+                    ) else null
+                EnergyFeedback.ABSORB -> if (fishEnergyAnchor != null && perimeterEnergyAnchor != null)
                     WaterLightPathGeometryFactory.between(
                         WaterLightPathPoint(perimeterEnergyAnchor.x, perimeterEnergyAnchor.y),
                         WaterLightPathPoint(fishEnergyAnchor.x, fishEnergyAnchor.y),
@@ -1412,17 +1433,21 @@ fun RecognitionProcessingScene(
                 waterLightFrame.imageId,
                 orbEnergyEvent?.feedback,
                 orbEnergyEvent?.pathId,
+                orbEnergyEvent?.renderStatus,
                 orbEnergyEvent?.eventSequence,
                 orbEnergyEvent?.level?.let { it >= .999f },
             ) {
                 val event = orbEnergyEvent ?: return@LaunchedEffect
-                if (event.level >= .999f) controller.recordEnergyEvent(waterLightFrame.sceneFrame, event)
+                val accepted = if (event.level >= .999f) {
+                    controller.recordEnergyEvent(waterLightFrame.sceneFrame, event)
+                } else null
                 Log.i(
                     "WaterLightEnergy",
                     "ENERGY_EVENT session=${event.sessionId} attempt=${event.attemptId} image=${event.imageId} " +
                         "sha256=${event.photoSha256} feedback=${event.feedback} source=${event.source} target=${event.target} " +
                         "reference_ms=${event.referenceMs} level=${event.level} path=${event.pathId} " +
-                        "start=${event.pathGeometry?.start} end=${event.pathGeometry?.end} geometry=${event.geometryVersion}",
+                        "start=${event.pathGeometry?.start} end=${event.pathGeometry?.end} geometry=${event.geometryVersion} " +
+                        "render_status=${event.renderStatus} accepted=${accepted ?: "NOT_AT_COMPLETION"}",
                 )
             }
             val statusWidth = if (plan.landscape) maxWidth * .34f else maxWidth

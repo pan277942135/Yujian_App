@@ -229,6 +229,7 @@ set +e
 android_runtime_run_instrumentation "com.yujian.ai.RecognitionRevealProductionRuntimeTest" 0 240
 instrumentation_rc=$?
 set -e
+cp "$EVIDENCE_DIR/instrumentation.log" "$EVIDENCE_DIR/instrumentation-production.log"
 YUJIAN_INSTRUMENTATION_STATUS=$([[ "$instrumentation_rc" == 0 ]] && echo PASS || echo FAIL)
 "$ADB" shell screencap -p "/sdcard/fish-optics-${PROFILE,,}-final.png" >/dev/null 2>&1 || true
 "$ADB" exec-out screencap -p > "$EVIDENCE_DIR/screenshots/final-full-screen.png"
@@ -257,6 +258,7 @@ set +e
 android_runtime_run_instrumentation "com.yujian.ai.RecognitionOpticalFidelityRuntimeTest" 0 240
 performance_rc=$?
 set -e
+cp "$EVIDENCE_DIR/instrumentation.log" "$EVIDENCE_DIR/instrumentation-performance.log"
 "$ADB" exec-out run-as "$APP_PACKAGE" tar -cf - cache/recognition-optical-fidelity \
   > "$EVIDENCE_DIR/performance-test-cache.tar" 2> "$EVIDENCE_DIR/performance-test-cache-pull.log" || true
 if [[ -s "$EVIDENCE_DIR/performance-test-cache.tar" ]]; then
@@ -266,7 +268,7 @@ fi
 "$ADB" logcat -v threadtime -d > "$EVIDENCE_DIR/shader-logs/logcat-full.txt"
 grep -E 'RecognitionPerimeterGL|OrbCoreOpticalEffect|OrbFluidRefractionV1|OrbGrassWarpV12|SlimSamSegmenter|SLIMSAM_MODEL_LOAD|RecognitionScene' \
   "$EVIDENCE_DIR/shader-logs/logcat-full.txt" > "$EVIDENCE_DIR/shader-logs/optics-filtered.log" || true
-grep -E 'PHOTO_GPU_INIT=|PERIMETER_SHADER_COMPILE=|PERIMETER_SHADER_LINK=|PHOTO_GPU_FIRST_FRAME=|PHOTO_GPU_DRAW=|PHOTO_GPU_SWAP=|GLES_VERSION=|GL_RENDERER=|GLSL_VERSION=|fluid refraction|shared-current candidate|candidate fluid|SLIMSAM_MODEL_LOAD|SlimSAM segment success|REVEAL_DECISION' \
+grep -E 'PHOTO_GPU_INIT=|PERIMETER_SHADER_COMPILE=|PERIMETER_SHADER_LINK=|PHOTO_GPU_FIRST_FRAME=|PHOTO_GPU_DRAW=|PHOTO_GPU_SWAP=|GLES_VERSION=|GL_RENDERER=|GLSL_VERSION=|fluid refraction|shared-current candidate|candidate fluid|SLIMSAM_MODEL_LOAD|SLIMSAM_ENCODER_|SLIMSAM_DECODER_|SlimSAM segment success|REVEAL_DECISION|WaterLightEnergy: ENERGY_EVENT|VISUAL_STAGE|SCENE_STAGE_ENTER' \
   "$EVIDENCE_DIR/shader-logs/logcat-full.txt" > "$EVIDENCE_DIR/shader-logs/runtime-events.log" || true
 
 python3 - "$EVIDENCE_DIR" "$SOURCE_SHA" "$PROFILE" "$SCREEN_WIDTH" "$SCREEN_HEIGHT" "$SCREEN_DENSITY" \
@@ -277,6 +279,7 @@ width, height, density, rc, performance_rc = map(int, sys.argv[4:9])
 apk_path = pathlib.Path(sys.argv[9])
 app_report = root / "cache/rr09-gold-transfer-production/RR09_Production_Qualification_Report.json"
 matrix_report = root / "cache/rr09-gold-transfer-production/AI_Orb_WaterLight_Runtime_Matrix.json"
+diagnostic_report = root / "cache/rr09-gold-transfer-production/Runtime_Test_Diagnostic.json"
 performance_report = root / "cache/recognition-optical-fidelity/recognition_optical_fidelity_v3_1.json"
 payload = {
   "gate": "fish-optics-visual-api36",
@@ -298,6 +301,7 @@ payload = {
   "performance_test_exit_code": performance_rc,
   "performance_test_status": "PASS" if performance_rc == 0 else "FAIL_TEST",
   "production_result_report": str(app_report.relative_to(root)) if app_report.exists() else None,
+  "runtime_diagnostic_report": str(diagnostic_report.relative_to(root)) if diagnostic_report.exists() else None,
   "runtime_matrix": str(matrix_report.relative_to(root)) if matrix_report.exists() else None,
   "performance_report": str(performance_report.relative_to(root)) if performance_report.exists() else None,
   "captured_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -306,6 +310,8 @@ if app_report.exists():
   payload["production_test"] = json.loads(app_report.read_text(encoding="utf-8"))
 if matrix_report.exists():
   payload["runtime_matrix_data"] = json.loads(matrix_report.read_text(encoding="utf-8"))
+if diagnostic_report.exists():
+  payload["runtime_test_diagnostic"] = json.loads(diagnostic_report.read_text(encoding="utf-8"))
 if performance_report.exists():
   payload["performance_data"] = json.loads(performance_report.read_text(encoding="utf-8"))
 log = root / "shader-logs/runtime-events.log"
@@ -318,15 +324,21 @@ with zipfile.ZipFile(apk_path) as archive:
   ):
     data = archive.read(name)
     slimsam[name] = {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+production = payload.get("production_test", {})
+diagnostic = payload.get("runtime_test_diagnostic", {})
+matrix = payload.get("runtime_matrix_data", {})
+mask_status = production.get("subject_status", diagnostic.get("mask_status"))
+mask_quality = production.get("mask_quality", diagnostic.get("mask_quality"))
+contour_segments = production.get("contour_segments", diagnostic.get("contour_segments", 0)) or 0
 payload["mask_provider"] = {
   "provider": "FishSubjectPreviewEngine -> SlimSamSegmenter (production ONNX path)",
   "models": slimsam,
   "runtime_vision_model_loaded": "SLIMSAM_MODEL_LOAD_END model=vision" in events,
   "runtime_mask_decoder_loaded": "SLIMSAM_MODEL_LOAD_END model=decoder" in events,
   "runtime_segment_success": "SlimSAM segment success" in events,
-  "mask_status_ready": payload.get("production_test", {}).get("subject_status") == "READY",
-  "mask_quality_good": payload.get("production_test", {}).get("mask_quality") == "GOOD",
-  "contour_segments": payload.get("production_test", {}).get("contour_segments", 0),
+  "mask_status_ready": mask_status == "READY",
+  "mask_quality_good": mask_quality == "GOOD",
+  "contour_segments": contour_segments,
 }
 payload["runtime_shader_evidence"] = {
   "gles2_compile_pass": "PERIMETER_SHADER_COMPILE=PASS" in events,
@@ -337,8 +349,12 @@ payload["runtime_shader_evidence"] = {
 baseline = source == "e0288964190015c262f43e730f6d40650cd49caf"
 payload["classification"] = ("BASELINE_CAPTURED" if baseline else "EXACT_HEAD_RUNTIME_CAPTURED") if rc == 0 and performance_rc == 0 else "FAIL_TEST"
 production = payload.get("production_test", {})
+diagnostic = payload.get("runtime_test_diagnostic", {})
 matrix = payload.get("runtime_matrix_data", {})
-observed_stages = set(matrix.get("real_time_stages_observed", []))
+automatic_handoff_observed = production.get("automatic_handoff_observed", diagnostic.get("automatic_handoff_observed", False))
+result_geometry_status = production.get("result_geometry_status", diagnostic.get("result_geometry_status"))
+photo_identity_matches = diagnostic.get("processing_result_photo_identity_matches", False)
+observed_stages = set(matrix.get("real_time_stages_observed", diagnostic.get("real_time_stages_observed", [])))
 payload["gates"] = {
   "SOURCE_GATE": "PASS" if source else "FAIL_ARTIFACT",
   "API36_RUNTIME_GATE": "INSTRUMENTATION_PASS" if rc == 0 else "FAIL_TEST",
@@ -352,10 +368,10 @@ payload["gates"] = {
     payload["mask_provider"]["mask_quality_good"],
     payload["mask_provider"]["contour_segments"] > 0,
   )) else "NOT_PROVEN",
-  "REAL_TIME_13_STAGE_GATE": "PASS" if len(observed_stages) == 13 else "NOT_PROVEN",
+  "REAL_TIME_13_STAGE_GATE": "PASS" if rc == 0 and automatic_handoff_observed and len(observed_stages) == 13 else "NOT_PROVEN",
   "13_STAGE_GATE": "PASS" if len(observed_stages) == 13 and len(matrix.get("stages", [])) >= 13 else "NOT_PROVEN",
-  "AUTOMATIC_HANDOFF_GATE": "PASS" if production.get("automatic_handoff_observed") and production.get("result_entry_mode", "").startswith("PRODUCTION_ON_FINISHED") else "NOT_PROVEN",
-  "PROCESSING_RESULT_GATE": "PASS" if production.get("automatic_handoff_observed") and production.get("result_geometry_status") == "RESOLVED" else "NOT_PROVEN",
+  "AUTOMATIC_HANDOFF_GATE": "PASS" if automatic_handoff_observed and (production.get("result_entry_mode", diagnostic.get("result_entry_mode", "")).startswith("PRODUCTION_ON_FINISHED") and (production.get("automatic_handoff_observed") or diagnostic.get("result_entries", 0) >= 1)) else "NOT_PROVEN",
+  "PROCESSING_RESULT_GATE": "PASS" if automatic_handoff_observed and result_geometry_status == "RESOLVED" and photo_identity_matches else "NOT_PROVEN",
   "DETERMINISTIC_13_STAGE_CAPTURE_GATE": "PASS" if len(matrix.get("stages", [])) >= 13 else "NOT_PROVEN",
   "PERIMETER_VISUAL_GATE": "REVIEW_REQUIRED",
   "FISH_CONTOUR_VISUAL_GATE": "REVIEW_REQUIRED",
@@ -365,7 +381,8 @@ payload["gates"] = {
   "PHYSICAL_DEVICE_GATE": "NOT_RUN",
   "VISUAL_ACCEPTANCE_GATE": "REVIEW_REQUIRED",
 }
-payload["automatic_production_handoff"] = production.get("result_entry_mode", "NOT_PROVEN")
+payload["automatic_production_handoff"] = production.get(
+  "result_entry_mode", diagnostic.get("result_entry_mode", "NOT_PROVEN"))
 payload["visual_acceptance"] = "REVIEW_REQUIRED"
 (root / "runtime-result.json").write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(json.dumps(payload["runtime_shader_evidence"], indent=2))
