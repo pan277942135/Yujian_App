@@ -30,7 +30,7 @@ jobs:
       HARNESS_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       EVIDENCE_DIR: evidence/fish-optics-v2-2/baseline
       APK_DIR: build/baseline-runtime-apks
-      ANDROID_AVD_HOME: ${{ runner.temp }}/android-avd
+      ANDROID_AVD_HOME: ${{ github.workspace }}/.android-avd
 
     steps:
       - name: Checkout QA harness revision
