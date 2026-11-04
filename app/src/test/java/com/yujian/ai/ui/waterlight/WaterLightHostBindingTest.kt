@@ -8,6 +8,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -25,9 +26,25 @@ class WaterLightHostBindingTest {
             assertFalse(binding.accepts(frame, rect.copy(version = 3L)))
             assertFalse(binding.accepts(frame, rect.copy(rightPx = 19f)))
             assertFalse(binding.accepts(frame, rect.copy(host = WaterLightHost.entries.first { it != host })))
+            assertEquals("GEOMETRY_HOST_MISMATCH(expected=$host actual=${WaterLightHost.entries.first { it != host }})",
+                binding.rejectionReason(frame, rect.copy(host = WaterLightHost.entries.first { it != host })))
+            assertEquals("FRAME_GEOMETRY_VERSION_MISMATCH(frame=4 geometry=3)",
+                binding.rejectionReason(frame, rect.copy(version = 3L)))
+            assertEquals("FRAME_IDENTITY_SESSION_ID_MISMATCH",
+                binding.rejectionReason(frame.copy(sessionId = "old"), rect))
+            assertEquals("FRAME_IDENTITY_ATTEMPT_ID_MISMATCH",
+                binding.rejectionReason(frame.copy(attemptId = "old"), rect))
+            assertEquals("FRAME_IDENTITY_IMAGE_ID_MISMATCH",
+                binding.rejectionReason(frame.copy(imageId = "old"), rect))
+            assertEquals("FRAME_IDENTITY_PHOTO_SHA256_MISMATCH",
+                binding.rejectionReason(frame.copy(photoSha256 = "old"), rect))
+            assertEquals("FRAME_IDENTITY_PHOTO_CONTENT_VERSION_MISMATCH",
+                binding.rejectionReason(frame.copy(photoContentVersion = 1L), rect))
             val wrongMaterial = WaterLightHostBinding(host,
                 WaterLightMaterialProfile.ORB_LEGACY.copy(host = WaterLightHost.entries.first { it != host }), engine)
             assertFalse(wrongMaterial.accepts(frame, rect))
+            assertEquals("MATERIAL_HOST_MISMATCH(expected=$host actual=${WaterLightHost.entries.first { it != host }})",
+                wrongMaterial.rejectionReason(frame, rect))
         }
         engine.release()
     }

@@ -96,10 +96,17 @@ class UnifiedWaterLightEngine {
         geometryVersion = frame.geometryVersion
     }
 
-    fun accepts(frame: WaterLightFrame): Boolean =
-        sessionId == frame.sessionId && attemptId == frame.attemptId && imageId == frame.imageId &&
-            photoSha256 == frame.photoSha256 && photoContentVersion == frame.photoContentVersion &&
-            geometryVersion == frame.geometryVersion
+    fun rejectionReason(frame: WaterLightFrame): String? = when {
+        sessionId != frame.sessionId -> "SESSION_ID_MISMATCH"
+        attemptId != frame.attemptId -> "ATTEMPT_ID_MISMATCH"
+        imageId != frame.imageId -> "IMAGE_ID_MISMATCH"
+        photoSha256 != frame.photoSha256 -> "PHOTO_SHA256_MISMATCH"
+        photoContentVersion != frame.photoContentVersion -> "PHOTO_CONTENT_VERSION_MISMATCH"
+        geometryVersion != frame.geometryVersion -> "ENGINE_GEOMETRY_VERSION_MISMATCH"
+        else -> null
+    }
+
+    fun accepts(frame: WaterLightFrame): Boolean = rejectionReason(frame) == null
 
     fun release() {
         sessionId = null

@@ -45,4 +45,15 @@ class CapturePresentationAssetRuntimeTest {
             bitmap.recycle()
         }
     }
+
+    @Test fun photoStableOrbCoreKeepsFrozenWebpDimensionsAndAlpha() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val core = BitmapFactory.decodeResource(context.resources, R.drawable.processing_water_core_v1)
+        requireNotNull(core)
+        assertEquals(384, core.width)
+        assertEquals(384, core.height)
+        assertEquals(0, Color.alpha(core.getPixel(0, 0)))
+        assertTrue("Core center must remain visible", Color.alpha(core.getPixel(core.width / 2, core.height / 2)) > 0)
+        core.recycle()
+    }
 }

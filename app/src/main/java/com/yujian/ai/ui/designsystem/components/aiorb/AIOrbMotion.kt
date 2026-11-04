@@ -1,5 +1,7 @@
 package com.yujian.ai.ui.designsystem.components.aiorb
 
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+
 enum class AIOrbVisualState {
     CAPTURE_BUTTON_IDLE,
     CAPTURE_BUTTON_ACTIVATED,
@@ -53,3 +55,8 @@ fun aiOrbProcessingState(
     entranceMs < 350L -> AIOrbVisualState.ORB_MORPH_IN
     else -> AIOrbVisualState.ORB_ACTIVE
 }
+
+/** PHOTO_STABLE keeps the byte-frozen core raster untouched until Orb wake begins. */
+internal fun orbCoreOpticalEffectEnabled(
+    stage: RecognitionSceneStage,
+): Boolean = stage != RecognitionSceneStage.PHOTO_STABLE

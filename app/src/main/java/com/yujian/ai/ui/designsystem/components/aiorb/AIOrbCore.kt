@@ -12,16 +12,20 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.annotation.DrawableRes
+import android.util.Log
 import com.yujian.ai.R
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
 import com.yujian.ai.ui.waterlight.renderer.OrbCoreOpticalEffects
 import com.yujian.ai.ui.waterlight.renderer.OrbFilamentRendererMode
@@ -207,6 +211,10 @@ private fun OrbVisual(
         stageProgress = sceneFrame.stageProgress,
         reducedMotion = reduceMotion,
     )
+    val photoStable = sceneFrame.stage == RecognitionSceneStage.PHOTO_STABLE
+    val opticalEffectEnabled = orbCoreOpticalEffectEnabled(sceneFrame.stage)
+    val coreImageAlpha = if (photoStable) 1f else
+        (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
     val context = LocalContext.current
     val density = LocalDensity.current
     val coreTextureSizePx = with(density) { (coreSize / .84f).toPx() }
@@ -232,9 +240,27 @@ private fun OrbVisual(
             coreOpticalEffect?.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
         }
     }
+    val corePainter = painterResource(R.drawable.processing_water_core_v1)
+    val appliedRenderEffect = coreOpticalEffect?.renderEffect?.takeIf { opticalEffectEnabled }
+    val layoutLogKeys = remember(sceneFrame.identity) { mutableSetOf<String>() }
+    androidx.compose.runtime.LaunchedEffect(
+        sceneFrame.stage,
+        opticalEffectEnabled,
+        coreOpticalEffect?.renderEffect != null,
+    ) {
+        Log.i(
+            "AiOrbVisibility",
+            "CORE_RENDER stage=${sceneFrame.stage} progress=${sceneFrame.stageProgress} " +
+                "resource=processing_water_core_v1.webp intrinsic=${corePainter.intrinsicSize} " +
+                "effect_created=${coreOpticalEffect?.renderEffect != null} effect_applied=${appliedRenderEffect != null} " +
+                "effect_reason=${if (opticalEffectEnabled) "WAKE_ACTIVE" else "PHOTO_STABLE_RAW_CORE"} " +
+                "image_alpha=$coreImageAlpha image_size_dp=${coreSize.value / .84f} " +
+                "scale=${if (photoStable) 1f else breath}",
+        )
+    }
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
-            scaleX = (1f - .18f * settle) * breath
+            scaleX = (1f - .18f * settle) * (if (photoStable) 1f else breath)
             scaleY = scaleX
             alpha = frame.completionAlpha
         },
@@ -244,13 +270,28 @@ private fun OrbVisual(
             orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
             activeEnergyEvent, releaseEnergy, returnEnergy)
         Image(
-            painter = painterResource(R.drawable.processing_water_core_v1),
+            painter = corePainter,
             contentDescription = null,
             modifier = Modifier.size(coreSize / .84f).graphicsLayer {
-                alpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
+                alpha = coreImageAlpha
                 scaleX = 1f
                 scaleY = 1f
-                coreOpticalEffect?.renderEffect?.let { renderEffect = it }
+                // Assign null explicitly when the scene enters PHOTO_STABLE so a
+                // previously applied wake shader cannot remain attached to this layer.
+                renderEffect = appliedRenderEffect
+            }.onGloballyPositioned { coordinates ->
+                val settled = entranceElapsedMs >= 900L
+                val logKey = "${sceneFrame.stage}:${if (settled) "SETTLED" else "ENTRY"}"
+                if (layoutLogKeys.add(logKey)) {
+                    val bounds = coordinates.boundsInWindow()
+                    Log.i(
+                        "AiOrbVisibility",
+                        "CORE_IMAGE_LAYOUT stage=${sceneFrame.stage} settled=$settled " +
+                            "bounds_px=${bounds.left},${bounds.top},${bounds.right},${bounds.bottom} " +
+                            "size_px=${coordinates.size.width}x${coordinates.size.height} alpha=$coreImageAlpha " +
+                            "shader_applied=${appliedRenderEffect != null}",
+                    )
+                }
             },
         )
         OrbCoreOpticalEffects(
