@@ -108,8 +108,9 @@ values.update({
     "hw.lcd.height": "2532",
     "hw.lcd.density": "480",
     "hw.initialOrientation": "Portrait",
-    "skin.name": "_no_skin",
+    "skin.name": "pixel_2",
     "skin.dynamic": "yes",
+    "showDeviceFrame": "no",
     "hw.gpu.enabled": "yes",
     "hw.gpu.mode": "swiftshader_indirect",
     "hw.ramSize": "4096",
@@ -125,10 +126,17 @@ cp "$AVD_HOME/${AVD_NAME}.avd/config.ini" "$EVIDENCE_DIR/device-metadata/avd-con
 "$ADB" start-server
 if ! "$ADB" devices | awk 'NR>1 && $2=="device" {found=1} END {exit !found}'; then
   "$EMULATOR" -avd "$AVD_NAME" -no-window -no-snapshot -wipe-data -noaudio -no-boot-anim \
-    -camera-back none -gpu swiftshader_indirect -partition-size 4096 > "$EVIDENCE_DIR/device-metadata/emulator.log" 2>&1 &
+    -camera-back none -gpu swiftshader_indirect -no-metrics -partition-size 4096 > "$EVIDENCE_DIR/device-metadata/emulator.log" 2>&1 &
   EMU_PID=$!
 fi
-timeout 90s "$ADB" wait-for-device
+if ! timeout 180s "$ADB" wait-for-device; then
+  FAILURE_REASON="ANDROID_EMULATOR_BOOT_TIMEOUT"
+  RESULT=BLOCKED_INFRA
+  printf 'Emulator boot timed out; ADB state follows.\n' >&2
+  "$ADB" devices -l >&2 || true
+  cat "$EVIDENCE_DIR/device-metadata/emulator.log" >&2 || true
+  exit 10
+fi
 sdk="$("$ADB" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
 [[ "$sdk" == 36 ]] || { FAILURE_REASON="API36_SDK_MISMATCH:$sdk"; RESULT=BLOCKED_INFRA; exit 10; }
 "$ADB" devices -l > "$EVIDENCE_DIR/device-metadata/adb-devices.txt"
