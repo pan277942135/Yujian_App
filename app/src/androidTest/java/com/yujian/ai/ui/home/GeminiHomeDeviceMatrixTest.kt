@@ -536,6 +536,7 @@ class GeminiHomeDeviceMatrixTest {
         val active = rect("gemini-home-catch-card-$activeId")
         val track = rect("gemini-home-carousel-track")
         val camera = touchRect("gemini-home-camera")
+        val cameraArt = rect("gemini-home-camera-art")
         val sectionAction = touchRect("gemini-home-section-all")
         val cta = rect("gemini-home-cta-label")
         val footer = rect("gemini-home-footer-cta")
@@ -550,6 +551,18 @@ class GeminiHomeDeviceMatrixTest {
         val cardWidthCap = minOf(track.width() / density * 0.70f, 337.2f)
         assertTrue("hero remains within 70% width and 337.2dp cap", cardWidthDp <= cardWidthCap + 1f)
         assertTrue("camera effective touch target remains 72–88dp: $camera", camera.width() / density in 72f..88f && camera.height() / density in 72f..88f)
+        val safeWidthDp = metrics.widthPx / density -
+            metrics.insets.optDouble("start").toFloat() - metrics.insets.optDouble("end").toFloat()
+        val safeHeightDp = metrics.heightPx / density -
+            metrics.insets.optDouble("top").toFloat() - metrics.insets.optDouble("bottom").toFloat()
+        val expectedCameraVisualDp = geminiHomeCameraVisualSize(safeWidthDp, safeHeightDp)
+        assertEquals("camera artwork frame follows the V4 responsive visual size",
+            expectedCameraVisualDp, cameraArt.width() / density, 1f)
+        assertEquals("camera artwork frame remains square",
+            cameraArt.width() / density, cameraArt.height() / density, 1f)
+        assertTrue("camera artwork is centered in the interactive target",
+            abs(camera.centerX() - cameraArt.centerX()) <= density &&
+                abs(camera.centerY() - cameraArt.centerY()) <= density)
         assertTrue("section action retains its 48dp touch target: $sectionAction",
             sectionAction.width() / density >= 48f && sectionAction.height() / density >= 48f)
         assertTrue("CTA label does not overlap the camera", cta.bottom <= camera.top + density)
@@ -569,6 +582,8 @@ class GeminiHomeDeviceMatrixTest {
         measurement.put("hero_center_error_dp", abs(active.centerX() - track.centerX()) / density)
         measurement.put("hero_width_cap_dp", cardWidthCap)
         measurement.put("camera_touch_bounds_dp", touchRect("gemini-home-camera").toDpJson(density))
+        measurement.put("camera_art_bounds_dp", cameraArt.toDpJson(density))
+        measurement.put("camera_visual_size_expected_dp", expectedCameraVisualDp)
         measurement.put("section_action_touch_bounds_dp", sectionAction.toDpJson(density))
         measurement.put("cta_camera_vertical_gap_dp", (camera.top - cta.bottom) / density)
         measurement.put("footer_camera_safe_bottom_clearance_dp",

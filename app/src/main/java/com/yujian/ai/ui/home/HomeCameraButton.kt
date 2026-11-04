@@ -156,7 +156,8 @@ internal fun HomeCameraButton(
         ),
         visualSize = resolvedSize,
         touchTargetSize = touchTargetSize ?: resolvedSize,
-        visualModifier = Modifier.testTag("gemini-home-camera-art"),
+        visualModifier = Modifier.testTag("gemini-home-camera-art")
+            .captureGeminiHomeBounds("gemini-home-camera-art"),
         frozenVisual = true,
         frozenVisualResource = AIOrbCaptureVisualAssets.HOME_IDLE,
         onCaptureHaptic = { if (!transitionActive) captureClickHaptic(context, view) },
