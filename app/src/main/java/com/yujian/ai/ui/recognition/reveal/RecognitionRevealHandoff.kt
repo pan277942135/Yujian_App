@@ -63,6 +63,8 @@ data class RecognitionSubjectGeometrySnapshot(
     val maskSize: Int,
     val expectedMaskSize: Int,
     val contourSourceSpace: String = "SEGMENTATION_ROI_NORMALIZED",
+    /** SlimSAM bitmap generation identity retained with the normalized contour. */
+    val maskVersion: Long = 0L,
 )
 
 data class RecognitionProcessingPhotoSnapshot(
@@ -104,6 +106,7 @@ data class RecognitionRevealHandoff(
     val processingOrbCoreDiameterPx: Float = 0f,
     /** Final Classifier × SlimSAM decision captured before production Result navigation. */
     val revealDecision: RecognitionRevealDecisionState? = null,
+    val maskVersion: Long = 0L,
 )
 
 object RecognitionRevealHandoffFactory {
@@ -215,6 +218,7 @@ object RecognitionRevealHandoffFactory {
             processingOrbCoreDiameterPx = photo?.processingOrbCoreDiameterPx
                 ?.takeIf { it.isFinite() && it > 1f } ?: 0f,
             revealDecision = decision,
+            maskVersion = if (maskTrusted) subject?.maskVersion ?: 0L else 0L,
         )
     }
 

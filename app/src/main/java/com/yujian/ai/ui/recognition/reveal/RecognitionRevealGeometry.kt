@@ -106,6 +106,7 @@ data class RecognitionRevealGeometry(
     val orbReturnPath: RecognitionRevealCubicPath? = null,
     val orbToGlyphPath: RecognitionRevealCubicPath? = null,
     val glyphResiduePath: RecognitionRevealCubicPath? = null,
+    val maskVersion: Long = 0L,
 ) {
     val processingPhotoClipLocal: RecognitionRevealWindowRect
         get() = processingPhotoClip.localTo(rootWindowOrigin)
@@ -302,6 +303,7 @@ object RecognitionRevealGeometryResolver {
                 orbReturnPath = orbReturnPath,
                 orbToGlyphPath = orbToGlyphPath,
                 glyphResiduePath = glyphResiduePath,
+                maskVersion = handoff.maskVersion,
             ),
             failureReason = null,
         )

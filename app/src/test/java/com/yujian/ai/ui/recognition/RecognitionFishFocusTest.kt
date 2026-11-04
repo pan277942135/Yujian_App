@@ -5,6 +5,7 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -80,6 +81,27 @@ class RecognitionFishFocusTest {
         )
         assertEquals(2_200L, RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS)
         assertEquals(.20f, RecognitionContourMaterialCandidate.GOLD_GLINT_ARC_RATIO, 0f)
+    }
+
+    @Test
+    fun contourCacheIdentityInvalidatesOnEveryRecognitionBoundary() {
+        val base = RecognitionContourCacheIdentity(
+            sessionId = "session-1",
+            attemptId = "attempt-1",
+            imageId = "image-1",
+            photoSha256 = "a".repeat(64),
+            maskVersion = 7L,
+            contourHash = 13,
+            geometryVersion = 11L,
+        )
+        assertEquals(base, base.copy())
+        assertNotEquals(base, base.copy(sessionId = "session-2"))
+        assertNotEquals(base, base.copy(attemptId = "attempt-2"))
+        assertNotEquals(base, base.copy(imageId = "image-2"))
+        assertNotEquals(base, base.copy(photoSha256 = "b".repeat(64)))
+        assertNotEquals(base, base.copy(maskVersion = 8L))
+        assertNotEquals(base, base.copy(contourHash = 14))
+        assertNotEquals(base, base.copy(geometryVersion = 12L))
     }
 
     private fun scene(stage: RecognitionSceneStage, progress: Float) =

@@ -4,6 +4,8 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 
 /** Geometry reported by the exact-source WebGL canvas in the reference browser. */
 internal data class RecognitionPerimeterReferenceMetrics(
@@ -50,16 +52,30 @@ internal data class RecognitionPerimeterSparkle(
 
 /** Small CPU-only port of the source path sampler, kept separate from GLES lifecycle code. */
 internal object RecognitionPerimeterShaderMath {
-    const val SPREAD_DURATION_MS = 1_200L
     const val SPARKLE_COUNT = 16
     const val PATH_SUBDIVISIONS = 280
     const val MARGIN_RATIO = 0.015f
+    const val CORNER_RADIUS_RATIO = 0.12f
 
-    fun linearProgress(elapsedMs: Long): Float =
-        (elapsedMs.coerceAtLeast(0L).toFloat() / SPREAD_DURATION_MS).coerceIn(0f, 1f)
+    /** Uses the shared scene sample; there is no perimeter-owned timer or animator. */
+    fun sourceTimeSec(scene: RecognitionSceneFrame, speed: Float = 1f): Float =
+        scene.opticalReferenceElapsedMs.coerceAtLeast(0L) * 0.001f * speed.coerceAtLeast(0f)
 
-    fun sourceTimeSec(elapsedMs: Long, speed: Float = 1f): Float =
-        elapsedMs.coerceAtLeast(0L) * 0.001f * speed
+    /** Continuous bottom-to-top reveal across the existing RELEASE → ARRIVAL stages. */
+    fun expansionProgress(
+        scene: RecognitionSceneFrame,
+        profile: RecognitionPerimeterOpticalProfileV1 = RecognitionPerimeterOpticalProfileV1.EFFECT_02,
+    ): Float {
+        val p = scene.stageProgress.coerceIn(0f, 1f)
+        val releaseEnd = profile.releaseExpansionShare
+        return when (scene.stage) {
+            RecognitionSceneStage.PHOTO_STABLE,
+            RecognitionSceneStage.ORB_WAKE -> 0f
+            RecognitionSceneStage.ORB_RELEASE -> releaseEnd * p
+            RecognitionSceneStage.PERIMETER_ARRIVAL -> releaseEnd + (1f - releaseEnd) * p
+            else -> 1f
+        }.coerceIn(0f, 1f)
+    }
 
     fun coordinateScale(
         metrics: RecognitionPerimeterReferenceMetrics?,
@@ -114,7 +130,7 @@ internal object RecognitionPerimeterShaderMath {
         width: Float,
         height: Float,
         margin: Float = min(width, height) * MARGIN_RATIO,
-        cornerRadius: Float = min(width, height) * 0.12f,
+        cornerRadius: Float = min(width, height) * CORNER_RADIUS_RATIO,
         subdivisions: Int = PATH_SUBDIVISIONS,
     ): List<RecognitionPerimeterPathPoint> {
         require(width > 0f && height > 0f && subdivisions > 0)

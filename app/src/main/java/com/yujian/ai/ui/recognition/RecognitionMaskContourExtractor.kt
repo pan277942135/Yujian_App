@@ -13,6 +13,7 @@ internal object RecognitionMaskContourExtractor {
     private data class Point(val x: Float, val y: Float)
     private data class Key(val x: Int, val y: Int)
     private data class Edge(val start: Point, val end: Point)
+    private data class SmoothPass(val first: Int, val second: Int, val tolerance: Float)
 
     fun extract(width: Int, height: Int, alpha: ByteArray, threshold: Int = DEFAULT_THRESHOLD): List<RecognitionContourSegment> {
         if (width <= 1 || height <= 1 || alpha.size != width * height) return emptyList()
@@ -108,7 +109,7 @@ internal object RecognitionMaskContourExtractor {
                 currentKey = key(nextPoint)
             }
             if (closed && points.size >= 5) {
-                val loop = simplify(points.dropLast(1))
+                val loop = smoothAndSimplifyClosed(points.dropLast(1))
                 if (loop.size >= 4 && abs(signedArea(loop)) > .0001f) loops += loop
             }
         }
@@ -160,19 +161,146 @@ internal object RecognitionMaskContourExtractor {
     private fun key(point: Point) = Key((point.x * KEY_SCALE).roundToInt(), (point.y * KEY_SCALE).roundToInt())
     private fun distance(a: Point, b: Point) = hypot((b.x - a.x).toDouble(), (b.y - a.y).toDouble()).toFloat()
 
-    /** Removes only near-collinear subpixel samples; sharp fins and tails stay in the path. */
-    private fun simplify(points: List<Point>): List<Point> {
+    /**
+     * Demo's 3-pass weighted cyclic smoothing → closed-loop RDP (2.2 source px) →
+     * 2-pass refinement. Every level is checked for winding, area, deviation and
+     * self-intersection; unsafe candidates back off to lighter smoothing, then raw
+     * marching-squares geometry. Loops are never joined or discarded here.
+     */
+    private fun smoothAndSimplifyClosed(points: List<Point>): List<Point> {
         if (points.size < 5) return points
-        val simplified = points.filterIndexed { index, current ->
-            val previous = points[(index - 1 + points.size) % points.size]
-            val next = points[(index + 1) % points.size]
-            val dx = next.x - previous.x
-            val dy = next.y - previous.y
-            val length = hypot(dx.toDouble(), dy.toDouble()).toFloat().coerceAtLeast(.001f)
-            val lineDistance = abs(dy * current.x - dx * current.y + next.x * previous.y - next.y * previous.x) / length
-            lineDistance > .22f || distance(previous, next) < .5f
+        val rawArea = signedArea(points)
+        if (abs(rawArea) <= .0001f) return points
+        val levels = listOf(
+            SmoothPass(first = 3, second = 2, tolerance = 2.2f),
+            SmoothPass(first = 2, second = 1, tolerance = 1.25f),
+            SmoothPass(first = 1, second = 0, tolerance = .65f),
+        )
+        for (level in levels) {
+            val firstPass = smoothClosed(points, level.first)
+            val simplified = simplifyClosedRdp(firstPass, level.tolerance)
+            val candidate = smoothClosed(simplified, level.second)
+            if (candidate.size >= 4 && topologySafe(candidate, points, rawArea, level.tolerance)) {
+                return candidate
+            }
         }
-        return if (simplified.size >= 4) simplified else points
+        return points
+    }
+
+    private fun smoothClosed(points: List<Point>, passes: Int): List<Point> {
+        var current = points
+        repeat(passes.coerceIn(0, 5)) {
+            if (current.size < 4) return current
+            current = List(current.size) { index ->
+                val previous = current[(index - 1 + current.size) % current.size]
+                val point = current[index]
+                val next = current[(index + 1) % current.size]
+                Point(
+                    .20f * previous.x + .60f * point.x + .20f * next.x,
+                    .20f * previous.y + .60f * point.y + .20f * next.y,
+                )
+            }
+        }
+        return current
+    }
+
+    /** RDP applied to two chains between stable opposite anchors, preserving closure. */
+    private fun simplifyClosedRdp(points: List<Point>, epsilon: Float): List<Point> {
+        if (points.size <= 4) return points
+        val anchorA = 0
+        val anchorB = points.indices.maxByOrNull { index -> distance(points[anchorA], points[index]) }
+            ?: return points
+        if (anchorB == anchorA) return points
+        val chainA = points.subList(anchorA, anchorB + 1)
+        val chainB = buildList {
+            add(points[anchorB])
+            for (index in anchorB + 1 until points.size) add(points[index])
+            add(points[anchorA])
+        }
+        val reducedA = simplifyOpenRdp(chainA, epsilon)
+        val reducedB = simplifyOpenRdp(chainB, epsilon)
+        val merged = ArrayList<Point>(reducedA.size + reducedB.size - 2)
+        merged.addAll(reducedA)
+        merged.addAll(reducedB.drop(1).dropLast(1))
+        return if (merged.size >= 4) merged else points
+    }
+
+    private fun simplifyOpenRdp(points: List<Point>, epsilon: Float): List<Point> {
+        if (points.size <= 2) return points
+        val keep = BooleanArray(points.size)
+        keep[0] = true
+        keep[points.lastIndex] = true
+        val stack = ArrayDeque<Pair<Int, Int>>()
+        stack.addLast(0 to points.lastIndex)
+        while (stack.isNotEmpty()) {
+            val (start, end) = stack.removeLast()
+            var farthestIndex = -1
+            var farthestDistance = 0f
+            for (index in start + 1 until end) {
+                val candidateDistance = distanceToSegment(points[index], points[start], points[end])
+                if (candidateDistance > farthestDistance) {
+                    farthestDistance = candidateDistance
+                    farthestIndex = index
+                }
+            }
+            if (farthestIndex >= 0 && farthestDistance > epsilon) {
+                keep[farthestIndex] = true
+                stack.addLast(start to farthestIndex)
+                stack.addLast(farthestIndex to end)
+            }
+        }
+        return points.filterIndexed { index, _ -> keep[index] }
+    }
+
+    private fun topologySafe(candidate: List<Point>, raw: List<Point>, rawArea: Float, tolerance: Float): Boolean {
+        val area = signedArea(candidate)
+        if (area * rawArea <= 0f || abs(area) < abs(rawArea) * .45f || abs(area) > abs(rawArea) * 1.65f) return false
+        if (hasSelfIntersection(candidate)) return false
+        val allowedDeviation = tolerance + .8f
+        return candidate.all { point -> nearestLoopDistance(point, raw) <= allowedDeviation } &&
+            raw.all { point -> nearestLoopDistance(point, candidate) <= allowedDeviation }
+    }
+
+    private fun nearestLoopDistance(point: Point, loop: List<Point>): Float {
+        var nearest = Float.POSITIVE_INFINITY
+        loop.indices.forEach { index ->
+            nearest = minOf(nearest, distanceToSegment(point, loop[index], loop[(index + 1) % loop.size]))
+        }
+        return nearest
+    }
+
+    private fun hasSelfIntersection(points: List<Point>): Boolean {
+        val count = points.size
+        for (i in 0 until count) {
+            val a = points[i]
+            val b = points[(i + 1) % count]
+            for (j in i + 2 until count) {
+                if (i == 0 && j == count - 1) continue
+                val c = points[j]
+                val d = points[(j + 1) % count]
+                if (segmentsIntersect(a, b, c, d)) return true
+            }
+        }
+        return false
+    }
+
+    private fun segmentsIntersect(a: Point, b: Point, c: Point, d: Point): Boolean {
+        fun orientation(p: Point, q: Point, r: Point): Float =
+            (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)
+        val abC = orientation(a, b, c)
+        val abD = orientation(a, b, d)
+        val cdA = orientation(c, d, a)
+        val cdB = orientation(c, d, b)
+        return abC * abD < -1e-5f && cdA * cdB < -1e-5f
+    }
+
+    private fun distanceToSegment(point: Point, start: Point, end: Point): Float {
+        val dx = end.x - start.x
+        val dy = end.y - start.y
+        val lengthSq = dx * dx + dy * dy
+        if (lengthSq <= 1e-8f) return distance(point, start)
+        val t = (((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSq).coerceIn(0f, 1f)
+        return distance(point, Point(start.x + t * dx, start.y + t * dy))
     }
 
     private fun signedArea(points: List<Point>): Float {

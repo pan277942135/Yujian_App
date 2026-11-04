@@ -88,7 +88,19 @@ internal object RecognitionContourMaterialCandidate {
         0xFF0284C7L, 0xFF38BDF8L, 0xFFFDE68AL, 0xFFF59E0BL,
         0xFF0284C7L, 0xFF38BDF8L, 0xFFFDE68AL, 0xFFF59E0BL, 0xFF0284C7L,
     )
+    val CORE_GRADIENT_OFFSETS = listOf(0f, .14f, .28f, .44f, .52f, .66f, .80f, .94f, 1f)
 }
+
+/** Full identity boundary for the real Mask Path cache. */
+internal data class RecognitionContourCacheIdentity(
+    val sessionId: String,
+    val attemptId: String,
+    val imageId: String,
+    val photoSha256: String,
+    val maskVersion: Long,
+    val contourHash: Int,
+    val geometryVersion: Long,
+)
 
 internal fun recognitionMaskAcceptanceOpen(phase: RecognitionPhase): Boolean = when (phase) {
     RecognitionPhase.CAPTURED,
@@ -284,7 +296,18 @@ fun RecognitionFishFocus(
     if (!recognitionMaskContourEnabled(phase, trustedMask) || focusBox == null) return
     if (subjectBitmap == null || subjectBox == null || contour.isEmpty()) return
 
-    val cachedContourPath = remember(transform, subjectBox, contour, contourPhotoSpace) {
+    val contourCacheIdentity = RecognitionContourCacheIdentity(
+        sessionId = waterLightFrame?.sessionId.orEmpty(),
+        attemptId = waterLightFrame?.attemptId.orEmpty(),
+        imageId = waterLightFrame?.imageId.orEmpty(),
+        photoSha256 = waterLightFrame?.photoSha256.orEmpty(),
+        maskVersion = subjectBitmap.generationId.toLong(),
+        contourHash = contour.hashCode(),
+        geometryVersion = waterLightFrame?.geometryVersion ?: 0L,
+    )
+    val cachedContourPath = remember(
+        contourCacheIdentity, transform, subjectBox, contour, contourPhotoSpace,
+    ) {
         if (subjectBox != null && contour.isNotEmpty()) {
             buildRecognitionContourPath(transform,
                 if (contourPhotoSpace) NormalizedFishBox(0f, 0f, 1f, 1f) else subjectBox,
@@ -332,7 +355,10 @@ fun RecognitionFishFocus(
         val realContour = requireNotNull(cachedContourPath)
             val pathBounds = realContour.getBounds()
             val fishAxis = maxOf(pathBounds.width, pathBounds.height).coerceAtLeast(1f)
-            val coreWidth = (fishAxis * .008f).coerceIn(1f, 2.5f)
+            // Demo SVG scales its path by imageWidth/displayedWidth, leaving these
+            // source line widths at 3.8 / 2.2 / 1.01 CSS px on screen.
+            val coreWidth = 2.2f.dp.toPx()
+            val underWidth = 3.8f.dp.toPx()
             val softWidth = (fishAxis * .025f).coerceIn(4f, 10f)
             val haloWidth = (fishAxis * .05f).coerceIn(12f, 28f)
             val growthProgress = maskRevealProgress.coerceIn(0f, 1f)
@@ -394,7 +420,7 @@ fun RecognitionFishFocus(
                         Color(RecognitionContourMaterialCandidate.UNDER_STROKE_COLOR)
                             .copy(alpha = coreAlpha * RecognitionContourMaterialCandidate.UNDER_STROKE_OPACITY),
                         style = Stroke(
-                            width = coreWidth * 1.85f,
+                            width = underWidth,
                             cap = StrokeCap.Round,
                             join = StrokeJoin.Round,
                         ),
@@ -409,9 +435,10 @@ fun RecognitionFishFocus(
                         contourBounds.bottom.coerceAtLeast(contourBounds.top + 1f),
                     )
                     val gradient = Brush.linearGradient(
-                        colors = RecognitionContourMaterialCandidate.CORE_GRADIENT_COLORS.map {
-                            Color(it).copy(alpha = coreAlpha)
-                        },
+                        colorStops = RecognitionContourMaterialCandidate.CORE_GRADIENT_COLORS
+                            .zip(RecognitionContourMaterialCandidate.CORE_GRADIENT_OFFSETS)
+                            .map { (color, offset) -> offset to Color(color).copy(alpha = coreAlpha) }
+                            .toTypedArray(),
                         start = gradientStart,
                         end = gradientEnd,
                     )
@@ -426,7 +453,7 @@ fun RecognitionFishFocus(
                         Color(RecognitionContourMaterialCandidate.ICE_HIGHLIGHT_COLOR)
                             .copy(alpha = coreAlpha * RecognitionContourMaterialCandidate.ICE_HIGHLIGHT_OPACITY),
                         style = Stroke(
-                            width = (coreWidth * .46f).coerceAtLeast(.55f),
+                            width = coreWidth * .46f,
                             cap = StrokeCap.Round,
                             join = StrokeJoin.Round,
                         ),
@@ -434,7 +461,9 @@ fun RecognitionFishFocus(
 
                     // A narrow sunlit glint moves deterministically from the shared
                     // scene reference time; it does not start an independent animator.
-                    val glintProgress = (opticalReferenceElapsedMs.coerceAtLeast(0L) %
+                    val sharedOpticalReferenceMs = waterLightFrame?.sceneFrame?.opticalReferenceElapsedMs
+                        ?: opticalReferenceElapsedMs
+                    val glintProgress = (sharedOpticalReferenceMs.coerceAtLeast(0L) %
                         RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS).toFloat() /
                         RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS
                     val glintPath = requireNotNull(contourPathCache).glint(
@@ -444,11 +473,17 @@ fun RecognitionFishFocus(
                     )
                     if (!glintPath.isEmpty) drawPath(
                         glintPath,
-                        Color(RecognitionContourMaterialCandidate.GOLD_GLINT_COLOR).copy(
-                            alpha = coreAlpha * RecognitionContourMaterialCandidate.GOLD_GLINT_INTENSITY,
+                        Brush.linearGradient(
+                            colors = listOf(.1f, .9f, 1f, .9f, .1f).map { alpha ->
+                                Color(RecognitionContourMaterialCandidate.GOLD_GLINT_COLOR).copy(
+                                    alpha = alpha * coreAlpha * RecognitionContourMaterialCandidate.GOLD_GLINT_INTENSITY,
+                                )
+                            },
+                            start = gradientStart,
+                            end = gradientEnd,
                         ),
                         style = Stroke(
-                            width = (coreWidth * 1.35f).coerceAtLeast(1f),
+                            width = maxOf(1.4f.dp.toPx(), coreWidth * .95f),
                             cap = StrokeCap.Round,
                             join = StrokeJoin.Round,
                         ),

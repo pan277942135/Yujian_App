@@ -58,4 +58,33 @@ class RecognitionMaskContourExtractorTest {
         assertTrue(allX.minOrNull()!! < .2f)
         assertTrue(allY.minOrNull()!! < .3f)
     }
+
+    @Test fun closedSmoothingKeepsARealMaskFinTipTailAndFiltersDetachedNoise() {
+        val width = 64
+        val height = 48
+        val alpha = ByteArray(width * height)
+        fun fill(x: Int, y: Int) { alpha[y * width + x] = 255.toByte() }
+
+        for (y in 18..35) for (x in 10..53) fill(x, y)
+        for (y in 23..27) {
+            val halfWidth = 9 - kotlin.math.abs(25 - y) * 2
+            for (x in 10 - halfWidth..9) fill(x, y)
+        }
+        for (y in 7..17) {
+            val halfWidth = 1 + (y - 7) * 2
+            for (x in 30 - halfWidth..30 + halfWidth) fill(x, y)
+        }
+        fill(61, 2) // Detached one-pixel segmentation noise.
+
+        val contour = RecognitionMaskContourExtractor.extract(width, height, alpha)
+        assertEquals(1, contour.count { it.beginsContour })
+        assertEquals(1, contour.count { it.closesContour })
+        assertTrue("Closed-loop smoothing must retain the pointed dorsal fin", contour.minOf { it.startY } < .18f)
+        assertTrue("The actual tail pixels must remain part of the contour", contour.minOf { it.startX } < .08f)
+        assertTrue(contour.all { segment ->
+            listOf(segment.startX, segment.startY, segment.endX, segment.endY,
+                segment.control1X, segment.control1Y, segment.control2X, segment.control2Y)
+                .all { it.isFinite() && it in 0f..1f }
+        })
+    }
 }

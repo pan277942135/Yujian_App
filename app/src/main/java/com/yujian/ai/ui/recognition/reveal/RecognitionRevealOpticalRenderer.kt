@@ -5,6 +5,8 @@ import android.graphics.RectF
 import android.graphics.Matrix
 import android.graphics.Paint as AndroidPaint
 import android.graphics.PathMeasure
+import android.graphics.LinearGradient
+import android.graphics.Shader
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +16,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -23,6 +27,11 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
+import com.yujian.ai.ui.recognition.RecognitionContourMaterialCandidate
+import com.yujian.ai.ui.recognition.RecognitionContourPathCache
+import com.yujian.ai.ui.recognition.RecognitionPerimeterOpticalProfileV1
+import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMath
+import com.yujian.ai.ui.recognition.recognitionPerimeterOpacity
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
@@ -72,16 +81,39 @@ internal fun RecognitionRevealOpticalOverlay(
     val glyphResidueMeasure = remember(activeRevealGeometry) {
         activeRevealGeometry?.glyphResiduePathLocal?.let { PathMeasure(it.toPath(), false) }
     }
-    val contourMeasure = remember(activeRevealGeometry) {
+    val contourIdentity = remember(
+        handoff.key,
+        handoff.imageId,
+        handoff.photoSourceIdentity,
+        handoff.maskVersion,
+        handoff.subjectMaskOrContour.hashCode(),
+        waterLightFrame?.geometryVersion,
+    ) {
+        listOf(handoff.key, handoff.imageId, handoff.photoSourceIdentity,
+            handoff.maskVersion, handoff.subjectMaskOrContour.hashCode(), waterLightFrame?.geometryVersion)
+    }
+    val contourMeasure = remember(activeRevealGeometry, contourIdentity) {
         activeRevealGeometry?.let { PathMeasure(it.sourceContourPath, false) }
+    }
+    val contourComposePath = remember(activeRevealGeometry, contourIdentity) {
+        activeRevealGeometry?.sourceContourPath?.asComposePath()
+    }
+    val contourPathCache = remember(contourComposePath, contourIdentity) {
+        contourComposePath?.let(::RecognitionContourPathCache)
     }
     val transferTail = remember { android.graphics.Path() }
     val sharedPhotoClipPath = remember { android.graphics.Path() }
+    val perimeterPath = remember { android.graphics.Path() }
+    val perimeterRect = remember { RectF() }
+    val perimeterPathMeasure = remember { PathMeasure() }
+    val perimeterPosition = remember { FloatArray(2) }
+    val perimeterTangent = remember { FloatArray(2) }
+    val bottomFlourishPath = remember { android.graphics.Path() }
     val transferPosition = remember { FloatArray(2) }
     val contourPosition = remember { FloatArray(2) }
     val mappedContourPosition = remember { FloatArray(2) }
     val transformValues = remember { FloatArray(9) }
-    val contourBounds = remember(activeRevealGeometry) {
+    val contourBounds = remember(activeRevealGeometry, contourIdentity) {
         RectF().also { bounds -> activeRevealGeometry?.sourceContourPath?.computeBounds(bounds, true) }
     }
     val imageMatrix = remember { Matrix() }
@@ -102,6 +134,56 @@ internal fun RecognitionRevealOpticalOverlay(
             strokeJoin = AndroidPaint.Join.ROUND
         }
     }
+    val contourUnderPaint = remember {
+        AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+            style = AndroidPaint.Style.STROKE
+            strokeCap = AndroidPaint.Cap.ROUND
+            strokeJoin = AndroidPaint.Join.ROUND
+        }
+    }
+    val contourGradientPaint = remember {
+        AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+            style = AndroidPaint.Style.STROKE
+            strokeCap = AndroidPaint.Cap.ROUND
+            strokeJoin = AndroidPaint.Join.ROUND
+        }
+    }
+    val contourHighlightPaint = remember {
+        AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+            style = AndroidPaint.Style.STROKE
+            strokeCap = AndroidPaint.Cap.ROUND
+            strokeJoin = AndroidPaint.Join.ROUND
+        }
+    }
+    val contourGoldPaint = remember {
+        AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+            style = AndroidPaint.Style.STROKE
+            strokeCap = AndroidPaint.Cap.ROUND
+            strokeJoin = AndroidPaint.Join.ROUND
+        }
+    }
+    val perimeterHaloPaint = remember {
+        AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+            style = AndroidPaint.Style.STROKE
+            strokeCap = AndroidPaint.Cap.ROUND
+            strokeJoin = AndroidPaint.Join.ROUND
+        }
+    }
+    val perimeterBloomPaint = remember {
+        AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+            style = AndroidPaint.Style.STROKE
+            strokeCap = AndroidPaint.Cap.ROUND
+            strokeJoin = AndroidPaint.Join.ROUND
+        }
+    }
+    val perimeterCorePaint = remember {
+        AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+            style = AndroidPaint.Style.STROKE
+            strokeCap = AndroidPaint.Cap.ROUND
+            strokeJoin = AndroidPaint.Join.ROUND
+        }
+    }
+    val perimeterAccentPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val particlePaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val dotPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val waterGrassRenderer = remember { WaterGrassRenderer() }
@@ -113,9 +195,10 @@ internal fun RecognitionRevealOpticalOverlay(
             val gold = material.primaryColor.toInt()
             val brightGold = material.secondaryColor.toInt()
             val drawSharedPhoto = frame.photoProgress < 1f || holdPhotoUntilHeroReady
+            val perimeterClip = activePhotoGeometry.photoClip(frame.photoProgress)
             if (drawSharedPhoto) {
                 val photoMatrix = activePhotoGeometry.photoMatrix(frame.photoProgress)
-                val clip = activePhotoGeometry.photoClip(frame.photoProgress)
+                val clip = perimeterClip
                 val clipSave = canvas.save()
                 sharedPhotoClipPath.reset()
                 val progress = frame.photoProgress.coerceIn(0f, 1f)
@@ -144,7 +227,6 @@ internal fun RecognitionRevealOpticalOverlay(
                 if (frame.fishHaloAlpha > 0f && activeRevealGeometry != null && contourMeasure != null) {
                     val inverseScale = 1f / photoMatrix.scale.coerceAtLeast(.1f)
                     val fishAxisPx = maxOf(contourBounds.width(), contourBounds.height()) * photoMatrix.scale
-                    val coreWidthPx = (fishAxisPx * .008f).coerceIn(1f, 2.5f)
                     val softWidthPx = (fishAxisPx * .025f).coerceIn(4f, 10f)
                     val haloWidthPx = (fishAxisPx * .05f).coerceIn(12f, 28f)
                     haloPaint.color = android.graphics.Color.rgb(219, 163, 77)
@@ -155,10 +237,67 @@ internal fun RecognitionRevealOpticalOverlay(
                     haloPaint.alpha = (64 * frame.fishHaloAlpha).toInt()
                     haloPaint.strokeWidth = softWidthPx * inverseScale
                     canvas.drawPath(activeRevealGeometry.sourceContourPath, haloPaint)
-                    corePaint.color = android.graphics.Color.rgb(255, 227, 166)
-                    corePaint.alpha = (148 * frame.fishHaloAlpha).toInt()
-                    corePaint.strokeWidth = coreWidthPx * inverseScale
-                    canvas.drawPath(activeRevealGeometry.sourceContourPath, corePaint)
+
+                    val coreWidthPx = 2.2f.dp.toPx()
+                    contourUnderPaint.color = android.graphics.Color.argb(
+                        (255f * RecognitionContourMaterialCandidate.UNDER_STROKE_OPACITY * frame.fishHaloAlpha).toInt().coerceIn(0, 255),
+                        6, 59, 70,
+                    )
+                    contourUnderPaint.strokeWidth = 3.8f.dp.toPx() * inverseScale
+                    canvas.drawPath(activeRevealGeometry.sourceContourPath, contourUnderPaint)
+
+                    val contourColors = RecognitionContourMaterialCandidate.CORE_GRADIENT_COLORS.map { color ->
+                        android.graphics.Color.argb(
+                            (255f * .90f * frame.fishHaloAlpha).toInt().coerceIn(0, 255),
+                            android.graphics.Color.red(color.toInt()),
+                            android.graphics.Color.green(color.toInt()),
+                            android.graphics.Color.blue(color.toInt()),
+                        )
+                    }.toIntArray()
+                    contourGradientPaint.shader = LinearGradient(
+                        contourBounds.left, contourBounds.top,
+                        contourBounds.right.coerceAtLeast(contourBounds.left + 1f),
+                        contourBounds.bottom.coerceAtLeast(contourBounds.top + 1f),
+                        contourColors,
+                        RecognitionContourMaterialCandidate.CORE_GRADIENT_OFFSETS.toFloatArray(),
+                        Shader.TileMode.CLAMP,
+                    )
+                    contourGradientPaint.strokeWidth = coreWidthPx * inverseScale
+                    canvas.drawPath(activeRevealGeometry.sourceContourPath, contourGradientPaint)
+                    contourGradientPaint.shader = null
+
+                    contourHighlightPaint.color = android.graphics.Color.argb(
+                        (255f * .60f * frame.fishHaloAlpha).toInt().coerceIn(0, 255),
+                        221, 251, 255,
+                    )
+                    contourHighlightPaint.strokeWidth = coreWidthPx * .46f * inverseScale
+                    canvas.drawPath(activeRevealGeometry.sourceContourPath, contourHighlightPaint)
+
+                    val sharedReferenceMs = waterLightFrame?.sceneFrame?.opticalReferenceElapsedMs ?: 0L
+                    val glintPhase = (sharedReferenceMs % RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS)
+                        .toFloat() / RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS
+                    val glint = if (contourComposePath != null && contourPathCache != null) {
+                        contourPathCache.glint(contourComposePath, glintPhase,
+                            RecognitionContourMaterialCandidate.GOLD_GLINT_ARC_RATIO).asAndroidPath()
+                    } else null
+                    if (glint != null && !glint.isEmpty) {
+                        val goldGlintColors = intArrayOf(
+                            android.graphics.Color.argb((255f * .10f * frame.fishHaloAlpha).toInt(), 255, 209, 102),
+                            android.graphics.Color.argb((255f * .90f * frame.fishHaloAlpha).toInt(), 255, 228, 148),
+                            android.graphics.Color.argb((255f * frame.fishHaloAlpha).toInt(), 255, 244, 208),
+                            android.graphics.Color.argb((255f * .90f * frame.fishHaloAlpha).toInt(), 255, 209, 102),
+                            android.graphics.Color.argb((255f * .10f * frame.fishHaloAlpha).toInt(), 229, 166, 45),
+                        )
+                        contourGoldPaint.shader = LinearGradient(
+                            contourBounds.left, contourBounds.top,
+                            contourBounds.right.coerceAtLeast(contourBounds.left + 1f),
+                            contourBounds.bottom.coerceAtLeast(contourBounds.top + 1f),
+                            goldGlintColors, floatArrayOf(0f, .3f, .5f, .7f, 1f), Shader.TileMode.CLAMP,
+                        )
+                        contourGoldPaint.strokeWidth = maxOf(1.4f.dp.toPx(), coreWidthPx * .95f) * inverseScale
+                        canvas.drawPath(glint, contourGoldPaint)
+                        contourGoldPaint.shader = null
+                    }
                     if (contourMeasure.length > 1f) {
                         for (index in 0 until 3) {
                             val fraction = ((index + 1f) / 4f + frame.transferProgress * .34f) % 1f
@@ -179,6 +318,23 @@ internal fun RecognitionRevealOpticalOverlay(
                 canvas.restore()
                 canvas.restoreToCount(clipSave)
             }
+            if (waterLightFrame != null) drawSharedPhotoPerimeter(
+                canvas = canvas,
+                clip = perimeterClip,
+                density = density.density,
+                frame = waterLightFrame,
+                materialOpacity = material.opacity,
+                path = perimeterPath,
+                rect = perimeterRect,
+                pathMeasure = perimeterPathMeasure,
+                position = perimeterPosition,
+                tangent = perimeterTangent,
+                flourishPath = bottomFlourishPath,
+                haloPaint = perimeterHaloPaint,
+                bloomPaint = perimeterBloomPaint,
+                corePaint = perimeterCorePaint,
+                accentPaint = perimeterAccentPaint,
+            )
 
             // V4: fish energy starts returning while the photo continuity morph runs during 0–200 ms.
             if (activeRevealGeometry != null && orbReturnMeasure != null &&
@@ -332,5 +488,101 @@ internal fun RecognitionRevealOpticalOverlay(
             waterLightMaterial = WaterLightMaterialProfile.ORB_LEGACY,
         )
     }
+    }
+}
+
+/** Lightweight Result continuation of the same perimeter identity and Scene Frame. */
+private fun drawSharedPhotoPerimeter(
+    canvas: android.graphics.Canvas,
+    clip: com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect,
+    density: Float,
+    frame: WaterLightFrame,
+    materialOpacity: Float,
+    path: android.graphics.Path,
+    rect: RectF,
+    pathMeasure: PathMeasure,
+    position: FloatArray,
+    tangent: FloatArray,
+    flourishPath: android.graphics.Path,
+    haloPaint: AndroidPaint,
+    bloomPaint: AndroidPaint,
+    corePaint: AndroidPaint,
+    accentPaint: AndroidPaint,
+) {
+    val profile = RecognitionPerimeterOpticalProfileV1.EFFECT_02
+    val opacity = recognitionPerimeterOpacity(true, frame.reducedMotion, frame) * materialOpacity
+    if (opacity <= .001f || clip.width <= 1f || clip.height <= 1f) return
+    val shortSide = minOf(clip.width, clip.height)
+    val margin = shortSide * profile.marginRatio
+    val cornerRadius = shortSide * profile.cornerRadiusRatio
+    rect.set(clip.left + margin, clip.top + margin, clip.right - margin, clip.bottom - margin)
+    path.reset()
+    path.addRoundRect(rect, cornerRadius, cornerRadius, android.graphics.Path.Direction.CW)
+
+    haloPaint.color = profile.goldColor.toInt()
+    haloPaint.alpha = (255f * .12f * opacity).toInt().coerceIn(0, 255)
+    haloPaint.strokeWidth = 12f * density
+    canvas.drawPath(path, haloPaint)
+    bloomPaint.color = profile.cyanColor.toInt()
+    bloomPaint.alpha = (255f * .24f * opacity).toInt().coerceIn(0, 255)
+    bloomPaint.strokeWidth = 5f * density
+    canvas.drawPath(path, bloomPaint)
+    corePaint.color = profile.greenColor.toInt()
+    corePaint.alpha = (255f * .64f * opacity).toInt().coerceIn(0, 255)
+    corePaint.strokeWidth = 1.25f * density
+    canvas.drawPath(path, corePaint)
+
+    pathMeasure.setPath(path, false)
+    val totalLength = pathMeasure.length
+    if (totalLength > 0f) {
+        val scene = frame.sceneFrame
+        val expansion = if (frame.reducedMotion) 1f else
+            RecognitionPerimeterShaderMath.expansionProgress(scene, profile)
+        val time = if (frame.reducedMotion) 0f else RecognitionPerimeterShaderMath.sourceTimeSec(scene, profile.speed)
+        accentPaint.style = AndroidPaint.Style.FILL
+        for (index in 0 until RecognitionPerimeterShaderMath.SPARKLE_COUNT) {
+            val speed = .012f + (index % 3) * .007f
+            val p = (index / RecognitionPerimeterShaderMath.SPARKLE_COUNT.toFloat() + time * speed) % 1f
+            val active = p <= .5f * expansion || p >= 1f - .5f * expansion
+            if (!active || !pathMeasure.getPosTan(totalLength * p, position, tangent)) continue
+            val pulse = .65f + .35f * kotlin.math.sin(time * 3.4f + index * 1.7f)
+            val goldNode = p > .45f
+            val nodeSize = (profile.sparkleBaseSizeCssPx +
+                (index % 4) * profile.sparkleSizeStepCssPx) * density
+            accentPaint.color = (if (goldNode) profile.goldColor else profile.cyanColor).toInt()
+            accentPaint.alpha = (255f * profile.sparkleHaloOpacity * pulse * opacity)
+                .toInt().coerceIn(0, 255)
+            canvas.drawCircle(position[0], position[1], nodeSize * profile.sparkleHaloScale * pulse, accentPaint)
+            accentPaint.color = (if (goldNode) 0xFFFEF08AL else 0xFFE0F2FEL).toInt()
+            accentPaint.alpha = (255f * profile.sparkleCoreOpacity * pulse * opacity)
+                .toInt().coerceIn(0, 255)
+            canvas.drawCircle(position[0], position[1], nodeSize * profile.sparkleCoreScale * pulse, accentPaint)
+        }
+
+        if (expansion > .15f) {
+            val centerX = rect.centerX()
+            val centerY = rect.bottom
+            val pulse = .75f + .25f * kotlin.math.sin(time * 2.4f)
+            accentPaint.color = android.graphics.Color.WHITE
+            accentPaint.alpha = (255f * .92f * opacity).toInt().coerceIn(0, 255)
+            canvas.drawCircle(centerX, centerY, 3f * density * pulse, accentPaint)
+            flourishPath.reset()
+            flourishPath.moveTo(centerX - profile.flourishHalfWidthCssPx * density, centerY)
+            flourishPath.quadTo(centerX - profile.flourishHalfWidthCssPx * .5f * density,
+                centerY - 2f * profile.flourishPeakHeightCssPx * density,
+                centerX - 6f * density, centerY)
+            flourishPath.moveTo(centerX + 6f * density, centerY)
+            flourishPath.quadTo(centerX + profile.flourishHalfWidthCssPx * .5f * density,
+                centerY + 2f * profile.flourishPeakHeightCssPx * density,
+                centerX + profile.flourishHalfWidthCssPx * density, centerY)
+            corePaint.color = profile.goldColor.toInt()
+            corePaint.alpha = (255f * .55f * profile.intensity * opacity).toInt().coerceIn(0, 255)
+            corePaint.strokeWidth = 1.3f * density
+            canvas.drawPath(flourishPath, corePaint)
+            accentPaint.color = android.graphics.Color.WHITE
+            accentPaint.alpha = (255f * .88f * opacity).toInt().coerceIn(0, 255)
+            canvas.drawCircle(centerX - profile.flourishHalfWidthCssPx * density, centerY, 1.4f * density, accentPaint)
+            canvas.drawCircle(centerX + profile.flourishHalfWidthCssPx * density, centerY, 1.4f * density, accentPaint)
+        }
     }
 }

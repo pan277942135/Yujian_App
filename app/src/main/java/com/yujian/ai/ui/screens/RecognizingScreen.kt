@@ -133,8 +133,6 @@ import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
 import com.yujian.ai.ui.waterlight.core.WaterLightGeometryVersion
 import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
-import com.yujian.ai.ui.waterlight.renderer.WaterCausticsField
-import com.yujian.ai.ui.waterlight.renderer.WaterCausticsRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterDropletRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterLightEnergyPathRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterGrassField
@@ -529,6 +527,7 @@ fun RecognitionProcessingScene(
                 quality = result.quality,
                 maskSize = result.maskSize,
                 expectedMaskSize = result.expectedMaskSize,
+                maskVersion = loaded.generationId.toLong(),
             ) else null
             val trustState = RecognitionRevealPolicy.geometryTrust(
                 detectorBox = primary.box,
@@ -1671,26 +1670,14 @@ private fun RecognitionPhoto(
         pathSegments = returnRoute?.segments.orEmpty(),
         pathIdOverride = returnRoute?.id ?: energyPathLedger.pathId(waterLightFrame),
     )
-    val causticsRenderer = remember(waterLightEngine) { WaterCausticsRenderer(waterScope) }
     val dropletRenderer = remember(waterLightEngine) { WaterDropletRenderer() }
-    var causticsRevision by remember(waterLightEngine) { mutableIntStateOf(0) }
-    DisposableEffect(causticsRenderer, dropletRenderer) {
-        onDispose { causticsRenderer.close(); dropletRenderer.release() }
+    DisposableEffect(dropletRenderer) {
+        onDispose { dropletRenderer.release() }
     }
     // Candidate additive material only after the frozen P0/P2/P3 samples.
     val additiveMaterialActive = pathReady && waterLightFrame.phase == WaterLightPhase.PROCESSING &&
         waterLightFrame.sceneFrame.stage.ordinal in RecognitionSceneStage.PATH_TO_FISH.ordinal..RecognitionSceneStage.FISH_GOLD_PEAK.ordinal &&
         !waterLightFrame.reducedMotion && !motionPolicy.lowPerformance
-    LaunchedEffect(causticsRenderer, waterLightFrame, photoBounds, additiveMaterialActive) {
-        if (additiveMaterialActive) causticsRenderer.request(
-            frame = waterLightFrame,
-            outputWidth = photoBounds.width.roundToInt(), outputHeight = photoBounds.height.roundToInt(),
-            scale = 1.0, intensity = .6,
-            color = WaterCausticsField.Rgb(.78, .94, .91),
-            tint = WaterCausticsField.Rgb(.10, .32, .36), tintStrength = .06,
-            onReady = { causticsRevision++ },
-        )
-    }
     val photoImage = remember(bitmap) { bitmap.asImageBitmap() }
     val reportedFirstFrame = remember(bitmap, motionSessionKey) { AtomicBoolean(false) }
     val firstFrameCallback by rememberUpdatedState(onPhotoFirstFramePresented)
@@ -1798,7 +1785,6 @@ private fun RecognitionPhoto(
                 bitmap = bitmap,
                 photoTransform = transform,
                 elapsedMs = processingElapsedMs,
-                opticalReferenceElapsedMs = opticalReferenceElapsedMs,
                 processingClockStarted = processingClockStarted,
                 sessionKey = motionSessionKey,
                 recognitionSessionId = recognitionSessionId,
@@ -1824,7 +1810,7 @@ private fun RecognitionPhoto(
                 qualityLevel = motionPolicy.qualityLevel,
                 onMotionFrame = onMotionFrame,
                 photoTransform = transform,
-                includeEdgeField = true,
+                includeEdgeField = false,
                 waterLightFrame = waterLightFrame,
             )
             if (pathReady && (energyEvent?.pathGeometry != null || energyEvent?.pathSegments?.isNotEmpty() == true) &&
@@ -1836,19 +1822,12 @@ private fun RecognitionPhoto(
                 modifier = Modifier.fillMaxSize(),
             )
             if (additiveMaterialActive && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)) {
-                val readyRevision = causticsRevision
                 Canvas(Modifier.fillMaxSize()) {
                     val rect = transform.photoContentRect
                     additiveClipPath.reset()
                     additiveClipPath.addRoundRect(RoundRect(rect.left, rect.top, rect.right, rect.bottom,
                         CornerRadius(16.dp.toPx(), 16.dp.toPx())))
                     clipPath(additiveClipPath) {
-                        if (readyRevision >= 0) causticsRenderer.withFrontBitmap { prepared ->
-                            drawImage(prepared.asImageBitmap(),
-                                dstOffset = IntOffset(rect.left.roundToInt(), rect.top.roundToInt()),
-                                dstSize = IntSize(rect.width.roundToInt().coerceAtLeast(1),
-                                    rect.height.roundToInt().coerceAtLeast(1)), alpha = .12f)
-                        }
                         drawIntoCanvas { canvas -> dropletRenderer.draw(canvas.nativeCanvas, waterLightFrame,
                             android.graphics.RectF(rect.left, rect.top, rect.right, rect.bottom),
                             seed = waterLightFrame.sessionId.hashCode().toLong() * 31 + photoSha256.hashCode(),
