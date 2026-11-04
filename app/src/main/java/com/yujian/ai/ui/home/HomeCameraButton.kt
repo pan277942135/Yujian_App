@@ -158,8 +158,8 @@ internal fun HomeCameraButton(
         ),
         visualSize = resolvedSize,
         touchTargetSize = touchTargetSize ?: resolvedSize,
-        visualModifier = (if (allowVisualOverflow) Modifier.requiredSize(resolvedSize) else Modifier)
-            .testTag("gemini-home-camera-art")
+        visualModifier = Modifier.testTag("gemini-home-camera-art")
+            .then(if (allowVisualOverflow) Modifier.requiredSize(resolvedSize) else Modifier)
             .captureGeminiHomeBounds("gemini-home-camera-art"),
         frozenVisual = true,
         frozenVisualResource = AIOrbCaptureVisualAssets.HOME_IDLE,
