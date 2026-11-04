@@ -117,6 +117,7 @@ class RecognitionOpticalFidelityRuntimeTest {
         )
         val classificationStarted = CountDownLatch(1)
         val classifyingMotionPresented = CountDownLatch(1)
+        val photoFirstFramePresented = CountDownLatch(1)
         val unexpectedResultCount = AtomicInteger(0)
         val fullMotionSampleCount = AtomicInteger(0)
         val liteMotionSampleCount = AtomicInteger(0)
@@ -127,12 +128,18 @@ class RecognitionOpticalFidelityRuntimeTest {
         val liteFrameDurationsMs = Collections.synchronizedList(mutableListOf<Double>())
         val fullDroppedFrames = AtomicInteger(0)
         val liteDroppedFrames = AtomicInteger(0)
+        val fullFrameCallbackCount = AtomicInteger(0)
+        val liteFrameCallbackCount = AtomicInteger(0)
         val fullFramesReady = CountDownLatch(1)
         val liteFramesReady = CountDownLatch(1)
         frameMetricsThread = HandlerThread("recognition-frame-metrics").apply { start() }
         val metricsHandler = Handler(requireNotNull(frameMetricsThread).looper)
         val metricsListener = Window.OnFrameMetricsAvailableListener { _, metrics, droppedFrames ->
             val frameDurationMs = metrics.getMetric(FrameMetrics.TOTAL_DURATION) / 1_000_000.0
+            when (activeProfile.get()) {
+                "FULL" -> fullFrameCallbackCount.incrementAndGet()
+                "LITE" -> liteFrameCallbackCount.incrementAndGet()
+            }
             if (frameDurationMs > 0.0) {
                 when (activeProfile.get()) {
                     "FULL" -> synchronized(fullFrameDurationsMs) {
@@ -197,6 +204,10 @@ class RecognitionOpticalFidelityRuntimeTest {
                                 }
                             }
                         },
+                        onPhotoFramePresented = { uptimeMs ->
+                            Log.i(LOG_TAG, "Milestone: photo-first-frame-presented uptime_ms=$uptimeMs")
+                            photoFirstFramePresented.countDown()
+                        },
                     )
                 }
             }
@@ -210,14 +221,20 @@ class RecognitionOpticalFidelityRuntimeTest {
             classifyingMotionPresented.await(8, TimeUnit.SECONDS),
         )
         Log.i(LOG_TAG, "Milestone: test-only-classifying-projection-rendered")
+        assertTrue(
+            "production PhotoSession did not present its first photo frame",
+            photoFirstFramePresented.await(8, TimeUnit.SECONDS),
+        )
 
         val refreshRateHz = refreshRate.get()
         Log.i(LOG_TAG, "Milestone: full-screenshot-start")
+        SystemClock.sleep(120L)
         saveScreenshot(outputDir, "optical_fidelity_full.png")
         Log.i(LOG_TAG, "Milestone: full-screenshot-complete")
         activeProfile.set("FULL")
         assertTrue(
-            "timed out while collecting FULL Window.FrameMetrics",
+            "timed out while collecting FULL Window.FrameMetrics callbacks=${fullFrameCallbackCount.get()} " +
+                "positive_samples=${fullFrameDurationsMs.size}",
             fullFramesReady.await(FRAME_METRICS_TIMEOUT_SECONDS, TimeUnit.SECONDS),
         )
         activeProfile.set(null)
@@ -232,10 +249,12 @@ class RecognitionOpticalFidelityRuntimeTest {
         }
         Log.i(LOG_TAG, "Milestone: lite-profile-change-complete")
         Log.i(LOG_TAG, "Milestone: lite-screenshot-start")
+        SystemClock.sleep(120L)
         saveScreenshot(outputDir, "optical_fidelity_lite.png")
         Log.i(LOG_TAG, "Milestone: lite-screenshot-complete")
         assertTrue(
-            "timed out while collecting LITE Window.FrameMetrics",
+            "timed out while collecting LITE Window.FrameMetrics callbacks=${liteFrameCallbackCount.get()} " +
+                "positive_samples=${liteFrameDurationsMs.size}",
             liteFramesReady.await(FRAME_METRICS_TIMEOUT_SECONDS, TimeUnit.SECONDS),
         )
         activeProfile.set(null)
@@ -260,6 +279,10 @@ class RecognitionOpticalFidelityRuntimeTest {
                 .put(profileMetrics("LITE", liteFrames, liteMotionSampleCount.get(), refreshRateHz, liteDroppedFrames.get())))
             .put("presented_phases", JSONArray(presentedSnapshot))
             .put("result_ready", false)
+            .put("photo_first_frame_presented", photoFirstFramePresented.count == 0L)
+            .put("frame_metrics_callback_counts", JSONObject()
+                .put("FULL", fullFrameCallbackCount.get())
+                .put("LITE", liteFrameCallbackCount.get()))
         File(outputDir, METRICS_FILENAME).writeText(document.toString(2) + "\n", Charsets.UTF_8)
         Log.i(LOG_TAG, "Milestone: metrics-written")
     }

@@ -105,6 +105,8 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
     private val sessionLazy = lazy {
         try {
             val options = OrtSession.SessionOptions()
+            options.setIntraOpNumThreads(DETECTOR_INTRA_OP_THREADS)
+            options.setInterOpNumThreads(1)
             try {
                 environment.createSession(verifiedModel.bytes, options)
             } finally {
@@ -444,6 +446,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         const val EXPECTED_INPUT_SIZE = 416
         const val YOLOX_FILL = 114
         const val ORIENTATION_RETRY_POLICY_VERSION = "DETECTOR_ORIENTATION_RETRY_v2"
+        private const val DETECTOR_INTRA_OP_THREADS = 2
         val ORIENTATION_ATTEMPTS = listOf(
             DetectorOrientationAttempt.ORIGINAL,
             DetectorOrientationAttempt.CW90,

@@ -951,6 +951,7 @@ fun YujianApp() {
                                 }
                             }.await()
                         },
+                        prepareSubject = { selected -> subjectPreviewEngine.prepare(selected) },
                         onSubjectGeometry = { resolvedSubject, geometry ->
                             val sessionId = recognitionSessionId
                             if (sessionId != null && attemptId != null &&

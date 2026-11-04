@@ -102,6 +102,8 @@ class RecognitionRevealProductionRuntimeTest {
         val rr09Evidence = File(evidence, "shared-stage-reveal").apply { mkdirs() }
         val processingCaptureReady = CountDownLatch(1)
         val screenshotExecutor = Executors.newSingleThreadExecutor()
+        var failureScreenshotPath: String? = null
+        var failureScreenshotError: String? = null
         val processingSamples = RecognitionSceneStage.entries
         val p0p7Samples = listOf(
             "P0" to RecognitionSceneStage.PHOTO_STABLE,
@@ -194,6 +196,7 @@ class RecognitionRevealProductionRuntimeTest {
                             generateSubject = { selected, box ->
                                 subjectEngine.generate(selected, box, SESSION_ID, ATTEMPT_ID).also(actualSubject::set)
                             },
+                            prepareSubject = { selected -> subjectEngine.prepare(selected) },
                             onFinished = { completed ->
                                 resultState.value = completed
                                 val handoff = revealSessionStore.completeAttempt(
@@ -489,6 +492,12 @@ class RecognitionRevealProductionRuntimeTest {
             stageMonitorHandler.removeCallbacks(stageMonitor)
             screenshotExecutor.shutdownNow()
             runCatching { screenshotExecutor.awaitTermination(5L, TimeUnit.SECONDS) }
+            if (failureReason != null) {
+                val failureCapture = evidence.resolve("Recognition_Runtime_Failure.png")
+                runCatching { saveScreenshot(failureCapture) }
+                    .onSuccess { failureScreenshotPath = failureCapture.absolutePath }
+                    .onFailure { failureScreenshotError = it.message ?: it.javaClass.simpleName }
+            }
             // Dispose the Compose tree before releasing the source bitmap it is drawing.
             runCatching { activityRule.scenario.close() }
             subjectEngine.close()
@@ -519,6 +528,8 @@ class RecognitionRevealProductionRuntimeTest {
                 .put("controller_final_stage", sceneController.currentStage.name)
                 .put("real_time_stages_observed", org.json.JSONArray(synchronized(realTimeStages) { realTimeStages.map { it.name }.sorted() }))
                 .put("real_time_stage_timeline", org.json.JSONArray(synchronized(realTimeStageTimeline) { realTimeStageTimeline.toList() }))
+                .put("failure_screenshot", failureScreenshotPath)
+                .put("failure_screenshot_error", failureScreenshotError)
                 .put("runtime_mode", "PRODUCTION_MODEL_AND_SLIMSAM_WITH_FIXED_60_SECOND_ATTEMPT_DEADLINE")
             runCatching { evidence.resolve("Runtime_Test_Diagnostic.json").writeText(diagnostic.toString(2) + "\n") }
         }

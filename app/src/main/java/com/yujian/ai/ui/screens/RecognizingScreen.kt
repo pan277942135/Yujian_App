@@ -162,6 +162,7 @@ import androidx.compose.animation.core.tween
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
@@ -194,6 +195,7 @@ fun RecognizingScreen(
     diagnosticReturnRevision: Int = 0,
     generateSubjectWithConfidence: (suspend (SelectedImage, NormalizedFishBox, Float) -> FishSubjectResult)? = null,
     recognitionAttemptDeadline: RecognitionAttemptDeadline? = null,
+    prepareSubject: (suspend (SelectedImage) -> Unit)? = null,
 ) = RecognitionProcessingScene(
     image, onBack, recognize, generateSubject, onFinished, onFailure,
     phaseOverride, visualClockOverrideMs, motionPolicyOverride = motionPolicyOverride,
@@ -208,6 +210,7 @@ fun RecognizingScreen(
     diagnosticReturnRevision = diagnosticReturnRevision,
     generateSubjectWithConfidence = generateSubjectWithConfidence,
     recognitionAttemptDeadline = recognitionAttemptDeadline,
+    prepareSubject = prepareSubject,
 )
 
 /** Presentation-only shell: it never changes detector, crop, classifier, or result semantics. */
@@ -233,6 +236,8 @@ fun RecognitionProcessingScene(
     diagnosticReturnRevision: Int = 0,
     generateSubjectWithConfidence: (suspend (SelectedImage, NormalizedFishBox, Float) -> FishSubjectResult)? = null,
     recognitionAttemptDeadline: RecognitionAttemptDeadline? = null,
+    prepareSubject: (suspend (SelectedImage) -> Unit)? = null,
+    onPhotoFramePresented: ((Long) -> Unit)? = null,
 ) {
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     val pageContext = LocalContext.current
@@ -249,6 +254,8 @@ fun RecognitionProcessingScene(
         }
     }
     val phasePresentedCallback by rememberUpdatedState(onVisualPhasePresented)
+    val prepareSubjectCallback = rememberUpdatedState(prepareSubject)
+    val photoFramePresentedCallback = rememberUpdatedState(onPhotoFramePresented)
     val sceneKey = remember(
         image?.imageId,
         image?.photoSha256,
@@ -308,6 +315,13 @@ fun RecognitionProcessingScene(
         )
     }
     val latestPhotoPresentedAtMs by rememberUpdatedState(photoPresentedAtMs)
+    val currentFinishedResult = rememberUpdatedState(finishedResult)
+    val currentPipelineError = rememberUpdatedState(pipelineError)
+    val currentSubjectStatus = rememberUpdatedState(subjectResult.status)
+    val currentRealPhase = rememberUpdatedState(realPhase)
+    val currentDelivered = rememberUpdatedState(delivered)
+    val currentFailureCallback = rememberUpdatedState(onFailure)
+    val currentSubjectGeometryCallback = rememberUpdatedState(onSubjectGeometry)
     val revealDecision = RecognitionRevealDecisionGate.decide(
         classifier = when {
             pipelineError != null || realPhase == RecognitionPhase.FAILURE -> RecognitionClassifierTaskState.FAILED
@@ -395,6 +409,81 @@ fun RecognitionProcessingScene(
         }
     }
 
+    // Start the photo-only SlimSAM work while the detector/classifier runs. The
+    // shared attempt deadline remains authoritative; late native results are rejected.
+    LaunchedEffect(sceneKey, attemptDeadline) {
+        val selected = image ?: return@LaunchedEffect
+        val prepare = prepareSubjectCallback.value ?: return@LaunchedEffect
+        val remainingMs = attemptDeadline.remainingMs(recognitionMonotonicNowMs())
+        if (remainingMs <= 0L) return@LaunchedEffect
+        val startedAtMs = recognitionMonotonicNowMs()
+        Log.i(LOG_TAG, "SLIMSAM_PREWARM_REQUEST session=${recognitionSessionId.orEmpty()} " +
+            "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} remaining_ms=$remainingMs")
+        try {
+            withTimeout(remainingMs) { prepare(selected) }
+            Log.i(LOG_TAG, "SLIMSAM_PREWARM_READY session=${recognitionSessionId.orEmpty()} " +
+                "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} " +
+                "duration_ms=${recognitionMonotonicNowMs() - startedAtMs}")
+        } catch (timeout: TimeoutCancellationException) {
+            Log.w(LOG_TAG, "SLIMSAM_PREWARM_DEADLINE session=${recognitionSessionId.orEmpty()} " +
+                "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} " +
+                "attempt_timeout_ms=${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS}")
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (error: Throwable) {
+            Log.w(LOG_TAG, "SLIMSAM_PREWARM_FAILED session=${recognitionSessionId.orEmpty()} " +
+                "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId}", error)
+        }
+    }
+
+    // A synchronous ONNX call cannot be interrupted by coroutine cancellation.
+    // Keep the visible outcome and SessionStore terminal state on the fixed deadline.
+    LaunchedEffect(sceneKey, attemptDeadline) {
+        val remainingMs = attemptDeadline.remainingMs(recognitionMonotonicNowMs())
+        if (remainingMs > 0L) delay(remainingMs)
+        if (!attemptDeadline.isExpired(recognitionMonotonicNowMs())) return@LaunchedEffect
+        val completed = currentFinishedResult.value
+        if (completed?.ready == true) {
+            if (currentSubjectStatus.value == SubjectStatus.IDLE || currentSubjectStatus.value == SubjectStatus.PROCESSING) {
+                val failed = FishSubjectResult(
+                    SubjectStatus.FAILED,
+                    errorCode = RecognitionAttemptFailureCode.SLIMSAM_TIMEOUT,
+                )
+                Log.e(LOG_TAG, "ATTEMPT_DEADLINE_EXCEEDED stage=SLIMSAM session=${recognitionSessionId.orEmpty()} " +
+                    "attempt=${recognitionAttemptId.orEmpty()} image=${image?.imageId.orEmpty()} " +
+                    "attempt_timeout_ms=${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS} " +
+                    "resolution=CLASSIFIER_RESULT_WITHOUT_MASK")
+                subjectResult = failed
+                currentSubjectGeometryCallback.value(failed, null)
+                controller.onMaskTerminal(
+                    trusted = false, contourValid = false, contourClosed = false,
+                    failedTerminal = true, currentIdentity = sceneIdentity,
+                )
+            }
+            return@LaunchedEffect
+        }
+        if (completed != null || currentPipelineError.value != null) return@LaunchedEffect
+        val failureCode = when (currentRealPhase.value) {
+            RecognitionPhase.CLASSIFYING -> RecognitionAttemptFailureCode.CLASSIFIER_TIMEOUT
+            else -> RecognitionAttemptFailureCode.DETECTOR_TIMEOUT
+        }
+        val failure = IllegalStateException(
+            "RECOGNITION_ATTEMPT_DEADLINE_EXCEEDED_${failureCode}_" +
+                "${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS}MS",
+        )
+        Log.e(LOG_TAG, "ATTEMPT_DEADLINE_EXCEEDED stage=${failureCode.removeSuffix("_TIMEOUT")} " +
+            "session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+            "image=${image?.imageId.orEmpty()} attempt_timeout_ms=${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS} " +
+            "resolution=VISIBLE_FAILURE")
+        realPhase = RecognitionPhase.FAILURE
+        pipelineError = failure
+        controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs(), currentIdentity = sceneIdentity)
+        if (!manualStepDiagnosticState.value && !currentDelivered.value) {
+            delivered = true
+            currentFailureCallback.value(failure)
+        }
+    }
+
     // `subjectBitmap` is borrowed by RecognitionFishFocus through ImageBitmap.
     // Compose may still be drawing the old reference after this state changes or
     // this scene leaves composition, so this UI scope must never recycle it.
@@ -411,7 +500,7 @@ fun RecognitionProcessingScene(
             "SLIMSAM_START session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
                 "image=${selected.imageId} sha256=${selected.photoSha256} bbox=${primary.box} uptime_ms=$startedAtMs",
         )
-                val result = try {
+        val result = try {
             withTimeout(attemptDeadline.remainingMs(recognitionMonotonicNowMs())) {
                 generateSubjectWithConfidence?.invoke(selected, primary.box, primary.confidence)
                     ?: generateSubject?.invoke(selected, primary.box)
@@ -430,6 +519,7 @@ fun RecognitionProcessingScene(
                     "attempt_timeout_ms=${RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS} remaining_ms=0 " +
                     "failure_code=$failureCode", timeout)
                 subjectResult = FishSubjectResult(SubjectStatus.FAILED, errorCode = failureCode)
+                onSubjectGeometry(subjectResult, null)
                 controller.onMaskTerminal(
                     trusted = false, contourValid = false, contourClosed = false,
                     failedTerminal = true, currentIdentity = sceneIdentity,
@@ -453,6 +543,7 @@ fun RecognitionProcessingScene(
                     "failure_code=$failureCode late_native_return=true",
             )
             subjectResult = FishSubjectResult(SubjectStatus.FAILED, errorCode = failureCode)
+            onSubjectGeometry(subjectResult, null)
             controller.onMaskTerminal(
                 trusted = false, contourValid = false, contourClosed = false,
                 failedTerminal = true, currentIdentity = sceneIdentity,
@@ -1079,6 +1170,7 @@ fun RecognitionProcessingScene(
     }
     val normalProgressLabel = when {
         realPhase == RecognitionPhase.FAILURE || (finishedResult != null && finishedResult?.ready != true) -> "识别未完成"
+        finishedResult?.ready == true && subjectResult.status == SubjectStatus.FAILED -> "鱼种已识别 · 轮廓暂不可用，继续展示结果"
         finishedResult?.ready == true && revealDecision == RecognitionRevealDecisionState.WAITING_SLIMSAM ->
             "鱼种已识别 · 正在确认真实鱼体轮廓"
         finishedResult?.ready == true -> "识别结果已就绪，正在呈现水光揭晓"
@@ -1327,6 +1419,7 @@ fun RecognitionProcessingScene(
                             "attempt=${recognitionAttemptId.orEmpty()} image=${image.imageId} uptime_ms=$presentedAtMs",
                     )
                     photoPresentedAtMs = presentedAtMs
+                    photoFramePresentedCallback.value?.invoke(presentedAtMs)
                     controller.markPhotoFirstFramePresented(sceneIdentity, presentedAtMs)
                     if (diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) playbackRevision++
                 }

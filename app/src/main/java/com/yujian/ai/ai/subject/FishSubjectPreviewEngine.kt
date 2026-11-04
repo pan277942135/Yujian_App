@@ -30,6 +30,17 @@ class FishSubjectPreviewEngine(
     /** One native SlimSAM session is serialized across cancellation and photo replacement. */
     private val generationMutex = Mutex()
 
+    suspend fun prepare(selected: SelectedImage) = generationMutex.withLock {
+        withContext(Dispatchers.Default) {
+            val started = android.os.SystemClock.uptimeMillis()
+            android.util.Log.i("FishSubjectPreviewEngine", "SLIMSAM_PREWARM_START image=${selected.imageId} " +
+                "sha256=${selected.photoSha256} uptime_ms=$started")
+            slimSamSegmenter.prepareImageEmbedding(selected.bitmap, selected.photoSha256)
+            android.util.Log.i("FishSubjectPreviewEngine", "SLIMSAM_PREWARM_COMPLETE image=${selected.imageId} " +
+                "sha256=${selected.photoSha256} duration_ms=${android.os.SystemClock.uptimeMillis() - started}")
+        }
+    }
+
     suspend fun generate(source: Bitmap, detectorBbox: NormalizedFishBox): FishSubjectResult =
         generationMutex.withLock {
             withContext(Dispatchers.Default) {

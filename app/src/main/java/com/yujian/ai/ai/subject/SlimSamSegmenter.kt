@@ -49,7 +49,10 @@ class SlimSamSegmenter(
 
     private val sessionOptions: OrtSession.SessionOptions by lazy {
         OrtSession.SessionOptions().apply {
-            setIntraOpNumThreads(2)
+            val threadCount = Runtime.getRuntime().availableProcessors().coerceIn(2, 4)
+            setIntraOpNumThreads(threadCount)
+            setInterOpNumThreads(1)
+            Log.i(TAG, "SLIMSAM_THREAD_POLICY intra_op=$threadCount inter_op=1")
         }
     }
 
@@ -73,6 +76,15 @@ class SlimSamSegmenter(
     private var cachedEmbedding: CachedVisionEmbedding? = null
 
     private val outputDir = File(context.cacheDir, "fish_subject_previews").apply { mkdirs() }
+
+    /** Precomputes the photo-only vision embedding while detector work is in flight. */
+    fun prepareImageEmbedding(source: Bitmap, photoSha256: String) {
+        require(source.width > 0 && source.height > 0) { "Bitmap dimensions must be greater than zero" }
+        val started = SystemClock.uptimeMillis()
+        getOrComputeImageEmbedding(source, photoSha256)
+        Log.i(TAG, "SLIMSAM_PREWARM_END duration_ms=${SystemClock.uptimeMillis() - started} " +
+            "photoSha256=$photoSha256 source=${source.width}x${source.height}")
+    }
 
     @Synchronized
     private fun getVisionSession(): OrtSession {
