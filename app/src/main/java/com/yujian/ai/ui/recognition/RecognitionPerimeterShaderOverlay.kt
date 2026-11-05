@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 13918)
+Total output lines: 1110
+
 package com.yujian.ai.ui.recognition
 
 import android.content.Context
@@ -20,7 +23,11 @@ import android.view.View
 import android.view.ViewOutlineProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -88,7 +95,11 @@ internal fun recognitionPerimeterOpacity(
 internal fun recognitionPerimeterProgress(
     frame: WaterLightFrame,
     profile: RecognitionPerimeterOpticalProfileV1 = RecognitionPerimeterOpticalProfileV1.EFFECT_02,
-): Float = RecognitionPerimeterShaderMath.expansionProgress(frame.sceneFrame, profile)
+    perimeterStartOpticalMs: Long? = null,
+    spreadDurationMs: Long = 1_200L,
+): Float = RecognitionPerimeterShaderMath.expansionProgress(
+    frame.sceneFrame, profile, perimeterStartOpticalMs, spreadDurationMs,
+)
 
 internal fun recognitionPerimeterActive(processingClockStarted: Boolean, phase: RecognitionPhase): Boolean =
     processingClockStarted && phase != RecognitionPhase.RESULT && phase != RecognitionPhase.FAILURE
@@ -149,8 +160,33 @@ internal fun RecognitionPerimeterShaderOverlay(
     val effectiveReduceMotion = reduceMotion || waterLightFrame.reducedMotion
     val timeSec = if (effectiveReduceMotion) 0f else
         RecognitionPerimeterShaderMath.sourceTimeSec(sceneFrame, opticalProfile.speed)
-    val progress = if (effectiveReduceMotion) 1f else
-        recognitionPerimeterProgress(waterLightFrame, opticalProfile)
+    val stageStartReferenceMs = (sceneFrame.opticalReferenceElapsedMs - sceneFrame.stageElapsedMs).coerceAtLeast(0L)
+    var perimeterStartOpticalMs by remember(
+        recognitionSessionId, recognitionAttemptId, imageId, photoSha256, sceneFrame.geometryVersion,
+    ) { mutableStateOf<Long?>(null) }
+    LaunchedEffect(
+        recognitionSessionId, recognitionAttemptId, imageId, photoSha256,
+        sceneFrame.geometryVersion, sceneFrame.stage, stageStartReferenceMs,
+    ) {
+        when (sceneFrame.stage) {
+            RecognitionSceneStage.PHOTO_STABLE,
+            RecognitionSceneStage.ORB_WAKE,
+            RecognitionSceneStage.ORB_RELEASE -> perimeterStartOpticalMs = null
+            RecognitionSceneStage.PERIMETER_ARRIVAL -> perimeterStartOpticalMs = stageStartReferenceMs
+            else -> if (perimeterStartOpticalMs == null) {
+                // The host may mount after arrival. Use the frozen 125ms stage minimum
+                // as a conservative reconstruction from this same SceneClock sample.
+                perimeterStartOpticalMs = (stageStartReferenceMs - RecognitionSceneStage.PERIMETER_ARRIVAL.minimumVisibleMs)
+                    .coerceAtLeast(0L)
+            }
+        }
+    }
+    val progress = if (effectiveReduceMotion) 1f else recognitionPerimeterProgress(
+        waterLightFrame,
+        opticalProfile,
+        perimeterStartOpticalMs,
+        material.perimeterSpreadDurationMs,
+    )
     val perimeterOpacity = recognitionPerimeterOpacity(
         processingClockStarted = processingClockStarted,
         reduceMotion = effectiveReduceMotion,
@@ -314,521 +350,7 @@ private class RecognitionPerimeterTextureView(context: Context) : TextureView(co
         handler.post {
             if (released.get() || !hostResumed || currentTexture !== texture || epoch != surfaceEpoch ||
                 latest?.let(::frameKey) != frameIdentity) return@post
-            if (!initialized && !initGl(currentTexture)) return@post
-            renderer.submit(frame)
-            renderer.onSurfaceChanged(width.coerceAtLeast(1), height.coerceAtLeast(1))
-            val drawn = renderer.onDrawFrame()
-            val swapped = drawn && EGL14.eglSwapBuffers(display, surfaceGl)
-            Log.i(PERIMETER_LOG_TAG, "PHOTO_GPU_SWAP=${if (swapped) "PASS" else "FAIL"} " +
-                "drawn=$drawn eglError=0x${EGL14.eglGetError().toString(16)} identity=$frameIdentity")
-            if (swapped) {
-                post {
-                    if (!released.get() && hostResumed && isAvailable && epoch == surfaceEpoch &&
-                        currentTexture === texture && latest?.let(::frameKey) == frameIdentity) {
-                        val first = shownIdentity != frameIdentity
-                        shownIdentity = frameIdentity
-                        alpha = 1f
-                        if (first) Log.i(PERIMETER_LOG_TAG, "PHOTO_GPU_FIRST_FRAME=PASS identity=$frameIdentity")
-                        Log.i(PERIMETER_LOG_TAG, "PHOTO_OWNER=GPU identity=$frameIdentity")
-                    }
-                }
-            } else {
-                post { if (epoch == surfaceEpoch && latest?.let(::frameKey) == frameIdentity) alpha = 0f }
-                Log.e(PERIMETER_LOG_TAG, "PHOTO_COMPOSE_FALLBACK=GPU_DRAW_OR_SWAP_FAILED identity=$frameIdentity")
-            }
-        }
-    }
-
-    private fun initGl(surfaceTexture: SurfaceTexture): Boolean {
-        try {
-            display = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
-            if (display == EGL14.EGL_NO_DISPLAY || !EGL14.eglInitialize(display, IntArray(2), 0, IntArray(2), 0)) return failInit("DISPLAY")
-            val configAttrs = intArrayOf(EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8,
-                EGL14.EGL_BLUE_SIZE, 8, EGL14.EGL_ALPHA_SIZE, 8,
-                EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT, EGL14.EGL_NONE)
-            val configs = arrayOfNulls<EGLConfig>(1)
-            if (!EGL14.eglChooseConfig(display, configAttrs, 0, configs, 0, 1, IntArray(1), 0)) return failInit("CONFIG")
-            val config = configs[0] ?: return failInit("CONFIG_EMPTY")
-            contextGl = EGL14.eglCreateContext(display, config, EGL14.EGL_NO_CONTEXT,
-                intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE), 0)
-            if (contextGl == EGL14.EGL_NO_CONTEXT) return failInit("CONTEXT")
-            surface = Surface(surfaceTexture)
-            surfaceGl = EGL14.eglCreateWindowSurface(display, config, surface,
-                intArrayOf(EGL14.EGL_NONE), 0)
-            if (surfaceGl == EGL14.EGL_NO_SURFACE || !EGL14.eglMakeCurrent(display, surfaceGl, surfaceGl, contextGl)) return failInit("SURFACE")
-            renderer.onSurfaceCreated()
-            initialized = true
-            Log.i(PERIMETER_LOG_TAG, "PHOTO_GPU_INIT=PASS")
-            return true
-        } catch (error: Throwable) {
-            Log.e(PERIMETER_LOG_TAG, "PHOTO_GPU_INIT=FAIL", error)
-            return failInit(error.javaClass.simpleName)
-        }
-    }
-
-    private fun failInit(reason: String): Boolean {
-        Log.e(PERIMETER_LOG_TAG, "PHOTO_GPU_INIT=FAIL reason=$reason eglError=0x${EGL14.eglGetError().toString(16)}")
-        releaseGl()
-        post { alpha = 0f }
-        return false
-    }
-
-    private fun releaseGl() {
-        renderer.releaseGl(initialized)
-        initialized = false
-        if (display != EGL14.EGL_NO_DISPLAY) {
-            EGL14.eglMakeCurrent(display, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)
-            if (surfaceGl != EGL14.EGL_NO_SURFACE) EGL14.eglDestroySurface(display, surfaceGl)
-            if (contextGl != EGL14.EGL_NO_CONTEXT) EGL14.eglDestroyContext(display, contextGl)
-            EGL14.eglTerminate(display)
-        }
-        surface?.release(); surface = null
-        display = EGL14.EGL_NO_DISPLAY
-        surfaceGl = EGL14.EGL_NO_SURFACE
-        contextGl = EGL14.EGL_NO_CONTEXT
-        Log.i(PERIMETER_LOG_TAG, "PHOTO_GPU_RELEASE=PASS")
-    }
-
-    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-        surfaceEpoch++
-        texture = surface
-        latest?.let(::render)
-    }
-    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-        latest?.let(::render)
-    }
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
-        alpha = 0f
-        surfaceEpoch++
-        shownIdentity = null
-        texture = null
-        handler.post { releaseGl() }
-        return true
-    }
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) = Unit
-
-    fun release() {
-        if (!released.compareAndSet(false, true)) return
-        alpha = 0f
-        surfaceEpoch++
-        shownIdentity = null
-        latest = null
-        texture = null
-        handler.post { releaseGl(); worker.quitSafely() }
-    }
-    private fun frameKey(frame: PerimeterFrame): String =
-        "${frame.recognitionSessionId}:${frame.recognitionAttemptId}:${frame.imageId}:" +
-            "${frame.photoSha256}:${frame.geometryVersion}"
-}
-
-private class RecognitionPerimeterGlRenderer {
-    private val frameRef = AtomicReference<PerimeterFrame?>(null)
-    private var program = 0
-    private var surfaceWidth = 1
-    private var surfaceHeight = 1
-    private var lastMappingLogKey: String? = null
-    private var firstOpticalFrameLogged = false
-    private var uniformLocations: Map<String, Int> = emptyMap()
-    private var positionBuffer = 0
-    private var photoTexture = 0
-    private var uploadedBitmap: Bitmap? = null
-    private var uploadedIdentity: String? = null
-    private val vertices = floatArrayOf(-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f)
-
-    fun submit(frame: PerimeterFrame) {
-        frameRef.set(frame)
-    }
-
-    fun onSurfaceCreated() {
-        firstOpticalFrameLogged = false
-        uploadedBitmap = null
-        uploadedIdentity = null
-        val frameIdentity = frameRef.get()?.let(::identityLabel).orEmpty()
-        Log.i(TAG, "GLES_VERSION=${GLES20.glGetString(GLES20.GL_VERSION)} $frameIdentity")
-        Log.i(TAG, "GL_RENDERER=${GLES20.glGetString(GLES20.GL_RENDERER)} $frameIdentity")
-        Log.i(TAG, "GLSL_VERSION=${GLES20.glGetString(GLES20.GL_SHADING_LANGUAGE_VERSION)} $frameIdentity")
-        val bufferIds = IntArray(1)
-        GLES20.glGenBuffers(1, bufferIds, 0)
-        positionBuffer = bufferIds[0]
-        val data = ByteBuffer.allocateDirect(vertices.size * FLOAT_SIZE_BYTES)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-            .put(vertices)
-        data.position(0)
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, positionBuffer)
-        GLES20.glBufferData(
-            GLES20.GL_ARRAY_BUFFER,
-            vertices.size * FLOAT_SIZE_BYTES,
-            data,
-            GLES20.GL_STATIC_DRAW,
-        )
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
-
-        val textureIds = IntArray(1)
-        GLES20.glGenTextures(1, textureIds, 0)
-        photoTexture = textureIds[0]
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-
-        val shaderStartedAtMs = android.os.SystemClock.uptimeMillis()
-        program = createProgram(VERTEX_SHADER, PERIMETER_FRAGMENT_SHADER, "perimeter")
-        if (program != 0) {
-            uniformLocations = buildList {
-                addAll(listOf(
-                    "uPhoto", "uViewport", "uPhotoBounds", "uImageRect", "uMotion",
-                    "uPerimeterOpacity", "uEnergyLevel", "uNodePositions",
-                    "uGoldColor", "uCyanColor", "uGreenColor",
-                    "uSparkleGoldCoreColor", "uSparkleCyanCoreColor",
-                ))
-                repeat(10) { add("uProfile$it") }
-            }.associateWith { GLES20.glGetUniformLocation(program, it) }
-        }
-        val shaderFinishedAtMs = android.os.SystemClock.uptimeMillis()
-        if (program != 0) {
-            Log.i(TAG, "PERIMETER_SHADER_COMPILE=PASS demo_source=$DEMO_SOURCE_SHA started_uptime_ms=$shaderStartedAtMs completed_uptime_ms=$shaderFinishedAtMs $frameIdentity")
-            Log.i(TAG, "PERIMETER_SHADER_LINK=PASS uptime_ms=$shaderFinishedAtMs $frameIdentity")
-        } else {
-            Log.e(TAG, "PERIMETER_SHADER_COMPILE=FAIL; transparent photo-safe fallback started_uptime_ms=$shaderStartedAtMs completed_uptime_ms=$shaderFinishedAtMs $frameIdentity")
-        }
-        GLES20.glDisable(GLES20.GL_DEPTH_TEST)
-        GLES20.glDisable(GLES20.GL_BLEND)
-        GLES20.glClearColor(0f, 0f, 0f, 1f)
-        Log.i(TAG, "PHOTO_TEXTURE_ROLE=OPAQUE_PHOTO_PLUS_PERIMETER; Compose remains fallback $frameIdentity")
-        checkGl("surface-created", frameIdentity)
-        Log.i(TAG, "PERIMETER_GL_SURFACE_CREATED uptime_ms=${android.os.SystemClock.uptimeMillis()} $frameIdentity")
-    }
-
-    fun onSurfaceChanged(width: Int, height: Int) {
-        surfaceWidth = width.coerceAtLeast(1)
-        surfaceHeight = height.coerceAtLeast(1)
-        GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight)
-        Log.i(TAG, "RENDER_SIZE=${surfaceWidth}x$surfaceHeight backend=GLES2 ${frameRef.get()?.let(::identityLabel).orEmpty()}")
-        frameRef.get()?.let(::logMappingIfChanged)
-    }
-
-    fun onDrawFrame(): Boolean {
-        val frame = frameRef.get()
-        if (frame == null) {
-            GLES20.glClearColor(0f, 0f, 0f, 1f)
-            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-            return false
-        }
-        if (!uploadBitmapIfNeeded(frame)) {
-            GLES20.glClearColor(0f, 0f, 0f, 1f)
-            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-            return false
-        }
-        logMappingIfChanged(frame)
-        GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight)
-        GLES20.glClearColor(0f, 0f, 0f, 1f)
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-        if (program != 0) {
-            if (!firstOpticalFrameLogged) {
-                firstOpticalFrameLogged = true
-                Log.i(TAG, "PERIMETER_FIRST_OPTICAL_FRAME processing_elapsed_ms=${frame.elapsedMs} optical_reference_ms=${frame.opticalReferenceElapsedMs} uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}")
-            }
-            return drawPerimeter(frame)
-        }
-        Log.e(TAG, "PHOTO_GPU_DRAW=FAIL reason=PROGRAM_UNAVAILABLE ${identityLabel(frame)}")
-        return false
-    }
-
-    fun releaseGl(contextCurrent: Boolean) {
-        frameRef.set(null)
-        uploadedBitmap = null
-        uploadedIdentity = null
-        if (contextCurrent) deleteGlObjects() else {
-            positionBuffer = 0
-            photoTexture = 0
-            program = 0
-        }
-    }
-
-    private fun drawPerimeter(frame: PerimeterFrame): Boolean {
-        val started = android.os.SystemClock.uptimeMillis()
-        val p = program
-        GLES20.glUseProgram(p)
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
-        GLES20.glUniform1i(uniform("uPhoto"), 0)
-        bindQuad(p)
-        setCommonUniforms(p, frame)
-        GLES20.glUniform4fv(uniform("uNodePositions"), 8, frame.nodePositions, 0)
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
-        val error = GLES20.glGetError()
-        val success = error == GLES20.GL_NO_ERROR
-        Log.i(TAG, "PHOTO_GPU_DRAW=${if (success) "PASS" else "FAIL"} error=0x${error.toString(16)} " +
-            "duration_ms=${android.os.SystemClock.uptimeMillis() - started} ${identityLabel(frame)}")
-        return success
-    }
-
-    private fun uploadBitmapIfNeeded(frame: PerimeterFrame): Boolean {
-        if (frame.bitmap.isRecycled || photoTexture == 0) {
-            Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL reason=${if (frame.bitmap.isRecycled) "BITMAP_RECYCLED" else "TEXTURE_UNAVAILABLE"} ${identityLabel(frame)}")
-            return false
-        }
-        val identity = identityLabel(frame) + ":bitmapGeneration=${frame.bitmap.generationId}"
-        if (frame.bitmap === uploadedBitmap && uploadedIdentity == identity) return true
-        val uploadStartedAtMs = android.os.SystemClock.uptimeMillis()
-        return try {
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
-            GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 4)
-            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, frame.bitmap, 0)
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-            val error = GLES20.glGetError()
-            if (error != GLES20.GL_NO_ERROR) {
-                Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL error=0x${error.toString(16)} started_uptime_ms=$uploadStartedAtMs completed_uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}")
-                false
-            } else {
-                uploadedBitmap = frame.bitmap
-                uploadedIdentity = identity
-                Log.i(TAG, "PHOTO_TEXTURE_UPLOAD=PASS size=${frame.bitmap.width}x${frame.bitmap.height} duration_ms=${android.os.SystemClock.uptimeMillis() - uploadStartedAtMs} ${identityLabel(frame)}")
-                true
-            }
-        } catch (error: Throwable) {
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-            Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL reason=${error.javaClass.simpleName} started_uptime_ms=$uploadStartedAtMs completed_uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}", error)
-            false
-        }
-    }
-
-    private fun bindQuad(programId: Int) {
-        val location = GLES20.glGetAttribLocation(programId, "aPosition")
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, positionBuffer)
-        GLES20.glEnableVertexAttribArray(location)
-        GLES20.glVertexAttribPointer(location, 2, GLES20.GL_FLOAT, false, 0, 0)
-    }
-
-    private fun setCommonUniforms(programId: Int, frame: PerimeterFrame) {
-        fun rgb(value: Long): FloatArray = floatArrayOf(
-            ((value shr 16) and 255).toFloat() / 255f,
-            ((value shr 8) and 255).toFloat() / 255f,
-            (value and 255).toFloat() / 255f,
-        )
-        val optical = frame.opticalProfile
-        GLES20.glUniform3fv(uniform("uGoldColor"), 1, rgb(optical.goldColor), 0)
-        GLES20.glUniform3fv(uniform("uCyanColor"), 1, rgb(optical.cyanColor), 0)
-        GLES20.glUniform3fv(uniform("uGreenColor"), 1, rgb(optical.greenColor), 0)
-        GLES20.glUniform3fv(uniform("uSparkleGoldCoreColor"), 1, rgb(optical.sparkleGoldCoreColor), 0)
-        GLES20.glUniform3fv(uniform("uSparkleCyanCoreColor"), 1, rgb(optical.sparkleCyanCoreColor), 0)
-        GLES20.glUniform2f(
-            uniform("uViewport"),
-            surfaceWidth.toFloat(),
-            surfaceHeight.toFloat(),
-        )
-        GLES20.glUniform4f(
-            uniform("uPhotoBounds"),
-            frame.photoBounds.left,
-            frame.photoBounds.top,
-            frame.photoBounds.width,
-            frame.photoBounds.height,
-        )
-        GLES20.glUniform4f(uniform("uImageRect"),
-            frame.imageBounds.left, frame.imageBounds.top,
-            frame.imageBounds.width, frame.imageBounds.height)
-        GLES20.glUniform1f(
-            uniform("uPerimeterOpacity"),
-            frame.perimeterOpacity.coerceIn(0f, 1f),
-        )
-        GLES20.glUniform4f(
-            uniform("uMotion"),
-            frame.timeSec,
-            frame.progress,
-            frame.shaderCoordinateScale,
-            frame.pathCoordinateScale,
-        )
-        GLES20.glUniform1f(
-            uniform("uEnergyLevel"),
-            frame.energyLevel.coerceIn(0f, 1f),
-        )
-        val p = optical
-        GLES20.glUniform4f(uniform("uProfile0"), p.intensity, p.speed, p.marginRatio, p.cornerRadiusRatio)
-        GLES20.glUniform4f(uniform("uProfile1"), p.wave1Frequency, p.wave1AmplitudeSourcePx, p.wave1Speed, p.wave2Frequency)
-        GLES20.glUniform4f(uniform("uProfile2"), p.wave2AmplitudeSourcePx, p.wave2Speed, p.glowSizeSourcePx, p.wideHaloDecay)
-        GLES20.glUniform4f(uniform("uProfile3"), p.wideHaloGlowFactor, p.wideHaloWeight, p.mediumBloomDecay, p.mediumBloomGlowFactor)
-        GLES20.glUniform4f(uniform("uProfile4"), p.mediumBloomWeight, p.sharpCoreNear, p.sharpCoreFar, p.sharpCoreWeight)
-        GLES20.glUniform4f(uniform("uProfile5"), p.bottomMaskStrength, p.blendRatio, p.bottomMaskFloor, p.bottomGradientLift)
-        GLES20.glUniform4f(uniform("uProfile6"), p.bottomGradientExponent, p.causticsUvScale, p.bottomContributionScale, p.perimeterContributionScale)
-        GLES20.glUniform4f(uniform("uProfile7"), p.specularStart, p.specularEnd, p.specularMix, p.specularBoost)
-        GLES20.glUniform4f(uniform("uProfile8"), p.sparkleBaseSizeCssPx, p.sparkleSizeStepCssPx, p.sparkleHaloScale, p.sparkleCoreScale)
-        GLES20.glUniform4f(uniform("uProfile9"), p.sparkleHaloOpacity, p.sparkleCoreOpacity, p.flourishHalfWidthCssPx, p.flourishPeakHeightCssPx)
-    }
-
-    private fun uniform(name: String): Int = uniformLocations[name] ?: -1
-
-    private fun logMappingIfChanged(frame: PerimeterFrame) {
-        val key = "${frame.photoBounds.width}x${frame.photoBounds.height}:" +
-            "${frame.shaderCoordinateScale}:${frame.pathCoordinateScale}:${frame.coordinateMappingMeasured}"
-        if (key == lastMappingLogKey) return
-        lastMappingLogKey = key
-        Log.i(
-            TAG,
-            "${identityLabel(frame)} PHOTO_CONTENT_RECT=${frame.photoBounds.left},${frame.photoBounds.top}," +
-                "${frame.photoBounds.width},${frame.photoBounds.height} viewport=${surfaceWidth}x$surfaceHeight " +
-                "processing_elapsed_ms=${frame.elapsedMs} optical_reference_ms=${frame.opticalReferenceElapsedMs} " +
-                "source_coordinate_scale=${frame.shaderCoordinateScale} " +
-                "path_css_scale=${frame.pathCoordinateScale} measured=${frame.coordinateMappingMeasured}",
-        )
-        Log.i(TAG, "OPTICAL_PROFILE=${frame.opticalProfile.version} blend=${frame.opticalProfile.blendMode} margin=${frame.opticalProfile.marginRatio} corner=${frame.opticalProfile.cornerRadiusRatio} glow_source_px=${frame.opticalProfile.glowSizeSourcePx}")
-        if (!frame.coordinateMappingMeasured) {
-            Log.w(TAG, "${identityLabel(frame)} COORDINATE_MAPPING=NOT_VERIFIED; identity candidate only; source DPR/CSS/backing dimensions not supplied")
-        }
-    }
-
-    private fun identityLabel(frame: PerimeterFrame): String =
-        "session=${frame.recognitionSessionId} attempt=${frame.recognitionAttemptId} " +
-            "image=${frame.imageId} photoSha256=${frame.photoSha256}"
-
-    private fun deleteGlObjects() {
-        if (positionBuffer != 0) GLES20.glDeleteBuffers(1, intArrayOf(positionBuffer), 0)
-        if (program != 0) GLES20.glDeleteProgram(program)
-        if (photoTexture != 0) GLES20.glDeleteTextures(1, intArrayOf(photoTexture), 0)
-        positionBuffer = 0
-        program = 0
-        photoTexture = 0
-        uploadedBitmap = null
-        uploadedIdentity = null
-        uniformLocations = emptyMap()
-    }
-
-    private fun checkGl(stage: String, identity: String = "") {
-        val error = GLES20.glGetError()
-        if (error != GLES20.GL_NO_ERROR) Log.e(TAG, "GLES_ERROR stage=$stage code=0x${error.toString(16)} $identity")
-    }
-
-    companion object {
-        private const val FLOAT_SIZE_BYTES = 4
-        private const val TAG = "RecognitionPerimeter"
-        private const val DEMO_SOURCE_SHA = "a790f145620ab32f96fe525bc38dd902653bd960"
-
-        private const val VERTEX_SHADER = """
-            attribute vec2 aPosition;
-            void main() {
-                gl_Position = vec4(aPosition, 0.0, 1.0);
-            }
-        """
-
-        /** Port of the Demo's final WebGL shader plus its 2D accents in the same GLES2 pass. */
-        private const val PERIMETER_FRAGMENT_SHADER = """
-            #ifdef GL_FRAGMENT_PRECISION_HIGH
-            precision highp float;
-            #else
-            precision mediump float;
-            #endif
-
-            uniform sampler2D uPhoto;
-            uniform vec2 uViewport;
-            uniform vec4 uPhotoBounds;
-            uniform vec4 uImageRect;
-            // x=timeSec, y=bottom-up expansion, z=target px/source backing px, w=target px/source CSS px.
-            uniform vec4 uMotion;
-            uniform float uPerimeterOpacity;
-            uniform float uEnergyLevel;
-            uniform vec4 uNodePositions[8];
-            uniform vec3 uGoldColor;
-            uniform vec3 uCyanColor;
-            uniform vec3 uGreenColor;
-            uniform vec3 uSparkleGoldCoreColor;
-            uniform vec3 uSparkleCyanCoreColor;
-            // Profile uniforms, packed to keep GLES2 uniform binding compact.
-            uniform vec4 uProfile0; // intensity, speed, margin ratio, corner radius ratio
-            uniform vec4 uProfile1; // wave 1 frequency/amplitude/speed, wave 2 frequency
-            uniform vec4 uProfile2; // wave 2 amplitude/speed, glow size, wide halo decay
-            uniform vec4 uProfile3; // wide halo glow factor/weight, bloom decay/glow factor
-            uniform vec4 uProfile4; // bloom weight, sharp near/far/weight
-            uniform vec4 uProfile5; // bottom mask strength, blend ratio, mask floor, gradient lift
-            uniform vec4 uProfile6; // gradient exponent, caustic UV scale, bottom/perimeter contribution
-            uniform vec4 uProfile7; // specular start/end/mix/boost
-            uniform vec4 uProfile8; // sparkle size/step/halo/core
-            uniform vec4 uProfile9; // halo/core opacity, flourish half width/height
-
-            const float PI = 3.14159265358979323846;
-
-            vec2 rotate(vec2 p, float a) {
-                float c = cos(a);
-                float s = sin(a);
-                return vec2(c * p.x - s * p.y, s * p.x + c * p.y);
-            }
-
-            float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
-                r.xy = (p.x > 0.0) ? r.xy : r.zw;
-                r.x = (p.y > 0.0) ? r.x : r.y;
-                vec2 q = abs(p) - b + r.x;
-                return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r.x;
-            }
-
-            vec3 overlayBlend(vec3 backdrop, vec3 source) {
-                vec3 low = 2.0 * backdrop * source;
-                vec3 high = 1.0 - 2.0 * (1.0 - backdrop) * (1.0 - source);
-                return mix(low, high, step(vec3(0.5), backdrop));
-            }
-
-            float hash(vec2 p) {
-                p = fract(p * vec2(123.34, 456.21));
-                p += dot(p, p + 45.32);
-                return fract(p.x * p.y);
-            }
-
-            float causticOctave(vec2 uv, float t, float fi) {
-                vec2 p = rotate(uv, 0.45 + fi * 2.39996);
-                for (int k = 0; k < 2; k++) {
-                    float fk = float(k);
-                    vec2 w = vec2(
-                        sin(p.y * (1.18 + fi * 0.17 + fk * 0.12) + p.x * (0.24 + fi * 0.08) + t * (0.42 + fi * 0.06) + fi * 1.57 + fk),
-                        cos(p.x * (0.92 + fi * 0.15 + fk * 0.10) - p.y * (0.31 + fi * 0.08) - t * (0.38 + fi * 0.05) + fi * 1.18)
-                    );
-                    p += w * (0.45 / (1.0 + fi * 0.18 + fk * 0.12));
-                }
-                vec2 d1 = vec2(1.02 + fi * 0.19, 0.35 + fi * 0.11);
-                vec2 d2 = vec2(-0.48 - fi * 0.09, 1.12 + fi * 0.07);
-                float ridge = sin(dot(p, d1) + t * 0.14) * sin(dot(p, d2) - t * 0.11);
-                return 0.17 / (abs(ridge) * 5.4 + 0.22);
-            }
-
-            float causticField(vec2 uv, float t) {
-                vec2 p = uv + vec2(
-                    sin(uv.y * 0.42 + t * 0.24) * 0.38,
-                    cos(uv.x * 0.36 - t * 0.18) * 0.38
-                );
-                float a = causticOctave(p, t, 0.0);
-                vec2 p2 = rotate(p * 1.618 + vec2(1.72, -1.18), 1.15);
-                float b = causticOctave(p2, t * 0.82, 1.0);
-                vec2 p3 = rotate(p * 2.54 + vec2(2.31, -0.65), 1.52);
-                float c = causticOctave(p3, t * 0.65, 2.0);
-                float acc = max(a * 1.15, b * 0.82) + c * 0.38;
-                return pow(clamp(acc, 0.0, 2.0), 1.35);
-            }
-
-            float lightSpotsField(vec2 uv, float t) {
-                vec2 p = uv * 3.6;
-                vec2 ip = floor(p);
-                vec2 fp = fract(p) - 0.5;
-                float minDist = 1.0;
-                for (int y = -1; y <= 1; y++) {
-                    for (int x = -1; x <= 1; x++) {
-                        vec2 neighbor = vec2(float(x), float(y));
-                        vec2 cellId = ip + neighbor;
-                        float h = hash(cellId);
-                        vec2 offset = vec2(
-                            sin(t * 1.25 + h * 6.28) * 0.32,
-                            cos(t * 1.55 + h * 6.28) * 0.32
-                        );
-                        minDist = min(minDist, length(neighbor + offset - fp));
-                    }
-                }
-                float spot = 1.0 - smoothstep(0.08, 0.65, minDist);
-                return pow(spot, 1.8);
-            }
-
-            vec2 nodePosition(int index) {
-                if (index == 0) return uNodePositions[0].xy;
-                if (index == 1) return uNodePositions[0].zw;
-                if (index == 2) return uNodePositions[1].xy;
+            if (!initialized …6418 tokens truncated…Positions[1].xy;
                 if (index == 3) return uNodePositions[1].zw;
                 if (index == 4) return uNodePositions[2].xy;
                 if (index == 5) return uNodePositions[2].zw;
