@@ -105,6 +105,7 @@ import com.yujian.ai.ui.recognition.RecognitionAmbientField
 import com.yujian.ai.ui.recognition.photoShockwaveTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
 import com.yujian.ai.ui.recognition.RecognitionMaskContourExtractor
+import com.yujian.ai.ui.recognition.RecognitionFishTailAnchor
 import com.yujian.ai.ui.recognition.RecognitionFishFocus
 import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
@@ -1466,8 +1467,9 @@ fun RecognitionProcessingScene(
                 waterLightFrame, fishEnergyAllowed, successfulRevealAllowed,
                 orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
             )
+            val fishMaskIdentity = if (fishEnergyAllowed) recognitionMaskIdentity(subjectBitmap, subjectBox, contour) else null
             val fishEnergyAnchor = if (fishEnergyAllowed)
-                recognitionMaskAnchor(assessment?.primary?.box, contour, currentPhotoTransform) else null
+                recognitionMaskAnchor(contour, currentPhotoTransform) else null
             // The initial perimeter-arrival path is allowed to use the production
             // detector target while SlimSAM is still running. This anchor only
             // drives PHOTO_PATH arrival; fish contour energy remains mask-gated.
@@ -1505,12 +1507,16 @@ fun RecognitionProcessingScene(
                         WaterLightPathPoint(perimeterEnergyAnchor.x, perimeterEnergyAnchor.y),
                         WaterLightPathPoint(fishEnergyAnchor.x, fishEnergyAnchor.y),
                         waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
-                    )?.also { energyPathLedger.recordFishPath(waterLightFrame, it, fishEnergyAllowed) } else null
+                    )?.also { geometry ->
+                        fishMaskIdentity?.let { identity ->
+                            energyPathLedger.recordFishPath(waterLightFrame, geometry, fishEnergyAllowed, identity)
+                        }
+                    } else null
                 EnergyFeedback.RETURN -> null
                 else -> null
             }
             val orbReturnRoute = if (baseOrbEvent?.feedback == EnergyFeedback.RETURN)
-                energyPathLedger.returnRoute(waterLightFrame, trustedMask = fishEnergyAllowed) else null
+                energyPathLedger.returnRoute(waterLightFrame, trustedMask = fishEnergyAllowed, maskIdentity = fishMaskIdentity) else null
             val orbEnergyEvent = if (baseOrbEvent?.feedback == EnergyFeedback.RETURN &&
                 orbReturnRoute?.isValid() != true
             ) null else WaterLightEnergy.at(
@@ -1520,7 +1526,7 @@ fun RecognitionProcessingScene(
                 pathGeometry = orbPathGeometry,
                 orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
                 pathSegments = orbReturnRoute?.segments.orEmpty(),
-                pathIdOverride = orbReturnRoute?.id ?: energyPathLedger.pathId(waterLightFrame),
+                pathIdOverride = orbReturnRoute?.id ?: energyPathLedger.pathId(waterLightFrame, fishMaskIdentity),
             )
             LaunchedEffect(
                 waterLightFrame.sessionId,
@@ -1800,7 +1806,8 @@ private fun RecognitionPhoto(
         waterLightFrame, fishEnergyAllowed, successfulRevealAllowed,
         orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
     )
-    val fishAnchor = if (fishEnergyAllowed) recognitionMaskAnchor(focusBox, contour, transform) else null
+    val fishMaskIdentity = if (fishEnergyAllowed) recognitionMaskIdentity(subjectBitmap, subjectBox, contour) else null
+    val fishAnchor = if (fishEnergyAllowed) recognitionMaskAnchor(contour, transform) else null
     val perimeterAnchor = fishAnchor?.let { nearestPhotoPerimeterAnchor(photoBounds, it) }
     val pathGeometry = when (baseEnergyEvent?.feedback) {
         EnergyFeedback.RELEASE -> nearestPhotoPerimeterAnchor(photoBounds, orbCenter)?.let { edge ->
@@ -1815,12 +1822,16 @@ private fun RecognitionPhoto(
                 WaterLightPathPoint(perimeterAnchor.x, perimeterAnchor.y),
                 WaterLightPathPoint(fishAnchor.x, fishAnchor.y),
                 waterLightFrame.sessionId.hashCode() xor imageId.hashCode(),
-            )?.also { energyPathLedger.recordFishPath(waterLightFrame, it, fishEnergyAllowed) } else null
+            )?.also { geometry ->
+                fishMaskIdentity?.let { identity ->
+                    energyPathLedger.recordFishPath(waterLightFrame, geometry, fishEnergyAllowed, identity)
+                }
+            } else null
         EnergyFeedback.RETURN -> null
         else -> null
     }
     val returnRoute = if (baseEnergyEvent?.feedback == EnergyFeedback.RETURN)
-        energyPathLedger.returnRoute(waterLightFrame, trustedMask = fishEnergyAllowed) else null
+        energyPathLedger.returnRoute(waterLightFrame, trustedMask = fishEnergyAllowed, maskIdentity = fishMaskIdentity) else null
     val energyEvent = if (baseEnergyEvent?.feedback == EnergyFeedback.RETURN &&
         returnRoute?.isValid() != true
     ) null else WaterLightEnergy.at(
@@ -1830,7 +1841,7 @@ private fun RecognitionPhoto(
         pathGeometry = pathGeometry,
         orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
         pathSegments = returnRoute?.segments.orEmpty(),
-        pathIdOverride = returnRoute?.id ?: energyPathLedger.pathId(waterLightFrame),
+        pathIdOverride = returnRoute?.id ?: energyPathLedger.pathId(waterLightFrame, fishMaskIdentity),
     )
     val dropletRenderer = remember(waterLightEngine) { WaterDropletRenderer() }
     DisposableEffect(dropletRenderer) {
@@ -2060,23 +2071,26 @@ private fun RecognitionPhoto(
 internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n请重新拍摄或选择照片"
 internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String = GENERIC_RECOGNITION_FAILURE_MESSAGE
 
-private fun recognitionMaskAnchor(
-    focusBox: NormalizedFishBox?,
+internal fun recognitionMaskAnchor(
     contour: List<RecognitionContourSegment>,
     transform: RecognitionImageTransform,
 ): Offset? {
-    val box = focusBox ?: return null
-    if (contour.isEmpty()) return null
-    val points = contour.flatMap { listOf(it.startX to it.startY, it.endX to it.endY) }
-        .filter { it.first.isFinite() && it.second.isFinite() && it.first in 0f..1f && it.second in 0f..1f }
-    if (points.isEmpty()) return null
-    val roiX = points.map { it.first }.average().toFloat()
-    val roiY = points.map { it.second }.average().toFloat()
-    val mapped = transform.mapNormalized(
-        box.x1 + roiX * (box.x2 - box.x1),
-        box.y1 + roiY * (box.y2 - box.y1),
-    )
-    return Offset(mapped.x, mapped.y).takeIf { it.x.isFinite() && it.y.isFinite() }
+    val mapped = RecognitionFishTailAnchor.resolveInViewport(contour, transform) ?: return null
+    return Offset(mapped.x, mapped.y)
+}
+
+private fun recognitionMaskIdentity(
+    bitmap: Bitmap?,
+    subjectBox: NormalizedFishBox?,
+    contour: List<RecognitionContourSegment>,
+): String? {
+    if (bitmap == null || subjectBox == null || contour.isEmpty()) return null
+    val roi = subjectBox.normalized()
+    return listOf(
+        bitmap.generationId,
+        contour.hashCode(),
+        roi.x1.toBits(), roi.y1.toBits(), roi.x2.toBits(), roi.y2.toBits(),
+    ).joinToString(":")
 }
 
 private fun nearestPhotoPerimeterAnchor(

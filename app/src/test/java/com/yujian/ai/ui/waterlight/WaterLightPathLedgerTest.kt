@@ -41,8 +41,8 @@ class WaterLightPathLedgerTest {
         val ledger = WaterLightPathLedger()
 
         assertTrue(ledger.recordRelease(current, release))
-        assertTrue(ledger.recordFishPath(current, fish, trustedMask = true))
-        val route = ledger.returnRoute(current, trustedMask = true)
+        assertTrue(ledger.recordFishPath(current, fish, trustedMask = true, maskIdentity = "mask-1"))
+        val route = ledger.returnRoute(current, trustedMask = true, maskIdentity = "mask-1")
 
         assertNotNull(route)
         val segments = requireNotNull(route).segments
@@ -58,7 +58,7 @@ class WaterLightPathLedgerTest {
         assertEquals(release.control1, segments[2].control2)
         assertEquals(release.start, segments[2].end)
         assertTrue(route.isValid())
-        assertEquals(ledger.pathId(current), route.id)
+        assertEquals(ledger.pathId(current, "mask-1"), route.id)
     }
 
     @Test fun orbOnlyReturnUsesOnlyTheRecordedPerimeterToOrbSegment() {
@@ -75,7 +75,7 @@ class WaterLightPathLedgerTest {
         )!!
         val ledger = WaterLightPathLedger()
         ledger.recordRelease(current, release)
-        ledger.recordFishPath(current, fish, trustedMask = true)
+        ledger.recordFishPath(current, fish, trustedMask = true, maskIdentity = "mask-1")
 
         val route = ledger.returnRoute(current, trustedMask = false)!!
         assertEquals(1, route.segments.size)
@@ -111,8 +111,29 @@ class WaterLightPathLedgerTest {
         )!!
         val ledger = WaterLightPathLedger()
         ledger.recordRelease(current, release)
-        assertTrue(!ledger.recordFishPath(current, fish, trustedMask = false))
+        assertTrue(!ledger.recordFishPath(current, fish, trustedMask = false, maskIdentity = "mask-1"))
         val route = ledger.returnRoute(current, trustedMask = false)!!
         assertEquals(1, route.segments.size)
+    }
+
+    @Test fun returnFishSegmentRequiresTheSameMaskIdentityAsTheOutwardPath() {
+        val current = frame()
+        val release = WaterLightPathGeometryFactory.between(
+            WaterLightPathPoint(120f, 220f), WaterLightPathPoint(420f, 300f), seed = 13,
+        )!!
+        val fish = WaterLightPathGeometryFactory.between(
+            WaterLightPathPoint(380f, 300f), WaterLightPathPoint(640f, 480f), seed = 19,
+        )!!
+        val ledger = WaterLightPathLedger()
+        ledger.recordRelease(current, release)
+        ledger.recordFishPath(current, fish, trustedMask = true, maskIdentity = "mask-attempt-1")
+
+        val staleMaskRoute = ledger.returnRoute(current, trustedMask = true, maskIdentity = "mask-attempt-2")!!
+        assertEquals(1, staleMaskRoute.segments.size)
+        assertEquals(release.end, staleMaskRoute.segments.single().start)
+
+        val currentMaskRoute = ledger.returnRoute(current, trustedMask = true, maskIdentity = "mask-attempt-1")!!
+        assertEquals(3, currentMaskRoute.segments.size)
+        assertTrue(currentMaskRoute.id.contains(":mask-"))
     }
 }

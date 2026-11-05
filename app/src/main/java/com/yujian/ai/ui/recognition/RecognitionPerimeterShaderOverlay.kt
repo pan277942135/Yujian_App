@@ -40,6 +40,8 @@ import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.SceneMaskState
+import com.yujian.ai.ui.waterlight.core.SceneResourceState
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
@@ -56,6 +58,11 @@ internal fun recognitionPerimeterOpacity(
 ): Float {
     if (!processingClockStarted) return 0f
     val scene = frame.sceneFrame
+    val waitingForModelJoin = scene.stage == RecognitionSceneStage.PATH_TO_FISH &&
+        scene.modelGates.detector == SceneResourceState.READY &&
+        (scene.modelGates.classifier == SceneResourceState.WAITING ||
+            scene.modelGates.slimSam == SceneMaskState.PENDING)
+    if (waitingForModelJoin) return if (reduceMotion) .06f else .12f
     if (reduceMotion) return when (scene.stage) {
         RecognitionSceneStage.PHOTO_STABLE,
         RecognitionSceneStage.ORB_WAKE,

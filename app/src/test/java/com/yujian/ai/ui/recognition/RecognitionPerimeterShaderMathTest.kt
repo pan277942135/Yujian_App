@@ -6,6 +6,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.SceneMaskState
+import com.yujian.ai.ui.waterlight.core.SceneResourceState
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 
@@ -176,6 +178,30 @@ class RecognitionPerimeterShaderMathTest {
         assertEquals(0f, recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.ORB_TO_NAME, 1f)), 0f)
         assertTrue(recognitionPerimeterActive(true, RecognitionPhase.CLASSIFYING))
         assertFalse(recognitionPerimeterActive(true, RecognitionPhase.RESULT))
+    }
+
+    @Test
+    fun modelJoinWaitKeepsAQuietPerimeterLoopUntilBothModelsAreTerminal() {
+        val base = frame(RecognitionSceneStage.PATH_TO_FISH, .8f, opticalReferenceMs = 4_200L)
+        val waiting = base.copy(sceneFrameOverride = base.sceneFrame.copy(
+            modelGates = base.sceneFrame.modelGates.copy(
+                detector = SceneResourceState.READY,
+                classifier = SceneResourceState.WAITING,
+                slimSam = SceneMaskState.PENDING,
+            ),
+        ))
+        assertEquals(.12f, recognitionPerimeterOpacity(true, false, waiting), .0001f)
+        assertEquals(.06f, recognitionPerimeterOpacity(true, true, waiting), .0001f)
+        assertEquals(4.2f, RecognitionPerimeterShaderMath.sourceTimeSec(waiting.sceneFrame), .0001f)
+
+        val joined = base.copy(sceneFrameOverride = base.sceneFrame.copy(
+            modelGates = base.sceneFrame.modelGates.copy(
+                detector = SceneResourceState.READY,
+                classifier = SceneResourceState.READY,
+                slimSam = SceneMaskState.FAILED,
+            ),
+        ))
+        assertEquals(1f, recognitionPerimeterOpacity(true, false, joined), 0f)
     }
 
     private fun frame(stage: RecognitionSceneStage, progress: Float, opticalReferenceMs: Long = 0L) = WaterLightFrame(
