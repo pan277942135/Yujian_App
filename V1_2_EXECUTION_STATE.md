@@ -113,7 +113,7 @@ The 13 stage minima and reveal envelopes now match the frozen 6000ms contract, i
 - `git diff --check`: **PASS**. Real-device Orb/Glyph visual checks: **NOT_RUN**.
 - Full Android CI `42030743619`: **FAIL** before Gradle at `EMPTY_HOME_RUNTIME_V2`; it reports measured-anchor contract divergences in `EmptyHomeMotion`. No Empty Home code or contract was changed for this task.
 
-## Current recovery point
+## CP01–CP07 recovery point before the visual gap audit (historical)
 
 - Current CP: **CP07 complete; final Debug APK built and uploaded**.
 - Latest runtime implementation source: `beed77ad31bb54010148c7bf459f3b445ccbcd23`; its exact-source workflow `42037876704` passed unit tests, `assembleDebug`, `assembleDebugAndroidTest`, packaged Core/capture asset checks, SHA staging, and artifact upload.
