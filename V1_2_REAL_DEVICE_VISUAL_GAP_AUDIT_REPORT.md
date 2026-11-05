@@ -61,7 +61,7 @@ Used only the newly uploaded ~40-second video, not `243459.mp4`.
 - `app/src/test/java/com/yujian/ai/ui/waterlight/OrbWakeBreathReleaseV11Test.kt`
 - `app/src/test/java/com/yujian/ai/ui/waterlight/WaterLightEnergyTest.kt`
 
-## Tests and resource checks so far
+## Final tests and resource checks
 
 | Check | Result | Notes |
 |---|---|---|
