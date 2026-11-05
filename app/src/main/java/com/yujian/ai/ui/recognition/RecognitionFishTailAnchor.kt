@@ -126,7 +126,7 @@ internal object RecognitionFishTailAnchor {
     fun mapToViewport(point: RecognitionNormalizedPoint, transform: RecognitionImageTransform): DisplayPoint? {
         val mapped = transform.mapNormalized(point.x, point.y)
         val photo = transform.photoContentRect
-        mapped.takeIf {
+        return mapped.takeIf {
             it.x.isFinite() && it.y.isFinite() && it.x in photo.left..photo.right && it.y in photo.top..photo.bottom
         }
     }
