@@ -78,3 +78,32 @@ Changed CP05 files:
 - CP05 failure ledger: the missing-return compile failure on `479da6bec14a4e053a71c33bacf6eb95503de475` is closed with fix evidence on `ead45796f8332ef673fd615402c72b995fb5f09d`; closure is not a replacement for the passing exact-source workflow gate.
 - CP06 next action: complete Orb Return and the real classifier-name Glyph transition as one identity, with six observable substeps, then add the phase/identity tests and exact-source verification.
 - CP07 and final end-to-end tests remain **NOT_STARTED**.
+
+
+## Frozen product timing decision — 6000ms (2026-11-05)
+
+**Authority:** [13-stage Runtime timing contract V1.0](design/pages/recognition/runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md) and [machine-readable JSON](design/pages/recognition/runtime/recognition_13_stage_timing_contract_v1_0.json).
+
+**Decision:** FULL recognition path nominal minimum visual duration is frozen at **6000ms**. T0 is the first actually presented PHOTO_STABLE photo frame. Stage 01 is a zero-duration clock anchor; stages 02–13 sum to 6000ms. The exact stage boundaries, high-light subphase allocations, AUTO/MANUAL rules, model wait behavior and FULL/ORB_ONLY distinction are defined only by the linked contract.
+
+| Stage | Frozen minimum | Cumulative end |
+|---|---:|---:|
+| 01 PHOTO_STABLE | 0ms (T0 anchor) | 0ms |
+| 02 ORB_WAKE | 350ms | 350ms |
+| 03 ORB_RELEASE | 600ms | 950ms |
+| 04 PERIMETER_FORM | 125ms | 1075ms |
+| 05 FISH_SEEK | 125ms | 1200ms |
+| 06 CONTOUR_A | 450ms | 1650ms |
+| 07 CONTOUR_B | 450ms | 2100ms |
+| 08 CONTOUR_C | 450ms | 2550ms |
+| 09 FISH_GOLD_PEAK | 1000ms | 3550ms |
+| 10 ORB_RETURN | 350ms | 3900ms |
+| 11 ORB_TO_NAME | 850ms | 4750ms |
+| 12 SPECIES_NAME_REVEAL | 800ms | 5550ms |
+| 13 RESIDUE_SETTLE | 450ms | 6000ms |
+
+High-light holds are frozen: Stage 09 includes 300ms gold formation + **500ms continuous peak hold** + 200ms handoff; Stage 11 is 100ms + 350ms + 400ms; Stage 12 is 150ms + 200ms + **450ms readable species-name hold**. Stage 13's five child frames share 450ms; no independent child milliseconds are invented.
+
+Model waits do not compress the sequence. The existing 60s model watchdog remains separate from the visual schedule. Debug MANUAL remains 3000ms per main stage with auto-pause. The result scene remains visible after reaching 6000ms.
+
+**Implementation status:** documentation/product decision frozen; Runtime implementation is still pending. The CP05 source inspected at freeze still had legacy minima (PHOTO_STABLE 120ms, CONTOUR 250ms, GOLD 850ms, ORB_RETURN 380ms, ORB_TO_NAME 170ms, NAME_REVEAL 130ms, RESIDUE_SETTLE 170ms). Do not report the new timing as implemented until the controller constants, stage tests and exact-source APK are updated and verified.
