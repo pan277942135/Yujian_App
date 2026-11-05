@@ -655,12 +655,38 @@ fun RecognitionResultScreen(
         photoSha256 = resultSceneIdentity.photoSha256.orEmpty(),
     )
     val resultHandoffCommitGuard = remember { RecognitionResultHandoffCommitGuard() }
+    var resultPhotoHandoffComplete by remember(resultCommitIdentity) { mutableStateOf(false) }
+    var resultInformationArrived by remember(resultCommitIdentity) { mutableStateOf(false) }
+    LaunchedEffect(
+        resultCommitIdentity,
+        dynamicRevealActive,
+        activeRevealSceneFrame.stage,
+        activeRevealSceneFrame.stageProgress,
+        resultPhotoIdentityMatches,
+        resultGeometryReady,
+    ) {
+        if (dynamicRevealActive && activeRevealSceneFrame.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+            activeRevealSceneFrame.stageProgress >= 1f && resultPhotoIdentityMatches && resultGeometryReady
+        ) {
+            // Geometry reaches the Result clip using the shared 450ms parent frame;
+            // no child-stage progress window or timer is introduced.
+            resultPhotoHandoffComplete = true
+        }
+    }
+    LaunchedEffect(resultCommitIdentity, resultPhotoHandoffComplete, resultInformationReady, resultGeometryReady) {
+        if (resultPhotoHandoffComplete && resultGeometryReady && resultInformationReady) {
+            // The real Classifier name is released only after the same-photo geometry handoff.
+            resultInformationArrived = true
+        }
+    }
     val resultHandoffProjection = RecognitionResultHandoffTransition.project(
         scene = activeRevealSceneFrame,
         dynamicRevealActive = dynamicRevealActive,
         photoIdentityMatches = resultPhotoIdentityMatches,
         geometryReady = resultGeometryReady,
         resultInformationReady = resultInformationReady,
+        photoHandoffComplete = resultPhotoHandoffComplete,
+        resultInformationArrived = resultInformationArrived,
     )
     val revealFrameState = remember(
         presentedHandoff,
@@ -671,6 +697,8 @@ fun RecognitionResultScreen(
         resultGeometryReady,
         resultInformationReady,
         dynamicRevealActive,
+        resultPhotoHandoffComplete,
+        resultInformationArrived,
     ) {
         derivedStateOf {
             val revealFrame = RecognitionRevealClock.evaluate(
@@ -685,6 +713,8 @@ fun RecognitionResultScreen(
                 photoIdentityMatches = resultPhotoIdentityMatches,
                 geometryReady = resultGeometryReady,
                 resultInformationReady = resultInformationReady,
+                photoHandoffComplete = resultPhotoHandoffComplete,
+                resultInformationArrived = resultInformationArrived,
             )
             revealFrame.copy(
                 photoProgress = handoff.photoProgress,
@@ -1203,7 +1233,10 @@ fun RecognitionResultScreen(
         ) {
             val event = resultEnergyEvent ?: return@LaunchedEffect
             if (event.level >= .999f && resultSceneFrame != null) {
-                val accepted = diagnosticPlaybackController?.recordEnergyEvent(resultSceneFrame, event) == true
+                val mayRecordSettle = event.feedback != EnergyFeedback.SETTLE ||
+                    resultHandoffProjection.resultCommitReady
+                val accepted = mayRecordSettle &&
+                    diagnosticPlaybackController?.recordEnergyEvent(resultSceneFrame, event) == true
                 if (accepted && event.feedback == EnergyFeedback.SETTLE &&
                     resultHandoffProjection.resultCommitReady &&
                     resultHandoffCommitGuard.claim(resultCommitIdentity, ready = true)

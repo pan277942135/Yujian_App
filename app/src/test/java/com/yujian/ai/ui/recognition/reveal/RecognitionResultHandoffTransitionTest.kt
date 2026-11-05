@@ -19,42 +19,46 @@ class RecognitionResultHandoffTransitionTest {
     )
 
     @Test
-    fun stageThirteenProjectsFiveOrderedFramesOnItsSingleParentProgress() {
-        val held = project(.01f)
+    fun stageThirteenProjectsFiveFramesFromGeometryDataAndStableEventsWithoutChildTimingSplits() {
+        val held = project(0f)
         assertEquals(RecognitionResultHandoffSubstep.RESULT_NAME_HOLD, held.substep)
         assertEquals(0f, held.photoProgress, 0f)
         assertEquals(0f, held.resultInformationAlpha, 0f)
 
-        val moving = project(.38f)
+        val moving = project(.25f)
         assertEquals(RecognitionResultHandoffSubstep.PHOTO_REPOSITION, moving.substep)
-        assertEquals(.5f, moving.photoProgress, .0001f)
+        assertEquals(.15625f, moving.photoProgress, .0001f)
         assertEquals(0f, moving.resultInformationAlpha, 0f)
 
-        val photoProgressSamples = listOf(.08f, .2f, .38f, .5f, .68f).map { progress ->
+        val photoProgressSamples = listOf(0f, .25f, .5f, .75f, .999f).map { progress ->
             project(progress).photoProgress
         }
         assertTrue(photoProgressSamples.zipWithNext().all { (previous, next) -> next >= previous })
         assertEquals(0f, photoProgressSamples.first(), 0f)
-        assertEquals(1f, photoProgressSamples.last(), 0f)
+        assertTrue(photoProgressSamples.last() < 1f)
 
-        val handedOff = project(.73f)
+        val handedOff = project(1f)
         assertEquals(RecognitionResultHandoffSubstep.RESULT_HANDOFF, handedOff.substep)
         assertEquals(1f, handedOff.photoProgress, 0f)
         assertEquals(0f, handedOff.resultInformationAlpha, 0f)
+        assertFalse(handedOff.resultCommitReady)
 
-        val arriving = project(.89f)
+        val awaitingData = project(1f, photoHandoffComplete = true, resultInformationReady = false)
+        assertEquals(RecognitionResultHandoffSubstep.RESULT_HANDOFF, awaitingData.substep)
+        assertFalse(awaitingData.resultCommitReady)
+
+        val arriving = project(1f, photoHandoffComplete = true, resultInformationArrived = true)
         assertEquals(RecognitionResultHandoffSubstep.RESULT_INFO_ARRIVAL, arriving.substep)
-        assertEquals(.5f, arriving.resultInformationAlpha, .0001f)
+        assertEquals(1f, arriving.resultInformationAlpha, 0f)
         assertFalse(arriving.interactionEnabled)
-        assertFalse(arriving.resultCommitReady)
+        assertTrue(arriving.resultCommitReady)
 
-        val readyToCommit = project(1f)
-        assertEquals(RecognitionResultHandoffSubstep.RESULT_INFO_ARRIVAL, readyToCommit.substep)
-        assertEquals(1f, readyToCommit.resultInformationAlpha, 0f)
-        assertTrue(readyToCommit.resultCommitReady)
-        assertFalse(readyToCommit.interactionEnabled)
-
-        val stable = project(1f, stageEventComplete = true)
+        val stable = project(
+            1f,
+            stageEventComplete = true,
+            photoHandoffComplete = true,
+            resultInformationArrived = true,
+        )
         assertEquals(RecognitionResultHandoffSubstep.RESULT_SCENE_STABLE, stable.substep)
         assertEquals(1f, stable.photoProgress, 0f)
         assertEquals(1f, stable.resultInformationAlpha, 0f)
@@ -67,7 +71,6 @@ class RecognitionResultHandoffTransitionTest {
         listOf(
             project(.95f, photoIdentityMatches = false),
             project(.95f, geometryReady = false),
-            project(.95f, resultInformationReady = false),
         ).forEach { blocked ->
             assertEquals(RecognitionResultHandoffSubstep.RESULT_NAME_HOLD, blocked.substep)
             assertEquals(0f, blocked.photoProgress, 0f)
@@ -75,6 +78,14 @@ class RecognitionResultHandoffTransitionTest {
             assertFalse(blocked.interactionEnabled)
             assertFalse(blocked.resultCommitReady)
         }
+        val missingResultData = project(
+            1f,
+            photoHandoffComplete = true,
+            resultInformationReady = false,
+        )
+        assertEquals(RecognitionResultHandoffSubstep.RESULT_HANDOFF, missingResultData.substep)
+        assertEquals(1f, missingResultData.photoProgress, 0f)
+        assertFalse(missingResultData.resultCommitReady)
     }
 
     @Test
@@ -122,12 +133,16 @@ class RecognitionResultHandoffTransitionTest {
         photoIdentityMatches: Boolean = true,
         geometryReady: Boolean = true,
         resultInformationReady: Boolean = true,
+        photoHandoffComplete: Boolean = false,
+        resultInformationArrived: Boolean = false,
     ) = RecognitionResultHandoffTransition.project(
         scene = scene(RecognitionSceneStage.RESIDUE_SETTLE, progress, stageEventComplete),
         dynamicRevealActive = true,
         photoIdentityMatches = photoIdentityMatches,
         geometryReady = geometryReady,
         resultInformationReady = resultInformationReady,
+        photoHandoffComplete = photoHandoffComplete,
+        resultInformationArrived = resultInformationArrived,
     )
 
     private fun scene(

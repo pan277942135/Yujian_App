@@ -22,18 +22,14 @@ data class RecognitionResultHandoffProjection(
 
 /** Stage 13 is a projection of the shared SceneClock frame; it owns no timer. */
 object RecognitionResultHandoffTransition {
-    // These are normalized regions of the existing 450ms parent-stage progress,
-    // not child-stage durations or a second clock.
-    private const val NAME_HOLD_END = .08f
-    private const val PHOTO_REPOSITION_END = .68f
-    private const val RESULT_HANDOFF_END = .78f
-
     fun project(
         scene: RecognitionSceneFrame,
         dynamicRevealActive: Boolean,
         photoIdentityMatches: Boolean,
         geometryReady: Boolean,
         resultInformationReady: Boolean,
+        photoHandoffComplete: Boolean = false,
+        resultInformationArrived: Boolean = false,
     ): RecognitionResultHandoffProjection {
         if (!dynamicRevealActive) {
             return RecognitionResultHandoffProjection(
@@ -55,7 +51,7 @@ object RecognitionResultHandoffTransition {
             )
         }
 
-        if (!photoIdentityMatches || !geometryReady || !resultInformationReady) {
+        if (!photoIdentityMatches || !geometryReady) {
             return RecognitionResultHandoffProjection(
                 substep = RecognitionResultHandoffSubstep.RESULT_NAME_HOLD,
                 photoProgress = 0f,
@@ -66,7 +62,9 @@ object RecognitionResultHandoffTransition {
         }
 
         val progress = scene.stageProgress.coerceIn(0f, 1f)
-        if (scene.stageEventComplete && progress >= 1f) {
+        if (scene.stageEventComplete && progress >= 1f && photoHandoffComplete &&
+            resultInformationReady && resultInformationArrived
+        ) {
             return RecognitionResultHandoffProjection(
                 substep = RecognitionResultHandoffSubstep.RESULT_SCENE_STABLE,
                 photoProgress = 1f,
@@ -77,25 +75,23 @@ object RecognitionResultHandoffTransition {
         }
 
         return when {
-            progress < NAME_HOLD_END -> RecognitionResultHandoffProjection(
+            progress <= 0f -> RecognitionResultHandoffProjection(
                 substep = RecognitionResultHandoffSubstep.RESULT_NAME_HOLD,
                 photoProgress = 0f,
                 resultInformationAlpha = 0f,
                 interactionEnabled = false,
                 resultCommitReady = false,
             )
-            progress < PHOTO_REPOSITION_END -> {
-                val movement = ((progress - NAME_HOLD_END) /
-                    (PHOTO_REPOSITION_END - NAME_HOLD_END)).coerceIn(0f, 1f)
+            progress < 1f -> {
                 RecognitionResultHandoffProjection(
                     substep = RecognitionResultHandoffSubstep.PHOTO_REPOSITION,
-                    photoProgress = smoothStep(movement),
+                    photoProgress = smoothStep(progress),
                     resultInformationAlpha = 0f,
                     interactionEnabled = false,
                     resultCommitReady = false,
                 )
             }
-            progress < RESULT_HANDOFF_END -> RecognitionResultHandoffProjection(
+            !photoHandoffComplete || !resultInformationReady || !resultInformationArrived -> RecognitionResultHandoffProjection(
                 substep = RecognitionResultHandoffSubstep.RESULT_HANDOFF,
                 photoProgress = 1f,
                 resultInformationAlpha = 0f,
@@ -103,15 +99,12 @@ object RecognitionResultHandoffTransition {
                 resultCommitReady = false,
             )
             else -> {
-                val arrival = ((progress - RESULT_HANDOFF_END) /
-                    (1f - RESULT_HANDOFF_END)).coerceIn(0f, 1f)
-                val alpha = smoothStep(arrival)
                 RecognitionResultHandoffProjection(
                     substep = RecognitionResultHandoffSubstep.RESULT_INFO_ARRIVAL,
                     photoProgress = 1f,
-                    resultInformationAlpha = alpha,
+                    resultInformationAlpha = 1f,
                     interactionEnabled = false,
-                    resultCommitReady = alpha >= 1f,
+                    resultCommitReady = true,
                 )
             }
         }
