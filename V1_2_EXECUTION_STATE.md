@@ -23,4 +23,12 @@ Changed files: `AIOrbCore.kt`, `AIOrbMotion.kt`, `RecognitionStepDiagnosticContr
 3. Inspect R06 V1.1 resource identity and implement CP03 on the same branch. Continue CP04–CP07 with separate source commits and state updates.
 4. Build and hash the final Debug APK after CP07. APK state is **NOT_RUN**.
 
-CP03, CP04, CP05, CP06 and CP07 are **NOT_STARTED**. FULL and ORB_ONLY integration acceptance is **NOT_RUN**.
+## CP03 code inspection and correction
+
+The current renderer contains five Bezier path IDs `G01`, `G02`, `A01`, `A02`, `C01` and separate back/front depth planes. The shared stage frame drives the 600 ms local release with reversal after 340 ms. The photo perimeter overlay was nevertheless enabled throughout ORB_RELEASE. Its opacity is now held at zero until PERIMETER_ARRIVAL, including reduced motion. The B debug comparison now also hides the front ribbons. The perimeter transition test covers the dark release and later arrival.
+
+The current Main resource SHA-256 values are geometry `1dfc85e651440d88c18d80daf51bbaa081e058fa60061bed6c8801aededf4cdc`, profile `8c7f998b043ddca8363054b75a93dbe6fab72cbdf31424b4fb71c4b502f21c10`, and SVG `d321c2bdd709145fadf73f52fc3f5d81a93c7e4e9d1074dc9adf783810287389`. They differ from the V1.1 expected prefixes in the handoff. These files remain current runtime candidates; their frozen-resource identity is **NOT_CONFIRMED**.
+
+The first exact-HEAD PR CI on `3933778ef22140a83b45250d02c294c8ffe43ac9` failed before Android compilation. Control-plane admission treated the PR destination as canonical Main and rejected branch-local state files. Android CI stopped at the existing Empty Home V2 asset contract. Neither run validates CP02 code. The branch-specific Orb PHOTO_STABLE workflow is the appropriate independent unit/build path once a code change triggers it.
+
+CP03 is **VALIDATING**. CP04, CP05, CP06 and CP07 are **NOT_STARTED**. FULL and ORB_ONLY integration acceptance is **NOT_RUN**.

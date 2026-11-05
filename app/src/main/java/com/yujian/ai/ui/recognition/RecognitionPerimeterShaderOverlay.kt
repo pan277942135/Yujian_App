@@ -58,7 +58,8 @@ internal fun recognitionPerimeterOpacity(
     val scene = frame.sceneFrame
     if (reduceMotion) return when (scene.stage) {
         RecognitionSceneStage.PHOTO_STABLE,
-        RecognitionSceneStage.ORB_WAKE -> 0f
+        RecognitionSceneStage.ORB_WAKE,
+        RecognitionSceneStage.ORB_RELEASE -> 0f
         RecognitionSceneStage.ORB_RETURN,
         RecognitionSceneStage.ORB_TO_NAME,
         RecognitionSceneStage.SPECIES_NAME_REVEAL,
@@ -67,8 +68,8 @@ internal fun recognitionPerimeterOpacity(
     }
     return when (scene.stage) {
         RecognitionSceneStage.PHOTO_STABLE,
-        RecognitionSceneStage.ORB_WAKE -> 0f
-        RecognitionSceneStage.ORB_RELEASE -> scene.stageProgress.coerceIn(0f, 1f)
+        RecognitionSceneStage.ORB_WAKE,
+        RecognitionSceneStage.ORB_RELEASE -> 0f
         RecognitionSceneStage.ORB_RETURN -> 1f - .82f * scene.stageProgress.coerceIn(0f, 1f)
         RecognitionSceneStage.ORB_TO_NAME -> .18f * (1f - scene.stageProgress.coerceIn(0f, 1f))
         RecognitionSceneStage.SPECIES_NAME_REVEAL -> .08f

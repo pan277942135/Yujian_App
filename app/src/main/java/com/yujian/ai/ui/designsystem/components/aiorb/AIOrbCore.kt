@@ -327,7 +327,7 @@ private fun OrbVisual(
                 },
             )
         }
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
+        if (orbWakeDetailsVisible(wakeRenderMode)) OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
             orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
             activeEnergyEvent, releaseEnergy, returnEnergy)
     }
