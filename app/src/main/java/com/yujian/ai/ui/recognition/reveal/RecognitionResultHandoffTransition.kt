@@ -132,7 +132,6 @@ data class RecognitionResultCommitIdentity(
     fun isValid(): Boolean = sessionId.isNotBlank() && attemptId.isNotBlank() &&
         imageId.isNotBlank() && photoSha256.isNotBlank()
 }
-}
 
 /** Idempotent visual result-completion guard, scoped by the current photo attempt identity. */
 class RecognitionResultHandoffCommitGuard {
