@@ -10,7 +10,7 @@
 ## Status
 
 - Audit source evidence: complete.
-- Targeted source changes: prepared in the working tree; not yet committed.
+- Targeted source changes: published to PR #317; code patch commit `334103baddcb0999e724d8eecda82acea0191bea` contains the complete source/test tree. Execution-state documentation is being updated separately.
 - Android unit tests / Debug APK / AndroidTest APK: pending exact-SHA GitHub Actions build. This workspace has Java 17 but no Gradle executable/wrapper or Android SDK.
 - Post-fix real-device visual acceptance: `NOT_RUN`; product-owner retest remains required.
 - Frozen R06 geometry identity: `NOT_CONFIRMED`; the actual runtime resource hashes differ from the V1.1 frozen hashes. No R06 asset was replaced.
@@ -77,9 +77,7 @@ Used only the newly uploaded ~40-second video, not `243459.mp4`.
 
 ## Next exact actions
 
-1. Finish source review and run `git diff --check` plus the resource checks above on the final patch.
-2. Commit the source patch and this report to the existing PR branch; do not merge Main.
-3. Use the branch push Actions run to execute all Android JVM tests, `assembleDebug`, `assembleDebugAndroidTest`, and package/resource verification on the exact commit SHA.
-4. If Actions fails in changed-code tests or compilation, fix the failure and rerun on the new exact SHA. Keep unrelated control-plane/Empty Home CI failures classified separately.
-5. Download only the exact-commit Debug APK artifact, verify APK SHA-256/size and packaged Core, then upload that APK for product-owner installation.
-6. Keep the R06 source identity mismatch and all real-device visual observations explicitly unresolved until approved source identity/logcat and the next device recording are available.
+1. Wait for the branch push Actions run for code patch commit `334103baddcb0999e724d8eecda82acea0191bea` to execute Android JVM tests, `assembleDebug`, `assembleDebugAndroidTest`, and package/resource verification.
+2. If changed-code tests or compilation fail, fix them on the existing PR branch and rerun on the new exact source SHA. Keep unrelated control-plane/Empty Home CI failures classified separately.
+3. Download only the exact-commit Debug APK artifact, verify APK SHA-256/size and packaged Core, then upload that APK for product-owner installation.
+4. Keep the R06 source identity mismatch and all real-device visual observations explicitly unresolved until approved source identity/logcat and the next device recording are available.
