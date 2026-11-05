@@ -32,7 +32,8 @@
     "cp06_status": "READY",
     "final_v1_2_apk": "NOT_BUILT",
     "visual": "NOT_RUN",
-    "cp05_report_commit_sha": "e59423bb276eb1cc827e1a6b4cbda277924ad5f9"
+    "cp05_report_commit_sha": "e59423bb276eb1cc827e1a6b4cbda277924ad5f9",
+    "timing_contract_document_commit": "4083b7e26eb1e0b85e4bb5709e85881820971e21"
   },
   "execution_v2": {
     "issues": {
@@ -56,7 +57,7 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Inspect the existing shared Orb Return and SpeciesNameReveal path; implement the six identity-preserving glyph substeps and their tests.",
+  "next_action": "CP06: implement Orb Return and the six identity-preserving Glyph substeps; align the single SceneClock stage minima and tests to the frozen 6000ms contract (including CP05 contour/gold minima and CP07 result handoff), preserve real model gates, then continue to CP07 and final Debug APK.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
@@ -64,5 +65,17 @@
   "stage": "CP06",
   "status": "RUNNING",
   "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
-  "work_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2"
+  "work_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2",
+  "timing_contract": {
+    "contract_id": "YUJIAN_RECOGNITION_13_STAGE_TIMING_6000MS_V1",
+    "authority_path": "design/pages/recognition/runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md",
+    "machine_path": "design/pages/recognition/runtime/recognition_13_stage_timing_contract_v1_0.json",
+    "decision_status": "FROZEN_PRODUCT_DECISION",
+    "full_path_nominal_minimum_duration_ms": 6000,
+    "clock_origin": "FIRST_ACTUALLY_PRESENTED_PHOTO_STABLE_FRAME",
+    "debug_manual_preview_per_main_stage_ms": 3000,
+    "model_timeout_ms": 60000,
+    "runtime_implementation_status": "PENDING_RUNTIME_IMPLEMENTATION",
+    "scope": "FULL path; ORB_ONLY skips untrusted fish contour/gold and is not padded to 6000ms"
+  }
 }
