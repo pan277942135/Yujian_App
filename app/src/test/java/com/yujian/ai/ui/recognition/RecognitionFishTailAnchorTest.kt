@@ -49,11 +49,14 @@ class RecognitionFishTailAnchorTest {
             contentScaleMode = RecognitionContentScaleMode.FIT,
         )
 
+        val normalized = requireNotNull(RecognitionFishTailAnchor.resolve(contour))
         val cropPoint = RecognitionFishTailAnchor.resolveInViewport(contour, crop)
         val fitPoint = RecognitionFishTailAnchor.resolveInViewport(contour, fit)
         assertTrue(cropPoint != null && fitPoint != null)
-        assertEquals(requireNotNull(cropPoint).x + 60f, requireNotNull(fitPoint).x, 4f)
-        assertEquals(requireNotNull(cropPoint).y, requireNotNull(fitPoint).y, 4f)
+        assertEquals(crop.mapNormalized(normalized.x, normalized.y).x, requireNotNull(cropPoint).x, .001f)
+        assertEquals(crop.mapNormalized(normalized.x, normalized.y).y, requireNotNull(cropPoint).y, .001f)
+        assertEquals(fit.mapNormalized(normalized.x, normalized.y).x, requireNotNull(fitPoint).x, .001f)
+        assertEquals(fit.mapNormalized(normalized.x, normalized.y).y, requireNotNull(fitPoint).y, .001f)
     }
 
     @Test
