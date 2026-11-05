@@ -50,4 +50,15 @@ next_actions:
   - {id: CP06, status: READY, action: Implement Orb Return and six dynamic classifier-Glyph substeps while preserving one Orb identity and shared SceneClock}
 completion_rules: {status: NOT_RUN}
 state_update: {date: '2026-11-05'}
+
+# Product-owner frozen runtime timing decision (2026-11-05)
+timing_contract:
+  contract_id: YUJIAN_RECOGNITION_13_STAGE_TIMING_6000MS_V1
+  authority: design/pages/recognition/runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md
+  machine_authority: design/pages/recognition/runtime/recognition_13_stage_timing_contract_v1_0.json
+  decision_status: FROZEN_PRODUCT_DECISION
+  full_path_nominal_minimum_duration_ms: 6000
+  clock_origin: FIRST_ACTUALLY_PRESENTED_PHOTO_STABLE_FRAME
+  runtime_implementation_status: PENDING_RUNTIME_IMPLEMENTATION
+
 agent_recovery: {next_checkpoint: CP06 Orb Return and real Glyph identity-preserving transition}
