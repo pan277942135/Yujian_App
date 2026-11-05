@@ -60,15 +60,20 @@ internal fun recognitionDisplayedFishFocusLevel(
 internal fun recognitionFishGoldStrength(scene: RecognitionSceneFrame, reduceMotion: Boolean = false): Float {
     if (reduceMotion) return 0.18f
     val p = scene.stageProgress.coerceIn(0f, 1f)
+    fun smooth(value: Float): Float {
+        val t = value.coerceIn(0f, 1f)
+        return t * t * (3f - 2f * t)
+    }
     return when (scene.stage) {
         RecognitionSceneStage.CONTOUR_A -> .15f * p
         RecognitionSceneStage.CONTOUR_B -> .15f + .30f * p
-        RecognitionSceneStage.CONTOUR_C -> .45f + .55f * p
-        RecognitionSceneStage.FISH_GOLD_PEAK,
-        RecognitionSceneStage.ORB_RETURN,
-        RecognitionSceneStage.ORB_TO_NAME,
-        RecognitionSceneStage.SPECIES_NAME_REVEAL,
-        RecognitionSceneStage.RESIDUE_SETTLE -> 1f
+        RecognitionSceneStage.CONTOUR_C -> .45f + .30f * p
+        RecognitionSceneStage.FISH_GOLD_PEAK -> when {
+            p < .30f -> .75f + .25f * smooth(p / .30f)
+            p <= .80f -> 1f
+            else -> 1f - .08f * smooth((p - .80f) / .20f)
+        }
+        RecognitionSceneStage.ORB_RETURN -> .92f * (1f - smooth(p))
         else -> 0f
     }
 }

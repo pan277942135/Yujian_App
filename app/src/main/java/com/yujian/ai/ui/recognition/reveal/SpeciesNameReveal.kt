@@ -36,6 +36,9 @@ internal class SpeciesNameReveal {
         formationProgress: Float,
         revealProgress: Float,
         sweepProgress: Float = revealProgress,
+        substep: RecognitionOrbGlyphSubstep? = null,
+        substepProgress: Float = revealProgress,
+        glyphProgress: Float = revealProgress,
     ) {
         if (glyph.isEmpty || width <= 0f || height <= 0f || mode == RecognitionRevealTitleMode.HIDDEN ||
             mode == RecognitionRevealTitleMode.STATIC || mode == RecognitionRevealTitleMode.VISIBLE
@@ -45,8 +48,18 @@ internal class SpeciesNameReveal {
             inkPoints = sampleGlyph(glyph)
         }
         when (mode) {
-            RecognitionRevealTitleMode.FORMING -> drawFormingInk(canvas, glyph, width, height, formationProgress)
-            RecognitionRevealTitleMode.REVEALING -> drawReveal(canvas, glyph, width, height, revealProgress, sweepProgress)
+            RecognitionRevealTitleMode.FORMING -> when (substep) {
+                RecognitionOrbGlyphSubstep.ORB_CORE_HOLD -> Unit
+                RecognitionOrbGlyphSubstep.ORB_HORIZONTAL_STRETCH -> Unit
+                RecognitionOrbGlyphSubstep.LIQUID_BRUSH_TRANSITION -> drawFormingInk(
+                    canvas, glyph, width, height, glyphProgress.coerceIn(0f, 1f),
+                )
+                else -> drawFormingInk(canvas, glyph, width, height, formationProgress)
+            }
+            RecognitionRevealTitleMode.REVEALING -> drawReveal(
+                canvas, glyph, width, height, revealProgress, sweepProgress,
+                substep, substepProgress, glyphProgress,
+            )
             RecognitionRevealTitleMode.HIDDEN,
             RecognitionRevealTitleMode.STATIC,
             RecognitionRevealTitleMode.VISIBLE -> Unit
@@ -77,12 +90,65 @@ internal class SpeciesNameReveal {
         }
     }
 
-    private fun drawReveal(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float, sweepProgress: Float) {
+    private fun drawReveal(
+        canvas: Canvas,
+        glyph: Path,
+        width: Float,
+        height: Float,
+        progress: Float,
+        sweepProgress: Float,
+        substep: RecognitionOrbGlyphSubstep?,
+        substepProgress: Float,
+        glyphProgress: Float,
+    ) {
         val p = progress.coerceIn(0f, 1f)
-        if (p <= 0f) return
+        if (p <= 0f && (substep == null || glyphProgress <= 0f)) return
+        when (substep) {
+            RecognitionOrbGlyphSubstep.STROKE_AGGREGATION -> {
+                drawGlyphPathSweep(canvas, glyph, glyphProgress.coerceIn(0f, 1f), alpha = 135)
+                drawAggregatingInk(canvas, glyph, glyphProgress, substepProgress)
+                return
+            }
+            RecognitionOrbGlyphSubstep.GLYPH_EMERGENCE -> {
+                val progress = glyphProgress.coerceIn(0f, 1f)
+                drawSweptGlyph(
+                    canvas, glyph, width, height, (.08f + .86f * progress).coerceIn(0f, 1f),
+                    alpha = (120 + 125 * progress).toInt().coerceIn(0, 245),
+                )
+                drawGlyphPathSweep(canvas, glyph, progress, alpha = (145 * (1f - progress * .55f)).toInt())
+                drawAggregatingInk(canvas, glyph, progress, 1f - progress)
+                return
+            }
+            RecognitionOrbGlyphSubstep.SPECIES_NAME_FINAL -> {
+                val settle = substepProgress.coerceIn(0f, 1f)
+                drawSweptGlyph(canvas, glyph, width, height, 1f, alpha = (230 + 15 * settle).toInt())
+                drawGlyphPathSweep(canvas, glyph, 1f, alpha = (76 * (1f - settle)).toInt())
+                return
+            }
+            else -> Unit
+        }
         val sweep = sweepProgress.coerceIn(p * .78f, 1f)
         drawSweptGlyph(canvas, glyph, width, height, sweep, alpha = (245 * p).toInt().coerceIn(0, 245))
         drawGlyphPathSweep(canvas, glyph, sweep, alpha = (155 * (1f - p * .45f)).toInt())
+    }
+
+    /** Ink beads aggregate on the actual classifier glyph path during 12.1 and 12.2. */
+    private fun drawAggregatingInk(canvas: Canvas, glyph: Path, glyphProgress: Float, visibility: Float) {
+        val count = ceil(inkPoints.size * glyphProgress.coerceIn(0f, 1f)).toInt().coerceIn(0, inkPoints.size)
+        if (count <= 0 || visibility <= 0f) return
+        val alpha = (155 * visibility.coerceIn(0f, 1f)).toInt().coerceIn(0, 180)
+        val save = canvas.save()
+        try {
+            canvas.clipPath(glyph)
+            inkPoints.take(count).forEach { point ->
+                val radius = (1.0f + (point.rank % 5) * .22f) * visibility.coerceIn(0f, 1f)
+                particlePaint.color = if (point.rank % 4 == 0) 0xFFF1D89D.toInt() else 0xFF5A9DA0.toInt()
+                particlePaint.alpha = alpha
+                canvas.drawCircle(point.x, point.y, radius, particlePaint)
+            }
+        } finally {
+            canvas.restoreToCount(save)
+        }
     }
 
     /** Trace the actual classifier Glyph contours continuously, in their Path order. */

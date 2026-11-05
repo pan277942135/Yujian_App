@@ -2,19 +2,19 @@ package com.yujian.ai.ui.waterlight.core
 
 /** Semantic scene states. Durations are local minimum visibility targets, never a global timeline. */
 enum class RecognitionSceneStage(val minimumVisibleMs: Long, val displayName: String) {
-    PHOTO_STABLE(120L, "照片稳定"),
+    PHOTO_STABLE(0L, "照片稳定"),
     ORB_WAKE(350L, "光球苏醒"),
     ORB_RELEASE(600L, "光球释放水光"),
     PERIMETER_ARRIVAL(125L, "照片外围激活"),
     PATH_TO_FISH(125L, "水光寻鱼"),
-    CONTOUR_A(250L, "鱼体轮廓初显"),
-    CONTOUR_B(250L, "鱼体轮廓形成"),
-    CONTOUR_C(250L, "鱼体轮廓闭合"),
-    FISH_GOLD_PEAK(850L, "鱼体金光稳定"),
-    ORB_RETURN(380L, "能量返回光球"),
-    ORB_TO_NAME(170L, "光球舒展凝字"),
-    SPECIES_NAME_REVEAL(130L, "鱼种名称揭晓"),
-    RESIDUE_SETTLE(170L, "水光余辉收束");
+    CONTOUR_A(450L, "鱼体轮廓初显"),
+    CONTOUR_B(450L, "鱼体轮廓形成"),
+    CONTOUR_C(450L, "鱼体轮廓闭合"),
+    FISH_GOLD_PEAK(1_000L, "鱼体金光稳定"),
+    ORB_RETURN(350L, "能量返回光球"),
+    ORB_TO_NAME(850L, "光球舒展凝字"),
+    SPECIES_NAME_REVEAL(800L, "鱼种名称揭晓"),
+    RESIDUE_SETTLE(450L, "水光余辉收束");
 
     /** Compatibility alias for consumers that need a local envelope length. */
     val durationMs: Long get() = minimumVisibleMs

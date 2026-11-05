@@ -2,6 +2,7 @@ package com.yujian.ai.ui.recognition.reveal
 
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.recognition.recognitionFishGoldStrength
 
 enum class RecognitionRevealPhase {
     PHOTO_CONTINUITY,
@@ -93,7 +94,11 @@ object RecognitionRevealClock {
                 scene = scene,
                 phase = RecognitionRevealPhase.PHOTO_CONTINUITY,
                 photoProgress = 0f,
-                fishHaloAlpha = if (fullReveal) 1f else 0f,
+                fishHaloAlpha = if (!fullReveal) 0f else when (stage) {
+                    RecognitionSceneStage.FISH_GOLD_PEAK,
+                    RecognitionSceneStage.ORB_RETURN -> recognitionFishGoldStrength(scene, policy.reduceMotion)
+                    else -> 1f
+                },
                 transferProgress = 0f,
                 titleMode = RecognitionRevealTitleMode.HIDDEN,
                 titleFormationProgress = 0f,
@@ -131,7 +136,8 @@ object RecognitionRevealClock {
             scene = scene,
             phase = phase,
             photoProgress = if (stage == RecognitionSceneStage.ORB_RETURN) smoothStep(progress) else 1f,
-            fishHaloAlpha = if (fullReveal && stage == RecognitionSceneStage.ORB_RETURN) 1f - smoothStep(progress) else 0f,
+            fishHaloAlpha = if (fullReveal && stage == RecognitionSceneStage.ORB_RETURN)
+                recognitionFishGoldStrength(scene, policy.reduceMotion) else 0f,
             transferProgress = smoothStep(returnProgress),
             titleMode = titleMode,
             titleFormationProgress = smoothStep(formationProgress),

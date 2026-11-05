@@ -864,17 +864,17 @@ class RecognitionSceneAnimationController(
     }
 
     companion object {
-        const val PHOTO_STABLE_MIN_MS = 120L
+        const val PHOTO_STABLE_MIN_MS = 0L
         const val ORB_WAKE_MIN_MS = 350L
         const val ORB_RELEASE_MIN_MS = 600L
         const val PERIMETER_ARRIVAL_MIN_MS = 125L
         const val PATH_TO_FISH_MIN_MS = 125L
-        const val CONTOUR_STAGE_MIN_MS = 250L
-        const val GOLD_PEAK_HOLD_MS = 850L
-        const val ORB_RETURN_MIN_MS = 380L
-        const val ORB_TO_NAME_MIN_MS = 170L
-        const val NAME_REVEAL_MIN_MS = 130L
-        const val RESIDUE_SETTLE_MIN_MS = 170L
+        const val CONTOUR_STAGE_MIN_MS = 450L
+        const val GOLD_PEAK_HOLD_MS = 1_000L
+        const val ORB_RETURN_MIN_MS = 350L
+        const val ORB_TO_NAME_MIN_MS = 850L
+        const val NAME_REVEAL_MIN_MS = 800L
+        const val RESIDUE_SETTLE_MIN_MS = 450L
         private const val UNSET = Long.MIN_VALUE
 
         val DEFAULT_MIN_VISIBLE_MS = mapOf(

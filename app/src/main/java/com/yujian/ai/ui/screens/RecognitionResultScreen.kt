@@ -154,6 +154,9 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealClock
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealFrame
+import com.yujian.ai.ui.recognition.reveal.RecognitionSpeciesGlyphIdentity
+import com.yujian.ai.ui.recognition.reveal.recognitionOrbGlyphTransition
+import com.yujian.ai.ui.recognition.reveal.recognitionSpeciesGlyphIdentity
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
@@ -524,6 +527,9 @@ fun RecognitionResultScreen(
         diagnosticPlaybackController.currentFrame(resultSceneIdentity, diagnosticNowMs, resultGeometryVersion, revealMotionPolicy.reduceMotion)
     } else null
     val diagnosticStage = diagnosticFrame?.stage ?: diagnosticPlaybackController?.currentStage ?: RecognitionSceneStage.ORB_RETURN
+    val diagnosticGlyphSubstep = diagnosticFrame?.let {
+        recognitionOrbGlyphTransition(it.stage, it.stageProgress)?.substep?.id
+    }
     LaunchedEffect(revealHandoff?.key, diagnosticStage, diagnosticDisplayMode, diagnosticPreviewCompleted, diagnosticUiAvailable) {
         if (diagnosticUiAvailable && diagnosticFrame != null) {
             Log.i(
@@ -532,6 +538,7 @@ fun RecognitionResultScreen(
                     "attempt=${revealHandoff?.key?.recognitionAttemptId.orEmpty()} image=${image?.imageId.orEmpty()} " +
                     "sha256=${image?.photoSha256.orEmpty()} stage=${diagnosticStage.ordinal + 1}/13 name=${diagnosticStage.name} " +
                     "reference_ms=${diagnosticFrame.opticalReferenceElapsedMs} preview_ms=$diagnosticPreviewElapsedMs " +
+                    "glyph_substep=${diagnosticGlyphSubstep ?: \"-\"} " +
                     "remaining_ms=${DIAGNOSTIC_STEP_DURATION_MS - diagnosticPreviewElapsedMs} " +
                     "completed=$diagnosticPreviewCompleted paused=$diagnosticPaused " +
                     "geometry_ready=$revealStartReady eligibility=${revealHandoff?.eligibility} " +
@@ -846,6 +853,13 @@ fun RecognitionResultScreen(
                             widthDp = geometry.heroWidthDp,
                             enabled = !saveBusy,
                             revealFrameState = revealFrameState,
+                            glyphIdentity = if (selectedKey == prediction.top1.speciesKey &&
+                                selectedName == prediction.top1.speciesName
+                            ) recognitionSpeciesGlyphIdentity(
+                                resultSceneIdentity,
+                                prediction.top1.speciesKey,
+                                resultSpeciesDisplayName(prediction.top1.speciesName),
+                            ) else null,
                             holdNameUntilHandoff = !revealAlreadyPlayed &&
                                 (revealHandoff == null || revealHandoff.revealDecision !in setOf(
                                     RecognitionRevealDecisionState.FISH_FOCUS_READY,
@@ -1400,6 +1414,7 @@ private fun SpeciesIdentityRow(
     scientificName: String? = null,
     enabled: Boolean = true,
     revealFrameState: State<RecognitionRevealFrame>? = null,
+    glyphIdentity: RecognitionSpeciesGlyphIdentity? = null,
     holdNameUntilHandoff: Boolean = false,
     onTitleBounds: ((RecognitionRevealWindowRect) -> Unit)? = null,
     onChange: () -> Unit,
@@ -1410,8 +1425,12 @@ private fun SpeciesIdentityRow(
     val revealFormationProgress = revealFrame?.titleFormationProgress ?: 1f
     val revealProgress = revealFrame?.titleRevealProgress ?: 1f
     val speciesDisplayName = resultSpeciesDisplayName(speciesName)
-    var speciesGlyphPath by remember(speciesDisplayName, compactTitle, widthDp) { mutableStateOf<android.graphics.Path?>(null) }
-    val glyphReveal = remember(speciesDisplayName) { com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal() }
+    val activeGlyphIdentity = glyphIdentity?.takeIf { it.displayName == speciesDisplayName }
+    val orbGlyphTransition = revealFrame?.let {
+        recognitionOrbGlyphTransition(it.stage, it.stageProgress)
+    }
+    var speciesGlyphPath by remember(activeGlyphIdentity, compactTitle, widthDp) { mutableStateOf<android.graphics.Path?>(null) }
+    val glyphReveal = remember(activeGlyphIdentity) { com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal() }
     val showScientificName = !holdNameUntilHandoff && (revealFrame == null ||
         revealFrame.isComplete || revealTitleMode == RecognitionRevealTitleMode.VISIBLE ||
         revealTitleMode == RecognitionRevealTitleMode.STATIC)
@@ -1435,7 +1454,8 @@ private fun SpeciesIdentityRow(
                     .fillMaxWidth()
                     .drawWithContent {
                         if (holdNameUntilHandoff) return@drawWithContent
-                        val settled = revealTitleMode == RecognitionRevealTitleMode.STATIC ||
+                        val settled = activeGlyphIdentity == null ||
+                            revealTitleMode == RecognitionRevealTitleMode.STATIC ||
                             revealTitleMode == RecognitionRevealTitleMode.VISIBLE
                         if (settled) drawContent() else speciesGlyphPath?.let { glyph ->
                             glyphReveal.draw(drawContext.canvas.nativeCanvas, glyph, size.width, size.height,
@@ -1443,6 +1463,9 @@ private fun SpeciesIdentityRow(
                                 formationProgress = revealFormationProgress,
                                 revealProgress = revealProgress,
                                 sweepProgress = revealFrame?.titleSweepProgress ?: revealProgress,
+                                substep = orbGlyphTransition?.substep,
+                                substepProgress = orbGlyphTransition?.substepProgress ?: revealProgress,
+                                glyphProgress = orbGlyphTransition?.glyphProgress ?: revealProgress,
                             )
                         }
                     }
@@ -1453,7 +1476,7 @@ private fun SpeciesIdentityRow(
                 fontWeight = FontWeight.SemiBold,
                 overflow = TextOverflow.Clip,
                 onTextLayout = { layout ->
-                    if (speciesGlyphPath == null) {
+                    if (speciesGlyphPath == null && activeGlyphIdentity != null) {
                         speciesGlyphPath = layout.getPathForRange(0, speciesDisplayName.length).asAndroidPath()
                     }
                 },

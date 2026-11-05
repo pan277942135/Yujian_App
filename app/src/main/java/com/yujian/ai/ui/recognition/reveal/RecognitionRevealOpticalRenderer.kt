@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
@@ -54,6 +55,7 @@ internal fun RecognitionRevealOpticalOverlay(
     waterLightFrame: WaterLightFrame? = null,
 ) {
     val frame = frameState.value
+    val orbGlyphTransition = recognitionOrbGlyphTransition(frame.stage, frame.stageProgress)
     val sourceBitmap = bitmap ?: return
     if (handoff == null) return
     val activePhotoGeometry = photoGeometry ?: return
@@ -384,9 +386,10 @@ internal fun RecognitionRevealOpticalOverlay(
 
             // V4: the recovered Orb stretches along its measured path and becomes real glyph ink.
             if (activeRevealGeometry != null && orbToGlyphMeasure != null &&
-                frame.stage == RecognitionSceneStage.ORB_TO_NAME
+                orbGlyphTransition != null && orbGlyphTransition.liquidBrushProgress > 0f &&
+                orbGlyphTransition.liquidBrushAlpha > 0f
             ) {
-                val p = frame.titleFormationProgress.coerceIn(0f, 1f)
+                val p = orbGlyphTransition.liquidBrushProgress.coerceIn(0f, 1f)
                 val distance = orbToGlyphMeasure.length * p
                 transferTail.reset()
                 if (distance > 0f) {
@@ -394,11 +397,11 @@ internal fun RecognitionRevealOpticalOverlay(
                         (distance - orbToGlyphMeasure.length * .48f).coerceAtLeast(0f), distance, transferTail, true,
                     )
                     haloPaint.color = 0xFF4F9CA1.toInt()
-                    haloPaint.alpha = (48 * (1f - p)).toInt()
+                    haloPaint.alpha = (48 * orbGlyphTransition.liquidBrushAlpha).toInt()
                     haloPaint.strokeWidth = 18f * (1f + .4f * p)
                     canvas.drawPath(transferTail, haloPaint)
                     corePaint.color = 0xFFFFE3A6.toInt()
-                    corePaint.alpha = (188 * (1f - p * .62f)).toInt()
+                    corePaint.alpha = (188 * orbGlyphTransition.liquidBrushAlpha).toInt()
                     corePaint.strokeWidth = 3.4f * (1f + .9f * p)
                     canvas.drawPath(transferTail, corePaint)
                 }
@@ -456,37 +459,38 @@ internal fun RecognitionRevealOpticalOverlay(
     }
     val orbDiameterPx = handoff.processingOrbCoreDiameterPx
     if (frame.drawOpticalLayer && activeRevealGeometry != null && orbCenter != null && orbDiameterPx > 1f &&
-        frame.stage in setOf(RecognitionSceneStage.ORB_RETURN, RecognitionSceneStage.ORB_TO_NAME)
+        orbGlyphTransition != null
     ) {
         val coreSize = with(density) { orbDiameterPx.toDp() }
         val outerSizePx = with(density) { (coreSize + 28.dp).toPx() }
-        val morph = if (frame.stage == RecognitionSceneStage.ORB_TO_NAME) frame.titleFormationProgress.coerceIn(0f, 1f) else 0f
-        AIOrbCore(
-            state = AIOrbVisualState.ORB_ACTIVE,
-            modifier = Modifier.offset {
-                IntOffset(
-                    (orbCenter.first - outerSizePx / 2f).roundToInt(),
-                    (orbCenter.second - outerSizePx / 2f).roundToInt(),
-                )
-            }.graphicsLayer {
-                // This remains the same measured Processing Orb; it stretches and
-                // releases its material toward the Glyph instead of being replaced by an oval.
-                transformOrigin = TransformOrigin.Center
-                scaleX = 1f + .62f * morph
-                scaleY = 1f - .32f * morph
-                alpha = 1f - morph
-            },
-            coreSize = coreSize,
-            entranceElapsedMs = 900L,
-            elapsedMs = waterLightFrame?.elapsedMs ?: frame.elapsedMs,
-            completion = 0f,
-            reduceMotion = waterLightFrame?.reducedMotion == true,
-            lowPerformance = false,
-            fromCamera = false,
-            waterLightFrame = waterLightFrame,
-            energyEvent = energyEvent,
-            waterLightMaterial = WaterLightMaterialProfile.ORB_LEGACY,
-        )
+        key(handoff.key) {
+            AIOrbCore(
+                state = AIOrbVisualState.ORB_ACTIVE,
+                modifier = Modifier.offset {
+                    IntOffset(
+                        (orbCenter.first - outerSizePx / 2f).roundToInt(),
+                        (orbCenter.second - outerSizePx / 2f).roundToInt(),
+                    )
+                }.graphicsLayer {
+                    // The same measured Orb receives the actual return event, stretches,
+                    // brushes into the classifier Glyph, and settles into that name.
+                    transformOrigin = TransformOrigin.Center
+                    scaleX = orbGlyphTransition.orbScaleX
+                    scaleY = orbGlyphTransition.orbScaleY
+                    alpha = orbGlyphTransition.orbAlpha
+                },
+                coreSize = coreSize,
+                entranceElapsedMs = 900L,
+                elapsedMs = waterLightFrame?.elapsedMs ?: frame.elapsedMs,
+                completion = 0f,
+                reduceMotion = waterLightFrame?.reducedMotion == true,
+                lowPerformance = false,
+                fromCamera = false,
+                waterLightFrame = waterLightFrame,
+                energyEvent = energyEvent,
+                waterLightMaterial = WaterLightMaterialProfile.ORB_LEGACY,
+            )
+        }
     }
     }
 }

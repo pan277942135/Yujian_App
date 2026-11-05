@@ -26,9 +26,12 @@ class RecognitionRevealPolicyTest {
         assertEquals(RecognitionRevealPhase.ORB_RETURN, returnStart.phase)
         assertEquals(0f, returnStart.photoProgress, 0f)
         assertEquals(RecognitionRevealClock.FULL_PARTICLE_LIMIT, returnStart.visibleParticleCount)
+        assertEquals(.92f, returnStart.fishHaloAlpha, .0001f)
         val returnMiddle = frame(RecognitionSceneStage.ORB_RETURN, .5f, handoff, policy)
         assertEquals(.5f, returnMiddle.photoProgress, .0001f)
         assertEquals(.5f, returnMiddle.orbReturnProgress, .0001f)
+        assertTrue(returnMiddle.fishHaloAlpha < returnStart.fishHaloAlpha)
+        assertEquals(0f, frame(RecognitionSceneStage.ORB_RETURN, 1f, handoff, policy).fishHaloAlpha, 0f)
 
         val toName = frame(RecognitionSceneStage.ORB_TO_NAME, .5f, handoff, policy)
         assertEquals(RecognitionRevealPhase.ORB_TO_NAME, toName.phase)
@@ -53,6 +56,7 @@ class RecognitionRevealPolicyTest {
         assertTrue(titleFrame.fallback)
         assertEquals(0, titleFrame.visibleParticleCount)
         assertEquals(RecognitionRevealTitleMode.HIDDEN, titleFrame.titleMode)
+        assertEquals(0f, titleFrame.fishHaloAlpha, 0f)
         assertEquals(RecognitionRevealTitleMode.FORMING,
             frame(RecognitionSceneStage.ORB_TO_NAME, .5f, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
         assertEquals(RecognitionRevealTitleMode.REVEALING,
