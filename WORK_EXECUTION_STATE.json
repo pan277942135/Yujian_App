@@ -3,7 +3,7 @@
   "base_sha": "74cad95b4f673bd9c8c60d16839f036d5886d933",
   "blockers": [],
   "branch": "feature/orb-photo-stable-visual-closure-v1",
-  "checkpoint_updated_at": "2026-11-05T13:01:23Z",
+  "checkpoint_updated_at": "2026-11-05T13:54:37Z",
   "control_plane_revision": "74cad95b4f673bd9c8c60d16839f036d5886d933",
   "dependencies": [
     "P5-02",
@@ -30,7 +30,7 @@
     "cp05_initial_workflow": "42022698826:FAIL_KOTLIN_COMPILE_MISSING_RETURN",
     "cp05_visual": "NOT_RUN",
     "cp06_status": "PASS",
-    "final_v1_2_apk": "NOT_BUILT",
+    "final_v1_2_apk": "Yujian_Recognition_Runtime_V1_2_Debug.apk",
     "visual": "NOT_RUN",
     "cp05_report_commit_sha": "e59423bb276eb1cc827e1a6b4cbda277924ad5f9",
     "timing_contract_document_commit": "4083b7e26eb1e0b85e4bb5709e85881820971e21",
@@ -45,7 +45,21 @@
     "cp06_artifact_zip_sha256": "a205d780428b56643e0553af3aa8b6099e400b33f4a169c9815141e11e3133d0",
     "cp06_visual": "NOT_RUN",
     "full_android_ci_cp06": "42030743619:FAIL_EMPTY_HOME_RUNTIME_V2_PRE_GRADLE",
-    "runtime_implementation_status": "CP06_TIMING_IMPLEMENTED_VERIFIED; CP07_RESULT_HANDOFF_PENDING"
+    "runtime_implementation_status": "CP06_TIMING_IMPLEMENTED_VERIFIED; CP07_RESULT_HANDOFF_PENDING",
+    "cp07_status": "PASS",
+    "cp07_source_sha": "beed77ad31bb54010148c7bf459f3b445ccbcd23",
+    "cp07_exact_workflow": "42037876704:PASS_UNIT_DEBUG_ANDROIDTEST_RESOURCE_ARTIFACT",
+    "cp07_artifact_id": "13419188038",
+    "cp07_artifact_zip_sha256": "38ba6c85d2bd6b5da2e3c84f25324d2ed9d2081b40a7ee83009d67f8b242f8fc",
+    "full_android_ci_cp07": "42037876742:FAIL_EMPTY_HOME_RUNTIME_V2_PRE_GRADLE",
+    "control_plane_admission_cp07": "42037885114:BLOCKED_BRANCH_STATE_FILES",
+    "final_apk_sha256": "1de29d32ec185b32b5c1cdc5f156e22a25afed79fe1bbe54cb10829391d0dd66",
+    "final_apk_size_bytes": 144083254,
+    "final_apk_library_file_id": "libfile_beb7dfacadc881918b79857f1be3c2cf",
+    "final_apk_library_version": 1,
+    "final_exact_source_build": "beed77ad31bb54010148c7bf459f3b445ccbcd23",
+    "final_exact_workflow": "42037876704:PASS",
+    "final_v1_2_status": "V1_2_RUNTIME_IMPLEMENTED_AND_DEBUG_APK_DELIVERED"
   },
   "execution_v2": {
     "issues": {
@@ -69,14 +83,14 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "CP07: move the same-photo processing-to-result morph into shared SceneClock Stage 13; implement 13.1–13.5 as geometry/data/settle-driven handoff, gate result information, preserve photo/session/attempt/geometry identity, and test one-time result completion; then run exact-source tests, Debug/AndroidTest builds, resource validation, and final APK delivery.",
+  "next_action": "Product owner installs the Library APK for device visual acceptance. Keep PR #317 Draft and unmerged. Track CP03 R06 frozen-source identity and unrelated Empty Home/control-plane gates without replacing the delivered APK.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "f53580b5554d62e8ef26e485c2f902c885ec7121",
-  "stage": "CP07",
-  "status": "RUNNING",
-  "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
+  "source_sha": "beed77ad31bb54010148c7bf459f3b445ccbcd23",
+  "stage": "FINAL_TEST_AND_DELIVERY",
+  "status": "IMPLEMENTED_AND_DEBUG_APK_DELIVERED",
+  "task_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2",
   "work_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2",
   "timing_contract": {
     "contract_id": "YUJIAN_RECOGNITION_13_STAGE_TIMING_6000MS_V1",
@@ -87,7 +101,13 @@
     "clock_origin": "FIRST_ACTUALLY_PRESENTED_PHOTO_STABLE_FRAME",
     "debug_manual_preview_per_main_stage_ms": 3000,
     "model_timeout_ms": 60000,
-    "runtime_implementation_status": "CP06_TIMING_IMPLEMENTED_VERIFIED; CP07_RESULT_HANDOFF_PENDING",
+    "runtime_implementation_status": "CP01_CP07_IMPLEMENTED_AND_EXACT_SOURCE_VERIFIED; DEVICE_VISUAL_NOT_RUN",
     "scope": "FULL path; ORB_ONLY skips untrusted fish contour/gold and is not padded to 6000ms"
-  }
+  },
+  "unresolved": [
+    "CP03 R06 frozen resource source identity remains NOT_CONFIRMED.",
+    "Device visual checks for AGSL, Orb Wake, fish gold, Glyph, and Result handoff remain NOT_RUN.",
+    "Full Android CI is blocked before Gradle by the existing EMPTY_HOME_RUNTIME_V2 contract; control-plane admission rejects required branch-local state files.",
+    "AndroidTest APK was built but not run on a device; API28 was not tested."
+  ]
 }

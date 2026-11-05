@@ -4,8 +4,8 @@
 **Repository / PR:** `pan277942135/Yujian_App` / #317 (`Draft`, `Open`, `Unmerged`)
 **Branch:** `feature/orb-photo-stable-visual-closure-v1`
 **Main baseline:** `74cad95b4f673bd9c8c60d16839f036d5886d933`
-**Current validated source:** `f53580b5554d62e8ef26e485c2f902c885ec7121`
-**Current checkpoint:** CP06 complete; CP07 is next.
+**Current validated runtime source:** `beed77ad31bb54010148c7bf459f3b445ccbcd23`
+**Current checkpoint:** CP01–CP07 implementation and exact-source build complete; device visual acceptance remains `NOT_RUN`.
 
 ## CP01–CP04 status
 
@@ -16,6 +16,14 @@
 | CP03 ORB_RELEASE | Implemented; resource freeze identity `NOT_CONFIRMED`; device visual `NOT_RUN` | `4dc78515bb006f2952386d046db079eb2dce3162`; Orb workflow `42011287356` passed. The existing five R06 paths and one shared SceneClock remain in use. |
 | CP04 PATH_TO_FISH | Implemented; mask-tail heuristic intentionally returns no anchor when ambiguous; device visual `NOT_RUN` | Code commit `9e8d99471c2db09c9e244d804a4cc8da3c5d3c2c`, assertion correction `84c2bf30d51d38c3720f4124315ec799de601bd1`; exact-head Orb workflow `42019562279` passed. |
 | CP05 CONTOUR_A/B/C | Implemented from trusted current Mask; device visual `NOT_RUN` | Source `ead45796f8332ef673fd615402c72b995fb5f09d`; exact-head Orb workflow `42023472919` passed unit tests, Debug and AndroidTest APK builds, packaged asset checks, and artifact upload. |
+
+## CP02 root cause and targeted correction
+
+The Core WebP existed, had non-empty alpha, and was packaged with the source-matching hash. The failure path was in composition: the only Core `Image` had its `RenderEffect` set on the same graphics layer, so the visible base image was coupled to shader input/output alpha and the effect layer bounds. A transparent, clipped, unavailable, or otherwise invalid effect could therefore remove the only visible Core. This is the code-level root cause; actual AGSL frame-by-frame visual confirmation remains `NOT_RUN`.
+
+The corrected renderer draws the original Core image as the always-visible base and places the filtered copy in a separate optical overlay. `CORE_ONLY`, `CORE_WITH_OPTICS`, and `FULL_ORB_WAKE` gate optional optics/detail over the same source Core and shared SceneFrame. Shader creation failure is logged; the original Core and clipped Canvas fallback remain available, while failure is not reported as full optical success. Host bindings reject mismatched session/attempt/image/photo hash/content version/geometry host or geometry version. No second Orb or clock is created.
+
+CP02 automated coverage executed in the exact-source Orb workflow includes `OrbFluidOpticalIntegrationV1Test.agslAndComposeUseOneFrameAndKeepOriginalAlpha`, `AIOrbPhotoStableRenderingPolicyTest.threeWakeModesKeepTheOriginalCoreAndGateOnlyTheOptionalLayers`, `OrbWakeBreathReleaseV11Test`, `OrbRuntimeProfileV1Test`, `WaterLightHostBindingTest.everyHostRequiresCurrentSessionAndValidOwnGeometry`, and `OrbGrassFrozenAssetsV11Test.sourceAndAndroidRuntimeCoreArePinnedAndTheOrbDrawsOneBakedTexture`. Shader failure fallback is implemented with an explicit warning log; failure injection/AGSL visual behavior itself was not run on a device.
 
 ## CP04 root cause and correction
 
@@ -107,12 +115,15 @@ The 13 stage minima and reveal envelopes now match the frozen 6000ms contract, i
 
 ## Current recovery point
 
-- Current CP: **CP06 complete; CP07 READY**.
-- Latest validated runtime source: `f53580b5554d62e8ef26e485c2f902c885ec7121`.
-- Latest CP06 implementation commit: `465b23a08d422c53b41f2a478f56e2d07834eac3`; CP06 syntax fix `414a611b665590c93b36fcc3f3502dbd1ff96434`; final timing-test correction `f53580b5554d62e8ef26e485c2f902c885ec7121`.
-- APK state: CP06 intermediate Debug and AndroidTest APKs built and packaged; final V1.2 APK **NOT_BUILT**.
-- CP07 next action: move the same-photo processing-to-result photo morph to Stage 13, expose 13.1–13.5 handoff state, gate result information until its arrival, preserve photo/session/attempt/geometry identity, and guard the single settle/result callback. Add handoff state/identity/commit tests; then run exact-source unit, Debug, AndroidTest, and resource validation.
-- Final end-to-end checks and APK delivery remain **NOT_STARTED**.
+- Current CP: **CP07 complete; final Debug APK built and uploaded**.
+- Latest runtime implementation source: `beed77ad31bb54010148c7bf459f3b445ccbcd23`; its exact-source workflow `42037876704` passed unit tests, `assembleDebug`, `assembleDebugAndroidTest`, packaged Core/capture asset checks, SHA staging, and artifact upload.
+- CP07 changed files: `RecognitionResultHandoffTransition.kt`, `RecognitionResultScreen.kt`, and `RecognitionResultHandoffTransitionTest.kt`.
+- CP07 contract correction: an earlier Stage 13 draft partitioned the shared 450ms parent progress with fixed normalized thresholds. The timing contract explicitly disallows invented child timing windows. The final projection uses the single SceneClock frame; photo geometry progress drives repositioning, the current photo identity and result geometry gate the handoff, actual classifier data arrival gates information display, and the rendered stable event gates one-time commit. No child timer was added.
+- CP07 tests cover 13.1–13.5 progression, monotonic same-photo geometry, missing identity/geometry/data guards, stable-event gating, and idempotent commit.
+- Final APK: `Yujian_Recognition_Runtime_V1_2_Debug.apk`; source `beed77ad31bb54010148c7bf459f3b445ccbcd23`; 144,083,254 bytes; SHA-256 `1de29d32ec185b32b5c1cdc5f156e22a25afed79fe1bbe54cb10829391d0dd66`. The exact-source CI artifact ZIP is ID `13419188038`, 143,372,481 bytes, SHA-256 `38ba6c85d2bd6b5da2e3c84f25324d2ed9d2081b40a7ee83009d67f8b242f8fc`. The APK replaced the existing Library file `libfile_beb7dfacadc881918b79857f1be3c2cf`, now version 1.
+- Full Android CI run `42037876742` remains **FAIL** before Gradle because the pre-existing `EMPTY_HOME_RUNTIME_V2` verifier reports canonical measured-anchor mismatches; this task changed no Empty Home contract/code. Control-plane admission run `42037885114` is **BLOCKED/FAIL** because Main-promotion validation rejects required branch-local state files. Neither is counted as a feature build pass.
+- Real-device visual checks remain **NOT_RUN**: AGSL/Core comparison, Orb Wake, fish gold, Glyph, and Result handoff. No API28 or device visual run was performed.
+- Final tests and APK delivery: **COMPLETE**. Remaining action: product-owner device installation/visual acceptance, resolve the independent Empty Home/control-plane gate, and confirm CP03 R06 frozen source identity; do not merge PR #317.
 
 
 ## Frozen product timing decision — 6000ms (2026-11-05)
@@ -141,4 +152,4 @@ High-light holds are frozen: Stage 09 includes 300ms gold formation + **500ms co
 
 Model waits do not compress the sequence. The existing 60s model watchdog remains separate from the visual schedule. Debug MANUAL remains 3000ms per main stage with auto-pause. The result scene remains visible after reaching 6000ms.
 
-**Implementation status:** Runtime timing is implemented and verified at CP06 exact source `f53580b5554d62e8ef26e485c2f902c885ec7121`; its exact-source Orb workflow passed unit tests, Debug and AndroidTest APK assembly, and packaged resource checks. CP07 result handoff and the final V1.2 APK are still pending.
+**Implementation status:** Runtime timing and Stage 13 handoff are implemented and verified at exact source `beed77ad31bb54010148c7bf459f3b445ccbcd23`; exact-source Orb workflow `42037876704` passed unit tests, Debug and AndroidTest APK assembly, and packaged resource checks. Final Debug APK was delivered to Library. Device visual acceptance remains `NOT_RUN`.
