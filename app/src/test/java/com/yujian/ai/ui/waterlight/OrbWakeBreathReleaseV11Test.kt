@@ -15,6 +15,10 @@ class OrbWakeBreathReleaseV11Test {
     @Test fun wakeAndS1ToS2EnvelopesUseSemanticStageProgress() {
         assertEquals(0f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.PHOTO_STABLE, 1f).optics, 0f)
         assertEquals(0f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, 0f).optics, 0f)
+        assertEquals(0f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, 80f / 350f).optics, 0f)
+        assertTrue(OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, 81f / 350f).optics > 0f)
+        assertEquals(0f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, 220f / 350f).waterCore, 0f)
+        assertTrue(OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, 221f / 350f).waterCore > 0f)
         assertTrue(OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, .24f).optics > 0f)
         assertEquals(0f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, .62f).waterCore, 0f)
         assertTrue(OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, .64f).grassLight > 0f)
