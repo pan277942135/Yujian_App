@@ -96,11 +96,12 @@ def make_boards():
  def f(id):return next(p for stem,p in full.items() if stem.startswith(id.replace('.','_')+'_'))
  board('G01 PHOTO_STABLE',[('Historical 01',next(ORIG.glob('01 PHOTO*.png'))),('Unified-photo candidate 01',f('01'))], 'CANDIDATE 941×1672: photo x98 y150 w745 h1023; Orb center(470,1452), visible D224 (30.1% card width)',1400)
  board('G02 ORB_WAKE_RELEASE',[('02 S1 to S2',f('02')),('03 local R06',f('03')),('Frozen Orb state board',ORIG/'AI Orb三态视觉规范板.png')], 'CORE SAME / 5 R06 PATHS / 03 perimeter OFF / V3 candidate effects unapproved')
- board('G03 PERIMETER_FISH_SEEK',[('03 local release',f('03')),('04 photo perimeter',f('04')),('05 seek to fish',f('05'))], 'Three distinct layers: R06 / Perimeter / Seek; fish-tail anchor must use real geometry')
+ board('G03 PERIMETER_FISH_SEEK',[('03 local release',f('03')),('04 photo perimeter',f('04')),('05 seek to fish',f('05'))], 'V3 REFERENCE ONLY: R06 / Perimeter / Seek are separate; real fish-tail anchor required')
  board('G04 FISH_FOCUS_GOLD_RETURN',[(x,f(x)) for x in ['06','07','08','09','10']], 'REFERENCE ONLY: V3 polygon NOT TRUSTED; FULL uses real Mask; ORB_ONLY skips 06–09',1900)
- board('G05 ORB_TO_SPECIES_GLYPH',[(x,f(x)) for x in ['11_1','11_2','11_3','12_1','12_2','12_3']], 'REFERENCE ONLY: V3 glyph morph NOT VERIFIED; runtime name from Classifier, never bitmap',2100)
+ glyph_labels=['11.1 Core hold','11.2 Same-core stretch','11.3 Liquid brush','12.1 STROKE GAP','12.2 Partial glyph','12.3 Live-name target']
+ board('G05 ORB_TO_SPECIES_GLYPH',[(label,f(x)) for label,x in zip(glyph_labels,['11_1','11_2','11_3','12_1','12_2','12_3'])], 'REFERENCE ONLY: V3 11.3 / 12.1 repeat; transition unresolved; runtime Classifier glyph, never bitmap',2100)
  ref=Image.open(REF)
- board('G06 RESULT_HANDOFF',[(f'KF{i:02d}',ref.crop((round((i-6)*ref.width/5),0,round((i-5)*ref.width/5),ref.height))) for i in range(6,11)], 'KF06–KF10 original 2172×724 composition reference; cropped for comparison, NOT independent final frames',1900)
+ board('G06 RESULT_HANDOFF',[(f'KF{i:02d}',ref.crop((round((i-6)*ref.width/5),0,round((i-5)*ref.width/5),ref.height))) for i in range(6,11)], 'KF06–KF10 composition ONLY: old fisher differs from confirmed blue-cap photo; NOT final frames',1900)
  tiles=Image.new('RGB',(1500,1620),(235,247,249))
  for i in range(6):
   t=Image.open(ROOT/'visual_boards'/f'G0{i+1}.png');t.thumbnail((730,520),Image.Resampling.LANCZOS)
