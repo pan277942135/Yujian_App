@@ -65,16 +65,17 @@ internal object RecognitionPerimeterShaderMath {
     fun expansionProgress(
         scene: RecognitionSceneFrame,
         profile: RecognitionPerimeterOpticalProfileV1 = RecognitionPerimeterOpticalProfileV1.EFFECT_02,
+        perimeterStartOpticalMs: Long? = null,
+        spreadDurationMs: Long = 1_200L,
     ): Float {
-        val p = scene.stageProgress.coerceIn(0f, 1f)
-        val releaseEnd = profile.releaseExpansionShare
-        return when (scene.stage) {
-            RecognitionSceneStage.PHOTO_STABLE,
-            RecognitionSceneStage.ORB_WAKE -> 0f
-            RecognitionSceneStage.ORB_RELEASE -> releaseEnd * p
-            RecognitionSceneStage.PERIMETER_ARRIVAL -> releaseEnd + (1f - releaseEnd) * p
-            else -> 1f
-        }.coerceIn(0f, 1f)
+        if (scene.stage.ordinal < RecognitionSceneStage.PERIMETER_ARRIVAL.ordinal) return 0f
+        val start = perimeterStartOpticalMs ?: (scene.opticalReferenceElapsedMs - scene.stageElapsedMs)
+        val elapsed = (scene.opticalReferenceElapsedMs - start).coerceAtLeast(0L)
+        val progress = if (spreadDurationMs <= 0L) 1f else
+            (elapsed.toFloat() / spreadDurationMs.toFloat()).coerceIn(0f, 1f)
+        // Contact grows from the measured arrival around the photo over the existing
+        // 1200ms material envelope; it is independent of the later perimeter fade.
+        return progress * progress * (3f - 2f * progress)
     }
 
     fun coordinateScale(
