@@ -153,3 +153,15 @@ High-light holds are frozen: Stage 09 includes 300ms gold formation + **500ms co
 Model waits do not compress the sequence. The existing 60s model watchdog remains separate from the visual schedule. Debug MANUAL remains 3000ms per main stage with auto-pause. The result scene remains visible after reaching 6000ms.
 
 **Implementation status:** Runtime timing and Stage 13 handoff are implemented and verified at exact source `beed77ad31bb54010148c7bf459f3b445ccbcd23`; exact-source Orb workflow `42037876704` passed unit tests, Debug and AndroidTest APK assembly, and packaged resource checks. Final Debug APK was delivered to Library. Device visual acceptance remains `NOT_RUN`.
+
+## Real-device visual gap audit V1 — 2026-11-05
+
+- Task: `YUJIAN_V1_2_REAL_DEVICE_VISUAL_GAP_AUDIT_AND_FIX_V1`.
+- Input: current-session 40.063 s video (2,262 decoded frames; SHA-256 `6c185d8473782a014bb0fa34ba02872c6d445cff8822cd3f4695f022e2e27f45`); prior `243459.mp4` not used.
+- Video result: Orb Wake remained weak across A/B/C; Stage 03 showed one unconfirmed light trace; Stage 04 perimeter appeared quickly and strongly; recording ended in Stage 04, so Stage 05 fish-tail contact is `NOT_OBSERVED`.
+- Targeted visual audit patch is published to PR #317; code patch commit `334103baddcb0999e724d8eecda82acea0191bea` contains the complete source/test tree. It preserves frozen optical alpha budgets, fixes current-photo perimeter→trusted-tail progress/style, starts perimeter reveal at Stage 04 over the existing 1,200 ms material window, gates the duplicate ARRIVE ray, and keeps the original Core alpha invariant while adding Wake/Shader/Renderer diagnostics. `git diff --check` and all listed static resource validators pass. Exact-source Android unit tests, Debug and AndroidTest APK builds are awaiting the branch Actions run. Real-device post-fix visual acceptance is `NOT_RUN`; R06 frozen source identity remains `NOT_CONFIRMED`.
+- R06 runtime mode is candidate with five paths, but V1.1 geometry/profile/SVG SHA identities do not match. No resource replacement was made; identity stays `NOT_CONFIRMED`.
+- Static resource checks: Core alpha/SHA PASS; Orb/R01B/R06 asset/timing validator PASS; runtime contract PASS; capture raster PASS; profile generation parity PASS.
+- Android JVM tests and APK builds: `PENDING` exact-SHA GitHub Actions; local workspace has no Gradle/Android SDK.
+- Real-device post-fix visual acceptance: `NOT_RUN`; product-owner retest required.
+- Control-plane admission returned `FAIL` on canonical sync and branch-local state validation; detailed errors and next exact actions are in `V1_2_REAL_DEVICE_VISUAL_GAP_AUDIT_REPORT.md`.
