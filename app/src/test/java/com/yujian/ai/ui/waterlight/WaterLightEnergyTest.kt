@@ -8,6 +8,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometryFactory
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
+import com.yujian.ai.ui.waterlight.renderer.isEnergyPathRenderable
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -60,9 +61,9 @@ class WaterLightEnergyTest {
         val fishPath = WaterLightEnergy.at(frame(RecognitionSceneStage.PATH_TO_FISH), true)!!
         assertEquals(EnergyAnchor.FISH_CONTOUR, fishPath.target)
         assertEquals(EnergyFeedback.ABSORB, fishPath.feedback)
-        assertEquals(.125f, fishPath.level, .001f)
+        assertEquals(.5f, fishPath.level, .001f)
         assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_A), false))
-        assertEquals(EnergyFeedback.ABSORB, WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_B), true)?.feedback)
+        assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_B), true))
 
         assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.ORB_RETURN, .5f), true))
         val returned = WaterLightEnergy.at(
@@ -96,6 +97,13 @@ class WaterLightEnergyTest {
         assertEquals("photo-B", WaterLightEnergy.at(
             frame(RecognitionSceneStage.ORB_RELEASE, session = "photo-B"), true,
         )?.sessionId)
+    }
+
+    @Test fun perimeterArrivalIsAHostMilestoneAndDoesNotDrawASecondPhotoRay() {
+        assertFalse(isEnergyPathRenderable(EnergyFeedback.ARRIVE))
+        assertTrue(isEnergyPathRenderable(EnergyFeedback.RELEASE))
+        assertTrue(isEnergyPathRenderable(EnergyFeedback.ABSORB))
+        assertTrue(isEnergyPathRenderable(EnergyFeedback.RETURN))
     }
 
     @Test fun missingAttemptOrImageIdentityCannotEmitEnergy() {
