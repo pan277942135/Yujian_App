@@ -1,40 +1,55 @@
 # Recognition Runtime V1.2 execution checkpoint
 
-Task `YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2` continues on PR #317, branch `feature/orb-photo-stable-visual-closure-v1`.
+**Task:** `YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2`
+**Repository / PR:** `pan277942135/Yujian_App` / #317 (`Draft`, `Open`, `Unmerged`)
+**Branch:** `feature/orb-photo-stable-visual-closure-v1`
+**Main baseline:** `74cad95b4f673bd9c8c60d16839f036d5886d933`
+**Current validated source:** `84c2bf30d51d38c3720f4124315ec799de601bd1`
+**Current checkpoint:** CP04 complete; CP05 is next.
 
-Main baseline `74cad95b4f673bd9c8c60d16839f036d5886d933`. CP01 inherited from `81a0c257417c0be050e8dd57ace95e97619babf4`.
+## CP01–CP04 status
 
-## Current checkpoint
+| CP | Status | Source / evidence |
+|---|---|---|
+| CP01 PHOTO_STABLE | Implemented | `81a0c257417c0be050e8dd57ace95e97619babf4`; existing exact-source workflow passed. |
+| CP02 ORB_WAKE | Implemented; device visual `NOT_RUN` | `ab2407ab42459f12ccb8178df7ebe3badc396c13`; Orb workflow `42010365270` passed. Core is independently drawn below optical effects. Debug A/B/C comparison states remain available. |
+| CP03 ORB_RELEASE | Implemented; resource freeze identity `NOT_CONFIRMED`; device visual `NOT_RUN` | `4dc78515bb006f2952386d046db079eb2dce3162`; Orb workflow `42011287356` passed. The existing five R06 paths and one shared SceneClock remain in use. |
+| CP04 PATH_TO_FISH | Implemented; mask-tail heuristic intentionally returns no anchor when ambiguous; device visual `NOT_RUN` | Code commit `9e8d99471c2db09c9e244d804a4cc8da3c5d3c2c`, assertion correction `84c2bf30d51d38c3720f4124315ec799de601bd1`; exact-head Orb workflow `42019562279` passed. |
 
-CP02 is **VALIDATING**. Source commit `ab2407ab42459f12ccb8178df7ebe3badc396c13`.
+## CP04 root cause and correction
 
-The original Core Image now has its own graphics layer. The optional AGSL output draws over that image, so a transparent optical result cannot remove the source Core. Debug step diagnostics expose A `CORE_ONLY`, B `CORE_WITH_OPTICS`, and C `FULL_ORB_WAKE` in ORB_WAKE. They use the same painter, host and scene frame. Existing caustics, droplets, grass and ribbons remain in C. Shader creation failures log a warning and retain the original Core.
+`WaterLightMaskAdapter.toPhotoSpace` already converts the current SlimSAM ROI contour into canonical, EXIF-normalized whole-photo coordinates. The prior seek anchor then applied the detector BBox a second time and averaged contour points. That produced neither the fish-tail contact nor a stable source-photo coordinate. It could also move when the detector crop changed.
 
-The reported observation is Core visible at PHOTO_STABLE and disappearing after enabling RenderEffect. The code also revealed that the only Core image previously carried that effect. The exact device-side AGSL failure mechanism remains unconfirmed.
+The corrected anchor resolver selects the largest closed outline, estimates its principal axis, and samples cross-section widths to identify a caudal-peduncle narrowing between a widened tail profile and the body. It returns no anchor when that shape is ambiguous. The resulting source-photo point uses the current `RecognitionImageTransform`; points outside the visible Crop viewport are rejected rather than clamped to a fabricated edge point.
 
-Changed files: `AIOrbCore.kt`, `AIOrbMotion.kt`, `RecognitionStepDiagnosticControls.kt`, `RecognizingScreen.kt`, `AIOrbPhotoStableRenderingPolicyTest.kt`, `OrbGrassFrozenAssetsV11Test.kt`.
+The outward path ledger now binds its fish segment to session, attempt, image, photo SHA, geometry version, and a current Mask fingerprint. A return path can reuse the fish segment only when that Mask fingerprint still matches. This prevents stale attempt or Mask geometry from entering the Orb return route.
 
-`git diff --check` passed before commit. Android unit tests, Debug compilation, resource validation and device visual A/B/C comparison are **NOT_RUN** at this checkpoint. This local runner has no Gradle executable, wrapper or Android SDK. The GitHub exact-HEAD workflow is the next available build path.
+While Detector is ready and either Classifier or SlimSAM is still pending at `PATH_TO_FISH`, the existing perimeter shader remains active at low opacity (`0.12`, or `0.06` under reduced motion) and continues to sample the shared optical SceneClock. The controller keeps its existing Classifier/SlimSAM terminal join and FULL / ORB_ONLY decision; no completed release stage or second clock is replayed.
 
-## Next exact action
+Changed CP04 files:
 
-1. Inspect exact-HEAD CI for CP02 source commit and fix any compile or unit test failures.
-2. Preserve device AGSL visual comparison as `NOT_RUN` until actual evidence exists. Do not mark CP02 visual acceptance PASS based on static tests.
-3. Inspect R06 V1.1 resource identity and implement CP03 on the same branch. Continue CP04–CP07 with separate source commits and state updates.
-4. Build and hash the final Debug APK after CP07. APK state is **NOT_RUN**.
+- `app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishTailAnchor.kt`
+- `app/src/main/java/com/yujian/ai/ui/recognition/RecognitionPerimeterShaderOverlay.kt`
+- `app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt`
+- `app/src/main/java/com/yujian/ai/ui/waterlight/core/WaterLightPathLedger.kt`
+- `app/src/test/java/com/yujian/ai/ui/recognition/RecognitionFishTailAnchorTest.kt`
+- `app/src/test/java/com/yujian/ai/ui/recognition/RecognitionPerimeterShaderMathTest.kt`
+- `app/src/test/java/com/yujian/ai/ui/waterlight/WaterLightPathLedgerTest.kt`
 
-## CP03 code inspection and correction
+## CP04 verification
 
-The current renderer contains five Bezier path IDs `G01`, `G02`, `A01`, `A02`, `C01` and separate back/front depth planes. The shared stage frame drives the 600 ms local release with reversal after 340 ms. The photo perimeter overlay was nevertheless enabled throughout ORB_RELEASE. Its opacity is now held at zero until PERIMETER_ARRIVAL, including reduced motion. The B debug comparison now also hides the front ribbons. The perimeter transition test covers the dark release and later arrival.
+- `git diff --check`: **PASS**.
+- Control-plane admission: **PASS** on the CP04 source.
+- First exact-source workflow `42018883250`: **FAIL** on a newly added assertion that assumed a fixed Crop/Fit pixel delta. The resolver and compilation passed; the assertion was changed to compare each result directly with the corresponding `RecognitionImageTransform` mapping.
+- Rerun `42019562279` on `84c2bf30d51d38c3720f4124315ec799de601bd1`: **PASS**. Unit tests, Debug APK build, AndroidTest APK build, and packaged resource verification all passed.
+- Workflow artifact ID `13411636116`, artifact ZIP size `143,349,184` bytes, artifact ZIP SHA-256 `88f63f470f1fb65693da1d15494250e934a6cf5b6081bdae334013457f84d452`. This is an intermediate CP04 build artifact, not the final V1.2 APK.
+- Real-device visual checks (AGSL, Orb Wake, fish gold, Glyph, Result handoff): **NOT_RUN**.
+- Full PR CI remains separate from this feature workflow; the known branch-state promotion gate and unrelated Empty Home V2 contract failure are not marked PASS here.
 
-The current Main resource SHA-256 values are geometry `1dfc85e651440d88c18d80daf51bbaa081e058fa60061bed6c8801aededf4cdc`, profile `8c7f998b043ddca8363054b75a93dbe6fab72cbdf31424b4fb71c4b502f21c10`, and SVG `d321c2bdd709145fadf73f52fc3f5d81a93c7e4e9d1074dc9adf783810287389`. They differ from the V1.1 expected prefixes in the handoff. These files remain current runtime candidates; their frozen-resource identity is **NOT_CONFIRMED**.
+## Current recovery point
 
-The first exact-HEAD PR CI on `3933778ef22140a83b45250d02c294c8ffe43ac9` failed before Android compilation. Control-plane admission treated the PR destination as canonical Main and rejected branch-local state files. Android CI stopped at the existing Empty Home V2 asset contract. Neither run validates CP02 code. The branch-specific Orb PHOTO_STABLE workflow is the appropriate independent unit/build path once a code change triggers it.
-
-CP03 is **VALIDATING**. CP04, CP05, CP06 and CP07 are **NOT_STARTED**. FULL and ORB_ONLY integration acceptance is **NOT_RUN**.
-
-## CP04 partial implementation
-
-The existing `PATH_TO_FISH` branch uses the current attempt's trusted SlimSAM contour and measured photo transform for its endpoint. It records the outward geometry in the identity-scoped ledger. The PATH renderer previously drew a broad continuous cyan trail. The fish-seeking ABSORB path now uses the existing gold material in a thin dashed core with restrained halo and the existing deterministic transparent droplets. The Orb-to-perimeter and return routes retain their prior rendering.
-
-CP04 remains **IN_PROGRESS**. The current endpoint is the trusted contour's average point, not a verified fish-tail contact. The path appears only after Mask trust, so its behavior during the model wait still needs a deliberate implementation. Do not mark the tail-contact or model-wait visual contract PASS. CP05–CP07 remain **NOT_STARTED**.
+- Current CP: **CP05 READY**.
+- Latest validated source: `84c2bf30d51d38c3720f4124315ec799de601bd1`.
+- APK state: CP04 intermediate Debug and AndroidTest APKs built; final V1.2 APK **NOT_BUILT**.
+- CP05 next action: bind contour A to the current Mask-derived caudal contact, reveal both directions along the real closed contour through A/B/C, and give Core / Soft / Halo distinct reveal envelopes. Preserve real Mask trust and ensure ORB_ONLY draws no fish contour. Add stage and reveal tests, run the exact-head build workflow, commit, push, and update this checkpoint before CP06.
+- CP06 / CP07 and final end-to-end tests remain **NOT_STARTED**.
