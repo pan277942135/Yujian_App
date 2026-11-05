@@ -106,6 +106,7 @@ import com.yujian.ai.ui.recognition.photoShockwaveTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
 import com.yujian.ai.ui.recognition.RecognitionMaskContourExtractor
 import com.yujian.ai.ui.recognition.RecognitionFishTailAnchor
+import com.yujian.ai.ui.recognition.RecognitionNormalizedPoint
 import com.yujian.ai.ui.recognition.RecognitionFishFocus
 import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
@@ -634,7 +635,9 @@ fun RecognitionProcessingScene(
                 recognitionAttemptId = recognitionAttemptId,
                 photoSha256 = selected.photoSha256,
             )
+            val tailContactResolved = RecognitionFishTailAnchor.resolve(extractedContour) != null
             val isTrustedForCurrentPhoto = trustState == RecognitionGeometryTrustState.TRUSTED_MASK &&
+                tailContactResolved &&
                 !recognitionSessionId.isNullOrBlank() && !recognitionAttemptId.isNullOrBlank() &&
                 selected.imageId.isNotBlank() && selected.photoSha256.isNotBlank()
             // Use the actually presented phase as the acceptance boundary. Calling
@@ -686,6 +689,7 @@ fun RecognitionProcessingScene(
                 recognitionSessionId.isNullOrBlank() || recognitionAttemptId.isNullOrBlank() -> "SESSION_IDENTITY_MISSING"
                 selected.imageId.isBlank() || selected.photoSha256.isBlank() -> "PHOTO_IDENTITY_MISSING"
                 trustState != RecognitionGeometryTrustState.TRUSTED_MASK -> "GEOMETRY_OR_IDENTITY_MISMATCH"
+                !tailContactResolved -> "FISH_TAIL_CONTACT_UNRESOLVED"
                 else -> "NONE"
             }
             Log.i(
@@ -1442,6 +1446,7 @@ fun RecognitionProcessingScene(
         Text("照片识别", color = Color(0xFF123F48), fontSize = 18.sp, fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Alignment.TopCenter).padding(top = safeInsets.calculateTopPadding() + 14.dp))
         photoFlowPlan?.let { plan ->
+            val normalizedFishTailAnchor = remember(contour) { RecognitionFishTailAnchor.resolve(contour) }
             val capture = image?.capturePresentation
             val orbEntranceMs = entranceElapsedMs
             val eased = processingOrbMotionFrame(orbEntranceMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value).destinationProgress
@@ -1469,7 +1474,7 @@ fun RecognitionProcessingScene(
             )
             val fishMaskIdentity = if (fishEnergyAllowed) recognitionMaskIdentity(subjectBitmap, subjectBox, contour) else null
             val fishEnergyAnchor = if (fishEnergyAllowed)
-                recognitionMaskAnchor(contour, currentPhotoTransform) else null
+                recognitionMaskAnchor(normalizedFishTailAnchor, currentPhotoTransform) else null
             // The initial perimeter-arrival path is allowed to use the production
             // detector target while SlimSAM is still running. This anchor only
             // drives PHOTO_PATH arrival; fish contour energy remains mask-gated.
@@ -1774,6 +1779,7 @@ private fun RecognitionPhoto(
     successfulRevealAllowed: Boolean,
     allowDiagnosticContourPreview: Boolean,
 ) {
+    val normalizedFishTailAnchor = remember(contour) { RecognitionFishTailAnchor.resolve(contour) }
     val transform = remember(photoFlowPlan, photoEntryProgress) {
         interpolateRecognitionPhotoTransform(
             photoFlowPlan.startTransform,
@@ -1807,7 +1813,8 @@ private fun RecognitionPhoto(
         orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
     )
     val fishMaskIdentity = if (fishEnergyAllowed) recognitionMaskIdentity(subjectBitmap, subjectBox, contour) else null
-    val fishAnchor = if (fishEnergyAllowed) recognitionMaskAnchor(contour, transform) else null
+    val fishAnchor = if (fishEnergyAllowed) recognitionMaskAnchor(normalizedFishTailAnchor, transform) else null
+    val fishTailContactPoint = fishAnchor
     val perimeterAnchor = fishAnchor?.let { nearestPhotoPerimeterAnchor(photoBounds, it) }
     val pathGeometry = when (baseEnergyEvent?.feedback) {
         EnergyFeedback.RELEASE -> nearestPhotoPerimeterAnchor(photoBounds, orbCenter)?.let { edge ->
@@ -2043,7 +2050,8 @@ private fun RecognitionPhoto(
                 subjectBox,
                 contour,
                 transform,
-                Modifier.fillMaxSize(),
+                tailContactPoint = fishTailContactPoint,
+                modifier = Modifier.fillMaxSize(),
                 processingElapsedMs = processingElapsedMs,
                 opticalReferenceElapsedMs = opticalReferenceElapsedMs,
                 maskRevealProgress = maskRevealProgress,
@@ -2072,10 +2080,10 @@ internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n�
 internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String = GENERIC_RECOGNITION_FAILURE_MESSAGE
 
 internal fun recognitionMaskAnchor(
-    contour: List<RecognitionContourSegment>,
+    anchor: RecognitionNormalizedPoint?,
     transform: RecognitionImageTransform,
 ): Offset? {
-    val mapped = RecognitionFishTailAnchor.resolveInViewport(contour, transform) ?: return null
+    val mapped = anchor?.let { RecognitionFishTailAnchor.mapToViewport(it, transform) } ?: return null
     return Offset(mapped.x, mapped.y)
 }
 

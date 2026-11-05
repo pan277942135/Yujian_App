@@ -133,6 +133,50 @@ internal fun recognitionMaskContourRevealProgress(
     }.coerceIn(0f, 1f)
 }
 
+internal data class RecognitionContourRevealArc(val startDistance: Float, val endDistance: Float)
+internal data class RecognitionContourRevealPlan(
+    val forwardFromTail: RecognitionContourRevealArc,
+    val backwardFromTail: RecognitionContourRevealArc,
+)
+
+/** Two contour fronts begin together at the current Mask's caudal contact and meet at 100%. */
+internal fun recognitionContourRevealPlan(
+    contourLength: Float,
+    tailDistance: Float,
+    progress: Float,
+): RecognitionContourRevealPlan? {
+    if (!contourLength.isFinite() || contourLength <= 0f || !tailDistance.isFinite() || !progress.isFinite()) return null
+    val anchor = ((tailDistance % contourLength) + contourLength) % contourLength
+    val halfReveal = contourLength * progress.coerceIn(0f, 1f) * .5f
+    return RecognitionContourRevealPlan(
+        forwardFromTail = RecognitionContourRevealArc(anchor, anchor + halfReveal),
+        backwardFromTail = RecognitionContourRevealArc(anchor - halfReveal, anchor),
+    )
+}
+
+internal data class RecognitionContourLayerAlphas(val core: Float, val soft: Float, val halo: Float)
+
+/** Independent reveal envelopes keep the hard Core, Soft bloom, and outer Halo on separate timing. */
+internal fun recognitionContourLayerAlphas(
+    energyStrength: Float,
+    contourRevealProgress: Float,
+): RecognitionContourLayerAlphas {
+    val energy = energyStrength.coerceIn(0f, 1f)
+    val progress = contourRevealProgress.coerceIn(0f, 1f)
+    fun smooth(value: Float): Float {
+        val p = value.coerceIn(0f, 1f)
+        return p * p * (3f - 2f * p)
+    }
+    val coreTiming = smooth(progress / .30f)
+    val softTiming = smooth((progress - .12f) / .58f)
+    val haloTiming = smooth((progress - .38f) / .62f)
+    return RecognitionContourLayerAlphas(
+        core = (.58f * energy * coreTiming).coerceIn(0f, .70f),
+        soft = (.25f * energy * softTiming).coerceIn(0f, .32f),
+        halo = (.105f * energy * haloTiming).coerceIn(0f, .15f),
+    )
+}
+
 internal const val FISH_FOCUS_A_PROMOTION_DELAY_MS = 420L
 
 /** Reveal every closed island in the trusted mask, including fins separated by the raster grid. */
@@ -153,6 +197,8 @@ internal class RecognitionContourPathCache(fullPath: Path) {
     private val contourLengthScratch = ArrayList<Float>(4)
     private val sourceContourLengths = measureAllContours(sourcePath).toList()
     private val sourceLength = sourceContourLengths.sum()
+    private var cachedTailAnchor: Offset? = null
+    private var cachedTailDistance: Float? = null
 
     fun reveal(progress: Float): Path {
         revealAndroidPath.reset()
@@ -170,6 +216,80 @@ internal class RecognitionContourPathCache(fullPath: Path) {
         } while (remaining > 0f && measure.nextContour())
         return revealPath
     }
+
+    fun revealFromTail(anchor: Offset, progress: Float): Path {
+        revealAndroidPath.reset()
+        val p = progress.coerceIn(0f, 1f)
+        if (p <= 0f || sourceContourLengths.isEmpty()) return revealPath
+        val primaryIndex = sourceContourLengths.indices.maxByOrNull { sourceContourLengths[it] } ?: return revealPath
+        val primaryLength = sourceContourLengths[primaryIndex]
+        if (primaryLength <= 0f) return revealPath
+        measure.setPath(sourcePath, false)
+        var contourIndex = 0
+        do {
+            val length = sourceContourLengths.getOrElse(contourIndex) { measure.length }
+            if (length > 0f) {
+                if (contourIndex == primaryIndex) {
+                    val tailDistance = nearestDistanceToAnchor(anchor, length)
+                    val plan = recognitionContourRevealPlan(length, tailDistance, p)
+                    if (plan != null) {
+                        appendWrappedRange(measure, length, plan.forwardFromTail, revealAndroidPath)
+                        appendWrappedRange(measure, length, plan.backwardFromTail, revealAndroidPath)
+                    }
+                } else {
+                    // Separate Mask islands are secondary detail. Reveal them only
+                    // during C so no detached edge appears before the main fish
+                    // contour has advanced from its real tail contact.
+                    val secondaryProgress = ((p - 2f / 3f) * 3f).coerceIn(0f, 1f)
+                    if (secondaryProgress > 0f) {
+                        measure.getSegment(0f, length * secondaryProgress, revealAndroidPath, true)
+                    }
+                }
+            }
+            contourIndex++
+        } while (measure.nextContour())
+        return revealPath
+    }
+
+    private fun nearestDistanceToAnchor(anchor: Offset, length: Float): Float {
+        if (cachedTailAnchor == anchor) return cachedTailDistance ?: 0f
+        measure.getPosTan(0f, positionScratch, tangentScratch)
+        var nearestDistance = 0f
+        var nearestDistanceSq = Float.POSITIVE_INFINITY
+        val steps = (length / 3f).toInt().coerceIn(160, 640)
+        for (step in 0..steps) {
+            val distance = length * step / steps
+            if (!measure.getPosTan(distance.coerceAtMost(length), positionScratch, tangentScratch)) continue
+            val dx = positionScratch[0] - anchor.x
+            val dy = positionScratch[1] - anchor.y
+            val distanceSq = dx * dx + dy * dy
+            if (distanceSq < nearestDistanceSq) {
+                nearestDistanceSq = distanceSq
+                nearestDistance = distance.coerceAtMost(length)
+            }
+        }
+        cachedTailAnchor = anchor
+        cachedTailDistance = nearestDistance
+        return nearestDistance
+    }
+
+    private fun appendWrappedRange(
+        pathMeasure: AndroidPathMeasure,
+        contourLength: Float,
+        arc: RecognitionContourRevealArc,
+        out: AndroidPath,
+    ) {
+        val span = (arc.endDistance - arc.startDistance).coerceIn(0f, contourLength)
+        if (span <= 0f) return
+        val start = ((arc.startDistance % contourLength) + contourLength) % contourLength
+        val firstSpan = minOf(span, contourLength - start)
+        if (firstSpan > 0f) pathMeasure.getSegment(start, start + firstSpan, out, true)
+        val remainder = span - firstSpan
+        if (remainder > 0f) pathMeasure.getSegment(0f, remainder, out, true)
+    }
+
+    private val positionScratch = FloatArray(2)
+    private val tangentScratch = FloatArray(2)
 
     fun glint(displayPath: Path, progress: Float, arcRatio: Float): Path {
         glintAndroidPath.reset()
@@ -280,6 +400,7 @@ fun RecognitionFishFocus(
     subjectBox: NormalizedFishBox?,
     contour: List<RecognitionContourSegment>,
     transform: RecognitionImageTransform,
+    tailContactPoint: Offset?,
     modifier: Modifier = Modifier,
     processingElapsedMs: Long = 0L,
     opticalReferenceElapsedMs: Long = processingElapsedMs,
@@ -294,7 +415,7 @@ fun RecognitionFishFocus(
 ) {
     if (waterLightFrame != null && !waterLightFrame.sceneFrame.isIdentityValid) return
     if (!recognitionMaskContourEnabled(phase, trustedMask) || focusBox == null) return
-    if (subjectBitmap == null || subjectBox == null || contour.isEmpty()) return
+    if (subjectBitmap == null || subjectBox == null || contour.isEmpty() || tailContactPoint == null) return
 
     val contourCacheIdentity = RecognitionContourCacheIdentity(
         sessionId = waterLightFrame?.sessionId.orEmpty(),
@@ -363,11 +484,12 @@ fun RecognitionFishFocus(
             val haloWidth = (fishAxis * .05f).coerceIn(12f, 28f)
             val growthProgress = maskRevealProgress.coerceIn(0f, 1f)
             val pathToDraw = if (growthProgress >= .999f) realContour else if (growthProgress <= .001f) null else {
-                contourPathCache?.reveal(growthProgress)
+                contourPathCache?.revealFromTail(tailContactPoint, growthProgress)
             }
-            val coreAlpha = (.58f * goldStrength).coerceIn(0f, .70f)
-            val softGlowAlpha = (.25f * goldStrength).coerceIn(0f, .32f)
-            val outerHaloAlpha = (.105f * goldStrength).coerceIn(0f, .15f)
+            val layerAlphas = recognitionContourLayerAlphas(goldStrength, growthProgress)
+            val coreAlpha = layerAlphas.core
+            val softGlowAlpha = layerAlphas.soft
+            val outerHaloAlpha = layerAlphas.halo
 
             // Re-sample the original-photo pixels through SlimSAM's alpha mask. The
             // low-opacity channel warmth keeps scales, eye and fin texture intact.

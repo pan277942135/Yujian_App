@@ -55,6 +55,56 @@ class RecognitionFishFocusTest {
     }
 
     @Test
+    fun contourRevealStartsAtTailAndExpandsAlongBothSidesUntilTheyMeet() {
+        val start = requireNotNull(recognitionContourRevealPlan(contourLength = 100f, tailDistance = 95f, progress = 0f))
+        assertEquals(95f, start.forwardFromTail.startDistance, 0f)
+        assertEquals(95f, start.forwardFromTail.endDistance, 0f)
+        assertEquals(95f, start.backwardFromTail.startDistance, 0f)
+        assertEquals(95f, start.backwardFromTail.endDistance, 0f)
+
+        val middle = requireNotNull(recognitionContourRevealPlan(contourLength = 100f, tailDistance = 95f, progress = .4f))
+        assertEquals(20f, middle.forwardFromTail.endDistance - middle.forwardFromTail.startDistance, .0001f)
+        assertEquals(20f, middle.backwardFromTail.endDistance - middle.backwardFromTail.startDistance, .0001f)
+        assertEquals(95f, middle.forwardFromTail.startDistance, 0f)
+        assertEquals(95f, middle.backwardFromTail.endDistance, 0f)
+        assertTrue(middle.forwardFromTail.endDistance > 100f) // the renderer wraps the path at its close.
+
+        val complete = requireNotNull(recognitionContourRevealPlan(contourLength = 100f, tailDistance = 95f, progress = 1f))
+        assertEquals(50f, complete.forwardFromTail.endDistance - complete.forwardFromTail.startDistance, .0001f)
+        assertEquals(50f, complete.backwardFromTail.endDistance - complete.backwardFromTail.startDistance, .0001f)
+    }
+
+    @Test
+    fun contourOpticalLayersHaveSeparateProgressiveAlphaEnvelopes() {
+        val start = recognitionContourLayerAlphas(energyStrength = 1f, contourRevealProgress = 0f)
+        assertEquals(0f, start.core, 0f)
+        assertEquals(0f, start.soft, 0f)
+        assertEquals(0f, start.halo, 0f)
+
+        val early = recognitionContourLayerAlphas(energyStrength = 1f, contourRevealProgress = .2f)
+        assertTrue(early.core > early.soft)
+        assertEquals(0f, early.halo, 0f)
+
+        val mid = recognitionContourLayerAlphas(energyStrength = 1f, contourRevealProgress = .55f)
+        assertTrue(mid.core > early.core)
+        assertTrue(mid.soft > early.soft)
+        assertTrue(mid.halo > early.halo)
+
+        val complete = recognitionContourLayerAlphas(energyStrength = .5f, contourRevealProgress = 1f)
+        assertEquals(.29f, complete.core, .0001f)
+        assertEquals(.125f, complete.soft, .0001f)
+        assertEquals(.0525f, complete.halo, .0001f)
+    }
+
+    @Test
+    fun orbOnlyCannotRevealContourEvenAcrossContourStages() {
+        assertEquals(0f, recognitionMaskContourRevealProgress(RecognitionSceneStage.CONTOUR_A, 1f, trustedMask = false), 0f)
+        assertEquals(0f, recognitionMaskContourRevealProgress(RecognitionSceneStage.CONTOUR_B, 1f, trustedMask = false), 0f)
+        assertEquals(0f, recognitionMaskContourRevealProgress(RecognitionSceneStage.CONTOUR_C, 1f, trustedMask = false), 0f)
+        assertEquals(0f, recognitionContourLayerAlphas(energyStrength = 0f, contourRevealProgress = 1f).core, 0f)
+    }
+
+    @Test
     fun noMaskMayBeRecordedAsLowCapabilityButDoesNotPromoteToAContour() {
         assertEquals(
             RecognitionFishFocusLevel.B,

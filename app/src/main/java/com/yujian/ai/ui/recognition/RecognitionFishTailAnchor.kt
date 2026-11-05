@@ -121,7 +121,9 @@ internal object RecognitionFishTailAnchor {
     fun resolveInViewport(
         contour: List<RecognitionContourSegment>,
         transform: RecognitionImageTransform,
-    ): DisplayPoint? = resolve(contour)?.let { point ->
+    ): DisplayPoint? = resolve(contour)?.let { mapToViewport(it, transform) }
+
+    fun mapToViewport(point: RecognitionNormalizedPoint, transform: RecognitionImageTransform): DisplayPoint? {
         val mapped = transform.mapNormalized(point.x, point.y)
         val photo = transform.photoContentRect
         mapped.takeIf {
