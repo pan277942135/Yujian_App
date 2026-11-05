@@ -78,20 +78,20 @@ class RecognitionVisualStateControllerTest {
         controller.markPhotoFirstFramePresented(identity, 100L)
 
         controller.beginStepPreview(RecognitionSceneStage.ORB_RETURN, 200L)
-        assertEquals(190L, controller.revealElapsedMs(1_700L))
-        assertEquals(380L, controller.revealElapsedMs(3_200L))
+        assertEquals(175L, controller.revealElapsedMs(1_700L))
+        assertEquals(350L, controller.revealElapsedMs(3_200L))
         controller.beginStepPreview(RecognitionSceneStage.ORB_TO_NAME, 400L)
         assertEquals(0L, controller.revealElapsedMs(400L))
-        assertEquals(85L, controller.revealElapsedMs(1_900L))
+        assertEquals(425L, controller.revealElapsedMs(1_900L))
         controller.restartCurrentStage(500L)
         assertEquals(0L, controller.revealElapsedMs(500L))
-        assertEquals(170L, controller.revealElapsedMs(3_500L))
+        assertEquals(850L, controller.revealElapsedMs(3_500L))
 
         controller.beginStepPreview(RecognitionSceneStage.SPECIES_NAME_REVEAL, 600L)
         assertEquals(0L, controller.revealElapsedMs(600L))
         controller.beginStepPreview(RecognitionSceneStage.RESIDUE_SETTLE, 700L)
         assertEquals(0L, controller.revealElapsedMs(700L))
-        assertEquals(170L, controller.revealElapsedMs(3_700L))
+        assertEquals(450L, controller.revealElapsedMs(3_700L))
     }
 
     @Test fun geometryGateRecoversLateAndDoesNotOverrideUserPause() {
