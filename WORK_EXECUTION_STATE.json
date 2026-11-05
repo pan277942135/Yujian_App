@@ -8,12 +8,27 @@
   "base_sha": "74cad95b4f673bd9c8c60d16839f036d5886d933",
   "phase": "P6",
   "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
-  "stage": "CP04",
+  "stage": "CP05",
   "status": "RUNNING",
-  "source_sha": "61acd90692a93410ac763c829ebb19ebd9a04ff7",
-  "checkpoint_updated_at": "2026-11-05T16:30:00+08:00",
-  "next_action": "Complete detector-to-trusted-mask fish contact and model-wait path before CP05",
+  "source_sha": "634a0361da67474c1602ce41884034b798fc3f5c",
+  "checkpoint_updated_at": "2026-11-05T19:42:16+08:00",
+  "next_action": "Implement contour A/B/C from the current Mask tail contact with independent Core Soft Halo timing",
   "dependencies": ["P5-02", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"],
   "blockers": [],
-  "evidence": {"cp01_source_sha": "81a0c257417c0be050e8dd57ace95e97619babf4", "cp02_source_sha": "ab2407ab42459f12ccb8178df7ebe3badc396c13", "cp02_orb_workflow": "42010365270:PASS", "cp03_source_sha": "4dc78515bb006f2952386d046db079eb2dce3162", "cp03_orb_workflow": "42011287356:PASS", "cp04_partial_source_sha": "61acd90692a93410ac763c829ebb19ebd9a04ff7", "cp04_orb_workflow": "42012360876:PASS", "visual": "NOT_RUN", "build": "NOT_RUN"}
+  "evidence": {
+    "cp01_source_sha": "81a0c257417c0be050e8dd57ace95e97619babf4",
+    "cp02_source_sha": "ab2407ab42459f12ccb8178df7ebe3badc396c13",
+    "cp02_orb_workflow": "42010365270:PASS",
+    "cp03_source_sha": "4dc78515bb006f2952386d046db079eb2dce3162",
+    "cp03_orb_workflow": "42011287356:PASS",
+    "cp04_code_sha": "9e8d99471c2db09c9e244d804a4cc8da3c5d3c2c",
+    "cp04_validated_source_sha": "84c2bf30d51d38c3720f4124315ec799de601bd1",
+    "cp04_report_commit_sha": "634a0361da67474c1602ce41884034b798fc3f5c",
+    "cp04_initial_workflow": "42018883250:FAIL_TEST_ASSERTION_CORRECTED",
+    "cp04_exact_workflow": "42019562279:PASS_UNIT_DEBUG_ANDROIDTEST_RESOURCE",
+    "cp04_artifact_id": "13411636116",
+    "cp04_artifact_zip_sha256": "88f63f470f1fb65693da1d15494250e934a6cf5b6081bdae334013457f84d452",
+    "visual": "NOT_RUN",
+    "final_v1_2_apk": "NOT_BUILT"
+  }
 }
