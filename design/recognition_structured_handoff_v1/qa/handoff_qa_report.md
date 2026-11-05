@@ -2,7 +2,7 @@
 
 ## 状态
 
-`DESIGN_HANDOFF_PARTIAL / PRODUCT_VISUAL_FREEZE_NOT_APPROVED`。六组对照与 21 帧语义矩阵可供工程评估，**不能**报告 `READY_FOR_ANDROID_RUNTIME_IMPLEMENTATION` 无条件通过。独立设计分支与 Draft PR 仅用于审查。
+`READY_FOR_PRODUCT_REVIEW / PRODUCT_VISUAL_FREEZE_NOT_APPROVED`。六组对照与 21 帧语义矩阵可供工程评估。R06 精确源身份、真实 Mask、S3 凝字和结果页几何是明确列出的后续依赖，不阻塞本次结构化交接的产品审视，也不能报告完整视觉冻结或 Runtime 效果通过。
 
 | 检查 | 结果 | 证据 / 限制 |
 | --- | --- | --- |
