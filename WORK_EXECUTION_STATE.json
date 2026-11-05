@@ -1,34 +1,56 @@
 {
-  "schema_version": "1.0",
-  "work_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2",
-  "repository": "pan277942135/Yujian_App",
-  "branch": "feature/orb-photo-stable-visual-closure-v1",
-  "control_plane_revision": "74cad95b4f673bd9c8c60d16839f036d5886d933",
   "base_branch": "main",
   "base_sha": "74cad95b4f673bd9c8c60d16839f036d5886d933",
-  "phase": "P6",
-  "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
-  "stage": "CP05",
-  "status": "RUNNING",
-  "source_sha": "634a0361da67474c1602ce41884034b798fc3f5c",
-  "checkpoint_updated_at": "2026-11-05T19:42:16+08:00",
-  "next_action": "Implement contour A/B/C from the current Mask tail contact with independent Core Soft Halo timing",
-  "dependencies": ["P5-02", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"],
   "blockers": [],
+  "branch": "feature/orb-photo-stable-visual-closure-v1",
+  "checkpoint_updated_at": "2026-11-05T12:00:00+00:00",
+  "control_plane_revision": "74cad95b4f673bd9c8c60d16839f036d5886d933",
+  "dependencies": [
+    "P5-02",
+    "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
+  ],
   "evidence": {
     "cp01_source_sha": "81a0c257417c0be050e8dd57ace95e97619babf4",
-    "cp02_source_sha": "ab2407ab42459f12ccb8178df7ebe3badc396c13",
     "cp02_orb_workflow": "42010365270:PASS",
-    "cp03_source_sha": "4dc78515bb006f2952386d046db079eb2dce3162",
+    "cp02_source_sha": "ab2407ab42459f12ccb8178df7ebe3badc396c13",
     "cp03_orb_workflow": "42011287356:PASS",
-    "cp04_code_sha": "9e8d99471c2db09c9e244d804a4cc8da3c5d3c2c",
-    "cp04_validated_source_sha": "84c2bf30d51d38c3720f4124315ec799de601bd1",
-    "cp04_report_commit_sha": "634a0361da67474c1602ce41884034b798fc3f5c",
-    "cp04_initial_workflow": "42018883250:FAIL_TEST_ASSERTION_CORRECTED",
-    "cp04_exact_workflow": "42019562279:PASS_UNIT_DEBUG_ANDROIDTEST_RESOURCE",
+    "cp03_source_sha": "4dc78515bb006f2952386d046db079eb2dce3162",
     "cp04_artifact_id": "13411636116",
     "cp04_artifact_zip_sha256": "88f63f470f1fb65693da1d15494250e934a6cf5b6081bdae334013457f84d452",
-    "visual": "NOT_RUN",
-    "final_v1_2_apk": "NOT_BUILT"
-  }
+    "cp04_code_sha": "9e8d99471c2db09c9e244d804a4cc8da3c5d3c2c",
+    "cp04_exact_workflow": "42019562279:PASS_UNIT_DEBUG_ANDROIDTEST_RESOURCE",
+    "cp04_initial_workflow": "42018883250:FAIL_TEST_ASSERTION_CORRECTED",
+    "cp04_report_commit_sha": "634a0361da67474c1602ce41884034b798fc3f5c",
+    "cp04_validated_source_sha": "84c2bf30d51d38c3720f4124315ec799de601bd1",
+    "cp05_initial_workflow": "42022698826:FAIL_KOTLIN_COMPILE_MISSING_RETURN",
+    "final_v1_2_apk": "NOT_BUILT",
+    "visual": "NOT_RUN"
+  },
+  "execution_v2": {
+    "issues": {
+      "e61a0632b5d43c196940": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Orb workflow 42022698826; Kotlin compiler: RecognitionFishTailAnchor.kt:132:5 Missing return statement; asset verification passed; no tests or APK tasks ran.",
+            "hypothesis": "RecognitionFishTailAnchor.mapToViewport changed from an expression body to a block body without returning the mapped point.",
+            "source_sha": "479da6bec14a4e053a71c33bacf6eb95503de475"
+          }
+        ],
+        "gate_id": "CP05_EXACT_HEAD_ANDROID_COMPILE",
+        "symptom_key": "TAIL_ANCHOR_MISSING_RETURN",
+        "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3"
+      }
+    },
+    "schema_version": "1.0"
+  },
+  "next_action": "Fix the missing return in RecognitionFishTailAnchor.mapToViewport reported by Orb workflow 42022698826, then rerun exact-head tests and Debug build.",
+  "phase": "P6",
+  "repository": "pan277942135/Yujian_App",
+  "schema_version": "1.0",
+  "source_sha": "479da6bec14a4e053a71c33bacf6eb95503de475",
+  "stage": "CP05",
+  "status": "RUNNING",
+  "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
+  "work_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2"
 }

@@ -2,7 +2,7 @@ schema_version: '1.0'
 state_id: YUJIAN_RECOGNITION_RUNTIME_V1_2
 project: YuJian Android
 state_control:
-  execution_baseline_sha: 84c2bf30d51d38c3720f4124315ec799de601bd1
+  execution_baseline_sha: 479da6bec14a4e053a71c33bacf6eb95503de475
   current_branch: feature/orb-photo-stable-visual-closure-v1
   base_sha: 74cad95b4f673bd9c8c60d16839f036d5886d933
   current_pr: 317
@@ -31,7 +31,7 @@ recognition_main_journey:
   contract_status: FROZEN
   route: [J01, J02, J03, J04, J05, J06, J07, J08, J09, J10, J11, J12, J13, J14, J15, J16, J17, J18, J19, J20]
 runtime_gates:
-  exact_head: {sha: 84c2bf30d51d38c3720f4124315ec799de601bd1, status: PASS, workflow_run: 42019562279}
+  exact_head: {sha: 479da6bec14a4e053a71c33bacf6eb95503de475, status: FAIL, workflow_run: 42022698826}
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
 apk_and_evidence: {status: PARTIAL, intermediate_workflow_artifact: 13411636116, final_v1_2_apk: NOT_BUILT}
@@ -39,14 +39,14 @@ current_work:
   id: YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2
   phase: P6
   task_id: YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3
-  exact_head: 84c2bf30d51d38c3720f4124315ec799de601bd1
+  exact_head: 479da6bec14a4e053a71c33bacf6eb95503de475
   stage: CP05
 blockers: []
 protected_invariants:
   recognition: [same photo identity, one scene clock, genuine model output]
 next_actions:
   - {id: CP04, status: PASS, action: Resolve current-mask tail contact and shared-clock model wait; exact workflow 42019562279 passed}
-  - {id: CP05, status: READY, action: Implement tail-origin bidirectional Mask contour A/B/C and independent Core Soft Halo timing}
+  - {id: CP05, status: READY, action: Fix the missing return reported in workflow 42022698826, rerun exact-head verification, then continue CP05 acceptance}
 completion_rules: {status: NOT_RUN}
 state_update: {date: '2026-11-05'}
-agent_recovery: {next_checkpoint: CP05}
+agent_recovery: {next_checkpoint: CP05 missing-return repair; failed source 479da6bec14a4e053a71c33bacf6eb95503de475 recorded in WORK_EXECUTION_STATE.json}
