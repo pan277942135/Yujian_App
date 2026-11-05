@@ -38,6 +38,9 @@ data class RecognitionRevealFrame(
     val drawOpticalLayer: Boolean,
     val fallback: Boolean,
     val ctaEnabled: Boolean = true,
+    val resultHandoffSubstep: RecognitionResultHandoffSubstep? = null,
+    val resultInformationAlpha: Float = 1f,
+    val resultInteractionEnabled: Boolean = true,
 ) {
     val isComplete: Boolean get() = phase == RecognitionRevealPhase.COMPLETE
     val orbReturnProgress: Float get() = transferProgress
@@ -135,7 +138,9 @@ object RecognitionRevealClock {
         return frame(
             scene = scene,
             phase = phase,
-            photoProgress = if (stage == RecognitionSceneStage.ORB_RETURN) smoothStep(progress) else 1f,
+            // The shared photo snapshot stays in the Processing viewport through Glyph
+            // formation. Stage 13 owns the single photo-to-result geometry transition.
+            photoProgress = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) smoothStep(progress) else 0f,
             fishHaloAlpha = if (fullReveal && stage == RecognitionSceneStage.ORB_RETURN)
                 recognitionFishGoldStrength(scene, policy.reduceMotion) else 0f,
             transferProgress = smoothStep(returnProgress),
