@@ -15,5 +15,5 @@
   "next_action": "Complete detector-to-trusted-mask fish contact and model-wait path before CP05",
   "dependencies": ["P5-02", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"],
   "blockers": [],
-  "evidence": {"cp01_source_sha": "81a0c257417c0be050e8dd57ace95e97619babf4", "cp02_source_sha": "ab2407ab42459f12ccb8178df7ebe3badc396c13", "cp02_orb_workflow": "42010365270:PASS", "cp03_source_sha": "4dc78515bb006f2952386d046db079eb2dce3162", "cp03_orb_workflow": "42011287356:IN_PROGRESS", "cp04_partial_source_sha": "61acd90692a93410ac763c829ebb19ebd9a04ff7", "visual": "NOT_RUN", "build": "NOT_RUN"}
+  "evidence": {"cp01_source_sha": "81a0c257417c0be050e8dd57ace95e97619babf4", "cp02_source_sha": "ab2407ab42459f12ccb8178df7ebe3badc396c13", "cp02_orb_workflow": "42010365270:PASS", "cp03_source_sha": "4dc78515bb006f2952386d046db079eb2dce3162", "cp03_orb_workflow": "42011287356:PASS", "cp04_partial_source_sha": "61acd90692a93410ac763c829ebb19ebd9a04ff7", "cp04_orb_workflow": "42012360876:IN_PROGRESS", "visual": "NOT_RUN", "build": "NOT_RUN"}
 }
