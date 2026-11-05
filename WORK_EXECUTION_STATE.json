@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "feature/orb-photo-stable-visual-closure-v1",
+  "control_plane_revision": "74cad95b4f673bd9c8c60d16839f036d5886d933",
+  "base_branch": "main",
+  "base_sha": "74cad95b4f673bd9c8c60d16839f036d5886d933",
+  "phase": "P6",
+  "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
+  "stage": "CP02",
+  "status": "VALIDATING",
+  "source_sha": "ab2407ab42459f12ccb8178df7ebe3badc396c13",
+  "checkpoint_updated_at": "2026-11-05T16:30:00+08:00",
+  "next_action": "Run exact-head CP02 CI and inspect A/B/C visual diagnostics; then implement CP03",
+  "dependencies": ["P5-02", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"],
+  "blockers": [],
+  "evidence": {"cp01_source_sha": "81a0c257417c0be050e8dd57ace95e97619babf4", "cp02_source_sha": "ab2407ab42459f12ccb8178df7ebe3badc396c13", "visual": "NOT_RUN", "build": "NOT_RUN"}
+}
