@@ -538,7 +538,7 @@ fun RecognitionResultScreen(
                     "attempt=${revealHandoff?.key?.recognitionAttemptId.orEmpty()} image=${image?.imageId.orEmpty()} " +
                     "sha256=${image?.photoSha256.orEmpty()} stage=${diagnosticStage.ordinal + 1}/13 name=${diagnosticStage.name} " +
                     "reference_ms=${diagnosticFrame.opticalReferenceElapsedMs} preview_ms=$diagnosticPreviewElapsedMs " +
-                    "glyph_substep=${diagnosticGlyphSubstep ?: \"-\"} " +
+                    "glyph_substep=${diagnosticGlyphSubstep ?: "-"} " +
                     "remaining_ms=${DIAGNOSTIC_STEP_DURATION_MS - diagnosticPreviewElapsedMs} " +
                     "completed=$diagnosticPreviewCompleted paused=$diagnosticPaused " +
                     "geometry_ready=$revealStartReady eligibility=${revealHandoff?.eligibility} " +
