@@ -32,3 +32,9 @@ The current Main resource SHA-256 values are geometry `1dfc85e651440d88c18d80daf
 The first exact-HEAD PR CI on `3933778ef22140a83b45250d02c294c8ffe43ac9` failed before Android compilation. Control-plane admission treated the PR destination as canonical Main and rejected branch-local state files. Android CI stopped at the existing Empty Home V2 asset contract. Neither run validates CP02 code. The branch-specific Orb PHOTO_STABLE workflow is the appropriate independent unit/build path once a code change triggers it.
 
 CP03 is **VALIDATING**. CP04, CP05, CP06 and CP07 are **NOT_STARTED**. FULL and ORB_ONLY integration acceptance is **NOT_RUN**.
+
+## CP04 partial implementation
+
+The existing `PATH_TO_FISH` branch uses the current attempt's trusted SlimSAM contour and measured photo transform for its endpoint. It records the outward geometry in the identity-scoped ledger. The PATH renderer previously drew a broad continuous cyan trail. The fish-seeking ABSORB path now uses the existing gold material in a thin dashed core with restrained halo and the existing deterministic transparent droplets. The Orb-to-perimeter and return routes retain their prior rendering.
+
+CP04 remains **IN_PROGRESS**. The current endpoint is the trusted contour's average point, not a verified fish-tail contact. The path appears only after Mask trust, so its behavior during the model wait still needs a deliberate implementation. Do not mark the tail-contact or model-wait visual contract PASS. CP05–CP07 remain **NOT_STARTED**.
