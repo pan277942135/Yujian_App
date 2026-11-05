@@ -21,6 +21,8 @@
 
 若文档之间出现冲突，按以上领域归属解决；不得通过“测试通过”推断视觉合格，也不得为让画面看起来顺畅而修改冻结的产品语义。
 
+> **适用范围说明（2026-11-05）：** 本 Web V1.0 合同中的 3650ms（Processing 2800ms + RR09 850ms）继续描述原有 Web 15 帧演示/静态光学时间轴，不是当前 Android 13 阶段 Recognition Runtime 的端到端时间。Android 13 阶段 FULL 路径必须遵循 [6000ms Runtime 时间合同](../runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md)。本说明不修改本 Web V1.0 播放器自身的历史验收范围，也不允许将 3650ms 与 6000ms 串行相加。
+
 ## 2. 已确认且不得重新解释的结论
 
 - **3650ms 名义视觉时间**：Processing 2800ms + RR09 850ms；不增加等待时间，不增加业务状态。
