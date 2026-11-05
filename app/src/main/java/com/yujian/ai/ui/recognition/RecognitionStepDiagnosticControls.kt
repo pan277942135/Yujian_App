@@ -35,6 +35,7 @@ import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
+import com.yujian.ai.ui.designsystem.components.aiorb.OrbWakeRenderMode
 
 /** Shared Debug-only overlay used by Processing and Result so both pages operate one controller. */
 @Composable
@@ -64,6 +65,8 @@ fun RecognitionStepDiagnosticControls(
     onPauseResume: () -> Unit,
     onReplay: () -> Unit,
     onAutoPlay: () -> Unit,
+    wakeRenderMode: OrbWakeRenderMode? = null,
+    onWakeRenderModeChange: (OrbWakeRenderMode) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
@@ -99,6 +102,25 @@ fun RecognitionStepDiagnosticControls(
                 }
             }
             if (displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) {
+                if (stage == RecognitionSceneStage.ORB_WAKE && wakeRenderMode != null) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        OrbWakeRenderMode.entries.forEach { mode ->
+                            Text(
+                                text = when (mode) {
+                                    OrbWakeRenderMode.CORE_ONLY -> "A Core"
+                                    OrbWakeRenderMode.CORE_WITH_OPTICS -> "B 光学"
+                                    OrbWakeRenderMode.FULL_ORB_WAKE -> "C 完整"
+                                },
+                                color = if (mode == wakeRenderMode) Color.White else Color(0xFF37666C),
+                                fontSize = 9.sp,
+                                modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                                    .background(if (mode == wakeRenderMode) Color(0xFF287E79) else Color(0xDDFFFFFF))
+                                    .clickable { onWakeRenderModeChange(mode) }
+                                    .padding(4.dp),
+                            )
+                        }
+                    }
+                }
                 val elapsed = previewElapsedMs.coerceIn(0L, DIAGNOSTIC_STEP_DURATION_MS)
                 val previewState = when {
                     stepStatus.startsWith("等待") -> stepStatus

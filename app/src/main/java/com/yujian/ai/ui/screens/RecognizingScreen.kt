@@ -111,6 +111,7 @@ import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
+import com.yujian.ai.ui.designsystem.components.aiorb.OrbWakeRenderMode
 import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbProcessingState
 import com.yujian.ai.ui.designsystem.lakeglass.LakeGlassBackgroundHost
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
@@ -274,6 +275,7 @@ fun RecognitionProcessingScene(
     }
     val displayMode = diagnosticDisplayMode ?: localDisplayMode
     val diagnosticUiAvailable = BuildConfig.DEBUG && phaseOverride == null && visualClockOverrideMs == null
+    var wakeRenderMode by remember(sceneKey) { mutableStateOf(OrbWakeRenderMode.FULL_ORB_WAKE) }
     val stepDiagnosticActive = diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
     // The diagnostic shell is a fixed Debug-session policy, independent of its display toggle.
     val diagnosticModeState = rememberUpdatedState(BuildConfig.DEBUG)
@@ -1593,6 +1595,7 @@ fun RecognitionProcessingScene(
                 } else OrbRuntimeProfileV1.LifeState.S2_ACTIVE,
                 waterLightFrame = waterLightFrame,
                 energyEvent = orbEnergyEvent,
+                wakeRenderMode = if (diagnosticUiAvailable) wakeRenderMode else OrbWakeRenderMode.FULL_ORB_WAKE,
                 waterLightMaterial = orbHost.material,
                 modifier = Modifier.offset { IntOffset(orbX.roundToInt(), orbY.roundToInt()) }
                     .onGloballyPositioned { coordinates ->
@@ -1692,6 +1695,8 @@ fun RecognitionProcessingScene(
                     diagnosticActionStatus = null
                     playbackRevision++
                 },
+                wakeRenderMode = wakeRenderMode,
+                onWakeRenderModeChange = { wakeRenderMode = it },
             )
         }
     }

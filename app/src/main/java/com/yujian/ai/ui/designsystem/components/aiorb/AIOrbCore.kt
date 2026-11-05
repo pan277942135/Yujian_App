@@ -84,6 +84,7 @@ fun AIOrbCore(
     orbShowDroplets: Boolean = true,
     orbShowSunlight: Boolean = true,
     orbShowCaustics: Boolean = true,
+    wakeRenderMode: OrbWakeRenderMode = OrbWakeRenderMode.FULL_ORB_WAKE,
 ) {
     when (state) {
         AIOrbVisualState.CAPTURE_BUTTON_IDLE -> YuJianCaptureButton(
@@ -129,6 +130,7 @@ fun AIOrbCore(
             orbShowDroplets = orbShowDroplets,
             orbShowSunlight = orbShowSunlight,
             orbShowCaustics = orbShowCaustics,
+            wakeRenderMode = wakeRenderMode,
             modifier = modifier,
         )
         AIOrbVisualState.HIDDEN -> Unit
@@ -174,6 +176,7 @@ private fun OrbVisual(
     orbShowDroplets: Boolean,
     orbShowSunlight: Boolean,
     orbShowCaustics: Boolean,
+    wakeRenderMode: OrbWakeRenderMode,
     modifier: Modifier,
 ) {
     val frame = aiOrbMotionFrame(entranceElapsedMs, fromCamera, reduceMotion, completion)
@@ -212,7 +215,7 @@ private fun OrbVisual(
         reducedMotion = reduceMotion,
     )
     val photoStable = sceneFrame.stage == RecognitionSceneStage.PHOTO_STABLE
-    val opticalEffectEnabled = orbCoreOpticalEffectEnabled(sceneFrame.stage)
+    val opticalEffectEnabled = orbOpticsVisible(sceneFrame.stage, wakeRenderMode)
     val coreImageAlpha = if (photoStable) 1f else
         (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
     val context = LocalContext.current
@@ -252,7 +255,7 @@ private fun OrbVisual(
             "AiOrbVisibility",
             "CORE_RENDER stage=${sceneFrame.stage} progress=${sceneFrame.stageProgress} " +
                 "resource=processing_water_core_v1.webp intrinsic=${corePainter.intrinsicSize} " +
-                "effect_created=${coreOpticalEffect?.renderEffect != null} effect_applied=${appliedRenderEffect != null} " +
+                "effect_created=${coreOpticalEffect?.renderEffect != null} effect_applied=${appliedRenderEffect != null} mode=$wakeRenderMode " +
                 "effect_reason=${if (opticalEffectEnabled) "WAKE_ACTIVE" else "PHOTO_STABLE_RAW_CORE"} " +
                 "image_alpha=$coreImageAlpha image_size_dp=${coreSize.value / .84f} " +
                 "scale=${if (photoStable) 1f else breath}",
@@ -266,7 +269,7 @@ private fun OrbVisual(
         },
         contentAlignment = Alignment.Center,
     ) {
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
+        if (orbWakeDetailsVisible(wakeRenderMode)) OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
             orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
             activeEnergyEvent, releaseEnergy, returnEnergy)
         Image(
@@ -276,9 +279,6 @@ private fun OrbVisual(
                 alpha = coreImageAlpha
                 scaleX = 1f
                 scaleY = 1f
-                // Assign null explicitly when the scene enters PHOTO_STABLE so a
-                // previously applied wake shader cannot remain attached to this layer.
-                renderEffect = appliedRenderEffect
             }.onGloballyPositioned { coordinates ->
                 val settled = entranceElapsedMs >= 900L
                 val logKey = "${sceneFrame.stage}:${if (settled) "SETTLED" else "ENTRY"}"
@@ -289,12 +289,20 @@ private fun OrbVisual(
                         "CORE_IMAGE_LAYOUT stage=${sceneFrame.stage} settled=$settled " +
                             "bounds_px=${bounds.left},${bounds.top},${bounds.right},${bounds.bottom} " +
                             "size_px=${coordinates.size.width}x${coordinates.size.height} alpha=$coreImageAlpha " +
-                            "shader_applied=${appliedRenderEffect != null}",
+                            "shader_applied=${appliedRenderEffect != null} source_core=VISIBLE",
                     )
                 }
             },
         )
-        OrbCoreOpticalEffects(
+        if (appliedRenderEffect != null) Image(
+            painter = corePainter,
+            contentDescription = null,
+            modifier = Modifier.size(coreSize / .84f).graphicsLayer {
+                alpha = coreImageAlpha
+                renderEffect = appliedRenderEffect
+            },
+        )
+        if (orbWakeDetailsVisible(wakeRenderMode)) OrbCoreOpticalEffects(
             coreSize = coreSize,
             frame = sharedFrame,
             coreAlpha = 1f,

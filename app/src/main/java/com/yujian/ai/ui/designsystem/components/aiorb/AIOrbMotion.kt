@@ -11,6 +11,15 @@ enum class AIOrbVisualState {
     HIDDEN,
 }
 
+/** Debug comparison of the same core image and the same scene frame. */
+enum class OrbWakeRenderMode { CORE_ONLY, CORE_WITH_OPTICS, FULL_ORB_WAKE }
+
+internal fun orbOpticsVisible(stage: RecognitionSceneStage, mode: OrbWakeRenderMode): Boolean =
+    mode != OrbWakeRenderMode.CORE_ONLY && orbCoreOpticalEffectEnabled(stage)
+
+internal fun orbWakeDetailsVisible(mode: OrbWakeRenderMode): Boolean =
+    mode == OrbWakeRenderMode.FULL_ORB_WAKE
+
 data class AIOrbMotionFrame(
     /** The immutable water core is present from frame zero; wake reveals internal optics only. */
     val waterAlpha: Float,
