@@ -4,8 +4,8 @@
 **Repository / PR:** `pan277942135/Yujian_App` / #317 (`Draft`, `Open`, `Unmerged`)
 **Branch:** `feature/orb-photo-stable-visual-closure-v1`
 **Main baseline:** `74cad95b4f673bd9c8c60d16839f036d5886d933`
-**Current validated source:** `ead45796f8332ef673fd615402c72b995fb5f09d`
-**Current checkpoint:** CP05 complete; CP06 is next.
+**Current validated source:** `f53580b5554d62e8ef26e485c2f902c885ec7121`
+**Current checkpoint:** CP06 complete; CP07 is next.
 
 ## CP01–CP04 status
 
@@ -70,14 +70,49 @@ Changed CP05 files:
 - Full PR CI is **FAIL/BLOCKED**, separate from the passing feature workflow: Android CI `42023480004` stopped at the existing `EMPTY_HOME_RUNTIME_V2` contract; control-plane admission `42023480030` rejected branch-local state files during canonical-promotion validation. The unrelated contracts were left unchanged and neither check is marked PASS.
 - Device visual checks (AGSL, Orb Wake, fish gold, Glyph, Result handoff): **NOT_RUN**.
 
+## CP06 Orb Return / real Glyph (complete)
+
+### Root cause and correction
+
+The shared SceneClock already owned ORB_RETURN, ORB_TO_NAME, and SPECIES_NAME_REVEAL, but the result renderer had no single projection for the six frozen child states. The title could switch to static Compose text independently of the Orb, and the Glyph Path/cache did not have a complete current-attempt identity boundary. The stage minima also still reflected the pre-freeze timing contract, and one manual-preview test retained the old reveal durations.
+
+The new `RecognitionOrbGlyphTransition` projects all six child states from the existing `RecognitionSceneFrame`: 11.1 ORB_CORE_HOLD, 11.2 ORB_HORIZONTAL_STRETCH, 11.3 LIQUID_BRUSH_TRANSITION, 12.1 STROKE_AGGREGATION, 12.2 GLYPH_EMERGENCE, and 12.3 SPECIES_NAME_FINAL. It creates no clock. The same keyed `AIOrbCore` remains on screen through Orb return and the Glyph transition. Glyph geometry comes from the laid-out real classifier name (`TextLayoutResult.getPathForRange`); cache identity includes Session, Attempt, photo, photo SHA, species key, and returned display name. FULL and ORB_ONLY use that same transition projection.
+
+The 13 stage minima and reveal envelopes now match the frozen 6000ms contract, including 1000ms fish gold with the 500ms peak hold, the 850ms Stage 11 subphases, and the 800ms Stage 12 with a 450ms final-name hold. Manual preview remains 3000ms per main stage.
+
+### Changed files
+
+- `app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt`
+- `app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionOrbGlyphTransition.kt`
+- `app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealController.kt`
+- `app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealOpticalRenderer.kt`
+- `app/src/main/java/com/yujian/ai/ui/recognition/reveal/SpeciesNameReveal.kt`
+- `app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt`
+- `app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneAnimationController.kt`
+- `app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt`
+- `app/src/test/java/com/yujian/ai/ui/recognition/RecognitionFishFocusTest.kt`
+- `app/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt`
+- `app/src/test/java/com/yujian/ai/ui/recognition/reveal/RecognitionOrbGlyphTransitionTest.kt`
+- `app/src/test/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealPolicyTest.kt`
+- `app/src/test/java/com/yujian/ai/ui/waterlight/RecognitionSceneFrameTest.kt`
+
+### Verification and failure ledger
+
+- Initial CP06 workflow `42029128760` on `465b23a08d422c53b41f2a478f56e2d07834eac3`: **FAIL**, Kotlin parser rejected an escaped quote in the added diagnostic interpolation. Corrected by `414a611b665590c93b36fcc3f3502dbd1ff96434`.
+- Workflow `42030011021` on `414a611b665590c93b36fcc3f3502dbd1ff96434`: Kotlin compilation passed; **395/396 tests passed**. The remaining assertion expected old 170/380ms reveal durations. Updated the expectations to the frozen 350/850/800/450ms stage minima.
+- Exact-source Orb workflow `42030743624` on `f53580b5554d62e8ef26e485c2f902c885ec7121`: **PASS**. All unit tests, `assembleDebug`, `assembleDebugAndroidTest`, packaged Core/asset verification, checksum staging, and workflow artifact upload passed.
+- CP06 intermediate workflow artifact ID `13415968163`, ZIP size `143,360,209` bytes, ZIP SHA-256 `a205d780428b56643e0553af3aa8b6099e400b33f4a169c9815141e11e3133d0`. This is not the final V1.2 APK.
+- `git diff --check`: **PASS**. Real-device Orb/Glyph visual checks: **NOT_RUN**.
+- Full Android CI `42030743619`: **FAIL** before Gradle at `EMPTY_HOME_RUNTIME_V2`; it reports measured-anchor contract divergences in `EmptyHomeMotion`. No Empty Home code or contract was changed for this task.
+
 ## Current recovery point
 
-- Current CP: **CP06 READY**.
-- Latest validated source: `ead45796f8332ef673fd615402c72b995fb5f09d`.
-- APK state: CP04 and CP05 intermediate Debug and AndroidTest APKs built; final V1.2 APK **NOT_BUILT**.
-- CP05 failure ledger: the missing-return compile failure on `479da6bec14a4e053a71c33bacf6eb95503de475` is closed with fix evidence on `ead45796f8332ef673fd615402c72b995fb5f09d`; closure is not a replacement for the passing exact-source workflow gate.
-- CP06 next action: complete Orb Return and the real classifier-name Glyph transition as one identity, with six observable substeps, then add the phase/identity tests and exact-source verification.
-- CP07 and final end-to-end tests remain **NOT_STARTED**.
+- Current CP: **CP06 complete; CP07 READY**.
+- Latest validated runtime source: `f53580b5554d62e8ef26e485c2f902c885ec7121`.
+- Latest CP06 implementation commit: `465b23a08d422c53b41f2a478f56e2d07834eac3`; CP06 syntax fix `414a611b665590c93b36fcc3f3502dbd1ff96434`; final timing-test correction `f53580b5554d62e8ef26e485c2f902c885ec7121`.
+- APK state: CP06 intermediate Debug and AndroidTest APKs built and packaged; final V1.2 APK **NOT_BUILT**.
+- CP07 next action: move the same-photo processing-to-result photo morph to Stage 13, expose 13.1–13.5 handoff state, gate result information until its arrival, preserve photo/session/attempt/geometry identity, and guard the single settle/result callback. Add handoff state/identity/commit tests; then run exact-source unit, Debug, AndroidTest, and resource validation.
+- Final end-to-end checks and APK delivery remain **NOT_STARTED**.
 
 
 ## Frozen product timing decision — 6000ms (2026-11-05)
@@ -106,4 +141,4 @@ High-light holds are frozen: Stage 09 includes 300ms gold formation + **500ms co
 
 Model waits do not compress the sequence. The existing 60s model watchdog remains separate from the visual schedule. Debug MANUAL remains 3000ms per main stage with auto-pause. The result scene remains visible after reaching 6000ms.
 
-**Implementation status:** documentation/product decision frozen; Runtime implementation is still pending. The CP05 source inspected at freeze still had legacy minima (PHOTO_STABLE 120ms, CONTOUR 250ms, GOLD 850ms, ORB_RETURN 380ms, ORB_TO_NAME 170ms, NAME_REVEAL 130ms, RESIDUE_SETTLE 170ms). Do not report the new timing as implemented until the controller constants, stage tests and exact-source APK are updated and verified.
+**Implementation status:** Runtime timing is implemented and verified at CP06 exact source `f53580b5554d62e8ef26e485c2f902c885ec7121`; its exact-source Orb workflow passed unit tests, Debug and AndroidTest APK assembly, and packaged resource checks. CP07 result handoff and the final V1.2 APK are still pending.

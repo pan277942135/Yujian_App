@@ -2,7 +2,7 @@ schema_version: '1.0'
 state_id: YUJIAN_RECOGNITION_RUNTIME_V1_2
 project: YuJian Android
 state_control:
-  execution_baseline_sha: ead45796f8332ef673fd615402c72b995fb5f09d
+  execution_baseline_sha: f53580b5554d62e8ef26e485c2f902c885ec7121
   current_branch: feature/orb-photo-stable-visual-closure-v1
   base_sha: 74cad95b4f673bd9c8c60d16839f036d5886d933
   current_pr: 317
@@ -31,23 +31,24 @@ recognition_main_journey:
   contract_status: FROZEN
   route: [J01, J02, J03, J04, J05, J06, J07, J08, J09, J10, J11, J12, J13, J14, J15, J16, J17, J18, J19, J20]
 runtime_gates:
-  exact_head: {sha: ead45796f8332ef673fd615402c72b995fb5f09d, status: PASS, workflow_run: 42023472919}
+  exact_head: {sha: f53580b5554d62e8ef26e485c2f902c885ec7121, status: PASS, workflow_run: 42030743624}
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
-apk_and_evidence: {status: PARTIAL, intermediate_workflow_artifact: 13412648411, intermediate_artifact_zip_sha256: 95ddc762487169e3a6ce6b059f37a65304e54b20485233e2f087fdb0a4a0348a, final_v1_2_apk: NOT_BUILT}
+apk_and_evidence: {status: PARTIAL, intermediate_workflow_artifacts: [13412648411, 13415968163], cp06_artifact_zip_sha256: a205d780428b56643e0553af3aa8b6099e400b33f4a169c9815141e11e3133d0, final_v1_2_apk: NOT_BUILT}
 current_work:
   id: YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2
   phase: P6
   task_id: YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3
-  exact_head: ead45796f8332ef673fd615402c72b995fb5f09d
-  stage: CP06
+  exact_head: f53580b5554d62e8ef26e485c2f902c885ec7121
+  stage: CP07
 blockers: []
 protected_invariants:
   recognition: [same photo identity, one scene clock, genuine model output]
 next_actions:
   - {id: CP04, status: PASS, action: Resolve current-mask tail contact and shared-clock model wait; exact workflow 42019562279 passed}
   - {id: CP05, status: PASS, action: Trusted Mask contour A/B/C and independent Core/Soft/Halo timing; exact workflow 42023472919 passed}
-  - {id: CP06, status: READY, action: Implement Orb Return and six dynamic classifier-Glyph substeps while preserving one Orb identity and shared SceneClock}
+  - {id: CP06, status: PASS, action: Orb Return, six classifier-Glyph substeps, and frozen 6000ms timing verified by workflow 42030743624}
+  - {id: CP07, status: READY, action: Implement Stage 13 Result Handoff with same-photo geometry continuity and one-time stable result commit}
 completion_rules: {status: NOT_RUN}
 state_update: {date: '2026-11-05'}
 
@@ -59,6 +60,6 @@ timing_contract:
   decision_status: FROZEN_PRODUCT_DECISION
   full_path_nominal_minimum_duration_ms: 6000
   clock_origin: FIRST_ACTUALLY_PRESENTED_PHOTO_STABLE_FRAME
-  runtime_implementation_status: PENDING_RUNTIME_IMPLEMENTATION
+  runtime_implementation_status: CP06_TIMING_IMPLEMENTED_VERIFIED; CP07_RESULT_HANDOFF_PENDING
 
-agent_recovery: {next_checkpoint: CP06 Orb Return and real Glyph identity-preserving transition}
+agent_recovery: {next_checkpoint: CP07 Stage 13 photo/result handoff, information gating, and stable commit}

@@ -3,7 +3,7 @@
   "base_sha": "74cad95b4f673bd9c8c60d16839f036d5886d933",
   "blockers": [],
   "branch": "feature/orb-photo-stable-visual-closure-v1",
-  "checkpoint_updated_at": "2026-11-05T12:09:00+00:00",
+  "checkpoint_updated_at": "2026-11-05T13:01:23Z",
   "control_plane_revision": "74cad95b4f673bd9c8c60d16839f036d5886d933",
   "dependencies": [
     "P5-02",
@@ -29,11 +29,23 @@
     "cp05_failure_fix_commit_sha": "ead45796f8332ef673fd615402c72b995fb5f09d",
     "cp05_initial_workflow": "42022698826:FAIL_KOTLIN_COMPILE_MISSING_RETURN",
     "cp05_visual": "NOT_RUN",
-    "cp06_status": "READY",
+    "cp06_status": "PASS",
     "final_v1_2_apk": "NOT_BUILT",
     "visual": "NOT_RUN",
     "cp05_report_commit_sha": "e59423bb276eb1cc827e1a6b4cbda277924ad5f9",
-    "timing_contract_document_commit": "4083b7e26eb1e0b85e4bb5709e85881820971e21"
+    "timing_contract_document_commit": "4083b7e26eb1e0b85e4bb5709e85881820971e21",
+    "cp06_code_sha": "465b23a08d422c53b41f2a478f56e2d07834eac3",
+    "cp06_validated_source_sha": "f53580b5554d62e8ef26e485c2f902c885ec7121",
+    "cp06_exact_workflow": "42030743624:PASS_UNIT_DEBUG_ANDROIDTEST_RESOURCE",
+    "cp06_syntax_fix_commit_sha": "414a611b665590c93b36fcc3f3502dbd1ff96434",
+    "cp06_timing_test_fix_commit_sha": "f53580b5554d62e8ef26e485c2f902c885ec7121",
+    "cp06_initial_workflow": "42029128760:FAIL_KOTLIN_DIAGNOSTIC_INTERPOLATION_SYNTAX",
+    "cp06_intermediate_workflow": "42030011021:FAIL_ONE_STALE_TIMING_ASSERTION_395_OF_396",
+    "cp06_artifact_id": "13415968163",
+    "cp06_artifact_zip_sha256": "a205d780428b56643e0553af3aa8b6099e400b33f4a169c9815141e11e3133d0",
+    "cp06_visual": "NOT_RUN",
+    "full_android_ci_cp06": "42030743619:FAIL_EMPTY_HOME_RUNTIME_V2_PRE_GRADLE",
+    "runtime_implementation_status": "CP06_TIMING_IMPLEMENTED_VERIFIED; CP07_RESULT_HANDOFF_PENDING"
   },
   "execution_v2": {
     "issues": {
@@ -57,12 +69,12 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "CP06: implement Orb Return and the six identity-preserving Glyph substeps; align the single SceneClock stage minima and tests to the frozen 6000ms contract (including CP05 contour/gold minima and CP07 result handoff), preserve real model gates, then continue to CP07 and final Debug APK.",
+  "next_action": "CP07: move the same-photo processing-to-result morph into shared SceneClock Stage 13; implement 13.1–13.5 as geometry/data/settle-driven handoff, gate result information, preserve photo/session/attempt/geometry identity, and test one-time result completion; then run exact-source tests, Debug/AndroidTest builds, resource validation, and final APK delivery.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "e59423bb276eb1cc827e1a6b4cbda277924ad5f9",
-  "stage": "CP06",
+  "source_sha": "f53580b5554d62e8ef26e485c2f902c885ec7121",
+  "stage": "CP07",
   "status": "RUNNING",
   "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
   "work_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2",
@@ -75,7 +87,7 @@
     "clock_origin": "FIRST_ACTUALLY_PRESENTED_PHOTO_STABLE_FRAME",
     "debug_manual_preview_per_main_stage_ms": 3000,
     "model_timeout_ms": 60000,
-    "runtime_implementation_status": "PENDING_RUNTIME_IMPLEMENTATION",
+    "runtime_implementation_status": "CP06_TIMING_IMPLEMENTED_VERIFIED; CP07_RESULT_HANDOFF_PENDING",
     "scope": "FULL path; ORB_ONLY skips untrusted fish contour/gold and is not padded to 6000ms"
   }
 }
