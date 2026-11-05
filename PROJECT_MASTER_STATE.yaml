@@ -2,7 +2,7 @@ schema_version: '1.0'
 state_id: YUJIAN_RECOGNITION_RUNTIME_V1_2
 project: YuJian Android
 state_control:
-  execution_baseline_sha: 479da6bec14a4e053a71c33bacf6eb95503de475
+  execution_baseline_sha: ead45796f8332ef673fd615402c72b995fb5f09d
   current_branch: feature/orb-photo-stable-visual-closure-v1
   base_sha: 74cad95b4f673bd9c8c60d16839f036d5886d933
   current_pr: 317
@@ -31,22 +31,23 @@ recognition_main_journey:
   contract_status: FROZEN
   route: [J01, J02, J03, J04, J05, J06, J07, J08, J09, J10, J11, J12, J13, J14, J15, J16, J17, J18, J19, J20]
 runtime_gates:
-  exact_head: {sha: 479da6bec14a4e053a71c33bacf6eb95503de475, status: FAIL, workflow_run: 42022698826}
+  exact_head: {sha: ead45796f8332ef673fd615402c72b995fb5f09d, status: PASS, workflow_run: 42023472919}
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
-apk_and_evidence: {status: PARTIAL, intermediate_workflow_artifact: 13411636116, final_v1_2_apk: NOT_BUILT}
+apk_and_evidence: {status: PARTIAL, intermediate_workflow_artifact: 13412648411, intermediate_artifact_zip_sha256: 95ddc762487169e3a6ce6b059f37a65304e54b20485233e2f087fdb0a4a0348a, final_v1_2_apk: NOT_BUILT}
 current_work:
   id: YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2
   phase: P6
   task_id: YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3
-  exact_head: 479da6bec14a4e053a71c33bacf6eb95503de475
-  stage: CP05
+  exact_head: ead45796f8332ef673fd615402c72b995fb5f09d
+  stage: CP06
 blockers: []
 protected_invariants:
   recognition: [same photo identity, one scene clock, genuine model output]
 next_actions:
   - {id: CP04, status: PASS, action: Resolve current-mask tail contact and shared-clock model wait; exact workflow 42019562279 passed}
-  - {id: CP05, status: READY, action: Fix the missing return reported in workflow 42022698826, rerun exact-head verification, then continue CP05 acceptance}
+  - {id: CP05, status: PASS, action: Trusted Mask contour A/B/C and independent Core/Soft/Halo timing; exact workflow 42023472919 passed}
+  - {id: CP06, status: READY, action: Implement Orb Return and six dynamic classifier-Glyph substeps while preserving one Orb identity and shared SceneClock}
 completion_rules: {status: NOT_RUN}
 state_update: {date: '2026-11-05'}
-agent_recovery: {next_checkpoint: CP05 missing-return repair; failed source 479da6bec14a4e053a71c33bacf6eb95503de475 recorded in WORK_EXECUTION_STATE.json}
+agent_recovery: {next_checkpoint: CP06 Orb Return and real Glyph identity-preserving transition}

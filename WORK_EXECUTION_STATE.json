@@ -3,7 +3,7 @@
   "base_sha": "74cad95b4f673bd9c8c60d16839f036d5886d933",
   "blockers": [],
   "branch": "feature/orb-photo-stable-visual-closure-v1",
-  "checkpoint_updated_at": "2026-11-05T12:00:00+00:00",
+  "checkpoint_updated_at": "2026-11-05T12:09:00+00:00",
   "control_plane_revision": "74cad95b4f673bd9c8c60d16839f036d5886d933",
   "dependencies": [
     "P5-02",
@@ -22,14 +22,22 @@
     "cp04_initial_workflow": "42018883250:FAIL_TEST_ASSERTION_CORRECTED",
     "cp04_report_commit_sha": "634a0361da67474c1602ce41884034b798fc3f5c",
     "cp04_validated_source_sha": "84c2bf30d51d38c3720f4124315ec799de601bd1",
+    "cp05_artifact_id": "13412648411",
+    "cp05_artifact_zip_sha256": "95ddc762487169e3a6ce6b059f37a65304e54b20485233e2f087fdb0a4a0348a",
+    "cp05_code_sha": "ead45796f8332ef673fd615402c72b995fb5f09d",
+    "cp05_exact_workflow": "42023472919:PASS_UNIT_DEBUG_ANDROIDTEST_RESOURCE",
+    "cp05_failure_fix_commit_sha": "ead45796f8332ef673fd615402c72b995fb5f09d",
     "cp05_initial_workflow": "42022698826:FAIL_KOTLIN_COMPILE_MISSING_RETURN",
+    "cp05_visual": "NOT_RUN",
+    "cp06_status": "READY",
     "final_v1_2_apk": "NOT_BUILT",
-    "visual": "NOT_RUN"
+    "visual": "NOT_RUN",
+    "cp05_report_commit_sha": "e59423bb276eb1cc827e1a6b4cbda277924ad5f9"
   },
   "execution_v2": {
     "issues": {
       "e61a0632b5d43c196940": {
-        "closed": false,
+        "closed": true,
         "failures": [
           {
             "evidence": "Orb workflow 42022698826; Kotlin compiler: RecognitionFishTailAnchor.kt:132:5 Missing return statement; asset verification passed; no tests or APK tasks ran.",
@@ -37,6 +45,10 @@
             "source_sha": "479da6bec14a4e053a71c33bacf6eb95503de475"
           }
         ],
+        "fix_evidence": {
+          "evidence": "Exact-source Orb workflow 42023472919 on ead45796f8332ef673fd615402c72b995fb5f09d passed full Android unit tests, assembleDebug, assembleDebugAndroidTest, packaged capture/Orb asset checks, and artifact upload; this closes the compile defect only, not device visual acceptance.",
+          "source_sha": "ead45796f8332ef673fd615402c72b995fb5f09d"
+        },
         "gate_id": "CP05_EXACT_HEAD_ANDROID_COMPILE",
         "symptom_key": "TAIL_ANCHOR_MISSING_RETURN",
         "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3"
@@ -44,12 +56,12 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Fix the missing return in RecognitionFishTailAnchor.mapToViewport reported by Orb workflow 42022698826, then rerun exact-head tests and Debug build.",
+  "next_action": "Inspect the existing shared Orb Return and SpeciesNameReveal path; implement the six identity-preserving glyph substeps and their tests.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "479da6bec14a4e053a71c33bacf6eb95503de475",
-  "stage": "CP05",
+  "source_sha": "e59423bb276eb1cc827e1a6b4cbda277924ad5f9",
+  "stage": "CP06",
   "status": "RUNNING",
   "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
   "work_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2"
