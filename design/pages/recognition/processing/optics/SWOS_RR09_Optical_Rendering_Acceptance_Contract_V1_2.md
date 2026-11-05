@@ -5,7 +5,7 @@
 **新增光学数值状态:** CALIBRATION_CANDIDATE（首轮参数候选，尚未经用户视觉签核）
 **运行验收:** NOT_VERIFIED；生产 Mask: NOT_QUALIFIED；不代表 Sites 或 Android 已实现
 
-> **Android Runtime 时间权威更新（2026-11-05）：** 本文中的 Processing 2800ms + RR09 850ms = 3650ms，以及 P0–P7 / R0–R5 采样点，保留为本合同原有 SWOS/RR09 光学标定与历史 15 帧参考，不再作为当前 Android 13 阶段识鱼 Runtime 的端到端时长。当前 Android 13 阶段 FULL 路径统一采用 [6000ms Runtime 时间合同](../runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md)。旧光学几何、Mask、图层职责和相对强度规则仍按各自合同适用；不得把旧 3650ms 与新 6000ms 相加，也不得用旧 3650ms 覆盖 Android Runtime 新合同。
+> **Android Runtime 时间权威更新（2026-11-05）：** 本文中的 Processing 2800ms + RR09 850ms = 3650ms，以及 P0–P7 / R0–R5 采样点，保留为本合同原有 SWOS/RR09 光学标定与历史 15 帧参考，不再作为当前 Android 13 阶段识鱼 Runtime 的端到端时长。当前 Android 13 阶段 FULL 路径统一采用 [6000ms Runtime 时间合同](../../runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md)。旧光学几何、Mask、图层职责和相对强度规则仍按各自合同适用；不得把旧 3650ms 与新 6000ms 相加，也不得用旧 3650ms 覆盖 Android Runtime 新合同。
 
 ## 0. 权威优先级与冻结边界
 
