@@ -1,0 +1,45 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_WP1B_EXECUTION_BASIS_21_FRAME_ASSET_BINDING_RUNTIME_V3",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "wp1b/recognition-pipeline-visual-handoff-v1",
+  "control_plane_revision": "7af1c5cf14cc244069fd0a8637b4eedb3f591c9b",
+  "base_branch": "main",
+  "base_sha": "98684af617206027e3fbba35e0d2a45bd475e3ba",
+  "phase": "P6",
+  "task_id": "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1",
+  "stage": "E0_AUTHORITY_AND_ASSET_BINDING",
+  "status": "RUNNING",
+  "source_sha": "afb7b1110154cf765299a15670b8095270a05c2d",
+  "checkpoint_updated_at": "2026-11-06T15:56:57Z",
+  "next_action": "Verify the frozen authorities and create exact KF00-KF20 resource bindings before Kotlin runtime changes.",
+  "dependencies": [
+    "P3-05",
+    "P5-02"
+  ],
+  "blockers": [
+    "B009: approved DET_FISH v0.3 binary, metadata, and validation evidence are unavailable",
+    "B012: SlimSAM artifact provenance is not yet confirmed on the current branch"
+  ],
+  "evidence": {
+    "admission": {
+      "control_plane_sync": "PASS",
+      "canonical_paths_compared": 751,
+      "source_sha": "afb7b1110154cf765299a15670b8095270a05c2d"
+    },
+    "models": {
+      "det_fish_v03": "BLOCKED_B009",
+      "slimsam": "NOT_CONFIRMED",
+      "classifier_crop_m1_v02": "NOT_REVERIFIED"
+    },
+    "runtime": {
+      "unit_tests": "NOT_RUN",
+      "android_test_compilation": "NOT_RUN",
+      "build": "NOT_RUN",
+      "apk": "NOT_BUILT",
+      "device": "NOT_RUN",
+      "visual_acceptance": "NOT_RUN"
+    }
+  }
+}

@@ -1,5 +1,13 @@
 # Branch-local Work Build Log
 
+## 2026-11-06 — WP1-B V3 execution-basis admission checkpoint
+
+- Work: `YUJIAN_WP1B_EXECUTION_BASIS_21_FRAME_ASSET_BINDING_RUNTIME_V3`; canonical task: `YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1`; branch: `wp1b/recognition-pipeline-visual-handoff-v1`.
+- Product admission passed against local synchronized candidate `afb7b1110154cf765299a15670b8095270a05c2d` and `origin/main` control-plane revision `7af1c5cf14cc244069fd0a8637b4eedb3f591c9b`: six static layers, 751 canonical paths, Project Master State, and Work Execution State all passed.
+- PR #320 remains draft/open. Its GitHub base is `98684af617206027e3fbba35e0d2a45bd475e3ba`; the branch has local main-synchronization commits that are not yet published.
+- B009 remains OPEN: approved DET_FISH v0.3 binary, metadata, and validation provenance are absent. SlimSAM source/weight/inference provenance is B012 `NOT_CONFIRMED`. Build, AndroidTest compilation, APK, device runtime, and visual owner acceptance remain `NOT_RUN`.
+- Next action: inspect frozen authority sources and bind KF00–KF20 resources with exact provenance before changing Kotlin runtime code.
+
 ## 2026-10-27 — W4 exact-SHA evidence-state and browser-gate correction
 
 - Work: `YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1`; branch `work/w4-test-evidence-v1`; code candidate `9767f39723cf635cc964e85142d7ef3140e29e90`; Main `42ad0d3fef23ea6576fd43dee781d253dcc11251`.
