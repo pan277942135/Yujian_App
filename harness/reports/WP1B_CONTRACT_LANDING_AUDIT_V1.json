@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0",
+  "task_id": "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1",
+  "repository": "pan277942135/Yujian_App",
+  "audit_date": "2026-11-06",
+  "main_baseline_sha": "74cad95b4f673bd9c8c60d16839f036d5886d933",
+  "landing_branch": "design/recognition-visual-contract-v1",
+  "landing_commit_sha": "a0bf7134a5bcbcbe0c2d126f65da7021e905511d",
+  "files": [
+    {
+      "path": "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_13_STAGE_STATE_MACHINE_V3.md",
+      "main_present": true,
+      "source": "main",
+      "source_revision": "74cad95b4f673bd9c8c60d16839f036d5886d933",
+      "sha256": "ece79009f7f42ab4f68a60801d4e23d0ef41dd17722dff91ab2cb47aff46c4c9",
+      "git_blob_sha": "30e2fd7ee64a5e8a86c315587a57b7826d14f5d6",
+      "content_match": "UNCHANGED",
+      "freeze_status": "FROZEN"
+    },
+    {
+      "path": "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_UNIFIED_LIFECYCLE_V3.md",
+      "main_present": true,
+      "source": "main",
+      "source_revision": "74cad95b4f673bd9c8c60d16839f036d5886d933",
+      "sha256": "0b233a1dcb2b1228cfa2f87d2b13ffa1dcf4db2d0c2c3107a5ff48a66dfed8d5",
+      "git_blob_sha": "40cec4696e0980c11e6622e2e030f8cbb7faddfc",
+      "content_match": "UNCHANGED",
+      "freeze_status": "FROZEN"
+    },
+    {
+      "path": "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.csv",
+      "main_present": false,
+      "source": "PR #318",
+      "source_revision": "4199cd91c216b0cb43e9d1f7a08496c41f992386",
+      "sha256": "bfc60ec73f228d3d9cb5ef2ded84c87d2966555b85f7b8d862d763810770fbfa",
+      "git_blob_sha": "0fc9fca09516e9259e2847626c4710be42541df1",
+      "content_match": "BYTE_IDENTICAL_TO_SOURCE",
+      "freeze_status": "SOURCE_REVIEW_STATUS_RETAINED"
+    },
+    {
+      "path": "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.json",
+      "main_present": false,
+      "source": "PR #318",
+      "source_revision": "4199cd91c216b0cb43e9d1f7a08496c41f992386",
+      "sha256": "44c2161ac25d5186f1b24986bd7174c3955587940b08ef1a8d2c098c60bd2a64",
+      "git_blob_sha": "b505a157a753d9e73b7fce9b4b011d52a6c653b5",
+      "content_match": "BYTE_IDENTICAL_TO_SOURCE",
+      "freeze_status": "SOURCE_REVIEW_STATUS_RETAINED"
+    },
+    {
+      "path": "design/recognition_structured_handoff_v1/component_mapping/component_runtime_mapping.md",
+      "main_present": false,
+      "source": "PR #318",
+      "source_revision": "4199cd91c216b0cb43e9d1f7a08496c41f992386",
+      "sha256": "22a4e48fd042a8e6732a5e991e48b8e433d081664f43f802e6240bac7dea2f76",
+      "git_blob_sha": "5204fcca15914a38965c9f0bb74137f5f3344bbf",
+      "content_match": "BYTE_IDENTICAL_TO_SOURCE",
+      "freeze_status": "SOURCE_REVIEW_STATUS_RETAINED"
+    },
+    {
+      "path": "design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md",
+      "main_present": false,
+      "source": "product-owner conversation message",
+      "source_revision": null,
+      "source_sha256": null,
+      "sha256": "ca7ab62ad975880301ca223a113d4ae1bedf6333bece1aa936f63e3e61c73b52",
+      "git_blob_sha": "a1c43298c3243700b17fc2f3ee5c6595606a917c",
+      "content_match": "TRANSCRIBED_FROM_FROZEN_DECISION_TEXT; NO_EXTERNAL_SOURCE_HASH_SUPPLIED",
+      "freeze_status": "FROZEN"
+    },
+    {
+      "path": "harness/task_contracts/YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1.md",
+      "main_present": false,
+      "source": "user attachment upload/粘贴的文本 (1)(20261106-085157).txt",
+      "source_revision": null,
+      "source_sha256": "42ce8e49ac01ad4f9b69645ece3fca29338cfa819bb090204a1e550cdcaef31c",
+      "sha256": "42ce8e49ac01ad4f9b69645ece3fca29338cfa819bb090204a1e550cdcaef31c",
+      "git_blob_sha": "2bed90e47760d483a06729752db6831cdcfdae4c",
+      "content_match": "BYTE_IDENTICAL_TO_ATTACHMENT",
+      "freeze_status": "TASK_AUTHORIZED"
+    }
+  ],
+  "pull_requests": {
+    "304": {
+      "state": "CLOSED",
+      "merged": true,
+      "head_sha": "64700592714b8fb1c06b659b9d79c92149d2ea95"
+    },
+    "317": {
+      "state": "OPEN_DRAFT_UNMERGED",
+      "head_sha": "df07e7ecc82ea96493885ff9fd12c82cd9b1aa68"
+    },
+    "318": {
+      "state": "OPEN_DRAFT_UNMERGED",
+      "head_sha": "4199cd91c216b0cb43e9d1f7a08496c41f992386"
+    }
+  },
+  "main_android_ci": {
+    "source_sha": "74cad95b4f673bd9c8c60d16839f036d5886d933",
+    "run_id": 41934781336,
+    "job_id": 127102654838,
+    "status": "FAIL",
+    "failed_step": "Verify Android runtime asset contracts",
+    "gradle_tests_apk_lint_runtime": "SKIPPED",
+    "root_cause": "Empty Home V2.2 measured-anchor, composition order and bobber/reflection resource contracts fail before Gradle."
+  },
+  "model_release_gate": {
+    "det_fish_v0_3": "BLOCKED_MISSING_APPROVED_BINARY_METADATA_AND_VALIDATION_EVIDENCE",
+    "no_relabeling_v0_1_as_v0_3": true,
+    "independent_implementation_may_continue": true,
+    "blocker_id": "B009"
+  },
+  "timing_dispute": {
+    "main_candidate_ms": 3650,
+    "pr317_decision_contract_ms": 6000,
+    "resolution": "UNRESOLVED_CARRIED_FORWARD",
+    "modified_by_landing": false
+  },
+  "control_plane_validation": {
+    "status": "PASS",
+    "feature_count": 15,
+    "journey_count": 20,
+    "route_count": 22,
+    "task_count": 78,
+    "gate_count": 38,
+    "validator": "scripts/validate_control_plane_admission.py"
+  },
+  "implementation_started": false,
+  "apk_built": false,
+  "api28_run": false,
+  "product_kotlin_modified": false,
+  "frozen_visual_parameters_modified": false,
+  "registry_integrity_updates": {
+    "authority_path": "design/registry/experience_registry_v1.json",
+    "authority_sha256": "d1c85c1de1089526fbcca3a080e4fe2afb9d98f55582881a9cf856dac5efba5b",
+    "prior_locked_sha256": "82075244769734b79e90186a01a59e6a8588fe503feea2e018edc7481faa977b",
+    "reason": "Additive frozen visual-contract registration changed the experience-registry bytes; all three direct Page Resource Binding locks were synchronized to that exact new SHA.",
+    "page_resource_bindings": [
+      {
+        "path": "design/pages/home/empty_home/Page_Resource_Binding_V1.json",
+        "sha256": "2224d8e3997392ad1057a9a6685b8a731d5db3fde31f8fd7ed31bc4c10708f61",
+        "git_blob_sha": "c6c583924fa1283d81e1f99309152ec41064a8f0"
+      },
+      {
+        "path": "design/pages/home/normal_home/Page_Resource_Binding_V1.json",
+        "sha256": "e06adeb8aaa707e9c6ef37d4b6f5ce9adb28859d66fefc9fab07ceab672fbf44",
+        "git_blob_sha": "df3a7c01e15033dd151dcc5105f531346bbd0f04"
+      },
+      {
+        "path": "design/pages/account_privacy/Login/Page_Resource_Binding_V1.json",
+        "sha256": "42470355f10a9e2a55e650e06f6fd0b8307f75332241be87cc4f028a5e88b31c",
+        "git_blob_sha": "78f7698eb2b7c95931ec5e2073f7db51bb6fff76"
+      }
+    ]
+  }
+}

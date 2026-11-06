@@ -131,6 +131,10 @@ shared_contracts:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
     refs: ["harness/task_contracts/YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_UNIFIED_LIFECYCLE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_13_STAGE_STATE_MACHINE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_RUNTIME_PARAMETERS_V3.json", "design/pages/recognition/processing/optics/WEB_ANDROID_RENDERING_COMPATIBILITY_AUDIT_V3.md"]
+  RECOGNITION-VISUAL-HANDOFF-ADDENDUM-V1:
+    domain: "DOMAIN"
+    status: "FROZEN"
+    refs: ["design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_13_STAGE_STATE_MACHINE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_UNIFIED_LIFECYCLE_V3.md", "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.csv", "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.json", "design/recognition_structured_handoff_v1/component_mapping/component_runtime_mapping.md"]
   DS-FOUNDATION:
     domain: "SHARED"
     status: "FROZEN"
@@ -368,6 +372,7 @@ feature_contracts:
       visual:
         status: "ACTIVE_CLOSURE"
         authority: "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md"
+        additive_frozen_authority: "design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md"
       motion:
         status: "ACTIVE_CLOSURE"
         authority: "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md"
@@ -389,6 +394,17 @@ feature_contracts:
     page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md", "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json", "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_2.json"]
     page_contract_keys: ["capture_page", "capture_layout", "capture_state", "capture_data", "capture_engineering", "capture_acceptance", "capture_accessibility", "processing_page", "processing_layout", "processing_state", "processing_data", "processing_engineering", "processing_acceptance"]
     contract_extensions:
+      recognition_visual_contract_freeze_addendum_v1:
+        status: "FROZEN"
+        contract_id: "YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1"
+        authority: "design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md"
+        stage_machine: "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_13_STAGE_STATE_MACHINE_V3.md"
+        unified_lifecycle: "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_UNIFIED_LIFECYCLE_V3.md"
+        frame_matrix_csv: "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.csv"
+        frame_matrix_json: "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.json"
+        component_mapping: "design/recognition_structured_handoff_v1/component_mapping/component_runtime_mapping.md"
+        timing_dispute_resolution: "UNCHANGED_AND_UNRESOLVED"
+        runtime_visual_verified: false
       capture_hifi:
         status: "FROZEN"
         visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
@@ -1638,6 +1654,11 @@ gate_contracts:
     contract_refs: ["AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-UNIFIED-WATERLIGHT-A02-V1", "AI-ORB-CORE-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["implementation", "scene_clock", "model_join", "mask_trust", "shader_migration", "unit_test", "android_test_compile", "lint", "build", "apk_provenance", "visual_owner_acceptance"]
     exact_sha_required: true
+  G-WP1B-RECOGNITION-PIPELINE-HANDOFF-V1:
+    purpose: "Exact-SHA acceptance of WP1-B real model pipeline, single identity/geometry chain, trusted-mask and Orb-only branches, frozen Orb/Glyph/Result handoff, automated tests and Debug APK. Approved DET_FISH v0.3 absence remains a named production blocker; API28 and owner visual acceptance are excluded from this Work gate. The 3650ms/6000ms dispute is carried forward unchanged."
+    contract_refs: ["RECOGNITION-VISUAL-HANDOFF-ADDENDUM-V1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "MODEL-RECOGNITION", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["model_provenance", "model_inference", "identity_geometry", "mask_trust", "scene_clock", "contact_geometry", "contour_and_gold", "orb_deconstruction", "glyph", "name_stability", "result_handoff", "unit_test", "android_test_compile", "lint", "build", "apk_provenance", "visual_owner_acceptance"]
+    exact_sha_required: true
 
   G-NH01-LAKE-LIGHT-VISUAL-RESPONSIVE-CLOSURE-V1:
     purpose: "Exact-SHA closure of the user-selected private Lake Light visual reference on NH01 Design Manager real DOM and Android Gemini route while retaining the frozen V2 numeric authority and excluding private photo bytes from public outputs."
@@ -1862,6 +1883,10 @@ task_contract_bindings:
   YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3:
     contract_refs: ["AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-UNIFIED-WATERLIGHT-A02-V1", "AI-ORB-CORE-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3"]
     gate_id: "G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3"
+    phase: "P6"
+  YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1:
+    contract_refs: ["RECOGNITION-VISUAL-HANDOFF-ADDENDUM-V1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "MODEL-RECOGNITION", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-WP1B-RECOGNITION-PIPELINE-HANDOFF-V1"]
+    gate_id: "G-WP1B-RECOGNITION-PIPELINE-HANDOFF-V1"
     phase: "P6"
   YUJIAN_ANDROID_HOME_CAPTURE_ACTIVATION_CAMERA_RUNTIME_FULL_CLOSURE_V2:
     contract_refs: ["ANDROID-HOME-CAPTURE-RUNTIME-V2", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
@@ -2194,8 +2219,8 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 77
-  gate_count: 37
+  task_count: 78
+  gate_count: 38
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "10a7ff2fe0c905b7c7e22ec88c29383d57847c34"
   last_synced_phase_task_state_machine_sha: "ed0b9d1052da58095d65241eae23af2eb2f49275"

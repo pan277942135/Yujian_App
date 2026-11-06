@@ -828,7 +828,8 @@
         "visual": {
           "status": "ACTIVE_CLOSURE",
           "authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
-          "note": "SWOS V1 optical authority is main-adopted as a design contract; V1.2 Frozen photo-state raster assets remain unchanged and Android Runtime remains NOT_RUN."
+          "note": "SWOS V1 optical authority is main-adopted as a design contract; V1.2 Frozen photo-state raster assets remain unchanged and Android Runtime remains NOT_RUN. The Stage 05–13 visual/result handoff addendum is separately frozen; timing dispute and runtime visual acceptance remain unresolved/separate.",
+          "additive_frozen_authority": "design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md"
         },
         "motion": {
           "status": "ACTIVE_CLOSURE",
@@ -883,6 +884,13 @@
           "spec_authority": "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md",
           "keyframe_authority": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
           "note": "FROZEN_DESIGN_DIRECTION / FROZEN_KEYFRAME_BEHAVIOR；main authority via PR #190；Runtime NOT_RUN，照片公开许可未确认。"
+        },
+        {
+          "version": "Visual Contract Addendum V1",
+          "status": "FROZEN",
+          "current": false,
+          "spec_authority": "design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md",
+          "note": "Additive Stage 05–13 Orb/WaterLight/Mask/Glyph/Result decisions. It preserves the existing 13 stages, SceneClock, 21-frame matrix and unresolved 3650ms/6000ms timing dispute; runtime and visual acceptance remain separate."
         }
       ],
       "design_overall": "ACTIVE_CLOSURE",

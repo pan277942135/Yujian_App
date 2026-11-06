@@ -1,5 +1,7 @@
 # Recognition Processing — V1.2 Frozen Baseline / SWOS V1.3 Main-Adopted Design Contract
 
+The Stage 05–13 Orb × WaterLight visual and Result handoff authority is additive and indexed at [processing/optics/README.md](optics/README.md). It does not reopen or replace the processing page-state or timing authorities below.
+
 V1.2 remains the frozen historical baseline. The SWOS contract set below was adopted on main through PR #190 as the current Processing optical/timing design authority. Android implementation and runtime acceptance remain separate and are not claimed by this adoption.
 
 ## Authority order
