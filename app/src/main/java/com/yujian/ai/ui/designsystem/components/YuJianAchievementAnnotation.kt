@@ -32,6 +32,6 @@ fun YuJianAchievementAnnotation(annotation: GrowthMark, modifier: Modifier = Mod
             .background(surface.copy(alpha = 0.78f), RoundedCornerShape(6.dp))
             .padding(horizontal = 6.dp, vertical = 2.dp),
     ) {
-        Text(annotation.text, color = ink.copy(alpha = 0.88f), fontSize = 10.sp, maxLines = 1)
+        Text(annotation.text, color = ink.copy(alpha = 0.88f), fontSize = 11.sp, maxLines = 1)
     }
 }

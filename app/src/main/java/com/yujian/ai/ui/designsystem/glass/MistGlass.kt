@@ -1,19 +1,14 @@
 package com.yujian.ai.ui.designsystem.glass
 
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -74,31 +69,13 @@ fun MistGlass(
     val style = remember(level) { YuJianGlassStyles.forLevel(level) }
     Box(
         modifier = modifier
-            .shadow(style.elevation, shape, clip = false)
+            // No shadow: on some render paths the elevation shadow bleeds a
+            // gradient inside/around the card edge, so padding and content
+            // regions read at different brightness. Flat fill + border only.
             .clip(shape)
             .background(style.fill)
             .border(1.dp, style.border, shape),
     ) {
-        // Compose has no cross-version backdrop-blur primitive. On API 31+
-        // this softly blurs the mist layer; older API levels retain the same
-        // alpha, border and elevation treatment without a fake bitmap effect.
-        val mistModifier = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Modifier.blur(style.blurRadius)
-        } else {
-            Modifier
-        }
-        Box(
-            modifier = mistModifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            YuJianColors.MistWhite.copy(alpha = 0.22f),
-                            YuJianColors.MistWhite.copy(alpha = 0.04f),
-                        ),
-                    ),
-                ),
-        )
         content()
     }
 }

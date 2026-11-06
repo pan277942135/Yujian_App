@@ -14,13 +14,12 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +36,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel
@@ -51,6 +54,54 @@ enum class YuJianFishGuideCardVariant {
     UNLIT,
     ADJACENT_PREVIEW,
 }
+
+/**
+ * Frozen fish_guide_v2.png card geometry and type roles:
+ * corner radius ≈ 40px/2.51 ≈ 16dp; serif archive title over the photo;
+ * subtitle and gold rule (23×2dp) stacked below the title; the record
+ * count line carries no dot marker.
+ */
+private val FishGuideCardShape = RoundedCornerShape(YuJianRadius.small)
+
+private val FishGuideCardTitleStyle = TextStyle(
+    fontFamily = FontFamily.Serif,
+    fontWeight = FontWeight.Bold,
+    fontSize = 17.sp,
+    lineHeight = 24.sp,
+    color = YuJianColors.DeepInk,
+)
+
+private val FishGuideCardSubtitleStyle = TextStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.Normal,
+    fontSize = 10.sp,
+    lineHeight = 14.sp,
+    color = YuJianColors.DeepInk.copy(alpha = 0.82f),
+)
+
+private val FishGuideRecordCountStyle = TextStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.Normal,
+    fontSize = 12.sp,
+    lineHeight = 16.sp,
+    color = YuJianColors.OnDark.copy(alpha = 0.95f),
+)
+
+private val FishGuideUnlitLeadStyle = TextStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.Medium,
+    fontSize = 13.sp,
+    lineHeight = 18.sp,
+    color = YuJianColors.OnDark.copy(alpha = 0.92f),
+)
+
+private val FishGuideUnlitSupportStyle = TextStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.Normal,
+    fontSize = 11.sp,
+    lineHeight = 15.sp,
+    color = YuJianColors.OnDark.copy(alpha = 0.80f),
+)
 
 /** One natural field-guide card system with lit, unlit, and adjacent variants. */
 @Composable
@@ -116,16 +167,16 @@ fun YuJianFishGuideCard(
             )
     } else Modifier
     val unlitImageFilter = remember(isUnlit) {
-        if (isUnlit) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.78f) }) else null
+        if (isUnlit) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.45f) }) else null
     }
     var imageLoaded by remember(item.imageUrl, item.imageCacheIdentity) { mutableStateOf<Boolean?>(null) }
     YuJianGlassCard(
         modifier = modifier.then(interactionModifier),
         level = if (isUnlit) YuJianGlassLevel.Light else YuJianGlassLevel.Medium,
-        shape = YuJianRadius.heroCard,
+        shape = FishGuideCardShape,
         contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
     ) {
-        Box(Modifier.fillMaxSize().clip(YuJianRadius.heroCard)) {
+        Box(Modifier.fillMaxSize().clip(FishGuideCardShape)) {
             if (item.imageUrl != null) {
                 RemoteImage(
                     url = item.imageUrl,
@@ -152,7 +203,7 @@ fun YuJianFishGuideCard(
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .background(YuJianColors.MistBlueGray.copy(alpha = 0.08f * (1f - settledEncounter))),
+                        .background(YuJianColors.LakeWhite.copy(alpha = 0.12f * (1f - settledEncounter))),
                 )
             }
             Box(
@@ -166,41 +217,42 @@ fun YuJianFishGuideCard(
                                 alpha = if (isUnlit) 0.20f + settledEncounter * 0.03f else 0.78f + settledEncounter * 0.12f,
                             ),
                         ),
-                ),
+                    ),
             )
-
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 22.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    text = item.name,
-                    style = YuJianTypography.heroTitle.copy(color = YuJianColors.DeepInk),
-                )
-                Box(
-                    Modifier
-                        .width(44.dp)
-                        .height(3.dp)
-                        .background(YuJianColors.MorningGold, YuJianRadius.pill),
-                )
-                item.category.takeIf { it.isNotBlank() }?.let { category ->
-                    Text(
-                        text = category,
-                        style = YuJianTypography.body.copy(color = YuJianColors.DeepInk.copy(alpha = 0.88f)),
-                    )
-                }
-            }
 
             if (!isAdjacent) {
                 Column(
                     modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 22.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Text(
+                        text = item.name,
+                        style = FishGuideCardTitleStyle,
+                    )
+                    item.category.takeIf { it.isNotBlank() }?.let { category ->
+                        Text(
+                            text = category,
+                            style = FishGuideCardSubtitleStyle,
+                        )
+                    }
+                    Box(
+                        Modifier
+                            .padding(top = 8.dp)
+                            .width(23.dp)
+                            .height(2.dp)
+                            .background(YuJianColors.MorningGold, YuJianRadius.pill),
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
                         .align(Alignment.BottomStart)
                         .fillMaxWidth()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                        .padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
                 ) {
                     val recordText = formatRecordCount(item.catches)
                     AnimatedVisibility(
@@ -208,14 +260,14 @@ fun YuJianFishGuideCard(
                         enter = fadeIn(tween(durationMillis = stateCopyFadeDuration)),
                         exit = fadeOut(tween(durationMillis = stateCopyFadeDuration)),
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Text(
                                 text = "尚未点亮",
-                                style = YuJianTypography.body.copy(color = YuJianColors.OnDark.copy(alpha = 0.92f)),
+                                style = FishGuideUnlitLeadStyle,
                             )
                             Text(
                                 text = "还没有我的记录",
-                                style = YuJianTypography.caption.copy(color = YuJianColors.OnDark.copy(alpha = 0.84f)),
+                                style = FishGuideUnlitSupportStyle,
                             )
                         }
                     }
@@ -230,7 +282,7 @@ fun YuJianFishGuideCard(
                         exit = fadeOut(
                             tween(
                                 durationMillis = recordCountExitDuration,
-                            ),
+                                ),
                         ),
                     ) {
                         AnimatedContent(
@@ -240,18 +292,10 @@ fun YuJianFishGuideCard(
                             },
                             label = "FishGuideSavedCatchCount",
                         ) { visibleCount ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    Modifier
-                                        .size(6.dp)
-                                        .background(YuJianColors.SoftGold, YuJianRadius.avatar),
-                                )
-                                Text(
-                                    text = visibleCount,
-                                    style = YuJianTypography.caption.copy(color = YuJianColors.OnDark.copy(alpha = 0.88f)),
-                                    modifier = Modifier.padding(start = 8.dp),
-                                )
-                            }
+                            Text(
+                                text = visibleCount,
+                                style = FishGuideRecordCountStyle,
+                            )
                         }
                     }
                 }

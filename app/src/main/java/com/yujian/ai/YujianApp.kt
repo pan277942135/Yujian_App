@@ -81,6 +81,7 @@ import com.yujian.ai.ui.screens.IdentifyScreen
 import com.yujian.ai.ui.auth.LoginV2Screen
 import com.yujian.ai.ui.auth.RegisterV2Screen
 import com.yujian.ai.ui.screens.MyScreen
+import com.yujian.ai.ui.recorddate.RecordCalendarScreen
 import com.yujian.ai.ui.screens.MyCatchesDayDetailScreen
 import com.yujian.ai.ui.screens.AccountMyScreen
 import com.yujian.ai.ui.screens.AccountLoginScreen
@@ -457,6 +458,7 @@ fun YujianApp() {
                 guideOfflinePreview = false
             }
             .onFailure { error ->
+                android.util.Log.e("YujianHome", "guide load failed", error)
                 guideOfflinePreview = guideSpecies.isNotEmpty()
                 guideError = error.message ?: "Fish Knowledge API 暂不可用"
             }
@@ -488,6 +490,7 @@ fun YujianApp() {
             }
         }.onSuccess { catchesState = it }
             .onFailure { error ->
+                android.util.Log.e("YujianHome", "catches load failed", error)
                 if ((error as? ApiException)?.statusCode == 401) {
                     logoutToHome()
                 } else {
@@ -610,6 +613,7 @@ fun YujianApp() {
                                 } catch (error: CancellationException) {
                                     throw error
                                 } catch (error: Exception) {
+                                    android.util.Log.e("YujianAuth", "login failed", error)
                                     authError = authErrorMessage(error, "登录遇到暂未识别的问题，请稍后重试")
                                 } finally {
                                     authLoading = false
@@ -689,6 +693,7 @@ fun YujianApp() {
                         onLoginClick = { nav.navigate("auth/login") { launchSingleTop = true } },
                         onSpeciesClick = { nav.navigate("guide") },
                         onCatchesClick = { nav.navigate("my_catches") },
+                        onRecordDaysClick = { nav.navigate("record_calendar") },
                         onProfileClick = { if (active == null) nav.navigate("auth/login") else nav.navigate("my") },
                         onCatchClick = { catchId -> nav.navigate("catch/" + Uri.encode(catchId)) },
                     )
@@ -806,6 +811,7 @@ fun YujianApp() {
                         FishRecordEditSheet(
                             record = record,
                             speciesCatalog = guideSpecies,
+                            resolveCoverUrl = fishKnowledgeRepository::resolveAssetUrl,
                             onDismiss = { editingRecord = null },
                             onSave = { draft ->
                                 runCatching { localCatchOverlays.saveEdit(record.id, draft) }
@@ -1282,11 +1288,25 @@ fun YujianApp() {
                             statistics = catchesState.statistics,
                             recordDays = catchesState.catches.map { it.capturedAt.ifBlank { it.createdAt }.take(10) }.filter(String::isNotBlank).distinct().size,
                             onEditProfile = { nav.navigate("edit_profile") },
-                            onAccountLogin = { nav.navigate("account_login") },
+                            onAccountSecurity = { nav.navigate("account_login") },
                             onAbout = { nav.navigate("about") },
+                            onOpenFishGuide = { nav.navigate("guide") },
+                            onOpenMyCatches = { nav.navigate("my_catches") },
                             onBack = { nav.popBackStack() },
                         )
                     }
+                }
+                composable("record_calendar") {
+                    val active = session
+                    RecordCalendarScreen(
+                        catches = catchesState.catches,
+                        resolveImageUrl = { path ->
+                            if (path != null && File(path).exists()) "file://$path" else catchRepository.resolveUrl(path)
+                        },
+                        accessToken = active?.accessToken.orEmpty(),
+                        onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
+                        onBack = { nav.popBackStack() },
+                    )
                 }
                 composable("my_catches/day/{dayKey}", arguments = listOf(navArgument("dayKey") { type = NavType.StringType })) { entry ->
                     val dayKey = entry.arguments?.getString("dayKey").orEmpty()

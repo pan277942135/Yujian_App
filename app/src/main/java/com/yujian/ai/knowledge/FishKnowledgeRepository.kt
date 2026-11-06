@@ -20,7 +20,7 @@ class FishKnowledgeRepository(
 
     /** Deterministic parser entry used by the Android contract test and previews. */
     fun parseSpeciesJson(json: String): List<FishGuideItem> {
-        val array = JSONArray(json)
+        val array = jsonPayloadArray(json)
         return (0 until array.length()).map { index ->
             val item = array.getJSONObject(index)
             FishGuideItem(
@@ -31,6 +31,7 @@ class FishKnowledgeRepository(
                 summary = item.optString("summary"),
                 category = item.optString("category"),
                 coverImage = item.optString("cover_image").cleanJsonString(),
+                catalogImage = item.optString("image").cleanJsonString(),
                 coverHeroImage = item.optString("cover_hero_image").cleanJsonString(),
                 coverHeroVersionId = positiveInt(item, "cover_hero_version_id"),
                 coverHeroStatus = publishedStatus(item, "cover_hero_status"),
@@ -46,7 +47,23 @@ class FishKnowledgeRepository(
     }
 
     /** Deterministic parser entry used by the Android contract test and previews. */
-    fun parseDetailJson(json: String): FishKnowledgeDetail = parseDetail(JSONObject(json))
+    fun parseDetailJson(json: String): FishKnowledgeDetail = parseDetail(jsonPayloadObject(json))
+
+    /** 新后端把响应包在 {code, msg, data} 信封里；兼容裸数组和信封两种格式。 */
+    private fun jsonPayloadArray(json: String): JSONArray {
+        val trimmed = json.trim()
+        if (trimmed.startsWith("[")) return JSONArray(trimmed)
+        val envelope = JSONObject(trimmed)
+        if (envelope.has("code") && envelope.has("data")) {
+            return envelope.optJSONArray("data") ?: JSONArray()
+        }
+        return JSONArray(trimmed)
+    }
+
+    private fun jsonPayloadObject(json: String): JSONObject {
+        val obj = JSONObject(json.trim())
+        return if (obj.has("code") && obj.has("data")) obj.optJSONObject("data") ?: JSONObject() else obj
+    }
 
     fun resolveAssetUrl(asset: String?): String? {
         val value = asset?.trim().orEmpty()

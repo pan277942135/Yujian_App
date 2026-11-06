@@ -8,6 +8,8 @@ data class FishGuideItem(
     val category: String = "",
     val summary: String = "",
     val coverImage: String? = null,
+    /** CMS list field `image` (catalog artwork); only a fallback when cover_image is absent. */
+    val catalogImage: String? = null,
     /** Versioned COVER_HERO response only; never inferred from legacy cover_image. */
     val coverHeroImage: String? = null,
     val coverHeroVersionId: Int? = null,

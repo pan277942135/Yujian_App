@@ -57,25 +57,34 @@ data class FishGuidePresentationItem(
 fun List<FishGuideItem>.toFishGuidePresentation(
     resolveAssetUrl: (String?) -> String?,
 ): List<FishGuidePresentationItem> = map { item ->
-    val rawImage = item.coverHeroImage.cleanOrNull()
+    val rawHeroImage = item.coverHeroImage.cleanOrNull()
     val status = item.coverHeroStatus.cleanOrNull()?.uppercase() ?: "MISSING"
     val versionId = item.coverHeroVersionId?.takeIf { it > 0 }
-    val eligible = status == "ACTIVE" && rawImage.isUsableImageAddress() && versionId != null
-    val resolvedImage = if (eligible) resolveAssetUrl(rawImage)?.trim()?.takeIf { it.isUsableImageAddress() } else null
+    val heroEligible = status == "ACTIVE" && rawHeroImage.isUsableImageAddress() && versionId != null
+    // Cover priority: the CMS list cover_image first, then the versioned
+    // cover_hero artwork, and finally the legacy catalog `image` artwork.
+    val rawCoverImage = item.coverImage.cleanOrNull()?.takeIf { it.isUsableImageAddress() }
+    val usingCoverImage = rawCoverImage != null
+    val rawImage = rawCoverImage
+        ?: if (heroEligible) rawHeroImage else null
+        ?: item.catalogImage.cleanOrNull()?.takeIf { it.isUsableImageAddress() }
+    val resolvedImage = rawImage?.let { resolveAssetUrl(it)?.trim()?.takeIf { url -> url.isUsableImageAddress() } }
     val resolvedStatus = when {
+        resolvedImage != null -> "ACTIVE"
         status != "ACTIVE" -> status
-        rawImage == null -> "MISSING_URL"
-        !rawImage.isUsableImageAddress() -> "INVALID_URL"
+        rawHeroImage == null -> "MISSING_URL"
+        !rawHeroImage.isUsableImageAddress() -> "INVALID_URL"
         versionId == null -> "MISSING_VERSION"
-        resolvedImage == null -> "URL_UNRESOLVED"
-        else -> "ACTIVE"
+        else -> "URL_UNRESOLVED"
     }
     FishGuidePresentationItem(
         source = item,
         imageUrl = resolvedImage,
-        imageVersionId = versionId.takeIf { resolvedImage != null },
+        imageVersionId = if (heroEligible && !usingCoverImage) versionId.takeIf { resolvedImage != null } else null,
         imageStatus = resolvedStatus,
-        imageCacheIdentity = resolvedImage?.let { listOf(item.id, "COVER_HERO", versionId, it).joinToString("|") },
+        imageCacheIdentity = resolvedImage?.let {
+            listOf(item.id, if (usingCoverImage) "COVER_IMAGE" else "COVER_HERO", versionId, it).joinToString("|")
+        },
     )
 }
 

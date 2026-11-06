@@ -55,18 +55,64 @@ class FishGuidePresentationTest {
     }
 
     @Test
-    fun legacyCoverImageIsNeverPromotedAndLitStateRemainsRecordDriven() {
+    fun catalogCoverImageIsPreferredAndFallsBackGracefully() {
         val source = species.first().copy(
             coverImage = "https://cdn.example/legacy-cover.webp",
             coverHeroStatus = "LEGACY_API",
         )
-        val item = listOf(source).toFishGuidePresentation { value -> "resolved:$value" }.first()
+        val item = listOf(source).toFishGuidePresentation { value -> value }.first()
         assertEquals("grass", item.id)
         assertEquals("草鱼", item.name)
-        assertNull(item.imageUrl)
-        assertEquals("LEGACY_API", item.imageStatus)
+        assertEquals("https://cdn.example/legacy-cover.webp", item.imageUrl)
+        assertEquals("ACTIVE", item.imageStatus)
+        assertTrue(item.imageCacheIdentity.orEmpty().contains("COVER_IMAGE"))
         assertTrue(item.discovered)
         assertEquals(3, item.catches)
+
+        val withoutCover = source.copy(coverImage = null)
+        assertTrue(listOf(withoutCover).toFishGuidePresentation { value -> value }.first().imageUrl == null)
+
+        val unusableCover = source.copy(coverImage = "javascript:alert(1)")
+        assertTrue(listOf(unusableCover).toFishGuidePresentation { value -> value }.first().imageUrl == null)
+    }
+
+    @Test
+    fun legacyImageFieldIsOnlyAFallbackBehindCoverImageAndCoverHero() {
+        val coverOnly = FishGuideItem(id = "a", nameCn = "甲", coverImage = "https://cdn.example/cover.webp", catalogImage = "https://cdn.example/catalog.webp")
+        val heroOnly = FishGuideItem(
+            id = "b",
+            nameCn = "乙",
+            coverHeroImage = "https://cdn.example/hero.webp",
+            coverHeroVersionId = 9,
+            coverHeroStatus = "ACTIVE",
+            catalogImage = "https://cdn.example/catalog.webp",
+        )
+        val catalogOnly = FishGuideItem(id = "c", nameCn = "丙", catalogImage = "https://cdn.example/catalog.webp")
+
+        val projected = listOf(coverOnly, heroOnly, catalogOnly).toFishGuidePresentation { value -> value }
+
+        assertEquals("https://cdn.example/cover.webp", projected[0].imageUrl)
+        assertEquals("https://cdn.example/hero.webp", projected[1].imageUrl)
+        assertEquals("https://cdn.example/catalog.webp", projected[2].imageUrl)
+    }
+
+    @Test
+    fun catalogCoverImageTakesPrecedenceOverVersionedCoverHero() {
+        val source = FishGuideItem(
+            id = "grass",
+            nameCn = "草鱼",
+            coverImage = "https://cdn.example/catalog-cover.webp",
+            coverHeroImage = "/api/v1/fish/knowledge-media/grass/cover_hero/v3.webp",
+            coverHeroVersionId = 303,
+            coverHeroStatus = "ACTIVE",
+        )
+        val item = listOf(source).toFishGuidePresentation { value ->
+            value?.let { if (it.startsWith("http")) it else "https://api.example$it" }
+        }.single()
+
+        assertEquals("https://cdn.example/catalog-cover.webp", item.imageUrl)
+        assertNull(item.imageVersionId)
+        assertTrue(item.imageCacheIdentity.orEmpty().contains("COVER_IMAGE"))
     }
 
     @Test
@@ -74,7 +120,7 @@ class FishGuidePresentationTest {
         val active = FishGuideItem(
             id = "grass",
             nameCn = "草鱼",
-            coverImage = "https://cdn.example/legacy.webp",
+            coverImage = null,
             coverHeroImage = "/api/v1/fish/knowledge-media/grass/cover_hero/v3.webp",
             coverHeroVersionId = 303,
             coverHeroStatus = "ACTIVE",

@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 
@@ -33,14 +33,18 @@ fun FishGuideProgress(
             .fillMaxWidth()
             .height(6.dp)
             .clip(shape)
-            .background(YuJianColors.MistBlueGray.copy(alpha = 0.18f)),
+            .background(YuJianColors.MistBlueGray.copy(alpha = 0.28f)),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(progress)
                 .height(6.dp)
                 .clip(shape)
-                .background(YuJianColors.MorningGold.copy(alpha = 0.72f)),
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(YuJianColors.MorningGold, YuJianColors.SoftGold),
+                    ),
+                ),
         )
     }
 }

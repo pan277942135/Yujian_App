@@ -331,13 +331,24 @@ class CatchRepository(
         val connection = connection(method, path, token, "application/json; charset=utf-8")
         return try {
             if (body != null) connection.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
-            JSONObject(readResponse(connection))
+            JSONObject(readResponse(connection)).let(::unwrapEnvelope)
         } finally { connection.disconnect() }
     }
 
     private fun jsonArray(path: String, token: String): JSONArray {
         val connection = connection("GET", path, token, null)
-        return try { JSONArray(readResponse(connection)) } finally { connection.disconnect() }
+        return try {
+            val trimmed = readResponse(connection).trim()
+            if (trimmed.startsWith("[")) JSONArray(trimmed)
+            else JSONObject(trimmed).optJSONArray("data") ?: JSONArray(trimmed)
+        } finally { connection.disconnect() }
+    }
+
+    /** 新后端把响应包在 {code, msg, data} 信封里；兼容旧的扁平格式。 */
+    private fun unwrapEnvelope(body: JSONObject): JSONObject {
+        if (!body.has("code") || !body.has("data")) return body
+        val data = body.opt("data")
+        return if (data is JSONObject) data else JSONObject()
     }
 
     private fun multipart(path: String, token: String, boundary: String, write: (DataOutputStream) -> Unit): JSONObject {
