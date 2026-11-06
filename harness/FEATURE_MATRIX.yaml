@@ -252,6 +252,7 @@ features:
       visual:
         status: "ACTIVE_CLOSURE"
         authority: "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md"
+        additive_frozen_authority: "design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md"
       motion:
         status: "ACTIVE_CLOSURE"
         authority: "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md"
@@ -287,6 +288,7 @@ features:
       - "fishtrace_sites_web_interaction_v1"
       - "swos_web_hifi_motion_technical_contract_v1_0"
       - "swos_rr09_optical_v1_2"
+      - "recognition_visual_contract_freeze_addendum_v1"
     design_children:
       - "ai_edge_field_v1_static_shape"
       - "ai_edge_field_v1_rendering_contract"
@@ -355,6 +357,7 @@ features:
         - "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1"
         - "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1"
         - "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3"
+        - "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1"
     capture_hifi:
       status: "FROZEN"
       visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
@@ -367,6 +370,7 @@ features:
       binary_import_status: "PENDING"
     known_gaps:
       - "Exact-head API28 runtime not yet accepted (B001/B002)."
+      - "Approved DET_FISH v0.3 production binary, metadata and validation evidence are missing; WP1-B may proceed with independent implementation, but v0.3 detector and production end-to-end acceptance remain blocked (B009)."
       - "Capture Hi-Fi source PNG binary import remains pending."
       - "The V1 first-use guide uses the three frozen pages P01/P02/P03; exact-head API28 runtime and visual parity evidence remain pending."
       - "SWOS V1 / Processing V3.2 and SWOS Static V1.1 are main-adopted design contracts via PR #190. Android Effect 01, upward caustic surge and photo shockwave are implemented at Main efcfa18, but exact-head API28 runtime and owner visual acceptance remain NOT_VERIFIED. The original AI Studio four-sided perimeter shader port is a separate task; source-browser comparison, Overlay alpha equivalence, DPR mapping and API28 runtime remain NOT_VERIFIED."
@@ -450,6 +454,7 @@ features:
         - "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1"
         - "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1"
         - "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1"
+        - "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1"
     known_gaps:
       - "Current runtime/evidence are partial; exact-head runtime and current-branch provenance conflict remain open (B001/B002/B006)."
       - "RR09 V3 is main-adopted design-only and not Android-implemented; V2 remains unchanged historical baseline; Runtime/Playback stays NOT_RUN until Stage 1 closure."
