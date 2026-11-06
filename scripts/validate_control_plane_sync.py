@@ -21,7 +21,14 @@ def local_files(path):
     out=run("ls-files","--",path)
     return set(out.splitlines()) if out else set()
 def local_blob(path):
-    return run("hash-object",str(path))
+    """Return the Git blob id of the bytes currently present in the worktree.
+
+    Control-plane synchronization compares that value with a blob stored in the
+    canonical tree.  Git's normal clean filters (notably ``core.autocrlf``)
+    must not participate here: doing so makes the result depend on the host
+    checkout configuration instead of the actual worktree content.
+    """
+    return run("hash-object","--no-filters",str(path))
 
 def load_worktree_exceptions():
     """Load the canonical, content-addressed non-frozen product exceptions."""
