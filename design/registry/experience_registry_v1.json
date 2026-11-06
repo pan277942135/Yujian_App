@@ -4052,57 +4052,6 @@
               "route": "#page/recognition_result_v1/hifi/motion_continuation"
             }
           ]
-        },
-        {
-          "id": "recognition_visual_contract_freeze_addendum_v1",
-          "title": "Stage 05–13 · Orb × WaterLight 视觉与结果交接补充冻结合同 V1",
-          "status": "FROZEN",
-          "authority_type": "technical_contract",
-          "render_mode": "authority_index",
-          "page_id": "recognition.orb_waterlight.visual_handoff.addendum.v1",
-          "state_id": "DESIGN_ONLY",
-          "state_id_scope": "Frozen implementation contract; not a product state or runtime acceptance result",
-          "authority": "design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md",
-          "machine_authority": "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.json",
-          "runtime_status": "NOT_VERIFIED",
-          "contract_freeze_status": "FROZEN_PRODUCT_DECISION",
-          "runtime_visual_verified": false,
-          "summary": "冻结最近真实 Mask 轮廓接触点、Contour A/B/C 共用真实 Mask、Orb 可见解构、动态真实 Glyph、NAME_STABLE 后依序交接 Result。保留既有 13 主阶段、21 帧矩阵与唯一 SceneClock；不裁定 3650ms/6000ms。",
-          "menu_points": [
-            "不使用鱼尾锚点；Orb 锚点到当前可信 Mask 外轮廓的最近点供路径、Contour A 与原路径回流共用",
-            "Contour A/B/C 与 Fish Gold 使用同一可信 Mask 身份和几何",
-            "Orb 水核舒展与水光解构必须连续可见；真实鱼种名称使用当前 Classifier Glyph Path",
-            "NAME_STABLE 后才按 13.1–13.5 完成同一照片的 Result 交接",
-            "真机视频和关键帧用于视觉验收；构建与自动化测试不能替代视觉通过"
-          ],
-          "contract_links": [
-            {
-              "label": "Recognition Visual Contract Freeze Addendum V1",
-              "path": "design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md"
-            },
-            {
-              "label": "13-Stage State Machine V3",
-              "path": "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_13_STAGE_STATE_MACHINE_V3.md"
-            },
-            {
-              "label": "Unified Lifecycle V3",
-              "path": "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_UNIFIED_LIFECYCLE_V3.md"
-            },
-            {
-              "label": "21-Frame Matrix CSV",
-              "path": "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.csv"
-            },
-            {
-              "label": "21-Frame Matrix JSON",
-              "path": "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.json"
-            },
-            {
-              "label": "Component Runtime Mapping",
-              "path": "design/recognition_structured_handoff_v1/component_mapping/component_runtime_mapping.md"
-            }
-          ],
-          "timing_resolution_status": "UNRESOLVED_CARRIED_FORWARD",
-          "production_detector_v03_status": "BLOCKED_MISSING_APPROVED_BINARY"
         }
       ],
       "navigation_mode": "submenu_direct",
