@@ -20,7 +20,11 @@ import android.view.View
 import android.view.ViewOutlineProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -40,6 +44,8 @@ import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.SceneMaskState
+import com.yujian.ai.ui.waterlight.core.SceneResourceState
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
@@ -56,9 +62,15 @@ internal fun recognitionPerimeterOpacity(
 ): Float {
     if (!processingClockStarted) return 0f
     val scene = frame.sceneFrame
+    val waitingForModelJoin = scene.stage == RecognitionSceneStage.PATH_TO_FISH &&
+        scene.modelGates.detector == SceneResourceState.READY &&
+        (scene.modelGates.classifier == SceneResourceState.WAITING ||
+            scene.modelGates.slimSam == SceneMaskState.PENDING)
+    if (waitingForModelJoin) return if (reduceMotion) .06f else .12f
     if (reduceMotion) return when (scene.stage) {
         RecognitionSceneStage.PHOTO_STABLE,
-        RecognitionSceneStage.ORB_WAKE -> 0f
+        RecognitionSceneStage.ORB_WAKE,
+        RecognitionSceneStage.ORB_RELEASE -> 0f
         RecognitionSceneStage.ORB_RETURN,
         RecognitionSceneStage.ORB_TO_NAME,
         RecognitionSceneStage.SPECIES_NAME_REVEAL,
@@ -67,8 +79,8 @@ internal fun recognitionPerimeterOpacity(
     }
     return when (scene.stage) {
         RecognitionSceneStage.PHOTO_STABLE,
-        RecognitionSceneStage.ORB_WAKE -> 0f
-        RecognitionSceneStage.ORB_RELEASE -> scene.stageProgress.coerceIn(0f, 1f)
+        RecognitionSceneStage.ORB_WAKE,
+        RecognitionSceneStage.ORB_RELEASE -> 0f
         RecognitionSceneStage.ORB_RETURN -> 1f - .82f * scene.stageProgress.coerceIn(0f, 1f)
         RecognitionSceneStage.ORB_TO_NAME -> .18f * (1f - scene.stageProgress.coerceIn(0f, 1f))
         RecognitionSceneStage.SPECIES_NAME_REVEAL -> .08f
@@ -80,7 +92,11 @@ internal fun recognitionPerimeterOpacity(
 internal fun recognitionPerimeterProgress(
     frame: WaterLightFrame,
     profile: RecognitionPerimeterOpticalProfileV1 = RecognitionPerimeterOpticalProfileV1.EFFECT_02,
-): Float = RecognitionPerimeterShaderMath.expansionProgress(frame.sceneFrame, profile)
+    perimeterStartOpticalMs: Long? = null,
+    spreadDurationMs: Long = 1_200L,
+): Float = RecognitionPerimeterShaderMath.expansionProgress(
+    frame.sceneFrame, profile, perimeterStartOpticalMs, spreadDurationMs,
+)
 
 internal fun recognitionPerimeterActive(processingClockStarted: Boolean, phase: RecognitionPhase): Boolean =
     processingClockStarted && phase != RecognitionPhase.RESULT && phase != RecognitionPhase.FAILURE
@@ -141,8 +157,33 @@ internal fun RecognitionPerimeterShaderOverlay(
     val effectiveReduceMotion = reduceMotion || waterLightFrame.reducedMotion
     val timeSec = if (effectiveReduceMotion) 0f else
         RecognitionPerimeterShaderMath.sourceTimeSec(sceneFrame, opticalProfile.speed)
-    val progress = if (effectiveReduceMotion) 1f else
-        recognitionPerimeterProgress(waterLightFrame, opticalProfile)
+    val stageStartReferenceMs = (sceneFrame.opticalReferenceElapsedMs - sceneFrame.stageElapsedMs).coerceAtLeast(0L)
+    var perimeterStartOpticalMs by remember(
+        recognitionSessionId, recognitionAttemptId, imageId, photoSha256, sceneFrame.geometryVersion,
+    ) { mutableStateOf<Long?>(null) }
+    LaunchedEffect(
+        recognitionSessionId, recognitionAttemptId, imageId, photoSha256,
+        sceneFrame.geometryVersion, sceneFrame.stage, stageStartReferenceMs,
+    ) {
+        when (sceneFrame.stage) {
+            RecognitionSceneStage.PHOTO_STABLE,
+            RecognitionSceneStage.ORB_WAKE,
+            RecognitionSceneStage.ORB_RELEASE -> perimeterStartOpticalMs = null
+            RecognitionSceneStage.PERIMETER_ARRIVAL -> perimeterStartOpticalMs = stageStartReferenceMs
+            else -> if (perimeterStartOpticalMs == null) {
+                // The host may mount after arrival. Use the frozen 125ms stage minimum
+                // as a conservative reconstruction from this same SceneClock sample.
+                perimeterStartOpticalMs = (stageStartReferenceMs - RecognitionSceneStage.PERIMETER_ARRIVAL.minimumVisibleMs)
+                    .coerceAtLeast(0L)
+            }
+        }
+    }
+    val progress = if (effectiveReduceMotion) 1f else recognitionPerimeterProgress(
+        waterLightFrame,
+        opticalProfile,
+        perimeterStartOpticalMs,
+        material.perimeterSpreadDurationMs,
+    )
     val perimeterOpacity = recognitionPerimeterOpacity(
         processingClockStarted = processingClockStarted,
         reduceMotion = effectiveReduceMotion,

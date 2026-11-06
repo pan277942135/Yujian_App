@@ -1,0 +1,81 @@
+schema_version: '1.0'
+state_id: YUJIAN_RECOGNITION_RUNTIME_V1_2
+project: YuJian Android
+state_control:
+  execution_baseline_sha: beed77ad31bb54010148c7bf459f3b445ccbcd23
+  current_branch: feature/orb-photo-stable-visual-closure-v1
+  base_sha: 74cad95b4f673bd9c8c60d16839f036d5886d933
+  current_pr: 317
+source_of_truth:
+  current_work_state: WORK_EXECUTION_STATE.json
+repositories:
+  android: pan277942135/Yujian_App
+pull_requests:
+  PR317:
+    number: 317
+    branch: feature/orb-photo-stable-visual-closure-v1
+    base_sha: 74cad95b4f673bd9c8c60d16839f036d5886d933
+    status: DRAFT_OPEN_UNMERGED
+phases:
+  P0: {status: HISTORICAL}
+  P1: {status: HISTORICAL}
+  P2: {status: HISTORICAL}
+  P3: {status: HISTORICAL}
+  P4: {status: HISTORICAL}
+  P5: {status: HISTORICAL}
+  P6: {status: IMPLEMENTED_AND_APK_DELIVERED}
+  P7: {status: NOT_RUN}
+  P8: {status: NOT_RUN}
+  P9: {status: NOT_RUN}
+recognition_main_journey:
+  contract_status: FROZEN
+  route: [J01, J02, J03, J04, J05, J06, J07, J08, J09, J10, J11, J12, J13, J14, J15, J16, J17, J18, J19, J20]
+runtime_gates:
+  exact_head: {sha: beed77ad31bb54010148c7bf459f3b445ccbcd23, status: PASS, workflow_run: 42037876704}
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+apk_and_evidence:
+  status: DELIVERED
+  final_v1_2_apk: Yujian_Recognition_Runtime_V1_2_Debug.apk
+  final_source_sha: beed77ad31bb54010148c7bf459f3b445ccbcd23
+  final_apk_size_bytes: 144083254
+  final_apk_sha256: 1de29d32ec185b32b5c1cdc5f156e22a25afed79fe1bbe54cb10829391d0dd66
+  final_workflow_run: 42037876704
+  final_artifact_id: 13419188038
+  final_artifact_zip_sha256: 38ba6c85d2bd6b5da2e3c84f25324d2ed9d2081b40a7ee83009d67f8b242f8fc
+  library_file_id: libfile_beb7dfacadc881918b79857f1be3c2cf
+  library_version: 1
+  intermediate_workflow_artifacts: [13412648411, 13415968163]
+  cp06_artifact_zip_sha256: a205d780428b56643e0553af3aa8b6099e400b33f4a169c9815141e11e3133d0
+current_work:
+  id: YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2
+  phase: P6
+  task_id: YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3
+  exact_head: beed77ad31bb54010148c7bf459f3b445ccbcd23
+  stage: FINAL_TEST_AND_DELIVERY
+blockers:
+  - Full Android CI fails before Gradle at the existing EMPTY_HOME_RUNTIME_V2 contract.
+  - Control-plane admission rejects the required branch-local PROJECT_MASTER_STATE.yaml and WORK_EXECUTION_STATE.json files.
+  - CP03 R06 frozen resource source identity remains NOT_CONFIRMED.
+protected_invariants:
+  recognition: [same photo identity, one scene clock, genuine model output]
+next_actions:
+  - {id: CP04, status: PASS, action: Resolve current-mask tail contact and shared-clock model wait; exact workflow 42019562279 passed}
+  - {id: CP05, status: PASS, action: Trusted Mask contour A/B/C and independent Core/Soft/Halo timing; exact workflow 42023472919 passed}
+  - {id: CP06, status: PASS, action: Orb Return, six classifier-Glyph substeps, and frozen 6000ms timing verified by workflow 42030743624}
+  - {id: CP07, status: PASS, action: Shared-clock Stage 13 geometry/data/stable-event handoff; exact workflow 42037876704 passed}
+  - {id: APK, status: DELIVERED, action: Final exact-source Debug APK uploaded to Library; product-owner device visual acceptance remains NOT_RUN}
+completion_rules: {status: IMPLEMENTED_AND_DEBUG_APK_DELIVERED, device_visual: NOT_RUN}
+state_update: {date: '2026-11-05'}
+
+# Product-owner frozen runtime timing decision (2026-11-05)
+timing_contract:
+  contract_id: YUJIAN_RECOGNITION_13_STAGE_TIMING_6000MS_V1
+  authority: design/pages/recognition/runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md
+  machine_authority: design/pages/recognition/runtime/recognition_13_stage_timing_contract_v1_0.json
+  decision_status: FROZEN_PRODUCT_DECISION
+  full_path_nominal_minimum_duration_ms: 6000
+  clock_origin: FIRST_ACTUALLY_PRESENTED_PHOTO_STABLE_FRAME
+  runtime_implementation_status: CP01_CP07_IMPLEMENTED_AND_EXACT_SOURCE_VERIFIED; DEVICE_VISUAL_NOT_RUN
+
+agent_recovery: {next_checkpoint: Product-owner device visual acceptance using the Library APK; retain CP03 R06 identity and unrelated CI gates as explicit open ledger items}

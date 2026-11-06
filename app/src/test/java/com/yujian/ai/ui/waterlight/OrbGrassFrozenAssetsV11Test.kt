@@ -59,7 +59,10 @@ class OrbGrassFrozenAssetsV11Test {
         val core = moduleFile("src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").readText()
         assertEquals(1, Regex("painterResource\\(R\\.drawable\\.processing_water_core_v1\\)").findAll(core).count())
         assertFalse("The old synthetic grass sheet would duplicate baked leaves", core.contains("WaterGrassField"))
-        assertTrue(core.contains("coreOpticalEffect?.renderEffect?.let { renderEffect = it }"))
+        assertTrue(core.contains("renderEffect = appliedRenderEffect"))
+        assertTrue(core.contains("orbOpticsVisible(sceneFrame.stage, wakeRenderMode)"))
+        assertTrue(core.indexOf("source_core=VISIBLE") < core.indexOf("renderEffect = appliedRenderEffect"))
+        assertTrue(core.contains("PHOTO_STABLE_RAW_CORE"))
         val effects = moduleFile("src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFluidRefractionProgramV1.kt").readText()
         assertTrue(effects.contains("createChainEffect("))
         val grassInput = effects.indexOf("createdGrass.androidRenderEffect,")
@@ -73,6 +76,22 @@ class OrbGrassFrozenAssetsV11Test {
         assertTrue(shader.contains("pow(smoothstep(0.10, 1.0, s), 1.6)"))
         assertFalse(shader.contains("R01_grass_back.svg"))
         assertFalse(shader.contains("R01_grass_front.svg"))
+    }
+
+    @Test fun energyEventsNeverDimOrReplaceTheFrozenCoreAndShaderFailureKeepsTheRawImage() {
+        val core = moduleFile("src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").readText()
+        assertTrue(core.contains("val coreImageAlpha = 1f"))
+        assertFalse(core.contains("orbEnergyDepletion"))
+        assertTrue(core.contains("source_core=VISIBLE"))
+        assertTrue(core.contains("candidate and V1.1 AGSL unavailable; source core and clipped light fallback active"))
+        assertTrue(core.contains("wake_band=\$wakeBand"))
+        assertTrue(core.contains("r06_renderer=\$orbRendererMode"))
+        assertTrue(core.contains("r06_candidate_paths=\${OrbRuntimeProfileV1.paths.size}"))
+        assertTrue(core.contains("wake_optics=\${wake.optics}"))
+        assertTrue(core.contains("wake_water=\${wake.waterCore}"))
+        assertTrue(core.contains("wake_grass=\${wake.grassLight}"))
+        assertTrue(core.contains("painter = corePainter"))
+        assertTrue(core.indexOf("painter = corePainter") < core.indexOf("renderEffect = appliedRenderEffect"))
     }
 
     @Test fun theRuntimeMappingKeepsFullSourceUvAtCompactNormalAndCameraSizes() {

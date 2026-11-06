@@ -26,9 +26,12 @@ class RecognitionRevealPolicyTest {
         assertEquals(RecognitionRevealPhase.ORB_RETURN, returnStart.phase)
         assertEquals(0f, returnStart.photoProgress, 0f)
         assertEquals(RecognitionRevealClock.FULL_PARTICLE_LIMIT, returnStart.visibleParticleCount)
+        assertEquals(.92f, returnStart.fishHaloAlpha, .0001f)
         val returnMiddle = frame(RecognitionSceneStage.ORB_RETURN, .5f, handoff, policy)
-        assertEquals(.5f, returnMiddle.photoProgress, .0001f)
+        assertEquals(0f, returnMiddle.photoProgress, 0f)
         assertEquals(.5f, returnMiddle.orbReturnProgress, .0001f)
+        assertTrue(returnMiddle.fishHaloAlpha < returnStart.fishHaloAlpha)
+        assertEquals(0f, frame(RecognitionSceneStage.ORB_RETURN, 1f, handoff, policy).fishHaloAlpha, 0f)
 
         val toName = frame(RecognitionSceneStage.ORB_TO_NAME, .5f, handoff, policy)
         assertEquals(RecognitionRevealPhase.ORB_TO_NAME, toName.phase)
@@ -39,6 +42,7 @@ class RecognitionRevealPolicyTest {
         assertEquals(RecognitionRevealTitleMode.REVEALING, species.titleMode)
         val residue = frame(RecognitionSceneStage.RESIDUE_SETTLE, .5f, handoff, policy)
         assertEquals(RecognitionRevealPhase.RESIDUE_SETTLE, residue.phase)
+        assertEquals(.5f, residue.photoProgress, .0001f)
         assertEquals(.5f, residue.afterglowAlpha, .0001f)
         assertTrue(residue.drawOpticalLayer)
         val settled = frame(RecognitionSceneStage.RESIDUE_SETTLE, 1f, handoff, policy, stageEventComplete = true)
@@ -51,8 +55,10 @@ class RecognitionRevealPolicyTest {
         val titleOnly = handoff(RecognitionRevealEligibility.TITLE_FADE_ONLY)
         val titleFrame = frame(RecognitionSceneStage.ORB_RETURN, .5f, titleOnly, RecognitionRevealMotionPolicy())
         assertTrue(titleFrame.fallback)
+        assertEquals(0f, titleFrame.photoProgress, 0f)
         assertEquals(0, titleFrame.visibleParticleCount)
         assertEquals(RecognitionRevealTitleMode.HIDDEN, titleFrame.titleMode)
+        assertEquals(0f, titleFrame.fishHaloAlpha, 0f)
         assertEquals(RecognitionRevealTitleMode.FORMING,
             frame(RecognitionSceneStage.ORB_TO_NAME, .5f, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
         assertEquals(RecognitionRevealTitleMode.REVEALING,

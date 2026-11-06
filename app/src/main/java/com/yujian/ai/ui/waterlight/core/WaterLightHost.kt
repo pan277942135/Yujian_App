@@ -21,7 +21,17 @@ class WaterLightHostBinding(
     val material: WaterLightMaterialProfile,
     private val engine: UnifiedWaterLightEngine,
 ) {
+    fun rejectionReason(frame: WaterLightFrame, geometry: WaterLightHostGeometry): String? {
+        when {
+            geometry.host != host -> return "GEOMETRY_HOST_MISMATCH(expected=$host actual=${geometry.host})"
+            material.host != host -> return "MATERIAL_HOST_MISMATCH(expected=$host actual=${material.host})"
+            geometry.version != frame.geometryVersion ->
+                return "FRAME_GEOMETRY_VERSION_MISMATCH(frame=${frame.geometryVersion} geometry=${geometry.version})"
+            !geometry.valid -> return "INVALID_GEOMETRY(rect=${geometry.leftPx},${geometry.topPx},${geometry.rightPx},${geometry.bottomPx})"
+        }
+        return engine.rejectionReason(frame)?.let { "FRAME_IDENTITY_$it" }
+    }
+
     fun accepts(frame: WaterLightFrame, geometry: WaterLightHostGeometry): Boolean =
-        geometry.host == host && material.host == host &&
-            geometry.version == frame.geometryVersion && geometry.valid && engine.accepts(frame)
+        rejectionReason(frame, geometry) == null
 }

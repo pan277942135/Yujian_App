@@ -3,6 +3,7 @@ package com.yujian.ai.ui.waterlight
 import com.yujian.ai.ui.waterlight.core.EnergyAnchor
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneAnimationController
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneTimelineProjection
@@ -31,6 +32,16 @@ class RecognitionSceneFrameTest {
                 "ORB_TO_NAME", "SPECIES_NAME_REVEAL", "RESIDUE_SETTLE",
             ),
             RecognitionSceneStage.entries.map(RecognitionSceneStage::name),
+        )
+    }
+
+    @Test fun frozenFullPathMinimumDurationsSumToSixSeconds() {
+        val expected = listOf(0L, 350L, 600L, 125L, 125L, 450L, 450L, 450L, 1_000L, 350L, 850L, 800L, 450L)
+        assertEquals(expected, RecognitionSceneStage.entries.map(RecognitionSceneStage::minimumVisibleMs))
+        assertEquals(6_000L, expected.sum())
+        assertEquals(
+            expected,
+            RecognitionSceneStage.entries.map { RecognitionSceneAnimationController.DEFAULT_MIN_VISIBLE_MS.getValue(it) },
         )
     }
 
@@ -86,6 +97,16 @@ class RecognitionSceneFrameTest {
         assertEquals(RecognitionSceneStage.ORB_WAKE, playback.advanceToNextStage(70_000L))
         assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentStage)
         assertEquals(0L, playback.previewElapsedMs(70_000L))
+    }
+
+    @Test fun zeroDurationPhotoAnchorStartsRuntimeAtItsFirstPresentedFrame() {
+        val playback = SceneMotionCoordinator()
+        playback.beginNewSession(identity, debugBuild = false, nowMs = 1_000L)
+        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentSceneStage(50_000L))
+        assertTrue(playback.markPhotoFirstFramePresented(identity, 50_100L))
+        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(50_100L))
+        assertEquals(0L, playback.sceneElapsedMs(50_100L))
+        assertEquals(0L, playback.stageElapsedMs(50_100L))
     }
 
     @Test fun productionStageDoesNotAdvanceUntilTheRenderedReleaseEventCompletes() {

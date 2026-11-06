@@ -2,6 +2,7 @@ package com.yujian.ai.ui.recognition.reveal
 
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.recognition.recognitionFishGoldStrength
 
 enum class RecognitionRevealPhase {
     PHOTO_CONTINUITY,
@@ -37,6 +38,9 @@ data class RecognitionRevealFrame(
     val drawOpticalLayer: Boolean,
     val fallback: Boolean,
     val ctaEnabled: Boolean = true,
+    val resultHandoffSubstep: RecognitionResultHandoffSubstep? = null,
+    val resultInformationAlpha: Float = 1f,
+    val resultInteractionEnabled: Boolean = true,
 ) {
     val isComplete: Boolean get() = phase == RecognitionRevealPhase.COMPLETE
     val orbReturnProgress: Float get() = transferProgress
@@ -93,7 +97,11 @@ object RecognitionRevealClock {
                 scene = scene,
                 phase = RecognitionRevealPhase.PHOTO_CONTINUITY,
                 photoProgress = 0f,
-                fishHaloAlpha = if (fullReveal) 1f else 0f,
+                fishHaloAlpha = if (!fullReveal) 0f else when (stage) {
+                    RecognitionSceneStage.FISH_GOLD_PEAK,
+                    RecognitionSceneStage.ORB_RETURN -> recognitionFishGoldStrength(scene, policy.reduceMotion)
+                    else -> 1f
+                },
                 transferProgress = 0f,
                 titleMode = RecognitionRevealTitleMode.HIDDEN,
                 titleFormationProgress = 0f,
@@ -130,8 +138,11 @@ object RecognitionRevealClock {
         return frame(
             scene = scene,
             phase = phase,
-            photoProgress = if (stage == RecognitionSceneStage.ORB_RETURN) smoothStep(progress) else 1f,
-            fishHaloAlpha = if (fullReveal && stage == RecognitionSceneStage.ORB_RETURN) 1f - smoothStep(progress) else 0f,
+            // The shared photo snapshot stays in the Processing viewport through Glyph
+            // formation. Stage 13 owns the single photo-to-result geometry transition.
+            photoProgress = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) smoothStep(progress) else 0f,
+            fishHaloAlpha = if (fullReveal && stage == RecognitionSceneStage.ORB_RETURN)
+                recognitionFishGoldStrength(scene, policy.reduceMotion) else 0f,
             transferProgress = smoothStep(returnProgress),
             titleMode = titleMode,
             titleFormationProgress = smoothStep(formationProgress),

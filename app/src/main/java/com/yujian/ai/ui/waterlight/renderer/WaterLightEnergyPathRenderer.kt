@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
@@ -16,6 +17,7 @@ import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.WaterLightHost
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import kotlin.math.hypot
 import kotlin.math.max
@@ -29,9 +31,7 @@ fun WaterLightEnergyPathRenderer(
     modifier: Modifier = Modifier,
 ) {
     val current = event ?: return
-    if (!current.matches(frame) || current.level <= 0f ||
-        current.feedback !in setOf(EnergyFeedback.RELEASE, EnergyFeedback.ARRIVE, EnergyFeedback.ABSORB, EnergyFeedback.RETURN)
-    ) return
+    if (!current.matches(frame) || current.level <= 0f || !isEnergyPathRenderable(current.feedback)) return
     val route = current.pathSegments.takeIf { it.isNotEmpty() }
         ?: listOfNotNull(current.pathGeometry)
     if (route.isEmpty() || route.any { !it.isValid() }) return
@@ -59,11 +59,24 @@ fun WaterLightEnergyPathRenderer(
         }
 
         val alpha = material.opacity.coerceIn(0f, 1f) * (.35f + .65f * progress)
-        val cool = Color(material.secondaryColor.toInt())
-        val bright = Color(material.highlightColor.toInt())
-        drawPath(visible, cool.copy(alpha = .18f * alpha), style = Stroke(14.dp.toPx(), cap = StrokeCap.Round), blendMode = BlendMode.Screen)
-        drawPath(visible, cool.copy(alpha = .36f * alpha), style = Stroke(6.dp.toPx(), cap = StrokeCap.Round), blendMode = BlendMode.Screen)
-        drawPath(visible, bright.copy(alpha = .72f * alpha), style = Stroke(1.4f.dp.toPx(), cap = StrokeCap.Round), blendMode = BlendMode.Screen)
+        val seeking = material.host == WaterLightHost.PATH && current.feedback == EnergyFeedback.ABSORB
+        val cool = Color((if (seeking) 0xFFD8BC87L else material.secondaryColor).toInt())
+        val bright = Color((if (seeking) 0xFFFFE6B0L else material.highlightColor).toInt())
+        val dashes = if (seeking) PathEffect.dashPathEffect(floatArrayOf(9.dp.toPx(), 6.dp.toPx())) else null
+        if (seeking) {
+            val gold = Color(0xFFD8BC87)
+            val glint = Color(0xFFFFE6B0)
+            drawPath(visible, gold.copy(alpha = .18f * alpha),
+                style = Stroke(2.2f.dp.toPx(), cap = StrokeCap.Round, pathEffect = dashes), blendMode = BlendMode.Screen)
+            drawPath(visible, gold.copy(alpha = .82f * alpha),
+                style = Stroke(.9f.dp.toPx(), cap = StrokeCap.Round, pathEffect = dashes), blendMode = BlendMode.Screen)
+            drawPath(visible, glint.copy(alpha = .44f * alpha),
+                style = Stroke(.65f.dp.toPx(), cap = StrokeCap.Round, pathEffect = dashes), blendMode = BlendMode.Screen)
+        } else {
+            drawPath(visible, cool.copy(alpha = .18f * alpha), style = Stroke(14.dp.toPx(), cap = StrokeCap.Round), blendMode = BlendMode.Screen)
+            drawPath(visible, cool.copy(alpha = .36f * alpha), style = Stroke(6.dp.toPx(), cap = StrokeCap.Round), blendMode = BlendMode.Screen)
+            drawPath(visible, bright.copy(alpha = .72f * alpha), style = Stroke(1.4f.dp.toPx(), cap = StrokeCap.Round), blendMode = BlendMode.Screen)
+        }
         head?.let { position ->
             drawCircle(bright.copy(alpha = .8f * alpha), 2.6.dp.toPx(), position, blendMode = BlendMode.Screen)
             drawCircle(cool.copy(alpha = .24f * alpha), 6.dp.toPx(), position, blendMode = BlendMode.Screen)
@@ -82,6 +95,9 @@ fun WaterLightEnergyPathRenderer(
         }
     }
 }
+
+internal fun isEnergyPathRenderable(feedback: EnergyFeedback): Boolean =
+    feedback in setOf(EnergyFeedback.RELEASE, EnergyFeedback.ABSORB, EnergyFeedback.RETURN)
 
 private fun approximateLength(path: WaterLightPathGeometry): Float {
     var previous = cubicPoint(path, 0f)

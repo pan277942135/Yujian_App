@@ -26,6 +26,7 @@ class WaterLightPathLedger {
     private var orbToPerimeter: WaterLightPathGeometry? = null
     private var perimeterBridge: WaterLightPathGeometry? = null
     private var perimeterToFish: WaterLightPathGeometry? = null
+    private var fishMaskIdentity: String? = null
 
     fun bind(frame: WaterLightFrame): Boolean {
         val photo = frame.photoSha256?.takeIf(String::isNotBlank) ?: return false
@@ -43,6 +44,7 @@ class WaterLightPathLedger {
             orbToPerimeter = null
             perimeterBridge = null
             perimeterToFish = null
+            fishMaskIdentity = null
         }
         return true
     }
@@ -57,8 +59,14 @@ class WaterLightPathLedger {
         frame: WaterLightFrame,
         geometry: WaterLightPathGeometry,
         trustedMask: Boolean,
+        maskIdentity: String,
     ): Boolean {
-        if (!trustedMask || !bind(frame) || !geometry.isValid()) return false
+        if (!trustedMask || maskIdentity.isBlank() || !bind(frame) || !geometry.isValid()) return false
+        if (fishMaskIdentity != maskIdentity) {
+            perimeterToFish = null
+            perimeterBridge = null
+            fishMaskIdentity = maskIdentity
+        }
         if (perimeterToFish == null) {
             perimeterToFish = geometry
             val releaseEdge = orbToPerimeter?.end
@@ -78,19 +86,23 @@ class WaterLightPathLedger {
     }
 
     /** Fish → perimeter → the exact original Orb release anchor. */
-    fun returnRoute(frame: WaterLightFrame, trustedMask: Boolean): WaterLightPathRoute? {
+    fun returnRoute(frame: WaterLightFrame, trustedMask: Boolean, maskIdentity: String? = null): WaterLightPathRoute? {
         if (!bind(frame)) return null
         val release = orbToPerimeter?.reversed() ?: return null
-        val fish = perimeterToFish?.takeIf { trustedMask }?.reversed()
-        val bridge = perimeterBridge?.takeIf { trustedMask }?.reversed()
+        val fish = perimeterToFish?.takeIf {
+            trustedMask && !maskIdentity.isNullOrBlank() && maskIdentity == fishMaskIdentity
+        }?.reversed()
+        val bridge = perimeterBridge?.takeIf {
+            trustedMask && !maskIdentity.isNullOrBlank() && maskIdentity == fishMaskIdentity
+        }?.reversed()
         val segments = listOfNotNull(fish, bridge, release)
-        return WaterLightPathRoute(routeId(requireNotNull(identity)), segments)
+        return WaterLightPathRoute(routeId(requireNotNull(identity), fishMaskIdentity?.takeIf { fish != null }), segments)
             .takeIf(WaterLightPathRoute::isValid)
     }
 
-    fun pathId(frame: WaterLightFrame): String? {
+    fun pathId(frame: WaterLightFrame, maskIdentity: String? = null): String? {
         if (!bind(frame)) return null
-        return identity?.let(::routeId)
+        return identity?.let { routeId(it, maskIdentity?.takeIf { candidate -> candidate == fishMaskIdentity }) }
     }
 
     fun hasReleasePath(frame: WaterLightFrame): Boolean = bind(frame) && orbToPerimeter != null
@@ -100,11 +112,13 @@ class WaterLightPathLedger {
         orbToPerimeter = null
         perimeterBridge = null
         perimeterToFish = null
+        fishMaskIdentity = null
     }
 
-    private fun routeId(value: WaterLightPathIdentity): String =
+    private fun routeId(value: WaterLightPathIdentity, maskIdentity: String? = null): String =
         value.sessionId + ":" + value.attemptId + ":" + value.imageId + ":" +
-            value.photoSha256.take(12) + ":orb-waterlight-route"
+            value.photoSha256.take(12) + ":orb-waterlight-route" +
+            maskIdentity?.let { ":mask-${it.hashCode().toString(16)}" }.orEmpty()
 
     private fun WaterLightPathGeometry.reversed(): WaterLightPathGeometry = copy(
         start = end,

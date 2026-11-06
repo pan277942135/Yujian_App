@@ -11,7 +11,7 @@ Complete the existing Android AI Orb × WaterLight recognition lifecycle in the 
 
 Classifier and SlimSAM remain independent parallel model branches. The classifier result is retained until SlimSAM reaches an explicit terminal state and its mask trust/contour decision is made. Trusted real masks select fish contour/gold; untrusted or failed masks select the real-name Orb-only path. Pending work never becomes failure or success based on elapsed animation time.
 
-The 13 stages remain named semantic visual states. Stage minima and local transitions may use durations, but production cannot stop at a global 2800/850/3650ms cutoff. Debug MANUAL is the default; Debug AUTO uses at least 3000ms per stage and still observes real model gates. One scene authority drives all rendering and seek/pause controls.
+The 13 stages remain named semantic visual states. The frozen Android Runtime timing authority is [`RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md`](../../design/pages/recognition/runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md): the FULL path has 6000ms nominal minimum visible time from the first actually presented PHOTO_STABLE frame. Stage minima are not a global cutoff; real model waits and unfinished stage animations extend wall-clock time without compressing later highlights. Debug MANUAL is the default and previews each main stage for 3000ms before pausing; AUTO uses the frozen production stage minima plus real model, geometry and business-event gates. One scene authority drives all rendering and seek/pause controls.
 
 ## Protected behavior
 
@@ -24,3 +24,8 @@ Required evidence: source-SHA audit, semantic stage/model-gate tests, trusted-ma
 ## Completion rule
 
 Do not mark product visual acceptance PASS from compilation or static tests. Keep unresolved runtime/visual work explicit. The PR remains Draft until the requested code, basic tests and APK are ready for owner validation.
+
+
+## Frozen 6000ms timing authority
+
+The product-owner timing decision is frozen in `design/pages/recognition/runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md` and its machine-readable JSON companion. FULL-path stage minima sum to exactly 6000ms. The legacy SWOS/RR09 3650ms 15-frame design sample is not the end-to-end Android Runtime timing authority. Runtime constants and tests must be brought into alignment with the new contract; this documentation update does not claim that implementation is already complete.

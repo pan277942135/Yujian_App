@@ -1,5 +1,7 @@
 package com.yujian.ai.ui.designsystem.components.aiorb
 
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+
 enum class AIOrbVisualState {
     CAPTURE_BUTTON_IDLE,
     CAPTURE_BUTTON_ACTIVATED,
@@ -8,6 +10,15 @@ enum class AIOrbVisualState {
     ORB_CONTRACTING,
     HIDDEN,
 }
+
+/** Debug comparison of the same core image and the same scene frame. */
+enum class OrbWakeRenderMode { CORE_ONLY, CORE_WITH_OPTICS, FULL_ORB_WAKE }
+
+internal fun orbOpticsVisible(stage: RecognitionSceneStage, mode: OrbWakeRenderMode): Boolean =
+    mode != OrbWakeRenderMode.CORE_ONLY && orbCoreOpticalEffectEnabled(stage)
+
+internal fun orbWakeDetailsVisible(mode: OrbWakeRenderMode): Boolean =
+    mode == OrbWakeRenderMode.FULL_ORB_WAKE
 
 data class AIOrbMotionFrame(
     /** The immutable water core is present from frame zero; wake reveals internal optics only. */
@@ -53,3 +64,8 @@ fun aiOrbProcessingState(
     entranceMs < 350L -> AIOrbVisualState.ORB_MORPH_IN
     else -> AIOrbVisualState.ORB_ACTIVE
 }
+
+/** PHOTO_STABLE keeps the byte-frozen core raster untouched until Orb wake begins. */
+internal fun orbCoreOpticalEffectEnabled(
+    stage: RecognitionSceneStage,
+): Boolean = stage != RecognitionSceneStage.PHOTO_STABLE

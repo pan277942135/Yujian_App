@@ -6,7 +6,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.SceneMaskState
+import com.yujian.ai.ui.waterlight.core.SceneResourceState
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 
 class RecognitionPerimeterShaderMathTest {
@@ -37,31 +40,25 @@ class RecognitionPerimeterShaderMathTest {
     }
 
     @Test
-    fun perimeterExpansionStaysContinuousAcrossExistingReleaseAndArrivalStages() {
+    fun perimeterWaitsForOrbReleaseThenSpreadsFromArrivalOnTheFrozenMaterialWindow() {
         val profile = RecognitionPerimeterOpticalProfileV1.EFFECT_02
         assertEquals(0f, RecognitionPerimeterShaderMath.expansionProgress(
-            frame(RecognitionSceneStage.ORB_RELEASE, 0f).sceneFrame, profile,
+            frame(RecognitionSceneStage.ORB_RELEASE, 1f, opticalReferenceMs = 950L).sceneFrame,
+            profile, perimeterStartOpticalMs = 950L,
         ), 0f)
-        assertEquals(.36f, RecognitionPerimeterShaderMath.expansionProgress(
-            frame(RecognitionSceneStage.ORB_RELEASE, .5f).sceneFrame, profile,
-        ), .0001f)
-        val releaseEnd = RecognitionPerimeterShaderMath.expansionProgress(
-            frame(RecognitionSceneStage.ORB_RELEASE, 1f).sceneFrame, profile,
-        )
-        val arrivalStart = RecognitionPerimeterShaderMath.expansionProgress(
-            frame(RecognitionSceneStage.PERIMETER_ARRIVAL, 0f).sceneFrame, profile,
-        )
-        assertEquals(profile.releaseExpansionShare, releaseEnd, 0f)
-        assertEquals(releaseEnd, arrivalStart, 0f)
-        assertEquals(.86f, RecognitionPerimeterShaderMath.expansionProgress(
-            frame(RecognitionSceneStage.PERIMETER_ARRIVAL, .5f).sceneFrame, profile,
+        assertEquals(0f, RecognitionPerimeterShaderMath.expansionProgress(
+            frame(RecognitionSceneStage.PERIMETER_ARRIVAL, 0f, opticalReferenceMs = 950L).sceneFrame,
+            profile, perimeterStartOpticalMs = 950L,
+        ), 0f)
+        assertEquals(.5f, RecognitionPerimeterShaderMath.expansionProgress(
+            frame(RecognitionSceneStage.PATH_TO_FISH, .5f, opticalReferenceMs = 1_550L).sceneFrame,
+            profile, perimeterStartOpticalMs = 950L,
         ), .0001f)
         assertEquals(1f, RecognitionPerimeterShaderMath.expansionProgress(
-            frame(RecognitionSceneStage.PERIMETER_ARRIVAL, 1f).sceneFrame, profile,
+            frame(RecognitionSceneStage.PATH_TO_FISH, 1f, opticalReferenceMs = 2_150L).sceneFrame,
+            profile, perimeterStartOpticalMs = 950L,
         ), 0f)
-        assertEquals(1f, RecognitionPerimeterShaderMath.expansionProgress(
-            frame(RecognitionSceneStage.PATH_TO_FISH, 0f).sceneFrame, profile,
-        ), 0f)
+        assertEquals(1_200L, WaterLightMaterialProfile.PERIMETER.perimeterSpreadDurationMs)
     }
 
     @Test
@@ -168,12 +165,38 @@ class RecognitionPerimeterShaderMathTest {
         assertTrue(recognitionPerimeterActive(true, RecognitionPhase.CLASSIFYING))
         assertEquals(0f, recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.ORB_WAKE, 1f)), 0f)
         assertEquals(0f, recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.ORB_RELEASE, 0f)), 0f)
-        assertEquals(1f, recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.ORB_RELEASE, 1f)), 0f)
+        assertEquals(0f, recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.ORB_RELEASE, 1f)), 0f)
+        assertEquals(0f, recognitionPerimeterOpacity(true, true, frame(RecognitionSceneStage.ORB_RELEASE, 1f)), 0f)
+        assertTrue(recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.PERIMETER_ARRIVAL, .5f)) > 0f)
         assertEquals(0f, recognitionPerimeterOpacity(true, true, frame(RecognitionSceneStage.PHOTO_STABLE, 0f)), 0f)
         assertEquals(.18f, recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.ORB_RETURN, 1f)), .0001f)
         assertEquals(0f, recognitionPerimeterOpacity(true, false, frame(RecognitionSceneStage.ORB_TO_NAME, 1f)), 0f)
         assertTrue(recognitionPerimeterActive(true, RecognitionPhase.CLASSIFYING))
         assertFalse(recognitionPerimeterActive(true, RecognitionPhase.RESULT))
+    }
+
+    @Test
+    fun modelJoinWaitKeepsAQuietPerimeterLoopUntilBothModelsAreTerminal() {
+        val base = frame(RecognitionSceneStage.PATH_TO_FISH, .8f, opticalReferenceMs = 4_200L)
+        val waiting = base.copy(sceneFrameOverride = base.sceneFrame.copy(
+            modelGates = base.sceneFrame.modelGates.copy(
+                detector = SceneResourceState.READY,
+                classifier = SceneResourceState.WAITING,
+                slimSam = SceneMaskState.PENDING,
+            ),
+        ))
+        assertEquals(.12f, recognitionPerimeterOpacity(true, false, waiting), .0001f)
+        assertEquals(.06f, recognitionPerimeterOpacity(true, true, waiting), .0001f)
+        assertEquals(4.2f, RecognitionPerimeterShaderMath.sourceTimeSec(waiting.sceneFrame), .0001f)
+
+        val joined = base.copy(sceneFrameOverride = base.sceneFrame.copy(
+            modelGates = base.sceneFrame.modelGates.copy(
+                detector = SceneResourceState.READY,
+                classifier = SceneResourceState.READY,
+                slimSam = SceneMaskState.FAILED,
+            ),
+        ))
+        assertEquals(1f, recognitionPerimeterOpacity(true, false, joined), 0f)
     }
 
     private fun frame(stage: RecognitionSceneStage, progress: Float, opticalReferenceMs: Long = 0L) = WaterLightFrame(

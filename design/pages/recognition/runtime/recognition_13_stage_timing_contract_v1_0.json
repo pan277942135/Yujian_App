@@ -1,0 +1,338 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "YUJIAN_RECOGNITION_13_STAGE_TIMING_6000MS_V1",
+  "title": "渔见 AI 13 阶段识鱼 Runtime 时间合同 V1.0",
+  "decision_status": "FROZEN_PRODUCT_DECISION",
+  "decision_date": "2026-11-05",
+  "scope": "Android Recognition Runtime, 13-stage FULL path",
+  "clock_origin": "FIRST_ACTUALLY_PRESENTED_PHOTO_STABLE_FRAME",
+  "total_nominal_minimum_duration_ms": 6000,
+  "duration_semantics": "Sum of stage minimum visible durations. Model waits and any stage animation/event that exceeds its minimum extend wall-clock time; no later stage is compressed to meet a 6000ms deadline.",
+  "interval_convention": "[start_ms,end_ms)",
+  "stages": [
+    {
+      "stage_id": "01",
+      "frame_ids": [
+        "01"
+      ],
+      "name": "PHOTO_STABLE",
+      "duration_ms": 0,
+      "start_ms": 0,
+      "end_ms": 0,
+      "role": "CLOCK_ORIGIN_ONLY",
+      "focus": "Stable photo presented; Orb prepares to wake."
+    },
+    {
+      "stage_id": "02",
+      "frame_ids": [
+        "02"
+      ],
+      "name": "ORB_WAKE",
+      "duration_ms": 350,
+      "start_ms": 0,
+      "end_ms": 350,
+      "focus": "Water core, inner water, caustics, droplets and grass wake."
+    },
+    {
+      "stage_id": "03",
+      "frame_ids": [
+        "03"
+      ],
+      "name": "ORB_RELEASE",
+      "duration_ms": 600,
+      "start_ms": 350,
+      "end_ms": 950,
+      "focus": "Five frozen R06 paths extend and locally return."
+    },
+    {
+      "stage_id": "04",
+      "frame_ids": [
+        "04"
+      ],
+      "name": "PERIMETER_FORM",
+      "duration_ms": 125,
+      "start_ms": 950,
+      "end_ms": 1075,
+      "focus": "WaterLight forms only around the photo perimeter."
+    },
+    {
+      "stage_id": "05",
+      "frame_ids": [
+        "05"
+      ],
+      "name": "FISH_SEEK",
+      "duration_ms": 125,
+      "start_ms": 1075,
+      "end_ms": 1200,
+      "focus": "One or two dashed gold filaments seek the real fish-tail contact."
+    },
+    {
+      "stage_id": "06",
+      "frame_ids": [
+        "06"
+      ],
+      "name": "CONTOUR_A",
+      "duration_ms": 450,
+      "start_ms": 1200,
+      "end_ms": 1650,
+      "focus": "Trusted fish contour begins at the real tail anchor."
+    },
+    {
+      "stage_id": "07",
+      "frame_ids": [
+        "07"
+      ],
+      "name": "CONTOUR_B",
+      "duration_ms": 450,
+      "start_ms": 1650,
+      "end_ms": 2100,
+      "focus": "Blue-gold contour extends along the real fish boundary."
+    },
+    {
+      "stage_id": "08",
+      "frame_ids": [
+        "08"
+      ],
+      "name": "CONTOUR_C",
+      "duration_ms": 450,
+      "start_ms": 2100,
+      "end_ms": 2550,
+      "focus": "Trusted contour closes with stable geometry."
+    },
+    {
+      "stage_id": "09",
+      "frame_ids": [
+        "09"
+      ],
+      "name": "FISH_GOLD_PEAK",
+      "duration_ms": 1000,
+      "start_ms": 2550,
+      "end_ms": 3550,
+      "focus": "Core/Soft/Halo form, hold peak and hand energy to Orb Return."
+    },
+    {
+      "stage_id": "10",
+      "frame_ids": [
+        "10"
+      ],
+      "name": "ORB_RETURN",
+      "duration_ms": 350,
+      "start_ms": 3550,
+      "end_ms": 3900,
+      "focus": "Energy returns along a valid path to the same Orb."
+    },
+    {
+      "stage_id": "11",
+      "frame_ids": [
+        "11.1",
+        "11.2",
+        "11.3"
+      ],
+      "name": "ORB_TO_NAME",
+      "duration_ms": 850,
+      "start_ms": 3900,
+      "end_ms": 4750,
+      "focus": "The same water core stretches and transitions into liquid brush strokes."
+    },
+    {
+      "stage_id": "12",
+      "frame_ids": [
+        "12.1",
+        "12.2",
+        "12.3"
+      ],
+      "name": "SPECIES_NAME_REVEAL",
+      "duration_ms": 800,
+      "start_ms": 4750,
+      "end_ms": 5550,
+      "focus": "Brush strokes aggregate into the real Chinese species name and hold."
+    },
+    {
+      "stage_id": "13",
+      "frame_ids": [
+        "13.1",
+        "13.2",
+        "13.3",
+        "13.4",
+        "13.5"
+      ],
+      "name": "RESIDUE_SETTLE",
+      "duration_ms": 450,
+      "start_ms": 5550,
+      "end_ms": 6000,
+      "focus": "Name hold, photo reposition, result information handoff and stable scene."
+    }
+  ],
+  "highlight_subphases": {
+    "stage_09": [
+      {
+        "id": "GOLD_FORM",
+        "duration_ms": 300,
+        "start_ms": 0,
+        "end_ms": 300
+      },
+      {
+        "id": "GOLD_PEAK_HOLD",
+        "duration_ms": 500,
+        "start_ms": 300,
+        "end_ms": 800,
+        "minimum_continuous_peak_hold_ms": 500
+      },
+      {
+        "id": "ENERGY_HANDOFF",
+        "duration_ms": 200,
+        "start_ms": 800,
+        "end_ms": 1000
+      }
+    ],
+    "stage_11": [
+      {
+        "frame_id": "11.1",
+        "name": "ORB_CORE_HOLD",
+        "duration_ms": 100,
+        "start_ms": 0,
+        "end_ms": 100
+      },
+      {
+        "frame_id": "11.2",
+        "name": "ORB_HORIZONTAL_STRETCH",
+        "duration_ms": 350,
+        "start_ms": 100,
+        "end_ms": 450
+      },
+      {
+        "frame_id": "11.3",
+        "name": "LIQUID_BRUSH_TRANSITION",
+        "duration_ms": 400,
+        "start_ms": 450,
+        "end_ms": 850
+      }
+    ],
+    "stage_12": [
+      {
+        "frame_id": "12.1",
+        "name": "STROKE_AGGREGATION",
+        "duration_ms": 150,
+        "start_ms": 0,
+        "end_ms": 150
+      },
+      {
+        "frame_id": "12.2",
+        "name": "GLYPH_EMERGENCE",
+        "duration_ms": 200,
+        "start_ms": 150,
+        "end_ms": 350
+      },
+      {
+        "frame_id": "12.3",
+        "name": "SPECIES_NAME_FINAL",
+        "duration_ms": 450,
+        "start_ms": 350,
+        "end_ms": 800,
+        "minimum_readable_name_hold_ms": 450
+      }
+    ],
+    "stage_13": {
+      "frame_ids": [
+        "13.1",
+        "13.2",
+        "13.3",
+        "13.4",
+        "13.5"
+      ],
+      "parent_duration_ms": 450,
+      "independent_child_durations": "NOT_FROZEN",
+      "progression": "EVENT_AND_GEOMETRY_DRIVEN"
+    }
+  },
+  "parallel_pre_entry_animations": [
+    {
+      "id": "PHOTO_MORPH",
+      "duration_ms": 700,
+      "execution": "PARALLEL"
+    },
+    {
+      "id": "CAMERA_ORB_ENTRANCE",
+      "duration_ms": 900,
+      "execution": "PARALLEL"
+    },
+    {
+      "included_in_6000ms_total": false,
+      "rule": "Do not serialize or add these durations to the 6000ms Recognition Runtime schedule."
+    }
+  ],
+  "playback": {
+    "release_auto": {
+      "default_for_release": true,
+      "advance_requires": [
+        "stage_minimum_elapsed",
+        "stage_animation_complete",
+        "real_business_event_and_model_geometry_gates"
+      ],
+      "global_6000ms_hard_cutoff": false
+    },
+    "debug_manual": {
+      "default_for_debug": true,
+      "preview_duration_per_main_stage_ms": 3000,
+      "auto_pause_after_each_stage": true,
+      "explicit_next_required": true,
+      "affects_release_timing": false
+    }
+  },
+  "model_gates": {
+    "classifier_and_slim_sam_independent": true,
+    "pending_wait_counts_toward_stage_minimums": false,
+    "pending_wait_extends_wall_clock": true,
+    "timeout_ms": 60000,
+    "fake_mask_or_species_name_forbidden": true,
+    "stale_attempt_results_forbidden": true
+  },
+  "branches": {
+    "FULL": {
+      "uses_stages": [
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "13"
+      ],
+      "nominal_minimum_visual_duration_ms": 6000
+    },
+    "ORB_ONLY": {
+      "skips_stages": [
+        "06",
+        "07",
+        "08",
+        "09"
+      ],
+      "artificial_fill_to_6000ms": false,
+      "retains_stages": [
+        "10",
+        "11",
+        "12",
+        "13"
+      ],
+      "duration": "May be shorter than FULL; no fabricated fish contour/gold."
+    }
+  },
+  "result_stability": {
+    "stage_13_5_persists_after_6000ms": true,
+    "auto_dismiss": false
+  },
+  "legacy_contract_compatibility": {
+    "legacy_swos_rr09_nominal_ms": 3650,
+    "legacy_scope": "Legacy P0-P7/R0-R5 15-frame optical/Web design reference only.",
+    "android_13_stage_runtime_authority": "THIS_6000MS_CONTRACT",
+    "do_not_add_legacy_3650ms_to_6000ms": true
+  },
+  "implementation_status": "PENDING_RUNTIME_IMPLEMENTATION",
+  "device_visual_acceptance": "PENDING"
+}

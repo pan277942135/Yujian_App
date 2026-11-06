@@ -1,0 +1,113 @@
+{
+  "base_branch": "main",
+  "base_sha": "74cad95b4f673bd9c8c60d16839f036d5886d933",
+  "blockers": [],
+  "branch": "feature/orb-photo-stable-visual-closure-v1",
+  "checkpoint_updated_at": "2026-11-05T13:54:37Z",
+  "control_plane_revision": "74cad95b4f673bd9c8c60d16839f036d5886d933",
+  "dependencies": [
+    "P5-02",
+    "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
+  ],
+  "evidence": {
+    "cp01_source_sha": "81a0c257417c0be050e8dd57ace95e97619babf4",
+    "cp02_orb_workflow": "42010365270:PASS",
+    "cp02_source_sha": "ab2407ab42459f12ccb8178df7ebe3badc396c13",
+    "cp03_orb_workflow": "42011287356:PASS",
+    "cp03_source_sha": "4dc78515bb006f2952386d046db079eb2dce3162",
+    "cp04_artifact_id": "13411636116",
+    "cp04_artifact_zip_sha256": "88f63f470f1fb65693da1d15494250e934a6cf5b6081bdae334013457f84d452",
+    "cp04_code_sha": "9e8d99471c2db09c9e244d804a4cc8da3c5d3c2c",
+    "cp04_exact_workflow": "42019562279:PASS_UNIT_DEBUG_ANDROIDTEST_RESOURCE",
+    "cp04_initial_workflow": "42018883250:FAIL_TEST_ASSERTION_CORRECTED",
+    "cp04_report_commit_sha": "634a0361da67474c1602ce41884034b798fc3f5c",
+    "cp04_validated_source_sha": "84c2bf30d51d38c3720f4124315ec799de601bd1",
+    "cp05_artifact_id": "13412648411",
+    "cp05_artifact_zip_sha256": "95ddc762487169e3a6ce6b059f37a65304e54b20485233e2f087fdb0a4a0348a",
+    "cp05_code_sha": "ead45796f8332ef673fd615402c72b995fb5f09d",
+    "cp05_exact_workflow": "42023472919:PASS_UNIT_DEBUG_ANDROIDTEST_RESOURCE",
+    "cp05_failure_fix_commit_sha": "ead45796f8332ef673fd615402c72b995fb5f09d",
+    "cp05_initial_workflow": "42022698826:FAIL_KOTLIN_COMPILE_MISSING_RETURN",
+    "cp05_visual": "NOT_RUN",
+    "cp06_status": "PASS",
+    "final_v1_2_apk": "Yujian_Recognition_Runtime_V1_2_Debug.apk",
+    "visual": "NOT_RUN",
+    "cp05_report_commit_sha": "e59423bb276eb1cc827e1a6b4cbda277924ad5f9",
+    "timing_contract_document_commit": "4083b7e26eb1e0b85e4bb5709e85881820971e21",
+    "cp06_code_sha": "465b23a08d422c53b41f2a478f56e2d07834eac3",
+    "cp06_validated_source_sha": "f53580b5554d62e8ef26e485c2f902c885ec7121",
+    "cp06_exact_workflow": "42030743624:PASS_UNIT_DEBUG_ANDROIDTEST_RESOURCE",
+    "cp06_syntax_fix_commit_sha": "414a611b665590c93b36fcc3f3502dbd1ff96434",
+    "cp06_timing_test_fix_commit_sha": "f53580b5554d62e8ef26e485c2f902c885ec7121",
+    "cp06_initial_workflow": "42029128760:FAIL_KOTLIN_DIAGNOSTIC_INTERPOLATION_SYNTAX",
+    "cp06_intermediate_workflow": "42030011021:FAIL_ONE_STALE_TIMING_ASSERTION_395_OF_396",
+    "cp06_artifact_id": "13415968163",
+    "cp06_artifact_zip_sha256": "a205d780428b56643e0553af3aa8b6099e400b33f4a169c9815141e11e3133d0",
+    "cp06_visual": "NOT_RUN",
+    "full_android_ci_cp06": "42030743619:FAIL_EMPTY_HOME_RUNTIME_V2_PRE_GRADLE",
+    "runtime_implementation_status": "CP06_TIMING_IMPLEMENTED_VERIFIED; CP07_RESULT_HANDOFF_PENDING",
+    "cp07_status": "PASS",
+    "cp07_source_sha": "beed77ad31bb54010148c7bf459f3b445ccbcd23",
+    "cp07_exact_workflow": "42037876704:PASS_UNIT_DEBUG_ANDROIDTEST_RESOURCE_ARTIFACT",
+    "cp07_artifact_id": "13419188038",
+    "cp07_artifact_zip_sha256": "38ba6c85d2bd6b5da2e3c84f25324d2ed9d2081b40a7ee83009d67f8b242f8fc",
+    "full_android_ci_cp07": "42037876742:FAIL_EMPTY_HOME_RUNTIME_V2_PRE_GRADLE",
+    "control_plane_admission_cp07": "42037885114:BLOCKED_BRANCH_STATE_FILES",
+    "final_apk_sha256": "1de29d32ec185b32b5c1cdc5f156e22a25afed79fe1bbe54cb10829391d0dd66",
+    "final_apk_size_bytes": 144083254,
+    "final_apk_library_file_id": "libfile_beb7dfacadc881918b79857f1be3c2cf",
+    "final_apk_library_version": 1,
+    "final_exact_source_build": "beed77ad31bb54010148c7bf459f3b445ccbcd23",
+    "final_exact_workflow": "42037876704:PASS",
+    "final_v1_2_status": "V1_2_RUNTIME_IMPLEMENTED_AND_DEBUG_APK_DELIVERED"
+  },
+  "execution_v2": {
+    "issues": {
+      "e61a0632b5d43c196940": {
+        "closed": true,
+        "failures": [
+          {
+            "evidence": "Orb workflow 42022698826; Kotlin compiler: RecognitionFishTailAnchor.kt:132:5 Missing return statement; asset verification passed; no tests or APK tasks ran.",
+            "hypothesis": "RecognitionFishTailAnchor.mapToViewport changed from an expression body to a block body without returning the mapped point.",
+            "source_sha": "479da6bec14a4e053a71c33bacf6eb95503de475"
+          }
+        ],
+        "fix_evidence": {
+          "evidence": "Exact-source Orb workflow 42023472919 on ead45796f8332ef673fd615402c72b995fb5f09d passed full Android unit tests, assembleDebug, assembleDebugAndroidTest, packaged capture/Orb asset checks, and artifact upload; this closes the compile defect only, not device visual acceptance.",
+          "source_sha": "ead45796f8332ef673fd615402c72b995fb5f09d"
+        },
+        "gate_id": "CP05_EXACT_HEAD_ANDROID_COMPILE",
+        "symptom_key": "TAIL_ANCHOR_MISSING_RETURN",
+        "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3"
+      }
+    },
+    "schema_version": "1.0"
+  },
+  "next_action": "Product owner installs the Library APK for device visual acceptance. Keep PR #317 Draft and unmerged. Track CP03 R06 frozen-source identity and unrelated Empty Home/control-plane gates without replacing the delivered APK.",
+  "phase": "P6",
+  "repository": "pan277942135/Yujian_App",
+  "schema_version": "1.0",
+  "source_sha": "beed77ad31bb54010148c7bf459f3b445ccbcd23",
+  "stage": "FINAL_TEST_AND_DELIVERY",
+  "status": "IMPLEMENTED_AND_DEBUG_APK_DELIVERED",
+  "task_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2",
+  "work_id": "YUJIAN_RECOGNITION_RUNTIME_13_STAGE_INTEGRATION_V1_2",
+  "timing_contract": {
+    "contract_id": "YUJIAN_RECOGNITION_13_STAGE_TIMING_6000MS_V1",
+    "authority_path": "design/pages/recognition/runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md",
+    "machine_path": "design/pages/recognition/runtime/recognition_13_stage_timing_contract_v1_0.json",
+    "decision_status": "FROZEN_PRODUCT_DECISION",
+    "full_path_nominal_minimum_duration_ms": 6000,
+    "clock_origin": "FIRST_ACTUALLY_PRESENTED_PHOTO_STABLE_FRAME",
+    "debug_manual_preview_per_main_stage_ms": 3000,
+    "model_timeout_ms": 60000,
+    "runtime_implementation_status": "CP01_CP07_IMPLEMENTED_AND_EXACT_SOURCE_VERIFIED; DEVICE_VISUAL_NOT_RUN",
+    "scope": "FULL path; ORB_ONLY skips untrusted fish contour/gold and is not padded to 6000ms"
+  },
+  "unresolved": [
+    "CP03 R06 frozen resource source identity remains NOT_CONFIRMED.",
+    "Device visual checks for AGSL, Orb Wake, fish gold, Glyph, and Result handoff remain NOT_RUN.",
+    "Full Android CI is blocked before Gradle by the existing EMPTY_HOME_RUNTIME_V2 contract; control-plane admission rejects required branch-local state files.",
+    "AndroidTest APK was built but not run on a device; API28 was not tested."
+  ]
+}

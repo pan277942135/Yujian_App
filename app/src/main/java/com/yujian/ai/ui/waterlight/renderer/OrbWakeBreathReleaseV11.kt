@@ -7,6 +7,7 @@ import kotlin.math.sin
 /** Pure projections from the shared scene frame and its semantic stage-local progress. */
 internal object OrbWakeBreathReleaseV11 {
     private const val S2_TRANSITION_LOCAL_MS = 450f
+    private const val WAKE_KEYFRAME_EPSILON_MS = .001f
     private const val RELEASE_RETURN_PROGRESS = 34f / 60f
     const val R06_ALPHA_GAIN = 1.28f
     const val R06_ALPHA_CAP = .82f
@@ -51,10 +52,10 @@ internal object OrbWakeBreathReleaseV11 {
         if (stage == RecognitionSceneStage.PHOTO_STABLE) return Wake(0f, 0f, 0f)
         if (stage != RecognitionSceneStage.ORB_WAKE) return Wake(1f, 1f, 1f)
         val localMs = p * RecognitionSceneStage.ORB_WAKE.minimumVisibleMs
-        val optics = if (localMs < 80f) 0f else wakeEase(
+        val optics = if (localMs < 80f + WAKE_KEYFRAME_EPSILON_MS) 0f else wakeEase(
             (localMs - 80f) / (RecognitionSceneStage.ORB_WAKE.minimumVisibleMs - 80f),
         )
-        val water = if (localMs < 220f) 0f else wakeEase(
+        val water = if (localMs < 220f + WAKE_KEYFRAME_EPSILON_MS) 0f else wakeEase(
             (localMs - 220f) / (RecognitionSceneStage.ORB_WAKE.minimumVisibleMs - 220f),
         )
         return Wake(optics, water, water)

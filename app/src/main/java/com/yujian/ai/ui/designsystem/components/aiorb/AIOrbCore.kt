@@ -12,16 +12,20 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.annotation.DrawableRes
+import android.util.Log
 import com.yujian.ai.R
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
 import com.yujian.ai.ui.waterlight.renderer.OrbCoreOpticalEffects
 import com.yujian.ai.ui.waterlight.renderer.OrbFilamentRendererMode
@@ -80,6 +84,7 @@ fun AIOrbCore(
     orbShowDroplets: Boolean = true,
     orbShowSunlight: Boolean = true,
     orbShowCaustics: Boolean = true,
+    wakeRenderMode: OrbWakeRenderMode = OrbWakeRenderMode.FULL_ORB_WAKE,
 ) {
     when (state) {
         AIOrbVisualState.CAPTURE_BUTTON_IDLE -> YuJianCaptureButton(
@@ -125,6 +130,7 @@ fun AIOrbCore(
             orbShowDroplets = orbShowDroplets,
             orbShowSunlight = orbShowSunlight,
             orbShowCaustics = orbShowCaustics,
+            wakeRenderMode = wakeRenderMode,
             modifier = modifier,
         )
         AIOrbVisualState.HIDDEN -> Unit
@@ -170,6 +176,7 @@ private fun OrbVisual(
     orbShowDroplets: Boolean,
     orbShowSunlight: Boolean,
     orbShowCaustics: Boolean,
+    wakeRenderMode: OrbWakeRenderMode,
     modifier: Modifier,
 ) {
     val frame = aiOrbMotionFrame(entranceElapsedMs, fromCamera, reduceMotion, completion)
@@ -183,11 +190,6 @@ private fun OrbVisual(
     val activeEnergyEvent = energyEvent?.takeIf { it.matches(sharedFrame) }
     val releaseEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RELEASE) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
     val returnEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RETURN) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
-    val orbEnergyDepletion = when (activeEnergyEvent?.feedback) {
-        EnergyFeedback.RELEASE -> .18f * releaseEnergy
-        EnergyFeedback.RETURN -> .18f * (1f - returnEnergy)
-        else -> 0f
-    }
     // Actual event geometry/time stays in the one shared frame; no additional timer is created.
     val effectiveMotionEvent = if (orbMotionEvent != OrbRuntimeProfileV1.MotionEvent.NONE) orbMotionEvent else when (activeEnergyEvent?.feedback) {
         EnergyFeedback.RELEASE -> OrbRuntimeProfileV1.MotionEvent.RELEASE
@@ -207,6 +209,11 @@ private fun OrbVisual(
         stageProgress = sceneFrame.stageProgress,
         reducedMotion = reduceMotion,
     )
+    val photoStable = sceneFrame.stage == RecognitionSceneStage.PHOTO_STABLE
+    val opticalEffectEnabled = orbOpticsVisible(sceneFrame.stage, wakeRenderMode)
+    // Asset01's source alpha and exposure are invariant across S1/S2 and energy events.
+    // Release and return are expressed by the existing filaments and optical layers.
+    val coreImageAlpha = 1f
     val context = LocalContext.current
     val density = LocalDensity.current
     val coreTextureSizePx = with(density) { (coreSize / .84f).toPx() }
@@ -232,28 +239,80 @@ private fun OrbVisual(
             coreOpticalEffect?.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
         }
     }
+    val corePainter = painterResource(R.drawable.processing_water_core_v1)
+    val appliedRenderEffect = coreOpticalEffect?.renderEffect?.takeIf { opticalEffectEnabled }
+    val wakeBand = when {
+        sceneFrame.stage == RecognitionSceneStage.PHOTO_STABLE -> "PHOTO_STABLE"
+        sceneFrame.stage == RecognitionSceneStage.ORB_WAKE && sceneFrame.stageElapsedMs < 80L -> "BEFORE_80MS"
+        sceneFrame.stage == RecognitionSceneStage.ORB_WAKE && sceneFrame.stageElapsedMs < 220L -> "OPTICS_ACTIVE"
+        sceneFrame.stage == RecognitionSceneStage.ORB_WAKE -> "WATER_ACTIVE"
+        else -> "FULL_ACTIVE"
+    }
+    val layoutLogKeys = remember(sceneFrame.identity) { mutableSetOf<String>() }
+    androidx.compose.runtime.LaunchedEffect(
+        sceneFrame.stage,
+        wakeBand,
+        wakeRenderMode,
+        orbRendererMode,
+        opticalEffectEnabled,
+        coreOpticalEffect?.renderEffect != null,
+    ) {
+        Log.i(
+            "AiOrbVisibility",
+            "CORE_RENDER stage=${sceneFrame.stage} progress=${sceneFrame.stageProgress} " +
+                "resource=processing_water_core_v1.webp intrinsic=${corePainter.intrinsicSize} " +
+                "effect_created=${coreOpticalEffect?.renderEffect != null} effect_applied=${appliedRenderEffect != null} mode=$wakeRenderMode " +
+                "effect_reason=${if (opticalEffectEnabled) "WAKE_ACTIVE" else "PHOTO_STABLE_RAW_CORE"} " +
+                "wake_band=$wakeBand r06_renderer=$orbRendererMode " +
+                "r06_candidate_paths=${OrbRuntimeProfileV1.paths.size} " +
+                "r06_life_alpha=$candidateLifeAlpha wake_optics=${wake.optics} " +
+                "wake_water=${wake.waterCore} wake_grass=${wake.grassLight} " +
+                "image_alpha=$coreImageAlpha image_size_dp=${coreSize.value / .84f} " +
+                "scale=${if (photoStable) 1f else breath}",
+        )
+    }
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
-            scaleX = (1f - .18f * settle) * breath
+            scaleX = (1f - .18f * settle) * (if (photoStable) 1f else breath)
             scaleY = scaleX
             alpha = frame.completionAlpha
         },
         contentAlignment = Alignment.Center,
     ) {
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
+        if (orbWakeDetailsVisible(wakeRenderMode)) OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
             orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
             activeEnergyEvent, releaseEnergy, returnEnergy)
         Image(
-            painter = painterResource(R.drawable.processing_water_core_v1),
+            painter = corePainter,
             contentDescription = null,
             modifier = Modifier.size(coreSize / .84f).graphicsLayer {
-                alpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
+                alpha = coreImageAlpha
                 scaleX = 1f
                 scaleY = 1f
-                coreOpticalEffect?.renderEffect?.let { renderEffect = it }
+            }.onGloballyPositioned { coordinates ->
+                val settled = entranceElapsedMs >= 900L
+                val logKey = "${sceneFrame.stage}:${if (settled) "SETTLED" else "ENTRY"}"
+                if (layoutLogKeys.add(logKey)) {
+                    val bounds = coordinates.boundsInWindow()
+                    Log.i(
+                        "AiOrbVisibility",
+                        "CORE_IMAGE_LAYOUT stage=${sceneFrame.stage} settled=$settled " +
+                            "bounds_px=${bounds.left},${bounds.top},${bounds.right},${bounds.bottom} " +
+                            "size_px=${coordinates.size.width}x${coordinates.size.height} alpha=$coreImageAlpha " +
+                            "shader_applied=${appliedRenderEffect != null} source_core=VISIBLE",
+                    )
+                }
             },
         )
-        OrbCoreOpticalEffects(
+        if (appliedRenderEffect != null) Image(
+            painter = corePainter,
+            contentDescription = null,
+            modifier = Modifier.size(coreSize / .84f).graphicsLayer {
+                alpha = coreImageAlpha
+                renderEffect = appliedRenderEffect
+            },
+        )
+        if (orbWakeDetailsVisible(wakeRenderMode)) OrbCoreOpticalEffects(
             coreSize = coreSize,
             frame = sharedFrame,
             coreAlpha = 1f,
@@ -278,7 +337,7 @@ private fun OrbVisual(
                 },
             )
         }
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
+        if (orbWakeDetailsVisible(wakeRenderMode)) OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
             orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
             activeEnergyEvent, releaseEnergy, returnEnergy)
     }
