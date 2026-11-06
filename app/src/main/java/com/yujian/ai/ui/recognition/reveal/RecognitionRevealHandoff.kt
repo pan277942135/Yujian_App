@@ -159,9 +159,33 @@ object RecognitionRevealHandoffFactory {
                 point.x in photo.viewportBoundsInWindow.left..photo.viewportBoundsInWindow.right &&
                 point.y in photo.viewportBoundsInWindow.top..photo.viewportBoundsInWindow.bottom
         }
-        val anchorSource = if (maskTrusted) {
-            bottomContourAnchor(requireNotNull(subject).contour, subject.subjectBox,
-                subject.contourSourceSpace == "CANONICAL_PHOTO_NORMALIZED")
+        val orbSourceNormalized = if (photo != null && orbAnchor != null) {
+            val transform = photo.sourceToViewport
+            if (transform.sourceWidthPx == image.bitmap.width &&
+                transform.sourceHeightPx == image.bitmap.height &&
+                transform.drawnWidth.isFinite() && transform.drawnWidth > 1f &&
+                transform.drawnHeight.isFinite() && transform.drawnHeight > 1f
+            ) {
+                DisplayPoint(
+                    x = (orbAnchor.x - photo.viewportBoundsInWindow.left - transform.translationX) / transform.drawnWidth,
+                    y = (orbAnchor.y - photo.viewportBoundsInWindow.top - transform.translationY) / transform.drawnHeight,
+                ).takeIf { it.x.isFinite() && it.y.isFinite() && it.x in 0f..1f && it.y in 0f..1f }
+            } else {
+                null
+            }
+        } else {
+            null
+        }
+        val anchorSource = if (maskTrusted && photo != null && orbSourceNormalized != null) {
+            val trustedSubject = requireNotNull(subject)
+            RecognitionNearestContourContactPoint.resolve(
+                contour = trustedSubject.contour,
+                subjectRoiInSource = trustedSubject.subjectBox,
+                contourIsCanonicalPhoto = trustedSubject.contourSourceSpace == "CANONICAL_PHOTO_NORMALIZED",
+                sourceWidthPx = image.bitmap.width,
+                sourceHeightPx = image.bitmap.height,
+                orbSourceNormalized = orbSourceNormalized,
+            )
         } else {
             null
         }
