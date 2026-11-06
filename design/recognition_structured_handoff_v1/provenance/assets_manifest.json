@@ -1,0 +1,474 @@
+{
+  "status": "SOURCE_BACKED_WITH_EXPLICIT_VISUAL_GAPS",
+  "photoSourceQuality": "PENDING_SOURCE_ASSET",
+  "assets": [
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/01_PHOTO_STABLE.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "b72ffa23dfd84535f6a62c3b68bcbe3d11e093bdb236f123f2c33301089ee671",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/02_ORB_WAKE.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "c023f71cf2bfbc9077567d3f392c6b8c28628ca524dcca262146e95908fb6ad2",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/03_ORB_RELEASE.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "7397efd348962cf798c2df10f27e11735decddb90137ab14d66a14399c3d574d",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/04_PERIMETER_ARRIVAL.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "71d9090f766ab59200c998edbb3372f7ebdb9badcfdc7745de7dc559a1c83181",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/05_PATH_TO_FISH.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "53673be548ff75d6dc20aa98a4a3ba8f938f60021d23edca6203792a03e86674",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/06_CONTOUR_A.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "60679c99e78ded5effe40c9fb04ad076d388ba1751f63a8a8a9728d86431f807",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/07_CONTOUR_B.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "a87f0f47fbb04f941587488bd2c707fda1c5429a99e27f74c309900e78053432",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/08_CONTOUR_C.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "10b1a9151c558aadc45a984b007cb0046453e4bab15a14febcb8cda3a056ebcb",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/09_FISH_GOLD_PEAK.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "37b56f357ebca7a81fc52aaff1a3e9b3fd313e2a1573373e5ce0f8214551e0f7",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/10_ORB_RETURN.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "1f352ccf8bb84edc0bc226f9aff9afc8969bbe85f4b75e0317cd97d31aa53a34",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/11_1_WATER_CORE_STRETCH.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "4cf05d0b37a00b732b5664d6c6ce866befed4ed75f7a512588541c9f254a6683",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/11_2_HORIZONTAL_STRETCH.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "34d5cf736704584d1a3f0406a91ff634d0e260bf35c6d83b81b8d3fa52d1f97c",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/11_3_WATERLIGHT_DECONSTRUCTION.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "f6ff2e7c4d9db1aab609c66fbe7c0ac3783394c6c69c58a4264e2e180565aeed",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/12_1_STROKE_AGGREGATION.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "f6ff2e7c4d9db1aab609c66fbe7c0ac3783394c6c69c58a4264e2e180565aeed",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/12_2_GLYPH_EMERGENCE.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "9af01543254b3902891b77bfd8d4a240e3da42726b48a7a1a78ca677c33fe132",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/12_3_SPECIES_NAME_FINAL.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "616271d0f06de9b8e1793d65163070ac6dfcd974830df26dd00db63e2370fd62",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/13_1_RESULT_NAME_HOLD.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "616271d0f06de9b8e1793d65163070ac6dfcd974830df26dd00db63e2370fd62",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/13_2_PHOTO_REPOSITION.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "19e34a89171b9e23d6ca5df00c3036e7c3464fdde2debb6e66ebecc98b82f9bd",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/13_3_RESULT_HANDOFF.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "2f5e83ffaf747ab05fc36ae2b33b787ecd1d34c8d779df36a7008ecbce85512a",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/13_4_RESULT_INFO_ARRIVAL.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "cd4b921dc2d645428a85ff90f7860921fdf39af8a01f8b428a05dcdfe8bc1754",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "V3 candidate",
+      "path": "design/recognition_flow/hifi_freeze_v1/keyframes/13_5_RESULT_SCENE_STABLE.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "eec89fe4863e546e474e0341aad349e549cefc151d3a4ac770e8214d5ad10e53",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/01 PHOTO_STABLE_照片稳定.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "066c56545df8edd31b623d9f790fbaad726a3badd0f836398cb4ffcb99c740a6",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/02 ORB_WAKE Orb 苏醒.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "bc825f78f207e4bce4b46b8fc3405037ff6e08e13dd405166a278cdb28339d9c",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/04 PERIMETER_ARRIVAL_水光抵达照片外围.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "38e72619217d64b74a8649d298dd6a3bb1a6d14f1b2a1e597dea6b710fe2f733",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/05 PATH_TO_FISH_光丝寻鱼.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "c99d3588262a7ff7ee96b9070d71fb886a37d1ae2723a04db8caa5ae14083a6b",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/06 CONTOUR_A_鱼体轮廓 A 形成.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "599401f1dd17ec1c3c9ab7b1c32c95fe86acd5b3b413a4a351ae96ba4d2f5123",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/07 CONTOUR_B_鱼体轮廓 B 形成.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "f2813e6065920266d42fe6db9fc5a078b2e2fc6dadd2fc1261bc8903683d37d6",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/08 CONTOUR_C_鱼体轮廓 C 完成.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "1fbda0d5b1bcf6ddd4a9c250f8ebffa03bdab0a2a976ccaa1720a25c17be1782",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/09 FISH_GOLD_PEAK_鱼体金光凝聚.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "1fe817b3ad1438d76dfaa6acf53d4c30d86b848cda737be2be99e4ede4142b5c",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/10 ORB_RETURN_Orb 能量回收.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "df7795ca1d041440e982f76aca3f968e4b29d5817a0930980571e1ae846cfbad",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/11.1 水核舒展  保持完整球体，准备形变.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "ae193c9ec6479970f75b440e4f34b5f7ba9d73454ec9c0fe3d42043ef43c6938",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/11.2 横向舒展  水核横向延展，水草与光丝舒展.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "31b6f6d2f49e6410d12f5b21c6ef4e7db26ba2473f53d9007f336f364d303d6f",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/11.3 水光解构  液态能量解构，转化为墨韵笔势.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "eb762d23ace1a67a10341164c6475e6dfe7130d93b422a344ffc2acbe7fc9fd9",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/12.1 笔势聚合  水墨笔画开始形成.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "e4530631e15252418a8985deecd241c8fed2bf849ec891ab39b2deaf9d6c86e4",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/12.3 名称定形  完整鱼种名称清晰呈现.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "552f1830a1da4f2bf81a9bc0e2305607344651b98ab18daa09fb7d59d50c43a4",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/13.1 余辉收束、照片归位.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "d28965f6c6b3bf0b9cb2055a790e83f6306f82e625ad27aa0b49fcbd624d7326",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/13.2 识别结果页面转场.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "3551fd1138165be0df6679f67e5e96fce66e25493eec4d3117855a44bbb3383a",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/AI Orb三态视觉规范板.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "5245ccd5622e6006f8d3a41edbcd6833654a2a838bd191946e9388429567a034",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/AI Orb视觉资源与动效设计总览.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "a3a388a463e01d9ecda54dbd332ce80d0ef366afcd185084eebfccf512989d13",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/ORB_GRASS_MASK_PATH_ALIGNMENT_PREVIEW_V1_1.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "3f06a9c88881c746f6a4dd7abc5505229832bc4e837009d7ff0a009259a5f868",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "historical",
+      "path": "design/recognition_flow/hifi_freeze_v1/provenance/originals/透明湖水玻璃球.png",
+      "availability": "LOCAL_V3_PACKAGE_NOT_YET_TRACKED_IN_MAIN",
+      "sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee",
+      "policy": "REFERENCE_ONLY"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/assets/paths/R06_orb_filament_path_geometry.json",
+      "availability": "TRACKED_MAIN",
+      "sha256": "1dfc85e651440d88c18d80daf51bbaa081e058fa60061bed6c8801aededf4cdc",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/assets/paths/R06_orb_filament_paths.svg",
+      "availability": "TRACKED_MAIN",
+      "sha256": "d321c2bdd709145fadf73f52fc3f5d81a93c7e4e9d1074dc9adf783810287389",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/audits/R06_visual_difference_report.md",
+      "availability": "TRACKED_MAIN",
+      "sha256": "cd87b06f199077a4164b7afafab9c779b2b36b48b45e8f0ca6add25dd617b88b",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/boards/R06_14dp_vs_extended_candidate.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "6e6e2df6c497604848b8d225627272d9e1c9e489bdffb071aa8e68f551b94cf7",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/boards/R06_68dp_80dp_light_dark_final.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "ef60ad6866b61d2e61a1b83f9c78a111db95ce9531016079971d98e4dfa02279",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/boards/R06_S2_motion_frames.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "353c7aad4f6e091070ea9e0a0f5435930e20b7370dd542d46e88b70deb788645",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/boards/R06_cyan_water_ribbon_material_breakdown.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "5bcdac6295a2dbf77db8d371b8ec549764969e226b458052fca5d1278530eacd",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/boards/R06_four_motion_samples_final.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "1b1da2aff9cc5148e6b7208801a18dbf971883358a87e1b34ba6992e7c30391b",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/boards/R06_front_back_spatial_relationship.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "1665c7ba1b3dd2b1567f7f3edea081175a49cb2bf0cd57550f16abb2996d97b6",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/boards/R06_gold_filament_material_breakdown.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "97e65a4a630870c75f641258a78cfc7738e21f256d021c2e489be2ae9f5f5a6f",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/boards/R06_green_ribbon_material_breakdown.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "eee95386fa78e52455f7321b32106f1b9f5ffef89898c1ef8fe79efc3cb17a0d",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/boards/R06_orb_filament_depth_layers.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "6da33cb3fbe6225117810cd90e7bbdb8cac742f274e664e18675d56a452f2015",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/boards/R06_release_return_direction.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "9e139ec373bf6640ce137315a9a0e513dbd5333a5579825e264effb072710bf4",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "Orb source",
+      "path": "design/system/components/ai_orb_core/profiles/R06_orb_filament_profile.json",
+      "availability": "TRACKED_MAIN",
+      "sha256": "8c7f998b043ddca8363054b75a93dbe6fab72cbdf31424b4fb71c4b502f21c10",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/ORB_GRASS_DERIVED_MASK_PATH_V1_1.json",
+      "availability": "TRACKED_MAIN",
+      "sha256": "f16a55c960b39f499fa8e3283fbe56dc3d53b0671f65e7f183caf7ecafbd313b",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/ORB_GRASS_DERIVED_PATHS_V1_1.svg",
+      "availability": "TRACKED_MAIN",
+      "sha256": "f0cfadf977b10fa122f61bfbc55a8d0368dd859dd94173468d5a9dae36178440",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/SHA256SUMS.txt",
+      "availability": "TRACKED_MAIN",
+      "sha256": "4131e4c64ef803d06dc4370016a806baa2992949a731f2f88c03f6b480100a78",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/orb_grass_back_b1_mask_v1_1.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "d172b189061cf0e7811d249719202b180ad18ee0c48caca591f5477dac143c43",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/orb_grass_back_b2_mask_v1_1.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "3f03448815d2a34c777ca27ae3732f958286b54ca606280b9c8c0f78f55a4d22",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/orb_grass_back_combined_mask_v1_1.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "38921cbe9ee5de3b3d0964366af05a334ce1beb13fd035cc4fe13629a3560142",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/orb_grass_front_combined_mask_v1_1.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "1c46d4a1f6c045c17dc1f48e3c5889a22a4fb581e216874963904094b6d8551d",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/orb_grass_front_f1_mask_v1_1.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "52b9885939a1fbb02717c3832e74acbeb02949732022b9145e97423c028515d0",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/orb_grass_front_f2_mask_v1_1.png",
+      "availability": "TRACKED_MAIN",
+      "sha256": "9a6708996207d3b855d17a8d0010b1572133142c3d7951f8b0687786c31a5fee",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/orb_grass_runtime_mapping_v1_1.json",
+      "availability": "TRACKED_MAIN",
+      "sha256": "2a03923b858e46ab77ddc93191bb0422555b2fdcf2c75729fb29fe44ae638613",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "R01B",
+      "path": "app/src/main/assets/orb_r01b_v1_1/orb_grass_warp_v1_1.agsl",
+      "availability": "TRACKED_MAIN",
+      "sha256": "3db808e2eafda27d097fb132b7e2b497647ef26c8d5810a45786cfd8293ba1b9",
+      "policy": "SOURCE_REUSE_NO_MUTATION"
+    },
+    {
+      "role": "KF06–KF10 composition",
+      "path": "Library reference / 水润识鱼界面演进展示板.png",
+      "sha256": "f92cc11c126495e73df97d70c8122465ef373c3111ef3c09537cdcd4f9dd8067",
+      "policy": "REFERENCE_ONLY"
+    }
+  ]
+}
