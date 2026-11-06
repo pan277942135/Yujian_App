@@ -81,9 +81,19 @@
     }
   ],
   "pull_requests": {
-    "304": {"state": "CLOSED", "merged": true, "head_sha": "64700592714b8fb1c06b659b9d79c92149d2ea95"},
-    "317": {"state": "OPEN_DRAFT_UNMERGED", "head_sha": "df07e7ecc82ea96493885ff9fd12c82cd9b1aa68"},
-    "318": {"state": "OPEN_DRAFT_UNMERGED", "head_sha": "4199cd91c216b0cb43e9d1f7a08496c41f992386"}
+    "304": {
+      "state": "CLOSED",
+      "merged": true,
+      "head_sha": "64700592714b8fb1c06b659b9d79c92149d2ea95"
+    },
+    "317": {
+      "state": "OPEN_DRAFT_UNMERGED",
+      "head_sha": "df07e7ecc82ea96493885ff9fd12c82cd9b1aa68"
+    },
+    "318": {
+      "state": "OPEN_DRAFT_UNMERGED",
+      "head_sha": "4199cd91c216b0cb43e9d1f7a08496c41f992386"
+    }
   },
   "main_android_ci": {
     "source_sha": "74cad95b4f673bd9c8c60d16839f036d5886d933",
@@ -119,5 +129,28 @@
   "apk_built": false,
   "api28_run": false,
   "product_kotlin_modified": false,
-  "frozen_visual_parameters_modified": false
+  "frozen_visual_parameters_modified": false,
+  "registry_integrity_updates": {
+    "authority_path": "design/registry/experience_registry_v1.json",
+    "authority_sha256": "d1c85c1de1089526fbcca3a080e4fe2afb9d98f55582881a9cf856dac5efba5b",
+    "prior_locked_sha256": "82075244769734b79e90186a01a59e6a8588fe503feea2e018edc7481faa977b",
+    "reason": "Additive frozen visual-contract registration changed the experience-registry bytes; all three direct Page Resource Binding locks were synchronized to that exact new SHA.",
+    "page_resource_bindings": [
+      {
+        "path": "design/pages/home/empty_home/Page_Resource_Binding_V1.json",
+        "sha256": "2224d8e3997392ad1057a9a6685b8a731d5db3fde31f8fd7ed31bc4c10708f61",
+        "git_blob_sha": "c6c583924fa1283d81e1f99309152ec41064a8f0"
+      },
+      {
+        "path": "design/pages/home/normal_home/Page_Resource_Binding_V1.json",
+        "sha256": "e06adeb8aaa707e9c6ef37d4b6f5ce9adb28859d66fefc9fab07ceab672fbf44",
+        "git_blob_sha": "df3a7c01e15033dd151dcc5105f531346bbd0f04"
+      },
+      {
+        "path": "design/pages/account_privacy/Login/Page_Resource_Binding_V1.json",
+        "sha256": "42470355f10a9e2a55e650e06f6fd0b8307f75332241be87cc4f028a5e88b31c",
+        "git_blob_sha": "78f7698eb2b7c95931ec5e2073f7db51bb6fff76"
+      }
+    ]
+  }
 }

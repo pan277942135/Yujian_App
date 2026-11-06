@@ -26,6 +26,7 @@ The visual addendum arrived as conversation text without a separate source file 
 - Registered the addendum in `experience_registry_v1.json`, the recognition processing indexes and `UNIFIED_CONTRACT_REGISTRY.yaml`.
 - Added the WP1-B task to Feature Matrix, Phase/Task State Machine, unified task bindings and an exact-SHA gate.
 - Added blocker B009 for the missing approved DET_FISH v0.3 binary/metadata/validation evidence. It is a target completion blocker; independent work is still authorized.
+- Synchronized the exact SHA-256 lock for `experience_registry_v1.json` in the Empty Home, Normal Home and Login page resource bindings after the additive registry entry; the audit JSON records each resulting file SHA and Git blob.
 - Recorded the 3650ms / 6000ms dispute as unresolved and carried forward without changing either value.
 - The PR #318 matrix/component source contents were copied unchanged; their original draft/review status was not promoted to a frozen runtime result.
 
@@ -41,7 +42,7 @@ The visual addendum arrived as conversation text without a separate source file 
 - `python scripts/validate_control_plane_admission.py`: PASS on the control-plane proposal after the registry task/gate count was corrected to 78 tasks and 38 gates.
 - `python3 scripts/design_manager.py validate`: PASS (16 shared systems and 15 page modules).
 - Hi-fi release, SWOS/RR09 V1.2 authority, frozen camera guide asset, and private visual reference registration checks: PASS.
-- `git diff --check` and JSON/YAML parsing: PASS.
+- JSON/YAML parsing and control-plane validators: PASS. `git diff --check` reports Markdown trailing-space line breaks in the byte-identical PR #318 frame matrix, the byte-identical attached WP1-B task text, and the transcribed frozen addendum; these were retained as source formatting for SHA provenance.
 - No Android build or API28 validation was run during contract landing.
 
 ## Next gate
