@@ -21,14 +21,19 @@ def local_files(path):
     out=run("ls-files","--",path)
     return set(out.splitlines()) if out else set()
 def local_blob(path):
-    """Return the Git blob id of the bytes currently present in the worktree.
-
-    Control-plane synchronization compares that value with a blob stored in the
-    canonical tree.  Git's normal clean filters (notably ``core.autocrlf``)
-    must not participate here: doing so makes the result depend on the host
-    checkout configuration instead of the actual worktree content.
-    """
-    return run("hash-object","--no-filters",str(path))
+    """Return the Git-clean blob id for an uncommitted worktree candidate."""
+    return run("hash-object",str(path))
+def tracked_blob(path):
+    """Return a tracked path's index blob, independent of checkout filters."""
+    return run("rev-parse",f":{path}")
+def worktree_matches_index(path):
+    """Report semantic worktree/index equality; CRLF checkout conversion is clean."""
+    result=subprocess.run(
+        ["git","diff","--quiet","--",str(path)],cwd=ROOT,
+        stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,
+    )
+    if result.returncode in (0,1): return result.returncode==0
+    raise RuntimeError(f"unable to compare worktree path: {path}")
 
 def load_worktree_exceptions():
     """Load the canonical, content-addressed non-frozen product exceptions."""
@@ -107,7 +112,11 @@ def main():
             local=ROOT/item
             if not local.exists(): continue
             try:
-                current_blob=local_blob(local)
+                current_blob=(
+                    tracked_blob(item)
+                    if worktree_matches_index(local)
+                    else local_blob(local)
+                )
                 canonical_blob=blob(args.base,item)
                 if current_blob!=canonical_blob:
                     if is_approved_worktree_exception(item,current_blob,worktree_exceptions):
