@@ -53,8 +53,7 @@ fun CaptureButtonOptics(
 
     Canvas(modifier) {
         val effectiveTime = sceneTimeMs ?: (idleCycle * CaptureVisualTokens.IdleCycleMs).toLong()
-        val radiusX = visualSize.toPx() * .48f
-        val radiusY = radiusX * .64f
+        val orbitRadius = visualSize.toPx() * 0.372f
         val centerPoint = center
 
         fun drawEllipseArc(
@@ -77,42 +76,43 @@ fun CaptureButtonOptics(
             )
         }
 
-        // Persistent -45° pearl highlight: a white specular core with a restrained gold halo.
-        val pearlRadius = radiusX * .70f
+        // Persistent restrained -45° pearl highlight on the morning light entry point
         val pearlAngle = -45f * (PI.toFloat() / 180f)
         val pearlCenter = Offset(
-            centerPoint.x + pearlRadius * cos(pearlAngle),
-            centerPoint.y + pearlRadius * sin(pearlAngle),
+            centerPoint.x + orbitRadius * cos(pearlAngle),
+            centerPoint.y + orbitRadius * sin(pearlAngle),
         )
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    specularGold.copy(alpha = .82f),
-                    morningGold.copy(alpha = .28f),
+                    specularGold.copy(alpha = .55f),
+                    morningGold.copy(alpha = .18f),
                     Color.Transparent,
                 ),
                 center = pearlCenter,
-                radius = 11.dp.toPx(),
+                radius = 6.dp.toPx(),
             ),
-            radius = 11.dp.toPx(),
+            radius = 6.dp.toPx(),
             center = pearlCenter,
             blendMode = BlendMode.Screen,
         )
-        drawCircle(Color.White.copy(alpha = .98f), radius = 2.8.dp.toPx(), center = pearlCenter)
-        drawEllipseArc(radiusX * .98f, radiusX * .98f, -75f, 60f, specularGold.copy(alpha = .55f), 1.8.dp.toPx())
+        drawCircle(Color.White.copy(alpha = .85f), radius = 1.4.dp.toPx(), center = pearlCenter)
+        drawEllipseArc(orbitRadius, orbitRadius, -65f, 40f, specularGold.copy(alpha = .38f), 1.2.dp.toPx())
 
         if (click) {
             // Three click-only concentric water rings. Maximum outward travel is exactly 36dp.
             val p = progress.coerceIn(0f, 1f)
             val spread = CaptureVisualTokens.ClickRippleSpreadDp.dp.toPx()
+            val clickRadiusX = visualSize.toPx() * .40f
+            val clickRadiusY = clickRadiusX * .64f
             for (wave in 0..2) {
                 val delay = wave * .15f
                 if (p > delay) {
                     val waveP = ((p - delay) / (1f - delay)).coerceIn(0f, 1f)
                     val eased = 1f - (1f - waveP) * (1f - waveP)
                     val scale = .75f + wave * .125f
-                    val rx = radiusX + spread * eased * scale
-                    val ry = radiusY + spread * .58f * eased * scale
+                    val rx = clickRadiusX + spread * eased * scale
+                    val ry = clickRadiusY + spread * .58f * eased * scale
                     val envelope = sin(waveP * PI.toFloat()).coerceAtLeast(0f) * (1f - waveP * .35f)
                     if (envelope > .008f) {
                         val glowWidth = (10.dp * (1f - waveP * .30f)).toPx()
@@ -126,93 +126,134 @@ fun CaptureButtonOptics(
                 }
             }
         } else {
-            // Idle: one 2.5s eased orbit, followed by 8s of stillness. No outward idle ripple.
-            val angle = captureIdleFlareAngleDegrees(effectiveTime)
-            val radians = angle * (PI.toFloat() / 180f)
-            val orbitRadius = radiusX * 1.04f
-            val flareCenter = Offset(
-                centerPoint.x + orbitRadius * cos(radians),
-                centerPoint.y + orbitRadius * sin(radians),
-            )
-            val sunDelta = (angle + 45f) * (PI.toFloat() / 180f)
-            val sunFactor = .5f + .5f * cos(sunDelta)
-            val intensity = .72f + .28f * sunFactor
+            // Idle: emerges from button at -45°, sweeps around perimeter, then gracefully dissolves back into the button.
+            val cycleMs = CaptureVisualTokens.IdleCycleMs.toLong()
+            val cycle = ((effectiveTime % cycleMs) + cycleMs) % cycleMs
+            val glintMs = CaptureVisualTokens.IdleGlintMs.toFloat()
+            val isGliding = cycle < CaptureVisualTokens.IdleGlintMs
+            val sweepProgress = if (isGliding) (cycle / glintMs).coerceIn(0f, 1f) else 1f
 
-            drawEllipseArc(
-                orbitRadius,
-                orbitRadius,
-                angle - 24f,
-                48f,
-                morningGold.copy(alpha = .46f * intensity),
-                (3.6.dp * intensity).toPx(),
-            )
-            drawEllipseArc(
-                orbitRadius,
-                orbitRadius,
-                angle - 11f,
-                22f,
-                specularGold.copy(alpha = .82f * intensity),
-                (1.8.dp * intensity).toPx(),
-            )
-            val bloomRadius = (14.dp * (.85f + .20f * intensity)).toPx()
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        morningGold.copy(alpha = .34f * intensity),
-                        morningGold.copy(alpha = .10f * intensity),
-                        Color.Transparent,
+            val flowEnvelope = if (!isGliding) 0f else when {
+                sweepProgress < 0.15f -> {
+                    val p = sweepProgress / 0.15f
+                    p * p * (3f - 2f * p)
+                }
+                sweepProgress > 0.85f -> {
+                    val p = (1f - sweepProgress) / 0.15f
+                    p * p * (3f - 2f * p)
+                }
+                else -> 1f
+            }
+
+            if (flowEnvelope > 0.001f) {
+                val angle = captureIdleFlareAngleDegrees(effectiveTime)
+                val radians = angle * (PI.toFloat() / 180f)
+                val flareCenter = Offset(
+                    centerPoint.x + orbitRadius * cos(radians),
+                    centerPoint.y + orbitRadius * sin(radians),
+                )
+                val sunDelta = (angle + 45f) * (PI.toFloat() / 180f)
+                val sunFactor = .68f + .32f * cos(sunDelta)
+                val intensity = flowEnvelope * sunFactor
+
+                // 1. Comet fluid trail trailing behind the flare along the water groove
+                drawEllipseArc(
+                    orbitRadius,
+                    orbitRadius,
+                    angle - 42f,
+                    42f,
+                    lightTeal.copy(alpha = .22f * intensity),
+                    (2.8.dp * intensity).toPx(),
+                )
+                drawEllipseArc(
+                    orbitRadius,
+                    orbitRadius,
+                    angle - 24f,
+                    24f,
+                    morningGold.copy(alpha = .55f * intensity),
+                    (1.8.dp * intensity).toPx(),
+                )
+                drawEllipseArc(
+                    orbitRadius,
+                    orbitRadius,
+                    angle - 10f,
+                    10f,
+                    specularGold.copy(alpha = .80f * intensity),
+                    (1.0.dp * intensity).toPx(),
+                )
+
+                // 2. Translucent, delicate water-light bloom (compact, staying within button)
+                val bloomRadius = (7.dp * (.82f + .18f * intensity)).toPx()
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            morningGold.copy(alpha = .30f * intensity),
+                            lightTeal.copy(alpha = .10f * intensity),
+                            Color.Transparent,
+                        ),
+                        center = flareCenter,
+                        radius = bloomRadius,
                     ),
-                    center = flareCenter,
                     radius = bloomRadius,
-                ),
-                radius = bloomRadius,
-                center = flareCenter,
-                blendMode = BlendMode.Screen,
-            )
-            val innerBloom = (7.dp * (.85f + .20f * intensity)).toPx()
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(specularGold.copy(alpha = .82f * intensity), Color.Transparent),
                     center = flareCenter,
+                    blendMode = BlendMode.Screen,
+                )
+                val innerBloom = (3.8.dp * (.85f + .15f * intensity)).toPx()
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            specularGold.copy(alpha = .78f * intensity),
+                            Color.Transparent,
+                        ),
+                        center = flareCenter,
+                        radius = innerBloom,
+                    ),
                     radius = innerBloom,
-                ),
-                radius = innerBloom,
-                center = flareCenter,
-                blendMode = BlendMode.Screen,
-            )
+                    center = flareCenter,
+                    blendMode = BlendMode.Screen,
+                )
 
-            fun drawFlareRay(angleDeg: Float, length: Float, width: Float, alpha: Float) {
-                val rad = angleDeg * (PI.toFloat() / 180f)
-                val dx = cos(rad)
-                val dy = sin(rad)
-                val start = Offset(flareCenter.x - dx * length, flareCenter.y - dy * length)
-                val end = Offset(flareCenter.x + dx * length, flareCenter.y + dy * length)
+                // 3. Tangential micro-gleam strictly oriented along the circular groove
+                val tangentRad = (angle + 90f) * (PI.toFloat() / 180f)
+                val tangentDx = cos(tangentRad)
+                val tangentDy = sin(tangentRad)
+                val rayLength = (4.5.dp * intensity).toPx()
+                val rayStart = Offset(flareCenter.x - tangentDx * rayLength, flareCenter.y - tangentDy * rayLength)
+                val rayEnd = Offset(flareCenter.x + tangentDx * rayLength, flareCenter.y + tangentDy * rayLength)
                 drawLine(
                     brush = Brush.linearGradient(
                         0f to Color.Transparent,
-                        .5f to Color.White.copy(alpha = alpha * intensity),
+                        .5f to Color.White.copy(alpha = .75f * intensity),
                         1f to Color.Transparent,
-                        start = start,
-                        end = end,
+                        start = rayStart,
+                        end = rayEnd,
                     ),
-                    start = start,
-                    end = end,
-                    strokeWidth = width,
+                    start = rayStart,
+                    end = rayEnd,
+                    strokeWidth = (1.0.dp * intensity).toPx(),
                     cap = StrokeCap.Round,
                     blendMode = BlendMode.Screen,
                 )
+
+                // 4. Pinpoint diamond specular core
+                drawCircle(
+                    color = Color(0xFFFFFBEA).copy(alpha = .88f * intensity),
+                    radius = 2.0.dp.toPx(),
+                    center = flareCenter,
+                    blendMode = BlendMode.Screen,
+                )
+                drawCircle(
+                    color = Color.White.copy(alpha = intensity),
+                    radius = 1.1.dp.toPx(),
+                    center = flareCenter,
+                    blendMode = BlendMode.Screen,
+                )
             }
-            drawFlareRay(angle + 90f, 14.dp.toPx(), 1.5.dp.toPx(), .92f)
-            drawFlareRay(angle, 10.dp.toPx(), 1.2.dp.toPx(), .72f)
-            drawFlareRay(angle + 45f, 7.dp.toPx(), .9.dp.toPx(), .52f)
-            drawFlareRay(angle + 135f, 7.dp.toPx(), .9.dp.toPx(), .52f)
-            drawCircle(Color(0xFFFFFBEA).copy(alpha = .92f * intensity), 3.dp.toPx(), flareCenter, blendMode = BlendMode.Screen)
-            drawCircle(Color.White.copy(alpha = intensity), 1.5.dp.toPx(), flareCenter, blendMode = BlendMode.Screen)
         }
 
         if (cameraReady) {
-            drawEllipseArc(radiusX * 1.08f, radiusX * 1.08f, -125f, 68f, lightTeal.copy(alpha = .22f), 1.6.dp.toPx())
-            drawEllipseArc(radiusX * 1.08f, radiusX * 1.08f, 52f, 52f, morningGold.copy(alpha = .22f), 1.6.dp.toPx())
+            drawEllipseArc(orbitRadius, orbitRadius, -125f, 68f, lightTeal.copy(alpha = .22f), 1.4.dp.toPx())
+            drawEllipseArc(orbitRadius, orbitRadius, 52f, 52f, morningGold.copy(alpha = .22f), 1.4.dp.toPx())
         }
     }
 }

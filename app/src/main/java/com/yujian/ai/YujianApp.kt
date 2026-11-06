@@ -115,6 +115,7 @@ import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.home.CatchArchiveState
 import com.yujian.ai.ui.home.HomeState
 import com.yujian.ai.ui.home.resolveHomeState
+import com.yujian.ai.ui.home.validHomeRecords
 import com.yujian.ai.ui.components.GuestRegistrationDialog
 import com.yujian.ai.ui.recorddetail.FishRecordDetailPresentation
 import com.yujian.ai.ui.recorddetail.FishRecordDetailScreen
@@ -167,7 +168,27 @@ fun YujianApp() {
     var session by remember { mutableStateOf(sessionManager.current()) }
     var authLoading by remember { mutableStateOf(false) }
     var authError by remember { mutableStateOf<String?>(null) }
-    var catchesState by remember { mutableStateOf(CatchArchiveState()) }
+    var catchesState by remember {
+        val initialOwner = session?.userId ?: "guest:$guestId"
+        val initialCatches = if (session == null) {
+            localCatchOverlays.apply(guestCatchRepository.listCatchesDirect())
+        } else {
+            emptyList()
+        }
+        val initialStats = if (session == null) {
+            guestCatchRepository.statistics(initialCatches)
+        } else {
+            CatchStatistics()
+        }
+        mutableStateOf(
+            CatchArchiveState(
+                catches = initialCatches,
+                statistics = initialStats,
+                resolved = session == null,
+                ownerKey = initialOwner,
+            )
+        )
+    }
     var catchReload by remember { mutableIntStateOf(0) }
     var recognitionSessionId by remember(revealSessionStore) {
         mutableStateOf(revealSessionStore.snapshot?.recognitionSessionId)
@@ -471,6 +492,9 @@ fun YujianApp() {
                     logoutToHome()
                 } else {
                     catchesState = catchesState.failLoad(error.message ?: "鱼获数据加载失败")
+                    if (!catchesState.resolved) {
+                        catchesState = catchesState.copy(resolved = true)
+                    }
                 }
             }
     }
@@ -646,6 +670,8 @@ fun YujianApp() {
                     // The Home state is derived only from fish records. Login,
                     // loading, and server statistics never select Empty/Normal.
                     val resolvedHomeState = resolveHomeState(catchesState.catches, catchesState.resolved)
+                    val showEmpty = resolvedHomeState == HomeState.EMPTY ||
+                        (resolvedHomeState == null && validHomeRecords(catchesState.catches).isEmpty())
                     HomeScreen(
                         nickname = active?.nickname.orEmpty(),
                         statistics = catchesState.statistics,
@@ -656,8 +682,8 @@ fun YujianApp() {
                         accessToken = active?.accessToken.orEmpty(),
                         isLoggedIn = active != null,
                         avatarUrl = active?.avatarUrl,
-                        showEmptyState = resolvedHomeState == HomeState.EMPTY,
-                        isResolving = resolvedHomeState == null,
+                        showEmptyState = showEmpty,
+                        isResolving = resolvedHomeState == null && catchesState.catches.isNotEmpty(),
                         onIdentify = { enterCapture() },
                         onAlbumClick = { enterCapture(openGallery = true) },
                         onLoginClick = { nav.navigate("auth/login") { launchSingleTop = true } },
