@@ -4,7 +4,7 @@
   "version": "V3.1",
   "status": "FROZEN",
   "shared_foundation_status": "SHARED_FOUNDATION_READY",
-  "updated_at": "2026-11-06",
+  "updated_at": "2026-11-03",
   "authority_model": "Use one canonical registry or contract per shared domain. A review candidate is never a production source. Page-specific Frozen visual/geometry authority controls properties it explicitly owns; Shared Foundation applies only to registered shared properties.",
   "entries": [
     {
@@ -283,21 +283,6 @@
       ],
       "scope": "Additive Capture overlay only; does not replace Recognition Capture V3.1 page authority or live Camera Preview.",
       "status_detail": "P01/P02 are the only active first-use guide steps under the 2026-11-03 product-owner decision. Both require portrait phone orientation: P01 horizontal fish, P02 vertical fish. P01 advances with 下一张; P02 uses 开始拍摄; no landscape-phone instruction and no automatic shutter. The former P03 landscape-phone PNG is retained as historical archive only. Android Runtime/device acceptance remains separate."
-    },
-    {
-      "authority_id": "recognition_orb_waterlight_visual_handoff_addendum_v1",
-      "domain": "Recognition Stage 05–13 Orb × WaterLight visual causality and Result handoff",
-      "status": "CANONICAL",
-      "canonical_path": "design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md",
-      "supporting_paths": [
-        "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_13_STAGE_STATE_MACHINE_V3.md",
-        "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_UNIFIED_LIFECYCLE_V3.md",
-        "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.csv",
-        "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.json",
-        "design/recognition_structured_handoff_v1/component_mapping/component_runtime_mapping.md"
-      ],
-      "scope": "Additive frozen Android Runtime product decisions for Stage 05–13; does not replace 13-stage State Machine V3, unified lifecycle, 21-frame matrix, shared SceneClock, existing frozen numeric parameters, or resolve the 3650ms/6000ms dispute.",
-      "runtime_acceptance": "Separate; requires real Android Runtime video and keyframes."
     }
   ],
   "precedence_rules": [

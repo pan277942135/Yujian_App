@@ -1,10 +1,10 @@
 # WP1-B Contract Landing Audit V1
 
-**Task:** YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1  
-**Repository:** pan277942135/Yujian_App  
-**Main baseline:** 74cad95b4f673bd9c8c60d16839f036d5886d933  
-**Landing branch:** design/recognition-visual-contract-v1  
-**Landing commit:** a0bf7134a5bcbcbe0c2d126f65da7021e905511d  
+**Task:** YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1
+**Repository:** pan277942135/Yujian_App
+**Main baseline:** 74cad95b4f673bd9c8c60d16839f036d5886d933
+**Landing branch:** design/recognition-visual-contract-v1
+**Landing commit:** a0bf7134a5bcbcbe0c2d126f65da7021e905511d
 **Audit date:** 2026-11-06
 
 ## Contract and design-file identity
@@ -23,7 +23,7 @@ The visual addendum arrived as conversation text without a separate source file 
 
 ## Registry and control-plane synchronization
 
-- Registered the addendum in `Effective_Authority_Registry_V3_1.json`, `experience_registry_v1.json`, the recognition processing indexes and `UNIFIED_CONTRACT_REGISTRY.yaml`.
+- Registered the addendum in `experience_registry_v1.json`, the recognition processing indexes and `UNIFIED_CONTRACT_REGISTRY.yaml`.
 - Added the WP1-B task to Feature Matrix, Phase/Task State Machine, unified task bindings and an exact-SHA gate.
 - Added blocker B009 for the missing approved DET_FISH v0.3 binary/metadata/validation evidence. It is a target completion blocker; independent work is still authorized.
 - Recorded the 3650ms / 6000ms dispute as unresolved and carried forward without changing either value.
