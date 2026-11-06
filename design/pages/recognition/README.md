@@ -9,10 +9,6 @@ Evidence: **ACTIVE_CLOSURE**
 
 `Recognition_Design_Closure_V1_2.md`
 
-## Orb × WaterLight runtime handoff authority
-
-The additive Stage 05–13 frozen Runtime decisions are registered in the [Orb × WaterLight optics index](processing/optics/README.md). The 13-stage state machine and unified lifecycle remain the base authorities; the 21-frame matrix and component mapping are preserved under `design/recognition_structured_handoff_v1/`. The Android Runtime and visual acceptance state remain separate from this contract landing.
-
 The V1.2 package remains the frozen Processing visual baseline. SWOS V1, Processing Motion V1.3 and Page Contract V3.2 are the main-adopted design authority; Android runtime remains on its existing implementation pending Stage 1.
 
 ## Frozen product flow

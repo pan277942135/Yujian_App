@@ -83,6 +83,8 @@ class GuestCatchRepository(context: Context) {
         readCatches()
     }
 
+    fun listCatchesDirect(): List<RemoteCatch> = readCatches()
+
     suspend fun saveCatch(source: File, draft: CatchSaveDraft): RemoteCatch = withContext(Dispatchers.IO) {
         require(source.exists() && source.length() > 0L) { "待保存的鱼获照片不存在" }
         val clientRecordId = draft.clientRecordId
