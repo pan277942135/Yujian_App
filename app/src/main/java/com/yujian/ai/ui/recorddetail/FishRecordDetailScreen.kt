@@ -32,7 +32,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
@@ -45,6 +44,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -58,12 +58,12 @@ import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.catches.BsideStatus
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.designsystem.color.YuJianColors
-import com.yujian.ai.ui.designsystem.components.YuJianBackAction
 import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
 import com.yujian.ai.ui.designsystem.components.YuJianIconAction
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionTone
+import com.yujian.ai.ui.designsystem.components.YuJianPinnedCenterTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianTextAction
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
 import com.yujian.ai.ui.designsystem.radius.YuJianRadius
@@ -73,7 +73,6 @@ import com.yujian.ai.ui.screens.BgContentSurface
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
 
 private const val FishRecordDetailPreferences = "fish_record_detail_v1"
 
@@ -127,12 +126,9 @@ fun FishRecordDetailScreen(
             is FishRecordDetailUiState.Success -> {
                 val record = uiState.record
                 val context = LocalContext.current
-                val coroutineScope = rememberCoroutineScope()
                 val lifecycleOwner = LocalLifecycleOwner.current
                 val bsideUrl = bsideUrlFor(record)
-                val listState = rememberLazyListState(
-                    initialFirstVisibleItemIndex = if (initialSection.equals("memory", true)) 2 else 0,
-                )
+                val listState = rememberLazyListState()
                 val revealPreferences = remember(context) {
                     context.getSharedPreferences(FishRecordDetailPreferences, Context.MODE_PRIVATE)
                 }
@@ -294,22 +290,6 @@ fun FishRecordDetailScreen(
                             fontScale = adaptiveProfile.fontScale,
                         )
                     }
-                    item {
-                        FishMemorySection(
-                            record = record,
-                            generationEnabled = onGenerateMemory != null,
-                            bsideUnavailable = bsideUnavailable,
-                            onGenerateMemory = onGenerateMemory?.let { callback -> { callback(record) } },
-                            onRetryBside = {
-                                if (!bsideUrl.isNullOrBlank()) {
-                                    bsideUnavailable = false
-                                    bsideReloadToken += 1
-                                    showingBside = true
-                                }
-                                coroutineScope.launch { onRefreshBsideStatus(record.id) }
-                            },
-                        )
-                    }
                 }
                 }
             }
@@ -367,26 +347,28 @@ private fun AboutCatchSection(story: String?, onEdit: () -> Unit) {
         shape = RoundedCornerShape(20.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("关于这次鱼获", modifier = Modifier.weight(1f), style = YuJianTypography.sectionTitle)
-            YuJianIconAction(
-                icon = Icons.Rounded.Edit,
-                contentDescription = "编辑鱼获信息",
-                onClick = onEdit,
-                family = YuJianIconActionFamily.UTILITY,
-                tone = YuJianIconActionTone.ON_LIGHT,
-            )
-        }
-        story?.takeIf(String::isNotBlank)?.let { note ->
-            Text(
-                text = note,
-                modifier = Modifier.fillMaxWidth().padding(top = YuJianSpacing.xs),
-                style = YuJianTypography.body,
-                color = YuJianColors.DeepInk,
-            )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("关于这次鱼获", modifier = Modifier.weight(1f), style = YuJianTypography.sectionTitle)
+                YuJianIconAction(
+                    icon = Icons.Rounded.Edit,
+                    contentDescription = "编辑鱼获信息",
+                    onClick = onEdit,
+                    family = YuJianIconActionFamily.UTILITY,
+                    tone = YuJianIconActionTone.ON_LIGHT,
+                )
+            }
+            story?.takeIf(String::isNotBlank)?.let { note ->
+                Text(
+                    text = note,
+                    modifier = Modifier.fillMaxWidth().padding(top = YuJianSpacing.xs),
+                    style = YuJianTypography.body,
+                    color = YuJianColors.DeepInk,
+                )
+            }
         }
     }
 }
@@ -397,32 +379,14 @@ private fun FishRecordDetailTopBar(
     onOpenFishGuide: () -> Unit,
     onShare: () -> Unit,
 ) {
-    val safe = rememberSafeDrawingInsets()
-    Box(
-        modifier = Modifier.fillMaxWidth()
-            .padding(top = safe.top, start = safe.start + 8.dp, end = safe.end + 8.dp)
-            .heightIn(min = 64.dp),
-    ) {
-        YuJianBackAction(
-            onClick = onBack,
-            modifier = Modifier.align(Alignment.CenterStart),
-        )
-        Text(
-            text = "鱼获详情",
-            modifier = Modifier.align(Alignment.Center).padding(horizontal = 88.dp),
-            style = YuJianTypography.sectionTitle.copy(fontSize = 21.sp, lineHeight = 27.sp),
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-        )
-        Row(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+    YuJianPinnedCenterTitleTopBar(
+        title = "鱼获详情",
+        onBack = onBack,
+        actions = {
             FishRecordDetailTopAction(Icons.Rounded.MenuBook, "鱼鉴", onOpenFishGuide)
             FishRecordDetailTopAction(Icons.Rounded.Share, "分享", onShare)
-        }
-    }
+        },
+    )
 }
 
 @Composable

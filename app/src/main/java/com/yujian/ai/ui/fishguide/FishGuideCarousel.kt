@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
@@ -201,8 +202,12 @@ fun FishGuideCarousel(
                 ),
             )
             val distance = abs((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
-            val emphasis = lerp(0.94f, 1f, (1f - distance).coerceIn(0f, 1f))
-            val alpha = lerp(0.58f, 1f, (1f - distance).coerceIn(0f, 1f))
+            // Frozen fish_guide_v2.png: adjacent cards sit at ≈0.66 scale with the
+            // main-facing edge anchored at the natural peek position, so they shrink
+            // away from the center instead of detaching from the carousel gap.
+            val emphasis = lerp(0.66f, 1f, (1f - distance).coerceIn(0f, 1f))
+            val alpha = lerp(0.50f, 1f, (1f - distance).coerceIn(0f, 1f))
+            val pivotX = if (page <= pagerState.currentPage) 1f else 0f
             val isSettledActive = page == settledPage && !pagerState.isScrollInProgress
             val stateText = buildString {
                 append("第 ${page + 1} 种，共 ${items.size} 种")
@@ -220,7 +225,8 @@ fun FishGuideCarousel(
                     .graphicsLayer {
                         scaleX = if (reduceMotion && !pagerState.isScrollInProgress) 1f else emphasis
                         scaleY = if (reduceMotion && !pagerState.isScrollInProgress) 1f else emphasis
-                        this.alpha = if (reduceMotion && !pagerState.isScrollInProgress && page != pagerState.currentPage) 0.68f else alpha
+                        transformOrigin = TransformOrigin(pivotX, 0.5f)
+                        this.alpha = if (reduceMotion && !pagerState.isScrollInProgress && page != pagerState.currentPage) 0.50f else alpha
                     }
                     .semantics {
                         contentDescription = item.name

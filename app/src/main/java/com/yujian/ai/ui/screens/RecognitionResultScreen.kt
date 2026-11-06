@@ -1705,7 +1705,8 @@ private fun ResultMemoryNote(
                 Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.66f))
+                    // 外层 ResultInformationGlass 已提供 White 0.86 半透明底，
+                    // 内层再叠白会让编辑区与卡片 padding 处透明度不一致，只保留描边。
                     .border(1.dp, Color.White.copy(alpha = 0.92f), RoundedCornerShape(12.dp))
                     .padding(horizontal = 10.dp, vertical = 8.dp)
                     .testTag("recognition-story-editor"),

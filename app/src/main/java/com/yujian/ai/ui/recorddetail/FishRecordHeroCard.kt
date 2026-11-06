@@ -84,9 +84,10 @@ fun FishRecordHeroCard(
                 Brush.verticalGradient(
                     colors = listOf(
                         Color.Transparent,
-                        Color.Black.copy(alpha = 0.04f),
-                        Color(0x80081926),
+                        Color(0x9E081926),
                     ),
+                    startY = 0f,
+                    endY = Float.POSITIVE_INFINITY,
                 ),
             ),
         )
@@ -112,7 +113,11 @@ fun FishRecordHeroCard(
                 Text(
                     text = metadata.speciesName,
                     modifier = Modifier.weight(1f),
-                    style = YuJianTypography.heroTitle.copy(fontSize = 28.sp, lineHeight = 34.sp),
+                    style = YuJianTypography.heroTitle.copy(
+                        fontSize = 28.sp,
+                        lineHeight = 34.sp,
+                        letterSpacing = 2.sp,
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -125,23 +130,18 @@ fun FishRecordHeroCard(
                     showChevron = true,
                 )
             }
-            metadata.measurement?.let { measurement ->
-                Text(
-                    text = measurement,
-                    modifier = Modifier.padding(top = 2.dp),
-                    style = YuJianTypography.caption.copy(fontSize = 14.sp, lineHeight = 18.sp, color = Color.White),
-                    maxLines = 1,
-                )
-            }
-            metadata.location?.let { location ->
-                Text(
-                    text = location,
-                    modifier = Modifier.fillMaxWidth().padding(top = 1.dp),
-                    style = YuJianTypography.caption.copy(fontSize = 14.sp, lineHeight = 18.sp, color = Color.White),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            listOfNotNull(metadata.measurement, metadata.location)
+                .takeIf(List<String>::isNotEmpty)
+                ?.joinToString(" · ")
+                ?.let { meta ->
+                    Text(
+                        text = meta,
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        style = YuJianTypography.caption.copy(fontSize = 13.sp, lineHeight = 18.sp, color = Color.White.copy(alpha = 0.92f)),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
         }
         Box(
             Modifier.fillMaxSize().border(1.dp, Color.White.copy(alpha = 0.88f), heroShape),

@@ -13,6 +13,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,10 +39,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material.icons.rounded.PhotoLibrary
 import androidx.compose.material.icons.rounded.PersonOutline
+import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.AlertDialog
@@ -102,13 +105,15 @@ import com.yujian.ai.ui.theme.MutedInk
 import com.yujian.ai.ui.theme.SoftWater
 import com.yujian.ai.ui.theme.WaterTeal
 import com.yujian.ai.ui.designsystem.color.YuJianColors
-import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
+import com.yujian.ai.ui.designsystem.components.YuJianPinnedCenterTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianIconAction
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionTone
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
 import com.yujian.ai.ui.designsystem.components.YuJianTextAction
 import com.yujian.ai.ui.designsystem.components.YuJianTextActionRole
+import com.yujian.ai.ui.designsystem.glass.MistGlass
+import com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -144,7 +149,7 @@ internal fun AccountPrivacyPageScaffold(
             )
         }
         Column(Modifier.fillMaxSize().navigationBarsPadding()) {
-            YuJianBackTitleTopBar(
+            YuJianPinnedCenterTitleTopBar(
                 title = title,
                 onBack = onBack,
                 backEnabled = backEnabled,
@@ -192,6 +197,7 @@ private fun SettingsCard(content: @Composable () -> Unit) {
 private fun SettingsRow(
     title: String,
     subtitle: String? = null,
+    leading: androidx.compose.ui.graphics.vector.ImageVector? = null,
     onClick: (() -> Unit)? = null,
     trailing: @Composable (() -> Unit)? = {
         Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = MutedInk)
@@ -200,11 +206,15 @@ private fun SettingsRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 64.dp)
+            .heightIn(min = 60.dp)
             .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
             .padding(horizontal = 18.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (leading != null) {
+            Icon(leading, contentDescription = null, tint = WaterTeal, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(14.dp))
+        }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(title, color = DeepInk, fontSize = 16.sp)
             if (!subtitle.isNullOrBlank()) Text(subtitle, color = MutedInk, fontSize = 12.sp)
@@ -219,8 +229,10 @@ fun AccountMyScreen(
     statistics: CatchStatistics,
     recordDays: Int,
     onEditProfile: () -> Unit,
-    onAccountLogin: () -> Unit,
+    onAccountSecurity: () -> Unit,
     onAbout: () -> Unit,
+    onOpenFishGuide: () -> Unit,
+    onOpenMyCatches: () -> Unit,
     onBack: () -> Unit,
 ) {
     AccountPrivacyPageScaffold(title = "我的", onBack = onBack) {
@@ -231,36 +243,68 @@ fun AccountMyScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item {
-                Surface(shape = RoundedCornerShape(26.dp), color = CardWhite, tonalElevation = 1.dp) {
-                    Row(
-                        Modifier.fillMaxWidth().padding(20.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+            item(key = "identity-card") {
+                MistGlass(level = YuJianGlassLevel.Medium, shape = RoundedCornerShape(28.dp)) {
+                    Column(
+                        Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 26.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Avatar(profile, Modifier.size(72.dp))
-                        Column(Modifier.weight(1f).padding(start = 16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            Text(profile.nickname.ifBlank { profile.username }, color = DeepInk, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                            Text("拍照收藏每次渔获", color = MutedInk, fontSize = 13.sp)
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(92.dp)
+                                .border(3.dp, Color.White.copy(alpha = 0.92f), CircleShape)
+                                .padding(4.dp),
+                        ) {
+                            Avatar(profile, Modifier.size(84.dp))
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            profile.nickname.ifBlank { profile.username },
+                            color = DeepInk,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        )
+                        val identity = profile.username.takeIf { it.isNotBlank() && it != profile.nickname.ifBlank { profile.username } }
+                        if (identity != null) {
+                            Text(
+                                identity,
+                                color = MutedInk,
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
                         }
                     }
                 }
             }
-            item {
-                Surface(shape = RoundedCornerShape(22.dp), color = CardWhite, tonalElevation = 1.dp) {
-                    Row(Modifier.fillMaxWidth().padding(vertical = 17.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                        MyStat(statistics.speciesCount.toString(), "鱼种")
-                        MyStat(statistics.totalCatches.toString(), "鱼获")
-                        MyStat(recordDays.toString(), "记录天数")
+            item(key = "fishing-summary") {
+                MistGlass(level = YuJianGlassLevel.Medium, shape = RoundedCornerShape(24.dp)) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        MyStat(statistics.speciesCount.toString(), "鱼种", "查看鱼种图鉴", onOpenFishGuide, Modifier.weight(1f))
+                        StatDivider()
+                        MyStat(statistics.totalCatches.toString(), "鱼获", "查看我的鱼获", onOpenMyCatches, Modifier.weight(1f))
+                        StatDivider()
+                        MyStat(recordDays.toString(), "记录天数", onClick = null, modifier = Modifier.weight(1f))
                     }
                 }
             }
-            item {
-                SettingsCard {
-                    SettingsRow("编辑个人资料", onClick = onEditProfile)
-                    HairlineDivider()
-                    SettingsRow("账号与登录", onClick = onAccountLogin)
-                    HairlineDivider()
-                    SettingsRow("关于渔见", onClick = onAbout)
+            item(key = "settings") {
+                MistGlass(level = YuJianGlassLevel.Strong, shape = RoundedCornerShape(24.dp)) {
+                    Column {
+                        SettingsRow("编辑个人资料", leading = Icons.Rounded.PersonOutline, onClick = onEditProfile)
+                        SettingsHairline()
+                        SettingsRow("账号与安全", leading = Icons.Rounded.Security, onClick = onAccountSecurity)
+                        SettingsHairline()
+                        SettingsRow("关于渔见", leading = Icons.Rounded.Info, onClick = onAbout)
+                    }
                 }
             }
         }
@@ -268,16 +312,53 @@ fun AccountMyScreen(
 }
 
 @Composable
-private fun MyStat(value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(value, color = DeepInk, fontSize = 21.sp, fontWeight = FontWeight.Bold)
+private fun MyStat(
+    value: String,
+    label: String,
+    actionDescription: String? = null,
+    onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .then(
+                if (onClick != null && actionDescription != null) {
+                    Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable(role = Role.Button, onClick = onClick)
+                        .semantics { contentDescription = actionDescription }
+                        .padding(vertical = 4.dp)
+                } else {
+                    Modifier.padding(vertical = 4.dp)
+                },
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(value, color = DeepInk, fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Text(label, color = MutedInk, fontSize = 12.sp)
     }
 }
 
 @Composable
+private fun StatDivider() {
+    androidx.compose.foundation.layout.Spacer(
+        Modifier.width(1.dp).height(28.dp).background(Hairline),
+    )
+}
+
+@Composable
 private fun HairlineDivider() {
     androidx.compose.foundation.layout.Spacer(Modifier.fillMaxWidth().height(1.dp).background(Hairline))
+}
+
+/** Settings-row hairline aligned with the row text, inset past the leading icon. */
+@Composable
+private fun SettingsHairline() {
+    androidx.compose.foundation.layout.Spacer(
+        Modifier.fillMaxWidth().padding(start = 54.dp).height(1.dp).background(Hairline),
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -650,7 +731,7 @@ fun AccountLoginScreen(
     onLogout: () -> Unit,
     onBack: () -> Unit,
 ) {
-    AccountPrivacyPageScaffold(title = "账号与登录", onBack = onBack) {
+    AccountPrivacyPageScaffold(title = "账号与安全", onBack = onBack) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(18.dp, 4.dp, 18.dp, 32.dp),
@@ -861,13 +942,13 @@ fun DataPrivacyScreen(
                         trailing = { Icon(Icons.Rounded.LocationOn, contentDescription = null, tint = MutedInk) },
                     )
                     HairlineDivider()
-                    SettingsRow("导出我的数据", onClick = { onComingSoon(ComingSoonKind.EXPORT_DATA) })
+                    SettingsRow("导出我的数据", subtitle = "即将推出", onClick = { onComingSoon(ComingSoonKind.EXPORT_DATA) })
                 }
             }
             item { Text("账号数据", color = MutedInk, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 4.dp)) }
             item {
                 SettingsCard {
-                    SettingsRow("注销账号", onClick = { onComingSoon(ComingSoonKind.DELETE_ACCOUNT) })
+                    SettingsRow("注销账号", subtitle = "即将推出", onClick = { onComingSoon(ComingSoonKind.DELETE_ACCOUNT) })
                 }
             }
             item {

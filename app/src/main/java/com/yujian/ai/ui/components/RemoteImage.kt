@@ -109,6 +109,7 @@ fun RemoteImage(
     placeholder: @Composable () -> Unit = { Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) },
     reloadToken: Int = 0,
     onLoadResult: ((Boolean) -> Unit)? = null,
+    onIntrinsicSize: ((Int, Int) -> Unit)? = null,
     preservePortraitWithFitBackdrop: Boolean = false,
     preserveEvidenceWithFitBackdrop: Boolean = false,
     colorFilter: ColorFilter? = null,
@@ -128,6 +129,7 @@ fun RemoteImage(
             placeholder = placeholder,
             reloadToken = reloadToken,
             onLoadResult = onLoadResult,
+            onIntrinsicSize = onIntrinsicSize,
             cacheIdentity = fishPhotoSourceVersion ?: cacheIdentity,
             boundingBox = fishBoundingBox,
             primaryAmbiguous = fishSubjectAmbiguous,
@@ -143,6 +145,7 @@ fun RemoteImage(
     }
     val bitmapState = remember(cacheKey) { mutableStateOf<Bitmap?>(null) }
     val latestOnLoadResult = rememberUpdatedState(onLoadResult)
+    val latestOnIntrinsicSize = rememberUpdatedState(onIntrinsicSize)
     LaunchedEffect(cacheKey, url, authToken, preserveEvidenceWithFitBackdrop) {
         if (cacheKey == null || url.isNullOrBlank()) {
             bitmapState.value = null
@@ -153,6 +156,7 @@ fun RemoteImage(
                 ?.also { RemoteBitmapMemoryCache.put(cacheKey, it) }
         }
         bitmapState.value = loaded
+        loaded?.let { latestOnIntrinsicSize.value?.invoke(it.width, it.height) }
         latestOnLoadResult.value?.invoke(loaded != null)
     }
     val sourceBitmap = bitmapState.value
@@ -246,6 +250,7 @@ private fun SmartRemoteFishPhoto(
     placeholder: @Composable () -> Unit,
     reloadToken: Int,
     onLoadResult: ((Boolean) -> Unit)?,
+    onIntrinsicSize: ((Int, Int) -> Unit)?,
     cacheIdentity: String?,
     boundingBox: FishPhotoBoundingBox?,
     primaryAmbiguous: Boolean,
@@ -275,6 +280,7 @@ private fun SmartRemoteFishPhoto(
             mutableStateOf(sourceKey?.let(RemoteBitmapMemoryCache::get))
         }
         val latestOnLoadResult = rememberUpdatedState(onLoadResult)
+        val latestOnIntrinsicSize = rememberUpdatedState(onIntrinsicSize)
         LaunchedEffect(sourceKey, url, authToken, targetWidth, targetHeight) {
             if (sourceKey == null || url.isNullOrBlank()) {
                 sourceState.value = null
@@ -291,6 +297,7 @@ private fun SmartRemoteFishPhoto(
                 latestOnLoadResult.value?.invoke(sourceState.value != null)
             } else {
                 sourceState.value = source
+                latestOnIntrinsicSize.value?.invoke(source.width, source.height)
             }
         }
 

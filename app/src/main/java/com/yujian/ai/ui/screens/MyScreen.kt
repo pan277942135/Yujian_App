@@ -34,7 +34,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
@@ -77,12 +76,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import com.yujian.ai.ui.components.FishIllustration
-import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeBackground
 import com.yujian.ai.ui.designsystem.background.YuJianMorningLakeVariant
@@ -90,8 +86,10 @@ import com.yujian.ai.ui.designsystem.components.YuJianBackAction
 import com.yujian.ai.ui.designsystem.components.YuJianFishRecordRowCard
 import com.yujian.ai.ui.designsystem.components.YuJianIconAction
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
+import com.yujian.ai.ui.designsystem.components.YuJianPinnedCenterTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianTextAction
 import com.yujian.ai.ui.designsystem.components.YuJianTextActionRole
+import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import com.yujian.ai.ui.home.HomeCameraButton
 import com.yujian.ai.ui.home.rememberCaptureButtonRasterAssets
 import com.yujian.ai.ui.mycatches.CatchLengthRange
@@ -244,18 +242,11 @@ fun MyScreen(
     Box(Modifier.fillMaxSize()) {
         YuJianMorningLakeBackground(YuJianMorningLakeVariant.DATA)
 
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 20.dp,
-                end = 20.dp,
-                top = safeInsets.calculateTopPadding() + 8.dp,
-                bottom = safeInsets.calculateBottomPadding() + 116.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item(key = "my-catches-header") {
+        Column(Modifier.fillMaxSize()) {
+            Box(
+                Modifier.fillMaxWidth()
+                    .padding(top = safeInsets.calculateTopPadding() + 8.dp, start = 20.dp, end = 20.dp),
+            ) {
                 if (searchMode) {
                     SearchHeader(
                         query = query,
@@ -275,6 +266,17 @@ fun MyScreen(
                 }
             }
 
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentPadding = PaddingValues(
+                    start = 20.dp,
+                    end = 20.dp,
+                    top = 8.dp,
+                    bottom = safeInsets.calculateBottomPadding() + 116.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
             if (searchMode && query.isBlank()) {
                 item(key = "recent-searches") {
                     RecentSearches(
@@ -289,7 +291,15 @@ fun MyScreen(
             }
 
             if (searchMode && filter.isActive) {
-                item(key = "search-filter-summary") { FilterSummary(filter) }
+                item(key = "search-filter-summary") {
+                    FilterSummary(
+                        filter = filter,
+                        onOpen = {
+                            searchMode = false
+                            filterExpanded = true
+                        },
+                    )
+                }
             }
 
             if (!searchMode) {
@@ -357,6 +367,7 @@ fun MyScreen(
                     if (visibleMonthCount < monthGroups.size) item(key = "load-older-months") { Spacer(Modifier.height(1.dp)) }
                 }
             }
+        }
         }
 
         cameraAssets?.let { assets ->
@@ -432,20 +443,12 @@ private fun MainHeader(
     onSearch: () -> Unit,
     onFilter: () -> Unit,
 ) {
-    Box(Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-        Text(
-            text = "我的鱼获",
-            color = DeepInk,
-            fontSize = 23.sp,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            modifier = Modifier.align(Alignment.Center),
-        )
-        YuJianBackAction(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart))
-        Row(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+    YuJianPinnedCenterTitleTopBar(
+        title = "我的鱼获",
+        onBack = onBack,
+        statusBarInset = false,
+        titleStyle = YuJianTypography.sectionTitle.copy(fontSize = 23.sp),
+        actions = {
             YuJianIconAction(
                 icon = Icons.Rounded.Search,
                 contentDescription = "搜索鱼获",
@@ -468,8 +471,8 @@ private fun MainHeader(
                     )
                 }
             }
-        }
-    }
+        },
+    )
 }
 
 @Composable
@@ -514,11 +517,12 @@ private fun DayTimelineGroup(
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
             DateRail(day, Modifier.width(40.dp))
             Spacer(Modifier.width(24.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 DaySummaryRow(day)
                 records.forEach { record ->
                     val annotation = growthMarks[record.id].orEmpty().rowGrowthMark()
-                    CompactMyCatchRow(
+                    YuJianFishRecordRowCard(
+                        record = record,
                         presentation = record.toFishRecordPresentation(
                             imageUrl = resolveImageUrl(record.imageUrl),
                             annotations = listOfNotNull(annotation),
@@ -594,72 +598,6 @@ private fun DaySummaryRow(day: MyCatchesDayGroup) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-    }
-}
-
-@Composable
-private fun CompactMyCatchRow(
-    presentation: com.yujian.ai.ui.mycatches.FishRecordPresentation,
-    accessToken: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
-            .clip(RoundedCornerShape(13.dp))
-            .background(Color.White.copy(alpha = 0.76f))
-            .border(1.dp, Color.White.copy(alpha = 0.78f), RoundedCornerShape(13.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 1.dp, vertical = 0.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            Modifier.width(98.dp).height(49.dp).clip(RoundedCornerShape(9.dp)).background(SoftWater),
-            contentAlignment = Alignment.Center,
-        ) {
-            RemoteImage(
-                url = presentation.imageUrl,
-                authToken = accessToken,
-                modifier = Modifier.fillMaxSize(),
-                contentDescription = "${presentation.speciesName} 鱼获照片",
-                contentScale = ContentScale.Crop,
-                placeholder = { FishIllustration(size = 34.dp, bodyColor = Color(0xFF82978E).copy(alpha = 0.64f)) },
-            )
-        }
-        Spacer(Modifier.width(10.dp))
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    presentation.speciesName,
-                    color = DeepInk,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                presentation.annotations.firstOrNull()?.let { GrowthMarkBadge(it) }
-            }
-            presentation.measurementLabel?.let {
-                Text(it, color = DeepInk.copy(alpha = 0.84f), fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-        }
-        Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = DeepInk.copy(alpha = 0.78f), modifier = Modifier.size(20.dp))
-    }
-}
-
-@Composable
-private fun GrowthMarkBadge(mark: com.yujian.ai.ui.mycatches.GrowthMark) {
-    val (background, foreground) = when (mark.type) {
-        com.yujian.ai.ui.mycatches.GrowthMarkType.CountMilestone -> Color(0xFFF2E9D5) to Color(0xFF82734F)
-        com.yujian.ai.ui.mycatches.GrowthMarkType.FirstSpecies -> Color(0xFFE5EAE2) to Color(0xFF667466)
-        com.yujian.ai.ui.mycatches.GrowthMarkType.Longest,
-        com.yujian.ai.ui.mycatches.GrowthMarkType.Heaviest -> Color(0xFFE4E9EA) to Color(0xFF68777C)
-    }
-    Row(
-        Modifier.heightIn(min = 22.dp).background(background.copy(alpha = 0.78f), CircleShape).padding(horizontal = 7.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(mark.text, color = foreground, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -759,13 +697,17 @@ private fun RecentSearches(queries: List<String>, onChoose: (String) -> Unit, on
 }
 
 @Composable
-private fun FilterSummary(filter: MyCatchesFilterState) {
+private fun FilterSummary(filter: MyCatchesFilterState, onOpen: () -> Unit) {
     Text(
-        "筛选：${filterSummaryText(filter)}",
+        "筛选中 · ${activeFilterConditionCount(filter)}个条件",
         color = MutedInk,
         fontSize = 12.sp,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .clip(RoundedCornerShape(9.dp))
+            .clickable(onClick = onOpen)
+            .padding(vertical = 3.dp, horizontal = 2.dp),
     )
 }
 
@@ -903,7 +845,7 @@ private fun FilterPanel(catches: List<RemoteCatch>, filter: MyCatchesFilterState
 
 @Composable
 private fun FilterDimension(title: String, content: @Composable () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title, color = DeepInk, fontSize = 13.sp, fontWeight = FontWeight.Medium)
         content()
     }
@@ -997,9 +939,9 @@ private fun MonthHeader(month: MyCatchesMonthGroup) {
 @Composable
 private fun DayFoldAction(count: Int, expanded: Boolean, opensDayDetail: Boolean, onClick: () -> Unit) {
     val label = when {
-        opensDayDetail -> "查看当天全部 $count 条鱼获"
+        opensDayDetail -> "查看全部 $count 条鱼获"
         expanded -> "收起"
-        else -> "查看同日另外 ${count - 5} 条鱼获"
+        else -> "查看另外 ${count - 5} 条"
     }
     val actionDescription = when {
         opensDayDetail -> "打开这一天的全部 $count 条鱼获"
@@ -1084,17 +1026,15 @@ private fun EmptyMessage(title: String, subtitle: String, actions: List<Pair<Str
     }
 }
 
-private fun filterSummaryText(filter: MyCatchesFilterState): String = buildList {
-    if (filter.speciesIds.isNotEmpty()) add("${filter.speciesIds.size}种鱼")
-    if (filter.timeRange == CatchTimeRange.Custom) add("${filter.customStartDate.orEmpty()}–${filter.customEndDate.orEmpty()}")
-    else if (filter.timeRange != CatchTimeRange.All) add(filter.timeRange.label)
-    if (filter.lengthRange != CatchLengthRange.All) add(filter.lengthRange.label)
-    filter.customLengthMinCm?.let { add("长度≥${it}cm") }
-    filter.customLengthMaxCm?.let { add("长度≤${it}cm") }
-    if (filter.weightRange != CatchWeightRange.All) add(filter.weightRange.label)
-    filter.customWeightMinKg?.let { add("重量≥${it}kg") }
-    filter.customWeightMaxKg?.let { add("重量≤${it}kg") }
-    if (filter.specialMarks.isNotEmpty()) addAll(filter.specialMarks.map { it.label })
-}.joinToString(" · ").ifBlank { "不限" }
+/** Counts active filter dimensions for the low-weight search-mode summary. */
+private fun activeFilterConditionCount(filter: MyCatchesFilterState): Int {
+    var count = 0
+    if (filter.speciesIds.isNotEmpty()) count++
+    if (filter.timeRange != CatchTimeRange.All || filter.customStartDate != null || filter.customEndDate != null) count++
+    if (filter.lengthRange != CatchLengthRange.All || filter.customLengthMinCm != null || filter.customLengthMaxCm != null) count++
+    if (filter.weightRange != CatchWeightRange.All || filter.customWeightMinKg != null || filter.customWeightMaxKg != null) count++
+    if (filter.specialMarks.isNotEmpty()) count++
+    return count
+}
 
 private fun <T> Set<T>.toggle(value: T): Set<T> = if (value in this) this - value else this + value

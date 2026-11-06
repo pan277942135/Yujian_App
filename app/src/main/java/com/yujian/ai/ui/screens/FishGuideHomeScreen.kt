@@ -45,7 +45,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -53,10 +59,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yujian.ai.knowledge.FishGuideItem
 import com.yujian.ai.ui.designsystem.color.YuJianColors
-import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
+import com.yujian.ai.ui.designsystem.components.YuJianBackCenterTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
 import com.yujian.ai.ui.designsystem.glass.YuJianGlassLevel
+import com.yujian.ai.ui.designsystem.radius.YuJianRadius
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import com.yujian.ai.ui.fishguide.FishGuideBackground
@@ -70,6 +77,41 @@ import com.yujian.ai.ui.fishguide.toFishGuidePresentation
 
 private const val FISH_GUIDE_PREFERENCES = "fish_guide_home"
 private const val DISCOVER_HINT_SHOWN = "carousel_discover_hint_shown"
+
+/**
+ * Frozen fish_guide_v2.png top shell: back action plus a centered serif
+ * page title, with the discovery line as a baseline-aligned trio — small
+ * ink label, large serif gold count, lighter suffix — over a restrained
+ * right-aligned gold gradient bar.
+ */
+private val FishGuidePageTitleStyle = TextStyle(
+    fontFamily = FontFamily.Serif,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 22.sp,
+    lineHeight = 28.sp,
+    color = YuJianColors.DeepInk,
+)
+
+private val FishGuideProgressLabelStyle = SpanStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.Medium,
+    fontSize = 12.sp,
+    color = YuJianColors.LakeBlue,
+)
+
+private val FishGuideProgressCountStyle = SpanStyle(
+    fontFamily = FontFamily.Serif,
+    fontWeight = FontWeight.Bold,
+    fontSize = 34.sp,
+    color = YuJianColors.MorningGold,
+)
+
+private val FishGuideProgressSuffixStyle = SpanStyle(
+    fontFamily = FontFamily.SansSerif,
+    fontWeight = FontWeight.Normal,
+    fontSize = 15.sp,
+    color = YuJianColors.LakeBlue.copy(alpha = 0.85f),
+)
 
 @Composable
 fun FishGuideHomeScreen(
@@ -116,18 +158,20 @@ fun FishGuideHomeScreen(
 
         val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
         val layoutDirection = LocalLayoutDirection.current
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = safeInsets.calculateBottomPadding() + YuJianSpacing.md),
-        ) {
-            YuJianBackTitleTopBar(
+        Column(Modifier.fillMaxSize()) {
+            YuJianBackCenterTitleTopBar(
                 title = "鱼鉴",
                 onBack = onBack,
+                titleStyle = FishGuidePageTitleStyle,
                 modifier = Modifier.padding(horizontal = YuJianSpacing.xs),
             )
-
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = safeInsets.calculateBottomPadding() + YuJianSpacing.md),
+            ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -181,14 +225,15 @@ fun FishGuideHomeScreen(
                     )
                     Text(
                         text = "${selectionIndex(species, selectedSpeciesId) + 1} / ${species.size}",
-                        style = YuJianTypography.caption.copy(fontSize = 14.sp, lineHeight = 20.sp),
-                        color = YuJianColors.DeepInk.copy(alpha = 0.88f),
-                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        style = YuJianTypography.caption.copy(fontSize = 12.sp, lineHeight = 18.sp),
+                        color = YuJianColors.DeepInk.copy(alpha = 0.78f),
+                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
                         textAlign = TextAlign.Center,
                     )
                 }
                 Spacer(Modifier.height(24.dp))
             }
+        }
         }
     }
 }
@@ -203,21 +248,20 @@ private fun FishGuideProgressHeader(species: List<FishGuideItem>, reduceMotion: 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = YuJianSpacing.lg),
+            .padding(horizontal = YuJianSpacing.md),
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(YuJianSpacing.xs),
     ) {
         Text(
-            text = "已点亮 ${species.litCount()} / ${species.size} 种",
-            style = YuJianTypography.caption.copy(
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                color = YuJianColors.DeepInk.copy(alpha = 0.88f),
-            ),
+            text = buildAnnotatedString {
+                withStyle(FishGuideProgressLabelStyle) { append("已点亮 ") }
+                withStyle(FishGuideProgressCountStyle) { append("${species.litCount()}") }
+                withStyle(FishGuideProgressSuffixStyle) { append(" / ${species.size} 种") }
+            },
         )
         FishGuideProgress(
             fraction = species.progressFraction(),
-            modifier = Modifier.fillMaxWidth(0.39f).testTag("fish_guide_progress"),
+            modifier = Modifier.fillMaxWidth(0.375f).testTag("fish_guide_progress"),
             reduceMotion = reduceMotion,
             durationMillis = progressDuration,
         )
@@ -228,28 +272,31 @@ private fun FishGuideProgressHeader(species: List<FishGuideItem>, reduceMotion: 
 private fun FishGuideLoadingState(onBack: () -> Unit) {
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
     val layoutDirection = LocalLayoutDirection.current
-    Column(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = safeInsets.calculateBottomPadding() + YuJianSpacing.md)
-            .semantics { contentDescription = "正在加载鱼鉴资料" },
-    ) {
-        YuJianBackTitleTopBar(
+    Column(Modifier.fillMaxSize()) {
+        YuJianBackCenterTitleTopBar(
             title = "鱼鉴",
             onBack = onBack,
+            titleStyle = FishGuidePageTitleStyle,
             modifier = Modifier.padding(horizontal = YuJianSpacing.xs),
         )
         Column(
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = safeInsets.calculateBottomPadding() + YuJianSpacing.md)
+                .semantics { contentDescription = "正在加载鱼鉴资料" },
+        ) {
+        Column(
             Modifier.fillMaxWidth().padding(
-                start = safeInsets.calculateStartPadding(layoutDirection) + YuJianSpacing.lg,
-                end = safeInsets.calculateEndPadding(layoutDirection) + YuJianSpacing.lg,
+                start = safeInsets.calculateStartPadding(layoutDirection) + YuJianSpacing.md,
+                end = safeInsets.calculateEndPadding(layoutDirection) + YuJianSpacing.md,
             ),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(YuJianSpacing.xs),
         ) {
-            Box(Modifier.fillMaxWidth(0.26f).height(14.dp).background(YuJianColors.MistBlueGray.copy(alpha = 0.30f), RoundedCornerShape(7.dp)))
-            Box(Modifier.fillMaxWidth(0.39f).height(6.dp).background(YuJianColors.MistBlueGray.copy(alpha = 0.24f), RoundedCornerShape(4.dp)))
+            Box(Modifier.width(150.dp).height(36.dp).background(YuJianColors.MistBlueGray.copy(alpha = 0.22f), RoundedCornerShape(8.dp)))
+            Box(Modifier.fillMaxWidth(0.375f).height(6.dp).background(YuJianColors.MistBlueGray.copy(alpha = 0.24f), RoundedCornerShape(4.dp)))
         }
         BoxWithConstraints(
             Modifier.fillMaxWidth().padding(
@@ -264,7 +311,7 @@ private fun FishGuideLoadingState(onBack: () -> Unit) {
                 Modifier
                     .width(geometry.cardWidthDp.dp)
                     .height(geometry.cardHeightDp.dp)
-                    .background(YuJianColors.MistWhite.copy(alpha = 0.62f), RoundedCornerShape(28.dp)),
+                    .background(YuJianColors.MistWhite.copy(alpha = 0.62f), RoundedCornerShape(YuJianRadius.small)),
             )
         }
         Box(
@@ -273,6 +320,7 @@ private fun FishGuideLoadingState(onBack: () -> Unit) {
         ) {
             Box(Modifier.width(60.dp).height(12.dp).background(YuJianColors.MistBlueGray.copy(alpha = 0.24f), RoundedCornerShape(6.dp)))
         }
+    }
     }
 }
 

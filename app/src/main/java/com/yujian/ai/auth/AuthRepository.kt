@@ -43,21 +43,21 @@ class AuthRepository(
             path = "/api/v1/auth/login",
             body = JSONObject().put("username", username).put("password", password),
         )
-        val user = response.optJSONObject("user") ?: throw IOException("登录响应缺少用户信息")
+        val accessToken = response.optString("access_token").takeIf(String::isNotBlank)
+            ?: response.optString("accessToken").takeIf(String::isNotBlank)
+            ?: throw IOException("登录响应缺少 access token")
+        val profile = profileFrom(request(path = "/api/v1/users/me", method = "GET", accessToken = accessToken))
         UserSession(
-            accessToken = response.optString("access_token").takeIf(String::isNotBlank)
-                ?: throw IOException("登录响应缺少 access token"),
-            userId = user.optString("id").takeIf(String::isNotBlank)
-                ?: throw IOException("登录响应缺少用户 ID"),
-            username = user.optString("username"),
-            nickname = user.optString("nickname"),
-            avatarUrl = user.optString("avatar_url").takeIf(String::isNotBlank)
-                ?: user.optString("avatarUrl").takeIf(String::isNotBlank),
+            accessToken = accessToken,
+            userId = profile.id,
+            username = profile.username,
+            nickname = profile.nickname,
+            avatarUrl = profile.avatarUrl,
         )
     }
 
     suspend fun getProfile(accessToken: String): AccountProfile = withContext(Dispatchers.IO) {
-        profileFrom(request(path = "/api/v1/me", method = "GET", accessToken = accessToken))
+        profileFrom(request(path = "/api/v1/users/me", method = "GET", accessToken = accessToken))
     }
 
     suspend fun updateProfile(accessToken: String, nickname: String): AccountProfile = withContext(Dispatchers.IO) {
@@ -155,7 +155,16 @@ class AuthRepository(
             val text = (if (code in 200..299) connection.inputStream else connection.errorStream)
                 ?.use { it.readBytes().toString(Charsets.UTF_8) }.orEmpty()
             if (code !in 200..299) throw ApiException(code, readableError(text, "请求失败 ($code)"))
-            JSONObject(text)
+            JSONObject(text).let { body ->
+                val data = body.optJSONObject("data")
+                if (data != null && body.has("code")) {
+                    val bizCode = body.optString("code")
+                    if (bizCode.isNotBlank() && bizCode != "00000") {
+                        throw ApiException(code, body.optString("msg").ifBlank { "请求失败 ($bizCode)" })
+                    }
+                    data
+                } else body
+            }
         } finally {
             connection.disconnect()
         }
@@ -165,10 +174,13 @@ class AuthRepository(
         ?: throw IOException("用户服务未配置或地址格式无效")
 
     private fun profileFrom(response: JSONObject): AccountProfile = AccountProfile(
-        id = response.optString("id").takeIf(String::isNotBlank) ?: throw IOException("用户响应缺少 ID"),
+        id = response.optString("id").takeIf(String::isNotBlank)
+            ?: response.optString("userId").takeIf(String::isNotBlank)
+            ?: throw IOException("用户响应缺少 ID"),
         username = response.optString("username"),
         nickname = response.optString("nickname"),
-        avatarUrl = response.optString("avatar_url").takeIf(String::isNotBlank),
+        avatarUrl = response.optString("avatar_url").takeIf(String::isNotBlank)
+            ?: response.optString("avatar").takeIf(String::isNotBlank),
     )
 
     private fun privacyFrom(response: JSONObject): AiModelImprovementSettings {
@@ -181,6 +193,7 @@ class AuthRepository(
     }
 
     private fun readableError(raw: String, fallback: String): String = runCatching {
-        JSONObject(raw).optString("detail").ifBlank { fallback }
+        val json = JSONObject(raw)
+        json.optString("detail").ifBlank { json.optString("msg") }.ifBlank { fallback }
     }.getOrDefault(fallback)
 }

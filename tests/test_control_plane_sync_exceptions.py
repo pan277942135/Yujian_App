@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import tempfile
 import unittest
@@ -15,6 +16,19 @@ SPEC.loader.exec_module(MODULE)
 
 
 class WorktreeExceptionTests(unittest.TestCase):
+    def test_local_blob_hashes_raw_worktree_bytes_without_clean_filters(self):
+        """Line-ending filters must not change a control-plane blob comparison."""
+        content = b"first line\n\r\nsecond line\r\n"
+        expected = hashlib.sha1(
+            b"blob " + str(len(content)).encode("ascii") + b"\0" + content
+        ).hexdigest()
+
+        with tempfile.TemporaryDirectory() as directory:
+            candidate = Path(directory) / "mixed-line-endings.txt"
+            candidate.write_bytes(content)
+
+            self.assertEqual(MODULE.local_blob(candidate), expected)
+
     def test_canonical_exception_registry_contains_only_non_frozen_design_paths(self):
         exceptions = MODULE.load_worktree_exceptions()
 

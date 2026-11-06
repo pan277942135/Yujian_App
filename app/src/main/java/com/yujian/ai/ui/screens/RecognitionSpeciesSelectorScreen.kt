@@ -61,6 +61,7 @@ import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianTextAction
 import com.yujian.ai.ui.designsystem.components.YuJianTextActionRole
+import com.yujian.ai.ui.fishguide.toFishGuidePresentation
 import com.yujian.ai.ui.recognition.result.RecognitionSpeciesSearch
 import com.yujian.ai.ui.recognition.result.SpeciesSelectorEntryContext
 import com.yujian.ai.ui.recognition.result.SpeciesSelectorRecentStore
@@ -99,6 +100,10 @@ internal fun RecognitionSpeciesSelectorScreen(
         val byId = species.associateBy { it.id }
         val preferredItems = preferred.mapNotNull(byId::get)
         (preferredItems + species.filterNot { item -> preferredItems.any { it.id == item.id } }).take(6)
+    }
+    // 与鱼鉴列表页同一套取图规则：优先 cover_image，缺失时回退 cover_hero_image。
+    val resolvedImages = remember(species, resolveCoverUrl) {
+        species.toFishGuidePresentation(resolveCoverUrl).associate { it.id to it.imageUrl }
     }
 
     fun choose(item: FishGuideItem) {
@@ -170,7 +175,7 @@ internal fun RecognitionSpeciesSelectorScreen(
                                 RecentSpeciesChip(
                                     item = item,
                                     selected = item.id == choosingId,
-                                    imageUrl = resolveCoverUrl(item.coverImage),
+                                    imageUrl = resolvedImages[item.id],
                                     enabled = !committing,
                                 ) { choose(item) }
                             }
@@ -184,7 +189,7 @@ internal fun RecognitionSpeciesSelectorScreen(
                                 CommonSpeciesCard(
                                     item = item,
                                     selected = item.id == choosingId,
-                                    imageUrl = resolveCoverUrl(item.coverImage),
+                                    imageUrl = resolvedImages[item.id],
                                     enabled = !committing,
                                     modifier = Modifier.weight(1f),
                                 ) { choose(item) }
@@ -200,13 +205,13 @@ internal fun RecognitionSpeciesSelectorScreen(
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         grouped.forEach { (initial, items) ->
-                            Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(initial, color = MutedInk, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold)
                                 items.forEach { item ->
                                     SpeciesListRow(
                                         item = item,
                                         selected = item.id == choosingId,
-                                        imageUrl = resolveCoverUrl(item.coverImage),
+                                        imageUrl = resolvedImages[item.id],
                                         enabled = !committing,
                                     ) { choose(item) }
                                 }
@@ -232,7 +237,7 @@ internal fun RecognitionSpeciesSelectorScreen(
                         SpeciesListRow(
                             item = item,
                             selected = item.id == choosingId,
-                            imageUrl = resolveCoverUrl(item.coverImage),
+                            imageUrl = resolvedImages[item.id],
                             enabled = !committing,
                             testTag = "recognition-species-result-${item.id}",
                         ) { choose(item) }

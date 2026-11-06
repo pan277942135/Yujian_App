@@ -152,7 +152,6 @@ fun FishMediaPicker(
                             icon = Icons.Outlined.Image,
                             onClick = onAddPhotosOrVideos,
                             modifier = Modifier.fillMaxWidth(),
-                            primary = true,
                         )
                         MemoryMediaAction(
                             label = FishMemoryEmptyStateCopy.continuePhoto,
@@ -176,8 +175,7 @@ fun FishMediaPicker(
                             label = FishMemoryEmptyStateCopy.addMedia,
                             icon = Icons.Outlined.Image,
                             onClick = onAddPhotosOrVideos,
-                            modifier = Modifier.weight(1.5f),
-                            primary = true,
+                            modifier = Modifier.weight(1.25f),
                         )
                         MemoryMediaAction(
                             label = FishMemoryEmptyStateCopy.continuePhoto,
@@ -243,15 +241,18 @@ private fun MemoryMediaAction(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    primary: Boolean = false,
 ) {
+    // Fully transparent fill: any white here composites with the glass
+    // substrate underneath, making the action row read denser than the card
+    // padding. An empty fill leaves one single layer across the whole card,
+    // so padding and content share the same opacity.
     OutlinedButton(
         onClick = onClick,
         modifier = modifier.heightIn(min = 44.dp),
         shape = YuJianRadius.button,
-        border = BorderStroke(1.dp, Color.White.copy(alpha = if (primary) 0.92f else 0.84f)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.84f)),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = if (primary) Color.White.copy(alpha = 0.90f) else Color.Transparent,
+            containerColor = Color.Transparent,
             contentColor = YuJianColors.DeepLakeBlue,
         ),
         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),

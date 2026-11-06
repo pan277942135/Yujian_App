@@ -150,6 +150,7 @@ internal fun GeminiNormalHomeContent(
     onLoginClick: () -> Unit,
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
+    onRecordDaysClick: (() -> Unit)? = null,
     onProfileClick: () -> Unit,
     onCatchClick: (String) -> Unit,
     isResolving: Boolean = false,
@@ -216,6 +217,7 @@ internal fun GeminiNormalHomeContent(
                     onProfileClick = onProfileClick,
                     onSpeciesClick = onSpeciesClick,
                     onCatchesClick = onCatchesClick,
+                    onRecordDaysClick = onRecordDaysClick,
                 )
                 GeminiMiddleSection(
                     modifier = Modifier.weight(1f).captureHomeExit().widthIn(max = 560.dp).fillMaxWidth()
@@ -273,6 +275,7 @@ private fun GeminiTopSection(
     onProfileClick: () -> Unit,
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
+    onRecordDaysClick: (() -> Unit)? = null,
 ) {
     // Keep a stable status-area buffer; the policy bounds the header-to-stats
     // gap. System safe insets are already applied by the parent.
@@ -323,6 +326,7 @@ private fun GeminiTopSection(
             dividerHeight = 26.dp,
             onSpeciesClick = onSpeciesClick,
             onCatchesClick = onCatchesClick,
+            onRecordDaysClick = onRecordDaysClick,
         )
     }
 }
@@ -432,6 +436,7 @@ private fun GeminiStatsBar(
     dividerHeight: Dp,
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
+    onRecordDaysClick: (() -> Unit)? = null,
 ) {
     val values = remember(statistics, catches) { resolveHomeStatValues(statistics, catches) }
     Row(
@@ -463,7 +468,7 @@ private fun GeminiStatsBar(
         GeminiStatItem(
             tag = "record-days", value = if (isResolving) "—" else values.recordDays.toString(),
             label = "记录天数", valueFontSize = valueFontSize, labelFontSize = labelFontSize,
-            onClick = null,
+            onClick = onRecordDaysClick.takeUnless { isResolving },
         )
     }
 }

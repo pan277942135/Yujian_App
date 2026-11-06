@@ -62,6 +62,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.testTag
@@ -71,6 +72,7 @@ import com.yujian.ai.knowledge.FishKnowledgeDetail
 import com.yujian.ai.knowledge.toFallbackDetail
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
+import com.yujian.ai.ui.designsystem.components.YuJianBackCenterTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianBackTitleTopBar
 import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
 import com.yujian.ai.ui.designsystem.components.YuJianPrimaryButton
@@ -91,6 +93,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 private val knowledgeCardShape = RoundedCornerShape(24.dp)
+
+/** Knowledge cards size to their artwork; clamps keep extreme ratios from breaking the page. */
+private const val KNOWLEDGE_CARD_MIN_HEIGHT_DP = 300f
+private const val KNOWLEDGE_CARD_MAX_HEIGHT_DP = 640f
 
 @Composable
 fun FishSpeciesDetailScreen(
@@ -191,11 +197,10 @@ private fun SpeciesDetailContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(bottom = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() + YuJianSpacing.lg),
     ) {
-        YuJianBackTitleTopBar(
-            title = "",
+        YuJianBackCenterTitleTopBar(
+            title = species.nameCn,
             onBack = onBack,
             modifier = Modifier.padding(horizontal = YuJianSpacing.xs),
         )
@@ -203,6 +208,8 @@ private fun SpeciesDetailContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f, fill = false)
+                .verticalScroll(rememberScrollState())
                 .padding(
                     start = safeInsets.calculateStartPadding(layoutDirection),
                     end = safeInsets.calculateEndPadding(layoutDirection),
@@ -238,7 +245,7 @@ private fun SpeciesDetailContent(
                 style = YuJianTypography.body.copy(color = YuJianColors.TextSecondary),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp),
+                    .padding(top = 8.dp),
                 textAlign = TextAlign.Center,
             )
 
@@ -249,7 +256,7 @@ private fun SpeciesDetailContent(
                 onRecordCatch = onRecordCatch,
                 onOpenCatch = onOpenCatch,
                 onOpenSpeciesCatches = { onOpenSpeciesCatches(species.id) },
-                modifier = Modifier.padding(horizontal = YuJianSpacing.md, vertical = 20.dp),
+                modifier = Modifier.padding(horizontal = YuJianSpacing.md, vertical = 12.dp),
             )
 
             if (offlinePreview && !loading) {
@@ -275,19 +282,14 @@ private fun SpeciesHeader(detail: FishKnowledgeDetail) {
         ).distinct().joinToString(" · ")
             .ifBlank { species.family?.trim().orEmpty() }
     }
+    // The species name lives in the top bar; only the descriptor line stays above the carousel.
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 30.dp, vertical = 8.dp),
+            .padding(horizontal = 30.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        Text(
-            text = species.nameCn,
-            style = YuJianTypography.heroTitle.copy(fontSize = 34.sp, color = YuJianColors.DeepInk),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.semantics { heading() },
-        )
         if (descriptor.isNotBlank()) {
             Text(
                 text = descriptor,
@@ -299,7 +301,6 @@ private fun SpeciesHeader(detail: FishKnowledgeDetail) {
         }
         Box(
             Modifier
-                .padding(top = 3.dp)
                 .width(44.dp)
                 .height(3.dp)
                 .clip(RoundedCornerShape(2.dp))
@@ -324,7 +325,7 @@ private fun SpeciesKnowledgeCarousel(
             state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 390.dp)
+                .heightIn(min = KNOWLEDGE_CARD_MIN_HEIGHT_DP.dp)
                 .testTag("fish_species_knowledge_carousel"),
             pageSize = PageSize.Fixed(cardWidth),
             contentPadding = PaddingValues(horizontal = sidePeek),
@@ -338,7 +339,7 @@ private fun SpeciesKnowledgeCarousel(
             Box(
                 modifier = Modifier
                     .width(cardWidth)
-                    .heightIn(min = 390.dp)
+                    .heightIn(min = KNOWLEDGE_CARD_MIN_HEIGHT_DP.dp)
                     .semantics {
                         contentDescription = "${cards[page].label}，${cards[page].title}"
                         stateDescription = "第 ${page + 1} 张，共 5 张${if (page == pagerState.currentPage && !pagerState.isScrollInProgress) "，当前选中" else ""}"
@@ -346,6 +347,7 @@ private fun SpeciesKnowledgeCarousel(
             ) {
                 KnowledgeCardSurface(
                     card = cards[page],
+                    cardWidth = cardWidth,
                     modifier = Modifier.fillMaxWidth(),
                     onClick = if (page == pagerState.currentPage) null else ({ onAdjacentTap(page) }),
                 )
@@ -357,6 +359,7 @@ private fun SpeciesKnowledgeCarousel(
 @Composable
 private fun KnowledgeCardSurface(
     card: FishGuideKnowledgeCardPresentation,
+    cardWidth: Dp,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
 ) {
@@ -370,9 +373,19 @@ private fun KnowledgeCardSurface(
         )
     } else Modifier
     var imageLoaded by remember(card.imageUrl, card.imageCacheIdentity) { mutableStateOf<Boolean?>(null) }
+    // The card adopts the knowledge image's own aspect ratio once decoded so the
+    // artwork fills the card exactly; extreme ratios are clamped to stay usable.
+    var intrinsicAspect by remember(card.imageUrl, card.imageCacheIdentity) { mutableStateOf<Float?>(null) }
+    val cardHeight = intrinsicAspect
+        ?.takeIf { it > 0f }
+        ?.let { (cardWidth.value / it).coerceIn(KNOWLEDGE_CARD_MIN_HEIGHT_DP, KNOWLEDGE_CARD_MAX_HEIGHT_DP).dp }
+
     Box(
         modifier = modifier
-            .defaultMinSize(minHeight = 390.dp)
+            .then(
+                if (cardHeight != null) Modifier.height(cardHeight)
+                else Modifier.defaultMinSize(minHeight = KNOWLEDGE_CARD_MIN_HEIGHT_DP.dp),
+            )
             .clip(knowledgeCardShape)
             .background(Color(0xFFDCE7E3))
             .border(1.dp, Color.White.copy(alpha = 0.78f), knowledgeCardShape)
@@ -404,6 +417,9 @@ private fun KnowledgeCardSurface(
                 contentScale = ContentScale.Fit,
                 cacheIdentity = card.imageCacheIdentity,
                 onLoadResult = { imageLoaded = it },
+                onIntrinsicSize = { width, height ->
+                    if (width > 0 && height > 0) intrinsicAspect = width.toFloat() / height
+                },
                 placeholder = {
                     KnowledgeCardImagePlaceholder(
                         text = if (imageLoaded == false) "知识卡图片加载失败" else "正在加载知识卡图片",

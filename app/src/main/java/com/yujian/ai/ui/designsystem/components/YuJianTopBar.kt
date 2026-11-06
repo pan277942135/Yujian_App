@@ -105,6 +105,7 @@ fun YuJianBackCenterTitleTopBar(
     modifier: Modifier = Modifier,
     backEnabled: Boolean = true,
     statusBarInset: Boolean = true,
+    titleStyle: TextStyle = YuJianTypography.sectionTitle,
 ) {
     Box(
         modifier = modifier
@@ -120,9 +121,54 @@ fun YuJianBackCenterTitleTopBar(
         )
         Text(
             text = title,
-            style = YuJianTypography.sectionTitle,
+            style = titleStyle,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/**
+ * Top Navigation V1 / PINNED_CENTER_TITLE_ACTIONS.
+ *
+ * Page-level top bar pinned outside the scroll container (same pattern as the
+ * fish record detail page): back action at the start, centered title, and an
+ * optional trailing actions slot.
+ */
+@Composable
+fun YuJianPinnedCenterTitleTopBar(
+    title: String,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    backEnabled: Boolean = true,
+    statusBarInset: Boolean = true,
+    titleStyle: TextStyle = YuJianTypography.sectionTitle,
+    actions: @Composable RowScope.() -> Unit = {},
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(topNavigationInsets(8.dp, statusBarInset))
+            .heightIn(min = 64.dp),
+    ) {
+        YuJianBackAction(
+            onClick = onBack,
+            enabled = backEnabled,
+            modifier = Modifier.align(Alignment.CenterStart),
+        )
+        Text(
+            text = title,
+            style = titleStyle,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.align(Alignment.Center).padding(horizontal = 88.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Row(
+            modifier = Modifier.align(Alignment.CenterEnd),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            content = actions,
         )
     }
 }
