@@ -248,22 +248,4 @@ object RecognitionRevealHandoffFactory {
 
     private fun NormalizedFishBox.toNormalizedRect() = NormalizedSourceRect(x1, y1, x2, y2)
 
-    private fun bottomContourAnchor(
-        contour: List<RecognitionContourSegment>,
-        roi: NormalizedSourceRect,
-        photoSpace: Boolean,
-    ): DisplayPoint? {
-        val points = contour.flatMap { listOf(it.startX to it.startY, it.endX to it.endY) }
-        if (points.isEmpty()) return null
-        val lowest = points.maxOf { it.second }
-        val lowerBand = points.filter { it.second >= lowest - 0.025f }
-        if (lowerBand.isEmpty()) return null
-        val x = lowerBand.map { it.first }.average().toFloat()
-        val y = lowerBand.map { it.second }.average().toFloat()
-        val sourceX = if (photoSpace) x else roi.left + x * roi.width
-        val sourceY = if (photoSpace) y else roi.top + y * roi.height
-        return DisplayPoint(sourceX, sourceY).takeIf {
-            it.x.isFinite() && it.y.isFinite() && it.x in 0f..1f && it.y in 0f..1f
-        }
-    }
 }
