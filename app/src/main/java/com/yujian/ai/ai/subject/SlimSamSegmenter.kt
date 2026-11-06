@@ -13,6 +13,7 @@ import android.util.Log
 import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.NormalizedFishBox
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -260,6 +261,9 @@ class SlimSamSegmenter(
                     maskIouScore = iouScore.takeIf { it.isFinite() },
                     geometry = geometry,
                 )
+            } catch (cancelled: CancellationException) {
+                // Preserve structured cancellation when a screen leaves or a newer Attempt replaces this one.
+                throw cancelled
             } catch (error: Throwable) {
                 Log.e(TAG, "SlimSAM segmentation failure", error)
                 failed(
