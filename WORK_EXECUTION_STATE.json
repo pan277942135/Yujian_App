@@ -1,45 +1,67 @@
 {
   "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
-  "schema_version": "1.0",
-  "work_id": "YUJIAN_WP1B_EXECUTION_BASIS_21_FRAME_ASSET_BINDING_RUNTIME_V3",
-  "repository": "pan277942135/Yujian_App",
-  "branch": "wp1b/recognition-pipeline-visual-handoff-v1",
-  "control_plane_revision": "7af1c5cf14cc244069fd0a8637b4eedb3f591c9b",
   "base_branch": "main",
   "base_sha": "98684af617206027e3fbba35e0d2a45bd475e3ba",
-  "phase": "P6",
-  "task_id": "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1",
-  "stage": "E0_AUTHORITY_AND_ASSET_BINDING",
-  "status": "RUNNING",
-  "source_sha": "afb7b1110154cf765299a15670b8095270a05c2d",
-  "checkpoint_updated_at": "2026-11-06T15:56:57Z",
-  "next_action": "Verify the frozen authorities and create exact KF00-KF20 resource bindings before Kotlin runtime changes.",
-  "dependencies": [
-    "P3-05",
-    "P5-02"
-  ],
   "blockers": [
     "B009: approved DET_FISH v0.3 binary, metadata, and validation evidence are unavailable",
     "B012: SlimSAM artifact provenance is not yet confirmed on the current branch"
   ],
+  "branch": "wp1b/recognition-pipeline-visual-handoff-v1",
+  "checkpoint_updated_at": "2026-11-07T00:41:20Z",
+  "control_plane_revision": "7af1c5cf14cc244069fd0a8637b4eedb3f591c9b",
+  "dependencies": [
+    "P3-05",
+    "P5-02"
+  ],
   "evidence": {
     "admission": {
-      "control_plane_sync": "PASS",
       "canonical_paths_compared": 751,
+      "control_plane_sync": "PASS",
       "source_sha": "afb7b1110154cf765299a15670b8095270a05c2d"
     },
+    "implementation": {
+      "dynamic_mask_sha256_handoff": "COMMITTED_6e4daf5",
+      "mask_provenance": "SlimSAM emits a SHA-256 over the actual encoded transparent PNG and carries it through subject geometry and reveal handoff."
+    },
     "models": {
+      "classifier_crop_m1_v02": "NOT_REVERIFIED",
       "det_fish_v03": "BLOCKED_B009",
-      "slimsam": "NOT_CONFIRMED",
-      "classifier_crop_m1_v02": "NOT_REVERIFIED"
+      "slimsam": "NOT_CONFIRMED"
     },
     "runtime": {
-      "unit_tests": "NOT_RUN",
       "android_test_compilation": "NOT_RUN",
-      "build": "NOT_RUN",
       "apk": "NOT_BUILT",
+      "build": "BLOCKED_GRADLE_DISTRIBUTION_DOWNLOAD_TIMEOUT",
       "device": "NOT_RUN",
+      "unit_tests": "BLOCKED_GRADLE_DISTRIBUTION_DOWNLOAD_TIMEOUT",
       "visual_acceptance": "NOT_RUN"
     }
-  }
+  },
+  "execution_v2": {
+    "issues": {
+      "29bbfeb8a3943110eaa8": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "2026-11-07 local :app:testDebugUnitTest attempt with Android Studio JBR: gradle-9.3.1-bin.zip download timed out before Kotlin compilation.",
+            "hypothesis": "The local wrapper cannot reach services.gradle.org within its configured download timeout; no Gradle distribution is cached.",
+            "source_sha": "6e4daf5cae54b33a9d2b1ce0440d9de929ad5810"
+          }
+        ],
+        "gate_id": "ANDROID_LOCAL_GRADLE_BOOTSTRAP",
+        "symptom_key": "GRADLE_9_3_1_DISTRIBUTION_DOWNLOAD_TIMEOUT",
+        "task_id": "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1"
+      }
+    },
+    "schema_version": "1.0"
+  },
+  "next_action": "Obtain the Gradle 9.3.1 distribution, then run exact-source Debug unit tests, AndroidTest compilation, and assembleDebug for the dynamic Mask SHA-256 handoff candidate.",
+  "phase": "P6",
+  "repository": "pan277942135/Yujian_App",
+  "schema_version": "1.0",
+  "source_sha": "6e4daf5cae54b33a9d2b1ce0440d9de929ad5810",
+  "stage": "E1_DYNAMIC_MASK_PROVENANCE_RUNTIME",
+  "status": "RUNNING",
+  "task_id": "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1",
+  "work_id": "YUJIAN_WP1B_EXECUTION_BASIS_21_FRAME_ASSET_BINDING_RUNTIME_V3"
 }

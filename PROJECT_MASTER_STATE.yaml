@@ -5,10 +5,10 @@ project:
   repository: pan277942135/Yujian_App
 state_control:
   current_branch: wp1b/recognition-pipeline-visual-handoff-v1
-  execution_baseline_sha: afb7b1110154cf765299a15670b8095270a05c2d
+  execution_baseline_sha: 6e4daf5cae54b33a9d2b1ce0440d9de929ad5810
   base_sha: 98684af617206027e3fbba35e0d2a45bd475e3ba
   current_pr: 320
-  updated_at: '2026-11-06T15:56:57Z'
+  updated_at: '2026-11-07T00:41:20Z'
 source_of_truth:
   control_plane_entrypoint: CONTROL_PLANE_REGISTRY.yaml
   current_work_state: WORK_EXECUTION_STATE.json
@@ -26,7 +26,7 @@ pull_requests:
     branch: wp1b/recognition-pipeline-visual-handoff-v1
     base_sha: 98684af617206027e3fbba35e0d2a45bd475e3ba
     remote_head_sha: 3f60ffc06af5c2f243e2ce5a25e9efe717dfa3ba
-    local_synced_candidate_sha: afb7b1110154cf765299a15670b8095270a05c2d
+    local_synced_candidate_sha: 6e4daf5cae54b33a9d2b1ce0440d9de929ad5810
 phases:
   P0: {status: PARTIAL, note: Authority and asset binding execution is active.}
   P1: {status: PARTIAL, note: Recognition-chain audit exists; implementation is active in WP1-B.}
@@ -66,9 +66,9 @@ recognition_main_journey:
   journey_count: 20
 runtime_gates:
   exact_head:
-    sha: afb7b1110154cf765299a15670b8095270a05c2d
-    status: NOT_RUN
-    reason: Runtime work has not started; admission and asset binding are the active stage.
+    sha: 6e4daf5cae54b33a9d2b1ce0440d9de929ad5810
+    status: BLOCKED
+    reason: Gradle Wrapper could not download gradle-9.3.1-bin.zip before Kotlin compilation; no test, build, APK, or device result exists for this SHA.
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
 apk_and_evidence:
@@ -80,9 +80,9 @@ current_work:
   id: YUJIAN_WP1B_EXECUTION_BASIS_21_FRAME_ASSET_BINDING_RUNTIME_V3
   phase: P6
   task_id: YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1
-  stage: E0_AUTHORITY_AND_ASSET_BINDING
+  stage: E1_DYNAMIC_MASK_PROVENANCE_RUNTIME
   status: RUNNING
-  exact_head: afb7b1110154cf765299a15670b8095270a05c2d
+  exact_head: 6e4daf5cae54b33a9d2b1ce0440d9de929ad5810
 blockers:
   - id: B009
     severity: P0
@@ -114,16 +114,11 @@ protected_invariants:
   frozen_timing:
     - Carry the 3650ms/6000ms dispute without arbitration or timing changes.
 next_actions:
-  - id: WP1B-V3-001
+  - id: WP1B-V3-002
     status: READY
     owner: Work
-    action: Verify authority files and create the 21-frame KF00-KF20 asset-binding CSV and JSON with exact resource provenance.
+    action: Obtain Gradle 9.3.1, then run exact-head Debug unit tests, AndroidTest compilation, and assembleDebug for the dynamic Mask SHA-256 handoff.
     depends_on: []
-  - id: WP1B-V3-002
-    status: PENDING
-    owner: Work
-    action: Inspect the current Kotlin recognition pipeline and bind verified frame assets without changing frozen parameters.
-    depends_on: [WP1B-V3-001]
   - id: WP1B-V3-003
     status: BLOCKED
     owner: Work
@@ -134,8 +129,8 @@ completion_rules:
   runtime: Build, unit tests, AndroidTest compilation, APK packaging, device runtime, and visual owner acceptance are separate gates.
   release: No release PASS while a P0 blocker remains open.
 state_update:
-  updated_at: '2026-11-06T15:56:57Z'
-  reason: Restored branch-local WP1-B state after current-main synchronization and control-plane admission repair.
+  updated_at: '2026-11-07T00:41:20Z'
+  reason: Committed dynamic SlimSAM Mask PNG SHA-256 handoff at 6e4daf5; local Gradle verification is blocked before compilation by distribution download timeout.
 agent_recovery:
   resume_from: WORK_EXECUTION_STATE.json next_action
   required_reads:

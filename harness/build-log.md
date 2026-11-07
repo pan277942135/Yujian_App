@@ -138,3 +138,9 @@
 
 
 - Remote branch publication: implementation source commit `317ade8de606dd673e4bb04a4f24063b41bd95c7` was created from Main `98684af617206027e3fbba35e0d2a45bd475e3ba`; the four implementation/test/verifier files are byte-identical to the locally validated tree (SHA-256 verified per file). Exact-head CI is pending.
+
+## 2026-11-07 — WP1-B dynamic Mask content identity checkpoint
+
+- Implementation source commit `6e4daf5cae54b33a9d2b1ce0440d9de929ad5810` computes SHA-256 from the actual encoded transparent SlimSAM PNG after mask cleanup. The value is propagated through `FishSubjectResult`, mask geometry, Processing geometry, and `RecognitionRevealHandoff`; it does not relabel DET_FISH v0.1 or supply the blocked v0.3 model.
+- Control-plane admission passed before this implementation checkpoint on the synchronized product branch. The local Debug unit-test attempt first located Android Studio JBR, then stopped before Kotlin compilation because Gradle Wrapper could not download `gradle-9.3.1-bin.zip` (network timeout). No test, build, APK, AndroidTest, device, or visual result is claimed for `6e4daf5`.
+- Next: obtain the declared Gradle distribution, run the exact-source Debug test/compile/package gates, and record the actual APK SHA-256 only if packaging succeeds.
