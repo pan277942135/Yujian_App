@@ -619,6 +619,7 @@ fun RecognitionProcessingScene(
                 maskSize = result.maskSize,
                 expectedMaskSize = result.expectedMaskSize,
                 maskVersion = loaded.generationId.toLong(),
+                maskSha256 = result.maskSha256,
             ) else null
             val trustState = RecognitionRevealPolicy.geometryTrust(
                 detectorBox = primary.box,
@@ -1465,23 +1466,10 @@ fun RecognitionProcessingScene(
                 orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
             )
             val fishEnergyAnchor = if (fishEnergyAllowed)
-                recognitionMaskAnchor(assessment?.primary?.box, contour, currentPhotoTransform) else null
-            // The initial perimeter-arrival path is allowed to use the production
-            // detector target while SlimSAM is still running. This anchor only
-            // drives PHOTO_PATH arrival; fish contour energy remains mask-gated.
-            val detectorPathAnchor = assessment?.primary?.box?.let { box ->
-                val mapped = currentPhotoTransform.mapNormalized(
-                    (box.x1 + box.x2) * .5f,
-                    (box.y1 + box.y2) * .5f,
-                )
-                Offset(mapped.x, mapped.y).takeIf { it.x.isFinite() && it.y.isFinite() }
-            }
-            val energyTargetAnchor = if (baseOrbEvent?.feedback == EnergyFeedback.ARRIVE) {
-                detectorPathAnchor
-            } else {
-                fishEnergyAnchor
-            }
-            val perimeterEnergyAnchor = energyTargetAnchor?.let {
+                recognitionMaskAnchor(subjectBox, contour, currentPhotoTransform, orbCenter, image?.bitmap?.width ?: 0, image?.bitmap?.height ?: 0) else null
+            // No BBox substitute is permitted: every Mask-directed path waits for the
+            // current trusted Mask and resolves the same nearest-contour contact point.
+            val perimeterEnergyAnchor = fishEnergyAnchor?.let {
                 nearestPhotoPerimeterAnchor(currentPhotoTransform.photoContentRect, it)
             }
             val orbPathGeometry = when (baseOrbEvent?.feedback) {
@@ -1492,10 +1480,10 @@ fun RecognitionProcessingScene(
                         waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
                     )?.also { energyPathLedger.recordRelease(waterLightFrame, it) }
                 }
-                EnergyFeedback.ARRIVE -> if (detectorPathAnchor != null && perimeterEnergyAnchor != null)
+                EnergyFeedback.ARRIVE -> if (fishEnergyAnchor != null && perimeterEnergyAnchor != null)
                     WaterLightPathGeometryFactory.between(
                         WaterLightPathPoint(perimeterEnergyAnchor.x, perimeterEnergyAnchor.y),
-                        WaterLightPathPoint(detectorPathAnchor.x, detectorPathAnchor.y),
+                        WaterLightPathPoint(fishEnergyAnchor.x, fishEnergyAnchor.y),
                         waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
                     ) else null
                 EnergyFeedback.ABSORB -> if (fishEnergyAnchor != null && perimeterEnergyAnchor != null)
@@ -1756,7 +1744,7 @@ private fun RecognitionPhoto(
         waterLightFrame, fishEnergyAllowed, successfulRevealAllowed,
         orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
     )
-    val fishAnchor = if (fishEnergyAllowed) recognitionMaskAnchor(focusBox, contour, transform) else null
+    val fishAnchor = if (fishEnergyAllowed) recognitionMaskAnchor(subjectBox, contour, transform, orbCenter, bitmap.width, bitmap.height) else null
     val perimeterAnchor = fishAnchor?.let { nearestPhotoPerimeterAnchor(photoBounds, it) }
     val pathGeometry = when (baseEnergyEvent?.feedback) {
         EnergyFeedback.RELEASE -> nearestPhotoPerimeterAnchor(photoBounds, orbCenter)?.let { edge ->
@@ -2017,21 +2005,36 @@ internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n�
 internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String = GENERIC_RECOGNITION_FAILURE_MESSAGE
 
 private fun recognitionMaskAnchor(
-    focusBox: NormalizedFishBox?,
+    subjectRoiInSource: NormalizedFishBox?,
     contour: List<RecognitionContourSegment>,
     transform: RecognitionImageTransform,
+    orbCenter: Offset,
+    sourceWidthPx: Int,
+    sourceHeightPx: Int,
 ): Offset? {
-    val box = focusBox ?: return null
-    if (contour.isEmpty()) return null
-    val points = contour.flatMap { listOf(it.startX to it.startY, it.endX to it.endY) }
-        .filter { it.first.isFinite() && it.second.isFinite() && it.first in 0f..1f && it.second in 0f..1f }
-    if (points.isEmpty()) return null
-    val roiX = points.map { it.first }.average().toFloat()
-    val roiY = points.map { it.second }.average().toFloat()
-    val mapped = transform.mapNormalized(
-        box.x1 + roiX * (box.x2 - box.x1),
-        box.y1 + roiY * (box.y2 - box.y1),
+    val roi = subjectRoiInSource ?: return null
+    if (contour.isEmpty() || sourceWidthPx <= 0 || sourceHeightPx <= 0 ||
+        !transform.drawnWidth.isFinite() || !transform.drawnHeight.isFinite() ||
+        transform.drawnWidth <= 1f || transform.drawnHeight <= 1f
+    ) return null
+    val orbSourceNormalized = com.yujian.ai.ui.identify.DisplayPoint(
+        (orbCenter.x - transform.translationX) / transform.drawnWidth,
+        (orbCenter.y - transform.translationY) / transform.drawnHeight,
     )
+    val contactSource = com.yujian.ai.ui.recognition.reveal.RecognitionNearestContourContactPoint.resolve(
+        contour = contour,
+        subjectRoiInSource = NormalizedSourceRect(
+            minOf(roi.x1, roi.x2),
+            minOf(roi.y1, roi.y2),
+            maxOf(roi.x1, roi.x2),
+            maxOf(roi.y1, roi.y2),
+        ),
+        contourIsCanonicalPhoto = true,
+        sourceWidthPx = sourceWidthPx,
+        sourceHeightPx = sourceHeightPx,
+        orbSourceNormalized = orbSourceNormalized,
+    ) ?: return null
+    val mapped = transform.mapNormalized(contactSource.x, contactSource.y)
     return Offset(mapped.x, mapped.y).takeIf { it.x.isFinite() && it.y.isFinite() }
 }
 

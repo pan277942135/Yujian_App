@@ -27,7 +27,7 @@ class EmptyHomeMotionTest {
             val transform = calculateReferenceSceneTransform(width, height)
             val left = transform.offsetX + EMPTY_HOME_V2_FISHING_PROTECTED_LEFT * transform.scale
             val right = transform.offsetX + EMPTY_HOME_V2_FISHING_PROTECTED_RIGHT * transform.scale
-            val top = transform.offsetY + 1036f * transform.scale
+            val top = transform.offsetY + 1180f * transform.scale
             val bottom = transform.offsetY + 1380f * transform.scale
             assertTrue("protected left clipped at ${width}x$height", left >= -0.01f)
             assertTrue("protected right clipped at ${width}x$height", right <= width + 0.01f)
@@ -97,43 +97,47 @@ class EmptyHomeMotionTest {
     }
 
     @Test
-    fun v23FishingCompositionKeepsBobberContactAndRippleAligned() {
-        assertEquals(560f, EMPTY_HOME_V2_WATER_CONTACT_X, 0.0001f)
-        assertEquals(1120f, EMPTY_HOME_V2_WATER_CONTACT_Y, 0.0001f)
-        assertEquals(560f, EMPTY_HOME_V2_BOBBER_X + 12f, 0.0001f)
-        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, EMPTY_HOME_V2_BOBBER_X + 12f, 0.0001f)
-        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, EMPTY_HOME_V2_BOBBER_Y + 84f, 0.0001f)
-        assertEquals(560f, EMPTY_HOME_V2_RIPPLE_X + 119f, 0.0001f)
-        assertEquals(1120f, EMPTY_HOME_V2_RIPPLE_Y + 41f, 0.0001f)
+    fun v22FishingCompositionMatchesCanonicalBobberContactAndRippleAnchors() {
+        assertEquals(561f, EMPTY_HOME_V2_WATER_CONTACT_X, 0.0001f)
+        assertEquals(1323f, EMPTY_HOME_V2_WATER_CONTACT_Y, 0.0001f)
+        assertEquals(556f, EMPTY_HOME_V2_BOBBER_REFLECTION_X, 0.0001f)
+        assertEquals(1322f, EMPTY_HOME_V2_BOBBER_REFLECTION_Y, 0.0001f)
+        assertEquals(0.32f, EMPTY_HOME_V2_BOBBER_REFLECTION_ALPHA, 0.0001f)
+        assertEquals(550f, EMPTY_HOME_V2_BOBBER_X, 0.0001f)
+        assertEquals(1250f, EMPTY_HOME_V2_BOBBER_Y, 0.0001f)
+        assertEquals(560f, EMPTY_HOME_V2_BOBBER_X + 10f, 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, EMPTY_HOME_V2_BOBBER_Y + 73f, 0.0001f)
+        assertEquals(562f, EMPTY_HOME_V2_RIPPLE_X + 119f, 0.0001f)
+        assertEquals(1320f, EMPTY_HOME_V2_RIPPLE_Y + 41f, 0.0001f)
     }
 
     @Test
-    fun fishingLineUsesV23PhysicalDeviceGeometry() {
-        assertEquals(335f, EMPTY_HOME_V2_ROD_TIP_X, 0.0001f)
-        assertEquals(1180f, EMPTY_HOME_V2_ROD_TIP_Y, 0.0001f)
+    fun fishingLineUsesCanonicalV22MeasuredGeometry() {
+        assertEquals(337f, EMPTY_HOME_V2_ROD_TIP_X, 0.0001f)
+        assertEquals(1184f, EMPTY_HOME_V2_ROD_TIP_Y, 0.0001f)
         assertEquals(EMPTY_HOME_V2_ROD_TIP_X, EMPTY_HOME_V2_LINE_START_X, 0.0001f)
         assertEquals(EMPTY_HOME_V2_ROD_TIP_Y, EMPTY_HOME_V2_LINE_START_Y, 0.0001f)
-        assertEquals(390f, EMPTY_HOME_V2_LINE_C1_X, 0.0001f)
-        assertEquals(1218f, EMPTY_HOME_V2_LINE_C1_Y, 0.0001f)
-        assertEquals(470f, EMPTY_HOME_V2_LINE_C2_X, 0.0001f)
-        assertEquals(1090f, EMPTY_HOME_V2_LINE_C2_Y, 0.0001f)
+        assertEquals(389f, EMPTY_HOME_V2_LINE_C1_X, 0.0001f)
+        assertEquals(1257f, EMPTY_HOME_V2_LINE_C1_Y, 0.0001f)
+        assertEquals(471f, EMPTY_HOME_V2_LINE_C2_X, 0.0001f)
+        assertEquals(1312f, EMPTY_HOME_V2_LINE_C2_Y, 0.0001f)
         assertEquals(560f, EMPTY_HOME_V2_LINE_END_X, 0.0001f)
-        assertEquals(1128f, EMPTY_HOME_V2_LINE_END_Y, 0.0001f)
+        assertEquals(1326f, EMPTY_HOME_V2_LINE_END_Y, 0.0001f)
         assertTrue(EMPTY_HOME_V2_LINE_END_X in (EMPTY_HOME_V2_BOBBER_X..(EMPTY_HOME_V2_BOBBER_X + 24f)))
-        assertTrue(EMPTY_HOME_V2_LINE_END_Y > EMPTY_HOME_V2_WATER_CONTACT_Y)
+        assertTrue(EMPTY_HOME_V2_LINE_END_Y in EMPTY_HOME_V2_WATER_CONTACT_Y..(EMPTY_HOME_V2_WATER_CONTACT_Y + 4f))
     }
 
     @Test
     fun bobberArtworkSplitsAtTheFixedWaterContactAcrossNibbleMotion() {
         val still = calculateBobberWaterSplit(
-            bitmapHeight = 122,
+            bitmapHeight = 78,
             bobberTopY = EMPTY_HOME_V2_BOBBER_Y,
             waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
         )
-        assertEquals(84, still.splitY)
+        assertEquals(73, still.splitY)
         assertEquals(0, still.underwaterHeight)
         assertEquals(0f, still.underwaterAlpha, 0.0001f)
-        assertTrue(still.underwaterHeight <= 122 * 0.20f)
+        assertTrue(still.underwaterHeight <= 78 * 0.20f)
         assertTrue(still.underwaterAlpha <= 0.25f)
 
         val eventOffsets = listOf(
@@ -147,7 +151,7 @@ class EmptyHomeMotionTest {
         eventOffsets.forEach { offset ->
             val movedTop = EMPTY_HOME_V2_BOBBER_Y + offset
             val split = calculateBobberWaterSplit(
-                bitmapHeight = 122,
+                bitmapHeight = 78,
                 bobberTopY = movedTop,
                 waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
             )
