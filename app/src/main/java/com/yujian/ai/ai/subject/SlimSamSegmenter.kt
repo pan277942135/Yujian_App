@@ -13,6 +13,7 @@ import android.util.Log
 import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.NormalizedFishBox
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -169,7 +170,7 @@ class SlimSamSegmenter(
                 Log.i(TAG, "SLIMSAM_DECODER_END duration_ms=${SystemClock.uptimeMillis() - decoderStarted} iou=$iouScore")
 
                 val gridToPhoto = Matrix().apply { setScale(4f / embedding.scale, 4f / embedding.scale) }
-                val geometry = MaskGeometryMetadata(
+                var geometry = MaskGeometryMetadata(
                     sessionId = sessionId, attemptId = attemptId, imageId = imageId, photoSha256 = photoSha256,
                     canonicalWidth = origW, canonicalHeight = origH,
                     roiPx = Rect(roiX1, roiY1, roiX2, roiY2), modelInputSize = 1024,
@@ -241,6 +242,11 @@ class SlimSamSegmenter(
                     check(subjectBitmap.compress(Bitmap.CompressFormat.PNG, 100, out))
                 }
                 subjectBitmap.recycle()
+                // Bind this attempt to the bytes actually handed to the UI. The hash is
+                // deliberately computed after PNG encoding, rather than from logits or a
+                // Bitmap generation ID, so every downstream consumer can reject a stale mask.
+                val maskSha256 = withContext(Dispatchers.IO) { sha256(file) }
+                geometry = geometry.copy(maskSha256 = maskSha256)
 
                 val elapsed = (System.nanoTime() - started) / 1_000_000
                 Log.d(TAG, "SlimSAM segment success in ${elapsed}ms, iou=$iouScore, area=$areaRatio")
@@ -258,8 +264,12 @@ class SlimSamSegmenter(
                     maskAreaRatio = areaRatio,
                     quality = quality,
                     maskIouScore = iouScore.takeIf { it.isFinite() },
+                    maskSha256 = maskSha256,
                     geometry = geometry,
                 )
+            } catch (cancelled: CancellationException) {
+                // Preserve structured cancellation when a screen leaves or a newer Attempt replaces this one.
+                throw cancelled
             } catch (error: Throwable) {
                 Log.e(TAG, "SlimSAM segmentation failure", error)
                 failed(
@@ -594,6 +604,17 @@ class SlimSamSegmenter(
 
     private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
         .digest(bytes).joinToString("") { "%02x".format(it) }
+
+    private fun sha256(file: File): String = file.inputStream().use { input ->
+        val digest = MessageDigest.getInstance("SHA-256")
+        val buffer = ByteArray(8 * 1024)
+        while (true) {
+            val read = input.read(buffer)
+            if (read <= 0) break
+            digest.update(buffer, 0, read)
+        }
+        digest.digest().joinToString("") { "%02x".format(it) }
+    }
 
     private fun failed(
         code: String,

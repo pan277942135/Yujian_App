@@ -26,6 +26,8 @@ data class FishSubjectResult(
     val quality: FishSubjectQuality? = null,
     /** Model decoder output for traceability; it is recorded but not treated as calibrated quality. */
     val maskIouScore: Float? = null,
+    /** SHA-256 of the actual transparent PNG emitted by SlimSAM for this attempt. */
+    val maskSha256: String = "",
     /** Actual inference geometry, never reconstructed from a later detector BBox. */
     val geometry: MaskGeometryMetadata? = null,
 )
@@ -53,6 +55,8 @@ data class MaskGeometryMetadata(
     val threshold: Float,
     val contourVersion: String,
     val modelSha256: String,
+    /** SHA-256 of the emitted transparent PNG after mask cleanup. */
+    val maskSha256: String = "",
 ) {
     fun matches(session: String, attempt: String, image: String, sha: String, width: Int, height: Int): Boolean =
         sessionId == session && attemptId == attempt && imageId == image &&

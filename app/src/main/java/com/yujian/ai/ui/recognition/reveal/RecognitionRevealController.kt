@@ -130,7 +130,7 @@ object RecognitionRevealClock {
         return frame(
             scene = scene,
             phase = phase,
-            photoProgress = if (stage == RecognitionSceneStage.ORB_RETURN) smoothStep(progress) else 1f,
+            photoProgress = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) smoothStep(progress) else 0f,
             fishHaloAlpha = if (fullReveal && stage == RecognitionSceneStage.ORB_RETURN) 1f - smoothStep(progress) else 0f,
             transferProgress = smoothStep(returnProgress),
             titleMode = titleMode,
