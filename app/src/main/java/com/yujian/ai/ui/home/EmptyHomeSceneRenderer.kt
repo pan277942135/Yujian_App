@@ -254,10 +254,20 @@ private fun DrawScope.drawRuntimeOverlays(
         waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
     )
 
-    // V2.3 removes the former submerged reflection bitmap. On physical devices
-    // it reads as a second, soft-focus float and makes the bobber look doubled.
-    // The body below is cropped once at the fixed water plane; the stable
-    // contact ring supplies the narrow seam without another bobber image.
+    // V2.2 uses one separately authored, low-alpha reflection layer. The body
+    // below is cropped once at the fixed water plane; no second body silhouette
+    // is composited underwater.
+    drawReferenceBitmap(
+        bitmap = assets.bobberReflection,
+        x = EMPTY_HOME_V2_BOBBER_REFLECTION_X,
+        y = EMPTY_HOME_V2_BOBBER_REFLECTION_Y,
+        width = assets.bobberReflection.width.toFloat(),
+        height = assets.bobberReflection.height.toFloat(),
+        alpha = EMPTY_HOME_V2_BOBBER_REFLECTION_ALPHA,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
 
     drawPeriodicBobberRipples(
         burstElapsedSeconds = bobberMotion.takeIf { it.burstActive }?.burstElapsedSeconds,

@@ -1,0 +1,77 @@
+{
+  "manifest_id": "YUJIAN_MAIN_BASELINE_RECOVERY_BOOTSTRAP_V1",
+  "base_main_commit": "7af1c5cf14cc244069fd0a8637b4eedb3f591c9b",
+  "generated_before_recovery_changes": true,
+  "source_prs": [
+    {
+      "pr": 320,
+      "head": "59e5c7b22c07ca512008b8376367126cf32df24f",
+      "files": [
+        {"path":"app/src/main/java/com/yujian/ai/ai/subject/FishSubjectResult.kt","main_blob":"24b5dad109159c47ae77fa15a0a3c8a2c919813c","source_blob":"10cf658f3b932f7aae9120f31838da94891a01f6","recovery":false,"later_merge":true,"overlap":false},
+        {"path":"app/src/main/java/com/yujian/ai/ai/subject/SlimSamSegmenter.kt","main_blob":"3bcafcceeb7a2c550fdfa880a186733f2187fce3","source_blob":"e94b14f1f5309fb1f3713636c9410b550be6b218","recovery":false,"later_merge":true,"overlap":false},
+        {"path":"app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt","main_blob":"648b56314447a3bd38e0026a5c5ddde1b536bac1","source_blob":"89503072b97395b0a98a5317e76f660b4969ed10","recovery":true,"later_merge":false,"overlap":"PR323; compare before selection"},
+        {"path":"app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt","main_blob":"19b89792fefb0e6eed65644c39258d602e148763","source_blob":"10a7a52d4618abb53a53b927e8d95bc31e57a82f","recovery":true,"later_merge":false,"overlap":"PR323; compare before selection"},
+        {"path":"app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionNearestContourContactPoint.kt","main_blob":null,"source_blob":"424dc7d0c453bbbd371fc1ecbe015ce9657d227f","recovery":false,"later_merge":true,"overlap":false},
+        {"path":"app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealController.kt","main_blob":"6564948ac88982a268b3ec34d3e64673c6acde42","source_blob":"2844b102be767f5a908be14664b6ab70896fe141","recovery":false,"later_merge":true,"overlap":false},
+        {"path":"app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealHandoff.kt","main_blob":"7c6f965c8744bbb2b3bafb0b5639deb9a35e04ff","source_blob":"6aae0882736df1b2bb67c6bbee40851b4645b7f8","recovery":false,"later_merge":true,"overlap":false},
+        {"path":"app/src/main/java/com/yujian/ai/ui/screens/RecognitionSubjectAttemptRunner.kt","main_blob":"cf8ae1b4509b00181aedf71b6d6f0caafa1ca7ba","source_blob":"a0bc61c26c2565f699207d3f1e65125c5019f668","recovery":false,"later_merge":true,"overlap":false},
+        {"path":"app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt","main_blob":"25a408d9b8d13d6b6b32d56bb0880f87105498de","source_blob":"1dbd520daf7a152318d36d32c747dfebd96764cd","recovery":false,"later_merge":true,"overlap":false},
+        {"path":"app/src/test/java/com/yujian/ai/ui/home/EmptyHomeMotionTest.kt","main_blob":"299515594d53d7f8ea9ff251561f009cf4126287","source_blob":"77dde8fd10f6468dcd16fe8f58f5f7ff8cad806b","recovery":true,"later_merge":false,"overlap":"required V2.2 regression test"},
+        {"path":"app/src/test/java/com/yujian/ai/ui/recognition/reveal/RecognitionNearestContourContactPointTest.kt","main_blob":null,"source_blob":"caa36c4ce3782121f3b74874cdd6926e757f5d49","recovery":false,"later_merge":true,"overlap":false},
+        {"path":"app/src/test/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealPolicyTest.kt","main_blob":"47951ba5eb721e97e0e99450524c58863de693fc","source_blob":"8d457851ab8b549de406e9e73724e845c7035351","recovery":false,"later_merge":true,"overlap":false},
+        {"path":"harness/build-log.md","main_blob":"fbd86f9bcff400fe90b4a0a0ef0fcc34dfe93058","source_blob":"1410d18926df403f0ec0813803c011cf7faedf4c","recovery":false,"later_merge":false,"overlap":"branch-local dynamic evidence"},
+        {"path":"scripts/verify_empty_home_runtime_v2.py","main_blob":"e81c55d875fe78d7606495fdbfc2f178325a658e","source_blob":"468b5818b278ab0fffe3053325d53f97c497687e","recovery":true,"later_merge":false,"overlap":"PR323; compare before selection"}
+      ]
+    },
+    {
+      "pr": 321,
+      "head": "0cf77d6adca1ce25b33f896fea210a89095a455e",
+      "files": [
+        {"path":"design/recognition_structured_handoff_v1/wp1b_v3/FRAME_ASSET_BINDING_V3.csv","main_blob":null,"source_blob":"d64515a0e86e63d851d45c1c38897b0db8ce134a","recovery":false,"later_merge":true,"overlap":false},
+        {"path":"design/recognition_structured_handoff_v1/wp1b_v3/FRAME_ASSET_BINDING_V3.json","main_blob":null,"source_blob":"c6cee632b761f28a97a203137b203501491b98a6","recovery":false,"later_merge":true,"overlap":false}
+      ]
+    },
+    {
+      "pr": 322,
+      "head": "557851920c91d9a8e9faf9834c42b8b562708283",
+      "files": [
+        {"path":"design/system/backgrounds/lake_glass_v2/evidence/android_shader_reuse/route_background_coverage_v2.json","main_blob":"d1247f1809cd337601198572ec662ba65fce24ef","source_blob":"30a616d5d469b61a0f54a8d50b7e8ae7d3819914","recovery":true,"later_merge":false,"overlap":false}
+      ]
+    },
+    {
+      "pr": 323,
+      "head": "e0049944035aad553e7597142e413041f2f25572",
+      "files": [
+        {"path":"app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt","main_blob":"648b56314447a3bd38e0026a5c5ddde1b536bac1","source_blob":"6e676df1cc145891199c609297d4514d77ef532f","recovery":true,"later_merge":false,"overlap":"PR320; selected after comparison"},
+        {"path":"app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt","main_blob":"19b89792fefb0e6eed65644c39258d602e148763","source_blob":"198d1a1f298db109d863db66abd1d8e7f62c0451","recovery":true,"later_merge":false,"overlap":"PR320; selected after comparison"},
+        {"path":"design/pages/account_privacy/Login/Page_Resource_Binding_V1.json","main_blob":"3997cf2d073e8d1b03815e9046508f336a568dac","source_blob":"78f7698eb2b7c95931ec5e2073f7db51bb6fff76","recovery":true,"later_merge":false,"overlap":false},
+        {"path":"design/pages/home/empty_home/Page_Resource_Binding_V1.json","main_blob":"046b5ddb61f4987a0ddfe6b0e799976a140aa20d","source_blob":"c6c583924fa1283d81e1f99309152ec41064a8f0","recovery":true,"later_merge":false,"overlap":false},
+        {"path":"design/pages/home/normal_home/Page_Resource_Binding_V1.json","main_blob":"359c40076045590489619d54c03a79297db7cd23","source_blob":"df3a7c01e15033dd151dcc5105f531346bbd0f04","recovery":true,"later_merge":false,"overlap":false},
+        {"path":"scripts/design/tests/test_page_resource_binding.py","main_blob":"3cc4ce403b0902a74936109af675c940f39ea404","source_blob":"34df90ee4b179b0bcc3e2a44f945156fbd019aba","recovery":true,"later_merge":false,"overlap":false},
+        {"path":"scripts/design/validate_page_resource_binding.py","main_blob":"4c3d9e586c471c255d2cb9778ae05a6c2d5bf176","source_blob":"575cf4866684c7e6fdb323d0f34fae23ad566482","recovery":true,"later_merge":false,"overlap":false},
+        {"path":"scripts/verify_empty_home_runtime_v2.py","main_blob":"e81c55d875fe78d7606495fdbfc2f178325a658e","source_blob":"2af0ed3e2e26db0d8edd4017078c99661e572600","recovery":true,"later_merge":false,"overlap":"PR320; selected after comparison"}
+      ]
+    },
+    {
+      "pr": 324,
+      "head": "d34482668f900339cdb2eef22b9a8c8e6911a38b",
+      "files": [
+        {"path":"harness/task_contracts/YUJIAN_EMPTY_HOME_V2_2_FROZEN_COMPOSITION_REPAIR_V1.md","main_blob":null,"source_blob":"6fd5e37125fe6c0473bbdc1f984b6d34f9ffa801","recovery":true,"later_merge":false,"overlap":false},
+        {"path":"scripts/verify_swos_static_visual_v1_1.py","main_blob":"917c19700e75bbe1f01c6c89dbbc2e59adfd007f","source_blob":"2a461b911bcf9c85a987bac4658d9492216985b0","recovery":true,"later_merge":false,"overlap":false}
+      ]
+    }
+  ],
+  "selected_runtime_resolution": {
+    "source_pr": "320 semantic runtime + 323 fail-closed Blob authority helper",
+    "required_equal_blob_with_pr320": false,
+    "selection_rule": "Use PR320's frozen V2.2 Kotlin geometry, reflection and canonical-anchor assertions; retain PR323's fail-closed clean-index/clean-worktree Git Blob authority helper and UTF-8 resource verification; retain the PR320 bobber regression coverage."
+  },
+  "recovery_result_blobs": [
+    {"path":"app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt","recovery_blob":"89503072b97395b0a98a5317e76f660b4969ed10","source_equivalence":"PR320 exact"},
+    {"path":"app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt","recovery_blob":"10a7a52d4618abb53a53b927e8d95bc31e57a82f","source_equivalence":"PR320 exact"},
+    {"path":"app/src/test/java/com/yujian/ai/ui/home/EmptyHomeMotionTest.kt","recovery_blob":"5fec5e154bd6c68a3b3b708b61e4b802c33c4d1e","source_equivalence":"PR320 assertions retained; formatting-only normalization"},
+    {"path":"scripts/verify_empty_home_runtime_v2.py","recovery_blob":"78d5930b06bf136f7d9f18cbc87d771296ea6b5e","source_equivalence":"PR320 canonical anchors plus PR323 fail-closed Blob authority"},
+    {"path":"scripts/verify_swos_static_visual_v1_1.py","recovery_blob":"2188ffc70f01b449b7184bada3330e56ca7f653f","source_equivalence":"PR324 scope gate plus one-time exact recovery bootstrap"},
+    {"path":"harness/task_contracts/YUJIAN_MAIN_BASELINE_RECOVERY_BOOTSTRAP_V1.md","recovery_blob":"008751347bac1cf84b3075b0720e6925a72829e8","source_equivalence":"repository-maintainer recovery authorization"}
+  ]
+}

@@ -43,6 +43,56 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def clean_tracked_blob_bytes(root: Path, path: Path) -> bytes | None:
+    """Return a clean tracked path's raw index bytes, if available.
+
+    Resource pins are authored against repository blobs.  A Windows checkout with
+    ``core.autocrlf`` may materialize a clean text authority with CRLF bytes even
+    though the committed authority is LF.  Use the index blob only when both the
+    index and worktree are clean for that path; any semantic or staged edit still
+    uses the worktree and therefore fails closed against its pin.
+    """
+    try:
+        relative = path.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        return None
+    try:
+        worktree_clean = subprocess.run(
+            ["git", "diff", "--quiet", "--no-ext-diff", "--", relative],
+            cwd=root,
+            check=False,
+        ).returncode == 0
+        index_clean = subprocess.run(
+            ["git", "diff", "--cached", "--quiet", "--no-ext-diff", "--", relative],
+            cwd=root,
+            check=False,
+        ).returncode == 0
+        if not (worktree_clean and index_clean):
+            return None
+        process = subprocess.Popen(
+            ["git", "cat-file", "blob", f":{relative}"],
+            cwd=root,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return None
+    assert process.stdout is not None
+    content = process.stdout.read()
+    process.stdout.close()
+    if process.wait() != 0:
+        return None
+    return content
+
+
+def authority_bytes(root: Path, path: Path) -> bytes:
+    return clean_tracked_blob_bytes(root, path) or path.read_bytes()
+
+
+def sha256_authority_file(root: Path, path: Path) -> str:
+    return sha256_bytes(authority_bytes(root, path))
+
+
 def load_json(path: Path) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -205,7 +255,7 @@ def validate_authorities(root: Path, binding: dict[str, Any]) -> tuple[dict[str,
         if not path.is_file():
             errors.append(f"SOURCE_AUTHORITY_MISSING: {authority.get('path')}")
             continue
-        actual_sha = sha256_file(path)
+        actual_sha = sha256_authority_file(root, path)
         if actual_sha != authority.get("sha256"):
             errors.append(f"SOURCE_AUTHORITY_SHA_MISMATCH: {authority.get('path')}: expected {authority.get('sha256')} got {actual_sha}")
     return authorities, errors
@@ -371,7 +421,7 @@ def validate_asset_file(root: Path, asset: dict[str, Any]) -> tuple[dict[str, An
             result["resource_status"] = "MISSING" if asset.get("requiredness") == "REQUIRED" else "NOT_VERIFIED"
             result["validation_status"] = "FAIL"
         return result, errors, warnings
-    raw = path.read_bytes()
+    raw = authority_bytes(root, path)
     actual_sha = sha256_bytes(raw)
     actual_media_type = detect_media_type(path, raw)
     actual_dimensions = image_dimensions(path, actual_media_type)

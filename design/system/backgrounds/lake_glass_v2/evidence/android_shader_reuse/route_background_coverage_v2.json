@@ -21,6 +21,7 @@
     {"route":"guide","screen":"FishGuideHomeScreen","policy":"LAKE_GLASS","host":"FishGuideBackground -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
     {"route":"species/{key}","screen":"FishSpeciesDetailScreen","policy":"LAKE_GLASS","host":"FishGuideBackground -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
     {"route":"my","screen":"AccountMyScreen","policy":"LAKE_GLASS","host":"AccountPrivacyPageScaffold -> BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
+    {"route":"record_calendar","screen":"RecordCalendarScreen","policy":"LAKE_GLASS","host":"YuJianMorningLakeBackground -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
     {"route":"my_catches/day/{dayKey}","screen":"MyCatchesDayDetailScreen","policy":"LAKE_GLASS","host":"YuJianMorningLakeBackground compatibility wrapper -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
     {"route":"my_catches?speciesId={speciesId}","screen":"MyScreen","policy":"LAKE_GLASS","host":"YuJianMorningLakeBackground compatibility wrapper -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
     {"route":"edit_profile","screen":"EditProfileScreen","policy":"LAKE_GLASS","host":"AccountPrivacyPageScaffold -> BgContentSurface -> LakeGlassBackgroundHost","evidence":"SHARED_HOST_CI_PENDING"},
