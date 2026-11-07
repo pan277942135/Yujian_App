@@ -2,6 +2,7 @@ import hashlib
 import io
 import json
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -195,6 +196,29 @@ class PageResourceBindingTests(unittest.TestCase):
         )
         self.assertEqual(report["status"], "PASS", report["errors"])
         self.assertEqual({row["page_id"] for row in report["pages"]}, {"home_normal_v1", "home_empty_v2", "auth_login_v2"})
+
+    def test_clean_eol_filtered_authority_uses_its_git_blob(self):
+        repo = Path(self.temp.name) / "eol-repo"
+        repo.mkdir()
+        authority = repo / "authority.json"
+        authority.write_bytes(b'{"line":"lf"}\n')
+        expected = hashlib.sha256(authority.read_bytes()).hexdigest()
+        for command in (
+            ["git", "init"],
+            ["git", "config", "core.autocrlf", "true"],
+            ["git", "config", "user.email", "test@example.invalid"],
+            ["git", "config", "user.name", "Test"],
+            ["git", "add", "authority.json"],
+            ["git", "commit", "-m", "fixture"],
+        ):
+            subprocess.run(command, cwd=repo, check=True, capture_output=True)
+        authority.write_bytes(b'{"line":"lf"}\r\n')
+
+        self.assertNotEqual(binding.sha256_file(authority), expected)
+        self.assertEqual(binding.sha256_authority_file(repo, authority), expected)
+
+        authority.write_bytes(b'{"line":"changed"}\r\n')
+        self.assertNotEqual(binding.sha256_authority_file(repo, authority), expected)
 
     def test_resolver_returns_real_resources_for_all_three_pages(self):
         cases = [
