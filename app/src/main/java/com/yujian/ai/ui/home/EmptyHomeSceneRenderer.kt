@@ -254,15 +254,16 @@ private fun DrawScope.drawRuntimeOverlays(
         waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
     )
 
-    // The V2.2 reflection is a separate, faded optical layer. The bobber body
-    // is still rendered exactly once and clipped at the fixed water plane.
+    // V2.2 uses one separately authored, low-alpha reflection layer. The body
+    // below is cropped once at the fixed water plane; no second body silhouette
+    // is composited underwater.
     drawReferenceBitmap(
         bitmap = assets.bobberReflection,
-        x = 556f,
-        y = 1322f + bobberMotion.dipOffsetPx + tapDipOffsetPx,
+        x = EMPTY_HOME_V2_BOBBER_REFLECTION_X,
+        y = EMPTY_HOME_V2_BOBBER_REFLECTION_Y,
         width = assets.bobberReflection.width.toFloat(),
         height = assets.bobberReflection.height.toFloat(),
-        alpha = 1f,
+        alpha = EMPTY_HOME_V2_BOBBER_REFLECTION_ALPHA,
         transform = transform,
         paint = paint,
         destination = destination,

@@ -363,27 +363,31 @@ def main() -> int:
     if anchors.get("line", {}).get("control_points_reference_px") != [[389, 1257], [471, 1312]]:
         fail(errors, "V2.2 measured line fit control points mismatch")
     line = anchors.get("line", {})
-    candidate_bobber = candidate_geometry["bobber"]
-    candidate_line = candidate_geometry["line"]
+    canonical_bobber = anchors["bobber"]
+    canonical_line = anchors["line"]
+    canonical_ripple = anchors["ripple"]
     anchor_values = {
         "EMPTY_HOME_V2_ROD_X": anchors["rod"]["bbox_reference_px"]["x"],
         "EMPTY_HOME_V2_ROD_Y": anchors["rod"]["bbox_reference_px"]["y"],
         "EMPTY_HOME_V2_ROD_TIP_X": anchors["rod"]["tip_reference_px"][0],
         "EMPTY_HOME_V2_ROD_TIP_Y": anchors["rod"]["tip_reference_px"][1],
-        "EMPTY_HOME_V2_LINE_START_X": line["start_reference_px"][0],
-        "EMPTY_HOME_V2_LINE_START_Y": line["start_reference_px"][1],
-        "EMPTY_HOME_V2_LINE_C1_X": line["control_points_reference_px"][0][0],
-        "EMPTY_HOME_V2_LINE_C1_Y": line["control_points_reference_px"][0][1],
-        "EMPTY_HOME_V2_LINE_C2_X": line["control_points_reference_px"][1][0],
-        "EMPTY_HOME_V2_LINE_C2_Y": line["control_points_reference_px"][1][1],
-        "EMPTY_HOME_V2_LINE_END_X": line["end_reference_px"][0],
-        "EMPTY_HOME_V2_LINE_END_Y": line["end_reference_px"][1],
-        "EMPTY_HOME_V2_BOBBER_X": anchors["bobber"]["bbox_reference_px"]["x"],
-        "EMPTY_HOME_V2_BOBBER_Y": anchors["bobber"]["bbox_reference_px"]["y"],
-        "EMPTY_HOME_V2_RIPPLE_X": anchors["ripple"]["bbox_reference_px"]["x"],
-        "EMPTY_HOME_V2_RIPPLE_Y": anchors["ripple"]["bbox_reference_px"]["y"],
-        "EMPTY_HOME_V2_WATER_CONTACT_X": anchors["bobber"]["water_contact_reference_px"][0],
-        "EMPTY_HOME_V2_WATER_CONTACT_Y": anchors["bobber"]["water_contact_reference_px"][1],
+        "EMPTY_HOME_V2_LINE_START_X": canonical_line["start_reference_px"][0],
+        "EMPTY_HOME_V2_LINE_START_Y": canonical_line["start_reference_px"][1],
+        "EMPTY_HOME_V2_LINE_C1_X": canonical_line["control_points_reference_px"][0][0],
+        "EMPTY_HOME_V2_LINE_C1_Y": canonical_line["control_points_reference_px"][0][1],
+        "EMPTY_HOME_V2_LINE_C2_X": canonical_line["control_points_reference_px"][1][0],
+        "EMPTY_HOME_V2_LINE_C2_Y": canonical_line["control_points_reference_px"][1][1],
+        "EMPTY_HOME_V2_LINE_END_X": canonical_line["end_reference_px"][0],
+        "EMPTY_HOME_V2_LINE_END_Y": canonical_line["end_reference_px"][1],
+        "EMPTY_HOME_V2_BOBBER_X": canonical_bobber["bbox_reference_px"]["x"],
+        "EMPTY_HOME_V2_BOBBER_Y": canonical_bobber["bbox_reference_px"]["y"],
+        "EMPTY_HOME_V2_RIPPLE_X": canonical_ripple["bbox_reference_px"]["x"],
+        "EMPTY_HOME_V2_RIPPLE_Y": canonical_ripple["bbox_reference_px"]["y"],
+        "EMPTY_HOME_V2_WATER_CONTACT_X": canonical_bobber["water_contact_reference_px"][0],
+        "EMPTY_HOME_V2_WATER_CONTACT_Y": canonical_bobber["water_contact_reference_px"][1],
+        "EMPTY_HOME_V2_BOBBER_REFLECTION_X": canonical_bobber["reflection_reference_px"]["x"],
+        "EMPTY_HOME_V2_BOBBER_REFLECTION_Y": canonical_bobber["reflection_reference_px"]["y"],
+        "EMPTY_HOME_V2_BOBBER_REFLECTION_ALPHA": canonical_bobber["reflection_reference_px"]["alpha_peak"],
     }
     for name, expected in anchor_values.items():
         match = re.search(rf"const val {name} = (-?[0-9.]+)f", motion_source)
@@ -399,13 +403,13 @@ def main() -> int:
         fail(errors, "V2.2 fishing line fit control points mismatch")
     if line.get("end_reference_px") != [560, 1326]:
         fail(errors, "V2.2 fishing line endpoint must enter the bobber contact occlusion")
-    candidate_contact = candidate_bobber["water_contact_reference_px"]
-    candidate_bounds = candidate_bobber["bbox_reference_px"]
+    canonical_contact = canonical_bobber["water_contact_reference_px"]
+    canonical_bounds = canonical_bobber["bbox_reference_px"]
     if not (
-        candidate_bounds["x"] <= candidate_line["end_reference_px"][0] <= candidate_bounds["x"] + candidate_bounds["width"]
-        and candidate_contact[1] <= candidate_line["end_reference_px"][1] <= candidate_contact[1] + 4
+        canonical_bounds["x"] <= canonical_line["end_reference_px"][0] <= canonical_bounds["x"] + canonical_bounds["width"]
+        and canonical_contact[1] <= canonical_line["end_reference_px"][1] <= canonical_contact[1] + 4
     ):
-        fail(errors, "W5 candidate line endpoint is not inside the bobber water-contact occlusion region")
+        fail(errors, "V2.2 canonical line endpoint is not inside the bobber water-contact occlusion region")
     if scene_renderer.count("cubicTo(") != 1:
         fail(errors, "fishing line renderer must contain exactly one cubic Bézier")
     fishing_layers = scene_renderer[scene_renderer.index("drawFrozenFishingLine(transform)"):]

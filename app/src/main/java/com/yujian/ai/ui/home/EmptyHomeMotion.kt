@@ -27,8 +27,7 @@ import kotlin.random.Random
 
 internal const val REFERENCE_SCENE_WIDTH = 1080f
 internal const val REFERENCE_SCENE_HEIGHT = 1920f
-// Measured V2.2 Fishing Composition anchors. The W5 candidate geometry remains
-// review-only and must not replace this frozen runtime authority.
+// Machine-authoritative V2.2 Fishing Composition anchors.
 internal const val EMPTY_HOME_V2_ROD_X = 0f
 internal const val EMPTY_HOME_V2_ROD_Y = 1180f
 internal const val EMPTY_HOME_V2_ROD_TIP_X = 337f
@@ -47,6 +46,9 @@ internal const val EMPTY_HOME_V2_RIPPLE_X = 443f
 internal const val EMPTY_HOME_V2_RIPPLE_Y = 1279f
 internal const val EMPTY_HOME_V2_WATER_CONTACT_X = 561f
 internal const val EMPTY_HOME_V2_WATER_CONTACT_Y = 1323f
+internal const val EMPTY_HOME_V2_BOBBER_REFLECTION_X = 556f
+internal const val EMPTY_HOME_V2_BOBBER_REFLECTION_Y = 1322f
+internal const val EMPTY_HOME_V2_BOBBER_REFLECTION_ALPHA = 0.32f
 internal const val EMPTY_HOME_V2_FISHING_PROTECTED_LEFT = 0f
 internal const val EMPTY_HOME_V2_FISHING_PROTECTED_RIGHT = 660f
 

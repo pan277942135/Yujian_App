@@ -62,8 +62,16 @@
     }
   ],
   "selected_runtime_resolution": {
-    "source_pr": 323,
+    "source_pr": "320 semantic runtime + 323 fail-closed Blob authority helper",
     "required_equal_blob_with_pr320": false,
-    "selection_rule": "Use the version that passes the frozen V2.2 verifier and retain PR320's EmptyHomeMotionTest."
-  }
+    "selection_rule": "Use PR320's frozen V2.2 Kotlin geometry, reflection and canonical-anchor assertions; retain PR323's fail-closed clean-index/clean-worktree Git Blob authority helper and UTF-8 resource verification; retain the PR320 bobber regression coverage."
+  },
+  "recovery_result_blobs": [
+    {"path":"app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt","recovery_blob":"89503072b97395b0a98a5317e76f660b4969ed10","source_equivalence":"PR320 exact"},
+    {"path":"app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt","recovery_blob":"10a7a52d4618abb53a53b927e8d95bc31e57a82f","source_equivalence":"PR320 exact"},
+    {"path":"app/src/test/java/com/yujian/ai/ui/home/EmptyHomeMotionTest.kt","recovery_blob":"5fec5e154bd6c68a3b3b708b61e4b802c33c4d1e","source_equivalence":"PR320 assertions retained; formatting-only normalization"},
+    {"path":"scripts/verify_empty_home_runtime_v2.py","recovery_blob":"78d5930b06bf136f7d9f18cbc87d771296ea6b5e","source_equivalence":"PR320 canonical anchors plus PR323 fail-closed Blob authority"},
+    {"path":"scripts/verify_swos_static_visual_v1_1.py","recovery_blob":"2188ffc70f01b449b7184bada3330e56ca7f653f","source_equivalence":"PR324 scope gate plus one-time exact recovery bootstrap"},
+    {"path":"harness/task_contracts/YUJIAN_MAIN_BASELINE_RECOVERY_BOOTSTRAP_V1.md","recovery_blob":"5fc9576e6cc2f791e04a540aa9862fa1d788848f","source_equivalence":"repository-maintainer recovery authorization"}
+  ]
 }
