@@ -7,6 +7,7 @@ import hashlib
 import json
 import re
 import struct
+import subprocess
 import sys
 from pathlib import Path
 
@@ -30,11 +31,49 @@ FORBIDDEN = ("proof", "preview", "validation", ".mp4", ".gif", "frozen", "source
 
 
 def load(path: Path) -> dict:
-    return json.loads(path.read_text())
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def clean_tracked_blob_bytes(path: Path) -> bytes | None:
+    """Read raw Git bytes only for a clean, unstaged repository path.
+
+    Contract pins name Git blobs.  This keeps Windows line-ending filters from
+    changing a clean text contract's SHA while preserving fail-closed behavior
+    for modified or staged content.
+    """
+    try:
+        relative = path.resolve().relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        return None
+    try:
+        worktree_clean = subprocess.run(
+            ["git", "diff", "--quiet", "--no-ext-diff", "--", relative],
+            cwd=ROOT,
+            check=False,
+        ).returncode == 0
+        index_clean = subprocess.run(
+            ["git", "diff", "--cached", "--quiet", "--no-ext-diff", "--", relative],
+            cwd=ROOT,
+            check=False,
+        ).returncode == 0
+        if not (worktree_clean and index_clean):
+            return None
+        process = subprocess.Popen(
+            ["git", "cat-file", "blob", f":{relative}"],
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return None
+    assert process.stdout is not None
+    content = process.stdout.read()
+    process.stdout.close()
+    return content if process.wait() == 0 else None
 
 
 def digest(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashlib.sha256(clean_tracked_blob_bytes(path) or path.read_bytes()).hexdigest()
 
 
 def png_dimensions(path: Path) -> tuple[int, int]:
@@ -197,12 +236,12 @@ def main() -> int:
     if hero_contract["asset"].get("render_content_scale") != "FIT" or abs(rendered_ratio / hero_ratio - 1.0) > 0.01:
         fail(errors, "Hero FIT rendering must preserve the source aspect ratio within one percent")
 
-    layout_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeLayoutMapping.kt").read_text()
-    home_screen = (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt").read_text()
-    scene_entry = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeEmptyScene.kt").read_text()
-    scene_renderer = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt").read_text()
-    motion_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt").read_text()
-    haptic_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/CaptureHaptics.kt").read_text()
+    layout_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeLayoutMapping.kt").read_text(encoding="utf-8")
+    home_screen = (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt").read_text(encoding="utf-8")
+    scene_entry = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeEmptyScene.kt").read_text(encoding="utf-8")
+    scene_renderer = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt").read_text(encoding="utf-8")
+    motion_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt").read_text(encoding="utf-8")
+    haptic_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/CaptureHaptics.kt").read_text(encoding="utf-8")
     geometry_constants = {
         "REFERENCE_WIDTH_PX": anchors["reference_canvas"]["width"],
         "REFERENCE_HEIGHT_PX": anchors["reference_canvas"]["height"],
@@ -237,7 +276,7 @@ def main() -> int:
         fail(errors, "Empty Home Hero may not use ContentScale.FillBounds")
     if "ContentScale.Fit" not in home_screen or "painterResource(R.drawable.empty_home_title_v2)" not in home_screen:
         fail(errors, "HomeScreen must render the canonical Hero resource with ContentScale.Fit")
-    gradle = (ROOT / "app/build.gradle.kts").read_text()
+    gradle = (ROOT / "app/build.gradle.kts").read_text(encoding="utf-8")
     if "generateEmptyHomeFrozenHero" in gradle or "emptyHomeGeneratedResDir" in gradle or "emptyHomeFrozenHeroSource" in gradle:
         fail(errors, "Gradle may not regenerate the frozen Empty Home Hero at build time")
     if "sceneTransform = layoutMapping.sceneTransform" not in scene_entry:
@@ -324,28 +363,31 @@ def main() -> int:
     if anchors.get("line", {}).get("control_points_reference_px") != [[389, 1257], [471, 1312]]:
         fail(errors, "V2.2 measured line fit control points mismatch")
     line = anchors.get("line", {})
-    candidate_bobber = candidate_geometry["bobber"]
-    candidate_line = candidate_geometry["line"]
-    candidate_ripple = candidate_geometry["ripple"]
+    canonical_bobber = anchors["bobber"]
+    canonical_line = anchors["line"]
+    canonical_ripple = anchors["ripple"]
     anchor_values = {
         "EMPTY_HOME_V2_ROD_X": anchors["rod"]["bbox_reference_px"]["x"],
         "EMPTY_HOME_V2_ROD_Y": anchors["rod"]["bbox_reference_px"]["y"],
         "EMPTY_HOME_V2_ROD_TIP_X": anchors["rod"]["tip_reference_px"][0],
         "EMPTY_HOME_V2_ROD_TIP_Y": anchors["rod"]["tip_reference_px"][1],
-        "EMPTY_HOME_V2_LINE_START_X": candidate_line["start_reference_px"][0],
-        "EMPTY_HOME_V2_LINE_START_Y": candidate_line["start_reference_px"][1],
-        "EMPTY_HOME_V2_LINE_C1_X": candidate_line["control_points_reference_px"][0][0],
-        "EMPTY_HOME_V2_LINE_C1_Y": candidate_line["control_points_reference_px"][0][1],
-        "EMPTY_HOME_V2_LINE_C2_X": candidate_line["control_points_reference_px"][1][0],
-        "EMPTY_HOME_V2_LINE_C2_Y": candidate_line["control_points_reference_px"][1][1],
-        "EMPTY_HOME_V2_LINE_END_X": candidate_line["end_reference_px"][0],
-        "EMPTY_HOME_V2_LINE_END_Y": candidate_line["end_reference_px"][1],
-        "EMPTY_HOME_V2_BOBBER_X": candidate_bobber["bbox_reference_px"]["x"],
-        "EMPTY_HOME_V2_BOBBER_Y": candidate_bobber["bbox_reference_px"]["y"],
-        "EMPTY_HOME_V2_RIPPLE_X": candidate_ripple["bbox_reference_px"]["x"],
-        "EMPTY_HOME_V2_RIPPLE_Y": candidate_ripple["bbox_reference_px"]["y"],
-        "EMPTY_HOME_V2_WATER_CONTACT_X": candidate_bobber["water_contact_reference_px"][0],
-        "EMPTY_HOME_V2_WATER_CONTACT_Y": candidate_bobber["water_contact_reference_px"][1],
+        "EMPTY_HOME_V2_LINE_START_X": canonical_line["start_reference_px"][0],
+        "EMPTY_HOME_V2_LINE_START_Y": canonical_line["start_reference_px"][1],
+        "EMPTY_HOME_V2_LINE_C1_X": canonical_line["control_points_reference_px"][0][0],
+        "EMPTY_HOME_V2_LINE_C1_Y": canonical_line["control_points_reference_px"][0][1],
+        "EMPTY_HOME_V2_LINE_C2_X": canonical_line["control_points_reference_px"][1][0],
+        "EMPTY_HOME_V2_LINE_C2_Y": canonical_line["control_points_reference_px"][1][1],
+        "EMPTY_HOME_V2_LINE_END_X": canonical_line["end_reference_px"][0],
+        "EMPTY_HOME_V2_LINE_END_Y": canonical_line["end_reference_px"][1],
+        "EMPTY_HOME_V2_BOBBER_X": canonical_bobber["bbox_reference_px"]["x"],
+        "EMPTY_HOME_V2_BOBBER_Y": canonical_bobber["bbox_reference_px"]["y"],
+        "EMPTY_HOME_V2_RIPPLE_X": canonical_ripple["bbox_reference_px"]["x"],
+        "EMPTY_HOME_V2_RIPPLE_Y": canonical_ripple["bbox_reference_px"]["y"],
+        "EMPTY_HOME_V2_WATER_CONTACT_X": canonical_bobber["water_contact_reference_px"][0],
+        "EMPTY_HOME_V2_WATER_CONTACT_Y": canonical_bobber["water_contact_reference_px"][1],
+        "EMPTY_HOME_V2_BOBBER_REFLECTION_X": canonical_bobber["reflection_reference_px"]["x"],
+        "EMPTY_HOME_V2_BOBBER_REFLECTION_Y": canonical_bobber["reflection_reference_px"]["y"],
+        "EMPTY_HOME_V2_BOBBER_REFLECTION_ALPHA": canonical_bobber["reflection_reference_px"]["alpha_peak"],
     }
     for name, expected in anchor_values.items():
         match = re.search(rf"const val {name} = (-?[0-9.]+)f", motion_source)
@@ -361,13 +403,13 @@ def main() -> int:
         fail(errors, "V2.2 fishing line fit control points mismatch")
     if line.get("end_reference_px") != [560, 1326]:
         fail(errors, "V2.2 fishing line endpoint must enter the bobber contact occlusion")
-    candidate_contact = candidate_bobber["water_contact_reference_px"]
-    candidate_bounds = candidate_bobber["bbox_reference_px"]
+    canonical_contact = canonical_bobber["water_contact_reference_px"]
+    canonical_bounds = canonical_bobber["bbox_reference_px"]
     if not (
-        candidate_bounds["x"] <= candidate_line["end_reference_px"][0] <= candidate_bounds["x"] + candidate_bounds["width"]
-        and candidate_contact[1] <= candidate_line["end_reference_px"][1] <= candidate_contact[1] + 4
+        canonical_bounds["x"] <= canonical_line["end_reference_px"][0] <= canonical_bounds["x"] + canonical_bounds["width"]
+        and canonical_contact[1] <= canonical_line["end_reference_px"][1] <= canonical_contact[1] + 4
     ):
-        fail(errors, "W5 candidate line endpoint is not inside the bobber water-contact occlusion region")
+        fail(errors, "V2.2 canonical line endpoint is not inside the bobber water-contact occlusion region")
     if scene_renderer.count("cubicTo(") != 1:
         fail(errors, "fishing line renderer must contain exactly one cubic Bézier")
     fishing_layers = scene_renderer[scene_renderer.index("drawFrozenFishingLine(transform)"):]

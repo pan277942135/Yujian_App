@@ -122,6 +122,23 @@ EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS = {
     "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt",
     "app/src/test/java/com/yujian/ai/ui/home/EmptyHomeMotionTest.kt",
 }
+EMPTY_HOME_V22_FROZEN_COMPOSITION_REPAIR_TASK_ID = "YUJIAN_EMPTY_HOME_V2_2_FROZEN_COMPOSITION_REPAIR_V1"
+EMPTY_HOME_V22_FROZEN_COMPOSITION_REPAIR_TASK_CONTRACT_PATH = (
+    "harness/task_contracts/YUJIAN_EMPTY_HOME_V2_2_FROZEN_COMPOSITION_REPAIR_V1.md"
+)
+EMPTY_HOME_V22_FROZEN_COMPOSITION_REPAIR_APP_PATHS = {
+    "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt",
+}
+MAIN_BASELINE_RECOVERY_BOOTSTRAP_TASK_ID = "YUJIAN_MAIN_BASELINE_RECOVERY_BOOTSTRAP_V1"
+MAIN_BASELINE_RECOVERY_BOOTSTRAP_TASK_CONTRACT_PATH = (
+    "harness/task_contracts/YUJIAN_MAIN_BASELINE_RECOVERY_BOOTSTRAP_V1.md"
+)
+MAIN_BASELINE_RECOVERY_BOOTSTRAP_APP_PATHS = {
+    "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt",
+    "app/src/test/java/com/yujian/ai/ui/home/EmptyHomeMotionTest.kt",
+}
 AISTUDIO_FULL_RESTORE_TASK_ID = "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1"
 AISTUDIO_FULL_RESTORE_TASK_CONTRACT_PATH = "harness/task_contracts/YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1.md"
 AISTUDIO_FULL_RESTORE_APP_PATHS = {
@@ -217,6 +234,34 @@ if base_branch:
             and "本次不是 Empty Home 专项修复" in task_contract_text
             and "首次拍照引导页面" in task_contract_text
         )
+        frozen_composition_contract_path = ROOT / EMPTY_HOME_V22_FROZEN_COMPOSITION_REPAIR_TASK_CONTRACT_PATH
+        frozen_composition_contract_text = (
+            frozen_composition_contract_path.read_text(encoding="utf-8")
+            if frozen_composition_contract_path.is_file()
+            else ""
+        )
+        is_exact_frozen_composition_scope = (
+            changed_app_paths == EMPTY_HOME_V22_FROZEN_COMPOSITION_REPAIR_APP_PATHS
+            and EMPTY_HOME_V22_FROZEN_COMPOSITION_REPAIR_TASK_CONTRACT_PATH not in changed
+            and f"`{EMPTY_HOME_V22_FROZEN_COMPOSITION_REPAIR_TASK_ID}`" in frozen_composition_contract_text
+            and "must not change the frozen V2.2 product contracts" in frozen_composition_contract_text
+            and "must not promote the W5 candidate geometry" in frozen_composition_contract_text
+        )
+        baseline_recovery_contract_path = ROOT / MAIN_BASELINE_RECOVERY_BOOTSTRAP_TASK_CONTRACT_PATH
+        baseline_recovery_contract_text = (
+            baseline_recovery_contract_path.read_text(encoding="utf-8")
+            if baseline_recovery_contract_path.is_file()
+            else ""
+        )
+        is_main_baseline_recovery_bootstrap_scope = (
+            os.environ.get("GITHUB_HEAD_REF") == "recovery/main-baseline-v1"
+            and changed_app_paths == MAIN_BASELINE_RECOVERY_BOOTSTRAP_APP_PATHS
+            and MAIN_BASELINE_RECOVERY_BOOTSTRAP_TASK_CONTRACT_PATH in changed
+            and f"`{MAIN_BASELINE_RECOVERY_BOOTSTRAP_TASK_ID}`" in baseline_recovery_contract_text
+            and "one-time bootstrap path" in baseline_recovery_contract_text
+            and "It must not change the frozen V2.2 product contracts." in baseline_recovery_contract_text
+            and "It must not promote the W5 candidate geometry." in baseline_recovery_contract_text
+        )
         nh01_v4_contract_path = ROOT / NH01_V4_TASK_CONTRACT_PATH
         nh01_v4_contract_text = nh01_v4_contract_path.read_text(encoding="utf-8") if nh01_v4_contract_path.is_file() else ""
         is_exact_nh01_v4_scope = (
@@ -247,7 +292,7 @@ if base_branch:
             f"changed_app_paths={sorted(changed_app_paths)}"
         )
         require(
-            changed_app_paths == EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS or is_exact_full_restore_scope or is_exact_lake_glass_scope or is_exact_nh01_v4_scope or is_consolidated_baseline_scope,
+            changed_app_paths == EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS or is_exact_frozen_composition_scope or is_main_baseline_recovery_bootstrap_scope or is_exact_full_restore_scope or is_exact_lake_glass_scope or is_exact_nh01_v4_scope or is_consolidated_baseline_scope,
             "scope boundary violated by app changes outside an exact approved task file set; " + scope_diagnostic,
         )
         amendment_spec = (ROOT / "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md").read_text(encoding="utf-8")
@@ -290,7 +335,7 @@ if base_branch:
                 and automatic_haptic.get("max_start_latency_ms") == 120,
                 "AI Studio full restore requires the event-start-guarded V1.3 haptic contract",
             )
-        elif not is_exact_lake_glass_scope and not is_exact_nh01_v4_scope and not is_consolidated_baseline_scope:
+        elif not is_main_baseline_recovery_bootstrap_scope and not is_exact_lake_glass_scope and not is_exact_nh01_v4_scope and not is_consolidated_baseline_scope:
             require(
                 motion_contract.get("contract_revision") == "EMPTY_HOME_MOTION_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
                 and ripple.get("count") == 3
@@ -317,6 +362,10 @@ if base_branch:
                 "unified baseline must preserve approved Empty Home ripple/haptic invariants",
             )
             print("UNIFIED_QA_BASELINE_SCOPE=PASS owner_authorized_exact_branch_and_source_provenance")
+        elif is_exact_frozen_composition_scope:
+            print("EMPTY_HOME_V22_FROZEN_COMPOSITION_SCOPE=PASS exact_app_file_set_and_frozen_contract_guard")
+        elif is_main_baseline_recovery_bootstrap_scope:
+            print("MAIN_BASELINE_RECOVERY_BOOTSTRAP_SCOPE=PASS exact_branch_task_contract_and_app_file_set")
         elif is_exact_full_restore_scope:
             print("AISTUDIO_FULL_PAGE_RESTORE_SCOPE_EXCEPTION=PASS exact_Main_task_contract_and_app_file_set")
         elif is_exact_lake_glass_scope:
@@ -325,7 +374,7 @@ if base_branch:
             print("NH01_V4_ANDROID_SCOPE=PASS exact_task_contract_and_app_file_set")
         else:
             print("EMPTY_HOME_V22_RIPPLE_HAPTIC_SCOPE_EXCEPTION=PASS exact_file_set_and_approved_contracts")
-    allowed_app_paths = EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS | AISTUDIO_FULL_RESTORE_APP_PATHS | LAKE_GLASS_ANDROID_APP_PATHS | NH01_V4_ANDROID_APP_PATHS
+    allowed_app_paths = EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS | EMPTY_HOME_V22_FROZEN_COMPOSITION_REPAIR_APP_PATHS | MAIN_BASELINE_RECOVERY_BOOTSTRAP_APP_PATHS | AISTUDIO_FULL_RESTORE_APP_PATHS | LAKE_GLASS_ANDROID_APP_PATHS | NH01_V4_ANDROID_APP_PATHS
     for path in changed:
         require(not path.startswith("android/") and not path.startswith("design/manager/rr09_motion/"), f"scope boundary violated by {path}")
         if is_consolidated_baseline_scope:
