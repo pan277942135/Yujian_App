@@ -72,6 +72,6 @@
     {"path":"app/src/test/java/com/yujian/ai/ui/home/EmptyHomeMotionTest.kt","recovery_blob":"5fec5e154bd6c68a3b3b708b61e4b802c33c4d1e","source_equivalence":"PR320 assertions retained; formatting-only normalization"},
     {"path":"scripts/verify_empty_home_runtime_v2.py","recovery_blob":"78d5930b06bf136f7d9f18cbc87d771296ea6b5e","source_equivalence":"PR320 canonical anchors plus PR323 fail-closed Blob authority"},
     {"path":"scripts/verify_swos_static_visual_v1_1.py","recovery_blob":"2188ffc70f01b449b7184bada3330e56ca7f653f","source_equivalence":"PR324 scope gate plus one-time exact recovery bootstrap"},
-    {"path":"harness/task_contracts/YUJIAN_MAIN_BASELINE_RECOVERY_BOOTSTRAP_V1.md","recovery_blob":"5fc9576e6cc2f791e04a540aa9862fa1d788848f","source_equivalence":"repository-maintainer recovery authorization"}
+    {"path":"harness/task_contracts/YUJIAN_MAIN_BASELINE_RECOVERY_BOOTSTRAP_V1.md","recovery_blob":"26420ad60b8325704875e87c8a2e04e3d6cf1e34","source_equivalence":"repository-maintainer recovery authorization"}
   ]
 }

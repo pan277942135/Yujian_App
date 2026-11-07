@@ -18,6 +18,5 @@ CI check. The recovery must retain the frozen V2.2 anchor and layer contracts,
 the single bobber body, its independent low-alpha reflection, the canonical
 rod-to-bobber Bézier, and the static/runtime Empty Home checks.
 
-It must not change the frozen V2.2 product contracts. It must not promote the
-W5 candidate geometry. This bootstrap exception is not reusable by ordinary
+It must not change the frozen V2.2 product contracts. It must not promote the W5 candidate geometry. This bootstrap exception is not reusable by ordinary
 product, design, or control-plane pull requests.
