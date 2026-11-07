@@ -1,13 +1,5 @@
 # Branch-local Work Build Log
 
-## 2026-11-06 — WP1-B V3 execution-basis admission checkpoint
-
-- Work: `YUJIAN_WP1B_EXECUTION_BASIS_21_FRAME_ASSET_BINDING_RUNTIME_V3`; canonical task: `YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1`; branch: `wp1b/recognition-pipeline-visual-handoff-v1`.
-- Product admission passed against local synchronized candidate `afb7b1110154cf765299a15670b8095270a05c2d` and `origin/main` control-plane revision `7af1c5cf14cc244069fd0a8637b4eedb3f591c9b`: six static layers, 751 canonical paths, Project Master State, and Work Execution State all passed.
-- PR #320 remains draft/open. Its GitHub base is `98684af617206027e3fbba35e0d2a45bd475e3ba`; the branch has local main-synchronization commits that are not yet published.
-- B009 remains OPEN: approved DET_FISH v0.3 binary, metadata, and validation provenance are absent. SlimSAM source/weight/inference provenance is B012 `NOT_CONFIRMED`. Build, AndroidTest compilation, APK, device runtime, and visual owner acceptance remain `NOT_RUN`.
-- Next action: inspect frozen authority sources and bind KF00–KF20 resources with exact provenance before changing Kotlin runtime code.
-
 ## 2026-10-27 — W4 exact-SHA evidence-state and browser-gate correction
 
 - Work: `YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1`; branch `work/w4-test-evidence-v1`; code candidate `9767f39723cf635cc964e85142d7ef3140e29e90`; Main `42ad0d3fef23ea6576fd43dee781d253dcc11251`.
@@ -102,39 +94,3 @@
 - Exact-head Android CI run `41592577764` on `c7545cd5697da57d467f35ec75e5106f36d7f029`: frozen resource checks passed; `testDebugUnitTest` ran 360 tests and exposed one assertion failure at `OrbWakeBreathReleaseV11Test.kt:19`. The 80 ms wake start was numerically nonzero because Bezier inversion approximated the exact x=0 endpoint. Recorded through `failure_gate.py` (first attempt allowed); corrected `wakeEase` to return exact endpoint values before bisection. The fix, regression test, lint, Debug APK, Release Kotlin compile, and product-owner visual acceptance remain pending exact-head rerun; no emulator or connected test ran.
 - Exact-head Android CI run `41593211664` on `26c2225cc768df827c4d2ae558233a1979825bfd`: all 360 unit tests passed, Debug APK assembled, Android runtime-test APK compiled but not run, and packaged launcher/recognition/Core/model checks passed. `lintDebug` then failed with 2 errors and 85 warnings; the first reported `NewApi` error was disposal of the API-33 grass-warp renderer in `AIOrbCore.kt:221` under the project API-24 minimum. Recorded through `failure_gate.py` (first attempt allowed); added an explicit API-33 runtime guard to the cleanup path. Lint and the downstream APK/release gates require exact-head rerun; no emulator or connected test ran.
 - Follow-up lint run `41594346091` on `6adb22b7fa1dd25e3fb06d7690c3c72f3d9f4a3e`: unit tests, Debug APK assembly, Android runtime-test APK compilation, and packaged-resource checks passed. `lintDebug` reduced to 1 error, now identifying the per-frame `OrbGrassWarpProgramV11.update()` call at `AIOrbCore.kt:229` as API 33 on the API-24-minimum app. Recorded as the second occurrence under the same lint failure budget; added the matching explicit API-33 guard around uniform updates. New exact-head verification is pending.
-
-
-## 2026-11-06 — WP1-B start and Main CI prerequisite
-
-- PR #319 landed the frozen visual/result-handoff addendum and WP1-B control-plane contract at Main `98684af617206027e3fbba35e0d2a45bd475e3ba`. The product branch `wp1b/recognition-pipeline-visual-handoff-v1` starts from that exact clean Main SHA.
-- Exact-head control-plane admission for the landing PR passed (run `42196955321`). PR #317/#318 remain open drafts; #304 remains merged.
-- Main Android CI baseline run `41934781336` failed before Gradle at `Verify Android runtime asset contracts`; PR preview run `42196955318` showed the same Empty Home V2.2 measured-anchor/compositing failures. Both are recorded as historical evidence, not current-head PASS.
-- Detector v0.3 remains blocked by B009. The user video `243477.mp4` is already-run / visual-failed (B011). No product Kotlin, frozen visual resources/parameters, APK, or API28 runtime has been changed or produced at branch start.
-- Next action: execute the Main-source V2.2 preflight on exact SHA, record the result and consult `failure_gate` before any correction.
-
-
-## 2026-11-06 — Exact Main V2.2 preflight reproduced
-
-- On exact source `98684af617206027e3fbba35e0d2a45bd475e3ba`, `python3 scripts/design_asset_pipeline/validate_empty_home_v2_design.py` exited `1` with 17 assertions: 15 canonical measured-anchor mismatches and 2 compositing/asset-ownership mismatches. No Android device/emulator or API28 runtime was involved.
-- The failure family matches Main CI run `41934781336` and PR preview run `42196955318`; previous failed sources and run IDs are retained in the Work state.
-- Recorded through `tools/work_execution_v2/failure_gate.py` as failure ID `8ec1a3f1003730160ffc`, attempt 1 (`LOCALIZE_AND_REPRODUCE`). Pre-repair `check` returned `ALLOW_REPAIR`, failed_attempts=1. No product file has been changed yet.
-- Next: compare authoritative V2.2 resource/geometry/compositing declarations with Kotlin implementation, then correct only stale bindings/order and re-run the preflight.
-
-
-## 2026-11-06 — Empty Home CI root cause localized (PROVEN)
-
-- The active `authority_manifest.json` explicitly marks V2.3 Runtime geometry historical and identifies the machine-readable V2.2 contracts as current. The V2.3 spec file is not an active registry authority.
-- Kotlin `EmptyHomeMotion.kt` still carries the historical V2.3 anchor set; `EmptyHomeSceneRenderer.kt` removed the required V2.2 separate reflection bitmap. This conflicts with active `anchor_contract.json` / `layer_contract.json`.
-- The verifier has a separate source-of-truth defect: it compares current runtime anchors and the line-end contact against `w5_runtime_candidate_geometry.json`, whose own status is `USER_DIRECTED_CANDIDATE_DELTA_NOT_FROZEN`, rather than comparing to canonical `anchor_contract.json`. The W5 candidate must remain separate from runtime acceptance.
-- Planned repair: restore implementation to canonical V2.2 values/layer order; change only validator source selection to canonical anchors; preserve frozen source images/contracts and all frozen numeric values.
-
-## 2026-11-06 — Empty Home V2.2 prerequisite fix committed
-
-- Product implementation source commit `b1967ee14b37fd0d65b2143ac9d6407678700a93` restores the V2.2 machine-authoritative rod/line/bobber/ripple/contact anchors, renders the already-packaged separate reflection at its frozen anchor and 0.32 peak alpha, and updates Kotlin unit expectations to the active V2.2 contract.
-- `scripts/verify_empty_home_runtime_v2.py` now compares runtime geometry with `anchor_contract.json`; the W5 `USER_DIRECTED_CANDIDATE_DELTA_NOT_FROZEN` remains separately validated and is not treated as implementation authority. No frozen asset, contract, or visual parameter changed.
-- Exact-source Empty Home preflight `python3 scripts/design_asset_pipeline/validate_empty_home_v2_design.py` passes on `b1967ee14b37fd0d65b2143ac9d6407678700a93` (0 errors, 13 assets, 21 runtime files). The exact-source resource, Lake Glass packaging/routes, Normal Home, recognition design/runtime, bootstrap asset tests (4), and runtime-evidence source tests (6) also pass.
-- Local Android unit tests are blocked before test startup: `gradle :app:testDebugUnitTest --stacktrace --no-daemon --max-workers=2` exits 127 because this workspace has no Gradle executable or repository wrapper. Exact-head Android CI has not run yet; therefore B010 remains open until CI confirms the pre-Gradle checks and Gradle jobs. API28 is `NOT_RUN`; no APK or device result is claimed.
-- Next: publish the WP1B branch and obtain exact-head Android CI evidence without dispatching any API28 runtime workflow.
-
-
-- Remote branch publication: implementation source commit `317ade8de606dd673e4bb04a4f24063b41bd95c7` was created from Main `98684af617206027e3fbba35e0d2a45bd475e3ba`; the four implementation/test/verifier files are byte-identical to the locally validated tree (SHA-256 verified per file). Exact-head CI is pending.
