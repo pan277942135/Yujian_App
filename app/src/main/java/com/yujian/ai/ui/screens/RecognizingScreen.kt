@@ -619,6 +619,7 @@ fun RecognitionProcessingScene(
                 maskSize = result.maskSize,
                 expectedMaskSize = result.expectedMaskSize,
                 maskVersion = loaded.generationId.toLong(),
+                maskSha256 = result.maskSha256,
             ) else null
             val trustState = RecognitionRevealPolicy.geometryTrust(
                 detectorBox = primary.box,

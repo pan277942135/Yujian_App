@@ -65,6 +65,8 @@ data class RecognitionSubjectGeometrySnapshot(
     val contourSourceSpace: String = "SEGMENTATION_ROI_NORMALIZED",
     /** SlimSAM bitmap generation identity retained with the normalized contour. */
     val maskVersion: Long = 0L,
+    /** SHA-256 of the exact cleaned transparent PNG from which this contour was derived. */
+    val maskSha256: String = "",
 )
 
 data class RecognitionProcessingPhotoSnapshot(
@@ -93,6 +95,8 @@ data class RecognitionRevealHandoff(
     val subjectRoiInSource: NormalizedSourceRect?,
     val subjectAnchorNormalizedSource: DisplayPoint?,
     val contourSourceSpace: String,
+    /** Present only when the trusted contour is bound to an emitted SlimSAM mask file. */
+    val maskSha256: String = "",
     val geometryTrustState: RecognitionGeometryTrustState,
     val processingPhotoViewportBounds: RecognitionRevealWindowRect?,
     val processingPhotoTransform: RecognitionImageTransform?,
@@ -243,6 +247,7 @@ object RecognitionRevealHandoffFactory {
                 ?.takeIf { it.isFinite() && it > 1f } ?: 0f,
             revealDecision = decision,
             maskVersion = if (maskTrusted) subject?.maskVersion ?: 0L else 0L,
+            maskSha256 = if (maskTrusted) subject?.maskSha256.orEmpty() else "",
         )
     }
 

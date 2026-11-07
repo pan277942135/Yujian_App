@@ -153,6 +153,7 @@ class RecognitionSubjectAttemptRunner(
                 quality = result.quality, maskSize = result.maskSize,
                 expectedMaskSize = result.expectedMaskSize,
                 maskVersion = bitmap.generationId.toLong(),
+                maskSha256 = result.maskSha256,
             )
             return geometry.takeIf {
                 RecognitionRevealPolicy.geometryTrust(box, it, image.imageId, image.bitmap.width,
