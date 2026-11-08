@@ -34,6 +34,16 @@ class RecognitionSceneFrameTest {
         )
     }
 
+    @Test fun frozenFullPathMinimumsAreExactlySixSeconds() {
+        assertEquals(
+            listOf(0L, 350L, 600L, 125L, 125L, 450L, 450L, 450L, 1_000L, 350L, 850L, 800L, 450L),
+            RecognitionSceneStage.entries.map(RecognitionSceneStage::minimumVisibleMs),
+        )
+        assertEquals(6_000L, RecognitionSceneStage.entries.sumOf(RecognitionSceneStage::minimumVisibleMs))
+        assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, RecognitionSceneStage.entries[3])
+        assertEquals(RecognitionSceneStage.PATH_TO_FISH, RecognitionSceneStage.entries[4])
+    }
+
     @Test fun explicitSemanticStageIsIndependentOfCumulativeSceneTime() {
         val frame = RecognitionSceneCoordinator.frameForStage(
             identity = identity,
@@ -93,14 +103,14 @@ class RecognitionSceneFrameTest {
         playback.beginNewSession(identity, debugBuild = false, nowMs = 0L)
         playback.markPhotoFirstFramePresented(identity, 0L)
         playback.onOrbAnchorAvailable(true, identity)
-        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(120L))
-        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(470L))
-        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(1_070L))
+        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(0L))
+        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(350L))
+        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(949L))
 
         val path = WaterLightPathGeometryFactory.between(
             WaterLightPathPoint(20f, 200f), WaterLightPathPoint(250f, 360f), seed = 4,
         )!!
-        val scene = playback.currentFrame(identity, 1_071L, 9L)
+        val scene = playback.currentFrame(identity, 950L, 9L)
         assertEquals(1f, scene.stageProgress, .0001f)
         val frame = WaterLightFrame(
             sessionId = identity.sessionId,
@@ -122,7 +132,7 @@ class RecognitionSceneFrameTest {
         assertEquals(EnergyAnchor.PHOTO_PERIMETER, event?.target)
         assertTrue(playback.recordEnergyEvent(scene, requireNotNull(event)))
         assertFalse(playback.recordEnergyEvent(scene, requireNotNull(event)))
-        assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(1_072L))
+        assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(950L))
     }
 
     @Test fun perimeterArrivalCanBecomeRenderableAfterDetectorTargetArrives() {
@@ -130,27 +140,27 @@ class RecognitionSceneFrameTest {
         playback.beginNewSession(identity, debugBuild = false, nowMs = 0L)
         playback.markPhotoFirstFramePresented(identity, 0L)
         playback.onOrbAnchorAvailable(true, identity)
-        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(120L))
-        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(470L))
+        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(0L))
+        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(350L))
 
-        val releaseScene = playback.currentFrame(identity, 1_070L, 9L)
+        val releaseScene = playback.currentFrame(identity, 950L, 9L)
         val releasePath = WaterLightPathGeometryFactory.between(
             WaterLightPathPoint(200f, 360f), WaterLightPathPoint(200f, 24f), seed = 7,
         )!!
         val release = WaterLightEnergy.at(waterLightFrame(releaseScene), false, pathGeometry = releasePath)!!
         assertTrue(playback.recordEnergyEvent(releaseScene, release))
-        assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(1_071L))
+        assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(950L))
         playback.onDetectorTargetAvailable(true, identity)
         playback.onPhotoTransformAvailable(true, identity)
 
-        val pendingScene = playback.currentFrame(identity, 1_196L, 9L)
+        val pendingScene = playback.currentFrame(identity, 1_074L, 9L)
         val pending = WaterLightEnergy.at(waterLightFrame(pendingScene), trustedMask = false)!!
         assertEquals(EnergyFeedback.ARRIVE, pending.feedback)
         assertEquals("PATH_PENDING", pending.renderStatus)
         assertFalse(playback.recordEnergyEvent(pendingScene, pending))
-        assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(1_197L))
+        assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(1_074L))
 
-        val readyScene = playback.currentFrame(identity, 1_197L, 9L)
+        val readyScene = playback.currentFrame(identity, 1_075L, 9L)
         val arrivalPath = WaterLightPathGeometryFactory.between(
             WaterLightPathPoint(200f, 24f), WaterLightPathPoint(200f, 220f), seed = 7,
         )!!
@@ -160,7 +170,7 @@ class RecognitionSceneFrameTest {
         assertEquals(EnergyFeedback.ARRIVE, ready.feedback)
         assertEquals("READY", ready.renderStatus)
         assertTrue(playback.recordEnergyEvent(readyScene, ready))
-        assertEquals(RecognitionSceneStage.PATH_TO_FISH, playback.currentSceneStage(1_198L))
+        assertEquals(RecognitionSceneStage.PATH_TO_FISH, playback.currentSceneStage(1_075L))
     }
 
     private fun waterLightFrame(scene: com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame) = WaterLightFrame(
