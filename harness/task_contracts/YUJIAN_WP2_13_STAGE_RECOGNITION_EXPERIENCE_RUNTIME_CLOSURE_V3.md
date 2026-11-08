@@ -1,8 +1,8 @@
 # WP2 — 13-stage Recognition Experience Runtime Closure V3
 
-**Task ID:** `YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3`  
-**Phase:** `P6`  
-**Gate:** `G-WP2-13-STAGE-RECOGNITION-RUNTIME-CLOSURE-V3`  
+**Task ID:** `YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3`
+**Phase:** `P6`
+**Gate:** `G-WP2-13-STAGE-RECOGNITION-RUNTIME-CLOSURE-V3`
 **Status:** `ACTIVE_CLOSURE`
 
 ## Authority and frozen inputs
