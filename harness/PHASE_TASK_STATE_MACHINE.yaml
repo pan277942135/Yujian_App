@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1", "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1", "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3", "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1", "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_V1", "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1", "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3", "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1", "YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -732,6 +732,19 @@ tasks:
     gate_id: "G-WP1B-RECOGNITION-PIPELINE-HANDOFF-V1"
     evidence_required: ["contract_landing_sha_blob_and_main_commit", "detector_v03_binary_provenance_or_blocked_evidence", "classifier_and_slimsAM_real_input_output_provenance", "session_attempt_photo_identity_geometry_chain", "mask_trust_timeout_cancel_and_stale_attempt_tests", "orb_nearest_trusted_mask_contact_geometry_tests", "shared_mask_contour_abc_and_gold_tests", "orb_deconstruction_glyph_and_name_stable_events", "result_name_hold_photo_reposition_handoff_info_and_stable_tests", "shared_scene_clock_and_no_timing_arbitration", "unit_android_test_compile_lint", "debug_apk_source_and_sha256", "visual_device_video_and_keyframes_or_not_run"]
     completion: "Implement the authorized WP1-B recognition pipeline and visual/result handoff on a separate Main-based branch. Continue independent work when approved DET_FISH v0.3 assets are unavailable, but keep production detector/end-to-end acceptance BLOCKED by B009; do not substitute v0.1, synthetic masks, names, geometry, or visual evidence. Do not alter the 3650ms/6000ms dispute or perform API28 validation. APK/build, automated tests, device runtime and visual acceptance remain separate gates."
+    human_required: false
+  YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J05-J16"]
+    depends_on: ["YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1"]
+    entry_blockers: []
+    target_blockers: ["B009"]
+    gate_id: "G-WP2-13-STAGE-RECOGNITION-RUNTIME-CLOSURE-V3"
+    evidence_required: ["exact_source_sha_and_6000ms_contract", "single_scene_controller_and_existing_stage_mapping", "real_classifier_and_slimsAM_provenance", "trusted_mask_sha_geometry_contact_chain", "contour_gold_orb_glyph_name_result_tests", "unit_android_test_compile_lint", "debug_apk_source_and_sha256", "owner_device_acceptance_not_run"]
+    completion: "Implement the existing Android 13-stage recognition experience with the frozen 6000ms timing contract and the existing RecognitionSceneAnimationController. Preserve the current trusted-mask P* contact-point authority, use only real existing model outputs, and retain the Orb-only branch when no trusted mask exists. B009 remains blocking only for a claim that DET_FISH v0.3 is publishable/packaged; do not fabricate model, geometry, image, name, or visual evidence. Deliver automated checks and an exact-head Debug APK; physical-device acceptance remains product-owner work."
     human_required: false
   P6-03:
     phase: "P6"

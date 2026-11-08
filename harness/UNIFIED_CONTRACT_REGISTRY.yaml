@@ -135,6 +135,10 @@ shared_contracts:
     domain: "DOMAIN"
     status: "FROZEN"
     refs: ["design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_13_STAGE_STATE_MACHINE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_UNIFIED_LIFECYCLE_V3.md", "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.csv", "design/recognition_structured_handoff_v1/stage_matrix/recognition_21_frame_matrix.json", "design/recognition_structured_handoff_v1/component_mapping/component_runtime_mapping.md"]
+  RECOGNITION-13-STAGE-TIMING-6000MS-V1:
+    domain: "DOMAIN"
+    status: "FROZEN_PRODUCT_DECISION"
+    refs: ["design/pages/recognition/runtime/RECOGNITION_13_STAGE_TIMING_CONTRACT_V1_0.md", "design/pages/recognition/runtime/recognition_13_stage_timing_contract_v1_0.json", "harness/task_contracts/YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3.md", "design/pages/recognition/processing/optics/YUJIAN_RECOGNITION_VISUAL_CONTRACT_FREEZE_ADDENDUM_V1.md"]
   DS-FOUNDATION:
     domain: "SHARED"
     status: "FROZEN"
@@ -1659,6 +1663,11 @@ gate_contracts:
     contract_refs: ["RECOGNITION-VISUAL-HANDOFF-ADDENDUM-V1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "MODEL-RECOGNITION", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["model_provenance", "model_inference", "identity_geometry", "mask_trust", "scene_clock", "contact_geometry", "contour_and_gold", "orb_deconstruction", "glyph", "name_stability", "result_handoff", "unit_test", "android_test_compile", "lint", "build", "apk_provenance", "visual_owner_acceptance"]
     exact_sha_required: true
+  G-WP2-13-STAGE-RECOGNITION-RUNTIME-CLOSURE-V3:
+    purpose: "Exact-SHA closure of the frozen 6000ms 13-stage recognition experience through the existing controller and real current model chain. Current trusted-mask P* contact geometry supersedes legacy fish-tail prose without rewriting frozen timing source; B009 prevents claiming a DET_FISH v0.3 package is publishable or shipped. Automated checks and Debug APK are required; physical-device visual acceptance remains assigned to the product owner."
+    contract_refs: ["RECOGNITION-13-STAGE-TIMING-6000MS-V1", "RECOGNITION-VISUAL-HANDOFF-ADDENDUM-V1", "AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "MODEL-RECOGNITION", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["scene_clock", "timing", "model_join", "mask_trust", "contact_geometry", "contour_and_gold", "orb_deconstruction", "glyph", "name_stability", "result_handoff", "unit_test", "android_test_compile", "lint", "build", "apk_provenance", "visual_owner_acceptance"]
+    exact_sha_required: true
 
   G-NH01-LAKE-LIGHT-VISUAL-RESPONSIVE-CLOSURE-V1:
     purpose: "Exact-SHA closure of the user-selected private Lake Light visual reference on NH01 Design Manager real DOM and Android Gemini route while retaining the frozen V2 numeric authority and excluding private photo bytes from public outputs."
@@ -1887,6 +1896,10 @@ task_contract_bindings:
   YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1:
     contract_refs: ["RECOGNITION-VISUAL-HANDOFF-ADDENDUM-V1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "MODEL-RECOGNITION", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-WP1B-RECOGNITION-PIPELINE-HANDOFF-V1"]
     gate_id: "G-WP1B-RECOGNITION-PIPELINE-HANDOFF-V1"
+    phase: "P6"
+  YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3:
+    contract_refs: ["RECOGNITION-13-STAGE-TIMING-6000MS-V1", "RECOGNITION-VISUAL-HANDOFF-ADDENDUM-V1", "AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "MODEL-RECOGNITION", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-WP2-13-STAGE-RECOGNITION-RUNTIME-CLOSURE-V3"]
+    gate_id: "G-WP2-13-STAGE-RECOGNITION-RUNTIME-CLOSURE-V3"
     phase: "P6"
   YUJIAN_ANDROID_HOME_CAPTURE_ACTIVATION_CAMERA_RUNTIME_FULL_CLOSURE_V2:
     contract_refs: ["ANDROID-HOME-CAPTURE-RUNTIME-V2", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
@@ -2219,8 +2232,8 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 78
-  gate_count: 38
+  task_count: 79
+  gate_count: 39
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "10a7ff2fe0c905b7c7e22ec88c29383d57847c34"
   last_synced_phase_task_state_machine_sha: "ed0b9d1052da58095d65241eae23af2eb2f49275"
