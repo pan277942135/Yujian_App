@@ -352,6 +352,7 @@ def verify_detector_metadata_and_pipeline(
     if (
         crop.get("expand_ratio") != 0.15
         or crop.get("classifier_size") != 224
+        or crop.get("resize_mode") != "letterbox"
         or crop.get("padding_rgb") != [124, 116, 104]
         or crop.get("normalization_mean") != [0.485, 0.456, 0.406]
         or crop.get("normalization_std") != [0.229, 0.224, 0.225]
