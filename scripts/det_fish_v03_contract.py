@@ -25,8 +25,10 @@ DETECTOR_ZIP_BYTES = 10_525_017
 DETECTOR_ZIP_SHA256 = "4a3dd5a55f254e6a813d7f029e23b8fe00caf7c616422be51510b70a3ba495ca"
 DETECTOR_ONNX_SHA256 = "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1"
 DETECTOR_ONNX_BYTES = 3_753_998
+DETECTOR_METADATA_BYTES = 3_255_235
+DETECTOR_PIPELINE_BYTES = 733
 DETECTOR_CHECKPOINT_SHA256 = "3e2b4d835de65bf408f565f5104c9993d3c558527690782e75a4415e3c67ca89"
-DETECTOR_CHECKPOINT_BYTES = 6_771_245
+DETECTOR_CHECKPOINT_BYTES = 7_581_047
 DETECTOR_MODEL_VERSION = "DET_FISH_v0.3"
 DETECTOR_DATASET_VERSION = "DET_DS_v0.3"
 DETECTOR_MODEL_FAMILY = "YOLOX_NANO"
@@ -307,9 +309,9 @@ def verify_detector_metadata_and_pipeline(
     onnx_meta = metadata.get("onnx")
     if not isinstance(onnx_meta, dict):
         raise DetectorContractError("detector metadata is missing the ONNX contract object")
-    if onnx_meta.get("onnx_sha256") != DETECTOR_ONNX_SHA256:
+    if metadata.get("onnx_sha256") != DETECTOR_ONNX_SHA256:
         raise DetectorContractError("detector metadata ONNX SHA does not match the approved v0.3 SHA")
-    if onnx_meta.get("onnx_bytes") != DETECTOR_ONNX_BYTES or len(onnx_bytes) != DETECTOR_ONNX_BYTES:
+    if metadata.get("onnx_bytes") != DETECTOR_ONNX_BYTES or len(onnx_bytes) != DETECTOR_ONNX_BYTES:
         raise DetectorContractError("detector metadata ONNX byte count does not match the approved v0.3 model")
     if onnx_meta.get("input_name") != DETECTOR_INPUT_NAME:
         raise DetectorContractError("detector metadata input name mismatch")
@@ -319,11 +321,11 @@ def verify_detector_metadata_and_pipeline(
         raise DetectorContractError("detector metadata output shape mismatch")
     if onnx_meta.get("output_contract") != DETECTOR_OUTPUT_CONTRACT:
         raise DetectorContractError("detector metadata output semantics are not the v0.3 decoded XYWH contract")
-    if onnx_meta.get("opset_version") != DETECTOR_OPSET_VERSION:
+    if onnx_meta.get("onnx_opset") != DETECTOR_OPSET_VERSION:
         raise DetectorContractError("detector metadata ONNX opset mismatch")
     graph = verify_onnx_graph(onnx_bytes)
 
-    if pipeline.get("contract_version") != "RECOGNITION_PIPELINE_v1.2":
+    if pipeline.get("contract_version") != "RECOGNITION_PIPELINE_v1":
         raise DetectorContractError("recognition pipeline contract version mismatch")
     detector = pipeline.get("detector")
     quality = pipeline.get("quality_gate")
@@ -332,26 +334,34 @@ def verify_detector_metadata_and_pipeline(
         raise DetectorContractError("recognition pipeline is missing detector, quality_gate or crop objects")
     expected_detector = {
         "model_family": DETECTOR_MODEL_FAMILY,
+        "class_name": "fish",
         "input_size": 416,
         "strong_confidence": 0.35,
         "weak_confidence": 0.2,
         "nms_iou": DETECTOR_NMS_IOU,
-        "max_detections": 30,
     }
     for key, expected in expected_detector.items():
         if detector.get(key) != expected:
             raise DetectorContractError(f"recognition pipeline detector.{key} mismatch: {detector.get(key)!r}")
     expected_quality = {
-        "min_primary_area_ratio": 0.015,
-        "incomplete_edge_margin_ratio": 0.08,
-        "multiple_strong_threshold": 2,
-        "tiny_area_ratio": 0.05,
+        "min_primary_area_ratio": 0.08,
+        "incomplete_edge_margin_ratio": 0.015,
     }
     for key, expected in expected_quality.items():
         if quality.get(key) != expected:
             raise DetectorContractError(f"recognition pipeline quality_gate.{key} mismatch: {quality.get(key)!r}")
-    if crop.get("expand_ratio") != 0.15 or crop.get("classifier_input_size") != 224:
-        raise DetectorContractError("recognition pipeline classifier crop contract mismatch")
+    if (
+        crop.get("expand_ratio") != 0.15
+        or crop.get("classifier_size") != 224
+        or crop.get("padding_rgb") != [124, 116, 104]
+        or crop.get("normalization_mean") != [0.485, 0.456, 0.406]
+        or crop.get("normalization_std") != [0.229, 0.224, 0.225]
+    ):
+        raise DetectorContractError("recognition pipeline classifier crop/normalization contract mismatch")
+    if metadata.get("pipeline_contract") != pipeline:
+        raise DetectorContractError("detector metadata embedded pipeline contract differs from recognition_pipeline_v1.json")
+    if metadata.get("checkpoint_sha256") != DETECTOR_CHECKPOINT_SHA256:
+        raise DetectorContractError("detector metadata checkpoint SHA does not match the approved v0.3 checkpoint")
     return metadata, pipeline, graph
 
 
@@ -378,6 +388,10 @@ def verify_detector_zip_bytes(payload: bytes) -> dict[str, Any]:
         metadata_bytes = _read_required_member(archive, DETECTOR_METADATA_MEMBER)
         pipeline_bytes = _read_required_member(archive, DETECTOR_PIPELINE_MEMBER)
         checkpoint_bytes = _read_required_member(archive, DETECTOR_CHECKPOINT_MEMBER)
+    if len(metadata_bytes) != DETECTOR_METADATA_BYTES:
+        raise DetectorContractError("DET_FISH v0.3 metadata byte count mismatch")
+    if len(pipeline_bytes) != DETECTOR_PIPELINE_BYTES:
+        raise DetectorContractError("DET_FISH v0.3 pipeline contract byte count mismatch")
     onnx_sha = sha256_bytes(onnx_bytes)
     checkpoint_sha = sha256_bytes(checkpoint_bytes)
     if onnx_sha != DETECTOR_ONNX_SHA256:
@@ -410,7 +424,10 @@ def verify_detector_zip_bytes(payload: bytes) -> dict[str, Any]:
         "input_layout": DETECTOR_INPUT_LAYOUT,
         "pad_value": DETECTOR_PAD_VALUE,
         "nms_iou": DETECTOR_NMS_IOU,
-        "metadata_sha256": sha256_bytes(json.dumps(metadata, ensure_ascii=False, sort_keys=True).encode("utf-8")),
+        "metadata_sha256": sha256_bytes(metadata_bytes),
+        "metadata_bytes": len(metadata_bytes),
+        "pipeline_sha256": sha256_bytes(pipeline_bytes),
+        "pipeline_bytes": len(pipeline_bytes),
         "pipeline_contract_version": pipeline["contract_version"],
     }
 
@@ -438,6 +455,10 @@ def build_detector_snapshot(
         "zip_sha256": evidence["zip_sha256"],
         "onnx_sha256": evidence["onnx_sha256"],
         "onnx_bytes": evidence["onnx_bytes"],
+        "metadata_sha256": evidence["metadata_sha256"],
+        "metadata_bytes": evidence["metadata_bytes"],
+        "pipeline_sha256": evidence["pipeline_sha256"],
+        "pipeline_bytes": evidence["pipeline_bytes"],
         "checkpoint_sha256": evidence["checkpoint_sha256"],
         "checkpoint_bytes": evidence["checkpoint_bytes"],
         "input_name": evidence["input_name"],
@@ -510,6 +531,10 @@ def verify_detector_payloads(
         "model_family": metadata["model_family"],
         "onnx_sha256": DETECTOR_ONNX_SHA256,
         "onnx_bytes": DETECTOR_ONNX_BYTES,
+        "metadata_sha256": sha256_bytes(metadata_bytes),
+        "metadata_bytes": len(metadata_bytes),
+        "pipeline_sha256": sha256_bytes(pipeline_bytes),
+        "pipeline_bytes": len(pipeline_bytes),
         "input_name": graph["input_name"],
         "input_shape": graph["input_shape"],
         "input_dtype": graph["input_dtype"],
@@ -738,7 +763,7 @@ def detector_snapshot_summary(snapshot: dict[str, Any]) -> dict[str, Any]:
         key: snapshot[key]
         for key in (
             "model_version", "dataset_version", "release_id", "asset_id",
-            "zip_sha256", "onnx_sha256", "checkpoint_sha256",
+            "zip_sha256", "onnx_sha256", "metadata_sha256", "pipeline_sha256", "checkpoint_sha256",
             "input_shape", "output_shape", "output_contract",
         )
     }
