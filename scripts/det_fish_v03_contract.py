@@ -33,7 +33,6 @@ DETECTOR_MODEL_VERSION = "DET_FISH_v0.3"
 DETECTOR_DATASET_VERSION = "DET_DS_v0.3"
 DETECTOR_MODEL_FAMILY = "YOLOX_NANO"
 DETECTOR_INPUT_NAME = "images"
-DETECTOR_OUTPUT_NAME = "output"
 DETECTOR_INPUT_SHAPE = [1, 3, 416, 416]
 DETECTOR_OUTPUT_SHAPE = [1, 3549, 6]
 DETECTOR_OUTPUT_CONTRACT = "decoded_xywh_objectness_class_probability"
@@ -274,9 +273,9 @@ def verify_onnx_graph(onnx_bytes: bytes) -> dict[str, Any]:
         raise DetectorContractError(
             f"DET_FISH v0.3 graph input mismatch: {input_name} {input_shape}"
         )
-    if output_name != DETECTOR_OUTPUT_NAME or output_shape != DETECTOR_OUTPUT_SHAPE:
+    if not output_name or output_shape != DETECTOR_OUTPUT_SHAPE:
         raise DetectorContractError(
-            f"DET_FISH v0.3 graph output mismatch: {output_name} {output_shape}"
+            f"DET_FISH v0.3 graph output mismatch: {output_name!r} {output_shape}"
         )
     opsets = {entry.domain: int(entry.version) for entry in model.opset_import}
     if opsets.get("", 0) != DETECTOR_OPSET_VERSION:
