@@ -9,6 +9,7 @@ from pathlib import Path
 
 from det_fish_v03_contract import (
     ANDROID_CLASSIFIER_PARITY_FILE,
+    DetectorContractError,
     verify_classifier_bundle_parity_record,
 )
 from production_model_contract import (
@@ -62,7 +63,7 @@ def main() -> int:
     try:
         parity = json.loads((ASSETS / ANDROID_CLASSIFIER_PARITY_FILE).read_text(encoding="utf-8"))
         verify_classifier_bundle_parity_record(parity, snapshot)
-    except (OSError, json.JSONDecodeError, ModelContractError, ValueError, KeyError) as error:
+    except (OSError, json.JSONDecodeError, ModelContractError, DetectorContractError, ValueError, KeyError) as error:
         print(f"CLASSIFIER_BUNDLE_PARITY_VERIFY_FAILED: {error}", file=sys.stderr)
         return 1
 
