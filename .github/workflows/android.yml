@@ -116,6 +116,9 @@ jobs:
       - name: Install Pillow for asset verification
         run: python -m pip install --disable-pip-version-check Pillow==11.3.0
 
+      - name: Install ONNX parser for pinned detector graph verification
+        run: python -m pip install --disable-pip-version-check onnx==1.17.0
+
       - name: Verify Android runtime asset contracts
         run: |
           python3 scripts/verify_yujian_resource_package.py
@@ -140,6 +143,12 @@ jobs:
           path: build/resource-packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip
           if-no-files-found: error
           retention-days: 14
+
+      - name: Restore pinned recognition model assets cache
+        uses: actions/cache@v4
+        with:
+          path: build/recognition-assets-cache
+          key: yujian-recognition-assets-v2-${{ runner.os }}-det-fish-v03-4a3dd5a55f254e6a813d7f029e23b8fe00caf7c616422be51510b70a3ba495ca-classifier-m1-v02-aef10982824426052c07907093b11cb1d6448ff5f6c52027f266ed95f87c640a
 
       - name: Bootstrap verified recognition assets
         run: python3 scripts/bootstrap_android_recognition_assets.py
