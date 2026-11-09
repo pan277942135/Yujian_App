@@ -155,6 +155,10 @@ shared_contracts:
     domain: "SHARED"
     status: "PROTECTED"
     refs: ["scripts/production_model_contract.py", "pan277942135/Yujian release mobile-model-v0.2"]
+  MODEL-DET-FISH-V03:
+    domain: "SHARED"
+    status: "ACTIVE_CLOSURE"
+    refs: ["harness/task_contracts/YUJIAN_ANDROID_DET_FISH_V03_PRODUCTION_RELEASE_AND_RUNTIME_INTEGRATION_V1.md", "pan277942135/Yujian_Model_Assets release 422778098 tag model-assets-v1 asset 672467369 sha256 4a3dd5a55f254e6a813d7f029e23b8fe00caf7c616422be51510b70a3ba495ca", "pan277942135/Yujian_Model_Assets asset 672468391 sha256 aef10982824426052c07907093b11cb1d6448ff5f6c52027f266ed95f87c640a", "pan277942135/Yujian release mobile-model-v0.2 asset 598521217 sha256 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18"]
   STATE-EVIDENCE-PROVENANCE:
     domain: "EXECUTION"
     status: "ACTIVE"
@@ -1669,6 +1673,12 @@ gate_contracts:
     acceptance_domains: ["scene_clock", "timing", "model_join", "mask_trust", "contact_geometry", "contour_and_gold", "orb_deconstruction", "glyph", "name_stability", "result_handoff", "unit_test", "android_test_compile", "lint", "build", "apk_provenance", "visual_owner_acceptance"]
     exact_sha_required: true
 
+  G-DET-FISH-V03-ANDROID-PRODUCTION-RELEASE-V1:
+    purpose: "Exact-SHA acceptance of the authorized DET_FISH v0.3 Release publication and Android production integration, including immutable ZIP/ONNX/checkpoint provenance, inspected ONNX graph semantics, existing Classifier v0.2 parity, real SlimSAM Mask integration, real Android inference smoke, and APK-internal model hashes. No SAM weights are published; physical-device visual acceptance remains a separate product-owner activity."
+    contract_refs: ["MODEL-DET-FISH-V03", "MODEL-RECOGNITION", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["release_publication", "model_provenance", "zip_integrity", "onnx_graph", "tensor_contract", "decoder_preprocessing", "classifier_release_parity", "exif_orientation", "quality_gate", "mask_integration", "android_inference_smoke", "unit_test", "android_test_compile", "lint", "build", "apk_provenance", "evidence"]
+    exact_sha_required: true
+
   G-NH01-LAKE-LIGHT-VISUAL-RESPONSIVE-CLOSURE-V1:
     purpose: "Exact-SHA closure of the user-selected private Lake Light visual reference on NH01 Design Manager real DOM and Android Gemini route while retaining the frozen V2 numeric authority and excluding private photo bytes from public outputs."
     contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
@@ -1901,6 +1911,11 @@ task_contract_bindings:
     contract_refs: ["RECOGNITION-13-STAGE-TIMING-6000MS-V1", "RECOGNITION-VISUAL-HANDOFF-ADDENDUM-V1", "AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "MODEL-RECOGNITION", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-WP2-13-STAGE-RECOGNITION-RUNTIME-CLOSURE-V3"]
     gate_id: "G-WP2-13-STAGE-RECOGNITION-RUNTIME-CLOSURE-V3"
     phase: "P6"
+  YUJIAN_ANDROID_DET_FISH_V03_PRODUCTION_RELEASE_AND_RUNTIME_INTEGRATION_V1:
+    contract_refs: ["MODEL-DET-FISH-V03", "MODEL-RECOGNITION", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-DET-FISH-V03-ANDROID-PRODUCTION-RELEASE-V1"]
+    gate_id: "G-DET-FISH-V03-ANDROID-PRODUCTION-RELEASE-V1"
+    phase: "P6"
+
   YUJIAN_ANDROID_HOME_CAPTURE_ACTIVATION_CAMERA_RUNTIME_FULL_CLOSURE_V2:
     contract_refs: ["ANDROID-HOME-CAPTURE-RUNTIME-V2", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     phase: "P6"
@@ -2232,8 +2247,8 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 79
-  gate_count: 39
+  task_count: 80
+  gate_count: 40
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "10a7ff2fe0c905b7c7e22ec88c29383d57847c34"
   last_synced_phase_task_state_machine_sha: "ed0b9d1052da58095d65241eae23af2eb2f49275"

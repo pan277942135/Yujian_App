@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1", "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_V1", "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1", "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3", "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1", "YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_NH01_POPULATED_HOME_RESPONSIVE_HIFI_V4", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1", "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_V1", "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1", "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3", "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1", "YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3", "YUJIAN_ANDROID_DET_FISH_V03_PRODUCTION_RELEASE_AND_RUNTIME_INTEGRATION_V1"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -746,6 +746,20 @@ tasks:
     evidence_required: ["exact_source_sha_and_6000ms_contract", "single_scene_controller_and_existing_stage_mapping", "real_classifier_and_slimsAM_provenance", "trusted_mask_sha_geometry_contact_chain", "contour_gold_orb_glyph_name_result_tests", "unit_android_test_compile_lint", "debug_apk_source_and_sha256", "owner_device_acceptance_not_run"]
     completion: "Implement the existing Android 13-stage recognition experience with the frozen 6000ms timing contract and the existing RecognitionSceneAnimationController. Preserve the current trusted-mask P* contact-point authority, use only real existing model outputs, and retain the Orb-only branch when no trusted mask exists. B009 remains blocking only for a claim that DET_FISH v0.3 is publishable/packaged; do not fabricate model, geometry, image, name, or visual evidence. Deliver automated checks and an exact-head Debug APK; physical-device acceptance remains product-owner work."
     human_required: false
+  YUJIAN_ANDROID_DET_FISH_V03_PRODUCTION_RELEASE_AND_RUNTIME_INTEGRATION_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J05-J16"]
+    depends_on: []
+    entry_blockers: []
+    target_blockers: ["B009"]
+    gate_id: "G-DET-FISH-V03-ANDROID-PRODUCTION-RELEASE-V1"
+    evidence_required: ["existing_release_422778098_published_without_asset_replacement", "detector_zip_and_onnx_checkpoint_sha_provenance", "onnx_graph_tensor_and_decoded_output_contract", "classifier_zip_tflite_release_parity_and_class_map", "bgr_letterbox_bbox_exif_nms_retry_tests", "real_android_detector_classifier_inference_smoke", "slimsam_mask_and_full_orb_only_join", "exact_head_unit_android_test_compile_lint", "debug_apk_internal_model_sha256_and_size", "owner_device_acceptance_not_run"]
+    completion: "Publish the existing authorized Model Assets Draft Release 422778098 in place without re-uploading or changing either ZIP. Integrate DET_FISH v0.3 using its verified ONNX graph and decoded XYWH/objectness/class-probability output contract; preserve the existing MODEL_CROP_M1_v0.2 production classifier if its ZIP/TFLite parity passes. Replace v0.1 only in the production detector path, retain EXIF/letterbox/original-coordinate/Orientation Retry/quality-gate behavior, package and re-hash both models from the actual APK, and run a real Android Detector+Classifier inference smoke test with real SlimSAM Mask status. Never publish SAM weights or invent model/runtime evidence."
+    human_required: false
+
   P6-03:
     phase: "P6"
     priority: "P1"
