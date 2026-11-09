@@ -452,6 +452,7 @@ def build_detector_snapshot(
         "asset_name": DETECTOR_ASSET_NAME,
         "asset_size": asset["size"],
         "zip_sha256": evidence["zip_sha256"],
+        "zip_bytes": evidence["zip_bytes"],
         "onnx_sha256": evidence["onnx_sha256"],
         "onnx_bytes": evidence["onnx_bytes"],
         "metadata_sha256": evidence["metadata_sha256"],
@@ -515,10 +516,18 @@ def verify_detector_payloads(
         raise DetectorContractError("unsupported detector model snapshot schema")
     if snapshot.get("release_id") != DETECTOR_RELEASE_ID or snapshot.get("asset_id") != DETECTOR_ASSET_ID:
         raise DetectorContractError("detector model snapshot release/asset identity mismatch")
+    if snapshot.get("release_tag") != DETECTOR_RELEASE_TAG:
+        raise DetectorContractError("detector model snapshot Release tag mismatch")
+    if snapshot.get("asset_name") != DETECTOR_ASSET_NAME:
+        raise DetectorContractError("detector model snapshot asset name mismatch")
+    if snapshot.get("asset_size") != DETECTOR_ZIP_BYTES or snapshot.get("zip_bytes") != DETECTOR_ZIP_BYTES:
+        raise DetectorContractError("detector model snapshot ZIP byte count mismatch")
     if snapshot.get("zip_sha256") != DETECTOR_ZIP_SHA256:
         raise DetectorContractError("detector model snapshot ZIP SHA mismatch")
     if snapshot.get("checkpoint_sha256") != DETECTOR_CHECKPOINT_SHA256:
         raise DetectorContractError("detector model snapshot checkpoint SHA mismatch")
+    if snapshot.get("checkpoint_bytes") != DETECTOR_CHECKPOINT_BYTES:
+        raise DetectorContractError("detector model snapshot checkpoint byte count mismatch")
     if sha256_bytes(onnx_bytes) != DETECTOR_ONNX_SHA256:
         raise DetectorContractError("packaged detector ONNX SHA mismatch")
     if len(onnx_bytes) != DETECTOR_ONNX_BYTES:
@@ -762,7 +771,7 @@ def detector_snapshot_summary(snapshot: dict[str, Any]) -> dict[str, Any]:
         key: snapshot[key]
         for key in (
             "model_version", "dataset_version", "release_id", "asset_id",
-            "zip_sha256", "onnx_sha256", "metadata_sha256", "pipeline_sha256", "checkpoint_sha256",
+            "zip_sha256", "zip_bytes", "onnx_sha256", "metadata_sha256", "pipeline_sha256", "checkpoint_sha256",
             "input_shape", "output_shape", "output_contract",
         )
     }
