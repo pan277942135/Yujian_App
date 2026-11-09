@@ -1,6 +1,6 @@
 # WP2 13 阶段视觉消费者审计 V1
 
-基线：`12b16873e7abcbd8de2209b37622ebd3d78001d4`（PR #327，Draft）。
+审计源码基线：`51eeaa8c4621a9e68dddc30874e57a82aca0d120`（PR #327，Draft；Main `81200da2e41163b04cfd340de59c3f43700c329a`）。
 
 本报告是源码调用链审计，不是设备视觉验收。每一项均从同一个
 `RecognitionSceneAnimationController` 的 `RecognitionSceneFrame` 追到实际 Compose
@@ -41,3 +41,16 @@ Runtime 改写。所有 `CONDITIONAL` 项都是冻结合同所要求的真实模
 
 本地 Gradle 在本报告创建时仍处于下载 Gradle 发行包的环境复验中；这不改变当前精确 Head 的
 Android CI 通过记录，也不将设备验收标为通过。
+
+
+## 最新精确 HEAD 验证补充（2026-11-09）
+
+本报告的源码调用链审计绑定上述 `51eeaa8c4621a9e68dddc30874e57a82aca0d120`；不得将文档更新后的提交 SHA 冒充为本次源码审计基线。
+
+- Android CI：Run [42552080491](https://github.com/pan277942135/Yujian_App/actions/runs/42552080491)，在该精确 HEAD 上 PASS。
+- Control Plane Admission：PASS。
+- Unit tests、Camera Runtime Harness、Debug APK、AndroidTest APK compile、APK resource verification、Lint、Release Kotlin compile：PASS。
+- Android runtime、Orb visual evidence、fish optics API36 runtime jobs：SKIPPED；本报告不声称设备视觉验收通过。
+- 该 HEAD 的 APK 模型追踪仍显示 Detector `DET_FISH_v0.1`（ONNX SHA-256 `12b97f7c081987f33f99d255cdd2e935fb9cf93b893146f54ff98b9c4e3a8e4f`）与 Classifier `MODEL_CROP_M1_v0.2`（TFLite SHA-256 `29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18`）。该 APK 不是 DET_FISH v0.3 集成包。
+
+本补充只更新审计基线与证据边界，不改变 13 阶段合同，也不将源码接线审计提升为 Runtime/设备验收。
