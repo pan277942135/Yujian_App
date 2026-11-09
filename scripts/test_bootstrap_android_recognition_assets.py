@@ -55,6 +55,7 @@ def _pipeline() -> dict:
         "crop": {
             "expand_ratio": 0.15,
             "classifier_size": 224,
+            "resize_mode": "letterbox",
             "padding_rgb": [124, 116, 104],
             "normalization_mean": [0.485, 0.456, 0.406],
             "normalization_std": [0.229, 0.224, 0.225],
