@@ -94,7 +94,7 @@ def inspect_graph(model: onnx.ModelProto) -> dict[str, Any]:
     counts = Counter(node.op_type for node in ordered_nodes)
     relevant = {
         "Add", "Concat", "Div", "Exp", "Gather", "Mul", "Pow", "Reshape",
-        "Sigmoid", "Slice", "Split", "Sub", "Transpose", "Unsqueeze",
+        "ScatterND", "Sigmoid", "Slice", "Split", "Sub", "Transpose", "Unsqueeze",
     }
     node_rows = []
     for index, node in enumerate(ordered_nodes):
@@ -145,6 +145,70 @@ def inspect_graph(model: onnx.ModelProto) -> dict[str, Any]:
                 ],
             })
 
+    head_scale_concats = []
+    for node in ordered_nodes:
+        if node.op_type != "Concat" or int(node_attribute(node, "axis", -1)) != 1:
+            continue
+        output_shape = shapes.get(node.output[0]) if node.output else None
+        if output_shape and len(output_shape) == 4 and output_shape[0] == 1 and output_shape[1] == 6:
+            head_scale_concats.append({
+                "name": node.name,
+                "output_shape": output_shape,
+                "inputs": [
+                    {
+                        "name": name,
+                        "shape": shapes.get(name),
+                        "producer_op": producers[name].op_type if name in producers else None,
+                        "producer_name": producers[name].name if name in producers else None,
+                        "producer_input_names": list(producers[name].input) if name in producers else [],
+                    }
+                    for name in node.input
+                ],
+            })
+
+    output_scatter_nodes = [
+        {
+            "name": node.name,
+            "inputs": [
+                {
+                    "name": name,
+                    "shape": shapes.get(name),
+                    "producer_op": producers[name].op_type if name in producers else None,
+                    "producer_name": producers[name].name if name in producers else None,
+                }
+                for name in node.input
+            ],
+            "outputs": [
+                {"name": name, "shape": shapes.get(name)} for name in node.output
+            ],
+        }
+        for node in ordered_nodes if node.op_type == "ScatterND"
+    ]
+    node_by_name = {node.name: node for node in ordered_nodes}
+    xy_add = node_by_name.get("/head/Add")
+    xy_stride_mul = node_by_name.get("/head/Mul")
+    wh_exp = node_by_name.get("/head/Exp")
+    wh_stride_mul = node_by_name.get("/head/Mul_4")
+    xy_decode = bool(
+        xy_add and xy_stride_mul
+        and xy_add.output and xy_stride_mul.input
+        and xy_add.output[0] in xy_stride_mul.input
+    )
+    wh_decode = bool(
+        wh_exp and wh_stride_mul
+        and wh_exp.output and wh_exp.output[0] in wh_stride_mul.input
+    )
+    sigmoid_head_outputs = bool(
+        len(head_scale_concats) == 3
+        and all(
+            len(item["inputs"]) == 3
+            and item["inputs"][0]["shape"] == [1, 4, item["output_shape"][2], item["output_shape"][3]]
+            and item["inputs"][1]["producer_op"] == "Sigmoid"
+            and item["inputs"][2]["producer_op"] == "Sigmoid"
+            for item in head_scale_concats
+        )
+    )
+
     return {
         "input": {
             "name": graph.input[0].name if graph.input else None,
@@ -157,6 +221,15 @@ def inspect_graph(model: onnx.ModelProto) -> dict[str, Any]:
             "dtype": "float32" if graph.output[0].type.tensor_type.elem_type == onnx.TensorProto.FLOAT else "non-float32",
             "producer_op": output_producer.op_type if output_producer else None,
             "producer_name": output_producer.name if output_producer else None,
+            "producer_inputs": [
+                {
+                    "name": name,
+                    "shape": shapes.get(name),
+                    "producer_op": producers[name].op_type if name in producers else None,
+                    "producer_name": producers[name].name if name in producers else None,
+                }
+                for name in (output_producer.input if output_producer else [])
+            ],
         },
         "ancestor_node_count": len(ordered_nodes),
         "ancestor_operator_counts": dict(sorted(counts.items())),
@@ -165,8 +238,18 @@ def inspect_graph(model: onnx.ModelProto) -> dict[str, Any]:
         "add_ancestor_count": counts.get("Add", 0),
         "mul_ancestor_count": counts.get("Mul", 0),
         "decoded_output_concat_candidates": concat_rows,
+        "head_scale_concats": head_scale_concats,
+        "output_scatter_nodes": output_scatter_nodes,
+        "xy_grid_stride_decode_path_present": xy_decode,
+        "wh_exp_stride_decode_path_present": wh_decode,
+        "objectness_and_class_sigmoid_head_branches_present": sigmoid_head_outputs,
         "relevant_output_ancestor_nodes": node_rows,
-        "graph_semantics_verdict": "REVIEW_REQUIRED",
+        "graph_semantics_verdict": (
+            "STRUCTURE_MATCHES_DECODED_XYWH_OBJECTNESS_CLASS_SIGMOID"
+            if output_producer and output_producer.op_type == "ScatterND"
+            and xy_decode and wh_decode and sigmoid_head_outputs
+            else "REVIEW_REQUIRED"
+        ),
     }
 
 
