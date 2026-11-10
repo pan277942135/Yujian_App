@@ -1465,13 +1465,51 @@ fun RecognitionProcessingScene(
                 waterLightFrame, fishEnergyAllowed, successfulRevealAllowed,
                 orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
             )
-            val fishEnergyAnchor = if (fishEnergyAllowed)
-                recognitionMaskAnchor(subjectBox, contour, currentPhotoTransform, orbCenter, image?.bitmap?.width ?: 0, image?.bitmap?.height ?: 0) else null
-            // No BBox substitute is permitted: every Mask-directed path waits for the
-            // current trusted Mask and resolves the same nearest-contour contact point.
+            val maskSha256 = subjectResult?.maskSha256.orEmpty()
+            val maskVersion = subjectBitmap?.generationId?.toLong() ?: -1L
+            val proposedContactSource = if (fishEnergyAllowed)
+                recognitionMaskContactPointSource(
+                    subjectBox, contour, currentPhotoTransform, orbCenter,
+                    image?.bitmap?.width ?: 0, image?.bitmap?.height ?: 0,
+                ) else null
+            val stableContactSource = if (fishEnergyAllowed && maskSha256.isNotBlank() && maskVersion >= 0L) {
+                energyPathLedger.contactPointNormalizedSource(waterLightFrame, maskSha256, maskVersion)
+                    ?: proposedContactSource
+            } else null
+            val mappedContact = stableContactSource?.let {
+                currentPhotoTransform.mapNormalized(it.x, it.y)
+            }
+            val fishEnergyAnchor = mappedContact?.let { Offset(it.x, it.y) }
+            // P-star is a canonical photo-space point bound to this Mask SHA/version.
+            // It is frozen by the ledger on the first real Stage-05 contact event.
             val perimeterEnergyAnchor = fishEnergyAnchor?.let {
                 nearestPhotoPerimeterAnchor(currentPhotoTransform.photoContentRect, it)
             }
+            val proposedFishPath = if (fishEnergyAnchor != null && perimeterEnergyAnchor != null) {
+                WaterLightPathGeometryFactory.between(
+                    WaterLightPathPoint(perimeterEnergyAnchor.x, perimeterEnergyAnchor.y),
+                    WaterLightPathPoint(fishEnergyAnchor.x, fishEnergyAnchor.y),
+                    waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
+                )
+            } else null
+            if (baseOrbEvent?.feedback == EnergyFeedback.ABSORB && fishEnergyAllowed &&
+                proposedFishPath != null && stableContactSource != null &&
+                maskSha256.isNotBlank() && maskVersion >= 0L
+            ) {
+                energyPathLedger.recordFishPath(
+                    frame = waterLightFrame,
+                    geometry = proposedFishPath,
+                    trustedMask = true,
+                    maskSha256 = maskSha256,
+                    maskVersion = maskVersion,
+                    contactPointNormalizedSource = stableContactSource,
+                )
+            }
+            val recordedFishPath = if (fishEnergyAllowed && stableContactSource != null &&
+                maskSha256.isNotBlank() && maskVersion >= 0L
+            ) energyPathLedger.fishPath(
+                waterLightFrame, maskSha256, maskVersion, stableContactSource,
+            ) else null
             val orbPathGeometry = when (baseOrbEvent?.feedback) {
                 EnergyFeedback.RELEASE -> nearestPhotoPerimeterAnchor(currentPhotoTransform.photoContentRect, orbCenter)?.let { edge ->
                     val surface = orbSurfaceAnchor(orbCenter, edge, currentCorePx * .5f)
@@ -1480,23 +1518,28 @@ fun RecognitionProcessingScene(
                         waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
                     )?.also { energyPathLedger.recordRelease(waterLightFrame, it) }
                 }
-                EnergyFeedback.ARRIVE -> if (fishEnergyAnchor != null && perimeterEnergyAnchor != null)
-                    WaterLightPathGeometryFactory.between(
-                        WaterLightPathPoint(perimeterEnergyAnchor.x, perimeterEnergyAnchor.y),
-                        WaterLightPathPoint(fishEnergyAnchor.x, fishEnergyAnchor.y),
-                        waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
-                    ) else null
-                EnergyFeedback.ABSORB -> if (fishEnergyAnchor != null && perimeterEnergyAnchor != null)
-                    WaterLightPathGeometryFactory.between(
-                        WaterLightPathPoint(perimeterEnergyAnchor.x, perimeterEnergyAnchor.y),
-                        WaterLightPathPoint(fishEnergyAnchor.x, fishEnergyAnchor.y),
-                        waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
-                    )?.also { energyPathLedger.recordFishPath(waterLightFrame, it, fishEnergyAllowed) } else null
+                EnergyFeedback.ARRIVE -> proposedFishPath
+                EnergyFeedback.ABSORB -> recordedFishPath
                 EnergyFeedback.RETURN -> null
                 else -> null
             }
-            val orbReturnRoute = if (baseOrbEvent?.feedback == EnergyFeedback.RETURN)
-                energyPathLedger.returnRoute(waterLightFrame, trustedMask = fishEnergyAllowed) else null
+            val orbReturnRoute = if (baseOrbEvent?.feedback == EnergyFeedback.RETURN) {
+                if (fishEnergyAllowed && stableContactSource != null) {
+                    energyPathLedger.returnRoute(
+                        waterLightFrame, true, maskSha256, maskVersion, stableContactSource,
+                    )
+                } else {
+                    energyPathLedger.returnRoute(waterLightFrame, trustedMask = false)
+                }
+            } else null
+            val eventPathId = when (baseOrbEvent?.feedback) {
+                EnergyFeedback.ABSORB, EnergyFeedback.RETURN -> if (fishEnergyAllowed && stableContactSource != null) {
+                    energyPathLedger.pathId(waterLightFrame, maskSha256, maskVersion, stableContactSource)
+                } else {
+                    energyPathLedger.pathId(waterLightFrame)
+                }
+                else -> energyPathLedger.pathId(waterLightFrame)
+            }
             val orbEnergyEvent = if (baseOrbEvent?.feedback == EnergyFeedback.RETURN &&
                 orbReturnRoute?.isValid() != true
             ) null else WaterLightEnergy.at(
@@ -1506,7 +1549,7 @@ fun RecognitionProcessingScene(
                 pathGeometry = orbPathGeometry,
                 orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
                 pathSegments = orbReturnRoute?.segments.orEmpty(),
-                pathIdOverride = orbReturnRoute?.id ?: energyPathLedger.pathId(waterLightFrame),
+                pathIdOverride = orbReturnRoute?.id ?: eventPathId,
             )
             LaunchedEffect(
                 waterLightFrame.sessionId,
