@@ -353,7 +353,9 @@ fun RecognitionProcessingScene(
         val slimSamTerminal = subjectResult.status == SubjectStatus.READY || subjectResult.status == SubjectStatus.FAILED
         val contourValid = trustedSubjectMask && contour.isNotEmpty()
         controller.onDetectorTargetAvailable(detectorReady, sceneIdentity)
-        controller.onPhotoTransformAvailable(photoGeometryVersion > 0L, sceneIdentity)
+        controller.onPhotoTransformAvailable(
+            photoGeometryVersion > 0L, sceneIdentity, geometryVersion = photoGeometryVersion,
+        )
         if (slimSamTerminal) controller.onMaskTerminal(
             trusted = trustedSubjectMask,
             contourValid = contourValid,
