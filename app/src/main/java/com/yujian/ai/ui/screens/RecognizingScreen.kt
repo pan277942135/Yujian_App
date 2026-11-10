@@ -1394,7 +1394,7 @@ fun RecognitionProcessingScene(
             trustedMask = trustedSubjectMask,
             successfulRevealAllowed = successfulRevealAllowed,
             allowDiagnosticContourPreview = diagnosticUiAvailable && playbackMode == ScenePlaybackMode.MANUAL,
-            onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx, actualOrbCenter, orbCoreDiameterPx ->
+            onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx, actualOrbCenter, orbCoreDiameterPx, contactPointSource, contactMaskSha256, contactMaskVersion, contactGeometryVersion ->
                 controller.onOrbAnchorAvailable(
                     actualOrbCenter.x.isFinite() && actualOrbCenter.y.isFinite() && orbCoreDiameterPx.isFinite() && orbCoreDiameterPx > 1f,
                     sceneIdentity,
@@ -1411,6 +1411,12 @@ fun RecognitionProcessingScene(
                             bounds.top + actualOrbCenter.y,
                         ),
                         processingOrbCoreDiameterPx = orbCoreDiameterPx,
+                        contactPointNormalizedSource = contactPointSource?.let {
+                            com.yujian.ai.ui.identify.DisplayPoint(it.x, it.y)
+                        },
+                        contactPointMaskSha256 = contactMaskSha256,
+                        contactPointMaskVersion = contactMaskVersion,
+                        contactPointGeometryVersion = contactGeometryVersion,
                     ),
                 )
             },
@@ -1745,6 +1751,10 @@ private fun RecognitionPhoto(
         Float,
         Offset,
         Float,
+        WaterLightPathPoint?,
+        String,
+        Long,
+        Long,
     ) -> Unit,
     onPhotoFirstFramePresented: (Long) -> Unit,
     processingClockStarted: Boolean,
@@ -1888,7 +1898,10 @@ private fun RecognitionPhoto(
     val layerMode = selectedLayerMode
     var viewportBounds by remember(bitmap, motionSessionKey) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
 
-    LaunchedEffect(photoEntryProgress, viewportBounds, photoFlowPlan.targetTransform, orbCenter, orbAnchorReady) {
+    LaunchedEffect(
+        photoEntryProgress, viewportBounds, photoFlowPlan.targetTransform, orbCenter, orbAnchorReady,
+        stableContactSource, maskSha256, maskVersion, waterLightFrame.geometryVersion,
+    ) {
         if (photoEntryProgress < 1f || !orbAnchorReady) return@LaunchedEffect
         val bounds = viewportBounds ?: return@LaunchedEffect
         val photoRect = photoFlowPlan.targetTransform.photoContentRect
@@ -1905,6 +1918,10 @@ private fun RecognitionPhoto(
             with(density) { 16.dp.toPx() },
             orbCenter,
             orbRadiusPx * 2f,
+            stableContactSource,
+            maskSha256,
+            maskVersion,
+            if (stableContactSource != null) waterLightFrame.geometryVersion else -1L,
         )
     }
     if (onFishFocusTransform != null) {
