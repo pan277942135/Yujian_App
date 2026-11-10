@@ -2004,14 +2004,14 @@ private fun RecognitionPhoto(
 internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n请重新拍摄或选择照片"
 internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String = GENERIC_RECOGNITION_FAILURE_MESSAGE
 
-private fun recognitionMaskAnchor(
+private fun recognitionMaskContactPointSource(
     subjectRoiInSource: NormalizedFishBox?,
     contour: List<RecognitionContourSegment>,
     transform: RecognitionImageTransform,
     orbCenter: Offset,
     sourceWidthPx: Int,
     sourceHeightPx: Int,
-): Offset? {
+): WaterLightPathPoint? {
     val roi = subjectRoiInSource ?: return null
     if (contour.isEmpty() || sourceWidthPx <= 0 || sourceHeightPx <= 0 ||
         !transform.drawnWidth.isFinite() || !transform.drawnHeight.isFinite() ||
@@ -2034,8 +2034,9 @@ private fun recognitionMaskAnchor(
         sourceHeightPx = sourceHeightPx,
         orbSourceNormalized = orbSourceNormalized,
     ) ?: return null
-    val mapped = transform.mapNormalized(contactSource.x, contactSource.y)
-    return Offset(mapped.x, mapped.y).takeIf { it.x.isFinite() && it.y.isFinite() }
+    return WaterLightPathPoint(contactSource.x, contactSource.y).takeIf {
+        it.isValid() && it.x in 0f..1f && it.y in 0f..1f
+    }
 }
 
 private fun nearestPhotoPerimeterAnchor(
