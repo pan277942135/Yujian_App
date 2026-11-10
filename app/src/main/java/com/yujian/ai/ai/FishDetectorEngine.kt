@@ -49,6 +49,16 @@ internal data class DetectorAssessmentCandidate(
     val assessment: FishInputAssessment,
 )
 
+data class DetectorRawInferenceDebug(
+    val modelVersion: String,
+    val onnxSha256: String,
+    val inputShape: List<Int>,
+    val inputTensorSha256: String,
+    val outputShape: List<Int>,
+    val outputTensor: FloatArray,
+    val latencyMs: Long,
+)
+
 class FishDetectorEngine(private val context: Context) : AutoCloseable {
     data class DetectorRun(
         val modelVersion: String,
@@ -219,6 +229,46 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
             attemptTrace = attempts.toList(),
         )
     }
+
+    /**
+     * Test-only raw-tensor probe used to compare Android ORT against the pinned
+     * Python ONNX Runtime CPU reference generated from the same source raster.
+     * This does not alter the production detect()/Orientation Retry path.
+     */
+    internal suspend fun debugRawInference(bitmap: Bitmap): DetectorRawInferenceDebug =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            require(bitmap.width > 0 && bitmap.height > 0)
+            val model = verifiedModel
+            val prepared = prepareInput(bitmap, model.inputSize)
+            val inputValuesBuffer = prepared.buffer.asFloatBuffer().duplicate()
+            val inputValues = FloatArray(inputValuesBuffer.remaining()).also(inputValuesBuffer::get)
+            val inputBytes = ByteBuffer.allocate(inputValues.size * 4)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .apply { inputValues.forEach(::putFloat) }
+                .array()
+            val shape = longArrayOf(1, 3, model.inputSize.toLong(), model.inputSize.toLong())
+            val started = System.nanoTime()
+            val rows = OnnxTensor.createTensor(environment, prepared.buffer.asFloatBuffer(), shape).use { tensor ->
+                session.run(mapOf(model.inputName to tensor)).use { result ->
+                    val output = result[0] as? OnnxTensor
+                        ?: error("DET_FISH_v0.3 debug output is not a FLOAT tensor")
+                    materializeRows(output.value)
+                }
+            }
+            val flattened = FloatArray(rows.size * EXPECTED_OUTPUT_COLUMNS)
+            rows.forEachIndexed { index, row ->
+                row.copyInto(flattened, index * EXPECTED_OUTPUT_COLUMNS)
+            }
+            DetectorRawInferenceDebug(
+                modelVersion = MODEL_VERSION,
+                onnxSha256 = model.sha256,
+                inputShape = listOf(1, 3, model.inputSize, model.inputSize),
+                inputTensorSha256 = inputBytes.sha256(),
+                outputShape = listOf(1, rows.size, EXPECTED_OUTPUT_COLUMNS),
+                outputTensor = flattened,
+                latencyMs = (System.nanoTime() - started) / 1_000_000,
+            )
+        }
 
     private fun detectOnce(bitmap: Bitmap, model: VerifiedModel): DetectorRun {
         val attemptStarted = System.nanoTime()
