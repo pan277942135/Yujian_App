@@ -37,6 +37,14 @@ data class RecognitionRevealFrame(
     val drawOpticalLayer: Boolean,
     val fallback: Boolean,
     val ctaEnabled: Boolean = true,
+    val orbCoreHoldProgress: Float = 0f,
+    val orbHorizontalStretchProgress: Float = 0f,
+    val liquidBrushProgress: Float = 0f,
+    val glyphStrokeAggregationProgress: Float = 0f,
+    val glyphEmergenceProgress: Float = 0f,
+    val speciesNameStabilityProgress: Float = 0f,
+    val resultInfoArrivalProgress: Float = 0f,
+    val residueSubstage: String = "NONE",
 ) {
     val isComplete: Boolean get() = phase == RecognitionRevealPhase.COMPLETE
     val orbReturnProgress: Float get() = transferProgress
@@ -108,11 +116,41 @@ object RecognitionRevealClock {
 
         val phase = phaseFor(stage)
         val returnProgress = if (stage == RecognitionSceneStage.ORB_RETURN) progress else 1f
-        val formationProgress = if (stage == RecognitionSceneStage.ORB_TO_NAME) progress else if (
-            stage.ordinal > RecognitionSceneStage.ORB_TO_NAME.ordinal
-        ) 1f else 0f
-        val titleRevealProgress = if (stage == RecognitionSceneStage.SPECIES_NAME_REVEAL) progress else if (
-            stage.ordinal > RecognitionSceneStage.SPECIES_NAME_REVEAL.ordinal
+        val stageElapsed = scene.stageElapsedMs.coerceAtLeast(0L)
+        val orbHorizontalStretchProgress = when {
+            stage == RecognitionSceneStage.ORB_TO_NAME ->
+                smoothStep((stageElapsed - 100L).coerceAtLeast(0L).toFloat() / 350f)
+            stage.ordinal > RecognitionSceneStage.ORB_TO_NAME.ordinal -> 1f
+            else -> 0f
+        }
+        val liquidBrushProgress = when {
+            stage == RecognitionSceneStage.ORB_TO_NAME ->
+                smoothStep((stageElapsed - 450L).coerceAtLeast(0L).toFloat() / 400f)
+            stage.ordinal > RecognitionSceneStage.ORB_TO_NAME.ordinal -> 1f
+            else -> 0f
+        }
+        val formationProgress = liquidBrushProgress
+        val glyphStrokeAggregationProgress = when {
+            stage == RecognitionSceneStage.SPECIES_NAME_REVEAL ->
+                smoothStep(stageElapsed.toFloat() / 150f)
+            stage.ordinal > RecognitionSceneStage.SPECIES_NAME_REVEAL.ordinal -> 1f
+            else -> 0f
+        }
+        val glyphEmergenceProgress = when {
+            stage == RecognitionSceneStage.SPECIES_NAME_REVEAL ->
+                smoothStep((stageElapsed - 150L).coerceAtLeast(0L).toFloat() / 200f)
+            stage.ordinal > RecognitionSceneStage.SPECIES_NAME_REVEAL.ordinal -> 1f
+            else -> 0f
+        }
+        val titleRevealProgress = glyphEmergenceProgress
+        val speciesNameStabilityProgress = when {
+            stage == RecognitionSceneStage.SPECIES_NAME_REVEAL ->
+                smoothStep((stageElapsed - 350L).coerceAtLeast(0L).toFloat() / 450f)
+            stage.ordinal > RecognitionSceneStage.SPECIES_NAME_REVEAL.ordinal -> 1f
+            else -> 0f
+        }
+        val orbCoreHoldProgress = if (
+            stage == RecognitionSceneStage.ORB_TO_NAME && stageElapsed < 100L
         ) 1f else 0f
         val residueProgress = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) progress else 0f
         val afterglow = if (stage.ordinal < RecognitionSceneStage.RESIDUE_SETTLE.ordinal) 1f else 1f - residueProgress
@@ -130,17 +168,33 @@ object RecognitionRevealClock {
         return frame(
             scene = scene,
             phase = phase,
-            photoProgress = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) smoothStep(progress) else 0f,
+            photoProgress = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) {
+                smoothStep((stageElapsed - 170L).coerceAtLeast(0L).toFloat() / 180f)
+            } else 0f,
             fishHaloAlpha = if (fullReveal && stage == RecognitionSceneStage.ORB_RETURN) 1f - smoothStep(progress) else 0f,
             transferProgress = smoothStep(returnProgress),
             titleMode = titleMode,
             titleFormationProgress = smoothStep(formationProgress),
             titleRevealProgress = easeOutCubic(titleRevealProgress),
-            titleSweepProgress = if (stage == RecognitionSceneStage.SPECIES_NAME_REVEAL) smoothStep(progress) else 0f,
+            titleSweepProgress = glyphStrokeAggregationProgress,
             afterglowAlpha = afterglow.coerceIn(0f, 1f),
             visibleParticleCount = particleCount,
             drawOpticalLayer = stage.ordinal <= RecognitionSceneStage.RESIDUE_SETTLE.ordinal && !complete,
             fallback = fallback,
+            orbCoreHoldProgress = orbCoreHoldProgress,
+            orbHorizontalStretchProgress = orbHorizontalStretchProgress,
+            liquidBrushProgress = liquidBrushProgress,
+            glyphStrokeAggregationProgress = glyphStrokeAggregationProgress,
+            glyphEmergenceProgress = glyphEmergenceProgress,
+            speciesNameStabilityProgress = speciesNameStabilityProgress,
+            resultInfoArrivalProgress = 0f,
+            residueSubstage = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) {
+                when {
+                    stageElapsed < 170L -> "13.1_NAME_HOLD"
+                    stageElapsed < 350L -> "13.2_PHOTO_REPOSITION"
+                    else -> "13.3_RESULT_HANDOFF_PENDING"
+                }
+            } else "NONE",
         )
     }
 
@@ -158,6 +212,14 @@ object RecognitionRevealClock {
         visibleParticleCount: Int,
         drawOpticalLayer: Boolean,
         fallback: Boolean,
+        orbCoreHoldProgress: Float = 0f,
+        orbHorizontalStretchProgress: Float = 0f,
+        liquidBrushProgress: Float = 0f,
+        glyphStrokeAggregationProgress: Float = 0f,
+        glyphEmergenceProgress: Float = 0f,
+        speciesNameStabilityProgress: Float = 0f,
+        resultInfoArrivalProgress: Float = 0f,
+        residueSubstage: String = "NONE",
     ) = RecognitionRevealFrame(
         elapsedMs = scene.stageElapsedMs,
         stage = scene.stage,
@@ -174,6 +236,14 @@ object RecognitionRevealClock {
         visibleParticleCount = visibleParticleCount,
         drawOpticalLayer = drawOpticalLayer,
         fallback = fallback,
+        orbCoreHoldProgress = orbCoreHoldProgress.coerceIn(0f, 1f),
+        orbHorizontalStretchProgress = orbHorizontalStretchProgress.coerceIn(0f, 1f),
+        liquidBrushProgress = liquidBrushProgress.coerceIn(0f, 1f),
+        glyphStrokeAggregationProgress = glyphStrokeAggregationProgress.coerceIn(0f, 1f),
+        glyphEmergenceProgress = glyphEmergenceProgress.coerceIn(0f, 1f),
+        speciesNameStabilityProgress = speciesNameStabilityProgress.coerceIn(0f, 1f),
+        resultInfoArrivalProgress = resultInfoArrivalProgress.coerceIn(0f, 1f),
+        residueSubstage = residueSubstage,
     )
 
     private fun phaseFor(stage: RecognitionSceneStage): RecognitionRevealPhase = when (stage) {
