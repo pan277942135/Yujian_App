@@ -131,16 +131,20 @@ jobs:
           import onnxruntime as ort
           import subprocess
           import sys
+          from pathlib import Path
 
           assert onnx.__version__ == "1.17.0", onnx.__version__
           assert ort.__version__ == "1.20.1", ort.__version__
           python3_executable = subprocess.check_output(
               ["python3", "-c", "import sys; print(sys.executable)"], text=True
           ).strip()
-          assert python3_executable == sys.executable, (
-              f"python and python3 resolve to different interpreters: "
+          assert Path(python3_executable).resolve().parent == Path(sys.executable).resolve().parent, (
+              f"python and python3 do not share the selected Python 3.12 environment: "
               f"{sys.executable} != {python3_executable}"
           )
+          assert subprocess.check_output(
+              ["python3", "-c", "import sys; print(sys.prefix)"], text=True
+          ).strip() == sys.prefix, "python3 uses a different virtual environment"
           providers = ort.get_available_providers()
           assert "CPUExecutionProvider" in providers, providers
           print(f"PYTHON_EXECUTABLE={sys.executable}")
