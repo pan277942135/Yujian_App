@@ -718,6 +718,8 @@ fun RecognitionProcessingScene(
                 nowMs = startedAtMs,
                 hasRealFishFocus = assessment?.primary?.box != null,
                 currentIdentity = sceneIdentity,
+                maskSha256 = subjectResult?.maskSha256.orEmpty(),
+                maskVersion = subjectBitmap?.generationId?.toLong() ?: -1L,
             )
         }
         if (finishedResult?.ready == true) {
@@ -1380,7 +1382,7 @@ fun RecognitionProcessingScene(
             onFishFocusTransform = onFishFocusTransform,
             onPhotoGeometryChanged = {
                 photoGeometryVersion = it
-                controller.onPhotoTransformAvailable(it > 0L, sceneIdentity)
+                controller.onPhotoTransformAvailable(it > 0L, sceneIdentity, geometryVersion = it)
             },
             modifier = Modifier.fillMaxSize(),
             processingClockStarted = photoPresentedAtMs != null || deterministicMotion,
