@@ -340,7 +340,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
 
         require(snapshot.getInt("schema_version") == 1)
         require(snapshot.getInt("release_id") == MODEL_ASSETS_RELEASE_ID)
-        require(snapshot.getLong("asset_id") == DETECTOR_ASSET_ID)
+        require(snapshot.getLong("asset_id") == DETECTOR_ASSET_ID.toLong())
         require(snapshot.getString("asset_name") == DETECTOR_ASSET_NAME)
         require(snapshot.getLong("asset_size") == EXPECTED_ZIP_BYTES.toLong())
         require(snapshot.getString("release_tag") == MODEL_ASSETS_RELEASE_TAG)
