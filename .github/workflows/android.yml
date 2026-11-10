@@ -190,6 +190,19 @@ jobs:
         env:
           YUJIAN_GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Run DET_FISH v0.3 ONNX graph and CPU inference evidence
+        run: python3 scripts/verify_detector_onnx_output_semantics.py --write-android-reference
+
+      - name: Upload DET_FISH v0.3 ONNX inference evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: DET-FISH-v0.3-ONNX-CPU-Evidence-${{ env.SOURCE_SHA }}
+          path: |
+            build/model-evidence/detector_onnx_output_semantics.json
+            app/src/androidTest/assets/detector_case_b_v03_reference.json
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Read production model identity
         id: model_trace
         run: |
