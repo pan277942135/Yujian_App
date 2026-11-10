@@ -315,6 +315,18 @@ class RecognitionSceneAnimationController(
             event.imageId != frame.identity.imageId || event.photoSha256 != frame.identity.photoSha256 ||
             event.photoContentVersion != frame.identity.photoContentVersion || event.geometryVersion != frame.geometryVersion
         ) return false
+        if (event.monotonicTimestampMs < 0L || event.monotonicTimestampMs > frame.monotonicTimestampMs ||
+            event.monotonicTimestampMs != frame.monotonicTimestampMs ||
+            event.referenceMs != frame.opticalReferenceElapsedMs || event.pathId.isNullOrBlank() ||
+            event.sourceHost != event.source.name || event.targetHost != event.target.name ||
+            event.renderStatus != "READY" || !event.hasRenderablePath() ||
+            !event.level.isFinite() || event.level <= 0f || event.level > 1f ||
+            frame.stageProgress < .999f ||
+            event.stage != frame.stage || currentStage != frame.stage || event.eventSequence <= lastAcceptedEventSequence ||
+            event.monotonicTimestampMs < lastAcceptedEventTimestampMs ||
+            (frame.stage.ordinal >= RecognitionSceneStage.ORB_RETURN.ordinal &&
+                (resultGeometryState != SceneGeometryState.READY || event.geometryVersion !in resultGeometryVersions))
+        ) return false
         when (event.feedback) {
             EnergyFeedback.ABSORB -> {
                 if (event.stage == RecognitionSceneStage.PATH_TO_FISH) {
@@ -337,16 +349,6 @@ class RecognitionSceneAnimationController(
             ) return false
             else -> Unit
         }
-        if (event.monotonicTimestampMs < 0L || event.monotonicTimestampMs > frame.monotonicTimestampMs ||
-            event.monotonicTimestampMs != frame.monotonicTimestampMs ||
-            event.referenceMs != frame.opticalReferenceElapsedMs || event.pathId.isNullOrBlank() ||
-            event.sourceHost != event.source.name || event.targetHost != event.target.name ||
-            event.renderStatus != "READY" || !event.hasRenderablePath() || event.level < .999f ||
-            event.stage != frame.stage || currentStage != frame.stage || event.eventSequence <= lastAcceptedEventSequence ||
-            event.monotonicTimestampMs < lastAcceptedEventTimestampMs ||
-            (frame.stage.ordinal >= RecognitionSceneStage.ORB_RETURN.ordinal &&
-                (resultGeometryState != SceneGeometryState.READY || event.geometryVersion !in resultGeometryVersions))
-        ) return false
         val eventKey = "${frame.identity.sessionId}|${frame.identity.attemptId}|${frame.identity.imageId}|${frame.geometryVersion}|${event.stage}|${event.feedback}|${event.pathId}"
         if (!acceptedEnergyEvents.add(eventKey)) return false
         lastAcceptedEventSequence = event.eventSequence
