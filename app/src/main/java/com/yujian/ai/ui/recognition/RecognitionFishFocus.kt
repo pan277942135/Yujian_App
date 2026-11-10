@@ -57,6 +57,11 @@ internal fun recognitionDisplayedFishFocusLevel(
     else -> RecognitionFishFocusLevel.B
 }
 
+private fun recognitionFishGoldSmoothStep(value: Float): Float {
+    val t = value.coerceIn(0f, 1f)
+    return t * t * (3f - 2f * t)
+}
+
 internal data class RecognitionFishGoldLayers(
     val coreProgress: Float,
     val softProgress: Float,
@@ -74,9 +79,9 @@ internal fun recognitionFishGoldLayers(
         return RecognitionFishGoldLayers(strength, strength, strength, false)
     }
     val elapsed = scene.stageElapsedMs.coerceIn(0L, 1_000L)
-    val core = smoothStep(elapsed.toFloat() / 300f)
+    val core = recognitionFishGoldSmoothStep(elapsed.toFloat() / 300f)
     val soft = if (elapsed >= 300L) 1f else 0f
-    val halo = smoothStep((elapsed - 800L).coerceAtLeast(0L).toFloat() / 200f)
+    val halo = recognitionFishGoldSmoothStep((elapsed - 800L).coerceAtLeast(0L).toFloat() / 200f)
     return RecognitionFishGoldLayers(
         coreProgress = core,
         softProgress = soft,
