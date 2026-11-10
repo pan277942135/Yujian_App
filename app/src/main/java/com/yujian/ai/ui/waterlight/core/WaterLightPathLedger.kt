@@ -92,9 +92,19 @@ class WaterLightPathLedger {
         )
         if (!maskIdentity.isValid()) return false
         val existing = maskBinding
-        if (existing != null && existing.maskIdentity != maskIdentity) {
-            // A new Mask SHA/version/P* invalidates only the fish segment. The release
-            // route remains valid for the same photo attempt and geometry version.
+        if (existing != null) {
+            val sameMaskGeometry = existing.maskIdentity.maskSha256 == maskIdentity.maskSha256 &&
+                existing.maskIdentity.maskVersion == maskIdentity.maskVersion &&
+                existing.maskIdentity.geometryVersion == maskIdentity.geometryVersion
+            if (sameMaskGeometry) {
+                // P* is frozen at the first trusted Stage-05 contact. Later recompositions
+                // may propose a different nearest point while the Orb settles, but may not
+                // move the active path anchor within this same Mask/geometry identity.
+                return existing.maskIdentity.contactPointNormalizedSource == contactPointNormalizedSource &&
+                    existing.geometry == geometry
+            }
+            // A new Mask SHA/version or geometry invalidates only the fish segment.
+            // The release route remains valid for the same photo attempt.
             maskBinding = null
             perimeterBridge = null
         }
