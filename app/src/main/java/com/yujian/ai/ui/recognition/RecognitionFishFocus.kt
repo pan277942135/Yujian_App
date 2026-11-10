@@ -57,6 +57,34 @@ internal fun recognitionDisplayedFishFocusLevel(
     else -> RecognitionFishFocusLevel.B
 }
 
+internal data class RecognitionFishGoldLayers(
+    val coreProgress: Float,
+    val softProgress: Float,
+    val haloProgress: Float,
+    val softPeakHoldActive: Boolean,
+)
+
+internal fun recognitionFishGoldLayers(
+    scene: RecognitionSceneFrame,
+    reduceMotion: Boolean = false,
+): RecognitionFishGoldLayers {
+    if (reduceMotion) return RecognitionFishGoldLayers(.18f, .18f, .18f, false)
+    if (scene.stage != RecognitionSceneStage.FISH_GOLD_PEAK) {
+        val strength = recognitionFishGoldStrength(scene, reduceMotion)
+        return RecognitionFishGoldLayers(strength, strength, strength, false)
+    }
+    val elapsed = scene.stageElapsedMs.coerceIn(0L, 1_000L)
+    val core = smoothStep(elapsed.toFloat() / 300f)
+    val soft = if (elapsed >= 300L) 1f else 0f
+    val halo = smoothStep((elapsed - 800L).coerceAtLeast(0L).toFloat() / 200f)
+    return RecognitionFishGoldLayers(
+        coreProgress = core,
+        softProgress = soft,
+        haloProgress = halo,
+        softPeakHoldActive = elapsed in 300L..799L,
+    )
+}
+
 internal fun recognitionFishGoldStrength(scene: RecognitionSceneFrame, reduceMotion: Boolean = false): Float {
     if (reduceMotion) return 0.18f
     val p = scene.stageProgress.coerceIn(0f, 1f)
@@ -97,6 +125,7 @@ internal data class RecognitionContourCacheIdentity(
     val attemptId: String,
     val imageId: String,
     val photoSha256: String,
+    val maskSha256: String,
     val maskVersion: Long,
     val contourHash: Int,
     val geometryVersion: Long,
@@ -279,6 +308,7 @@ fun RecognitionFishFocus(
     subjectBitmap: Bitmap?,
     subjectBox: NormalizedFishBox?,
     contour: List<RecognitionContourSegment>,
+    maskSha256: String,
     transform: RecognitionImageTransform,
     modifier: Modifier = Modifier,
     processingElapsedMs: Long = 0L,
@@ -301,6 +331,7 @@ fun RecognitionFishFocus(
         attemptId = waterLightFrame?.attemptId.orEmpty(),
         imageId = waterLightFrame?.imageId.orEmpty(),
         photoSha256 = waterLightFrame?.photoSha256.orEmpty(),
+        maskSha256 = maskSha256,
         maskVersion = subjectBitmap.generationId.toLong(),
         contourHash = contour.hashCode(),
         geometryVersion = waterLightFrame?.geometryVersion ?: 0L,
@@ -342,15 +373,19 @@ fun RecognitionFishFocus(
         // The contour path already reveals spatially through maskRevealProgress.
         // Multiplying the optical intensity by that progress a second time made
         // the trusted mask nearly invisible during the reveal.
-        val timelineGold = waterLightFrame?.sceneFrame?.let { recognitionFishGoldStrength(it, reduceMotion) } ?: 0f
+        val sceneFrame = waterLightFrame?.sceneFrame
+        val timelineGold = sceneFrame?.let { recognitionFishGoldStrength(it, reduceMotion) } ?: 0f
         val eventMatches = energyEvent?.let { event -> waterLightFrame?.let(event::matches) } == true
-        val goldStrength = if (!eventMatches) timelineGold else when (energyEvent?.feedback) {
-            EnergyFeedback.RETURN -> timelineGold * (1f - .72f * energyEvent.level.coerceIn(0f, 1f))
+        val eventScale = if (!eventMatches) 1f else when (energyEvent?.feedback) {
+            EnergyFeedback.RETURN -> 1f - .72f * energyEvent.level.coerceIn(0f, 1f)
             EnergyFeedback.TRANSLATE,
             EnergyFeedback.REVEAL,
-            EnergyFeedback.SETTLE -> timelineGold * .12f
-            else -> timelineGold
+            EnergyFeedback.SETTLE -> .12f
+            else -> 1f
         }
+        val goldStrength = timelineGold * eventScale
+        val goldLayers = sceneFrame?.let { recognitionFishGoldLayers(it, reduceMotion) }
+            ?: RecognitionFishGoldLayers(0f, 0f, 0f, false)
 
         val realContour = requireNotNull(cachedContourPath)
             val pathBounds = realContour.getBounds()
@@ -365,9 +400,9 @@ fun RecognitionFishFocus(
             val pathToDraw = if (growthProgress >= .999f) realContour else if (growthProgress <= .001f) null else {
                 contourPathCache?.reveal(growthProgress)
             }
-            val coreAlpha = (.58f * goldStrength).coerceIn(0f, .70f)
-            val softGlowAlpha = (.25f * goldStrength).coerceIn(0f, .32f)
-            val outerHaloAlpha = (.105f * goldStrength).coerceIn(0f, .15f)
+            val coreAlpha = (.58f * goldLayers.coreProgress * eventScale).coerceIn(0f, .70f)
+            val softGlowAlpha = (.25f * goldLayers.softProgress * eventScale).coerceIn(0f, .32f)
+            val outerHaloAlpha = (.105f * goldLayers.haloProgress * eventScale).coerceIn(0f, .15f)
 
             // Re-sample the original-photo pixels through SlimSAM's alpha mask. The
             // low-opacity channel warmth keeps scales, eye and fin texture intact.
