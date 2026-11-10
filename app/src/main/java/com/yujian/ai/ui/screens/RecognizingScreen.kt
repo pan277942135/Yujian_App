@@ -1388,6 +1388,8 @@ fun RecognitionProcessingScene(
             recognitionAttemptId = recognitionAttemptId.orEmpty(),
             imageId = image.imageId,
             photoSha256 = image.photoSha256,
+            maskSha256 = subjectResult?.maskSha256.orEmpty(),
+            maskVersion = subjectBitmap?.generationId?.toLong() ?: -1L,
             maskRevealProgress = maskContourRevealProgress,
             trustedMask = trustedSubjectMask,
             successfulRevealAllowed = successfulRevealAllowed,
@@ -1750,6 +1752,8 @@ private fun RecognitionPhoto(
     recognitionAttemptId: String,
     imageId: String,
     photoSha256: String,
+    maskSha256: String,
+    maskVersion: Long,
     maskRevealProgress: Float,
     trustedMask: Boolean,
     successfulRevealAllowed: Boolean,
@@ -1787,8 +1791,38 @@ private fun RecognitionPhoto(
         waterLightFrame, fishEnergyAllowed, successfulRevealAllowed,
         orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
     )
-    val fishAnchor = if (fishEnergyAllowed) recognitionMaskAnchor(subjectBox, contour, transform, orbCenter, bitmap.width, bitmap.height) else null
+    val proposedContactSource = if (fishEnergyAllowed && maskSha256.isNotBlank() && maskVersion >= 0L)
+        recognitionMaskContactPointSource(subjectBox, contour, transform, orbCenter, bitmap.width, bitmap.height)
+    else null
+    val stableContactSource = if (fishEnergyAllowed && maskSha256.isNotBlank() && maskVersion >= 0L) {
+        energyPathLedger.contactPointNormalizedSource(waterLightFrame, maskSha256, maskVersion)
+            ?: proposedContactSource
+    } else null
+    val mappedContact = stableContactSource?.let { transform.mapNormalized(it.x, it.y) }
+    val fishAnchor = mappedContact?.let { Offset(it.x, it.y) }
     val perimeterAnchor = fishAnchor?.let { nearestPhotoPerimeterAnchor(photoBounds, it) }
+    val proposedFishPath = if (fishAnchor != null && perimeterAnchor != null)
+        WaterLightPathGeometryFactory.between(
+            WaterLightPathPoint(perimeterAnchor.x, perimeterAnchor.y),
+            WaterLightPathPoint(fishAnchor.x, fishAnchor.y),
+            waterLightFrame.sessionId.hashCode() xor imageId.hashCode(),
+        )
+    else null
+    if (baseEnergyEvent?.feedback == EnergyFeedback.ABSORB && fishEnergyAllowed &&
+        proposedFishPath != null && stableContactSource != null
+    ) {
+        energyPathLedger.recordFishPath(
+            frame = waterLightFrame,
+            geometry = proposedFishPath,
+            trustedMask = true,
+            maskSha256 = maskSha256,
+            maskVersion = maskVersion,
+            contactPointNormalizedSource = stableContactSource,
+        )
+    }
+    val recordedFishPath = if (fishEnergyAllowed && stableContactSource != null &&
+        maskSha256.isNotBlank() && maskVersion >= 0L
+    ) energyPathLedger.fishPath(waterLightFrame, maskSha256, maskVersion, stableContactSource) else null
     val pathGeometry = when (baseEnergyEvent?.feedback) {
         EnergyFeedback.RELEASE -> nearestPhotoPerimeterAnchor(photoBounds, orbCenter)?.let { edge ->
             WaterLightPathGeometryFactory.between(
@@ -1797,17 +1831,26 @@ private fun RecognitionPhoto(
                 waterLightFrame.sessionId.hashCode() xor imageId.hashCode(),
             )?.also { energyPathLedger.recordRelease(waterLightFrame, it) }
         }
-        EnergyFeedback.ARRIVE, EnergyFeedback.ABSORB -> if (fishAnchor != null && perimeterAnchor != null)
-            WaterLightPathGeometryFactory.between(
-                WaterLightPathPoint(perimeterAnchor.x, perimeterAnchor.y),
-                WaterLightPathPoint(fishAnchor.x, fishAnchor.y),
-                waterLightFrame.sessionId.hashCode() xor imageId.hashCode(),
-            )?.also { energyPathLedger.recordFishPath(waterLightFrame, it, fishEnergyAllowed) } else null
+        EnergyFeedback.ARRIVE -> proposedFishPath
+        EnergyFeedback.ABSORB -> recordedFishPath
         EnergyFeedback.RETURN -> null
         else -> null
     }
-    val returnRoute = if (baseEnergyEvent?.feedback == EnergyFeedback.RETURN)
-        energyPathLedger.returnRoute(waterLightFrame, trustedMask = fishEnergyAllowed) else null
+    val returnRoute = if (baseEnergyEvent?.feedback == EnergyFeedback.RETURN) {
+        if (fishEnergyAllowed && stableContactSource != null) {
+            energyPathLedger.returnRoute(waterLightFrame, true, maskSha256, maskVersion, stableContactSource)
+        } else {
+            energyPathLedger.returnRoute(waterLightFrame, trustedMask = false)
+        }
+    } else null
+    val eventPathId = when (baseEnergyEvent?.feedback) {
+        EnergyFeedback.ABSORB, EnergyFeedback.RETURN -> if (fishEnergyAllowed && stableContactSource != null) {
+            energyPathLedger.pathId(waterLightFrame, maskSha256, maskVersion, stableContactSource)
+        } else {
+            energyPathLedger.pathId(waterLightFrame)
+        }
+        else -> energyPathLedger.pathId(waterLightFrame)
+    }
     val energyEvent = if (baseEnergyEvent?.feedback == EnergyFeedback.RETURN &&
         returnRoute?.isValid() != true
     ) null else WaterLightEnergy.at(
@@ -1817,7 +1860,7 @@ private fun RecognitionPhoto(
         pathGeometry = pathGeometry,
         orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
         pathSegments = returnRoute?.segments.orEmpty(),
-        pathIdOverride = returnRoute?.id ?: energyPathLedger.pathId(waterLightFrame),
+        pathIdOverride = returnRoute?.id ?: eventPathId,
     )
     val dropletRenderer = remember(waterLightEngine) { WaterDropletRenderer() }
     DisposableEffect(dropletRenderer) {
