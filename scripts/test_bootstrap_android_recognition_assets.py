@@ -196,7 +196,7 @@ class ClassifierBundleParityTests(unittest.TestCase):
             {"class_index": i, "species_key": key, "display_name": f"鱼种{i:02d}"}
             for i, key in enumerate(class_order)
         ]
-        tflite = b"\\x00\\x00\\x00\\x00TFL3" + b"test-model-payload"
+        tflite = b"\x00\x00\x00\x00TFL3" + b"test-model-payload"
         metadata = {
             "model_id": contract.CLASSIFIER_MODEL_ID,
             "dataset_id": contract.CLASSIFIER_DATASET_ID,
