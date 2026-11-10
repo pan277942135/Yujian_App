@@ -2082,6 +2082,7 @@ private fun RecognitionPhoto(
                 subjectBitmap,
                 subjectBox,
                 contour,
+                maskSha256,
                 transform,
                 Modifier.fillMaxSize(),
                 processingElapsedMs = processingElapsedMs,
