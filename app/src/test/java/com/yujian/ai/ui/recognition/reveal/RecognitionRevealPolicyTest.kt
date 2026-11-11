@@ -46,7 +46,11 @@ class RecognitionRevealPolicyTest {
         val residue = frame(RecognitionSceneStage.RESIDUE_SETTLE, .5f, handoff, policy)
         assertEquals(RecognitionRevealPhase.RESIDUE_SETTLE, residue.phase)
         assertEquals(.5f, residue.afterglowAlpha, .0001f)
-        assertEquals(.5f, residue.photoProgress, .0001f)
+        // RESIDUE_SETTLE is 450 ms: photo reposition starts at 170 ms and
+        // eases over 180 ms, so the 225 ms sample is 55/180 through that substage.
+        val reposition = 55f / 180f
+        val expectedPhotoProgress = reposition * reposition * (3f - 2f * reposition)
+        assertEquals(expectedPhotoProgress, residue.photoProgress, .0001f)
         val resultNameHold = frame(RecognitionSceneStage.RESIDUE_SETTLE, 0f, handoff, policy)
         assertEquals(RecognitionRevealTitleMode.VISIBLE, resultNameHold.titleMode)
         assertEquals(0f, resultNameHold.photoProgress, 0f)
