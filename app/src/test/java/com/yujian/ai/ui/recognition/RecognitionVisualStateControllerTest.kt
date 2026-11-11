@@ -291,7 +291,8 @@ class RecognitionVisualStateControllerTest {
         controller.beginStepPreview(RecognitionSceneStage.ORB_RETURN, 200L)
         controller.setResultGeometryState(SceneGeometryState.READY, 200L, identity, setOf(100L))
 
-        val firstFrame = controller.currentFrame(identity, 300L, 100L)
+        // recordEnergyEvent only accepts a stage-complete sample, not an arbitrary mid-stage frame.
+        val firstFrame = controller.currentFrame(identity, 3_200L, 100L)
         val path = WaterLightPathGeometry(
             WaterLightPathPoint(10f, 20f), WaterLightPathPoint(20f, 30f),
             WaterLightPathPoint(30f, 40f), WaterLightPathPoint(40f, 50f),
@@ -319,8 +320,8 @@ class RecognitionVisualStateControllerTest {
         )
         assertTrue(controller.recordEnergyEvent(firstFrame, event))
 
-        controller.setResultGeometryState(SceneGeometryState.READY, 301L, identity, setOf(200L))
-        val nextFrame = controller.currentFrame(identity, 302L, 100L)
+        controller.setResultGeometryState(SceneGeometryState.READY, 3_201L, identity, setOf(200L))
+        val nextFrame = controller.currentFrame(identity, 3_202L, 100L)
         assertFalse(controller.recordEnergyEvent(
             nextFrame,
             event.copy(eventSequence = nextFrame.eventSequence, monotonicTimestampMs = nextFrame.monotonicTimestampMs),
@@ -404,7 +405,9 @@ class RecognitionVisualStateControllerTest {
         assertTrue(controller.recordEnergyEvent(frame, event))
         assertEquals(null, controller.modelGates.waitingReason)
 
+        controller.beginStepPreview(RecognitionSceneStage.CONTOUR_A, 3_201L)
         controller.onPhotoTransformAvailable(true, identity, geometryVersion = geometryVersion + 1L)
+        assertEquals("WAITING_FOR_MASK_BOUND_PSTAR_ABSORB_EVENT", controller.modelGates.waitingReason)
         assertFalse(controller.onFishContactPathAvailable(
             pathId, maskSha, 42L, geometryVersion, contact, identity,
         ))
@@ -412,6 +415,18 @@ class RecognitionVisualStateControllerTest {
         assertTrue(controller.onFishContactPathAvailable(
             nextGeometryPathId, maskSha, 42L, geometryVersion + 1L, contact, identity,
         ))
+        val contourFrame = controller.currentFrame(identity, 6_201L, geometryVersion + 1L)
+        val contourEvent = event.copy(
+            level = .5f,
+            referenceMs = contourFrame.opticalReferenceElapsedMs,
+            geometryVersion = geometryVersion + 1L,
+            pathId = nextGeometryPathId,
+            eventSequence = contourFrame.eventSequence,
+            monotonicTimestampMs = contourFrame.monotonicTimestampMs,
+            stage = RecognitionSceneStage.CONTOUR_A,
+        )
+        assertTrue(controller.recordEnergyEvent(contourFrame, contourEvent))
+        assertEquals(null, controller.modelGates.waitingReason)
 
         controller.updateModelJoin(
             detectorReady = true,
