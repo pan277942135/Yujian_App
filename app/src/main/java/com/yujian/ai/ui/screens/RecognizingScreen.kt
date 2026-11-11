@@ -345,7 +345,10 @@ fun RecognitionProcessingScene(
     var diagnosticActionStatus by remember(sceneKey) { mutableStateOf<String?>(null) }
     var photoGeometryVersion by remember(sceneKey) { mutableLongStateOf(0L) }
 
-    LaunchedEffect(sceneKey, assessment?.primary?.box, finishedResult, subjectResult.status, trustedSubjectMask, contour, photoGeometryVersion) {
+    LaunchedEffect(
+        sceneKey, assessment?.primary?.box, finishedResult, subjectResult.status, subjectResult.maskSha256,
+        subjectBitmap?.generationId, trustedSubjectMask, contour, photoGeometryVersion,
+    ) {
         val detectorReady = assessment?.primary?.box?.let { box ->
             listOf(box.x1, box.y1, box.x2, box.y2).all(Float::isFinite) && box.x1 < box.x2 && box.y1 < box.y2
         } == true
@@ -354,14 +357,7 @@ fun RecognitionProcessingScene(
         val contourValid = trustedSubjectMask && contour.isNotEmpty()
         controller.onDetectorTargetAvailable(detectorReady, sceneIdentity)
         controller.onPhotoTransformAvailable(
-            photoGeometryVersion > 0L, sceneIdentity, geometryVersion = photoGeometryVersion,
-        )
-        if (slimSamTerminal) controller.onMaskTerminal(
-            trusted = trustedSubjectMask,
-            contourValid = contourValid,
-            contourClosed = contourValid && contour.lastOrNull()?.closesContour == true,
-            failedTerminal = subjectResult.status == SubjectStatus.FAILED,
-            currentIdentity = sceneIdentity,
+            photoGeometryVersion != 0L, sceneIdentity, geometryVersion = photoGeometryVersion,
         )
         controller.updateModelJoin(
             detectorReady = detectorReady,
@@ -372,6 +368,8 @@ fun RecognitionProcessingScene(
             contourClosed = contourValid && contour.lastOrNull()?.closesContour == true,
             slimSamFailed = subjectResult.status == SubjectStatus.FAILED,
             currentIdentity = sceneIdentity,
+            maskSha256 = subjectResult.maskSha256.orEmpty(),
+            maskVersion = subjectBitmap?.generationId?.toLong() ?: -1L,
         )
         controller.onRevealDecisionReady(sceneIdentity.takeIf { RecognitionRevealDecisionGate.isReady(revealDecision) })
         val glyphReady = classifierReady && !finishedResult?.prediction?.top1?.speciesName.isNullOrBlank()
@@ -659,7 +657,6 @@ fun RecognitionProcessingScene(
                 trustedSubjectMask = true
                 val acceptedAtMs = recognitionMonotonicNowMs()
                 latestPhotoPresentedAtMs?.let { photoStartMs ->
-                    controller.onTrustedMaskAvailable(acceptedAtMs, sceneIdentity)
                     Log.i(
                         LOG_TAG,
                         "MASK_TRUSTED_ACCEPT session=${recognitionSessionId.orEmpty()} " +
@@ -720,8 +717,6 @@ fun RecognitionProcessingScene(
                 nowMs = startedAtMs,
                 hasRealFishFocus = assessment?.primary?.box != null,
                 currentIdentity = sceneIdentity,
-                maskSha256 = subjectResult?.maskSha256.orEmpty(),
-                maskVersion = subjectBitmap?.generationId?.toLong() ?: -1L,
             )
         }
         if (finishedResult?.ready == true) {
@@ -732,7 +727,6 @@ fun RecognitionProcessingScene(
                 currentIdentity = sceneIdentity,
             )
         }
-        if (trustedSubjectMask) controller.onTrustedMaskAvailable(startedAtMs, sceneIdentity)
         Log.i(
             LOG_TAG,
             "PROCESSING_P0 session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
@@ -1384,7 +1378,7 @@ fun RecognitionProcessingScene(
             onFishFocusTransform = onFishFocusTransform,
             onPhotoGeometryChanged = {
                 photoGeometryVersion = it
-                controller.onPhotoTransformAvailable(it > 0L, sceneIdentity, geometryVersion = it)
+                controller.onPhotoTransformAvailable(it != 0L, sceneIdentity, geometryVersion = it)
             },
             modifier = Modifier.fillMaxSize(),
             processingClockStarted = photoPresentedAtMs != null || deterministicMotion,
@@ -1571,10 +1565,34 @@ fun RecognitionProcessingScene(
                 orbEnergyEvent?.pathId,
                 orbEnergyEvent?.renderStatus,
                 orbEnergyEvent?.eventSequence,
-                orbEnergyEvent?.level?.let { it >= .999f },
+                waterLightFrame.sceneFrame.stageProgress >= .999f,
+                stableContactSource,
+                maskSha256,
+                maskVersion,
+                waterLightFrame.geometryVersion,
             ) {
                 val event = orbEnergyEvent ?: return@LaunchedEffect
-                val accepted = if (event.level >= .999f) {
+                if (event.stage == RecognitionSceneStage.PATH_TO_FISH &&
+                    event.feedback == EnergyFeedback.ABSORB && fishEnergyAllowed && stableContactSource != null
+                ) {
+                    val registered = controller.onFishContactPathAvailable(
+                        pathId = event.pathId,
+                        maskSha256 = maskSha256,
+                        maskVersion = maskVersion,
+                        geometryVersion = waterLightFrame.geometryVersion,
+                        contactPointNormalizedSource = stableContactSource,
+                        currentIdentity = sceneIdentity,
+                    )
+                    if (!registered) Log.w(
+                        "WaterLightEnergy",
+                        "PSTAR_BIND_REJECTED session=${event.sessionId} attempt=${event.attemptId} " +
+                            "image=${event.imageId} mask_sha256=${maskSha256.take(16)} mask_version=$maskVersion " +
+                            "geometry_version=${waterLightFrame.geometryVersion} path=${event.pathId}",
+                    )
+                }
+                // Event.level is a cumulative optical envelope (PATH_TO_FISH tops at .25),
+                // not the stage completion signal. The controller owns the stage-local clock.
+                val accepted = if (waterLightFrame.sceneFrame.stageProgress >= .999f) {
                     controller.recordEnergyEvent(waterLightFrame.sceneFrame, event)
                 } else null
                 Log.i(

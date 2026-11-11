@@ -53,6 +53,9 @@ class RecognitionSceneAnimationController(
     private var activePhotoGeometryVersion: Long? = null
     private var activeMaskSha256: String? = null
     private var activeMaskVersion: Long? = null
+    private var activeMaskGeometryVersion: Long? = null
+    private var activeMaskContactPointNormalizedSource: WaterLightPathPoint? = null
+    private var activeFishContactPathId: String? = null
     private var fishContactPathId: String? = null
     private var fishContactPathReady = false
     private var fishGoldComplete = false
@@ -199,8 +202,28 @@ class RecognitionSceneAnimationController(
         if (isCurrent(currentIdentity)) detectorReady = ready
     }
 
-    fun onPhotoTransformAvailable(ready: Boolean, currentIdentity: RecognitionSceneIdentity? = null) {
-        if (isCurrent(currentIdentity)) photoTransformReady = ready
+    fun onPhotoTransformAvailable(
+        ready: Boolean,
+        currentIdentity: RecognitionSceneIdentity? = null,
+        geometryVersion: Long? = null,
+    ) {
+        if (!isCurrent(currentIdentity)) return
+        // GeometryVersion is a signed 64-bit fingerprint. Zero alone means "not measured yet".
+        val acceptedVersion = geometryVersion?.takeIf { it != 0L }
+        val nextReady = ready && (geometryVersion == null || acceptedVersion != null)
+        if (!nextReady) {
+            photoTransformReady = false
+            if (activePhotoGeometryVersion != null) {
+                activePhotoGeometryVersion = null
+                invalidateMaskContactPath()
+            }
+            return
+        }
+        if (activePhotoGeometryVersion != acceptedVersion) {
+            activePhotoGeometryVersion = acceptedVersion
+            invalidateMaskContactPath()
+        }
+        photoTransformReady = true
     }
 
     fun onOrbAnchorAvailable(ready: Boolean, currentIdentity: RecognitionSceneIdentity? = null) {
@@ -225,9 +248,16 @@ class RecognitionSceneAnimationController(
         if (!isCurrent(currentIdentity)) return
         slimSamTerminal = true
         slimSamFailed = failedTerminal
-        maskTrusted = trusted
-        this.contourValid = trusted && contourValid
-        this.contourClosed = trusted && contourClosed
+        if (!trusted || failedTerminal) {
+            activeMaskSha256 = null
+            activeMaskVersion = null
+            invalidateMaskContactPath()
+        }
+        // A terminal callback cannot promote an anonymous bitmap to a trusted Mask.
+        // updateModelJoin supplies the exact SHA/version pair before trust is granted.
+        maskTrusted = trusted && !failedTerminal && activeMaskSha256 != null && activeMaskVersion != null
+        this.contourValid = maskTrusted && contourValid
+        this.contourClosed = maskTrusted && contourClosed
     }
 
     fun onTrustedMaskAvailable(
@@ -330,7 +360,7 @@ class RecognitionSceneAnimationController(
         when (event.feedback) {
             EnergyFeedback.ABSORB -> {
                 if (event.stage == RecognitionSceneStage.PATH_TO_FISH) {
-                    if (!maskTrusted || !matchesActiveMaskPathId(event.pathId)) return false
+                    if (!maskTrusted || !matchesActiveMaskPathId(event.pathId, frame.geometryVersion)) return false
                     val acceptedPathId = fishContactPathId
                     if (acceptedPathId != null && acceptedPathId != event.pathId) return false
                     fishContactPathId = event.pathId
@@ -339,7 +369,8 @@ class RecognitionSceneAnimationController(
                         RecognitionSceneStage.CONTOUR_A,
                         RecognitionSceneStage.CONTOUR_B,
                         RecognitionSceneStage.CONTOUR_C,
-                    ) && event.pathId != fishContactPathId
+                    ) && (event.pathId != fishContactPathId ||
+                        !matchesActiveMaskPathId(event.pathId, frame.geometryVersion))
                 ) {
                     return false
                 }
@@ -393,19 +424,61 @@ class RecognitionSceneAnimationController(
         this.classifierReady = classifierReady
         this.slimSamTerminal = slimSamTerminal
         this.slimSamFailed = slimSamFailed && slimSamTerminal
-        val nextMaskSha = maskSha256.takeIf {
-            maskTrusted && slimSamTerminal && it.matches(Regex("(?i)^[a-f0-9]{64}$")) && maskVersion >= 0L
+        val suppliedMaskSha = maskSha256.trim()
+        val nextMaskSha = suppliedMaskSha.takeIf {
+            maskTrusted && slimSamTerminal && maskVersion >= 0L &&
+                it.matches(Regex("(?i)^[a-f0-9]{64}$"))
         }?.lowercase()
         val nextMaskVersion = nextMaskSha?.let { maskVersion }
         if (nextMaskSha != activeMaskSha256 || nextMaskVersion != activeMaskVersion) {
             activeMaskSha256 = nextMaskSha
             activeMaskVersion = nextMaskVersion
-            fishContactPathId = null
-            fishContactPathReady = false
+            invalidateMaskContactPath()
         }
-        this.maskTrusted = maskTrusted && slimSamTerminal && nextMaskSha != null
+        this.maskTrusted = maskTrusted && slimSamTerminal && nextMaskSha != null && nextMaskVersion != null
         this.contourValid = this.maskTrusted && contourValid
         this.contourClosed = this.maskTrusted && contourClosed
+    }
+
+    /**
+     * Bind the rendered Stage-05 P* route to the exact trusted Mask and current photo-transform
+     * fingerprint. The path ID must be the deterministic ID emitted by WaterLightPathLedger.
+     */
+    fun onFishContactPathAvailable(
+        pathId: String?,
+        maskSha256: String,
+        maskVersion: Long,
+        geometryVersion: Long,
+        contactPointNormalizedSource: WaterLightPathPoint,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!isCurrent(currentIdentity)) return false
+        val activeIdentity = identity ?: return false
+        val suppliedMaskSha = maskSha256.trim()
+        val normalizedMaskSha = suppliedMaskSha.takeIf {
+            it.matches(Regex("(?i)^[a-f0-9]{64}$"))
+        }?.lowercase() ?: return false
+        if (!maskTrusted || activeMaskSha256 != normalizedMaskSha || activeMaskVersion != maskVersion ||
+            maskVersion < 0L || geometryVersion == 0L || !photoTransformReady ||
+            activePhotoGeometryVersion != geometryVersion ||
+            !contactPointNormalizedSource.isValid() ||
+            contactPointNormalizedSource.x !in 0f..1f ||
+            contactPointNormalizedSource.y !in 0f..1f
+        ) return false
+        val expectedPathId = "waterlight:${activeIdentity.sessionId}:${activeIdentity.attemptId}:${activeIdentity.imageId}:" +
+            "${activeIdentity.photoContentVersion}:$geometryVersion:mask:${suppliedMaskSha.take(16)}:$maskVersion:" +
+            "${String.format(java.util.Locale.US, "%.6f", contactPointNormalizedSource.x)}:" +
+            String.format(java.util.Locale.US, "%.6f", contactPointNormalizedSource.y)
+        if (pathId.isNullOrBlank() || pathId != expectedPathId) return false
+        val existingPathId = activeFishContactPathId
+        val existingPoint = activeMaskContactPointNormalizedSource
+        if ((existingPathId != null && existingPathId != pathId) ||
+            (existingPoint != null && existingPoint != contactPointNormalizedSource)
+        ) return false
+        activeMaskGeometryVersion = geometryVersion
+        activeMaskContactPointNormalizedSource = contactPointNormalizedSource
+        activeFishContactPathId = pathId
+        return true
     }
 
     /** Samples and advances at most one event-gated stage. MANUAL never advances here. */
@@ -801,10 +874,24 @@ class RecognitionSceneAnimationController(
 
     private var lastNowMs: Long = 0L
 
-    private fun matchesActiveMaskPathId(pathId: String?): Boolean {
-        val sha = activeMaskSha256 ?: return false
-        val version = activeMaskVersion ?: return false
-        return !pathId.isNullOrBlank() && pathId.contains(":mask:" + sha.take(16) + ":" + version + ":")
+    private fun matchesActiveMaskPathId(pathId: String?, geometryVersion: Long): Boolean =
+        !pathId.isNullOrBlank() &&
+            pathId == activeFishContactPathId &&
+            activeMaskGeometryVersion == geometryVersion &&
+            activePhotoGeometryVersion == geometryVersion &&
+            activeMaskContactPointNormalizedSource != null
+
+    private fun invalidateMaskContactPath() {
+        activeMaskGeometryVersion = null
+        activeMaskContactPointNormalizedSource = null
+        activeFishContactPathId = null
+        fishContactPathId = null
+        fishContactPathReady = false
+        fishGoldComplete = false
+        orbReturnComplete = false
+        orbToGlyphComplete = false
+        glyphRevealComplete = false
+        residueSettleComplete = false
     }
 
     private fun isCurrent(candidate: RecognitionSceneIdentity?): Boolean =
@@ -845,6 +932,9 @@ class RecognitionSceneAnimationController(
         activePhotoGeometryVersion = null
         activeMaskSha256 = null
         activeMaskVersion = null
+        activeMaskGeometryVersion = null
+        activeMaskContactPointNormalizedSource = null
+        activeFishContactPathId = null
         fishContactPathId = null
         fishContactPathReady = false
         fishGoldComplete = false

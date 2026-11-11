@@ -6,6 +6,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPathLedger
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -147,4 +148,19 @@ class WaterLightPathLedgerTest {
         val route = ledger.returnRoute(current, trustedMask = false)!!
         assertEquals(1, route.segments.size)
     }
+
+    @Test fun signedGeometryFingerprintIsAcceptedButZeroRemainsTheUnmeasuredSentinel() {
+        val signedFrame = frame(geometryVersion = -7L)
+        val ledger = WaterLightPathLedger()
+        assertTrue(ledger.recordRelease(signedFrame, release()))
+        assertTrue(recordFish(ledger, signedFrame, fish()))
+        val route = ledger.returnRoute(signedFrame, true, maskShaA, 42L, contactA)
+        assertNotNull(route)
+        assertEquals(-7L, requireNotNull(route).geometryVersion)
+        assertTrue(requireNotNull(route).isValid())
+
+        val zeroGeometryLedger = WaterLightPathLedger()
+        assertFalse(zeroGeometryLedger.recordRelease(frame(geometryVersion = 0L), release()))
+    }
+
 }

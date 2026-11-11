@@ -326,4 +326,107 @@ class RecognitionVisualStateControllerTest {
             event.copy(eventSequence = nextFrame.eventSequence, monotonicTimestampMs = nextFrame.monotonicTimestampMs),
         ))
     }
+
+    @Test fun fishContactPathIsBoundToExactMaskPStarAndSignedGeometryVersion() {
+        val controller = SceneMotionCoordinator()
+        controller.beginNewSession(identity, debugBuild = true, nowMs = 0L)
+        controller.markPhotoFirstFramePresented(identity, 100L)
+
+        val maskSha = "a".repeat(64)
+        val nextMaskSha = "b".repeat(64)
+        val geometryVersion = -7L
+        val contact = WaterLightPathPoint(.42f, .61f)
+        val pathId = "waterlight:${identity.sessionId}:${identity.attemptId}:${identity.imageId}:" +
+            "${identity.photoContentVersion}:$geometryVersion:mask:${maskSha.take(16)}:42:0.420000:0.610000"
+
+        controller.onPhotoTransformAvailable(true, identity, geometryVersion = geometryVersion)
+        controller.updateModelJoin(
+            detectorReady = true,
+            classifierReady = true,
+            slimSamTerminal = true,
+            maskTrusted = true,
+            contourValid = true,
+            contourClosed = true,
+            currentIdentity = identity,
+            maskSha256 = maskSha,
+            maskVersion = 42L,
+        )
+        controller.onRevealDecisionReady(identity)
+        controller.beginStepPreview(RecognitionSceneStage.PATH_TO_FISH, 200L)
+
+        assertFalse(controller.onFishContactPathAvailable(
+            pathId, nextMaskSha, 42L, geometryVersion, contact, identity,
+        ))
+        assertFalse(controller.onFishContactPathAvailable(
+            pathId, maskSha, 43L, geometryVersion, contact, identity,
+        ))
+        assertFalse(controller.onFishContactPathAvailable(
+            pathId, maskSha, 42L, geometryVersion + 1L, contact, identity,
+        ))
+        assertFalse(controller.onFishContactPathAvailable(
+            pathId, maskSha, 42L, geometryVersion, WaterLightPathPoint(.44f, .61f), identity,
+        ))
+        assertTrue(controller.onFishContactPathAvailable(
+            pathId, maskSha, 42L, geometryVersion, contact, identity,
+        ))
+
+        val frame = controller.currentFrame(identity, 3_200L, geometryVersion)
+        assertEquals(1f, frame.stageProgress, 0f)
+        val path = WaterLightPathGeometry(
+            WaterLightPathPoint(100f, 120f),
+            WaterLightPathPoint(150f, 180f),
+            WaterLightPathPoint(200f, 240f),
+            WaterLightPathPoint(250f, 300f),
+        )
+        val event = EnergyEvent(
+            sessionId = identity.sessionId,
+            photoSha256 = requireNotNull(identity.photoSha256),
+            source = EnergyAnchor.PHOTO_PATH,
+            target = EnergyAnchor.FISH_CONTOUR,
+            feedback = EnergyFeedback.ABSORB,
+            level = .25f,
+            referenceMs = frame.opticalReferenceElapsedMs,
+            geometryVersion = geometryVersion,
+            attemptId = identity.attemptId,
+            imageId = identity.imageId,
+            photoContentVersion = identity.photoContentVersion,
+            pathId = pathId,
+            pathGeometry = path,
+            eventSequence = frame.eventSequence,
+            monotonicTimestampMs = frame.monotonicTimestampMs,
+            sourceHost = EnergyAnchor.PHOTO_PATH.name,
+            targetHost = EnergyAnchor.FISH_CONTOUR.name,
+            renderStatus = "READY",
+            stage = RecognitionSceneStage.PATH_TO_FISH,
+        )
+        // PATH_TO_FISH optical level is capped at .25; stageProgress, not level, is
+        // the authoritative completion gate for this event.
+        assertTrue(controller.recordEnergyEvent(frame, event))
+        assertEquals(null, controller.modelGates.waitingReason)
+
+        controller.onPhotoTransformAvailable(true, identity, geometryVersion = geometryVersion + 1L)
+        assertFalse(controller.onFishContactPathAvailable(
+            pathId, maskSha, 42L, geometryVersion, contact, identity,
+        ))
+        val nextGeometryPathId = pathId.replace(":$geometryVersion:mask:", ":${geometryVersion + 1L}:mask:")
+        assertTrue(controller.onFishContactPathAvailable(
+            nextGeometryPathId, maskSha, 42L, geometryVersion + 1L, contact, identity,
+        ))
+
+        controller.updateModelJoin(
+            detectorReady = true,
+            classifierReady = true,
+            slimSamTerminal = true,
+            maskTrusted = true,
+            contourValid = true,
+            contourClosed = true,
+            currentIdentity = identity,
+            maskSha256 = nextMaskSha,
+            maskVersion = 43L,
+        )
+        assertFalse(controller.onFishContactPathAvailable(
+            nextGeometryPathId, maskSha, 42L, geometryVersion + 1L, contact, identity,
+        ))
+    }
+
 }

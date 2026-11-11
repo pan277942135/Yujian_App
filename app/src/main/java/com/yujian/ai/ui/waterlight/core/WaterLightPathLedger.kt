@@ -8,7 +8,7 @@ data class WaterLightPathMaskIdentity(
     val contactPointNormalizedSource: WaterLightPathPoint,
 ) {
     fun isValid(): Boolean = maskSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) &&
-        maskVersion >= 0L && geometryVersion >= 0L &&
+        maskVersion >= 0L && geometryVersion != 0L &&
         contactPointNormalizedSource.isValid() &&
         contactPointNormalizedSource.x in 0f..1f &&
         contactPointNormalizedSource.y in 0f..1f
@@ -22,7 +22,7 @@ data class WaterLightPathRoute(
     val geometryVersion: Long,
     val contactPointNormalizedSource: WaterLightPathPoint? = null,
 ) {
-    fun isValid(): Boolean = id.isNotBlank() && segments.isNotEmpty() &&
+    fun isValid(): Boolean = id.isNotBlank() && geometryVersion != 0L && segments.isNotEmpty() &&
         segments.all(WaterLightPathGeometry::isValid) &&
         (maskSha256 == null || (
             maskSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) &&
@@ -247,7 +247,7 @@ class WaterLightPathLedger {
 
     private fun WaterLightFrame.identityOrNull(): WaterLightPathIdentity? {
         if (sessionId.isBlank() || attemptId.isBlank() || imageId.isBlank() ||
-            photoSha256.isNullOrBlank() || photoContentVersion < 0L || geometryVersion < 0L
+            photoSha256.isNullOrBlank() || photoContentVersion < 0L || geometryVersion == 0L
         ) return null
         return WaterLightPathIdentity(
             sessionId = sessionId,
