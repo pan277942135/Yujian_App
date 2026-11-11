@@ -33,7 +33,11 @@ class RecognitionRevealPolicyTest {
         val toName = frame(RecognitionSceneStage.ORB_TO_NAME, .5f, handoff, policy)
         assertEquals(RecognitionRevealPhase.ORB_TO_NAME, toName.phase)
         assertEquals(RecognitionRevealTitleMode.FORMING, toName.titleMode)
-        assertEquals(.5f, toName.orbToNameProgress, .0001f)
+        // At 425 ms, Orb stretch is nearly complete but the 400 ms liquid-brush
+        // glyph-ink substage has not started yet (450 ms boundary).
+        assertTrue(toName.orbHorizontalStretchProgress > .98f)
+        assertEquals(0f, toName.liquidBrushProgress, 0f)
+        assertEquals(0f, toName.orbToNameProgress, 0f)
         assertEquals(0f, toName.photoProgress, 0f)
         val species = frame(RecognitionSceneStage.SPECIES_NAME_REVEAL, .5f, handoff, policy)
         assertEquals(RecognitionRevealPhase.SPECIES_NAME_REVEAL, species.phase)
