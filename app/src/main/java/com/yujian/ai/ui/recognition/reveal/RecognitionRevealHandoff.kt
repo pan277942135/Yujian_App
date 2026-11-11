@@ -79,6 +79,11 @@ data class RecognitionProcessingPhotoSnapshot(
     val processingOrbCenterInWindow: DisplayPoint? = null,
     /** Core diameter measured from the same Processing Orb instance, in physical pixels. */
     val processingOrbCoreDiameterPx: Float = 0f,
+    /** Frozen P-star from the same trusted Mask used by Stage 05-10. */
+    val contactPointNormalizedSource: DisplayPoint? = null,
+    val contactPointMaskSha256: String = "",
+    val contactPointMaskVersion: Long = -1L,
+    val contactPointGeometryVersion: Long = 0L,
 )
 
 data class RecognitionRevealHandoff(
@@ -111,6 +116,7 @@ data class RecognitionRevealHandoff(
     /** Final Classifier × SlimSAM decision captured before production Result navigation. */
     val revealDecision: RecognitionRevealDecisionState? = null,
     val maskVersion: Long = 0L,
+    val contactPointGeometryVersion: Long = 0L,
 )
 
 object RecognitionRevealHandoffFactory {
@@ -163,33 +169,15 @@ object RecognitionRevealHandoffFactory {
                 point.x in photo.viewportBoundsInWindow.left..photo.viewportBoundsInWindow.right &&
                 point.y in photo.viewportBoundsInWindow.top..photo.viewportBoundsInWindow.bottom
         }
-        val orbSourceNormalized = if (photo != null && orbAnchor != null) {
-            val transform = photo.sourceToViewport
-            if (transform.sourceWidthPx == image.bitmap.width &&
-                transform.sourceHeightPx == image.bitmap.height &&
-                transform.drawnWidth.isFinite() && transform.drawnWidth > 1f &&
-                transform.drawnHeight.isFinite() && transform.drawnHeight > 1f
-            ) {
-                DisplayPoint(
-                    x = (orbAnchor.x - photo.viewportBoundsInWindow.left - transform.translationX) / transform.drawnWidth,
-                    y = (orbAnchor.y - photo.viewportBoundsInWindow.top - transform.translationY) / transform.drawnHeight,
-                ).takeIf { it.x.isFinite() && it.y.isFinite() && it.x in 0f..1f && it.y in 0f..1f }
-            } else {
-                null
-            }
-        } else {
-            null
-        }
-        val anchorSource = if (maskTrusted && photo != null && orbSourceNormalized != null) {
+        val anchorSource = if (maskTrusted && photo != null) {
             val trustedSubject = requireNotNull(subject)
-            RecognitionNearestContourContactPoint.resolve(
-                contour = trustedSubject.contour,
-                subjectRoiInSource = trustedSubject.subjectBox,
-                contourIsCanonicalPhoto = trustedSubject.contourSourceSpace == "CANONICAL_PHOTO_NORMALIZED",
-                sourceWidthPx = image.bitmap.width,
-                sourceHeightPx = image.bitmap.height,
-                orbSourceNormalized = orbSourceNormalized,
-            )
+            photo.contactPointNormalizedSource?.takeIf { point ->
+                point.x.isFinite() && point.y.isFinite() &&
+                    point.x in 0f..1f && point.y in 0f..1f &&
+                    photo.contactPointMaskSha256 == trustedSubject.maskSha256 &&
+                    photo.contactPointMaskVersion == trustedSubject.maskVersion &&
+                    photo.contactPointGeometryVersion != 0L
+            }
         } else {
             null
         }
@@ -248,6 +236,7 @@ object RecognitionRevealHandoffFactory {
             revealDecision = decision,
             maskVersion = if (maskTrusted) subject?.maskVersion ?: 0L else 0L,
             maskSha256 = if (maskTrusted) subject?.maskSha256.orEmpty() else "",
+            contactPointGeometryVersion = photo?.contactPointGeometryVersion ?: 0L,
         )
     }
 

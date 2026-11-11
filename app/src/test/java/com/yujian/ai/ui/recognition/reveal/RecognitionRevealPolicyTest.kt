@@ -33,7 +33,11 @@ class RecognitionRevealPolicyTest {
         val toName = frame(RecognitionSceneStage.ORB_TO_NAME, .5f, handoff, policy)
         assertEquals(RecognitionRevealPhase.ORB_TO_NAME, toName.phase)
         assertEquals(RecognitionRevealTitleMode.FORMING, toName.titleMode)
-        assertEquals(.5f, toName.orbToNameProgress, .0001f)
+        // At 425 ms, Orb stretch is nearly complete but the 400 ms liquid-brush
+        // glyph-ink substage has not started yet (450 ms boundary).
+        assertTrue(toName.orbHorizontalStretchProgress > .98f)
+        assertEquals(0f, toName.liquidBrushProgress, 0f)
+        assertEquals(0f, toName.orbToNameProgress, 0f)
         assertEquals(0f, toName.photoProgress, 0f)
         val species = frame(RecognitionSceneStage.SPECIES_NAME_REVEAL, .5f, handoff, policy)
         assertEquals(RecognitionRevealPhase.SPECIES_NAME_REVEAL, species.phase)
@@ -42,7 +46,11 @@ class RecognitionRevealPolicyTest {
         val residue = frame(RecognitionSceneStage.RESIDUE_SETTLE, .5f, handoff, policy)
         assertEquals(RecognitionRevealPhase.RESIDUE_SETTLE, residue.phase)
         assertEquals(.5f, residue.afterglowAlpha, .0001f)
-        assertEquals(.5f, residue.photoProgress, .0001f)
+        // RESIDUE_SETTLE is 450 ms: photo reposition starts at 170 ms and
+        // eases over 180 ms, so the 225 ms sample is 55/180 through that substage.
+        val reposition = 55f / 180f
+        val expectedPhotoProgress = reposition * reposition * (3f - 2f * reposition)
+        assertEquals(expectedPhotoProgress, residue.photoProgress, .0001f)
         val resultNameHold = frame(RecognitionSceneStage.RESIDUE_SETTLE, 0f, handoff, policy)
         assertEquals(RecognitionRevealTitleMode.VISIBLE, resultNameHold.titleMode)
         assertEquals(0f, resultNameHold.photoProgress, 0f)
