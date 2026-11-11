@@ -359,20 +359,17 @@ class RecognitionSceneAnimationController(
         ) return false
         when (event.feedback) {
             EnergyFeedback.ABSORB -> {
-                if (event.stage == RecognitionSceneStage.PATH_TO_FISH) {
+                if (event.stage == RecognitionSceneStage.PATH_TO_FISH || event.stage in setOf(
+                        RecognitionSceneStage.CONTOUR_A,
+                        RecognitionSceneStage.CONTOUR_B,
+                        RecognitionSceneStage.CONTOUR_C,
+                    )
+                ) {
                     if (!maskTrusted || !matchesActiveMaskPathId(event.pathId, frame.geometryVersion)) return false
                     val acceptedPathId = fishContactPathId
                     if (acceptedPathId != null && acceptedPathId != event.pathId) return false
                     fishContactPathId = event.pathId
                     fishContactPathReady = true
-                } else if (event.stage in setOf(
-                        RecognitionSceneStage.CONTOUR_A,
-                        RecognitionSceneStage.CONTOUR_B,
-                        RecognitionSceneStage.CONTOUR_C,
-                    ) && (event.pathId != fishContactPathId ||
-                        !matchesActiveMaskPathId(event.pathId, frame.geometryVersion))
-                ) {
-                    return false
                 }
             }
             EnergyFeedback.RETURN -> if (event.source == EnergyAnchor.FISH_CONTOUR &&
@@ -736,10 +733,11 @@ class RecognitionSceneAnimationController(
         RecognitionSceneStage.PERIMETER_ARRIVAL -> perimeterArrivalPresented && detectorReady && photoTransformReady
         RecognitionSceneStage.PATH_TO_FISH -> detectorReady && photoTransformReady && classifierReady &&
             slimSamTerminal && revealDecisionReady && (!maskTrusted || fishContactPathReady)
-        RecognitionSceneStage.CONTOUR_A -> maskTrusted && contourValid
-        RecognitionSceneStage.CONTOUR_B -> maskTrusted && contourValid
-        RecognitionSceneStage.CONTOUR_C -> maskTrusted && contourValid && contourClosed
-        RecognitionSceneStage.FISH_GOLD_PEAK -> maskTrusted && fishGoldComplete && classifierReady && revealDecisionReady
+        RecognitionSceneStage.CONTOUR_A -> maskTrusted && fishContactPathReady && contourValid
+        RecognitionSceneStage.CONTOUR_B -> maskTrusted && fishContactPathReady && contourValid
+        RecognitionSceneStage.CONTOUR_C -> maskTrusted && fishContactPathReady && contourValid && contourClosed
+        RecognitionSceneStage.FISH_GOLD_PEAK -> maskTrusted && fishContactPathReady &&
+            fishGoldComplete && classifierReady && revealDecisionReady
         RecognitionSceneStage.ORB_RETURN -> successfulRevealAllowed && orbReturnComplete && orbAnchorReady && glyphAvailable &&
             resultGeometryState == SceneGeometryState.READY
         RecognitionSceneStage.ORB_TO_NAME -> successfulRevealAllowed && orbToGlyphComplete && glyphAvailable
@@ -754,9 +752,9 @@ class RecognitionSceneAnimationController(
         RecognitionSceneStage.PERIMETER_ARRIVAL -> perimeterArrivalPresented
         RecognitionSceneStage.PATH_TO_FISH -> if (maskTrusted) fishContactPathReady else revealDecisionReady
         RecognitionSceneStage.CONTOUR_A,
-        RecognitionSceneStage.CONTOUR_B -> maskTrusted && contourValid
-        RecognitionSceneStage.CONTOUR_C -> maskTrusted && contourValid && contourClosed
-        RecognitionSceneStage.FISH_GOLD_PEAK -> fishGoldComplete
+        RecognitionSceneStage.CONTOUR_B -> maskTrusted && fishContactPathReady && contourValid
+        RecognitionSceneStage.CONTOUR_C -> maskTrusted && fishContactPathReady && contourValid && contourClosed
+        RecognitionSceneStage.FISH_GOLD_PEAK -> fishContactPathReady && fishGoldComplete
         RecognitionSceneStage.ORB_RETURN -> orbReturnComplete
         RecognitionSceneStage.ORB_TO_NAME -> orbToGlyphComplete
         RecognitionSceneStage.SPECIES_NAME_REVEAL -> glyphRevealComplete
@@ -820,6 +818,7 @@ class RecognitionSceneAnimationController(
                 !classifierReady -> "WAITING_FOR_CLASSIFIER"
                 !slimSamTerminal -> "WAITING_FOR_SLIMSAM_TERMINAL"
                 !maskTrusted -> "WAITING_FOR_TRUSTED_MASK"
+                !fishContactPathReady -> "WAITING_FOR_MASK_BOUND_PSTAR_ABSORB_EVENT"
                 !contourValid -> "WAITING_FOR_REAL_MASK_CONTOUR"
                 currentStage == RecognitionSceneStage.CONTOUR_C && !contourClosed -> "WAITING_FOR_CLOSED_CONTOUR"
                 currentStage == RecognitionSceneStage.FISH_GOLD_PEAK && !fishGoldComplete -> "WAITING_FOR_FISH_GOLD_EVENT"
@@ -860,7 +859,7 @@ class RecognitionSceneAnimationController(
                     RecognitionSceneStage.CONTOUR_A,
                     RecognitionSceneStage.CONTOUR_B,
                     RecognitionSceneStage.CONTOUR_C,
-                    RecognitionSceneStage.FISH_GOLD_PEAK -> "WAITING_FOR_TRUSTED_MASK_AND_CONTOUR"
+                    RecognitionSceneStage.FISH_GOLD_PEAK -> "WAITING_FOR_TRUSTED_MASK_CONTOUR_AND_PSTAR_PATH"
                     RecognitionSceneStage.ORB_RETURN -> "WAITING_FOR_RETURN_EVENT_OR_RESULT_GEOMETRY"
                     RecognitionSceneStage.ORB_TO_NAME -> "WAITING_FOR_ORB_TO_GLYPH_COMPLETION"
                     RecognitionSceneStage.SPECIES_NAME_REVEAL -> "WAITING_FOR_GLYPH_REVEAL_COMPLETION"

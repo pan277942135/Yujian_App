@@ -1572,9 +1572,7 @@ fun RecognitionProcessingScene(
                 waterLightFrame.geometryVersion,
             ) {
                 val event = orbEnergyEvent ?: return@LaunchedEffect
-                if (event.stage == RecognitionSceneStage.PATH_TO_FISH &&
-                    event.feedback == EnergyFeedback.ABSORB && fishEnergyAllowed && stableContactSource != null
-                ) {
+                if (event.feedback == EnergyFeedback.ABSORB && fishEnergyAllowed && stableContactSource != null) {
                     val registered = controller.onFishContactPathAvailable(
                         pathId = event.pathId,
                         maskSha256 = maskSha256,
