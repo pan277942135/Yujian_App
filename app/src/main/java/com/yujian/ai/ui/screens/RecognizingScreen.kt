@@ -346,8 +346,8 @@ fun RecognitionProcessingScene(
     var photoGeometryVersion by remember(sceneKey) { mutableLongStateOf(0L) }
 
     LaunchedEffect(
-        sceneKey, assessment?.primary?.box, finishedResult, subjectResult.status, subjectResult.maskSha256,
-        subjectBitmap?.generationId, trustedSubjectMask, contour, photoGeometryVersion,
+        sceneKey, photoPresentedAtMs, assessment?.primary?.box, finishedResult, subjectResult.status,
+        subjectResult.maskSha256, subjectBitmap?.generationId, trustedSubjectMask, contour, photoGeometryVersion,
     ) {
         val detectorReady = assessment?.primary?.box?.let { box ->
             listOf(box.x1, box.y1, box.x2, box.y2).all(Float::isFinite) && box.x1 < box.x2 && box.y1 < box.y2
