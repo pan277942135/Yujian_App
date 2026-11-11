@@ -83,7 +83,7 @@ data class RecognitionProcessingPhotoSnapshot(
     val contactPointNormalizedSource: DisplayPoint? = null,
     val contactPointMaskSha256: String = "",
     val contactPointMaskVersion: Long = -1L,
-    val contactPointGeometryVersion: Long = -1L,
+    val contactPointGeometryVersion: Long = 0L,
 )
 
 data class RecognitionRevealHandoff(
@@ -116,7 +116,7 @@ data class RecognitionRevealHandoff(
     /** Final Classifier × SlimSAM decision captured before production Result navigation. */
     val revealDecision: RecognitionRevealDecisionState? = null,
     val maskVersion: Long = 0L,
-    val contactPointGeometryVersion: Long = -1L,
+    val contactPointGeometryVersion: Long = 0L,
 )
 
 object RecognitionRevealHandoffFactory {
@@ -176,7 +176,7 @@ object RecognitionRevealHandoffFactory {
                     point.x in 0f..1f && point.y in 0f..1f &&
                     photo.contactPointMaskSha256 == trustedSubject.maskSha256 &&
                     photo.contactPointMaskVersion == trustedSubject.maskVersion &&
-                    photo.contactPointGeometryVersion >= 0L
+                    photo.contactPointGeometryVersion != 0L
             }
         } else {
             null
@@ -236,7 +236,7 @@ object RecognitionRevealHandoffFactory {
             revealDecision = decision,
             maskVersion = if (maskTrusted) subject?.maskVersion ?: 0L else 0L,
             maskSha256 = if (maskTrusted) subject?.maskSha256.orEmpty() else "",
-            contactPointGeometryVersion = photo?.contactPointGeometryVersion ?: -1L,
+            contactPointGeometryVersion = photo?.contactPointGeometryVersion ?: 0L,
         )
     }
 

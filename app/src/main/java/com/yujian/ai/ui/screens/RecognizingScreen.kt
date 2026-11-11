@@ -1941,7 +1941,7 @@ private fun RecognitionPhoto(
             stableContactSource,
             maskSha256,
             maskVersion,
-            if (stableContactSource != null) waterLightFrame.geometryVersion else -1L,
+            if (stableContactSource != null) waterLightFrame.geometryVersion else 0L,
         )
     }
     if (onFishFocusTransform != null) {
