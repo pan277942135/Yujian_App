@@ -22,6 +22,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
 import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 
 /** Real DET_FISH v0.3 Android ORT + Classifier v0.2 inference and Python CPU parity. */
 @RunWith(AndroidJUnit4::class)
@@ -120,6 +122,37 @@ class DetectorOrientationRetryRuntimeTest {
             val crop = requireNotNull(result.cropPixels)
             assertTrue(crop[0] >= 0 && crop[1] >= 0 && crop[2] <= source.width && crop[3] <= source.height)
             assertTrue(crop[2] > crop[0] && crop[3] > crop[1])
+            if (result.detectorRun.selectedAttempt == "ORIGINAL") {
+                val pythonTop = reference.getJSONArray("top10").getJSONObject(0)
+                val pythonBox = pythonTop.getJSONArray("bbox_normalized_unclipped")
+                val expectedBox = FloatArray(4) { pythonBox.getDouble(it).toFloat() }
+                val actualBox = floatArrayOf(box.x1, box.y1, box.x2, box.y2)
+                expectedBox.indices.forEach { index ->
+                    assertTrue(
+                        "Python→Android restored BBox mismatch at coordinate $index: expected=${expectedBox[index]} actual=${actualBox[index]}",
+                        abs(expectedBox[index] - actualBox[index]) <= BBOX_MAX_ABS_TOLERANCE,
+                    )
+                }
+                val expectedConfidence = pythonTop.getDouble("confidence_objectness_times_class").toFloat()
+                assertTrue(
+                    "Python→Android detector confidence mismatch: expected=${expectedConfidence} actual=${primary.confidence}",
+                    abs(expectedConfidence - primary.confidence) <= DETECTOR_CONFIDENCE_MAX_ABS_TOLERANCE,
+                )
+                val expandX = (expectedBox[2] - expectedBox[0]) * FishDetectionQualityGate.CROP_EXPAND_RATIO
+                val expandY = (expectedBox[3] - expectedBox[1]) * FishDetectionQualityGate.CROP_EXPAND_RATIO
+                val expectedCrop = intArrayOf(
+                    floor(maxOf(0f, expectedBox[0] - expandX) * source.width).toInt().coerceIn(0, source.width - 1),
+                    floor(maxOf(0f, expectedBox[1] - expandY) * source.height).toInt().coerceIn(0, source.height - 1),
+                    ceil(minOf(1f, expectedBox[2] + expandX) * source.width).toInt().coerceIn(1, source.width),
+                    ceil(minOf(1f, expectedBox[3] + expandY) * source.height).toInt().coerceIn(1, source.height),
+                )
+                expectedCrop.indices.forEach { index ->
+                    assertTrue(
+                        "Python→Android classifier crop mismatch at edge $index: expected=${expectedCrop[index]} actual=${crop[index]}",
+                        kotlin.math.abs(expectedCrop[index] - crop[index]) <= CROP_EDGE_MAX_DELTA_PX,
+                    )
+                }
+            }
             assertTrue(prediction.top1.speciesKey.isNotBlank())
             assertTrue(prediction.top1.speciesName.isNotBlank())
             assertTrue(prediction.top1.confidence.isFinite())
@@ -379,6 +412,9 @@ class DetectorOrientationRetryRuntimeTest {
         const val DETECTOR_ONNX_SHA256 = "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1"
         const val CLASSIFIER_MODEL_VERSION = "MODEL_CROP_M1_v0.2"
         const val CLASSIFIER_TFLITE_SHA256 = "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18"
+        const val BBOX_MAX_ABS_TOLERANCE = 0.015f
+        const val DETECTOR_CONFIDENCE_MAX_ABS_TOLERANCE = 0.02f
+        const val CROP_EDGE_MAX_DELTA_PX = 24
         const val INPUT_MAX_ABS_TOLERANCE = 2.0f
         const val INPUT_MEAN_ABS_TOLERANCE = 0.05f
         const val OUTPUT_MAX_ABS_TOLERANCE = 0.05f
