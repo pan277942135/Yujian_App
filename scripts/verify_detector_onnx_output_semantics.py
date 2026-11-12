@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Inspect and run the approved DET_FISH v0.3 ONNX graph on CPU.
 
-This is deliberately independent of detector metadata declarations. It records
-the actual graph path feeding the output and a deterministic reference tensor
-for the Android instrumentation test. A graph-semantic verdict remains
-REVIEW_REQUIRED until the exported graph structure and numerical output have
-been reviewed against the frozen YOLOX decode contract.
+This is deliberately independent of detector metadata declarations. It inspects
+the actual graph path feeding the output and runs the approved graph on CPU.
+The verifier fails closed unless graph topology and numerical output support
+the frozen decoded XYWH/objectness/class-probability contract.
 """
 from __future__ import annotations
 
@@ -293,6 +292,12 @@ def run_cpu_inference(model_path: Path, fixture_path: Path) -> tuple[np.ndarray,
     graph_model = onnx.load_model_from_string(model_bytes)
     onnx.checker.check_model(graph_model)
     graph_evidence = inspect_graph(graph_model)
+    expected_graph_verdict = "STRUCTURE_MATCHES_DECODED_XYWH_OBJECTNESS_CLASS_SIGMOID"
+    if graph_evidence["graph_semantics_verdict"] != expected_graph_verdict:
+        raise SystemExit(
+            "DET_FISH v0.3 graph topology does not prove the approved decoded XYWH contract: "
+            + str(graph_evidence["graph_semantics_verdict"])
+        )
 
     input_tensor, preprocess = preprocess_rgb_to_bgr_planar(fixture_path)
     if list(input_tensor.shape) != DETECTOR_INPUT_SHAPE:
@@ -369,6 +374,12 @@ def run_cpu_inference(model_path: Path, fixture_path: Path) -> tuple[np.ndarray,
             else "REVIEW_REQUIRED"
         ),
     }
+    if inference["output_semantics_candidate"] != "decoded_xywh_objectness_class_probability":
+        raise SystemExit(
+            "DET_FISH v0.3 numerical output does not satisfy decoded XYWH/objectness/class-probability evidence: "
+            + str(inference["output_semantics_candidate"])
+        )
+
     reference = {
         "schema_version": 1,
         "model_version": DETECTOR_MODEL_VERSION,

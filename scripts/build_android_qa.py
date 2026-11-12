@@ -26,6 +26,17 @@ from production_model_contract import (  # noqa: E402
     snapshot_summary,
     verify_model_snapshot,
 )
+from det_fish_v03_contract import (  # noqa: E402
+    ANDROID_CLASSIFIER_PARITY_FILE,
+    ANDROID_DETECTOR_MODEL_FILE,
+    ANDROID_DETECTOR_METADATA_FILE,
+    ANDROID_DETECTOR_PIPELINE_FILE,
+    ANDROID_DETECTOR_SNAPSHOT_FILE,
+    ANDROID_MODEL_PACKAGE_MANIFEST_FILE,
+    verify_android_model_package_manifest,
+    verify_classifier_bundle_parity_record,
+    verify_detector_payloads,
+)
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -84,11 +95,28 @@ def verify_packaged_apk(apk: Path) -> dict[str, str]:
         "class_map": f"assets/{ANDROID_CLASS_MAP_FILE}",
         "tensor_contract": f"assets/{ANDROID_TENSOR_CONTRACT_FILE}",
         "model_snapshot": f"assets/{ANDROID_SNAPSHOT_FILE}",
-        "detector": "assets/fish_detector_yolox_nano_v0_1.onnx",
-        "detector_metadata": "assets/detector_metadata.json",
-        "recognition_pipeline": "assets/recognition_pipeline_v1.json",
+        "detector": f"assets/{ANDROID_DETECTOR_MODEL_FILE}",
+        "detector_metadata": f"assets/{ANDROID_DETECTOR_METADATA_FILE}",
+        "recognition_pipeline": f"assets/{ANDROID_DETECTOR_PIPELINE_FILE}",
+        "detector_snapshot": f"assets/{ANDROID_DETECTOR_SNAPSHOT_FILE}",
+        "classifier_parity": f"assets/{ANDROID_CLASSIFIER_PARITY_FILE}",
+        "model_package_manifest": f"assets/{ANDROID_MODEL_PACKAGE_MANIFEST_FILE}",
     }
-    payloads = {key: read_apk_entry(apk, path) for key, path in entries.items()}
+    legacy_detector_entries = {
+        "assets/fish_detector_yolox_nano_v0_1.onnx",
+        "assets/det_fish_v0_1.onnx",
+        "assets/detector_v0_1.onnx",
+    }
+    with zipfile.ZipFile(apk) as archive:
+        names = archive.namelist()
+        legacy_present = sorted(legacy_detector_entries.intersection(names))
+        if legacy_present:
+            raise RuntimeError(f"APK contains obsolete DET_FISH v0.1 production assets: {legacy_present}")
+        duplicates = [path for path in entries.values() if names.count(path) != 1]
+        if duplicates:
+            raise RuntimeError(f"APK required model assets are missing or duplicated: {duplicates}")
+        payloads = {key: archive.read(path) for key, path in entries.items()}
+
     model_snapshot = json.loads(payloads["model_snapshot"])
     model_trace = verify_model_snapshot(
         model=payloads["classifier"],
@@ -97,18 +125,25 @@ def verify_packaged_apk(apk: Path) -> dict[str, str]:
         tensor_contract_bytes=payloads["tensor_contract"],
         snapshot=model_snapshot,
     )
-
-    metadata = json.loads(payloads["detector_metadata"])
-    detector_sha = sha256_bytes(payloads["detector"])
-    if metadata.get("onnx_sha256") != detector_sha:
-        raise RuntimeError("APK detector metadata does not match packaged ONNX SHA")
-    if int(metadata.get("onnx_bytes") or 0) != len(payloads["detector"]):
-        raise RuntimeError("APK detector metadata does not match packaged ONNX size")
-    json.loads(payloads["recognition_pipeline"])
+    detector_snapshot = verify_detector_payloads(
+        onnx_bytes=payloads["detector"],
+        metadata_bytes=payloads["detector_metadata"],
+        pipeline_bytes=payloads["recognition_pipeline"],
+        snapshot_bytes=payloads["detector_snapshot"],
+    )
+    classifier_parity = json.loads(payloads["classifier_parity"])
+    verify_classifier_bundle_parity_record(classifier_parity, model_trace)
+    package_manifest = json.loads(payloads["model_package_manifest"])
+    verify_android_model_package_manifest(
+        package_manifest, detector_snapshot, model_trace, classifier_parity
+    )
     return {
         "model": snapshot_summary(model_trace),
         "model_snapshot_sha256": sha256_bytes(payloads["model_snapshot"]),
-        "detector_sha256": detector_sha,
+        "detector_sha256": sha256_bytes(payloads["detector"]),
+        "detector_snapshot_sha256": sha256_bytes(payloads["detector_snapshot"]),
+        "classifier_parity_sha256": sha256_bytes(payloads["classifier_parity"]),
+        "model_package_manifest_sha256": sha256_bytes(payloads["model_package_manifest"]),
     }
 
 

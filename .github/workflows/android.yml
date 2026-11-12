@@ -382,6 +382,134 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  det-fish-v03-api36-runtime:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 329 }}
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      actions: read
+      contents: read
+    env:
+      SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+      ANDROID_AVD_HOME: ${{ github.workspace }}/.android-avd
+      EVIDENCE_DIR: evidence/det-fish-v03-api36
+    steps:
+      - name: Checkout exact PR source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.source_sha }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up API 36 Android SDK and Emulator
+        uses: android-actions/setup-android@v3
+        with:
+          packages: >-
+            platform-tools
+            emulator
+            build-tools;35.0.0
+            system-images;android-36;google_apis;x86_64
+
+      - name: Enable KVM access
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -r /dev/kvm && test -w /dev/kvm
+
+      - name: Provision and boot API 36 Emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE_DIR" "$ANDROID_AVD_HOME"
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root"
+          echo "$sdk_root/platform-tools" >> "$GITHUB_PATH"
+          echo "$sdk_root/emulator" >> "$GITHUB_PATH"
+          echo "$sdk_root/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          export PATH="$sdk_root/platform-tools:$sdk_root/emulator:$sdk_root/cmdline-tools/latest/bin:$PATH"
+          printf 'no\n' | avdmanager create avd \
+            --name yujian_detfish_api36 \
+            --package "system-images;android-36;google_apis;x86_64" \
+            --device pixel_2 --force
+          adb start-server
+          nohup emulator -avd yujian_detfish_api36 -no-snapshot -no-window \
+            -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none \
+            > "$EVIDENCE_DIR/emulator.log" 2>&1 &
+          timeout 300s adb wait-for-device
+          ready=0
+          for attempt in $(seq 1 180); do
+            state="$(adb get-state 2>/dev/null | tr -d '\r' || true)"
+            boot="$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+            api="$(adb shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
+            printf 'READINESS attempt=%s state=%s boot=%s api=%s\n' "$attempt" "$state" "$boot" "$api" \
+              | tee -a "$EVIDENCE_DIR/emulator-readiness.log"
+            if [[ "$state" == "device" && "$boot" == "1" && "$api" == "36" ]]; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          test "$ready" = 1
+          adb shell settings put global animator_duration_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global window_animation_scale 0
+          {
+            echo "source_sha=$SOURCE_SHA"
+            echo "api_level=$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+            echo "device=$(adb shell getprop ro.product.model | tr -d '\r')"
+          } > "$EVIDENCE_DIR/runtime-provenance.txt"
+
+      - name: Download exact-head APK pair from the single Android build
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          path: build/runtime-apks
+
+      - name: Verify and install exact-head APK pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s build/runtime-apks/app-debug.apk
+          test -s build/runtime-apks/app-debug-androidTest.apk
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+          echo "app_apk_sha256=$(sha256sum build/runtime-apks/app-debug.apk | awk '{print $1}')" \
+            | tee -a "$EVIDENCE_DIR/runtime-provenance.txt"
+          adb install -r build/runtime-apks/app-debug.apk
+          adb install -r build/runtime-apks/app-debug-androidTest.apk
+          adb shell pm list instrumentation | tee "$EVIDENCE_DIR/installed-instrumentation.txt"
+
+      - name: Run DET_FISH v0.3 real Android inference instrumentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          adb logcat -c
+          adb shell am instrument -w -r \
+            -e class com.yujian.ai.DetectorOrientationRetryRuntimeTest \
+            com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner \
+            2>&1 | tee "$EVIDENCE_DIR/instrumentation.log"
+          adb logcat -d -s YujianInference:I FishDetectorEngine:I FishRecognitionEngine:I AndroidRuntime:E \
+            > "$EVIDENCE_DIR/inference-logcat.log"
+          grep -q "DET_FISH_V03_REAL_INFERENCE" "$EVIDENCE_DIR/instrumentation.log"
+          grep -q "PIPELINE_INFERENCE_REPORT" "$EVIDENCE_DIR/instrumentation.log"
+
+      - name: Upload API 36 real inference evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: DET-FISH-v0.3-Android-API36-${{ needs.build.outputs.source_sha }}-${{ github.run_id }}
+          path: evidence/det-fish-v03-api36
+          if-no-files-found: error
+          retention-days: 30
+
   fish-optics-api36-runtime:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 316 }}
     needs: build
