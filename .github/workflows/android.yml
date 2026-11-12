@@ -423,6 +423,7 @@ jobs:
           cp build/runtime-apks/model_release_contract.json "$BUNDLE_DIR/"
           cp build/runtime-apks/apk_model_trace.json "$BUNDLE_DIR/"
           cp scripts/run_det_fish_v03_android_device_test.sh "$BUNDLE_DIR/"
+          cp scripts/run_det_fish_v03_android_device_test.ps1 "$BUNDLE_DIR/"
           unzip -p build/runtime-apks/app-debug-androidTest.apk assets/detector_case_b_night_flash.jpg \
             > "$BUNDLE_DIR/detector_case_b_night_flash.jpg"
           unzip -p build/runtime-apks/app-debug-androidTest.apk assets/detector_case_b_v03_reference.json \
@@ -448,13 +449,13 @@ jobs:
           - detector_case_b_night_flash.jpg: fixed 1152×1536 held-out real catch photo.
           - detector_case_b_v03_reference.json: Python ONNX Runtime CPU input/output tensor reference.
           - python-reference/: graph semantics and ONNX CPU evidence.
-          - run_det_fish_v03_android_device_test.sh: installs the exact APK pair, runs the instrumentation test, captures full Logcat, pulls raw tensors, BBox/Crop, Classifier Top5 and SHA evidence, and creates a ZIP.
+          - run_det_fish_v03_android_device_test.sh and run_det_fish_v03_android_device_test.ps1: run the exact APK pair, capture full Logcat, raw tensors, BBox/Crop, Classifier Top5 and SHA evidence, and create a ZIP.
 
           ## Run
           1. Extract this bundle on a computer with Android Platform Tools (adb) installed.
           2. Connect and unlock the HUAWEI CMS-AL20. Enable USB debugging and accept the computer's RSA prompt.
           3. Confirm adb devices shows exactly one device.
-          4. Run: bash run_det_fish_v03_android_device_test.sh
+          4. Windows PowerShell: run .\run_det_fish_v03_android_device_test.ps1. macOS/Linux/Git Bash: run bash run_det_fish_v03_android_device_test.sh.
           5. Return the generated device-evidence.zip for final parity review.
 
           ANDROID_SERIAL may be set when more than one device is connected.
@@ -480,6 +481,7 @@ jobs:
               python-reference/detector_onnx_output_semantics.json \
               python-reference/detector_case_b_v03_reference.json \
               run_det_fish_v03_android_device_test.sh \
+              run_det_fish_v03_android_device_test.ps1 \
               README.md > SHA256SUMS
             sha256sum -c SHA256SUMS
             chmod +x run_det_fish_v03_android_device_test.sh
