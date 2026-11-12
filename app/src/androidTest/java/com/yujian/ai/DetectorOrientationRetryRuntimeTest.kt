@@ -267,8 +267,8 @@ class DetectorOrientationRetryRuntimeTest {
                 .put("classifier_report_file", "classifier_inference_report.txt")
                 .put("source_file", sourceFile.name)
             File(evidenceDir, "android_inference_evidence.json").writeText(evidence.toString(2) + "\n")
-            println("DET_FISH_V03_EVIDENCE_DIR=\${evidenceDir.absolutePath}")
-            println("DET_FISH_V03_EVIDENCE_JSON=\${evidence.toString()}")
+            println("DET_FISH_V03_EVIDENCE_DIR=${evidenceDir.absolutePath}")
+            println("DET_FISH_V03_EVIDENCE_JSON=${evidence.toString()}")
 
             println(
                 "DET_FISH_V03_REAL_INFERENCE " + JSONObject()
@@ -340,7 +340,7 @@ class DetectorOrientationRetryRuntimeTest {
 
     private fun Bitmap.writePng(file: File) {
         FileOutputStream(file).use { output ->
-            check(compress(Bitmap.CompressFormat.PNG, 100, output)) { "Unable to write \${file.name}" }
+            check(compress(Bitmap.CompressFormat.PNG, 100, output)) { "Unable to write ${file.name}" }
         }
     }
 
