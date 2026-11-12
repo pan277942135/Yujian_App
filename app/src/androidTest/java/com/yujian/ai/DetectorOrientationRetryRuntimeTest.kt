@@ -315,10 +315,11 @@ class DetectorOrientationRetryRuntimeTest {
         }
     }
 
-    private fun FloatArray.toLittleEndianBytes(): ByteArray =
-        ByteBuffer.allocate(size * 4).order(ByteOrder.LITTLE_ENDIAN)
-            .apply { forEach(::putFloat) }
-            .array()
+    private fun FloatArray.toLittleEndianBytes(): ByteArray {
+        val buffer = ByteBuffer.allocate(size * 4).order(ByteOrder.LITTLE_ENDIAN)
+        for (value in this) buffer.putFloat(value)
+        return buffer.array()
+    }
 
     private fun classifierInputTensorFromBitmap(bitmap: Bitmap): FloatArray {
         require(bitmap.width == 224 && bitmap.height == 224)
