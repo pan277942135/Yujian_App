@@ -386,8 +386,8 @@ jobs:
   det-fish-v03-api36-runtime:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 329 }}
     needs: build
-    runs-on: self-hosted
-    timeout-minutes: 60
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
     permissions:
       actions: read
       contents: read
@@ -410,43 +410,28 @@ jobs:
       - name: Initialize API 36 evidence directory
         run: mkdir -p "$EVIDENCE_DIR"
 
-      - name: Prepare self-hosted API 36 Android SDK with KVM
-        shell: bash
-        run: |
-          set -euo pipefail
-          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/opt/android-sdk}}"
-          test -d "$sdk_root"
-          export ANDROID_SDK_ROOT="$sdk_root"
-          export ANDROID_HOME="$sdk_root"
-          export PATH="$sdk_root/platform-tools:$sdk_root/emulator:$sdk_root/cmdline-tools/latest/bin:$PATH"
-          test -x "$sdk_root/cmdline-tools/latest/bin/sdkmanager"
-          test -e /dev/kvm
-          sudo chmod 0666 /dev/kvm
-          test -r /dev/kvm && test -w /dev/kvm
-          yes | sdkmanager --licenses >/dev/null
-          sdkmanager --install \
-            "platform-tools" \
-            "emulator" \
-            "build-tools;35.0.0" \
-            "system-images;android-36;google_apis;x86_64"
-          echo "$sdk_root/platform-tools" >> "$GITHUB_PATH"
-          echo "$sdk_root/emulator" >> "$GITHUB_PATH"
-          echo "$sdk_root/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-          {
-            echo "sdk_root=$sdk_root"
-            echo "kvm=/dev/kvm available"
-            echo "emulator_acceleration=hardware"
-          } > "$EVIDENCE_DIR/runtime-mode.txt"
+      - name: Set up API 36 Android SDK and Emulator
+        uses: android-actions/setup-android@v3
+        with:
+          packages: >-
+            platform-tools
+            emulator
+            build-tools;35.0.0
+            system-images;android-36;google_apis;x86_64
+
+      - name: Record software-emulator execution mode
+        run: echo "emulator_acceleration=software (-accel off); KVM not required; 4 cores / 4096 MB" > "$EVIDENCE_DIR/runtime-mode.txt"
 
       - name: Provision and boot API 36 Emulator
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$EVIDENCE_DIR" "$ANDROID_AVD_HOME"
-          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/opt/android-sdk}}"
-          test -d "$sdk_root"
-          export ANDROID_SDK_ROOT="$sdk_root"
-          export ANDROID_HOME="$sdk_root"
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root"
+          echo "$sdk_root/platform-tools" >> "$GITHUB_PATH"
+          echo "$sdk_root/emulator" >> "$GITHUB_PATH"
+          echo "$sdk_root/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
           export PATH="$sdk_root/platform-tools:$sdk_root/emulator:$sdk_root/cmdline-tools/latest/bin:$PATH"
           printf 'no\n' | avdmanager create avd \
             --name yujian_detfish_api36 \
@@ -454,11 +439,19 @@ jobs:
             --device pixel_2 --force
           adb start-server
           nohup emulator -avd yujian_detfish_api36 -no-snapshot -no-window \
-            -accel on -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none \
+            -accel off -gpu swiftshader_indirect -cores 4 -memory 4096 \
+            -noaudio -no-boot-anim -camera-back none \
             > "$EVIDENCE_DIR/emulator.log" 2>&1 &
-          timeout 300s adb wait-for-device
+          emulator_pid=$!
+          echo "emulator_pid=$emulator_pid" >> "$EVIDENCE_DIR/runtime-provenance.txt"
+          timeout 600s adb wait-for-device
           ready=0
-          for attempt in $(seq 1 180); do
+          for attempt in $(seq 1 600); do
+            if ! kill -0 "$emulator_pid" 2>/dev/null; then
+              echo "EMULATOR_PROCESS_EXITED" | tee -a "$EVIDENCE_DIR/emulator-readiness.log"
+              tail -n 200 "$EVIDENCE_DIR/emulator.log" || true
+              exit 1
+            fi
             state="$(adb get-state 2>/dev/null | tr -d '\r' || true)"
             boot="$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
             api="$(adb shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
