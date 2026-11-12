@@ -382,6 +382,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+# DET_FISH v0.3 API 36 real-runtime gate: software acceleration is intentional on KVM-less hosted runners.
   det-fish-v03-api36-runtime:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 329 }}
     needs: build
