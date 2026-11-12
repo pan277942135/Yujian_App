@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.FishDetectorEngine
 import com.yujian.ai.ai.FishRecognitionPipeline
 import com.yujian.ai.ai.InferenceTrace
