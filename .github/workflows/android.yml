@@ -385,7 +385,7 @@ jobs:
 # DET_FISH v0.3 API 36 real-runtime gate: software acceleration is intentional on KVM-less hosted runners.
   det-fish-v03-device-run-bundle:
     name: DET_FISH v0.3 device-run bundle (no emulator; physical execution pending)
-    if: \${{ github.event_name == 'pull_request' && github.event.pull_request.number == 329 }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 329 }}
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -393,23 +393,23 @@ jobs:
       actions: read
       contents: read
     env:
-      SOURCE_SHA: \${{ needs.build.outputs.source_sha }}
+      SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
     steps:
       - name: Checkout exact PR source
         uses: actions/checkout@v4
         with:
-          ref: \${{ needs.build.outputs.source_sha }}
+          ref: ${{ needs.build.outputs.source_sha }}
 
       - name: Download exact-head APK pair from the single Android build
         uses: actions/download-artifact@v4
         with:
-          name: YuJian-runtime-apks-\${{ needs.build.outputs.source_sha }}-\${{ needs.build.outputs.model_id }}
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
           path: build/runtime-apks
 
       - name: Download existing Python ONNX CPU reference evidence
         uses: actions/download-artifact@v4
         with:
-          name: DET-FISH-v0.3-ONNX-CPU-Evidence-\${{ needs.build.outputs.source_sha }}
+          name: DET-FISH-v0.3-ONNX-CPU-Evidence-${{ needs.build.outputs.source_sha }}
           path: build/model-evidence
 
       - name: Assemble reproducible physical-device run bundle
@@ -490,8 +490,8 @@ jobs:
       - name: Upload exact-head physical-device run bundle
         uses: actions/upload-artifact@v4
         with:
-          name: DET-FISH-v0.3-Device-Run-Bundle-\${{ needs.build.outputs.source_sha }}
-          path: build/DET-FISH-v0.3-Device-Run-Bundle-\${{ needs.build.outputs.source_sha }}.zip
+          name: DET-FISH-v0.3-Device-Run-Bundle-${{ needs.build.outputs.source_sha }}
+          path: build/DET-FISH-v0.3-Device-Run-Bundle-${{ needs.build.outputs.source_sha }}.zip
           if-no-files-found: error
           retention-days: 30
 
