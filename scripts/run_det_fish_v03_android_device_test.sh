@@ -3,10 +3,10 @@
 # Usage: bash run_det_fish_v03_android_device_test.sh [evidence-output-dir]
 set -Eeuo pipefail
 
-ROOT="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_APK="$ROOT/app-debug.apk"
 TEST_APK="$ROOT/app-debug-androidTest.apk"
-OUT="\${1:-$ROOT/device-evidence}"
+OUT="${1:-$ROOT/device-evidence}"
 APP_ID="com.yujian.ai.uiv2"
 TEST_COMPONENT="com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner"
 TEST_CLASS="com.yujian.ai.DetectorOrientationRetryRuntimeTest#caseBNightFlashRunsV03DetectorClassifierAndMatchesPythonCpuReference"
@@ -25,20 +25,20 @@ if [[ -f "$ROOT/SHA256SUMS" ]]; then
 fi
 
 ADB=(adb)
-if [[ -n "\${ANDROID_SERIAL:-}" ]]; then
+if [[ -n "${ANDROID_SERIAL:-}" ]]; then
   ADB+=( -s "$ANDROID_SERIAL" )
 fi
-"\${ADB[@]}" wait-for-device
-API="$("\${ADB[@]}" shell getprop ro.build.version.sdk | tr -d '\r')"
-MODEL="$("\${ADB[@]}" shell getprop ro.product.model | tr -d '\r')"
-MANUFACTURER="$("\${ADB[@]}" shell getprop ro.product.manufacturer | tr -d '\r')"
-BOOT="$("\${ADB[@]}" shell getprop sys.boot_completed | tr -d '\r')"
+"${ADB[@]}" wait-for-device
+API="$("${ADB[@]}" shell getprop ro.build.version.sdk | tr -d '\r')"
+MODEL="$("${ADB[@]}" shell getprop ro.product.model | tr -d '\r')"
+MANUFACTURER="$("${ADB[@]}" shell getprop ro.product.manufacturer | tr -d '\r')"
+BOOT="$("${ADB[@]}" shell getprop sys.boot_completed | tr -d '\r')"
 
 if [[ "$API" != "36" || "$BOOT" != "1" ]]; then
   echo "BLOCKED: expected a boot-complete Android API 36 device; got api=$API boot=$BOOT model=$MODEL." >&2
   exit 2
 fi
-if [[ "$MODEL" != *"CMS-AL20"* && "\${ALLOW_NON_CMS_AL20:-0}" != "1" ]]; then
+if [[ "$MODEL" != *"CMS-AL20"* && "${ALLOW_NON_CMS_AL20:-0}" != "1" ]]; then
   echo "BLOCKED: connected device is '$MANUFACTURER $MODEL', not the requested HUAWEI CMS-AL20." >&2
   echo "Set ALLOW_NON_CMS_AL20=1 only if this run is intentionally on another physical API 36 device." >&2
   exit 2
@@ -55,26 +55,26 @@ mkdir -p "$OUT"
   adb version
 } > "$OUT/device-provenance.txt"
 
-"\${ADB[@]}" install -r "$APP_APK"
-"\${ADB[@]}" install -r "$TEST_APK"
-"\${ADB[@]}" shell pm list instrumentation > "$OUT/installed-instrumentation.txt"
-"\${ADB[@]}" shell pm path "$APP_ID" > "$OUT/installed-app-path.txt"
-"\${ADB[@]}" logcat -c
+"${ADB[@]}" install -r "$APP_APK"
+"${ADB[@]}" install -r "$TEST_APK"
+"${ADB[@]}" shell pm list instrumentation > "$OUT/installed-instrumentation.txt"
+"${ADB[@]}" shell pm path "$APP_ID" > "$OUT/installed-app-path.txt"
+"${ADB[@]}" logcat -c
 
 set +e
-"\${ADB[@]}" shell am instrument -w -r \
+"${ADB[@]}" shell am instrument -w -r \
   -e class "$TEST_CLASS" \
   "$TEST_COMPONENT" 2>&1 | tee "$OUT/instrumentation.log"
-INSTRUMENTATION_PIPE_STATUS=( "\${PIPESTATUS[@]}" )
+INSTRUMENTATION_PIPE_STATUS=( "${PIPESTATUS[@]}" )
 set -e
-INSTRUMENTATION_EXIT="\${INSTRUMENTATION_PIPE_STATUS[0]:-1}"
+INSTRUMENTATION_EXIT="${INSTRUMENTATION_PIPE_STATUS[0]:-1}"
 
-"\${ADB[@]}" logcat -d -v threadtime > "$OUT/logcat-full.txt"
-"\${ADB[@]}" shell dumpsys package "$APP_ID" > "$OUT/package-dump.txt" || true
-"\${ADB[@]}" shell dumpsys meminfo "$APP_ID" > "$OUT/memory-after-test.txt" || true
+"${ADB[@]}" logcat -d -v threadtime > "$OUT/logcat-full.txt"
+"${ADB[@]}" shell dumpsys package "$APP_ID" > "$OUT/package-dump.txt" || true
+"${ADB[@]}" shell dumpsys meminfo "$APP_ID" > "$OUT/memory-after-test.txt" || true
 
 mkdir -p "$OUT/android-app-files"
-"\${ADB[@]}" pull "$DEVICE_FILES" "$OUT/android-app-files/" || {
+"${ADB[@]}" pull "$DEVICE_FILES" "$OUT/android-app-files/" || {
   echo "WARNING: could not pull app-specific evidence directory: $DEVICE_FILES" | tee "$OUT/evidence-pull-warning.txt"
 }
 
@@ -97,7 +97,7 @@ fi
   cd "$OUT"
   find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
 )
-ARCHIVE="\${OUT%/}.zip"
+ARCHIVE="${OUT%/}.zip"
 rm -f "$ARCHIVE"
 zip -qr "$ARCHIVE" "$OUT"
 echo "ANDROID_DEVICE_INFERENCE_PASS"
