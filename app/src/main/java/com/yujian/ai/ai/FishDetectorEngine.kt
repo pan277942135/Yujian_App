@@ -1,6 +1,8 @@
 package com.yujian.ai.ai
 
 import ai.onnxruntime.OnnxTensor
+import ai.onnxruntime.OnnxJavaType
+import ai.onnxruntime.TensorInfo
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import android.content.Context
@@ -17,13 +19,14 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Production DET_FISH_v0.1 runtime.
+ * Production DET_FISH_v0.3 runtime.
  *
  * Contract mirrors backend app/detector_runtime.py:
  * - YOLOX-Nano, 416x416
  * - RGB source -> Pillow-compatible BILINEAR resize -> top-left letterbox with 114
  * - BGR, FLOAT32, NCHW, values remain in 0..255
- * - decoded ONNX rows: [cx, cy, w, h, objectness, fish_probability]
+ * - v0.3 graph output is decoded XYWH rows: [cx, cy, w, h, objectness, fish_probability]
+ * - do not apply raw YOLOX grid/stride decoding to these already-decoded rows
  * - confidence = objectness * fish_probability
  * - weak threshold filtering before NMS
  */
@@ -44,6 +47,17 @@ data class DetectorAttemptTrace(
 internal data class DetectorAssessmentCandidate(
     val orientation: DetectorOrientationAttempt,
     val assessment: FishInputAssessment,
+)
+
+data class DetectorRawInferenceDebug(
+    val modelVersion: String,
+    val onnxSha256: String,
+    val inputShape: List<Int>,
+    val inputTensorSha256: String,
+    val inputTensor: FloatArray,
+    val outputShape: List<Int>,
+    val outputTensor: FloatArray,
+    val latencyMs: Long,
 )
 
 class FishDetectorEngine(private val context: Context) : AutoCloseable {
@@ -77,6 +91,8 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val sha256: String,
         val inputSize: Int,
         val inputName: String,
+        val outputName: String,
+        val outputContract: String,
     )
 
     private data class PillowAxisCoefficients(
@@ -112,11 +128,24 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
             } finally {
                 options.close()
             }.also { session ->
-                require(session.inputNames.size == 1) { "DET_FISH_v0.1 必须只有一个输入 tensor" }
-                require(session.outputNames.size == 1) { "DET_FISH_v0.1 必须只有一个输出 tensor" }
-                require(session.inputNames.first() == verifiedModel.inputName) {
-                    "DET_FISH_v0.1 输入名不一致：runtime=${session.inputNames.first()} metadata=${verifiedModel.inputName}"
+                require(session.inputNames.size == 1) { "DET_FISH_v0.3 必须只有一个输入 tensor" }
+                require(session.outputNames.size == 1) { "DET_FISH_v0.3 必须只有一个输出 tensor" }
+                require(session.inputNames.single() == verifiedModel.inputName) {
+                    "DET_FISH_v0.3 输入名不一致：runtime=${session.inputNames.single()} metadata=${verifiedModel.inputName}"
                 }
+                require(session.outputNames.single() == verifiedModel.outputName) {
+                    "DET_FISH_v0.3 输出名不一致：runtime=${session.outputNames.single()} graph=${verifiedModel.outputName}"
+                }
+                val inputInfo = session.inputInfo[verifiedModel.inputName]?.info as? TensorInfo
+                    ?: error("DET_FISH_v0.3 inputInfo is not TensorInfo")
+                require(inputInfo.type == OnnxJavaType.FLOAT &&
+                    inputInfo.shape.contentEquals(longArrayOf(1, 3, EXPECTED_INPUT_SIZE.toLong(), EXPECTED_INPUT_SIZE.toLong()))
+                ) { "DET_FISH_v0.3 runtime input tensor shape/type mismatch" }
+                val outputInfo = session.outputInfo[verifiedModel.outputName]?.info as? TensorInfo
+                    ?: error("DET_FISH_v0.3 outputInfo is not TensorInfo")
+                require(outputInfo.type == OnnxJavaType.FLOAT &&
+                    outputInfo.shape.contentEquals(longArrayOf(1, EXPECTED_OUTPUT_ROWS.toLong(), EXPECTED_OUTPUT_COLUMNS.toLong()))
+                ) { "DET_FISH_v0.3 runtime output tensor shape/type mismatch" }
             }
         } catch (failure: RecognitionStageFailureException) {
             throw failure
@@ -202,6 +231,47 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         )
     }
 
+    /**
+     * Test-only raw-tensor probe used to compare Android ORT against the pinned
+     * Python ONNX Runtime CPU reference generated from the same source raster.
+     * This does not alter the production detect()/Orientation Retry path.
+     */
+    internal suspend fun debugRawInference(bitmap: Bitmap): DetectorRawInferenceDebug =
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            require(bitmap.width > 0 && bitmap.height > 0)
+            val model = verifiedModel
+            val prepared = prepareInput(bitmap, model.inputSize)
+            val inputValuesBuffer = prepared.buffer.asFloatBuffer().duplicate()
+            val inputValues = FloatArray(inputValuesBuffer.remaining()).also(inputValuesBuffer::get)
+            val inputBytes = ByteBuffer.allocate(inputValues.size * 4)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .apply { inputValues.forEach(::putFloat) }
+                .array()
+            val shape = longArrayOf(1, 3, model.inputSize.toLong(), model.inputSize.toLong())
+            val started = System.nanoTime()
+            val rows = OnnxTensor.createTensor(environment, prepared.buffer.asFloatBuffer(), shape).use { tensor ->
+                session.run(mapOf(model.inputName to tensor)).use { result ->
+                    val output = result[0] as? OnnxTensor
+                        ?: error("DET_FISH_v0.3 debug output is not a FLOAT tensor")
+                    materializeRows(output.value)
+                }
+            }
+            val flattened = FloatArray(rows.size * EXPECTED_OUTPUT_COLUMNS)
+            rows.forEachIndexed { index, row ->
+                row.copyInto(flattened, index * EXPECTED_OUTPUT_COLUMNS)
+            }
+            DetectorRawInferenceDebug(
+                modelVersion = MODEL_VERSION,
+                onnxSha256 = model.sha256,
+                inputShape = listOf(1, 3, model.inputSize, model.inputSize),
+                inputTensorSha256 = inputBytes.sha256(),
+                inputTensor = inputValues,
+                outputShape = listOf(1, rows.size, EXPECTED_OUTPUT_COLUMNS),
+                outputTensor = flattened,
+                latencyMs = (System.nanoTime() - started) / 1_000_000,
+            )
+        }
+
     private fun detectOnce(bitmap: Bitmap, model: VerifiedModel): DetectorRun {
         val attemptStarted = System.nanoTime()
         val prepared = prepareInput(bitmap, model.inputSize)
@@ -210,7 +280,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val rows = OnnxTensor.createTensor(environment, prepared.buffer.asFloatBuffer(), shape).use { tensor ->
             session.run(mapOf(model.inputName to tensor)).use { result ->
                 val output = result[0] as? OnnxTensor
-                    ?: error("DET_FISH_v0.1 输出不是 FLOAT tensor")
+                    ?: error("DET_FISH_v0.3 输出不是 FLOAT tensor")
                 materializeRows(output.value)
             }
         }
@@ -222,6 +292,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
             sourceHeight = bitmap.height,
             minConfidence = FishDetectionQualityGate.WEAK_CONFIDENCE,
             nmsIou = FishDetectionQualityGate.NMS_IOU,
+            outputContract = model.outputContract,
         )
         return DetectorRun(
             modelVersion = MODEL_VERSION,
@@ -243,26 +314,58 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
 
     private fun verifyModelBundle(): VerifiedModel {
         val modelBytes = readAssetBytes(MODEL_FILE)
-        val metadataText = readAssetText(METADATA_FILE)
-        val contractText = readAssetText(CONTRACT_FILE)
-        val metadata = JSONObject(metadataText)
-        val contract = JSONObject(contractText)
+        val metadataBytes = readAssetBytes(METADATA_FILE)
+        val pipelineBytes = readAssetBytes(CONTRACT_FILE)
+        val snapshotBytes = readAssetBytes(SNAPSHOT_FILE)
+        val metadata = JSONObject(String(metadataBytes, Charsets.UTF_8))
+        val contract = JSONObject(String(pipelineBytes, Charsets.UTF_8))
+        val snapshot = JSONObject(String(snapshotBytes, Charsets.UTF_8))
 
         require(metadata.getString("model_version") == MODEL_VERSION) { "Detector 模型版本不匹配" }
         require(metadata.getString("model_family") == MODEL_FAMILY) { "Detector 模型家族不匹配" }
         require(metadata.getString("dataset_version") == DATASET_VERSION) { "Detector 数据集版本不匹配" }
 
         val actualSha = modelBytes.sha256()
-        require(metadata.getString("onnx_sha256") == actualSha) { "Detector ONNX SHA256 校验失败：$actualSha" }
-        require(metadata.getLong("onnx_bytes") == modelBytes.size.toLong()) {
-            "Detector ONNX 大小异常：${modelBytes.size}"
+        val metadataSha = metadataBytes.sha256()
+        val pipelineSha = pipelineBytes.sha256()
+        require(metadata.getString("onnx_sha256") == EXPECTED_ONNX_SHA256 && actualSha == EXPECTED_ONNX_SHA256) {
+            "DET_FISH_v0.3 ONNX SHA256 校验失败：$actualSha"
         }
+        require(metadata.getLong("onnx_bytes") == EXPECTED_ONNX_BYTES.toLong() &&
+            modelBytes.size == EXPECTED_ONNX_BYTES
+        ) { "DET_FISH_v0.3 ONNX byte count mismatch: ${modelBytes.size}" }
+        require(metadata.getString("checkpoint_sha256") == EXPECTED_CHECKPOINT_SHA256) {
+            "DET_FISH_v0.3 checkpoint SHA metadata mismatch"
+        }
+
+        require(snapshot.getInt("schema_version") == 1)
+        require(snapshot.getInt("release_id") == MODEL_ASSETS_RELEASE_ID)
+        require(snapshot.getLong("asset_id") == DETECTOR_ASSET_ID.toLong())
+        require(snapshot.getString("asset_name") == DETECTOR_ASSET_NAME)
+        require(snapshot.getLong("asset_size") == EXPECTED_ZIP_BYTES.toLong())
+        require(snapshot.getString("release_tag") == MODEL_ASSETS_RELEASE_TAG)
+        require(snapshot.getString("zip_sha256") == EXPECTED_ZIP_SHA256)
+        require(snapshot.getString("onnx_sha256") == actualSha)
+        require(snapshot.getLong("onnx_bytes") == modelBytes.size.toLong())
+        require(snapshot.getString("metadata_sha256") == metadataSha)
+        require(snapshot.getLong("metadata_bytes") == metadataBytes.size.toLong())
+        require(snapshot.getString("pipeline_sha256") == pipelineSha)
+        require(snapshot.getLong("pipeline_bytes") == pipelineBytes.size.toLong())
+        require(snapshot.getString("checkpoint_sha256") == EXPECTED_CHECKPOINT_SHA256)
+        require(snapshot.getLong("checkpoint_bytes") == EXPECTED_CHECKPOINT_BYTES.toLong())
+        require(snapshot.getString("input_layout") == "BGR_PLANAR")
+        require(snapshot.getInt("pad_value") == YOLOX_FILL)
+        require(closeEnough(snapshot.getDouble("nms_iou").toFloat(), FishDetectionQualityGate.NMS_IOU))
 
         require(contract.getString("contract_version") == FishDetectionQualityGate.CONTRACT_VERSION) {
             "Detector recognition contract 版本不匹配"
         }
+        require(metadata.getJSONObject("pipeline_contract").getString("contract_version") == contract.getString("contract_version")) {
+            "Detector metadata embedded pipeline contract version mismatch"
+        }
         val detector = contract.getJSONObject("detector")
         require(detector.getString("model_family") == MODEL_FAMILY)
+        require(detector.getString("class_name") == "fish")
         val inputSize = detector.getInt("input_size")
         require(inputSize == EXPECTED_INPUT_SIZE) { "Detector 输入必须为 ${EXPECTED_INPUT_SIZE}x${EXPECTED_INPUT_SIZE}" }
         require(closeEnough(detector.getDouble("strong_confidence").toFloat(), FishDetectionQualityGate.STRONG_CONFIDENCE))
@@ -276,17 +379,44 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         require(closeEnough(crop.getDouble("expand_ratio").toFloat(), FishDetectionQualityGate.CROP_EXPAND_RATIO))
         require(crop.getInt("classifier_size") == 224)
         require(crop.getString("resize_mode") == "letterbox")
+        require(crop.getJSONArray("padding_rgb").let { it.length() == 3 && it.getInt(0) == 124 && it.getInt(1) == 116 && it.getInt(2) == 104 })
+        require(crop.getJSONArray("normalization_mean").let {
+            it.length() == 3 && closeEnough(it.getDouble(0).toFloat(), 0.485f) &&
+                closeEnough(it.getDouble(1).toFloat(), 0.456f) && closeEnough(it.getDouble(2).toFloat(), 0.406f)
+        })
+        require(crop.getJSONArray("normalization_std").let {
+            it.length() == 3 && closeEnough(it.getDouble(0).toFloat(), 0.229f) &&
+                closeEnough(it.getDouble(1).toFloat(), 0.224f) && closeEnough(it.getDouble(2).toFloat(), 0.225f)
+        })
 
         val onnx = metadata.getJSONObject("onnx")
-        val shape = onnx.getJSONArray("input_shape")
-        require(shape.length() == 4 && shape.getInt(0) == 1 && shape.getInt(1) == 3)
-        require(shape.getInt(2) == inputSize && shape.getInt(3) == inputSize) {
+        require(onnx.getInt("onnx_opset") == EXPECTED_ONNX_OPSET)
+        require(onnx.getString("output_contract") == OUTPUT_CONTRACT)
+        val inputShape = onnx.getJSONArray("input_shape")
+        require(inputShape.length() == 4 && inputShape.getInt(0) == 1 && inputShape.getInt(1) == 3)
+        require(inputShape.getInt(2) == inputSize && inputShape.getInt(3) == inputSize) {
             "Detector metadata 输入 shape 与 contract 不一致"
         }
+        val outputShape = onnx.getJSONArray("output_shape")
+        require(outputShape.length() == 3 && outputShape.getInt(0) == 1 &&
+            outputShape.getInt(1) == EXPECTED_OUTPUT_ROWS && outputShape.getInt(2) == EXPECTED_OUTPUT_COLUMNS
+        ) { "DET_FISH_v0.3 metadata output shape mismatch" }
         val inputName = onnx.getString("input_name")
-        require(inputName.isNotBlank())
+        require(inputName == EXPECTED_INPUT_NAME)
+        val outputName = snapshot.getString("output_name")
+        require(outputName.isNotBlank())
+        require(snapshot.getString("output_contract") == OUTPUT_CONTRACT)
+        require(snapshot.getJSONArray("input_shape").let {
+            it.length() == 4 && it.getInt(0) == 1 && it.getInt(1) == 3 &&
+                it.getInt(2) == EXPECTED_INPUT_SIZE && it.getInt(3) == EXPECTED_INPUT_SIZE
+        })
+        require(snapshot.getJSONArray("output_shape").let {
+            it.length() == 3 && it.getInt(0) == 1 &&
+                it.getInt(1) == EXPECTED_OUTPUT_ROWS && it.getInt(2) == EXPECTED_OUTPUT_COLUMNS
+        })
+        require(snapshot.getString("input_dtype") == "float32" && snapshot.getString("output_dtype") == "float32")
 
-        return VerifiedModel(modelBytes, actualSha, inputSize, inputName)
+        return VerifiedModel(modelBytes, actualSha, inputSize, inputName, outputName, OUTPUT_CONTRACT)
     }
 
     private fun prepareInput(bitmap: Bitmap, inputSize: Int): PreparedInput {
@@ -437,14 +567,30 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         context.assets.open(name).bufferedReader(Charsets.UTF_8).use { it.readText() }
 
     companion object {
-        const val MODEL_VERSION = "DET_FISH_v0.1"
-        const val DATASET_VERSION = "DET_DS_v0.1"
+        const val MODEL_VERSION = "DET_FISH_v0.3"
+        const val DATASET_VERSION = "DET_DS_v0.3"
         const val MODEL_FAMILY = "YOLOX_NANO"
-        const val MODEL_FILE = "fish_detector_yolox_nano_v0_1.onnx"
+        const val MODEL_FILE = "det_fish_v0_3.onnx"
         const val METADATA_FILE = "detector_metadata.json"
         const val CONTRACT_FILE = "recognition_pipeline_v1.json"
+        const val SNAPSHOT_FILE = "detector_model_release_snapshot.json"
         const val EXPECTED_INPUT_SIZE = 416
         const val YOLOX_FILL = 114
+        const val EXPECTED_OUTPUT_ROWS = 3549
+        const val EXPECTED_OUTPUT_COLUMNS = 6
+        const val EXPECTED_INPUT_NAME = "images"
+        const val OUTPUT_CONTRACT = "decoded_xywh_objectness_class_probability"
+        const val EXPECTED_ONNX_OPSET = 17
+        const val EXPECTED_ONNX_BYTES = 3_753_998
+        const val EXPECTED_ZIP_BYTES = 10_525_017
+        const val EXPECTED_CHECKPOINT_BYTES = 7_581_047
+        const val EXPECTED_ONNX_SHA256 = "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1"
+        const val EXPECTED_ZIP_SHA256 = "4a3dd5a55f254e6a813d7f029e23b8fe00caf7c616422be51510b70a3ba495ca"
+        const val EXPECTED_CHECKPOINT_SHA256 = "3e2b4d835de65bf408f565f5104c9993d3c558527690782e75a4415e3c67ca89"
+        const val MODEL_ASSETS_RELEASE_ID = 422778098
+        const val MODEL_ASSETS_RELEASE_TAG = "model-assets-v1"
+        const val DETECTOR_ASSET_ID = 672467369
+        const val DETECTOR_ASSET_NAME = "det-fish-v03.zip"
         const val ORIENTATION_RETRY_POLICY_VERSION = "DETECTOR_ORIENTATION_RETRY_v2"
         private const val DETECTOR_INTRA_OP_THREADS = 2
         val ORIENTATION_ATTEMPTS = listOf(
@@ -463,10 +609,14 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
             sourceHeight: Int,
             minConfidence: Float = FishDetectionQualityGate.WEAK_CONFIDENCE,
             nmsIou: Float = FishDetectionQualityGate.NMS_IOU,
+            outputContract: String = OUTPUT_CONTRACT,
         ): List<FishDetection> {
+            require(outputContract == OUTPUT_CONTRACT) {
+                "DET_FISH_v0.3 decoder refuses unsupported output semantics: $outputContract"
+            }
             require(scale > 0f && sourceWidth > 0 && sourceHeight > 0)
             val decoded = rows.mapNotNull { row ->
-                if (row.size < 6) return@mapNotNull null
+                if (row.size != EXPECTED_OUTPUT_COLUMNS) return@mapNotNull null
                 val cx = row[0]
                 val cy = row[1]
                 val width = row[2]
@@ -564,11 +714,18 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         }
 
         private fun materializeRows(value: Any): Array<FloatArray> {
-            val batch = value as? Array<*> ?: error("DET_FISH_v0.1 输出维度异常")
-            require(batch.size == 1) { "DET_FISH_v0.1 batch size 必须为 1" }
-            val rows = batch[0] as? Array<*> ?: error("DET_FISH_v0.1 输出 rows 异常")
+            val batch = value as? Array<*> ?: error("DET_FISH_v0.3 输出维度异常")
+            require(batch.size == 1) { "DET_FISH_v0.3 batch size 必须为 1" }
+            val rows = batch[0] as? Array<*> ?: error("DET_FISH_v0.3 输出 rows 异常")
+            require(rows.size == EXPECTED_OUTPUT_ROWS) {
+                "DET_FISH_v0.3 输出 rows 必须为 $EXPECTED_OUTPUT_ROWS，实际=${rows.size}"
+            }
             return Array(rows.size) { index ->
-                rows[index] as? FloatArray ?: error("DET_FISH_v0.1 row[$index] 不是 FloatArray")
+                val row = rows[index] as? FloatArray ?: error("DET_FISH_v0.3 row[$index] 不是 FloatArray")
+                require(row.size == EXPECTED_OUTPUT_COLUMNS) {
+                    "DET_FISH_v0.3 row[$index] 列数必须为 $EXPECTED_OUTPUT_COLUMNS，实际=${row.size}"
+                }
+                row
             }
         }
 

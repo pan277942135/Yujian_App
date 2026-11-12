@@ -7,6 +7,11 @@ import json
 import sys
 from pathlib import Path
 
+from det_fish_v03_contract import (
+    ANDROID_CLASSIFIER_PARITY_FILE,
+    DetectorContractError,
+    verify_classifier_bundle_parity_record,
+)
 from production_model_contract import (
     ANDROID_CLASS_MAP_FILE,
     ANDROID_METADATA_FILE,
@@ -55,8 +60,16 @@ def main() -> int:
         print(f"PRODUCTION_MODEL_VERIFY_FAILED: {error}", file=sys.stderr)
         return 1
 
+    try:
+        parity = json.loads((ASSETS / ANDROID_CLASSIFIER_PARITY_FILE).read_text(encoding="utf-8"))
+        verify_classifier_bundle_parity_record(parity, snapshot)
+    except (OSError, json.JSONDecodeError, ModelContractError, DetectorContractError, ValueError, KeyError) as error:
+        print(f"CLASSIFIER_BUNDLE_PARITY_VERIFY_FAILED: {error}", file=sys.stderr)
+        return 1
+
     summary = snapshot_summary(snapshot)
     print("PRODUCTION_MODEL_VERIFY_OK")
+    print("CLASSIFIER_BUNDLE_PARITY_VERIFY_OK")
     for key, value in summary.items():
         print(f"{key}={json.dumps(value, ensure_ascii=False) if isinstance(value, (list, dict)) else value}")
     print(f"model_snapshot={ANDROID_SNAPSHOT_FILE}")
