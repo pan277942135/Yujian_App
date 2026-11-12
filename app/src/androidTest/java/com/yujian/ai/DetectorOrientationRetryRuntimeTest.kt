@@ -1,5 +1,6 @@
 package com.yujian.ai
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -15,6 +16,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
+import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
@@ -120,6 +123,152 @@ class DetectorOrientationRetryRuntimeTest {
             assertTrue(prediction.top1.speciesKey.isNotBlank())
             assertTrue(prediction.top1.speciesName.isNotBlank())
             assertTrue(prediction.top1.confidence.isFinite())
+            assertEquals("yellow_catfish", prediction.top1.speciesKey)
+            assertTrue("registered night-catch Top1 must remain HIGH", prediction.top1.confidence >= 0.55f)
+            assertTrue("registered night-catch must not be low-confidence", !prediction.lowConfidence)
+            assertTrue("classifier must return at least five ranked candidates", prediction.candidates.size >= 5)
+            assertTrue(
+                "classifier candidates must be ranked by descending probability",
+                prediction.candidates.zipWithNext().all { (a, b) -> a.confidence >= b.confidence },
+            )
+
+            val top5 = prediction.candidates.take(5)
+            val classifierInputBitmap = requireNotNull(prediction.modelInputBitmap)
+            val classifierInputTensor = classifierInputTensorFromBitmap(classifierInputBitmap)
+            val classifierInputBytes = classifierInputTensor.toLittleEndianBytes()
+            val classifierTensorShaFromTrace = Regex("tensor_sha256_f32le=([0-9a-f]{64})")
+                .find(InferenceTrace.lastReport)?.groupValues?.get(1)
+                ?: error("Classifier tensor SHA is missing from InferenceTrace")
+            val classifierTensorSha = classifierInputBytes.sha256()
+            assertEquals("Reconstructed classifier tensor must match the production engine tensor SHA",
+                classifierTensorShaFromTrace, classifierTensorSha)
+
+            val evidenceBase = requireNotNull(targetContext.getExternalFilesDir(null)) {
+                "External app-specific storage is required to export Android inference evidence"
+            }
+            val evidenceDir = File(evidenceBase, "det-fish-v03-evidence")
+            evidenceDir.mkdirs()
+            evidenceDir.listFiles()?.forEach { it.deleteRecursively() }
+
+            val sourceFile = File(evidenceDir, "source_fixture.jpg").apply { writeBytes(bytes) }
+            val detectorInputAndroidFile = File(evidenceDir, "detector_input_android_f32_le.bin")
+                .apply { writeBytes(raw.inputTensor.toLittleEndianBytes()) }
+            val detectorInputPythonFile = File(evidenceDir, "detector_input_python_f32_le.bin")
+                .apply { writeBytes(expectedInputBytes) }
+            val detectorOutputAndroidFile = File(evidenceDir, "detector_output_android_f32_le.bin")
+                .apply { writeBytes(raw.outputTensor.toLittleEndianBytes()) }
+            val detectorOutputPythonFile = File(evidenceDir, "detector_output_python_f32_le.bin")
+                .apply { writeBytes(expectedOutputBytes) }
+            val classifierInputTensorFile = File(evidenceDir, "classifier_input_android_f32_le.bin")
+                .apply { writeBytes(classifierInputBytes) }
+            val referenceFile = File(evidenceDir, "python_detector_reference.json")
+                .apply { writeBytes(testContext.assets.open(REFERENCE).use { it.readBytes() }) }
+            val cropPixels = requireNotNull(result.cropPixels)
+            val cropBitmap = Bitmap.createBitmap(
+                source,
+                cropPixels[0],
+                cropPixels[1],
+                cropPixels[2] - cropPixels[0],
+                cropPixels[3] - cropPixels[1],
+            )
+            val cropFile = File(evidenceDir, "detector_classifier_crop.png")
+            cropBitmap.writePng(cropFile)
+            cropBitmap.recycle()
+            val classifierInputBitmapFile = File(evidenceDir, "classifier_model_input_224.png")
+            classifierInputBitmap.writePng(classifierInputBitmapFile)
+            File(evidenceDir, "classifier_inference_report.txt").writeText(InferenceTrace.lastReport)
+
+            val attemptsJson = org.json.JSONArray()
+            result.detectorRun.attemptTrace.forEach { attempt ->
+                attemptsJson.put(
+                    JSONObject()
+                        .put("orientation", attempt.orientationAttempt)
+                        .put("detection_count", attempt.detectionCount)
+                        .put("top_confidence", attempt.topConfidence?.toDouble())
+                        .put("quality_status", attempt.qualityStatus)
+                        .put("quality_level", attempt.qualityLevel),
+                )
+            }
+            val top5Json = org.json.JSONArray()
+            top5.forEach { candidate ->
+                top5Json.put(
+                    JSONObject()
+                        .put("rank", top5Json.length() + 1)
+                        .put("class_index", candidate.classIndex)
+                        .put("species_key", candidate.speciesKey)
+                        .put("species_name", candidate.speciesName)
+                        .put("probability", candidate.confidence.toDouble()),
+                )
+            }
+            val allCandidatesJson = org.json.JSONArray()
+            prediction.candidates.forEach { candidate ->
+                allCandidatesJson.put(
+                    JSONObject()
+                        .put("class_index", candidate.classIndex)
+                        .put("species_key", candidate.speciesKey)
+                        .put("species_name", candidate.speciesName)
+                        .put("probability", candidate.confidence.toDouble()),
+                )
+            }
+            val bbox = requireNotNull(result.assessment.primary).box.normalized()
+            val evidence = JSONObject()
+                .put("schema_version", 1)
+                .put("build_sha", BuildConfig.SOURCE_REVISION)
+                .put("package_name", targetContext.packageName)
+                .put("device_manufacturer", android.os.Build.MANUFACTURER)
+                .put("device_model", android.os.Build.MODEL)
+                .put("android_api", android.os.Build.VERSION.SDK_INT)
+                .put("fixture", FIXTURE)
+                .put("fixture_sha256", CASE_B_SOURCE_SHA256)
+                .put("fixture_dimensions", org.json.JSONArray(listOf(source.width, source.height)))
+                .put("detector", JSONObject()
+                    .put("model_version", result.detectorRun.modelVersion)
+                    .put("onnx_sha256", result.detectorRun.onnxSha256)
+                    .put("input_shape", org.json.JSONArray(raw.inputShape))
+                    .put("output_shape", org.json.JSONArray(raw.outputShape))
+                    .put("raw_input_android_file", detectorInputAndroidFile.name)
+                    .put("raw_input_android_sha256", raw.inputTensorSha256)
+                    .put("raw_input_python_file", detectorInputPythonFile.name)
+                    .put("raw_output_android_file", detectorOutputAndroidFile.name)
+                    .put("raw_output_android_sha256", detectorOutputAndroidFile.readBytes().sha256())
+                    .put("raw_output_python_file", detectorOutputPythonFile.name)
+                    .put("raw_output_python_sha256", reference.getString("output_tensor_sha256"))
+                    .put("input_max_abs_error", inputMaxAbs.toDouble())
+                    .put("input_mean_abs_error", inputMeanAbs)
+                    .put("input_diff", tensorDiffJson(expectedInput, raw.inputTensor))
+                    .put("output_max_abs_error", outputMaxAbs.toDouble())
+                    .put("output_mean_abs_error", outputMeanAbs.toDouble())
+                    .put("output_diff", tensorDiffJson(expectedOutput, raw.outputTensor))
+                    .put("raw_inference_latency_ms", raw.latencyMs)
+                    .put("pipeline_latency_ms", result.detectorRun.latencyMs)
+                    .put("orientation_retry_policy", result.detectorRun.retryPolicyVersion)
+                    .put("orientation_attempts", attemptsJson)
+                    .put("selected_orientation", result.detectorRun.selectedAttempt)
+                    .put("selection_reason", result.detectorRun.selectionReason)
+                    .put("bbox_normalized", org.json.JSONArray(listOf(bbox.x1, bbox.y1, bbox.x2, bbox.y2)))
+                    .put("confidence", requireNotNull(result.assessment.primary).confidence.toDouble())
+                    .put("crop_pixels_xyxy", org.json.JSONArray(cropPixels.toList()))
+                    .put("crop_sha256", cropFile.readBytes().sha256()))
+                .put("classifier", JSONObject()
+                    .put("model_version", prediction.modelVersion)
+                    .put("tflite_sha256", prediction.modelSha256)
+                    .put("input_shape", org.json.JSONArray(listOf(1, 3, 224, 224)))
+                    .put("input_tensor_file", classifierInputTensorFile.name)
+                    .put("input_tensor_sha256", classifierTensorSha)
+                    .put("input_bitmap_file", classifierInputBitmapFile.name)
+                    .put("top1_species_key", prediction.top1.speciesKey)
+                    .put("top1_species_name", prediction.top1.speciesName)
+                    .put("top1_probability", prediction.top1.confidence.toDouble())
+                    .put("top5", top5Json)
+                    .put("all_15_candidates", allCandidatesJson)
+                    .put("latency_ms", prediction.latencyMs)
+                    .put("total_pipeline_latency_ms", result.totalLatencyMs))
+                .put("python_reference_file", referenceFile.name)
+                .put("classifier_report_file", "classifier_inference_report.txt")
+                .put("source_file", sourceFile.name)
+            File(evidenceDir, "android_inference_evidence.json").writeText(evidence.toString(2) + "\n")
+            println("DET_FISH_V03_EVIDENCE_DIR=\${evidenceDir.absolutePath}")
+            println("DET_FISH_V03_EVIDENCE_JSON=\${evidence.toString()}")
 
             println(
                 "DET_FISH_V03_REAL_INFERENCE " + JSONObject()
@@ -164,6 +313,52 @@ class DetectorOrientationRetryRuntimeTest {
         } finally {
             if (!source.isRecycled) source.recycle()
         }
+    }
+
+    private fun FloatArray.toLittleEndianBytes(): ByteArray =
+        ByteBuffer.allocate(size * 4).order(ByteOrder.LITTLE_ENDIAN)
+            .apply { forEach(::putFloat) }
+            .array()
+
+    private fun classifierInputTensorFromBitmap(bitmap: Bitmap): FloatArray {
+        require(bitmap.width == 224 && bitmap.height == 224)
+        val pixels = IntArray(bitmap.width * bitmap.height)
+        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        val pixelCount = pixels.size
+        val values = FloatArray(pixelCount * 3)
+        pixels.forEachIndexed { index, pixel ->
+            val red = (pixel shr 16) and 0xFF
+            val green = (pixel shr 8) and 0xFF
+            val blue = pixel and 0xFF
+            values[index] = (red / 255f - 0.485f) / 0.229f
+            values[pixelCount + index] = (green / 255f - 0.456f) / 0.224f
+            values[pixelCount * 2 + index] = (blue / 255f - 0.406f) / 0.225f
+        }
+        return values
+    }
+
+    private fun Bitmap.writePng(file: File) {
+        FileOutputStream(file).use { output ->
+            check(compress(Bitmap.CompressFormat.PNG, 100, output)) { "Unable to write \${file.name}" }
+        }
+    }
+
+    private fun tensorDiffJson(expected: FloatArray, actual: FloatArray): JSONObject {
+        require(expected.size == actual.size)
+        val differences = expected.indices.map { index -> index to abs(expected[index] - actual[index]) }
+        val largest = org.json.JSONArray()
+        differences.sortedByDescending { it.second }.take(20).forEach { (index, difference) ->
+            largest.put(JSONObject()
+                .put("index", index)
+                .put("absolute_error", difference.toDouble())
+                .put("expected", expected[index].toDouble())
+                .put("actual", actual[index].toDouble()))
+        }
+        return JSONObject()
+            .put("element_count", expected.size)
+            .put("max_abs_error", differences.maxOfOrNull { it.second }?.toDouble() ?: 0.0)
+            .put("mean_abs_error", differences.sumOf { it.second.toDouble() } / expected.size)
+            .put("largest_20_differences", largest)
     }
 
     private fun ByteArray.toFloatArrayLittleEndian(): FloatArray {
