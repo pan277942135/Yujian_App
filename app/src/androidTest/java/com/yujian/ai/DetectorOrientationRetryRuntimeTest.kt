@@ -61,12 +61,13 @@ class DetectorOrientationRetryRuntimeTest {
             val expectedInput = expectedInputBytes.toFloatArrayLittleEndian()
             assertEquals(expectedInput.size, raw.inputTensor.size)
             val inputMaxAbs = expectedInput.indices.maxOf { abs(expectedInput[it] - raw.inputTensor[it]) }
-            val inputMeanAbs = expectedInput.indices.sumOf { abs(expectedInput[it] - raw.inputTensor[it]) } /
-                expectedInput.size.toFloat()
+            val inputMeanAbs = expectedInput.indices.sumOf {
+                abs(expectedInput[it] - raw.inputTensor[it]).toDouble()
+            } / expectedInput.size
             // JPEG decoding can differ slightly between Pillow/libjpeg and Android/Skia.
             // BGR planar ordering, letterbox geometry, and all tensor values are compared.
             assertTrue("preprocess max abs error=" + inputMaxAbs, inputMaxAbs <= INPUT_MAX_ABS_TOLERANCE)
-            assertTrue("preprocess mean abs error=" + inputMeanAbs, inputMeanAbs <= INPUT_MEAN_ABS_TOLERANCE)
+            assertTrue("preprocess mean abs error=" + inputMeanAbs, inputMeanAbs <= INPUT_MEAN_ABS_TOLERANCE.toDouble())
 
             val expectedOutputBytes = Base64.decode(
                 reference.getString("output_tensor_f32_le_base64"),
