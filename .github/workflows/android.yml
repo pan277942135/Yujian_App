@@ -383,141 +383,116 @@ jobs:
           retention-days: 14
 
 # DET_FISH v0.3 API 36 real-runtime gate: software acceleration is intentional on KVM-less hosted runners.
-  det-fish-v03-api36-runtime:
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 329 }}
+  det-fish-v03-device-run-bundle:
+    name: DET_FISH v0.3 device-run bundle (no emulator; physical execution pending)
+    if: \${{ github.event_name == 'pull_request' && github.event.pull_request.number == 329 }}
     needs: build
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 20
     permissions:
       actions: read
       contents: read
     env:
-      SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
-      ANDROID_AVD_HOME: ${{ github.workspace }}/.android-avd
-      EVIDENCE_DIR: evidence/det-fish-v03-api36
+      SOURCE_SHA: \${{ needs.build.outputs.source_sha }}
     steps:
       - name: Checkout exact PR source
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.build.outputs.source_sha }}
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Initialize API 36 evidence directory
-        run: mkdir -p "$EVIDENCE_DIR"
-
-      - name: Set up API 36 Android SDK and Emulator
-        uses: android-actions/setup-android@v3
-        with:
-          packages: >-
-            platform-tools
-            emulator
-            build-tools;35.0.0
-            system-images;android-36;google_apis;x86_64
-
-      - name: Record software-emulator execution mode
-        run: echo "emulator_acceleration=software (-accel off); KVM not required; 4 cores / 4096 MB" > "$EVIDENCE_DIR/runtime-mode.txt"
-
-      - name: Provision and boot API 36 Emulator
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p "$EVIDENCE_DIR" "$ANDROID_AVD_HOME"
-          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
-          test -n "$sdk_root"
-          echo "$sdk_root/platform-tools" >> "$GITHUB_PATH"
-          echo "$sdk_root/emulator" >> "$GITHUB_PATH"
-          echo "$sdk_root/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-          export PATH="$sdk_root/platform-tools:$sdk_root/emulator:$sdk_root/cmdline-tools/latest/bin:$PATH"
-          printf 'no\n' | avdmanager create avd \
-            --name yujian_detfish_api36 \
-            --package "system-images;android-36;google_apis;x86_64" \
-            --device pixel_2 --force
-          adb start-server
-          nohup emulator -avd yujian_detfish_api36 -no-snapshot -no-window \
-            -accel off -gpu swiftshader_indirect -cores 4 -memory 4096 \
-            -noaudio -no-boot-anim -camera-back none \
-            > "$EVIDENCE_DIR/emulator.log" 2>&1 &
-          emulator_pid=$!
-          echo "emulator_pid=$emulator_pid" >> "$EVIDENCE_DIR/runtime-provenance.txt"
-          timeout 600s adb wait-for-device
-          ready=0
-          for attempt in $(seq 1 600); do
-            if ! kill -0 "$emulator_pid" 2>/dev/null; then
-              echo "EMULATOR_PROCESS_EXITED" | tee -a "$EVIDENCE_DIR/emulator-readiness.log"
-              tail -n 200 "$EVIDENCE_DIR/emulator.log" || true
-              exit 1
-            fi
-            state="$(adb get-state 2>/dev/null | tr -d '\r' || true)"
-            boot="$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
-            api="$(adb shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
-            printf 'READINESS attempt=%s state=%s boot=%s api=%s\n' "$attempt" "$state" "$boot" "$api" \
-              | tee -a "$EVIDENCE_DIR/emulator-readiness.log"
-            if [[ "$state" == "device" && "$boot" == "1" && "$api" == "36" ]]; then
-              ready=1
-              break
-            fi
-            sleep 2
-          done
-          test "$ready" = 1
-          adb shell settings put global animator_duration_scale 0
-          adb shell settings put global transition_animation_scale 0
-          adb shell settings put global window_animation_scale 0
-          {
-            echo "source_sha=$SOURCE_SHA"
-            echo "api_level=$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
-            echo "device=$(adb shell getprop ro.product.model | tr -d '\r')"
-          } > "$EVIDENCE_DIR/runtime-provenance.txt"
+          ref: \${{ needs.build.outputs.source_sha }}
 
       - name: Download exact-head APK pair from the single Android build
         uses: actions/download-artifact@v4
         with:
-          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          name: YuJian-runtime-apks-\${{ needs.build.outputs.source_sha }}-\${{ needs.build.outputs.model_id }}
           path: build/runtime-apks
 
-      - name: Verify and install exact-head APK pair
+      - name: Download existing Python ONNX CPU reference evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: DET-FISH-v0.3-ONNX-CPU-Evidence-\${{ needs.build.outputs.source_sha }}
+          path: build/model-evidence
+
+      - name: Assemble reproducible physical-device run bundle
         shell: bash
         run: |
           set -euo pipefail
-          test -s build/runtime-apks/app-debug.apk
-          test -s build/runtime-apks/app-debug-androidTest.apk
-          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
-          echo "app_apk_sha256=$(sha256sum build/runtime-apks/app-debug.apk | awk '{print $1}')" \
-            | tee -a "$EVIDENCE_DIR/runtime-provenance.txt"
-          adb install -r build/runtime-apks/app-debug.apk
-          adb install -r build/runtime-apks/app-debug-androidTest.apk
-          adb shell pm list instrumentation | tee "$EVIDENCE_DIR/installed-instrumentation.txt"
+          BUNDLE_DIR="build/det-fish-v03-device-run-bundle"
+          mkdir -p "$BUNDLE_DIR/python-reference"
+          cp build/runtime-apks/app-debug.apk "$BUNDLE_DIR/"
+          cp build/runtime-apks/app-debug-androidTest.apk "$BUNDLE_DIR/"
+          cp build/runtime-apks/model_release_contract.json "$BUNDLE_DIR/"
+          cp build/runtime-apks/apk_model_trace.json "$BUNDLE_DIR/"
+          cp scripts/run_det_fish_v03_android_device_test.sh "$BUNDLE_DIR/"
+          unzip -p build/runtime-apks/app-debug-androidTest.apk assets/detector_case_b_night_flash.jpg \
+            > "$BUNDLE_DIR/detector_case_b_night_flash.jpg"
+          unzip -p build/runtime-apks/app-debug-androidTest.apk assets/detector_case_b_v03_reference.json \
+            > "$BUNDLE_DIR/detector_case_b_v03_reference.json"
+          unzip -p build/runtime-apks/app-debug.apk assets/class_map.json \
+            > "$BUNDLE_DIR/class_map.json"
+          unzip -p build/runtime-apks/app-debug.apk assets/classifier_bundle_parity.json \
+            > "$BUNDLE_DIR/classifier_bundle_parity.json"
+          unzip -p build/runtime-apks/app-debug.apk assets/detector_model_release_snapshot.json \
+            > "$BUNDLE_DIR/detector_model_release_snapshot.json"
+          cp build/model-evidence/detector_onnx_output_semantics.json "$BUNDLE_DIR/python-reference/"
+          cp build/model-evidence/app/src/androidTest/assets/detector_case_b_v03_reference.json \
+            "$BUNDLE_DIR/python-reference/"
+          cat > "$BUNDLE_DIR/README.md" <<'EOF'
+          # DET_FISH v0.3 + Classifier v0.2 — Physical Android Device Run
 
-      - name: Run DET_FISH v0.3 real Android inference instrumentation
-        shell: bash
-        run: |
-          set -euo pipefail
-          adb logcat -c
-          adb shell am instrument -w -r \
-            -e class com.yujian.ai.DetectorOrientationRetryRuntimeTest \
-            com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner \
-            2>&1 | tee "$EVIDENCE_DIR/instrumentation.log"
-          adb logcat -d -s YujianInference:I FishDetectorEngine:I FishRecognitionEngine:I AndroidRuntime:E \
-            > "$EVIDENCE_DIR/inference-logcat.log"
-          if grep -q "FAILURES!!!" "$EVIDENCE_DIR/instrumentation.log"; then
-            echo "ANDROID_INSTRUMENTATION_FAILED"
-            exit 1
-          fi
-          grep -Eq "OK \\([0-9]+ tests?\\)" "$EVIDENCE_DIR/instrumentation.log"
-          grep -q "DET_FISH_V03_REAL_INFERENCE" "$EVIDENCE_DIR/instrumentation.log"
-          grep -q "PIPELINE_INFERENCE_REPORT" "$EVIDENCE_DIR/instrumentation.log"
+          This bundle is built from one exact PR source SHA. It does not run or provision an emulator.
+          It is intended for the existing HUAWEI CMS-AL20 physical device on Android 16 / API 36.
 
-      - name: Upload API 36 real inference evidence
-        if: ${{ always() }}
+          ## Contents
+          - app-debug.apk and app-debug-androidTest.apk: exact-head installable APK pair.
+          - apk_model_trace.json, model_release_contract.json, detector snapshot and class map: packaged model identity evidence.
+          - detector_case_b_night_flash.jpg: fixed 1152×1536 held-out real catch photo.
+          - detector_case_b_v03_reference.json: Python ONNX Runtime CPU input/output tensor reference.
+          - python-reference/: graph semantics and ONNX CPU evidence.
+          - run_det_fish_v03_android_device_test.sh: installs the exact APK pair, runs the instrumentation test, captures full Logcat, pulls raw tensors, BBox/Crop, Classifier Top5 and SHA evidence, and creates a ZIP.
+
+          ## Run
+          1. Extract this bundle on a computer with Android Platform Tools (adb) installed.
+          2. Connect and unlock the HUAWEI CMS-AL20. Enable USB debugging and accept the computer's RSA prompt.
+          3. Confirm adb devices shows exactly one device.
+          4. Run: bash run_det_fish_v03_android_device_test.sh
+          5. Return the generated device-evidence.zip for final parity review.
+
+          ANDROID_SERIAL may be set when more than one device is connected.
+          The script requires API 36 and CMS-AL20 by default. It does not treat emulator or CI build success as physical-device success.
+
+          ## Acceptance
+          The Android instrumentation must pass the exact-head DET_FISH v0.3 + Classifier v0.2 test. The evidence archive must contain Android/Python raw detector tensors and element-level diffs, orientation attempts, mapped BBox, classifier crop and 224×224 model input, Top1/Top5, latency, full Logcat and SHA256SUMS.
+
+          Classifier Top5 is recorded from the actual Android TFLite inference. No Python classifier golden is fabricated by this bundle.
+          EOF
+          (
+            cd "$BUNDLE_DIR"
+            sha256sum \
+              app-debug.apk \
+              app-debug-androidTest.apk \
+              model_release_contract.json \
+              apk_model_trace.json \
+              detector_case_b_night_flash.jpg \
+              detector_case_b_v03_reference.json \
+              class_map.json \
+              classifier_bundle_parity.json \
+              detector_model_release_snapshot.json \
+              python-reference/detector_onnx_output_semantics.json \
+              python-reference/detector_case_b_v03_reference.json \
+              run_det_fish_v03_android_device_test.sh \
+              README.md > SHA256SUMS
+            sha256sum -c SHA256SUMS
+            chmod +x run_det_fish_v03_android_device_test.sh
+          )
+          zip -qr "build/DET-FISH-v0.3-Device-Run-Bundle-$SOURCE_SHA.zip" "$BUNDLE_DIR"
+          sha256sum "build/DET-FISH-v0.3-Device-Run-Bundle-$SOURCE_SHA.zip"
+
+      - name: Upload exact-head physical-device run bundle
         uses: actions/upload-artifact@v4
         with:
-          name: DET-FISH-v0.3-Android-API36-${{ needs.build.outputs.source_sha }}-${{ github.run_id }}
-          path: evidence/det-fish-v03-api36
-          if-no-files-found: warn
+          name: DET-FISH-v0.3-Device-Run-Bundle-\${{ needs.build.outputs.source_sha }}
+          path: build/DET-FISH-v0.3-Device-Run-Bundle-\${{ needs.build.outputs.source_sha }}.zip
+          if-no-files-found: error
           retention-days: 30
 
   fish-optics-api36-runtime:
