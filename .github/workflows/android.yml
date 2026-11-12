@@ -434,7 +434,7 @@ jobs:
           unzip -p build/runtime-apks/app-debug.apk assets/detector_model_release_snapshot.json \
             > "$BUNDLE_DIR/detector_model_release_snapshot.json"
           cp build/model-evidence/detector_onnx_output_semantics.json "$BUNDLE_DIR/python-reference/"
-          cp build/model-evidence/app/src/androidTest/assets/detector_case_b_v03_reference.json \
+          cp app/src/androidTest/assets/detector_case_b_v03_reference.json \
             "$BUNDLE_DIR/python-reference/"
           cat > "$BUNDLE_DIR/README.md" <<'EOF'
           # DET_FISH v0.3 + Classifier v0.2 — Physical Android Device Run
