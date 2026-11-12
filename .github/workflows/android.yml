@@ -410,7 +410,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: DET-FISH-v0.3-ONNX-CPU-Evidence-${{ needs.build.outputs.source_sha }}
-          path: build/model-evidence
+          path: .
 
       - name: Assemble reproducible physical-device run bundle
         shell: bash
