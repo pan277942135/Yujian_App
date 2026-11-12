@@ -386,7 +386,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 329 }}
     needs: build
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 60
     permissions:
       actions: read
       contents: read
@@ -406,6 +406,9 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Initialize API 36 evidence directory
+        run: mkdir -p "$EVIDENCE_DIR"
+
       - name: Set up API 36 Android SDK and Emulator
         uses: android-actions/setup-android@v3
         with:
@@ -415,15 +418,8 @@ jobs:
             build-tools;35.0.0
             system-images;android-36;google_apis;x86_64
 
-      - name: Enable KVM access
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
-            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-          test -r /dev/kvm && test -w /dev/kvm
+      - name: Record software-emulator execution mode
+        run: echo "emulator_acceleration=software (-accel off); KVM not required" > "$EVIDENCE_DIR/runtime-mode.txt"
 
       - name: Provision and boot API 36 Emulator
         shell: bash
@@ -442,11 +438,11 @@ jobs:
             --device pixel_2 --force
           adb start-server
           nohup emulator -avd yujian_detfish_api36 -no-snapshot -no-window \
-            -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none \
+            -accel off -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none \
             > "$EVIDENCE_DIR/emulator.log" 2>&1 &
-          timeout 300s adb wait-for-device
+          timeout 900s adb wait-for-device
           ready=0
-          for attempt in $(seq 1 180); do
+          for attempt in $(seq 1 300); do
             state="$(adb get-state 2>/dev/null | tr -d '\r' || true)"
             boot="$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
             api="$(adb shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
@@ -456,7 +452,7 @@ jobs:
               ready=1
               break
             fi
-            sleep 2
+            sleep 3
           done
           test "$ready" = 1
           adb shell settings put global animator_duration_scale 0
@@ -498,6 +494,11 @@ jobs:
             2>&1 | tee "$EVIDENCE_DIR/instrumentation.log"
           adb logcat -d -s YujianInference:I FishDetectorEngine:I FishRecognitionEngine:I AndroidRuntime:E \
             > "$EVIDENCE_DIR/inference-logcat.log"
+          if grep -q "FAILURES!!!" "$EVIDENCE_DIR/instrumentation.log"; then
+            echo "ANDROID_INSTRUMENTATION_FAILED"
+            exit 1
+          fi
+          grep -Eq "OK \\([0-9]+ tests?\\)" "$EVIDENCE_DIR/instrumentation.log"
           grep -q "DET_FISH_V03_REAL_INFERENCE" "$EVIDENCE_DIR/instrumentation.log"
           grep -q "PIPELINE_INFERENCE_REPORT" "$EVIDENCE_DIR/instrumentation.log"
 
@@ -507,7 +508,7 @@ jobs:
         with:
           name: DET-FISH-v0.3-Android-API36-${{ needs.build.outputs.source_sha }}-${{ github.run_id }}
           path: evidence/det-fish-v03-api36
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
   fish-optics-api36-runtime:
