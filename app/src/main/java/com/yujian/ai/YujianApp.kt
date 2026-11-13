@@ -1004,6 +1004,24 @@ fun YujianApp() {
                                 revealSessionStore.updateProcessingPhoto(RecognitionRevealKey(sessionId, attemptId), photo)
                             }
                         },
+                        onFishPathSnapshot = { pathSnapshot ->
+                            val sessionId = recognitionSessionId
+                            if (sessionId != null && attemptId != null && activeRecognitionAttemptId == attemptId &&
+                                sessionImage?.imageId == pathSnapshot.imageId &&
+                                sessionImage?.photoSha256 == pathSnapshot.photoSha256
+                            ) {
+                                val accepted = revealSessionStore.updateFishPathSnapshot(
+                                    RecognitionRevealKey(sessionId, attemptId), pathSnapshot,
+                                )
+                                android.util.Log.i(
+                                    "RecognitionRevealHandoff",
+                                    "FISH_PATH_SNAPSHOT session=$sessionId attempt=$attemptId " +
+                                        "image=${pathSnapshot.imageId} path=${pathSnapshot.fishPathId} " +
+                                        "mask=${pathSnapshot.maskSha256.take(16)} mask_version=${pathSnapshot.maskVersion} " +
+                                        "geometry_version=${pathSnapshot.geometryVersion} accepted=$accepted",
+                                )
+                            }
+                        },
                         recognitionSessionId = recognitionSessionId,
                         recognitionAttemptId = attemptId,
                         recognitionAttemptDeadline = recognitionAttemptDeadline,
