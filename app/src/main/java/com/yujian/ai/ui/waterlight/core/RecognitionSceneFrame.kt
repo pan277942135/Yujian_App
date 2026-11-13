@@ -1,5 +1,7 @@
 package com.yujian.ai.ui.waterlight.core
 
+import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
+
 /** Semantic scene states. Durations are local minimum visibility targets, never a global timeline. */
 enum class RecognitionSceneStage(val minimumVisibleMs: Long, val displayName: String) {
     PHOTO_STABLE(0L, "照片稳定"),
@@ -67,10 +69,14 @@ data class RecognitionSceneFrame(
     val monotonicTimestampMs: Long = 0L,
     val energyEvent: EnergyEvent? = null,
     val stageEventComplete: Boolean = false,
+    val resultHandoffSubstage: ResultHandoffSubstage? = null,
+    val resultInfoArrivalProgress: Float = 0f,
+    val resultSceneStable: Boolean = false,
 ) {
     init {
         require(sceneElapsedMs >= 0L && opticalReferenceElapsedMs >= 0L && stageElapsedMs >= 0L)
         require(stageProgress in 0f..1f)
+        require(resultInfoArrivalProgress in 0f..1f)
         require(eventSequence >= 0L && monotonicTimestampMs >= 0L)
     }
 
@@ -97,6 +103,9 @@ object RecognitionSceneCoordinator {
         monotonicTimestampMs: Long = 0L,
         energyEvent: EnergyEvent? = null,
         stageEventComplete: Boolean = false,
+        resultHandoffSubstage: ResultHandoffSubstage? = null,
+        resultInfoArrivalProgress: Float = 0f,
+        resultSceneStable: Boolean = false,
     ): RecognitionSceneFrame = RecognitionSceneFrame(
         identity = identity,
         sceneElapsedMs = sceneElapsedMs.coerceAtLeast(0L),
@@ -113,6 +122,9 @@ object RecognitionSceneCoordinator {
         monotonicTimestampMs = monotonicTimestampMs,
         energyEvent = energyEvent,
         stageEventComplete = stageEventComplete,
+        resultHandoffSubstage = resultHandoffSubstage,
+        resultInfoArrivalProgress = resultInfoArrivalProgress.coerceIn(0f, 1f),
+        resultSceneStable = resultSceneStable,
     )
 }
 

@@ -198,6 +198,7 @@ fun RecognizingScreen(
     generateSubjectWithConfidence: (suspend (SelectedImage, NormalizedFishBox, Float) -> FishSubjectResult)? = null,
     recognitionAttemptDeadline: RecognitionAttemptDeadline? = null,
     prepareSubject: (suspend (SelectedImage) -> Unit)? = null,
+    onFinishedAccepted: (ProductionRecognitionResult) -> Boolean = { true },
 ) = RecognitionProcessingScene(
     image, onBack, recognize, generateSubject, onFinished, onFailure,
     phaseOverride, visualClockOverrideMs, motionPolicyOverride = motionPolicyOverride,
@@ -214,6 +215,7 @@ fun RecognizingScreen(
     generateSubjectWithConfidence = generateSubjectWithConfidence,
     recognitionAttemptDeadline = recognitionAttemptDeadline,
     prepareSubject = prepareSubject,
+    onFinishedAccepted = onFinishedAccepted,
 )
 
 /** Presentation-only shell: it never changes detector, crop, classifier, or result semantics. */
@@ -242,6 +244,7 @@ fun RecognitionProcessingScene(
     recognitionAttemptDeadline: RecognitionAttemptDeadline? = null,
     prepareSubject: (suspend (SelectedImage) -> Unit)? = null,
     onPhotoFramePresented: ((Long) -> Unit)? = null,
+    onFinishedAccepted: (ProductionRecognitionResult) -> Boolean = { true },
 ) {
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     val pageContext = LocalContext.current
@@ -305,6 +308,7 @@ fun RecognitionProcessingScene(
     var finishedResult by remember(sceneKey) { mutableStateOf<ProductionRecognitionResult?>(null) }
     var pipelineError by remember(sceneKey) { mutableStateOf<Throwable?>(null) }
     var delivered by remember(sceneKey) { mutableStateOf(false) }
+    var deliveryInProgress by remember(sceneKey) { mutableStateOf(false) }
     var photoPresentedAtMs by remember(sceneKey) { mutableStateOf<Long?>(null) }
     var visualNowMs by remember(sceneKey) { mutableStateOf(0L) }
     // The controller injected by YujianApp owns playback, stage identity, gates and
@@ -326,7 +330,23 @@ fun RecognitionProcessingScene(
     val currentRealPhase = rememberUpdatedState(realPhase)
     val currentDelivered = rememberUpdatedState(delivered)
     val currentFailureCallback = rememberUpdatedState(onFailure)
+    val currentFinishedCallback = rememberUpdatedState(onFinished)
+    val currentFinishedAcceptedCallback = rememberUpdatedState(onFinishedAccepted)
     val currentSubjectGeometryCallback = rememberUpdatedState(onSubjectGeometry)
+    suspend fun dispatchFinished(result: ProductionRecognitionResult): Boolean {
+        if (delivered || deliveryInProgress) return delivered
+        deliveryInProgress = true
+        try {
+            while (latestPhotoPresentedAtMs == null && currentCoroutineContext().isActive) withFrameNanos { }
+            orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
+            currentFinishedCallback.value(result)
+            val accepted = currentFinishedAcceptedCallback.value(result)
+            delivered = accepted
+            return accepted
+        } finally {
+            deliveryInProgress = false
+        }
+    }
     val revealDecision = RecognitionRevealDecisionGate.decide(
         classifier = when {
             pipelineError != null || realPhase == RecognitionPhase.FAILURE -> RecognitionClassifierTaskState.FAILED
@@ -907,26 +927,19 @@ fun RecognitionProcessingScene(
                 )
             }
         } else if (!delivered && !manualStepDiagnosticState.value) {
-            delivered = true
-            while (latestPhotoPresentedAtMs == null && isActive) withFrameNanos { }
-            orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
-            delivered = true
-            onFinished(result)
+            while (isActive && !delivered && !dispatchFinished(result)) delay(250L)
         }
     }
 
     LaunchedEffect(displayMode, playbackRevision, pipelineError, finishedResult) {
-        if (manualStepDiagnosticState.value || delivered) return@LaunchedEffect
+        if (manualStepDiagnosticState.value || delivered || deliveryInProgress) return@LaunchedEffect
         pipelineError?.let { error ->
             delivered = true
             onFailure(error)
             return@LaunchedEffect
         }
         finishedResult?.takeIf { !it.ready }?.let { result ->
-            delivered = true
-            while (latestPhotoPresentedAtMs == null && isActive) withFrameNanos { }
-            orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
-            onFinished(result)
+            while (isActive && !delivered && !dispatchFinished(result)) delay(250L)
         }
     }
 
@@ -987,12 +1000,12 @@ fun RecognitionProcessingScene(
                     controller.resultVisualReady(visualNowMs) && !delivered && !diagnosticStepDisplayState.value) {
                     // The adaptive beats and real model result are both ready. Result
                     // continues from this same controller frame at ORB_RETURN.
-                    delivered = true
                     Log.i(LOG_TAG, "delivering RESULT_READY at monotonic=$visualNowMs")
                     Log.i(LOG_TAG, "ORB_COMPLETION_START image=${image?.imageId} sha256=${image?.photoSha256}")
-                    orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
-                    onFinished(requireNotNull(latestFinishedResult.value))
-                    break
+                    val accepted = dispatchFinished(requireNotNull(latestFinishedResult.value))
+                    if (accepted) break
+                    Log.w(LOG_TAG, "RESULT_HANDOFF_REJECTED; retrying while the same Attempt remains active")
+                    delay(250L)
                 }
             }
         } finally {

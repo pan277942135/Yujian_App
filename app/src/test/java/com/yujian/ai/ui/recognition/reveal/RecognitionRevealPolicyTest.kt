@@ -43,7 +43,10 @@ class RecognitionRevealPolicyTest {
         assertEquals(RecognitionRevealPhase.SPECIES_NAME_REVEAL, species.phase)
         assertEquals(RecognitionRevealTitleMode.REVEALING, species.titleMode)
         assertEquals(0f, species.photoProgress, 0f)
-        val residue = frame(RecognitionSceneStage.RESIDUE_SETTLE, .5f, handoff, policy)
+        val residue = frame(
+            RecognitionSceneStage.RESIDUE_SETTLE, .5f, handoff, policy,
+            resultHandoffSubstage = ResultHandoffSubstage.NAME_STABLE,
+        )
         assertEquals(RecognitionRevealPhase.RESIDUE_SETTLE, residue.phase)
         assertEquals(.5f, residue.afterglowAlpha, .0001f)
         // RESIDUE_SETTLE is 450 ms: photo reposition starts at 170 ms and
@@ -51,7 +54,10 @@ class RecognitionRevealPolicyTest {
         val reposition = 55f / 180f
         val expectedPhotoProgress = reposition * reposition * (3f - 2f * reposition)
         assertEquals(expectedPhotoProgress, residue.photoProgress, .0001f)
-        val resultNameHold = frame(RecognitionSceneStage.RESIDUE_SETTLE, 0f, handoff, policy)
+        val resultNameHold = frame(
+            RecognitionSceneStage.RESIDUE_SETTLE, 0f, handoff, policy,
+            resultHandoffSubstage = ResultHandoffSubstage.NAME_STABLE,
+        )
         assertEquals(RecognitionRevealTitleMode.VISIBLE, resultNameHold.titleMode)
         assertEquals(0f, resultNameHold.photoProgress, 0f)
         assertTrue(residue.drawOpticalLayer)
@@ -86,6 +92,19 @@ class RecognitionRevealPolicyTest {
         assertEquals(0, nonHighFrame.visibleParticleCount)
         assertEquals(RecognitionRevealTitleMode.STATIC, nonHighFrame.titleMode)
         assertFalse("PHOTO_ONLY must not acquire Orb-only reveal optics", nonHighFrame.drawOpticalLayer)
+    }
+
+    @Test
+    fun resultPhotoCannotMoveUntilNameHoldHasBeenAccepted() {
+        val handoff = handoff()
+        val policy = RecognitionRevealMotionPolicy()
+        val blocked = frame(RecognitionSceneStage.RESIDUE_SETTLE, .8f, handoff, policy)
+        val released = frame(
+            RecognitionSceneStage.RESIDUE_SETTLE, .8f, handoff, policy,
+            resultHandoffSubstage = ResultHandoffSubstage.NAME_STABLE,
+        )
+        assertEquals(0f, blocked.photoProgress, 0f)
+        assertTrue(released.photoProgress > 0f)
     }
 
     @Test
@@ -227,12 +246,22 @@ class RecognitionRevealPolicyTest {
     }
 
     @Test
-    fun attemptKeyAndPlaybackLedgerPreventReplayButAllowNextAttempt() {
+    fun attemptKeyAndPlaybackLedgerTrackClaimInterruptionResumeAndCompletionSeparately() {
         val ledger = RecognitionRevealPlaybackLedger(maxKeys = 2)
         val first = RecognitionRevealKey("session", "attempt-1")
         val second = RecognitionRevealKey("session", "attempt-2")
         assertTrue(ledger.claim(first))
         assertFalse(ledger.claim(first))
+        assertFalse(ledger.hasPlayed(first))
+        assertEquals(RevealPlaybackStatus.CLAIMED, ledger.status(first))
+        assertTrue(ledger.start(first))
+        assertTrue(ledger.updateProgress(first, com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RETURN, .4f))
+        assertFalse(ledger.complete(first, resultSceneStable = false))
+        assertTrue(ledger.interrupt(first))
+        assertEquals(RevealPlaybackStatus.INTERRUPTED, ledger.status(first))
+        assertTrue(ledger.resume(first))
+        assertTrue(ledger.updateProgress(first, com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.RESIDUE_SETTLE, 1f))
+        assertTrue(ledger.complete(first, resultSceneStable = true))
         assertTrue(ledger.hasPlayed(first))
         assertTrue(ledger.claim(second))
         assertFalse(RecognitionRevealSessionSnapshot("session", "attempt-old").matches(first))
@@ -276,6 +305,7 @@ class RecognitionRevealPolicyTest {
         handoff: RecognitionRevealHandoff,
         policy: RecognitionRevealMotionPolicy,
         stageEventComplete: Boolean = false,
+        resultHandoffSubstage: ResultHandoffSubstage? = null,
     ): RecognitionRevealFrame {
         val frame = RecognitionSceneFrame(
             identity = RecognitionSceneIdentity("session-a", "attempt-a", "image-a", "hash", 1L),
@@ -289,6 +319,7 @@ class RecognitionRevealPolicyTest {
             reducedMotion = policy.reduceMotion,
             geometryVersion = 1L,
             stageEventComplete = stageEventComplete,
+            resultHandoffSubstage = resultHandoffSubstage,
         )
         return RecognitionRevealClock.evaluate(frame, handoff, policy)
     }

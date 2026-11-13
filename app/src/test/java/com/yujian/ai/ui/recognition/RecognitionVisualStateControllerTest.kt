@@ -16,6 +16,8 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPathLedger
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
+import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -581,6 +583,42 @@ class RecognitionVisualStateControllerTest {
         assertEquals(snapshot.geometryVersion, acceptedReturn.pathGeometryVersion)
         assertEquals(snapshot.pStarNormalizedSource, acceptedReturn.pathContactPointNormalizedSource)
         assertEquals(RecognitionSceneStage.ORB_TO_NAME, controller.advanceToNextStage(7_001L))
+    }
+
+    @Test fun productionHoldsAtNameUntilMeasuredNameStableMilestoneIsAccepted() {
+        val controller = SceneMotionCoordinator()
+        controller.beginNewSession(identity, debugBuild = false, nowMs = 0L)
+        assertTrue(controller.markPhotoFirstFramePresented(identity, 0L))
+        controller.setResultGeometryState(SceneGeometryState.READY, 0L, identity, setOf(9L))
+        controller.beginStepPreview(RecognitionSceneStage.SPECIES_NAME_REVEAL, 0L)
+        controller.onGlyphAvailable(true, identity)
+        controller.onSceneTransitionComplete(RecognitionSceneStage.SPECIES_NAME_REVEAL, identity)
+        controller.playProductionTimeline(0L, 0L)
+
+        assertEquals(RecognitionSceneStage.SPECIES_NAME_REVEAL, controller.currentSceneStage(800L))
+        val event = RecognitionResultHandoffEvent(
+            identity = identity,
+            maskSha256 = null,
+            maskVersion = null,
+            geometryVersion = 9L,
+            pathId = null,
+            pathGeometryVersion = null,
+            pStarNormalizedSource = null,
+            pathSegments = emptyList(),
+            stage = RecognitionSceneStage.SPECIES_NAME_REVEAL,
+            substage = ResultHandoffSubstage.NAME_STABLE,
+            eventSequence = 1L,
+            monotonicTimestampMs = 800L,
+            eventProducer = "test.GlyphLayout",
+            source = "GLYPH",
+            target = "RESULT_NAME",
+            feedback = "NAME_STABLE",
+            progress = 1f,
+            renderStatus = "READY",
+            resultIdentity = "species-1",
+        )
+        assertTrue(controller.acceptResultHandoffEvent(event).accepted)
+        assertEquals(RecognitionSceneStage.RESIDUE_SETTLE, controller.currentSceneStage(800L))
     }
 
 }

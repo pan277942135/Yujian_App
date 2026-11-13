@@ -44,6 +44,8 @@ data class RecognitionRevealFrame(
     val glyphEmergenceProgress: Float = 0f,
     val speciesNameStabilityProgress: Float = 0f,
     val resultInfoArrivalProgress: Float = 0f,
+    val resultHandoffSubstage: ResultHandoffSubstage? = null,
+    val resultSceneStable: Boolean = false,
     val residueSubstage: String = "NONE",
 ) {
     val isComplete: Boolean get() = phase == RecognitionRevealPhase.COMPLETE
@@ -70,6 +72,9 @@ object RecognitionRevealClock {
         val revealEligible = fullReveal || fallback
         val isFinalStage = stage == RecognitionSceneStage.RESIDUE_SETTLE
         val complete = alreadyPlayed || (isFinalStage && scene.stageEventComplete)
+        val nameHoldAccepted = scene.resultHandoffSubstage?.ordinal?.let {
+            it >= ResultHandoffSubstage.NAME_STABLE.ordinal
+        } == true
         val particleLimit = if (policy.lowPerformance) LOW_PARTICLE_LIMIT else FULL_PARTICLE_LIMIT
 
         if (!revealEligible || policy.reduceMotion || complete) {
@@ -93,6 +98,9 @@ object RecognitionRevealClock {
                 visibleParticleCount = 0,
                 drawOpticalLayer = false,
                 fallback = fallback || (fullReveal && policy.reduceMotion),
+                resultInfoArrivalProgress = scene.resultInfoArrivalProgress,
+                resultHandoffSubstage = scene.resultHandoffSubstage,
+                resultSceneStable = scene.resultSceneStable,
             )
         }
 
@@ -168,7 +176,7 @@ object RecognitionRevealClock {
         return frame(
             scene = scene,
             phase = phase,
-            photoProgress = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) {
+            photoProgress = if (stage == RecognitionSceneStage.RESIDUE_SETTLE && nameHoldAccepted) {
                 smoothStep((stageElapsed - 170L).coerceAtLeast(0L).toFloat() / 180f)
             } else 0f,
             fishHaloAlpha = if (fullReveal && stage == RecognitionSceneStage.ORB_RETURN) 1f - smoothStep(progress) else 0f,
@@ -187,8 +195,11 @@ object RecognitionRevealClock {
             glyphStrokeAggregationProgress = glyphStrokeAggregationProgress,
             glyphEmergenceProgress = glyphEmergenceProgress,
             speciesNameStabilityProgress = speciesNameStabilityProgress,
-            resultInfoArrivalProgress = 0f,
-            residueSubstage = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) {
+            resultInfoArrivalProgress = scene.resultInfoArrivalProgress,
+            resultHandoffSubstage = scene.resultHandoffSubstage,
+            resultSceneStable = scene.resultSceneStable,
+            residueSubstage = scene.resultHandoffSubstage?.let { "13.${it.ordinal + 1}_${it.name}" }
+                ?: if (stage == RecognitionSceneStage.RESIDUE_SETTLE) {
                 when {
                     stageElapsed < 170L -> "13.1_NAME_HOLD"
                     stageElapsed < 350L -> "13.2_PHOTO_REPOSITION"
@@ -219,6 +230,8 @@ object RecognitionRevealClock {
         glyphEmergenceProgress: Float = 0f,
         speciesNameStabilityProgress: Float = 0f,
         resultInfoArrivalProgress: Float = 0f,
+        resultHandoffSubstage: ResultHandoffSubstage? = null,
+        resultSceneStable: Boolean = false,
         residueSubstage: String = "NONE",
     ) = RecognitionRevealFrame(
         elapsedMs = scene.stageElapsedMs,
@@ -243,6 +256,8 @@ object RecognitionRevealClock {
         glyphEmergenceProgress = glyphEmergenceProgress.coerceIn(0f, 1f),
         speciesNameStabilityProgress = speciesNameStabilityProgress.coerceIn(0f, 1f),
         resultInfoArrivalProgress = resultInfoArrivalProgress.coerceIn(0f, 1f),
+        resultHandoffSubstage = resultHandoffSubstage,
+        resultSceneStable = resultSceneStable,
         residueSubstage = residueSubstage,
     )
 

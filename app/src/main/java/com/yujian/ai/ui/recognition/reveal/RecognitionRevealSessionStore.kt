@@ -27,6 +27,7 @@ data class RecognitionRevealSessionSnapshot(
     val handoff: RecognitionRevealHandoff? = null,
     val highConfidenceResult: Boolean = false,
     val revealDecision: RecognitionRevealDecisionState = RecognitionRevealDecisionState.WAITING_BOTH,
+    val resultHandoffState: RecognitionResultHandoffState = RecognitionResultHandoffState(),
 )
 
 internal fun RecognitionRevealSessionSnapshot.matches(key: RecognitionRevealKey): Boolean =
@@ -152,14 +153,40 @@ class RecognitionRevealSessionStore : ViewModel() {
         val current = snapshot ?: return null
         if (!current.matches(key)) return null
         val image = current.image ?: return null
+        val existingHandoff = current.handoff?.takeIf {
+            it.key == key && it.imageId == image.imageId &&
+                it.resultIdentity == result.prediction?.top1?.speciesKey &&
+                RecognitionRevealDecisionGate.isReady(it.revealDecision ?: RecognitionRevealDecisionState.WAITING_BOTH)
+        }
+        if (existingHandoff != null) {
+            if (current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.CREATED ||
+                current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.PROCESSING_COMPLETE
+            ) {
+                snapshot = current.copy(
+                    resultHandoffState = current.resultHandoffState.copy(
+                        transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_READY,
+                    ),
+                )
+            }
+            return existingHandoff
+        }
         val candidate = current.copy(
             productionResult = result,
             prediction = result.prediction,
             inferenceAsset = inferenceAsset,
             highConfidenceResult = highConfidenceResult,
+            resultHandoffState = current.resultHandoffState.copy(
+                transactionStatus = RecognitionHandoffTransactionStatus.PROCESSING_COMPLETE,
+            ),
         )
+        snapshot = candidate
         val decision = decisionFor(candidate)
-        if (!RecognitionRevealDecisionGate.isReady(decision)) return null
+        if (!RecognitionRevealDecisionGate.isReady(decision)) {
+            snapshot = candidate.copy(resultHandoffState = candidate.resultHandoffState.copy(
+                transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_REJECTED,
+            ))
+            return null
+        }
         val handoff = RecognitionRevealHandoffFactory.create(
             recognitionSessionId = key.recognitionSessionId,
             recognitionAttemptId = key.recognitionAttemptId,
@@ -173,26 +200,290 @@ class RecognitionRevealSessionStore : ViewModel() {
             fishPathSnapshot = current.fishPathSnapshot,
         )
         if (handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL && handoff.fishPathSnapshot == null) {
+            snapshot = candidate.copy(resultHandoffState = candidate.resultHandoffState.copy(
+                transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_REJECTED,
+            ))
             return null
         }
         snapshot = candidate.copy(
             handoff = handoff,
             revealDecision = handoff.revealDecision ?: decision,
+            resultHandoffState = candidate.resultHandoffState.copy(
+                transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_READY,
+            ),
         )
         return handoff
+    }
+
+    /** Idempotent Processing → navigation transaction. Rejected handoffs remain retryable. */
+    fun requestResultNavigation(key: RecognitionRevealKey): Boolean {
+        val current = snapshot?.takeIf { it.matches(key) } ?: return false
+        if (current.handoff?.key != key) return false
+        when (current.resultHandoffState.transactionStatus) {
+            RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED,
+            RecognitionHandoffTransactionStatus.RESULT_ATTACHED,
+            RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED -> return false
+            else -> Unit
+        }
+        snapshot = current.copy(
+            resultHandoffState = current.resultHandoffState.copy(
+                transactionStatus = RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED,
+            ),
+        )
+        return true
+    }
+
+    fun markNavigationFailed(key: RecognitionRevealKey): Boolean {
+        val current = snapshot?.takeIf { it.matches(key) } ?: return false
+        if (current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED) return false
+        snapshot = current.copy(resultHandoffState = current.resultHandoffState.copy(
+            transactionStatus = RecognitionHandoffTransactionStatus.NAVIGATION_FAILED,
+        ))
+        return true
+    }
+
+    fun markResultAttached(key: RecognitionRevealKey): Boolean {
+        val current = snapshot?.takeIf { it.matches(key) } ?: return false
+        if (current.handoff?.key != key || current.image?.imageId != current.handoff.imageId) return false
+        if (current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED) return true
+        if (current.resultHandoffState.transactionStatus !in setOf(
+                RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED,
+                RecognitionHandoffTransactionStatus.HANDOFF_READY,
+                RecognitionHandoffTransactionStatus.RESULT_ATTACHED,
+            )
+        ) return false
+        snapshot = current.copy(
+            resultHandoffState = current.resultHandoffState.copy(
+                transactionStatus = RecognitionHandoffTransactionStatus.RESULT_ATTACHED,
+            ),
+        )
+        return true
+    }
+
+    fun navigationAccepted(key: RecognitionRevealKey): Boolean {
+        val status = snapshot?.takeIf { it.matches(key) }?.resultHandoffState?.transactionStatus ?: return false
+        return status in setOf(
+            RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED,
+            RecognitionHandoffTransactionStatus.RESULT_ATTACHED,
+            RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED,
+        )
+    }
+
+    fun canAcceptResultHandoffEvent(key: RecognitionRevealKey, event: RecognitionResultHandoffEvent): String? {
+        val current = snapshot?.takeIf { it.matches(key) } ?: return "STALE_ATTEMPT"
+        val image = current.image ?: return "IMAGE_MISSING"
+        val handoff = current.handoff ?: return "HANDOFF_MISSING"
+        val prediction = current.prediction ?: return "CLASSIFIER_RESULT_MISSING"
+        if (event.identity.sessionId != key.recognitionSessionId || event.identity.attemptId != key.recognitionAttemptId ||
+            event.identity.imageId != image.imageId || event.identity.photoSha256 != image.photoSha256 ||
+            event.identity.photoContentVersion != image.bitmap.generationId.toLong().coerceAtLeast(0L)
+        ) return "IDENTITY_MISMATCH"
+        if (handoff.imageId != image.imageId || event.resultIdentity != prediction.top1.speciesKey) return "RESULT_IDENTITY_MISMATCH"
+        if (event.eventSequence <= current.resultHandoffState.lastEventSequence) return "DUPLICATE_OR_OUT_OF_ORDER_SEQUENCE"
+        if (event.geometryVersion == 0L) return "RESULT_GEOMETRY_INVALID"
+        if (event.monotonicTimestampMs < 0L || event.eventProducer.isBlank() || event.eventConsumer.isBlank() ||
+            event.renderStatus != "READY" || !event.progress.isFinite() || event.progress < .999f ||
+            event.stage.ordinal < com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RETURN.ordinal
+        ) return "EVENT_NOT_COMPLETE"
+        if (!RecognitionResultHandoffContract.isNext(event.substage, current.resultHandoffState.completedSubstages)) {
+            return "RESULT_SUBSTAGE_OUT_OF_ORDER"
+        }
+        if (event.substage == ResultHandoffSubstage.NAME_STABLE) {
+            if (event.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.SPECIES_NAME_REVEAL) {
+                return "NAME_STABILITY_STAGE_MISMATCH"
+            }
+        } else if (event.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.RESIDUE_SETTLE) {
+            return "RESULT_HANDOFF_STAGE_MISMATCH"
+        }
+        if (handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL) {
+            val path = current.fishPathSnapshot ?: return "PROCESSING_PATH_SNAPSHOT_MISSING"
+            if (event.maskSha256 != path.maskSha256 || event.maskVersion != path.maskVersion ||
+                event.pathId != path.returnPathId || event.pathGeometryVersion != path.geometryVersion ||
+                event.pStarNormalizedSource != path.pStarNormalizedSource || event.pathSegments != path.returnPathSegments
+            ) {
+                return "PROCESSING_PATH_IDENTITY_MISMATCH"
+            }
+        }
+        if (event.substage == ResultHandoffSubstage.RESULT_SCENE_STABLE) {
+            val required = setOf(
+                ResultHandoffSubstage.NAME_STABLE,
+                ResultHandoffSubstage.PHOTO_SETTLE,
+                ResultHandoffSubstage.RESULT_SCENE_HANDOFF,
+                ResultHandoffSubstage.RESULT_INFO_ARRIVAL,
+            )
+            if (!current.resultHandoffState.completedSubstages.containsAll(required) ||
+                event.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.RESIDUE_SETTLE
+            ) return "RESULT_STABLE_PREREQUISITES_MISSING"
+        }
+        return null
+    }
+
+    fun recordResultHandoffEvent(key: RecognitionRevealKey, event: RecognitionResultHandoffEvent): RecognitionResultHandoffReceipt {
+        val rejection = canAcceptResultHandoffEvent(key, event)
+        if (rejection != null) return RecognitionResultHandoffReceipt(false, rejection, snapshot?.resultHandoffState?.resultSceneStable == true)
+        val current = snapshot ?: return RecognitionResultHandoffReceipt(false, "SESSION_MISSING")
+        val nextSubstages = current.resultHandoffState.completedSubstages + event.substage
+        val stable = event.substage == ResultHandoffSubstage.RESULT_SCENE_STABLE
+        val transaction = if (stable) RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED
+            else RecognitionHandoffTransactionStatus.RESULT_ATTACHED
+        val nextState = current.resultHandoffState.copy(
+            transactionStatus = transaction,
+            lastEventSequence = event.eventSequence,
+            acceptedEvents = current.resultHandoffState.acceptedEvents + event,
+            eventTrace = current.resultHandoffState.eventTrace + RecognitionResultHandoffTraceEntry(event, accepted = true),
+            completedSubstages = nextSubstages,
+            resultSceneStable = stable,
+            playbackStatus = if (stable) RevealPlaybackStatus.COMPLETED else current.resultHandoffState.playbackStatus,
+            animationGeometryReleased = stable && current.resultHandoffState.animationGeometryReleased,
+        )
+        snapshot = current.copy(resultHandoffState = nextState)
+        if (stable) playedKeys.complete(key, resultSceneStable = true)
+        return RecognitionResultHandoffReceipt(true, resultSceneStable = stable)
+    }
+
+    fun recordRejectedResultHandoffEvent(key: RecognitionRevealKey, event: RecognitionResultHandoffEvent, reason: String) {
+        val current = snapshot?.takeIf { it.matches(key) } ?: return
+        if (event.identity.sessionId != key.recognitionSessionId || event.identity.attemptId != key.recognitionAttemptId) return
+        snapshot = current.copy(resultHandoffState = current.resultHandoffState.copy(
+            eventTrace = current.resultHandoffState.eventTrace + RecognitionResultHandoffTraceEntry(
+                event = event,
+                accepted = false,
+                rejectionReason = reason,
+            ),
+        ))
+    }
+
+    fun resultHandoffTraceJson(key: RecognitionRevealKey): String? {
+        val state = snapshot?.takeIf { it.matches(key) }?.resultHandoffState ?: return null
+        val entries = org.json.JSONArray()
+        state.eventTrace.forEach { trace ->
+            val event = trace.event
+            val identity = event.identity
+            val row = org.json.JSONObject()
+                .put("sessionId", identity.sessionId)
+                .put("attemptId", identity.attemptId)
+                .put("imageId", identity.imageId)
+                .put("photoSha", identity.photoSha256)
+                .put("photoContentVersion", identity.photoContentVersion)
+                .put("maskSha", event.maskSha256 ?: org.json.JSONObject.NULL)
+                .put("maskVersion", event.maskVersion ?: org.json.JSONObject.NULL)
+                .put("geometryVersion", event.geometryVersion)
+                .put("pathId", event.pathId ?: org.json.JSONObject.NULL)
+                .put("pathGeometryVersion", event.pathGeometryVersion ?: org.json.JSONObject.NULL)
+                .put("pStarNormalizedSource", event.pStarNormalizedSource?.let {
+                    org.json.JSONObject().put("x", it.x.toDouble()).put("y", it.y.toDouble())
+                } ?: org.json.JSONObject.NULL)
+                .put("pathSegments", org.json.JSONArray().apply {
+                    event.pathSegments.forEach { segment -> put(org.json.JSONObject()
+                        .put("start", org.json.JSONObject().put("x", segment.start.x.toDouble()).put("y", segment.start.y.toDouble()))
+                        .put("control1", org.json.JSONObject().put("x", segment.control1.x.toDouble()).put("y", segment.control1.y.toDouble()))
+                        .put("control2", org.json.JSONObject().put("x", segment.control2.x.toDouble()).put("y", segment.control2.y.toDouble()))
+                        .put("end", org.json.JSONObject().put("x", segment.end.x.toDouble()).put("y", segment.end.y.toDouble()))
+                        .put("coordinateSpace", segment.coordinateSpace)) }
+                })
+                .put("stage", event.stage.name)
+                .put("substage", event.substage.name)
+                .put("contractId", event.substage.contractId)
+                .put("eventSequence", event.eventSequence)
+                .put("timestamp", event.monotonicTimestampMs)
+                .put("eventProducer", event.eventProducer)
+                .put("eventConsumer", event.eventConsumer)
+                .put("source", event.source)
+                .put("target", event.target)
+                .put("feedback", event.feedback)
+                .put("progress", event.progress.toDouble())
+                .put("renderStatus", event.renderStatus)
+                .put("resultIdentity", event.resultIdentity)
+                .put("accepted", trace.accepted)
+                .put("rejectionReason", trace.rejectionReason ?: org.json.JSONObject.NULL)
+            entries.put(row)
+        }
+        return org.json.JSONObject()
+            .put("sessionId", key.recognitionSessionId)
+            .put("attemptId", key.recognitionAttemptId)
+            .put("events", entries)
+            .put("resultSceneStable", state.resultSceneStable)
+            .toString()
+    }
+
+    fun resultSnapshot(key: RecognitionRevealKey): RecognitionResultSnapshot? {
+        val current = snapshot?.takeIf { it.matches(key) } ?: return null
+        val image = current.image ?: return null
+        val result = current.productionResult?.takeIf { it.ready } ?: return null
+        val prediction = current.prediction ?: return null
+        val handoff = current.handoff?.takeIf { it.key == key } ?: return null
+        if (prediction.top1.speciesKey != handoff.resultIdentity || prediction.top1.speciesName.isBlank() ||
+            handoff.captureTimestampEpochMs != image.captureTimestampEpochMs ||
+            handoff.captureTimestampSource != image.captureTimestampSource
+        ) return null
+        return RecognitionResultSnapshot(
+            key = key,
+            image = image,
+            productionResult = result,
+            prediction = prediction,
+            subjectResult = current.subjectResult,
+            inferenceAsset = current.inferenceAsset,
+            subjectGeometry = current.subjectGeometry,
+            handoff = handoff,
+            fishPathSnapshot = current.fishPathSnapshot,
+            captureTimestampEpochMs = image.captureTimestampEpochMs,
+            captureTimestampSource = image.captureTimestampSource,
+            glyphSpeciesKey = prediction.top1.speciesKey,
+            glyphSpeciesName = prediction.top1.speciesName,
+            revealEligibility = handoff.eligibility,
+            handoffState = current.resultHandoffState,
+            resultDataReady = true,
+            resultSceneStable = current.resultHandoffState.resultSceneStable,
+        )
     }
 
     fun hasPlayed(key: RecognitionRevealKey): Boolean = playedKeys.hasPlayed(key)
 
     fun claimPlayback(key: RecognitionRevealKey): Boolean {
-        return playedKeys.claim(key)
+        val claimed = playedKeys.claim(key)
+        if (claimed) updatePlaybackStatus(key, RevealPlaybackStatus.CLAIMED)
+        return claimed
+    }
+
+    fun startPlayback(key: RecognitionRevealKey): Boolean = playedKeys.start(key).also {
+        if (it) updatePlaybackStatus(key, RevealPlaybackStatus.IN_PROGRESS)
+    }
+
+    fun resumePlayback(key: RecognitionRevealKey): Boolean = playedKeys.resume(key).also {
+        if (it) updatePlaybackStatus(key, RevealPlaybackStatus.IN_PROGRESS)
+    }
+
+    fun updatePlaybackProgress(key: RecognitionRevealKey, stage: com.yujian.ai.ui.waterlight.core.RecognitionSceneStage, progress: Float): Boolean {
+        val updated = playedKeys.updateProgress(key, stage, progress)
+        if (updated) {
+            val current = snapshot?.takeIf { it.matches(key) } ?: return false
+            snapshot = current.copy(resultHandoffState = current.resultHandoffState.copy(
+                playbackStatus = RevealPlaybackStatus.IN_PROGRESS,
+                playbackProgressStage = stage,
+                playbackProgress = progress,
+            ))
+        }
+        return updated
+    }
+
+    fun interruptPlayback(key: RecognitionRevealKey): Boolean = playedKeys.interrupt(key).also {
+        if (it) updatePlaybackStatus(key, RevealPlaybackStatus.INTERRUPTED)
+    }
+
+    fun failPlayback(key: RecognitionRevealKey): Boolean = playedKeys.fail(key).also {
+        if (it) updatePlaybackStatus(key, RevealPlaybackStatus.FAILED)
     }
 
     fun releaseAnimationGeometry(key: RecognitionRevealKey) {
         val current = snapshot ?: return
         if (!current.matches(key)) return
-        // These compact identity-bound snapshots are needed while SlimSAM or host geometry
-        // is still resolving. They are released with the recognition attempt.
+        if (!current.resultHandoffState.resultSceneStable) return
+        snapshot = current.copy(resultHandoffState = current.resultHandoffState.copy(animationGeometryReleased = true))
+    }
+
+    private fun updatePlaybackStatus(key: RecognitionRevealKey, status: RevealPlaybackStatus) {
+        val current = snapshot?.takeIf { it.matches(key) } ?: return
+        snapshot = current.copy(resultHandoffState = current.resultHandoffState.copy(playbackStatus = status))
     }
 
     private fun rebuildHandoff(

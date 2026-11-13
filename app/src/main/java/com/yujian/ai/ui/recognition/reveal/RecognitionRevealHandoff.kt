@@ -120,6 +120,8 @@ data class RecognitionRevealHandoff(
     val contactPointGeometryVersion: Long = 0L,
     /** Exact path ledger snapshot emitted by Processing; Result must consume it unchanged. */
     val fishPathSnapshot: RecognitionFishPathSnapshot? = null,
+    val captureTimestampEpochMs: Long = 0L,
+    val captureTimestampSource: String = "UNKNOWN",
 )
 
 object RecognitionRevealHandoffFactory {
@@ -253,6 +255,8 @@ object RecognitionRevealHandoffFactory {
             maskSha256 = if (maskTrusted) subject?.maskSha256.orEmpty() else "",
             contactPointGeometryVersion = photo?.contactPointGeometryVersion ?: 0L,
             fishPathSnapshot = validFishPathSnapshot,
+            captureTimestampEpochMs = image.captureTimestampEpochMs,
+            captureTimestampSource = image.captureTimestampSource,
         )
     }
 

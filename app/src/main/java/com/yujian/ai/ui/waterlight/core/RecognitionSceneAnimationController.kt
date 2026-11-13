@@ -1,6 +1,10 @@
 package com.yujian.ai.ui.waterlight.core
 
 import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffContract
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
+import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 
 /**
  * The single owner of scene stage, stage-local time, playback controls and model/geometry gates.
@@ -39,9 +43,17 @@ class RecognitionSceneAnimationController(
     private var lastAcceptedEventTimestampMs = 0L
     private val acceptedEnergyEvents = mutableSetOf<String>()
     private val acceptedEnergyEventTrace = mutableListOf<EnergyEvent>()
+    private val acceptedResultHandoffEvents = mutableListOf<RecognitionResultHandoffEvent>()
+    private val completedResultHandoffSubstages = mutableSetOf<ResultHandoffSubstage>()
+    private var lastResultHandoffEventSequence = 0L
+    private var lastResultHandoffTimestampMs = 0L
+    var resultSceneStable: Boolean = false
+        private set
 
     /** Immutable readout for integration evidence; only controller-accepted events are exposed. */
     fun acceptedEnergyEventsSnapshot(): List<EnergyEvent> = acceptedEnergyEventTrace.toList()
+    fun acceptedResultHandoffEventsSnapshot(): List<RecognitionResultHandoffEvent> = acceptedResultHandoffEvents.toList()
+    fun completedResultHandoffSubstagesSnapshot(): Set<ResultHandoffSubstage> = completedResultHandoffSubstages.toSet()
 
     private var detectorReady = false
     private var classifierReady = false
@@ -297,6 +309,70 @@ class RecognitionSceneAnimationController(
             RecognitionSceneStage.RESIDUE_SETTLE -> residueSettleComplete = true
             else -> Unit
         }
+    }
+
+    /** Result milestones are accepted only against this Attempt's measured geometry and path. */
+    fun acceptResultHandoffEvent(event: RecognitionResultHandoffEvent): RecognitionResultHandoffReceipt {
+        val active = identity ?: return RecognitionResultHandoffReceipt(false, "SCENE_IDENTITY_MISSING")
+        if (event.identity != active) return RecognitionResultHandoffReceipt(false, "STALE_OR_MISMATCHED_ATTEMPT")
+        if (event.eventSequence <= lastResultHandoffEventSequence) {
+            return RecognitionResultHandoffReceipt(false, "DUPLICATE_OR_OUT_OF_ORDER_SEQUENCE", resultSceneStable)
+        }
+        if (event.monotonicTimestampMs < lastResultHandoffTimestampMs || event.geometryVersion == 0L ||
+            event.geometryVersion !in resultGeometryVersions || resultGeometryState != SceneGeometryState.READY
+        ) return RecognitionResultHandoffReceipt(false, "RESULT_GEOMETRY_NOT_CURRENT")
+        if (event.stage != currentStage || event.renderStatus != "READY" || event.progress < .999f ||
+            !event.progress.isFinite() || event.eventProducer.isBlank() || event.eventConsumer != "RecognitionSceneAnimationController" ||
+            event.source.isBlank() || event.target.isBlank() || event.feedback.isBlank() || event.resultIdentity.isBlank()
+        ) return RecognitionResultHandoffReceipt(false, "EVENT_NOT_COMPLETE_OR_STAGE_MISMATCH")
+        if (event.identity.photoSha256.isNullOrBlank() || event.identity.photoContentVersion < 0L) {
+            return RecognitionResultHandoffReceipt(false, "PHOTO_IDENTITY_INVALID")
+        }
+        val originalPath = fishPathSnapshot
+        if (originalPath != null && (event.pathId != originalPath.returnPathId ||
+                event.maskSha256 != originalPath.maskSha256 || event.maskVersion != originalPath.maskVersion ||
+                event.pathGeometryVersion != originalPath.geometryVersion ||
+                event.pStarNormalizedSource != originalPath.pStarNormalizedSource ||
+                event.pathSegments != originalPath.returnPathSegments)
+        ) return RecognitionResultHandoffReceipt(false, "PROCESSING_PATH_IDENTITY_MISMATCH")
+        if (originalPath == null && (event.pathId != null || event.maskSha256 != null || event.maskVersion != null ||
+                event.pathGeometryVersion != null || event.pStarNormalizedSource != null || event.pathSegments.isNotEmpty())
+        ) {
+            return RecognitionResultHandoffReceipt(false, "UNTRUSTED_PATH_MUST_NOT_BE_PROMOTED")
+        }
+        if (!RecognitionResultHandoffContract.isNext(event.substage, completedResultHandoffSubstages)) {
+            return RecognitionResultHandoffReceipt(false, "RESULT_SUBSTAGE_OUT_OF_ORDER", resultSceneStable)
+        }
+        val prerequisites = when (event.substage) {
+            ResultHandoffSubstage.NAME_STABLE -> currentStage == RecognitionSceneStage.SPECIES_NAME_REVEAL &&
+                event.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL && event.progress >= .999f &&
+                glyphAvailable && glyphRevealComplete
+            ResultHandoffSubstage.PHOTO_SETTLE -> currentStage == RecognitionSceneStage.RESIDUE_SETTLE &&
+                event.stage == RecognitionSceneStage.RESIDUE_SETTLE && event.progress >= .999f
+            ResultHandoffSubstage.RESULT_SCENE_HANDOFF -> photoFirstFramePresented &&
+                currentStage == RecognitionSceneStage.RESIDUE_SETTLE && event.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+                ResultHandoffSubstage.PHOTO_SETTLE in completedResultHandoffSubstages
+            ResultHandoffSubstage.RESULT_INFO_ARRIVAL ->
+                currentStage == RecognitionSceneStage.RESIDUE_SETTLE && event.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+                    ResultHandoffSubstage.RESULT_SCENE_HANDOFF in completedResultHandoffSubstages
+            ResultHandoffSubstage.RESULT_SCENE_STABLE -> {
+                val settleAccepted = acceptedEnergyEventTrace.any {
+                    it.feedback == EnergyFeedback.SETTLE && it.stage == RecognitionSceneStage.RESIDUE_SETTLE
+                }
+                currentStage == RecognitionSceneStage.RESIDUE_SETTLE && event.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+                    event.progress >= .999f && residueSettleComplete && settleAccepted &&
+                    completedResultHandoffSubstages.containsAll(
+                        ResultHandoffSubstage.entries.dropLast(1).toSet(),
+                    )
+            }
+        }
+        if (!prerequisites) return RecognitionResultHandoffReceipt(false, "SUBSTAGE_PREREQUISITES_MISSING")
+        completedResultHandoffSubstages += event.substage
+        acceptedResultHandoffEvents += event
+        lastResultHandoffEventSequence = event.eventSequence
+        lastResultHandoffTimestampMs = event.monotonicTimestampMs
+        if (event.substage == ResultHandoffSubstage.RESULT_SCENE_STABLE) resultSceneStable = true
+        return RecognitionResultHandoffReceipt(true, resultSceneStable = resultSceneStable)
     }
 
     /** Set a geometry gate independently from user pause. Late geometry resumes from the held offset. */
@@ -582,6 +658,7 @@ class RecognitionSceneAnimationController(
         val reference = opticalReferenceElapsedMs(nowMs)
         val sceneElapsed = sceneElapsedMs(nowMs)
         val gates = modelGates
+        val resultSubstage = acceptedResultHandoffEvents.lastOrNull()?.substage
         return RecognitionSceneCoordinator.frameForStage(
             identity = currentIdentity,
             sceneElapsedMs = sceneElapsed,
@@ -598,6 +675,9 @@ class RecognitionSceneAnimationController(
             monotonicTimestampMs = nowMs.coerceAtLeast(0L),
             energyEvent = energyEvent,
             stageEventComplete = stageEventComplete(currentStage),
+            resultHandoffSubstage = resultSubstage,
+            resultInfoArrivalProgress = if (ResultHandoffSubstage.RESULT_INFO_ARRIVAL in completedResultHandoffSubstages || resultSceneStable) 1f else 0f,
+            resultSceneStable = resultSceneStable,
         )
     }
 
@@ -776,7 +856,8 @@ class RecognitionSceneAnimationController(
         RecognitionSceneStage.ORB_RETURN -> successfulRevealAllowed && orbReturnComplete && orbAnchorReady && glyphAvailable &&
             resultGeometryState == SceneGeometryState.READY
         RecognitionSceneStage.ORB_TO_NAME -> successfulRevealAllowed && orbToGlyphComplete && glyphAvailable
-        RecognitionSceneStage.SPECIES_NAME_REVEAL -> successfulRevealAllowed && glyphRevealComplete && glyphAvailable
+        RecognitionSceneStage.SPECIES_NAME_REVEAL -> successfulRevealAllowed && glyphRevealComplete && glyphAvailable &&
+            ResultHandoffSubstage.NAME_STABLE in completedResultHandoffSubstages
         RecognitionSceneStage.RESIDUE_SETTLE -> successfulRevealAllowed && residueSettleComplete
     }
 
@@ -954,6 +1035,11 @@ class RecognitionSceneAnimationController(
         lastAcceptedEventTimestampMs = 0L
         acceptedEnergyEvents.clear()
         acceptedEnergyEventTrace.clear()
+        acceptedResultHandoffEvents.clear()
+        completedResultHandoffSubstages.clear()
+        lastResultHandoffEventSequence = 0L
+        lastResultHandoffTimestampMs = 0L
+        resultSceneStable = false
         detectorReady = false
         classifierReady = false
         slimSamTerminal = false

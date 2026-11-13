@@ -6,6 +6,7 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneTimelineProjection
+import com.yujian.ai.ui.waterlight.core.SceneGeometryState
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
@@ -13,6 +14,8 @@ import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometryFactory
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
+import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -212,5 +215,60 @@ class RecognitionSceneFrameTest {
         assertEquals(15L, frame.geometryVersion)
         playback.beginStepPreview(RecognitionSceneStage.ORB_TO_NAME, 201L)
         assertFalse(playback.resultVisualReady(201L))
+    }
+
+    @Test fun resultHandoffEventsRejectStaleAttemptAndPrematureHostAttachment() {
+        val playback = SceneMotionCoordinator()
+        playback.beginNewSession(identity, debugBuild = false, nowMs = 0L)
+        playback.markPhotoFirstFramePresented(identity, 0L)
+        playback.setResultGeometryState(SceneGeometryState.READY, 1L, identity, setOf(9L))
+        val currentStage = playback.currentStage
+        val premature = RecognitionResultHandoffEvent(
+            identity = identity,
+            maskSha256 = null,
+            maskVersion = null,
+            geometryVersion = 9L,
+            pathId = null,
+            pathGeometryVersion = null,
+            pStarNormalizedSource = null,
+            pathSegments = emptyList(),
+            stage = currentStage,
+            substage = ResultHandoffSubstage.RESULT_SCENE_HANDOFF,
+            eventSequence = 1L,
+            monotonicTimestampMs = 2L,
+            eventProducer = "test",
+            source = "PROCESSING_HOST",
+            target = "RESULT_HOST",
+            feedback = "HOST_ATTACHED",
+            progress = 1f,
+            renderStatus = "READY",
+            resultIdentity = "species-1",
+        )
+        assertEquals("RESULT_SUBSTAGE_OUT_OF_ORDER", playback.acceptResultHandoffEvent(premature).rejectionReason)
+
+        val stale = premature.copy(
+            identity = identity.copy(attemptId = "old-attempt"),
+            eventSequence = 2L,
+        )
+        assertEquals("STALE_OR_MISMATCHED_ATTEMPT", playback.acceptResultHandoffEvent(stale).rejectionReason)
+        assertTrue(playback.acceptedResultHandoffEventsSnapshot().isEmpty())
+    }
+
+    @Test fun sharedSceneFrameCarriesResultInformationArrivalAndStableState() {
+        val frame = RecognitionSceneCoordinator.frameForStage(
+            identity = identity,
+            sceneElapsedMs = 6_000L,
+            opticalReferenceElapsedMs = 6_000L,
+            geometryVersion = 11L,
+            stage = RecognitionSceneStage.RESIDUE_SETTLE,
+            stageElapsedMs = 450L,
+            stageProgress = 1f,
+            resultHandoffSubstage = ResultHandoffSubstage.RESULT_INFO_ARRIVAL,
+            resultInfoArrivalProgress = 1f,
+            resultSceneStable = false,
+        )
+        assertEquals(ResultHandoffSubstage.RESULT_INFO_ARRIVAL, frame.resultHandoffSubstage)
+        assertEquals(1f, frame.resultInfoArrivalProgress, 0f)
+        assertFalse(frame.resultSceneStable)
     }
 }
