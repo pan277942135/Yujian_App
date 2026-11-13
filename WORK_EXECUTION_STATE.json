@@ -1,0 +1,62 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_RECOGNITION_RUNTIME_RESULT_HANDOFF_ARCHITECTURE_CLOSURE_V1",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "work/recognition-runtime-result-handoff-v1",
+  "control_plane_revision": "81200da2e41163b04cfd340de59c3f43700c329a",
+  "base_branch": "main",
+  "base_sha": "81200da2e41163b04cfd340de59c3f43700c329a",
+  "phase": "P6",
+  "task_id": "YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3",
+  "stage": "P0-1",
+  "status": "RUNNING",
+  "source_sha": "86e42b887d38cf5db828f7dd162728227016fb1a",
+  "checkpoint_updated_at": "2026-11-13T02:58:41Z",
+  "next_action": "Run exact-head Android CI for P0-1, fix any compile/test failures, then proceed to P0-2 only after the controller and production SessionStore assertions pass.",
+  "dependencies": [
+    "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1"
+  ],
+  "blockers": [
+    "Local Gradle test invocation could not start because downloading Gradle 9.3.1 was blocked by network policy; exact-head Android CI must run the candidate tests.",
+    "Android device runtime and API36 fish-optics jobs were skipped on the previously verified PR #327 head; production device execution remains NOT_RUN.",
+    "DET_FISH v0.3 packaging is not claimed; verify packaged detector identity before any release claim."
+  ],
+  "evidence": {
+    "task_authority": "User-provided Work P0 task specification, Task ID YUJIAN_RECOGNITION_RUNTIME_RESULT_HANDOFF_ARCHITECTURE_CLOSURE_V1.",
+    "canonical_task": "YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3 (P6), resolved from harness/PHASE_TASK_STATE_MACHINE.yaml.",
+    "main_sha": "81200da2e41163b04cfd340de59c3f43700c329a",
+    "pr_327": {
+      "head_sha": "076c830e043dfc7644188b9f730e9c6d53ba48e6",
+      "base_sha": "81200da2e41163b04cfd340de59c3f43700c329a",
+      "state": "open_draft_unmerged",
+      "exact_head_android_ci_run": 42950331889,
+      "android_ci_conclusion": "success",
+      "unit_tests": "success",
+      "android_test_apk_compile": "success",
+      "android_lint": "success",
+      "debug_apk_artifact_id": 13824533268,
+      "debug_apk_artifact_archive_size_bytes": 140681066,
+      "debug_apk_artifact_archive_sha256": "c0ebd3612ddf71a0995a80a19acd662e5c426910940aceecb8d972332a9487b7",
+      "artifact_archive_digest_is_not_apk_sha256": true,
+      "android_runtime": "skipped",
+      "fish_optics_api36_runtime": "skipped"
+    },
+    "initial_admission": "CONTROL_PLANE_ADMISSION=FAIL because branch-local PROJECT_MASTER_STATE.yaml and WORK_EXECUTION_STATE.json were absent; no source test or implementation gate failed.",
+    "p0_1_candidate": {
+      "source_sha": "86e42b887d38cf5db828f7dd162728227016fb1a",
+      "implementation": "Immutable Processing PathLedger snapshot is carried through SessionStore/Handoff and consumed by Result RETURN; Controller checks original path, Mask, P*, and original geometry identity.",
+      "unit_tests_added": [
+        "RecognitionVisualStateControllerTest.fullRevealReturnConsumesTheProcessingLedgerSnapshotAndRejectsDefaultOrStaleIdentity",
+        "WaterLightPathLedgerTest.processingSnapshotPreservesOriginalPathMaskPStarGeometryAndReturnSegments",
+        "WaterLightPathLedgerTest.processingSnapshotRejectsChangedMaskPStarAttemptAndGeometry"
+      ],
+      "production_runtime_test_extended": "RecognitionRevealProductionRuntimeTest asserts real-model Processing PathLedger snapshot survives SessionStore into FULL_REVEAL Handoff.",
+      "local_gradle": "NOT_RUN_NETWORK_BLOCKED"
+    }
+  },
+  "execution_v2": {
+    "schema_version": "1.0",
+    "issues": {}
+  }
+}
