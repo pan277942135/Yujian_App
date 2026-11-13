@@ -140,6 +140,52 @@ class WaterLightPathLedgerTest {
         assertNull(ledger.returnRoute(frame(geometryVersion = 8L), trustedMask = false))
     }
 
+    @Test fun processingSnapshotPreservesOriginalPathMaskPStarGeometryAndReturnSegments() {
+        val current = frame(geometryVersion = -11L)
+        val release = release()
+        val fish = fish()
+        val ledger = WaterLightPathLedger()
+        assertTrue(ledger.recordRelease(current, release))
+        assertTrue(recordFish(ledger, current, fish))
+
+        val snapshot = requireNotNull(
+            ledger.exportRecognitionFishPathSnapshot(current, maskShaA, 42L, contactA),
+        )
+        val originalPathId = requireNotNull(ledger.pathId(current, maskShaA, 42L, contactA))
+        val originalReturnSegments = requireNotNull(
+            ledger.returnRoute(current, trustedMask = true, maskShaA, 42L, contactA),
+        ).segments
+
+        assertTrue(snapshot.isValid())
+        assertEquals(current.sessionId, snapshot.sessionId)
+        assertEquals(current.attemptId, snapshot.attemptId)
+        assertEquals(current.imageId, snapshot.imageId)
+        assertEquals(current.photoSha256, snapshot.photoSha256)
+        assertEquals(current.photoContentVersion, snapshot.photoContentVersion)
+        assertEquals(maskShaA, snapshot.maskSha256)
+        assertEquals(42L, snapshot.maskVersion)
+        assertEquals(-11L, snapshot.geometryVersion)
+        assertEquals(contactA, snapshot.pStarNormalizedSource)
+        assertEquals(originalPathId, snapshot.fishPathId)
+        assertEquals(originalPathId, snapshot.returnPathId)
+        assertEquals(fish, snapshot.fishPathGeometry)
+        assertEquals(release, snapshot.orbReleasePath)
+        assertEquals(originalReturnSegments, snapshot.returnPathSegments)
+        assertEquals("RECOGNITION_VIEWPORT_PX", snapshot.sourceCoordinateSpace)
+    }
+
+    @Test fun processingSnapshotRejectsChangedMaskPStarAttemptAndGeometry() {
+        val current = frame()
+        val ledger = WaterLightPathLedger()
+        assertTrue(ledger.recordRelease(current, release()))
+        assertTrue(recordFish(ledger, current))
+
+        assertNull(ledger.exportRecognitionFishPathSnapshot(current, maskShaB, 42L, contactA))
+        assertNull(ledger.exportRecognitionFishPathSnapshot(current, maskShaA, 42L, contactB))
+        assertNull(ledger.exportRecognitionFishPathSnapshot(frame(attempt = "attempt-2"), maskShaA, 42L, contactA))
+        assertNull(ledger.exportRecognitionFishPathSnapshot(frame(geometryVersion = 8L), maskShaA, 42L, contactA))
+    }
+
     @Test fun untrustedMaskCannotCreateFishPath() {
         val current = frame()
         val ledger = WaterLightPathLedger()
