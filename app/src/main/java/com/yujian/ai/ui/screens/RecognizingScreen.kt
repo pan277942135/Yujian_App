@@ -203,6 +203,7 @@ fun RecognizingScreen(
     phaseOverride, visualClockOverrideMs, motionPolicyOverride = motionPolicyOverride,
     onSubjectGeometry = onSubjectGeometry,
     onProcessingPhotoSnapshot = onProcessingPhotoSnapshot,
+    onFishPathSnapshot = onFishPathSnapshot,
     recognitionSessionId = recognitionSessionId,
     recognitionAttemptId = recognitionAttemptId,
     diagnosticPlaybackController = diagnosticPlaybackController,
