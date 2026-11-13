@@ -12,7 +12,7 @@
   "stage": "P0-1",
   "status": "RUNNING",
   "source_sha": "86e42b887d38cf5db828f7dd162728227016fb1a",
-  "checkpoint_updated_at": "2026-11-13T02:58:41Z",
+  "checkpoint_updated_at": "2026-11-13T03:05:00Z",
   "next_action": "Run exact-head Android CI for P0-1, fix any compile/test failures, then proceed to P0-2 only after the controller and production SessionStore assertions pass.",
   "dependencies": [
     "YUJIAN_WP1B_RECOGNITION_PIPELINE_AND_VISUAL_HANDOFF_IMPLEMENTATION_V1"
@@ -53,6 +53,14 @@
       ],
       "production_runtime_test_extended": "RecognitionRevealProductionRuntimeTest asserts real-model Processing PathLedger snapshot survives SessionStore into FULL_REVEAL Handoff.",
       "local_gradle": "NOT_RUN_NETWORK_BLOCKED"
+    },
+    "pr_330": {
+      "number": 330,
+      "url": "https://github.com/pan277942135/Yujian_App/pull/330",
+      "base": "main",
+      "head_sha": "c6f66c106a1cee09892db172936de7baa74ec482",
+      "state": "draft_open_unmerged",
+      "exact_head_ci": "PENDING"
     }
   },
   "execution_v2": {
