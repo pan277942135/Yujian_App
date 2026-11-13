@@ -57,6 +57,7 @@ class RecognitionSceneAnimationController(
     private var activeMaskContactPointNormalizedSource: WaterLightPathPoint? = null
     private var activeFishContactPathId: String? = null
     private var fishContactPathId: String? = null
+    private var fishPathSnapshot: RecognitionFishPathSnapshot? = null
     private var fishContactPathReady = false
     private var fishGoldComplete = false
     private var orbReturnComplete = false
@@ -372,9 +373,16 @@ class RecognitionSceneAnimationController(
                     fishContactPathReady = true
                 }
             }
-            EnergyFeedback.RETURN -> if (event.source == EnergyAnchor.FISH_CONTOUR &&
-                event.pathId != fishContactPathId
-            ) return false
+            EnergyFeedback.RETURN -> if (event.source == EnergyAnchor.FISH_CONTOUR) {
+                val snapshot = fishPathSnapshot ?: return false
+                if (event.pathId != fishContactPathId || event.pathId != snapshot.returnPathId ||
+                    event.pathSegments != snapshot.returnPathSegments ||
+                    event.pathMaskSha256 != snapshot.maskSha256 ||
+                    event.pathMaskVersion != snapshot.maskVersion ||
+                    event.pathGeometryVersion != snapshot.geometryVersion ||
+                    event.pathContactPointNormalizedSource != snapshot.pStarNormalizedSource
+                ) return false
+            }
             else -> Unit
         }
         val eventKey = "${frame.identity.sessionId}|${frame.identity.attemptId}|${frame.identity.imageId}|${frame.geometryVersion}|${event.stage}|${event.feedback}|${event.pathId}"
@@ -475,6 +483,28 @@ class RecognitionSceneAnimationController(
         activeMaskGeometryVersion = geometryVersion
         activeMaskContactPointNormalizedSource = contactPointNormalizedSource
         activeFishContactPathId = pathId
+        return true
+    }
+
+    /** Bind the immutable RETURN route exported by the same Processing PathLedger. */
+    fun onFishPathSnapshot(
+        snapshot: RecognitionFishPathSnapshot,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!isCurrent(currentIdentity)) return false
+        val active = identity ?: return false
+        if (!snapshot.isValid() || snapshot.sessionId != active.sessionId ||
+            snapshot.attemptId != active.attemptId || snapshot.imageId != active.imageId ||
+            snapshot.photoSha256 != active.photoSha256 || snapshot.photoContentVersion != active.photoContentVersion ||
+            !maskTrusted || snapshot.maskSha256 != activeMaskSha256 || snapshot.maskVersion != activeMaskVersion ||
+            snapshot.geometryVersion != activeMaskGeometryVersion ||
+            snapshot.pStarNormalizedSource != activeMaskContactPointNormalizedSource ||
+            snapshot.fishPathId != activeFishContactPathId || snapshot.fishPathId != fishContactPathId ||
+            snapshot.returnPathId != fishContactPathId
+        ) return false
+        val current = fishPathSnapshot
+        if (current != null && current != snapshot) return false
+        fishPathSnapshot = snapshot
         return true
     }
 
@@ -885,6 +915,7 @@ class RecognitionSceneAnimationController(
         activeMaskContactPointNormalizedSource = null
         activeFishContactPathId = null
         fishContactPathId = null
+        fishPathSnapshot = null
         fishContactPathReady = false
         fishGoldComplete = false
         orbReturnComplete = false
@@ -935,6 +966,7 @@ class RecognitionSceneAnimationController(
         activeMaskContactPointNormalizedSource = null
         activeFishContactPathId = null
         fishContactPathId = null
+        fishPathSnapshot = null
         fishContactPathReady = false
         fishGoldComplete = false
         orbReturnComplete = false
