@@ -49,7 +49,10 @@ class OrbRenderIsolationRuntimeTest {
     @Test
     fun productionOrbCoreAndR06RenderWithOneContentAndIdenticalStageFrames() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val outputDir = File(instrumentation.context.cacheDir, "recognition-result-handoff/orb-r06").apply {
+        val outputRoot = File(instrumentation.context.cacheDir, "recognition-result-handoff/orb-r06").apply {
+            mkdirs()
+        }
+        val outputDir = File(outputRoot, "compose").apply {
             deleteRecursively()
             mkdirs()
         }
@@ -166,13 +169,16 @@ class OrbRenderIsolationRuntimeTest {
             .put("drawSynchronization", "drawWithContent token; no sleeps")
             .put("captures", rows)
             .put("r06PixelComparisons", comparisons)
-        File(outputDir, "orb_pixel_report.json").writeText(report.toString(2) + "\n")
+        File(outputRoot, "orb_pixel_report.json").writeText(report.toString(2) + "\n")
     }
 
     @Test
     fun everyFrozenR06PathHasCurrentFrameAndroidPaintAndPixelEvidence() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val outputDir = File(instrumentation.context.cacheDir, "recognition-result-handoff/orb-r06/paths").apply {
+        val outputRoot = File(instrumentation.context.cacheDir, "recognition-result-handoff/orb-r06").apply {
+            mkdirs()
+        }
+        val outputDir = File(outputRoot, "paths").apply {
             mkdirs()
         }
         val expectedIds = listOf("G01", "G02", "A01", "A02", "C01")
@@ -182,7 +188,7 @@ class OrbRenderIsolationRuntimeTest {
 
         OrbRuntimeProfileV1.paths.forEach { spec ->
             val renderer = OrbFilamentPathRenderer(spec.front, density = 3f, pathIdFilter = spec.id)
-            listOf(.20f, .50f, .80f).forEachIndexed { progressIndex, progress ->
+            listOf(.20f, .50f, .80f).forEach { progress ->
                 val stageFrame = frame(identity, RecognitionSceneStage.ORB_RELEASE, progress)
                 val (reusedBitmap, actual) = drawPath(renderer, stageFrame)
                 val freshRenderer = OrbFilamentPathRenderer(spec.front, density = 3f, pathIdFilter = spec.id)
@@ -239,7 +245,7 @@ class OrbRenderIsolationRuntimeTest {
             .put("frozenPathOrder", JSONArray(expectedIds))
             .put("geometryMaterialPhaseCycleAnd14dpBoundaryChanged", false)
             .put("paths", reportRows)
-        File(outputDir, "r06_path_pixel_report.json").writeText(report.toString(2) + "\n")
+        File(outputRoot, "r06_path_pixel_report.json").writeText(report.toString(2) + "\n")
     }
 
     private fun drawPath(
