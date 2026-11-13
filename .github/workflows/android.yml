@@ -960,6 +960,7 @@ jobs:
             exit 1
           fi
 
+  # Exact-head physical evidence gate, enabled by the P0 marker commit.
   recognition-result-handoff-api36-physical:
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run_recognition_result_handoff == true) || (github.event_name == 'push' && github.ref != 'refs/heads/main' && contains(github.event.head_commit.message, '[run-recognition-result-handoff]')) }}
     needs: build
