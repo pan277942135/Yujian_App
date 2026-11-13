@@ -33,6 +33,46 @@ data class WaterLightPathRoute(
             ))
 }
 
+/** Immutable Processing-authored fish route identity carried into Result without regeneration. */
+data class RecognitionFishPathSnapshot(
+    val sessionId: String,
+    val attemptId: String,
+    val imageId: String,
+    val photoSha256: String,
+    val photoContentVersion: Long,
+    val maskSha256: String,
+    val maskVersion: Long,
+    val geometryVersion: Long,
+    val pStarNormalizedSource: WaterLightPathPoint,
+    val fishPathId: String,
+    val fishPathGeometry: WaterLightPathGeometry,
+    val perimeterBridge: WaterLightPathGeometry,
+    val orbReleasePath: WaterLightPathGeometry,
+    val returnPathId: String,
+    val returnPathSegments: List<WaterLightPathGeometry>,
+    val sourceCoordinateSpace: String,
+    val creationTimestampMonotonicMs: Long,
+    val creationEventSequence: Long,
+) {
+    fun isValid(): Boolean = sessionId.isNotBlank() && attemptId.isNotBlank() && imageId.isNotBlank() &&
+        photoSha256.isNotBlank() && photoContentVersion >= 0L &&
+        maskSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) && maskVersion >= 0L && geometryVersion != 0L &&
+        pStarNormalizedSource.isValid() && pStarNormalizedSource.x in 0f..1f && pStarNormalizedSource.y in 0f..1f &&
+        fishPathId.isNotBlank() && returnPathId == fishPathId &&
+        sourceCoordinateSpace == fishPathGeometry.coordinateSpace &&
+        fishPathGeometry.isValid() && perimeterBridge.isValid() && orbReleasePath.isValid() &&
+        returnPathSegments.size == 3 && returnPathSegments.all(WaterLightPathGeometry::isValid) &&
+        returnPathSegments.all { it.coordinateSpace == sourceCoordinateSpace } &&
+        returnPathSegments.zipWithNext().all { (a, b) -> a.end == b.start } &&
+        returnPathSegments.first().start == fishPathGeometry.end &&
+        returnPathSegments.last().end == orbReleasePath.start &&
+        creationTimestampMonotonicMs >= 0L && creationEventSequence >= 0L
+
+    fun matches(frame: WaterLightFrame): Boolean = isValid() &&
+        sessionId == frame.sessionId && attemptId == frame.attemptId && imageId == frame.imageId &&
+        photoSha256 == frame.photoSha256 && photoContentVersion == frame.photoContentVersion
+}
+
 private data class WaterLightPathIdentity(
     val sessionId: String,
     val attemptId: String,
@@ -45,6 +85,8 @@ private data class WaterLightPathIdentity(
 private data class WaterLightPathMaskBinding(
     val maskIdentity: WaterLightPathMaskIdentity,
     val geometry: WaterLightPathGeometry,
+    val creationTimestampMonotonicMs: Long,
+    val creationEventSequence: Long,
 )
 
 /**
@@ -113,7 +155,13 @@ class WaterLightPathLedger {
             val release = orbToPerimeter ?: return false
             val bridge = bridge(release.end, geometry.start) ?: return false
             perimeterBridge = bridge
-            maskBinding = WaterLightPathMaskBinding(maskIdentity, geometry)
+            val sceneFrame = frame.sceneFrame
+            maskBinding = WaterLightPathMaskBinding(
+                maskIdentity = maskIdentity,
+                geometry = geometry,
+                creationTimestampMonotonicMs = sceneFrame.monotonicTimestampMs,
+                creationEventSequence = sceneFrame.eventSequence,
+            )
             return true
         }
         return current.maskIdentity == maskIdentity && current.geometry == geometry
@@ -189,6 +237,49 @@ class WaterLightPathLedger {
             geometryVersion = frame.geometryVersion,
             contactPointNormalizedSource = if (trustedMask) contactPointNormalizedSource else null,
         ).takeIf(WaterLightPathRoute::isValid)
+    }
+
+    /** Exports the exact ledger paths and identities used by Processing for a FULL_REVEAL handoff. */
+    fun exportRecognitionFishPathSnapshot(
+        frame: WaterLightFrame,
+        maskSha256: String,
+        maskVersion: Long,
+        contactPointNormalizedSource: WaterLightPathPoint,
+    ): RecognitionFishPathSnapshot? {
+        if (!bind(frame)) return null
+        val base = identity ?: return null
+        val binding = maskBinding ?: return null
+        if (binding.maskIdentity.maskSha256 != maskSha256 ||
+            binding.maskIdentity.maskVersion != maskVersion ||
+            binding.maskIdentity.contactPointNormalizedSource != contactPointNormalizedSource
+        ) return null
+        val fish = fishPath(frame, maskSha256, maskVersion, contactPointNormalizedSource) ?: return null
+        val bridge = perimeterBridge ?: return null
+        val release = releasePath(frame) ?: return null
+        val route = returnRoute(frame, trustedMask = true, maskSha256, maskVersion, contactPointNormalizedSource)
+            ?.takeIf(WaterLightPathRoute::isValid) ?: return null
+        val pathId = pathId(frame, maskSha256, maskVersion, contactPointNormalizedSource) ?: return null
+        val snapshot = RecognitionFishPathSnapshot(
+            sessionId = base.sessionId,
+            attemptId = base.attemptId,
+            imageId = base.imageId,
+            photoSha256 = base.photoSha256,
+            photoContentVersion = base.photoContentVersion,
+            maskSha256 = binding.maskIdentity.maskSha256,
+            maskVersion = binding.maskIdentity.maskVersion,
+            geometryVersion = binding.maskIdentity.geometryVersion,
+            pStarNormalizedSource = binding.maskIdentity.contactPointNormalizedSource,
+            fishPathId = pathId,
+            fishPathGeometry = fish,
+            perimeterBridge = bridge,
+            orbReleasePath = release,
+            returnPathId = route.id,
+            returnPathSegments = route.segments.toList(),
+            sourceCoordinateSpace = fish.coordinateSpace,
+            creationTimestampMonotonicMs = binding.creationTimestampMonotonicMs,
+            creationEventSequence = binding.creationEventSequence,
+        )
+        return snapshot.takeIf(RecognitionFishPathSnapshot::isValid)
     }
 
     fun pathId(
