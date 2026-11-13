@@ -230,6 +230,7 @@ fun RecognitionProcessingScene(
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)? = null,
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
+    onFishPathSnapshot: (RecognitionFishPathSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
     diagnosticPlaybackController: SceneMotionCoordinator? = null,
