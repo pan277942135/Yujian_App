@@ -30,6 +30,7 @@ import com.yujian.ai.ui.theme.YujianTheme
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.WaterLightGeometryVersion
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
@@ -239,6 +240,14 @@ class RecognitionRevealProductionRuntimeTest {
                                 processingPhoto.set(photo)
                                 revealSessionStore.updateProcessingPhoto(revealKey, photo)
                             },
+                            onFishPathSnapshot = { pathSnapshot ->
+                                val accepted = revealSessionStore.updateFishPathSnapshot(revealKey, pathSnapshot)
+                                if (!accepted) {
+                                    handoffFailure.set(
+                                        "production Processing PathLedger snapshot was rejected by SessionStore",
+                                    )
+                                }
+                            },
                         )
                     } else {
                         val completed = resultState.value
@@ -303,9 +312,34 @@ class RecognitionRevealProductionRuntimeTest {
             assertEquals(ATTEMPT_ID, handoff.key.recognitionAttemptId)
             assertEquals(selectedImage.photoSha256, handoff.photoSourceIdentity.substringAfter("|sha256="))
             assertEquals("Processing photo identity must cross the handoff unchanged", processingPhotoSnapshot.imageId, handoff.imageId)
+            val trustedGeometry = requireNotNull(subjectGeometry.get())
+            val fishPathSnapshot = requireNotNull(handoff.fishPathSnapshot)
+            assertEquals(SESSION_ID, fishPathSnapshot.sessionId)
+            assertEquals(ATTEMPT_ID, fishPathSnapshot.attemptId)
+            assertEquals(selectedImage.imageId, fishPathSnapshot.imageId)
+            assertEquals(selectedImage.photoSha256, fishPathSnapshot.photoSha256)
+            assertEquals("the original trusted Mask must cross the handoff unchanged",
+                trustedGeometry.maskSha256, fishPathSnapshot.maskSha256)
+            assertEquals(trustedGeometry.maskVersion, fishPathSnapshot.maskVersion)
+            assertEquals(processingPhotoSnapshot.contactPointGeometryVersion, fishPathSnapshot.geometryVersion)
+            assertEquals("Processing RETURN must preserve its ledger-owned path ID",
+                fishPathSnapshot.fishPathId, fishPathSnapshot.returnPathId)
+            assertEquals(3, fishPathSnapshot.returnPathSegments.size)
+            assertEquals("SessionStore accessor must return the same immutable Processing snapshot",
+                fishPathSnapshot, revealSessionStore.fishPathSnapshot(revealKey))
+            val acceptedAutomaticReturn = sceneController.acceptedEnergyEventsSnapshot().singleOrNull {
+                it.stage == RecognitionSceneStage.ORB_RETURN && it.feedback == EnergyFeedback.RETURN
+            }
+            assertNotNull("the automatic Result host must submit its RETURN event to the shared controller",
+                acceptedAutomaticReturn)
+            assertEquals(fishPathSnapshot.returnPathId, acceptedAutomaticReturn?.pathId)
+            assertEquals(fishPathSnapshot.returnPathSegments, acceptedAutomaticReturn?.pathSegments)
+            assertEquals(fishPathSnapshot.maskSha256, acceptedAutomaticReturn?.pathMaskSha256)
+            assertEquals(fishPathSnapshot.maskVersion, acceptedAutomaticReturn?.pathMaskVersion)
+            assertEquals(fishPathSnapshot.geometryVersion, acceptedAutomaticReturn?.pathGeometryVersion)
+            assertEquals(fishPathSnapshot.pStarNormalizedSource, acceptedAutomaticReturn?.pathContactPointNormalizedSource)
             assertEquals("production SessionStore must retain the same geometry snapshot", processingPhotoSnapshot,
                 revealSessionStore.snapshot?.processingPhoto)
-            val trustedGeometry = requireNotNull(subjectGeometry.get())
             assertEquals(SESSION_ID, trustedGeometry.recognitionSessionId)
             assertEquals(ATTEMPT_ID, trustedGeometry.recognitionAttemptId)
             assertEquals(selectedImage.imageId, trustedGeometry.imageId)

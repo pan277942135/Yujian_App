@@ -576,6 +576,7 @@ fun IdentifyScreen(
                 ContextCompat.getMainExecutor(context),
                 object : ImageCapture.OnImageSavedCallback {
                     override fun onImageSaved(result: ImageCapture.OutputFileResults) {
+                        val captureTimestampEpochMs = System.currentTimeMillis()
                         logCapture(
                             requestId,
                             "terminal_callback",
@@ -611,6 +612,7 @@ fun IdentifyScreen(
                                     RecognitionImageStore.normalizeCameraFileWithDetails(
                                         context, target.file,
                                         measured.width.toFloat() / measured.height,
+                                        captureTimestampEpochMs,
                                     )
                                 }
                                 val details = normalized.getOrNull()

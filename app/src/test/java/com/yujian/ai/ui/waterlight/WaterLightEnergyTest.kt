@@ -65,14 +65,43 @@ class WaterLightEnergyTest {
         assertEquals(EnergyFeedback.ABSORB, WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_B), true)?.feedback)
 
         assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.ORB_RETURN, .5f), true))
-        val returned = WaterLightEnergy.at(
+        assertNull(WaterLightEnergy.at(
             frame(RecognitionSceneStage.ORB_RETURN, .5f), true, successfulRevealAllowed = true,
+        ))
+        val maskSha = "a".repeat(64)
+        val contact = WaterLightPathPoint(.42f, .61f)
+        val returnSegments = listOf(
+            WaterLightPathGeometryFactory.between(
+                WaterLightPathPoint(640f, 480f), WaterLightPathPoint(500f, 410f), seed = 1,
+            )!!,
+            WaterLightPathGeometryFactory.between(
+                WaterLightPathPoint(500f, 410f), WaterLightPathPoint(320f, 300f), seed = 2,
+            )!!,
+            WaterLightPathGeometryFactory.between(
+                WaterLightPathPoint(320f, 300f), WaterLightPathPoint(120f, 220f), seed = 3,
+            )!!,
+        )
+        val returned = WaterLightEnergy.at(
+            frame(RecognitionSceneStage.ORB_RETURN, .5f),
+            trustedMask = true,
+            successfulRevealAllowed = true,
+            pathGeometry = returnSegments.first(),
+            pathSegments = returnSegments,
+            pathIdOverride = "processing-return-path",
+            pathMaskSha256 = maskSha,
+            pathMaskVersion = 42L,
+            pathGeometryVersion = 7L,
+            pathContactPointNormalizedSource = contact,
         )!!
         assertEquals(EnergyAnchor.FISH_CONTOUR, returned.source)
         assertEquals(EnergyAnchor.ORB_CORE, returned.target)
         assertEquals(EnergyFeedback.RETURN, returned.feedback)
         assertEquals(.5f, returned.level, 0f)
-        assertEquals("fish-to-original-orb", returned.pathId)
+        assertEquals("processing-return-path", returned.pathId)
+        assertEquals(maskSha, returned.pathMaskSha256)
+        assertEquals(42L, returned.pathMaskVersion)
+        assertEquals(7L, returned.pathGeometryVersion)
+        assertEquals(contact, returned.pathContactPointNormalizedSource)
 
         val translate = WaterLightEnergy.at(
             frame(RecognitionSceneStage.ORB_TO_NAME, .25f), true, successfulRevealAllowed = true,

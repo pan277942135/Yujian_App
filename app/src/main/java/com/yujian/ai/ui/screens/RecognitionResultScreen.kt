@@ -122,6 +122,12 @@ import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectModelState
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultSnapshot
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
+import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER
+import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
+import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.catches.CatchSaveMetadataParser
 import com.yujian.ai.feedback.FeedbackDraft
@@ -241,6 +247,12 @@ fun RecognitionResultScreen(
     availableSpecies: List<FishGuideItem> = emptyList(),
     speciesCoverUrlFor: (String?) -> String? = { it },
     revealHandoff: RecognitionRevealHandoff? = null,
+    resultSnapshot: RecognitionResultSnapshot? = null,
+    initialResultHandoffEventSequence: Long = 0L,
+    initialResultHandoffEventTimestampMs: Long = 0L,
+    onResultHandoffEvent: (RecognitionResultHandoffEvent) -> RecognitionResultHandoffReceipt = {
+        RecognitionResultHandoffReceipt(false, "HANDOFF_EVENT_CONSUMER_UNAVAILABLE")
+    },
     /** Injects one semantic frame in tests; production reads the shared scene controller. */
     sceneFrameOverrideForTest: RecognitionSceneFrame? = null,
     revealAlreadyPlayed: Boolean = false,
@@ -252,11 +264,15 @@ fun RecognitionResultScreen(
     onDiagnosticReturnToProcessing: () -> Unit = {},
     revealMotionPolicyOverride: RecognitionRevealMotionPolicy? = null,
     revealGeometryResolutionObserver: ((RecognitionRevealGeometryResolution?) -> Unit)? = null,
+    onPlaybackStart: (RecognitionRevealKey) -> Boolean = { true },
+    onPlaybackProgress: (RecognitionRevealKey, RecognitionSceneStage, Float) -> Unit = { _, _, _ -> },
+    onPlaybackInterrupted: (RecognitionRevealKey) -> Unit = {},
     onSave: (CatchSaveDraft, FeedbackDraft, RecognitionSaveDestination) -> Unit,
 ) {
     var rootBounds by remember { mutableStateOf<RecognitionRevealWindowRect?>(null) }
     var heroSnapshot by remember(image?.imageId) { mutableStateOf<RecognitionRevealHeroSnapshot?>(null) }
     var revealTitleBounds by remember(image?.imageId) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
+    var resultInfoLayoutReady by remember(revealHandoff?.key) { mutableStateOf(false) }
     var diagnosticUserPaused by remember(revealHandoff?.key) { mutableStateOf(false) }
     val resultFirstPresentedAtMs = remember(image?.imageId) { mutableStateOf<Long?>(null) }
     val revealStartAllowed = remember(image?.imageId) { mutableStateOf(false) }
@@ -366,7 +382,12 @@ fun RecognitionResultScreen(
         val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         if (fine || coarse) resolveCurrentLocation() else purposeVisible = true
     }
-    val currentTime = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).format(Date()) }
+    val currentTime = remember(image?.imageId, image?.captureTimestampEpochMs) {
+        image?.let {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
+                .format(Date(it.captureTimestampEpochMs))
+        }.orEmpty()
+    }
     LaunchedEffect(saving, saveError) {
         if (!saving && saveRequested) {
             saveRequested = false
@@ -501,6 +522,83 @@ fun RecognitionResultScreen(
             }
         }
     }
+    var resultHandoffEventSequence by remember(revealHandoff?.key) {
+        mutableLongStateOf(initialResultHandoffEventSequence)
+    }
+    var resultHandoffEventTimestampMs by remember(revealHandoff?.key) {
+        mutableLongStateOf(initialResultHandoffEventTimestampMs)
+    }
+    val latestResultHandoffEvent = rememberUpdatedState(onResultHandoffEvent)
+    val latestResultHandoffFinished = rememberUpdatedState(onRevealFinished)
+    val latestPlaybackProgress = rememberUpdatedState(onPlaybackProgress)
+    fun emitResultHandoffMilestone(
+        substage: ResultHandoffSubstage,
+        frame: RecognitionSceneFrame,
+        progress: Float,
+    ): RecognitionResultHandoffReceipt {
+        val handoff = visualHandoff ?: return RecognitionResultHandoffReceipt(false, "HANDOFF_MISSING")
+        val path = handoff.fishPathSnapshot
+        val eventSequence = resultHandoffEventSequence + 1L
+        val eventTimestampMs = SystemClock.uptimeMillis()
+        val sourceTargetFeedback = when (substage) {
+            ResultHandoffSubstage.NAME_STABLE -> Triple("GLYPH", "RESULT_NAME", "NAME_STABLE")
+            ResultHandoffSubstage.PHOTO_SETTLE -> Triple("PROCESSING_PHOTO", "RESULT_HERO", "PHOTO_SETTLE")
+            ResultHandoffSubstage.RESULT_SCENE_HANDOFF -> Triple("PHOTO_SETTLED_RESULT", "RESULT_SCENE", "RESULT_CONTENT_COMMITTED")
+            ResultHandoffSubstage.RESULT_INFO_ARRIVAL -> Triple("RESULT_SNAPSHOT", "RESULT_INFO_LAYOUT", "INFO_ARRIVAL")
+            ResultHandoffSubstage.RESULT_SCENE_STABLE -> Triple("RESULT_HOST", "RESULT_SCENE", "SCENE_STABLE")
+        }
+        val event = RecognitionResultHandoffEvent(
+            identity = resultSceneIdentity,
+            maskSha256 = path?.maskSha256,
+            maskVersion = path?.maskVersion,
+            geometryVersion = frame.geometryVersion,
+            pathId = path?.returnPathId,
+            pathGeometryVersion = path?.geometryVersion,
+            pStarNormalizedSource = path?.pStarNormalizedSource,
+            pathSegments = path?.returnPathSegments.orEmpty(),
+            stage = frame.stage,
+            substage = substage,
+            eventSequence = eventSequence,
+            monotonicTimestampMs = eventTimestampMs,
+            eventProducer = RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER,
+            eventConsumer = RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER,
+            source = sourceTargetFeedback.first,
+            target = sourceTargetFeedback.second,
+            feedback = sourceTargetFeedback.third,
+            progress = progress.coerceIn(0f, 1f),
+            renderStatus = "READY",
+            resultIdentity = resultSnapshot?.glyphSpeciesKey ?: prediction.top1.speciesKey,
+        )
+        resultHandoffEventTimestampMs = eventTimestampMs
+        if (resultGeometryReady) {
+            diagnosticPlaybackController?.setResultGeometryState(
+                SceneGeometryState.READY,
+                event.monotonicTimestampMs,
+                event.identity,
+                resultGeometryVersions,
+            )
+        }
+        val receipt = latestResultHandoffEvent.value(event)
+        if (receipt.accepted) {
+            resultHandoffEventSequence = eventSequence
+            Log.i(
+                "RecognitionResultHandoff",
+                "accepted=true substage=${substage.name} session=${event.identity.sessionId} attempt=${event.identity.attemptId} " +
+                    "image=${event.identity.imageId} mask=${event.maskSha256} maskVersion=${event.maskVersion} " +
+                    "path=${event.pathId} pathGeometry=${event.pathGeometryVersion} pStar=${event.pStarNormalizedSource} " +
+                    "geometry=${event.geometryVersion} sequence=${event.eventSequence} " +
+                    "timestamp=${event.monotonicTimestampMs}",
+            )
+            if (receipt.resultSceneStable) latestResultHandoffFinished.value(handoff.key)
+        } else {
+            Log.i(
+                "RecognitionResultHandoff",
+                "accepted=false substage=${substage.name} reason=${receipt.rejectionReason} " +
+                    "sequence=${event.eventSequence} attempt=${event.identity.attemptId}",
+            )
+        }
+        return receipt
+    }
     val diagnosticReferenceMs = diagnosticPlaybackController?.opticalReferenceElapsedMs(diagnosticNowMs)
     val diagnosticPreviewElapsedMs = diagnosticPlaybackController?.previewElapsedMs(diagnosticNowMs) ?: 0L
     val diagnosticPreviewCompleted = diagnosticPlaybackController?.previewCompleted == true
@@ -560,6 +658,17 @@ fun RecognitionResultScreen(
     // 350ms is an advisory threshold only. Keep the shared scene clock held while
     // Compose measures; only an explicit geometry rejection enters static fallback.
     val geometryInvalid = !resultGeometryReady && geometryResolutionReason != null && !geometryStillMeasuring
+    val resultHandoffMotionActive = !revealMotionPolicy.reduceMotion && !revealAlreadyPlayed &&
+        uiState == RecognitionUiState.RESULT_HIGH &&
+        visualHandoff?.eligibility in setOf(
+            RecognitionRevealEligibility.FULL_REVEAL,
+            RecognitionRevealEligibility.TITLE_FADE_ONLY,
+        ) && !geometryInvalid
+    val resultSceneHandoffAccepted = resultSnapshot?.handoffState?.has(ResultHandoffSubstage.RESULT_SCENE_HANDOFF) == true
+    val resultInfoArrivalAccepted = resultSnapshot?.handoffState?.has(ResultHandoffSubstage.RESULT_INFO_ARRIVAL) == true
+    val resultInteractionsEnabled = !resultHandoffMotionActive || resultSnapshot?.resultSceneStable == true
+    val resultContentAlpha = if (resultHandoffMotionActive && !resultSceneHandoffAccepted) 0f else 1f
+    val resultInfoAlpha = if (resultHandoffMotionActive && !resultInfoArrivalAccepted) 0f else 1f
     LaunchedEffect(revealHandoff?.key, resultGeometryReady, geometryInvalid, resultGeometryVersions) {
         val playback = diagnosticPlaybackController ?: return@LaunchedEffect
         if (revealHandoff == null) return@LaunchedEffect
@@ -595,7 +704,7 @@ fun RecognitionResultScreen(
         if (resultFirstPresentedAtMs.value != null && revealStartReady && !revealAlreadyPlayed && !revealStartAllowed.value &&
             latestRevealKey.value == key
         ) {
-            revealStartAllowed.value = onClaimReveal(key)
+            revealStartAllowed.value = onClaimReveal(key) && onPlaybackStart(key)
             revealClaimResolved = true
         }
     }
@@ -627,6 +736,145 @@ fun RecognitionResultScreen(
                 alreadyPlayed = revealAlreadyPlayed,
             )
         }
+    }
+
+    LaunchedEffect(revealHandoff?.key, diagnosticFrame?.stage, diagnosticFrame?.stageEventComplete) {
+        val frame = diagnosticFrame ?: return@LaunchedEffect
+        if (frame.stageEventComplete) {
+            diagnosticPlaybackController?.onSceneTransitionComplete(frame.stage, resultSceneIdentity)
+        }
+    }
+    LaunchedEffect(
+        revealHandoff?.key,
+        resultFirstPresentedAtMs.value,
+        resultGeometryReady,
+        diagnosticFrame?.stage,
+        resultSnapshot?.resultDataReady,
+        resultSnapshot?.handoffState?.completedSubstages,
+    ) {
+        val key = revealHandoff?.key ?: return@LaunchedEffect
+        val frame = diagnosticFrame ?: return@LaunchedEffect
+        if (resultFirstPresentedAtMs.value != null && resultGeometryReady &&
+            resultSnapshot?.key == key && resultSnapshot.resultDataReady &&
+            ResultHandoffSubstage.PHOTO_SETTLE in resultSnapshot.handoffState.completedSubstages &&
+            ResultHandoffSubstage.RESULT_SCENE_HANDOFF !in resultSnapshot.handoffState.completedSubstages &&
+            frame.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+            revealFrameState.value.photoProgress >= .999f
+        ) {
+            emitResultHandoffMilestone(ResultHandoffSubstage.RESULT_SCENE_HANDOFF, frame, 1f)
+        }
+    }
+    LaunchedEffect(
+        revealHandoff?.key,
+        diagnosticFrame?.stage,
+        diagnosticFrame?.stageEventComplete,
+        resultGeometryReady,
+        revealTitleBounds,
+        prediction.top1.speciesKey,
+        selectedKey,
+        selectedName,
+        resultSnapshot?.handoffState?.completedSubstages,
+    ) {
+        val frame = diagnosticFrame ?: return@LaunchedEffect
+        if (frame.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL && frame.stageEventComplete &&
+            resultGeometryReady && revealTitleBounds?.isValid() == true &&
+            resultSnapshot?.resultDataReady == true &&
+            ResultHandoffSubstage.NAME_STABLE !in resultSnapshot.handoffState.completedSubstages &&
+            resultSnapshot.glyphSpeciesKey == prediction.top1.speciesKey &&
+            selectedKey == prediction.top1.speciesKey && selectedName == prediction.top1.speciesName
+        ) {
+            emitResultHandoffMilestone(ResultHandoffSubstage.NAME_STABLE, frame, 1f)
+        }
+    }
+    val photoTransformAtTarget = remember(photoTransitionGeometry, revealFrameState.value.photoProgress) {
+        val photo = photoTransitionGeometry
+        val progress = revealFrameState.value.photoProgress
+        val current = photo?.photoMatrix(progress)
+        val target = photo?.photoMatrix(1f)
+        val clip = photo?.photoClip(progress)
+        val expectedClip = photo?.let {
+            RecognitionRevealWindowRect(
+                it.heroPhotoClip.left - it.rootWindowOrigin.x,
+                it.heroPhotoClip.top - it.rootWindowOrigin.y,
+                it.heroPhotoClip.right - it.rootWindowOrigin.x,
+                it.heroPhotoClip.bottom - it.rootWindowOrigin.y,
+            )
+        }
+        current != null && target != null && clip != null && expectedClip != null &&
+            kotlin.math.abs(current.scale - target.scale) < 1f &&
+            kotlin.math.abs(current.translationX - target.translationX) < 1f &&
+            kotlin.math.abs(current.translationY - target.translationY) < 1f &&
+            kotlin.math.abs(clip.left - expectedClip.left) < 1f &&
+            kotlin.math.abs(clip.top - expectedClip.top) < 1f &&
+            kotlin.math.abs(clip.right - expectedClip.right) < 1f &&
+            kotlin.math.abs(clip.bottom - expectedClip.bottom) < 1f
+    }
+    LaunchedEffect(
+        revealHandoff?.key,
+        diagnosticFrame?.stage,
+        diagnosticFrame?.stageEventComplete,
+        resultGeometryReady,
+        revealFrameState.value.photoProgress >= .999f,
+        photoTransformAtTarget,
+        resultSnapshot?.handoffState?.completedSubstages,
+    ) {
+        val frame = diagnosticFrame ?: return@LaunchedEffect
+        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && resultGeometryReady &&
+            revealFrameState.value.photoProgress >= .999f && photoTransformAtTarget && heroSnapshot?.renderReady == true &&
+            ResultHandoffSubstage.NAME_STABLE in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet()) &&
+            ResultHandoffSubstage.PHOTO_SETTLE !in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet())
+        ) {
+            emitResultHandoffMilestone(ResultHandoffSubstage.PHOTO_SETTLE, frame, revealFrameState.value.photoProgress)
+        }
+    }
+    LaunchedEffect(
+        revealHandoff?.key,
+        diagnosticFrame?.stage,
+        resultInfoLayoutReady,
+        currentTime,
+        selectedName,
+        resultSnapshot?.handoffState?.completedSubstages,
+    ) {
+        val frame = diagnosticFrame ?: return@LaunchedEffect
+        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && resultInfoLayoutReady && currentTime.isNotBlank() &&
+            resultSnapshot?.resultDataReady == true && selectedName.isNotBlank() &&
+            ResultHandoffSubstage.RESULT_SCENE_HANDOFF in resultSnapshot.handoffState.completedSubstages &&
+            ResultHandoffSubstage.RESULT_INFO_ARRIVAL !in resultSnapshot.handoffState.completedSubstages &&
+            resultSnapshot.glyphSpeciesName == prediction.top1.speciesName
+        ) {
+            emitResultHandoffMilestone(ResultHandoffSubstage.RESULT_INFO_ARRIVAL, frame, 1f)
+        }
+    }
+    LaunchedEffect(
+        revealHandoff?.key,
+        diagnosticFrame?.stage,
+        diagnosticFrame?.stageEventComplete,
+        diagnosticPlaybackController?.resultSceneStable,
+        resultSnapshot?.handoffState?.completedSubstages,
+        resultInfoLayoutReady,
+    ) {
+        val frame = diagnosticFrame ?: return@LaunchedEffect
+        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && frame.stageEventComplete &&
+            frame.stageProgress >= .999f && revealFrameState.value.afterglowAlpha <= .001f && resultInfoLayoutReady &&
+            ResultHandoffSubstage.RESULT_INFO_ARRIVAL in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet()) &&
+            ResultHandoffSubstage.RESULT_SCENE_STABLE !in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet())
+        ) {
+            emitResultHandoffMilestone(ResultHandoffSubstage.RESULT_SCENE_STABLE, frame, 1f)
+        }
+    }
+    LaunchedEffect(
+        revealHandoff?.key,
+        revealStartAllowed.value,
+        diagnosticFrame?.stage,
+        diagnosticFrame?.stageProgress?.let { (it * 10f).toInt() },
+    ) {
+        val key = revealHandoff?.key ?: return@LaunchedEffect
+        val frame = diagnosticFrame ?: return@LaunchedEffect
+        if (revealStartAllowed.value) latestPlaybackProgress.value(key, frame.stage, frame.stageProgress)
+    }
+    DisposableEffect(revealHandoff?.key) {
+        val key = revealHandoff?.key
+        onDispose { if (key != null) onPlaybackInterrupted(key) }
     }
 
     fun save(destination: RecognitionSaveDestination) {
@@ -802,9 +1050,14 @@ fun RecognitionResultScreen(
     ) {
         BgContentSurface()
         Column(Modifier.fillMaxSize()) {
-            YuJianBackCenterTitleTopBar(title = "识别结果", onBack = { requestExit(PendingExitAction.BACK) }, backEnabled = !saving && !saveRequested)
+            YuJianBackCenterTitleTopBar(
+                title = if (resultContentAlpha == 0f) "识别中" else "识别结果",
+                onBack = { requestExit(PendingExitAction.BACK) },
+                backEnabled = !saving && !saveRequested,
+            )
             Column(
                 Modifier.weight(1f)
+                    .graphicsLayer(alpha = resultContentAlpha)
                     .widthIn(max = RecognitionResultGeometryResolver.MAX_CONTENT_WIDTH_DP.dp)
                     .fillMaxWidth()
                     .align(Alignment.CenterHorizontally)
@@ -844,7 +1097,7 @@ fun RecognitionResultScreen(
                             scientificName = selectedScientificName,
                             sideMargin = sideMargin,
                             widthDp = geometry.heroWidthDp,
-                            enabled = !saveBusy,
+                            enabled = !saveBusy && resultInteractionsEnabled,
                             revealFrameState = revealFrameState,
                             holdNameUntilHandoff = !revealAlreadyPlayed &&
                                 (revealHandoff == null || revealHandoff.revealDecision !in setOf(
@@ -873,17 +1126,22 @@ fun RecognitionResultScreen(
                             weight = weightText,
                             location = locationText,
                             resolvingLocation = resolvingLocation,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin)
+                                .graphicsLayer(alpha = resultInfoAlpha)
+                                .onGloballyPositioned { coordinates ->
+                                    resultInfoLayoutReady = coordinates.size.width > 0 && coordinates.size.height > 0
+                                },
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                            enabled = !saveBusy,
+                            enabled = !saveBusy && resultInteractionsEnabled,
                             onField = { editField = it },
                         )
                         Spacer(Modifier.height(8.dp))
                         ResultMemoryNote(
                             value = storyText,
                             onValueChange = { storyText = it.takeUnicodeCodePoints(300) },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
-                            enabled = !saveBusy,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin)
+                                .graphicsLayer(alpha = resultInfoAlpha),
+                            enabled = !saveBusy && resultInteractionsEnabled,
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                         )
                         Spacer(Modifier.height(16.dp))
@@ -892,7 +1150,8 @@ fun RecognitionResultScreen(
                             sideMargin,
                             actionLabel = inlineErrorActionLabel,
                             onAction = inlineErrorAction,
-                            enabled = !saveBusy,
+                            enabled = !saveBusy && resultInteractionsEnabled,
+                            modifier = Modifier.graphicsLayer(alpha = resultInfoAlpha),
                         )
                         ResultDualActions(
                             useResultSurfaceActions = true,
@@ -901,6 +1160,8 @@ fun RecognitionResultScreen(
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                             compactLayout = compactResultActions,
                             sideMargin = if (compactResultActions) 16.dp else 24.dp,
+                            interactiveEnabled = resultInteractionsEnabled,
+                            modifier = Modifier.graphicsLayer(alpha = resultInfoAlpha),
                             onContinue = { save(RecognitionSaveDestination.MEMORY) },
                             onSave = { save(RecognitionSaveDestination.HOME) },
                         )
@@ -1085,7 +1346,10 @@ fun RecognitionResultScreen(
                 end = WaterLightPathPoint(curve.end.x, curve.end.y),
             )
         }
-        val trustedMaskReveal = visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL
+        val processingFishPathSnapshot = visualHandoff?.fishPathSnapshot
+            ?.takeIf { it.isValid() && it.imageId == image?.imageId && it.photoSha256 == image?.photoSha256 }
+        val trustedMaskReveal = visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL &&
+            processingFishPathSnapshot != null
         val orbOnlyReveal = visualHandoff != null &&
             visualHandoff.revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY &&
             visualHandoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY &&
@@ -1095,6 +1359,20 @@ fun RecognitionResultScreen(
                 resultFrame, trustedMask = trustedMaskReveal, successfulRevealAllowed = true,
                 pathGeometry = resultPathGeometry,
                 orbOnlyRevealAllowed = orbOnlyReveal,
+                pathSegments = if (resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal) {
+                    requireNotNull(processingFishPathSnapshot).returnPathSegments
+                } else emptyList(),
+                pathIdOverride = if (resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal) {
+                    requireNotNull(processingFishPathSnapshot).returnPathId
+                } else null,
+                pathMaskSha256 = processingFishPathSnapshot?.maskSha256
+                    ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
+                pathMaskVersion = processingFishPathSnapshot?.maskVersion
+                    ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
+                pathGeometryVersion = processingFishPathSnapshot?.geometryVersion
+                    ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
+                pathContactPointNormalizedSource = processingFishPathSnapshot?.pStarNormalizedSource
+                    ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
             )
         } else null
         LaunchedEffect(
@@ -1108,10 +1386,7 @@ fun RecognitionResultScreen(
         ) {
             val event = resultEnergyEvent ?: return@LaunchedEffect
             if (event.level >= .999f && resultSceneFrame != null) {
-                val accepted = diagnosticPlaybackController?.recordEnergyEvent(resultSceneFrame, event) == true
-                if (accepted && event.feedback == EnergyFeedback.SETTLE) {
-                    latestRevealFinished.value.invoke(RecognitionRevealKey(event.sessionId, event.attemptId))
-                }
+                diagnosticPlaybackController?.recordEnergyEvent(resultSceneFrame, event)
             }
             Log.i(
                 "WaterLightEnergy",
@@ -1811,18 +2086,20 @@ private fun CandidateRow(
 private fun ResultDualActions(
     saving: Boolean,
     loadingDestination: RecognitionSaveDestination?,
+    interactiveEnabled: Boolean = true,
     accessibilityFontScale: Boolean,
     compactLayout: Boolean,
     sideMargin: Dp,
+    modifier: Modifier = Modifier,
     onContinue: () -> Unit,
     onSave: () -> Unit,
     useResultSurfaceActions: Boolean = false,
 ) {
     // The callbacks are supplied by the enclosing page so metadata and species are validated together.
-    val blocked = saving || loadingDestination != null
+    val blocked = saving || loadingDestination != null || !interactiveEnabled
     if (accessibilityFontScale) {
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+            modifier.fillMaxWidth().padding(horizontal = sideMargin),
             verticalArrangement = Arrangement.spacedBy(if (compactLayout) 8.dp else 12.dp),
         ) {
             ResultDualActionButton(
@@ -1846,7 +2123,7 @@ private fun ResultDualActions(
         }
     } else {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+            modifier.fillMaxWidth().padding(horizontal = sideMargin),
             horizontalArrangement = Arrangement.spacedBy(if (compactLayout) 8.dp else 12.dp),
         ) {
             ResultDualActionButton(
@@ -1983,9 +2260,10 @@ private fun ResultInlineError(
     actionLabel: String?,
     onAction: (() -> Unit)?,
     enabled: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     if (!message.isNullOrBlank()) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin).padding(bottom = 8.dp)) {
+        Column(modifier.fillMaxWidth().padding(horizontal = sideMargin).padding(bottom = 8.dp)) {
             Text(message, color = Color(0xFF9E4035), fontSize = 13.sp, lineHeight = 18.sp)
             if (actionLabel != null && onAction != null) {
                 TextButton(onClick = onAction, enabled = enabled, contentPadding = PaddingValues(0.dp)) {

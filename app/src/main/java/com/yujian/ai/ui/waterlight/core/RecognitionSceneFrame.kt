@@ -1,20 +1,22 @@
 package com.yujian.ai.ui.waterlight.core
 
+import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
+
 /** Semantic scene states. Durations are local minimum visibility targets, never a global timeline. */
 enum class RecognitionSceneStage(val minimumVisibleMs: Long, val displayName: String) {
-    PHOTO_STABLE(120L, "照片稳定"),
+    PHOTO_STABLE(0L, "照片稳定"),
     ORB_WAKE(350L, "光球苏醒"),
     ORB_RELEASE(600L, "光球释放水光"),
     PERIMETER_ARRIVAL(125L, "照片外围激活"),
     PATH_TO_FISH(125L, "水光寻鱼"),
-    CONTOUR_A(250L, "鱼体轮廓初显"),
-    CONTOUR_B(250L, "鱼体轮廓形成"),
-    CONTOUR_C(250L, "鱼体轮廓闭合"),
-    FISH_GOLD_PEAK(850L, "鱼体金光稳定"),
-    ORB_RETURN(380L, "能量返回光球"),
-    ORB_TO_NAME(170L, "光球舒展凝字"),
-    SPECIES_NAME_REVEAL(130L, "鱼种名称揭晓"),
-    RESIDUE_SETTLE(170L, "水光余辉收束");
+    CONTOUR_A(450L, "鱼体轮廓初显"),
+    CONTOUR_B(450L, "鱼体轮廓形成"),
+    CONTOUR_C(450L, "鱼体轮廓闭合"),
+    FISH_GOLD_PEAK(1_000L, "鱼体金光稳定"),
+    ORB_RETURN(350L, "能量返回光球"),
+    ORB_TO_NAME(850L, "光球舒展凝字"),
+    SPECIES_NAME_REVEAL(800L, "鱼种名称揭晓"),
+    RESIDUE_SETTLE(450L, "水光余辉收束");
 
     /** Compatibility alias for consumers that need a local envelope length. */
     val durationMs: Long get() = minimumVisibleMs
@@ -50,6 +52,24 @@ data class RecognitionSceneIdentity(
     val photoContentVersion: Long,
 )
 
+/** One closed interval from the production scene controller's monotonic uptime clock. */
+data class RecognitionSceneStageTraceEntry(
+    val stage: RecognitionSceneStage,
+    val stageOrdinal: Int,
+    val stageStartTimestampMs: Long,
+    val stageEndTimestampMs: Long,
+    val stageDurationMs: Long,
+    val requiredDurationMs: Long,
+    val gateWaitDurationMs: Long,
+    val gateWaitReason: String?,
+    val localProgress: Float,
+    val sessionId: String,
+    val attemptId: String,
+    val eventSequence: Long,
+) {
+    val activeDurationMs: Long get() = (stageDurationMs - gateWaitDurationMs).coerceAtLeast(0L)
+}
+
 data class RecognitionSceneFrame(
     val identity: RecognitionSceneIdentity,
     val sceneElapsedMs: Long,
@@ -67,10 +87,14 @@ data class RecognitionSceneFrame(
     val monotonicTimestampMs: Long = 0L,
     val energyEvent: EnergyEvent? = null,
     val stageEventComplete: Boolean = false,
+    val resultHandoffSubstage: ResultHandoffSubstage? = null,
+    val resultInfoArrivalProgress: Float = 0f,
+    val resultSceneStable: Boolean = false,
 ) {
     init {
         require(sceneElapsedMs >= 0L && opticalReferenceElapsedMs >= 0L && stageElapsedMs >= 0L)
         require(stageProgress in 0f..1f)
+        require(resultInfoArrivalProgress in 0f..1f)
         require(eventSequence >= 0L && monotonicTimestampMs >= 0L)
     }
 
@@ -97,6 +121,9 @@ object RecognitionSceneCoordinator {
         monotonicTimestampMs: Long = 0L,
         energyEvent: EnergyEvent? = null,
         stageEventComplete: Boolean = false,
+        resultHandoffSubstage: ResultHandoffSubstage? = null,
+        resultInfoArrivalProgress: Float = 0f,
+        resultSceneStable: Boolean = false,
     ): RecognitionSceneFrame = RecognitionSceneFrame(
         identity = identity,
         sceneElapsedMs = sceneElapsedMs.coerceAtLeast(0L),
@@ -113,6 +140,9 @@ object RecognitionSceneCoordinator {
         monotonicTimestampMs = monotonicTimestampMs,
         energyEvent = energyEvent,
         stageEventComplete = stageEventComplete,
+        resultHandoffSubstage = resultHandoffSubstage,
+        resultInfoArrivalProgress = resultInfoArrivalProgress.coerceIn(0f, 1f),
+        resultSceneStable = resultSceneStable,
     )
 }
 

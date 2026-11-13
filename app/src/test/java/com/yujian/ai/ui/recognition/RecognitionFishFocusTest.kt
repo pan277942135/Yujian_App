@@ -23,6 +23,30 @@ class RecognitionFishFocusTest {
     }
 
     @Test
+    fun fishGoldPeakUsesCore300msSoft500msAndHalo200ms() {
+        val start = recognitionFishGoldLayers(sceneAt(RecognitionSceneStage.FISH_GOLD_PEAK, 0L))
+        val coreComplete = recognitionFishGoldLayers(sceneAt(RecognitionSceneStage.FISH_GOLD_PEAK, 300L))
+        val peakHold = recognitionFishGoldLayers(sceneAt(RecognitionSceneStage.FISH_GOLD_PEAK, 799L))
+        val handoffStart = recognitionFishGoldLayers(sceneAt(RecognitionSceneStage.FISH_GOLD_PEAK, 800L))
+        val handoffMid = recognitionFishGoldLayers(sceneAt(RecognitionSceneStage.FISH_GOLD_PEAK, 900L))
+        val complete = recognitionFishGoldLayers(sceneAt(RecognitionSceneStage.FISH_GOLD_PEAK, 1_000L))
+
+        assertEquals(0f, start.coreProgress, 0f)
+        assertEquals(0f, start.softProgress, 0f)
+        assertEquals(0f, start.haloProgress, 0f)
+        assertEquals(1f, coreComplete.coreProgress, 0f)
+        assertEquals(1f, coreComplete.softProgress, 0f)
+        assertTrue(coreComplete.softPeakHoldActive)
+        assertEquals(1f, peakHold.coreProgress, 0f)
+        assertEquals(1f, peakHold.softProgress, 0f)
+        assertTrue(peakHold.softPeakHoldActive)
+        assertFalse(handoffStart.softPeakHoldActive)
+        assertEquals(0f, handoffStart.haloProgress, 0f)
+        assertEquals(.5f, handoffMid.haloProgress, .0001f)
+        assertEquals(1f, complete.haloProgress, 0f)
+    }
+
+    @Test
     fun untrustedMaskNeverEnablesAnyFishShapeAndTrustedMaskIsPhaseGated() {
         assertFalse(recognitionMaskContourEnabled(RecognitionPhase.OUTLINE, maskTrusted = false))
         assertFalse(recognitionMaskContourEnabled(RecognitionPhase.CLASSIFYING, maskTrusted = false))
@@ -90,6 +114,7 @@ class RecognitionFishFocusTest {
             attemptId = "attempt-1",
             imageId = "image-1",
             photoSha256 = "a".repeat(64),
+            maskSha256 = "c".repeat(64),
             maskVersion = 7L,
             contourHash = 13,
             geometryVersion = 11L,
@@ -99,10 +124,22 @@ class RecognitionFishFocusTest {
         assertNotEquals(base, base.copy(attemptId = "attempt-2"))
         assertNotEquals(base, base.copy(imageId = "image-2"))
         assertNotEquals(base, base.copy(photoSha256 = "b".repeat(64)))
+        assertNotEquals(base, base.copy(maskSha256 = "d".repeat(64)))
         assertNotEquals(base, base.copy(maskVersion = 8L))
         assertNotEquals(base, base.copy(contourHash = 14))
         assertNotEquals(base, base.copy(geometryVersion = 12L))
     }
+
+    private fun sceneAt(stage: RecognitionSceneStage, elapsedMs: Long) =
+        RecognitionSceneCoordinator.frameForStage(
+            identity = RecognitionSceneIdentity("session", "attempt", "image", "a".repeat(64), 0L),
+            sceneElapsedMs = elapsedMs,
+            opticalReferenceElapsedMs = elapsedMs,
+            geometryVersion = 0L,
+            stage = stage,
+            stageElapsedMs = elapsedMs,
+            stageProgress = (elapsedMs.toFloat() / stage.minimumVisibleMs.coerceAtLeast(1L)).coerceIn(0f, 1f),
+        )
 
     private fun scene(stage: RecognitionSceneStage, progress: Float) =
         RecognitionSceneCoordinator.frameForStage(
