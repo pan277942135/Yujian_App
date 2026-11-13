@@ -1701,7 +1701,7 @@ fun RecognitionProcessingScene(
                 waterLightFrame = waterLightFrame,
                 energyEvent = orbEnergyEvent,
                 waterLightMaterial = orbHost.material,
-                // RAW_CORE is safe only after WaterLightHostBinding validates scene identity and geometry.
+                // Source-core fallback requires the expected scene identity and geometry to validate.
                 renderIsolationMode = when {
                     orbHostRejectReason == null -> OrbRenderIsolationMode.NORMAL
                     orbHost.canUseSourceCoreFallback(waterLightFrame, orbGeometry) -> OrbRenderIsolationMode.RAW_CORE
