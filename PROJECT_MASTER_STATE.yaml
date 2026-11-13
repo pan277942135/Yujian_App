@@ -7,7 +7,7 @@ project:
 state_control:
   execution_baseline_sha: 076c830e043dfc7644188b9f730e9c6d53ba48e6
   current_branch: work/recognition-runtime-result-handoff-v1
-  current_pr: null
+  current_pr: 330
   base_sha: 81200da2e41163b04cfd340de59c3f43700c329a
   baseline_kind: exact product source head before this Work execution
   checkpoint_updated_at: '2026-11-13T02:58:41Z'
@@ -34,6 +34,16 @@ pull_requests:
     status: DRAFT_OPEN_UNMERGED
     mergeable: true
     relationship: upstream WP2 runtime candidate; remains Draft/Open/Unmerged
+  PR330:
+    number: 330
+    title: 'P0: unify Recognition Runtime and Result Handoff'
+    branch: work/recognition-runtime-result-handoff-v1
+    base_branch: main
+    base_sha: 81200da2e41163b04cfd340de59c3f43700c329a
+    head_sha: c6f66c106a1cee09892db172936de7baa74ec482
+    status: DRAFT_OPEN_UNMERGED
+    mergeable: true
+    relationship: independent P0-1 closure candidate; validation pending
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -157,7 +167,7 @@ completion_rules:
   closure PASS without exact-source evidence.
 state_update:
   protocol: harness/STATE_UPDATE_PROTOCOL.md
-  last_observation: '2026-11-13T02:58:41Z'
+  last_observation: '2026-11-13T03:05:00Z'
   details: 'P0-1 candidate source uploaded to independent branch; exact-head CI pending. Initialized exact branch-local execution state from current Main, PR #327,
     current-head CI and artifact metadata. Initial Admission failed only because the
     two required dynamic state files were absent. Created independent branch work/recognition-runtime-result-handoff-v1
