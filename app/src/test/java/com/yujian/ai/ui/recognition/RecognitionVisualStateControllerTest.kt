@@ -10,6 +10,10 @@ import com.yujian.ai.ui.waterlight.core.SceneMaskState
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.SceneRunState
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
+import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightPathLedger
+import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import org.junit.Assert.assertEquals
@@ -442,6 +446,132 @@ class RecognitionVisualStateControllerTest {
         assertFalse(controller.onFishContactPathAvailable(
             nextGeometryPathId, maskSha, 42L, geometryVersion + 1L, contact, identity,
         ))
+    }
+
+    @Test fun fullRevealReturnConsumesTheProcessingLedgerSnapshotAndRejectsDefaultOrStaleIdentity() {
+        val photoSha = "c".repeat(64)
+        val maskSha = "a".repeat(64)
+        val contact = WaterLightPathPoint(.42f, .61f)
+        val pathGeometryVersion = -7L
+        val resultGeometryVersion = 200L
+        val runtimeIdentity = RecognitionSceneIdentity("session-1", "attempt-1", "image-1", photoSha, 3L)
+        val controller = SceneMotionCoordinator()
+        controller.beginNewSession(runtimeIdentity, debugBuild = true, nowMs = 0L)
+        controller.markPhotoFirstFramePresented(runtimeIdentity, 100L)
+        controller.onPhotoTransformAvailable(true, runtimeIdentity, pathGeometryVersion)
+        controller.updateModelJoin(
+            detectorReady = true,
+            classifierReady = true,
+            slimSamTerminal = true,
+            maskTrusted = true,
+            contourValid = true,
+            contourClosed = true,
+            currentIdentity = runtimeIdentity,
+            maskSha256 = maskSha,
+            maskVersion = 42L,
+        )
+        controller.onRevealDecisionReady(runtimeIdentity)
+        controller.onOrbAnchorAvailable(true, runtimeIdentity)
+        controller.beginStepPreview(RecognitionSceneStage.PATH_TO_FISH, 200L)
+
+        val processingScene = controller.currentFrame(runtimeIdentity, 3_200L, pathGeometryVersion)
+        val processingFrame = WaterLightFrame(
+            sessionId = runtimeIdentity.sessionId,
+            photoSha256 = photoSha,
+            elapsedMs = processingScene.sceneElapsedMs,
+            opticalReferenceElapsedMs = processingScene.opticalReferenceElapsedMs,
+            phase = WaterLightPhase.PROCESSING,
+            completion = 0f,
+            reducedMotion = false,
+            geometryVersion = pathGeometryVersion,
+            attemptId = runtimeIdentity.attemptId,
+            imageId = runtimeIdentity.imageId,
+            photoContentVersion = runtimeIdentity.photoContentVersion,
+            eventSequence = processingScene.eventSequence,
+            sceneFrameOverride = processingScene,
+        )
+        val releasePath = WaterLightPathGeometry(
+            WaterLightPathPoint(120f, 220f), WaterLightPathPoint(220f, 245f),
+            WaterLightPathPoint(320f, 270f), WaterLightPathPoint(420f, 300f),
+        )
+        val fishPath = WaterLightPathGeometry(
+            WaterLightPathPoint(380f, 300f), WaterLightPathPoint(450f, 350f),
+            WaterLightPathPoint(550f, 420f), WaterLightPathPoint(640f, 480f),
+        )
+        val ledger = WaterLightPathLedger()
+        assertTrue(ledger.recordRelease(processingFrame, releasePath))
+        assertTrue(ledger.recordFishPath(processingFrame, fishPath, true, maskSha, 42L, contact))
+        val fishPathId = requireNotNull(ledger.pathId(processingFrame, maskSha, 42L, contact))
+        assertTrue(controller.onFishContactPathAvailable(
+            fishPathId, maskSha, 42L, pathGeometryVersion, contact, runtimeIdentity,
+        ))
+        val absorb = EnergyEvent(
+            sessionId = runtimeIdentity.sessionId,
+            photoSha256 = photoSha,
+            source = EnergyAnchor.PHOTO_PATH,
+            target = EnergyAnchor.FISH_CONTOUR,
+            feedback = EnergyFeedback.ABSORB,
+            level = .25f,
+            referenceMs = processingScene.opticalReferenceElapsedMs,
+            geometryVersion = pathGeometryVersion,
+            attemptId = runtimeIdentity.attemptId,
+            imageId = runtimeIdentity.imageId,
+            photoContentVersion = runtimeIdentity.photoContentVersion,
+            pathId = fishPathId,
+            pathGeometry = fishPath,
+            eventSequence = processingScene.eventSequence,
+            monotonicTimestampMs = processingScene.monotonicTimestampMs,
+            sourceHost = EnergyAnchor.PHOTO_PATH.name,
+            targetHost = EnergyAnchor.FISH_CONTOUR.name,
+            renderStatus = "READY",
+            stage = RecognitionSceneStage.PATH_TO_FISH,
+        )
+        assertTrue(controller.recordEnergyEvent(processingScene, absorb))
+
+        val snapshot = requireNotNull(ledger.exportRecognitionFishPathSnapshot(processingFrame, maskSha, 42L, contact))
+        assertTrue(controller.onFishPathSnapshot(snapshot, runtimeIdentity))
+        controller.beginStepPreview(RecognitionSceneStage.ORB_RETURN, 4_000L)
+        controller.setResultGeometryState(SceneGeometryState.READY, 4_000L, runtimeIdentity, setOf(resultGeometryVersion))
+        val resultScene = controller.currentFrame(runtimeIdentity, 7_000L, resultGeometryVersion)
+        val resultFrame = WaterLightFrame(
+            sessionId = runtimeIdentity.sessionId,
+            photoSha256 = photoSha,
+            elapsedMs = resultScene.sceneElapsedMs,
+            opticalReferenceElapsedMs = resultScene.opticalReferenceElapsedMs,
+            phase = WaterLightPhase.HANDOFF,
+            completion = 0f,
+            reducedMotion = false,
+            geometryVersion = resultGeometryVersion,
+            attemptId = runtimeIdentity.attemptId,
+            imageId = runtimeIdentity.imageId,
+            photoContentVersion = runtimeIdentity.photoContentVersion,
+            eventSequence = resultScene.eventSequence,
+            sceneFrameOverride = resultScene,
+        )
+        fun returned(pathId: String) = WaterLightEnergy.at(
+            frame = resultFrame,
+            trustedMask = true,
+            successfulRevealAllowed = true,
+            pathGeometry = snapshot.returnPathSegments.first(),
+            pathSegments = snapshot.returnPathSegments,
+            pathIdOverride = pathId,
+            pathMaskSha256 = snapshot.maskSha256,
+            pathMaskVersion = snapshot.maskVersion,
+            pathGeometryVersion = snapshot.geometryVersion,
+            pathContactPointNormalizedSource = snapshot.pStarNormalizedSource,
+        )!!
+
+        val reconstructedDefault = returned("fish-to-original-orb")
+        assertFalse(controller.recordEnergyEvent(resultScene, reconstructedDefault))
+        assertFalse(controller.recordEnergyEvent(resultScene, reconstructedDefault.copy(pathMaskSha256 = "b".repeat(64))))
+        assertFalse(controller.recordEnergyEvent(resultScene, reconstructedDefault.copy(pathGeometryVersion = 8L)))
+        assertFalse(controller.recordEnergyEvent(resultScene, reconstructedDefault.copy(attemptId = "attempt-2")))
+
+        val exactProcessingRoute = returned(snapshot.returnPathId)
+        assertEquals(snapshot.returnPathSegments, exactProcessingRoute.pathSegments)
+        assertTrue(controller.recordEnergyEvent(resultScene, exactProcessingRoute))
+        assertFalse(controller.recordEnergyEvent(resultScene, exactProcessingRoute))
+        assertEquals(RecognitionSceneStage.ORB_TO_NAME, controller.advanceToNextStage(7_001L))
     }
 
 }
