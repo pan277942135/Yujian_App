@@ -136,3 +136,8 @@
 - Debug artifact `14010576852`; APK size `144217818` bytes; independently streamed APK SHA-256 `aa3b0c6897852ded1c10f9af43833b68e83c483ae3fed68220dbda02c4e6cb9b`. Artifact archive SHA-256 `548fe0c789230d65da6ee7d5cd3ac0c07071d915341b10852621a9c45de82c1c` is recorded separately.
 - Independently verified packaged identity: DET_FISH v0.1 ONNX SHA-256 `12b97f7c081987f33f99d255cdd2e935fb9cf93b893146f54ff98b9c4e3a8e4f`; MODEL_CROP_M1 v0.2 SHA-256 `29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18`; both SlimSAM ONNX assets are present. This candidate does not claim DET_FISH v0.3 integration.
 - Android runtime, API36 fish-optics runtime, and visual-evidence jobs were skipped. AndroidTest APK compiled but was not executed. HUAWEI CMS-AL20 / Android 16 end-to-end recognition and Result handoff, visual evidence, and product acceptance remain `NOT_RUN`; PR #330 remains Draft/Open.
+
+## 2026-11-13 — Result Handoff exact-head compile repair
+
+- Exact source `49684ae9f7e4dc8ed62e07919c91977773477fe1`; Android CI run `43404913307` failed at `:app:compileDebugKotlin` in `RecognitionResultProductionEvidenceWriter.kt`. Kotlin parsed unparenthesized Boolean expressions adjacent to infix `to` as nested `Pair` values, causing the qualification-report entries T17, T23, T24, and T27 to fail type checking. No unit tests, APK, or device runtime completed.
+- Parenthesized each Boolean expression before constructing its `(pass, evidenceFile)` pair. The follow-up exact-head CI must pass before this source repair is accepted. API36 physical runtime remains a separate gate.
