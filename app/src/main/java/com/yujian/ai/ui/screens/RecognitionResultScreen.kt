@@ -1085,7 +1085,10 @@ fun RecognitionResultScreen(
                 end = WaterLightPathPoint(curve.end.x, curve.end.y),
             )
         }
-        val trustedMaskReveal = visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL
+        val processingFishPathSnapshot = visualHandoff?.fishPathSnapshot
+            ?.takeIf { it.isValid() && it.imageId == image?.imageId && it.photoSha256 == image?.photoSha256 }
+        val trustedMaskReveal = visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL &&
+            processingFishPathSnapshot != null
         val orbOnlyReveal = visualHandoff != null &&
             visualHandoff.revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY &&
             visualHandoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY &&
@@ -1095,6 +1098,20 @@ fun RecognitionResultScreen(
                 resultFrame, trustedMask = trustedMaskReveal, successfulRevealAllowed = true,
                 pathGeometry = resultPathGeometry,
                 orbOnlyRevealAllowed = orbOnlyReveal,
+                pathSegments = if (resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal) {
+                    requireNotNull(processingFishPathSnapshot).returnPathSegments
+                } else emptyList(),
+                pathIdOverride = if (resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal) {
+                    requireNotNull(processingFishPathSnapshot).returnPathId
+                } else null,
+                pathMaskSha256 = processingFishPathSnapshot?.maskSha256
+                    ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
+                pathMaskVersion = processingFishPathSnapshot?.maskVersion
+                    ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
+                pathGeometryVersion = processingFishPathSnapshot?.geometryVersion
+                    ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
+                pathContactPointNormalizedSource = processingFishPathSnapshot?.pStarNormalizedSource
+                    ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
             )
         } else null
         LaunchedEffect(
