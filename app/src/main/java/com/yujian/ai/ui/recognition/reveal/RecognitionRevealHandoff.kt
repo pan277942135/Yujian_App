@@ -9,6 +9,7 @@ import com.yujian.ai.ui.identify.DisplayPoint
 import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
+import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 
 data class RecognitionRevealKey(
     val recognitionSessionId: String,
@@ -117,6 +118,8 @@ data class RecognitionRevealHandoff(
     val revealDecision: RecognitionRevealDecisionState? = null,
     val maskVersion: Long = 0L,
     val contactPointGeometryVersion: Long = 0L,
+    /** Exact path ledger snapshot emitted by Processing; Result must consume it unchanged. */
+    val fishPathSnapshot: RecognitionFishPathSnapshot? = null,
 )
 
 object RecognitionRevealHandoffFactory {
@@ -130,6 +133,7 @@ object RecognitionRevealHandoffFactory {
         highConfidenceResult: Boolean,
         handoffTimestampUptimeMs: Long,
         subjectStatus: SubjectStatus = if (subject == null) SubjectStatus.FAILED else SubjectStatus.READY,
+        fishPathSnapshot: RecognitionFishPathSnapshot? = null,
     ): RecognitionRevealHandoff {
         val key = RecognitionRevealKey(recognitionSessionId, recognitionAttemptId)
         val primary = result.assessment.primary
@@ -207,6 +211,17 @@ object RecognitionRevealHandoffFactory {
         )
         val contour = if (maskTrusted) subject?.contour?.toList().orEmpty() else emptyList()
         val subjectBox = if (maskTrusted) subject?.subjectBox else null
+        val validFishPathSnapshot = fishPathSnapshot?.takeIf { snapshot ->
+            maskTrusted && snapshot.isValid() &&
+                snapshot.sessionId == recognitionSessionId && snapshot.attemptId == recognitionAttemptId &&
+                snapshot.imageId == image.imageId && snapshot.photoSha256 == image.photoSha256 &&
+                snapshot.photoContentVersion == image.bitmap.generationId.toLong().coerceAtLeast(0L) &&
+                snapshot.maskSha256 == subject?.maskSha256 && snapshot.maskVersion == subject?.maskVersion &&
+                snapshot.geometryVersion == photo?.contactPointGeometryVersion &&
+                snapshot.pStarNormalizedSource == photo?.contactPointNormalizedSource?.let {
+                    com.yujian.ai.ui.waterlight.core.WaterLightPathPoint(it.x, it.y)
+                }
+        }
 
         return RecognitionRevealHandoff(
             key = key,
@@ -237,6 +252,7 @@ object RecognitionRevealHandoffFactory {
             maskVersion = if (maskTrusted) subject?.maskVersion ?: 0L else 0L,
             maskSha256 = if (maskTrusted) subject?.maskSha256.orEmpty() else "",
             contactPointGeometryVersion = photo?.contactPointGeometryVersion ?: 0L,
+            fishPathSnapshot = validFishPathSnapshot,
         )
     }
 
