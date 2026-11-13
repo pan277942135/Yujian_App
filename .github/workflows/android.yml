@@ -961,7 +961,7 @@ jobs:
           fi
 
   recognition-result-handoff-api36-physical:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_recognition_result_handoff == true }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run_recognition_result_handoff == true) || (github.event_name == 'push' && github.ref != 'refs/heads/main' && contains(github.event.head_commit.message, '[run-recognition-result-handoff]')) }}
     needs: build
     runs-on: [self-hosted, yujian-android]
     timeout-minutes: 60

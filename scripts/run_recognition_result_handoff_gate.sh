@@ -68,6 +68,22 @@ finish_gate() {
   return "$exit_code"
 }
 
+finish_instrumentation_failure() {
+  local instrumentation_rc="$1"
+  YUJIAN_INSTRUMENTATION_STATUS="FAIL"
+  if (( instrumentation_rc == EXIT_BLOCKED_INFRA )); then
+    finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
+  else
+    gate_instrumentation_failure_classification
+    local failure_classification_rc=$?
+    if (( failure_classification_rc == EXIT_BLOCKED_INFRA )); then
+      finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
+    else
+      finish_gate "$EXIT_FAIL_TEST" "FAIL_TEST"
+    fi
+  fi
+}
+
 gate_test_classes="$(gate_test_classes)"
 if [[ -z "$gate_test_classes" ]]; then
   runtime_set_failure "CONFIG" "TEST_CLASS_LIST_EMPTY"
@@ -108,22 +124,36 @@ fi
 YUJIAN_INSTALL_STATUS="PASS"
 
 gate_before_instrumentation
-android_runtime_run_instrumentation "$gate_test_classes"
+before_instrumentation_rc=$?
+if (( before_instrumentation_rc != EXIT_PASS )); then
+  YUJIAN_INSTRUMENTATION_STATUS="FAIL"
+  finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
+  exit $?
+fi
+
+pre_recording_classes="$(gate_pre_recording_test_classes)"
+android_runtime_run_instrumentation "$pre_recording_classes" 0 "$(gate_pre_recording_timeout_seconds)"
+instrumentation_rc=$?
+if (( instrumentation_rc != EXIT_PASS )); then
+  finish_instrumentation_failure "$instrumentation_rc"
+  exit $?
+fi
+
+camera_classes="$(gate_camera_test_classes)"
+android_runtime_run_instrumentation "$camera_classes" 1 "$(gate_camera_timeout_seconds)"
+instrumentation_rc=$?
+if (( instrumentation_rc != EXIT_PASS )); then
+  finish_instrumentation_failure "$instrumentation_rc"
+  exit $?
+fi
+
+gate_before_recorded_instrumentation
+recorded_classes="$(gate_recorded_test_classes)"
+android_runtime_run_instrumentation "$recorded_classes" 1 "$(gate_recorded_timeout_seconds)"
 instrumentation_rc=$?
 gate_after_instrumentation || true
 if (( instrumentation_rc != EXIT_PASS )); then
-  YUJIAN_INSTRUMENTATION_STATUS="FAIL"
-  if (( instrumentation_rc == EXIT_BLOCKED_INFRA )); then
-    finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
-  else
-    gate_instrumentation_failure_classification
-    failure_classification_rc=$?
-    if (( failure_classification_rc == EXIT_BLOCKED_INFRA )); then
-      finish_gate "$EXIT_BLOCKED_INFRA" "BLOCKED_INFRA"
-    else
-      finish_gate "$EXIT_FAIL_TEST" "FAIL_TEST"
-    fi
-  fi
+  finish_instrumentation_failure "$instrumentation_rc"
   exit $?
 fi
 YUJIAN_INSTRUMENTATION_STATUS="PASS"

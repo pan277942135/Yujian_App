@@ -77,7 +77,59 @@ fun OrbWaterLightRibbons(
 }
 
 /** Cached arc-length LUTs, paths and paints for one depth plane. */
-internal class OrbFilamentPathRenderer(private val front: Boolean, private val density: Float) {
+internal class OrbFilamentPathRenderer(
+    private val front: Boolean,
+    private val density: Float,
+    private val pathIdFilter: String? = null,
+) {
+    data class PathFrameMetrics(
+        val pathId: String,
+        val front: Boolean,
+        val validSampleCount: Int,
+        val validBodySegmentCount: Int,
+        val drawnRunCount: Int,
+        val separatedInvalidGapCount: Int,
+        val bridgedInvalidGapCount: Int,
+        val drawnChunkCount: Int,
+        val maximumPaintAlpha: Int,
+        val maximumStrokeWidthPx: Float,
+        val maximumEffectiveAlpha: Float,
+    )
+
+    data class FrameMetrics(
+        val validSampleCount: Int,
+        val drawnChunkCount: Int,
+        val drawnPathIds: Set<String>,
+        val maximumEffectiveAlpha: Float,
+        val paths: Map<String, PathFrameMetrics>,
+    )
+
+    private class MutablePathFrameMetrics(val spec: OrbFilamentSpecV1) {
+        var validSampleCount = 0
+        var validBodySegmentCount = 0
+        var drawnRunCount = 0
+        var separatedInvalidGapCount = 0
+        var bridgedInvalidGapCount = 0
+        var drawnChunkCount = 0
+        var maximumPaintAlpha = 0
+        var maximumStrokeWidthPx = 0f
+        var maximumEffectiveAlpha = 0f
+
+        fun snapshot() = PathFrameMetrics(
+            pathId = spec.id,
+            front = spec.front,
+            validSampleCount = validSampleCount,
+            validBodySegmentCount = validBodySegmentCount,
+            drawnRunCount = drawnRunCount,
+            separatedInvalidGapCount = separatedInvalidGapCount,
+            bridgedInvalidGapCount = bridgedInvalidGapCount,
+            drawnChunkCount = drawnChunkCount,
+            maximumPaintAlpha = maximumPaintAlpha,
+            maximumStrokeWidthPx = maximumStrokeWidthPx,
+            maximumEffectiveAlpha = maximumEffectiveAlpha,
+        )
+    }
+
     private data class PathCache(
         val spec: OrbFilamentSpecV1,
         val material: OrbFilamentMaterialV1,
@@ -100,7 +152,7 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
     private val chunkCount = 12
     private val layerCount = 4
     private val loggedMetricSamples = mutableSetOf<String>()
-    private val caches = OrbRuntimeProfileV1.paths.filter { it.front == front }.map { spec ->
+    private val caches = OrbRuntimeProfileV1.paths.filter { it.front == front && (pathIdFilter == null || it.id == pathIdFilter) }.map { spec ->
         val material = requireNotNull(OrbRuntimeProfileV1.materials[spec.material])
         val staticLut = OrbFilamentPathMathV1.newLut().also {
             OrbFilamentPathMathV1.fillLut(
@@ -149,8 +201,8 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
         event: OrbRuntimeProfileV1.MotionEvent,
         eventStartMs: Long,
         density: Float,
-    ) {
-        if (diameterPx <= 0f) return
+    ): FrameMetrics {
+        if (diameterPx <= 0f) return FrameMetrics(0, 0, emptySet(), 0f, emptyMap())
         val sceneMs = if (frame.reducedMotion) 0L else frame.elapsedMs
         val opticalMs = frame.opticalReferenceElapsedMs
         val steps = if (low) OrbRuntimeProfileV1.R06_LOW_STEPS_PER_PATH else OrbRuntimeProfileV1.R06_NORMAL_STEPS_PER_PATH
@@ -160,6 +212,7 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
         var drawnChunkCount = 0
         var maximumEffectiveAlpha = 0f
         val drawnPathIds = linkedSetOf<String>()
+        val pathMetrics = caches.associate { it.spec.id to MutablePathFrameMetrics(it.spec) }
         val metricsKey = "${frame.sessionId}:${frame.attemptId}:${frame.imageId}:${frame.geometryVersion}:" +
             "${frame.sceneFrame.stage.name}:${if (front) "front" else "back"}"
         fun emitMetricsIfDue() {
@@ -180,7 +233,7 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
         }
         if (active <= 0f) {
             emitMetricsIfDue()
-            return
+            return FrameMetrics(0, 0, emptySet(), 0f, pathMetrics.mapValues { it.value.snapshot() })
         }
         val canvasSave = canvas.save()
         try {
@@ -232,6 +285,7 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                 val samplesNormalY = cache.samplesNormalY
                 clearR06SampleValidity(samplesValid, steps)
                 var anyPoint = false
+                var currentPathValidSampleCount = 0
                 for (i in 0..steps) {
                     val tailProgress = i.toFloat() / steps
                     val u = startU + move.direction * trail * tailProgress
@@ -263,10 +317,12 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                     if (samplesX[i].isFinite() && samplesY[i].isFinite() && nx.isFinite() && ny.isFinite()) {
                         samplesValid[i] = true
                         validSampleCount++
+                        currentPathValidSampleCount++
                     }
                     anyPoint = true
                 }
                 if (!anyPoint) continue
+                pathMetrics.getValue(spec.id).validSampleCount = currentPathValidSampleCount
                 val layerCountForMaterial = material.layers.size.coerceAtMost(layerCount)
                 for (layerIndex in 0 until layerCountForMaterial) {
                     val layer = material.layers[layerIndex]
@@ -318,10 +374,21 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                         paint.alpha = (255f * layerAlpha).toInt().coerceIn(0, 255)
                         paint.strokeWidth = spec.widthMinDp + (spec.widthMaxDp - spec.widthMinDp) * widthPulse
                         paint.strokeWidth *= material.widthMultiplier * profileWidth * layer.widthMultiplier * density
+                        if (paint.alpha <= 0 || paint.strokeWidth <= 0f) continue
                         canvas.drawPath(path, paint)
                         maximumEffectiveAlpha = max(maximumEffectiveAlpha, layerAlpha)
                         drawnChunkCount++
                         drawnPathIds += spec.id
+                        pathMetrics.getValue(spec.id).apply {
+                            validBodySegmentCount += drawableRuns.sumOf { (it.last - it.first).coerceAtLeast(0) }
+                            drawnRunCount += drawableRuns.size
+                            separatedInvalidGapCount += (drawableRuns.size - 1).coerceAtLeast(0)
+                            if (drawableRunCount != drawableRuns.size) bridgedInvalidGapCount++
+                            drawnChunkCount++
+                            maximumPaintAlpha = max(maximumPaintAlpha, paint.alpha)
+                            maximumStrokeWidthPx = max(maximumStrokeWidthPx, paint.strokeWidth)
+                            maximumEffectiveAlpha = max(this.maximumEffectiveAlpha, layerAlpha)
+                        }
                     }
                 }
                 // The moving local highlight is separate from the low-energy body and follows u.
@@ -367,6 +434,13 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
             canvas.restoreToCount(canvasSave)
             emitMetricsIfDue()
         }
+        return FrameMetrics(
+            validSampleCount = validSampleCount,
+            drawnChunkCount = drawnChunkCount,
+            drawnPathIds = drawnPathIds,
+            maximumEffectiveAlpha = maximumEffectiveAlpha,
+            paths = pathMetrics.mapValues { it.value.snapshot() },
+        )
     }
 
     private fun tailTaper(progress: Float, tailLuminance: Float): Float {

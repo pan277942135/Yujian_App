@@ -32,7 +32,7 @@ import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
 
-enum class OrbRenderIsolationMode { NORMAL, RAW_CORE, RAW_CORE_WITH_R06 }
+enum class OrbRenderIsolationMode { NORMAL, RAW_CORE, RAW_CORE_WITH_R06, SUPPRESSED }
 
 
 /** The home button and its navigation handoff share one frozen visual identity. */
@@ -177,6 +177,7 @@ private fun OrbVisual(
     renderIsolationMode: OrbRenderIsolationMode,
     modifier: Modifier,
 ) {
+    if (renderIsolationMode == OrbRenderIsolationMode.SUPPRESSED) return
     val frame = aiOrbMotionFrame(entranceElapsedMs, fromCamera, reduceMotion, completion)
     val ribbons = frame.ribbonOpening
     val settle = completion.coerceIn(0f, 1f)
