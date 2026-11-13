@@ -571,6 +571,15 @@ class RecognitionVisualStateControllerTest {
         assertEquals(snapshot.returnPathSegments, exactProcessingRoute.pathSegments)
         assertTrue(controller.recordEnergyEvent(resultScene, exactProcessingRoute))
         assertFalse(controller.recordEnergyEvent(resultScene, exactProcessingRoute))
+        val acceptedReturn = controller.acceptedEnergyEventsSnapshot().single {
+            it.stage == RecognitionSceneStage.ORB_RETURN && it.feedback == EnergyFeedback.RETURN
+        }
+        assertEquals(snapshot.returnPathId, acceptedReturn.pathId)
+        assertEquals(snapshot.returnPathSegments, acceptedReturn.pathSegments)
+        assertEquals(snapshot.maskSha256, acceptedReturn.pathMaskSha256)
+        assertEquals(snapshot.maskVersion, acceptedReturn.pathMaskVersion)
+        assertEquals(snapshot.geometryVersion, acceptedReturn.pathGeometryVersion)
+        assertEquals(snapshot.pStarNormalizedSource, acceptedReturn.pathContactPointNormalizedSource)
         assertEquals(RecognitionSceneStage.ORB_TO_NAME, controller.advanceToNextStage(7_001L))
     }
 

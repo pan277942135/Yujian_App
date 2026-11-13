@@ -38,6 +38,10 @@ class RecognitionSceneAnimationController(
     private var lastAcceptedEventSequence = 0L
     private var lastAcceptedEventTimestampMs = 0L
     private val acceptedEnergyEvents = mutableSetOf<String>()
+    private val acceptedEnergyEventTrace = mutableListOf<EnergyEvent>()
+
+    /** Immutable readout for integration evidence; only controller-accepted events are exposed. */
+    fun acceptedEnergyEventsSnapshot(): List<EnergyEvent> = acceptedEnergyEventTrace.toList()
 
     private var detectorReady = false
     private var classifierReady = false
@@ -387,6 +391,7 @@ class RecognitionSceneAnimationController(
         }
         val eventKey = "${frame.identity.sessionId}|${frame.identity.attemptId}|${frame.identity.imageId}|${frame.geometryVersion}|${event.stage}|${event.feedback}|${event.pathId}"
         if (!acceptedEnergyEvents.add(eventKey)) return false
+        acceptedEnergyEventTrace += event
         lastAcceptedEventSequence = event.eventSequence
         lastAcceptedEventTimestampMs = event.monotonicTimestampMs
         when (event.feedback) {
@@ -948,6 +953,7 @@ class RecognitionSceneAnimationController(
         lastAcceptedEventSequence = 0L
         lastAcceptedEventTimestampMs = 0L
         acceptedEnergyEvents.clear()
+        acceptedEnergyEventTrace.clear()
         detectorReady = false
         classifierReady = false
         slimSamTerminal = false

@@ -30,6 +30,7 @@ import com.yujian.ai.ui.theme.YujianTheme
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.WaterLightGeometryVersion
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
@@ -326,6 +327,17 @@ class RecognitionRevealProductionRuntimeTest {
             assertEquals(3, fishPathSnapshot.returnPathSegments.size)
             assertEquals("SessionStore accessor must return the same immutable Processing snapshot",
                 fishPathSnapshot, revealSessionStore.fishPathSnapshot(revealKey))
+            val acceptedAutomaticReturn = sceneController.acceptedEnergyEventsSnapshot().singleOrNull {
+                it.stage == RecognitionSceneStage.ORB_RETURN && it.feedback == EnergyFeedback.RETURN
+            }
+            assertNotNull("the automatic Result host must submit its RETURN event to the shared controller",
+                acceptedAutomaticReturn)
+            assertEquals(fishPathSnapshot.returnPathId, acceptedAutomaticReturn?.pathId)
+            assertEquals(fishPathSnapshot.returnPathSegments, acceptedAutomaticReturn?.pathSegments)
+            assertEquals(fishPathSnapshot.maskSha256, acceptedAutomaticReturn?.pathMaskSha256)
+            assertEquals(fishPathSnapshot.maskVersion, acceptedAutomaticReturn?.pathMaskVersion)
+            assertEquals(fishPathSnapshot.geometryVersion, acceptedAutomaticReturn?.pathGeometryVersion)
+            assertEquals(fishPathSnapshot.pStarNormalizedSource, acceptedAutomaticReturn?.pathContactPointNormalizedSource)
             assertEquals("production SessionStore must retain the same geometry snapshot", processingPhotoSnapshot,
                 revealSessionStore.snapshot?.processingPhoto)
             assertEquals(SESSION_ID, trustedGeometry.recognitionSessionId)

@@ -116,3 +116,14 @@
 - Local `./gradlew :app:testDebugUnitTest` is `NOT_RUN`: the wrapper could not download Gradle 9.3.1 because network access to `services.gradle.org` is blocked. This is not recorded as a test failure or pass. Device runtime and visual acceptance remain `NOT_RUN`.
 
 - Opened draft PR [#330](https://github.com/pan277942135/Yujian_App/pull/330), base Main `81200da2e41163b04cfd340de59c3f43700c329a`, head `c6f66c106a1cee09892db172936de7baa74ec482`. The PR is independent of #327, which remains unchanged and unmerged. Exact-head Actions run discovery is pending; no build or test result is attributed to this commit yet.
+
+## 2026-11-13 — P0-1 exact-head CI compile failure recorded
+
+- Exact source: `e5ade8c2490d5338b816f39e03817c482b705092`; Android CI run `43356522026` failed at `:app:compileDebugKotlin`. The wrapper declared and forwarded `onFishPathSnapshot`, but `RecognitionProcessingScene` did not declare the parameter, producing an unknown named argument and unresolved callback reference. No unit tests, APK, or runtime stage completed.
+- Recorded as a source compile failure; current hypothesis is an incomplete callback contract between the outer RecognizingScreen and its Processing scene. Repair remains limited to that producer/consumer wiring; exact-head CI must rerun before P0-1 can pass.
+- Control Plane Admission currently requires checkpoint synchronization after this source change; physical Android runtime remains `NOT_RUN`.
+
+## 2026-11-13 — P0-1 callback repair exact-head CI
+
+- Repair commit `65829b9c9c49a5c1e9f212dcae332d6e1e6204d7` declares the forwarded `onFishPathSnapshot` parameter on `RecognitionProcessingScene`, restoring the real Processing PathLedger → YujianApp/SessionStore callback. Exact-head Android CI run `43358018059` passed unit tests, AndroidTest APK compilation, Debug APK assembly, packaged resource/model checks, Android lint, and Release Kotlin compilation. The preceding compile failure on `e5ade8c2490d5338b816f39e03817c482b705092` is recorded and its fix verified.
+- The AndroidTest APK was compiled but not executed; no HUAWEI CMS-AL20 / Android 16 runtime evidence exists. P0-1 remains open for full SessionStore/Handoff/RETURN acceptance evidence.
