@@ -10,6 +10,8 @@ import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.inference.InferenceAsset
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
+import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
+import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 
 data class RecognitionRevealSessionSnapshot(
     val recognitionSessionId: String,
@@ -21,6 +23,7 @@ data class RecognitionRevealSessionSnapshot(
     val inferenceAsset: InferenceAsset? = null,
     val subjectGeometry: RecognitionSubjectGeometrySnapshot? = null,
     val processingPhoto: RecognitionProcessingPhotoSnapshot? = null,
+    val fishPathSnapshot: RecognitionFishPathSnapshot? = null,
     val handoff: RecognitionRevealHandoff? = null,
     val highConfidenceResult: Boolean = false,
     val revealDecision: RecognitionRevealDecisionState = RecognitionRevealDecisionState.WAITING_BOTH,
@@ -76,6 +79,39 @@ class RecognitionRevealSessionStore : ViewModel() {
             revealDecision = decisionFor(candidate),
         )
     }
+
+    /** Save only the exact P* route exported by the active Processing PathLedger. */
+    fun updateFishPathSnapshot(
+        key: RecognitionRevealKey,
+        pathSnapshot: RecognitionFishPathSnapshot,
+    ): Boolean {
+        val current = snapshot ?: return false
+        val image = current.image ?: return false
+        if (!current.matches(key) || !pathSnapshot.isValid() ||
+            pathSnapshot.sessionId != key.recognitionSessionId || pathSnapshot.attemptId != key.recognitionAttemptId ||
+            pathSnapshot.imageId != image.imageId || pathSnapshot.photoSha256 != image.photoSha256 ||
+            pathSnapshot.photoContentVersion != image.bitmap.generationId.toLong().coerceAtLeast(0L)
+        ) return false
+        val subject = current.subjectGeometry ?: return false
+        val photo = current.processingPhoto ?: return false
+        val photoContact = photo.contactPointNormalizedSource?.let { WaterLightPathPoint(it.x, it.y) }
+        if (current.subjectResult.status != SubjectStatus.READY ||
+            pathSnapshot.maskSha256 != subject.maskSha256 || pathSnapshot.maskVersion != subject.maskVersion ||
+            pathSnapshot.pStarNormalizedSource != photoContact ||
+            pathSnapshot.maskSha256 != photo.contactPointMaskSha256 ||
+            pathSnapshot.maskVersion != photo.contactPointMaskVersion ||
+            pathSnapshot.geometryVersion != photo.contactPointGeometryVersion
+        ) return false
+        val existing = current.fishPathSnapshot
+        if (existing != null && existing != pathSnapshot) return false
+        if (existing == pathSnapshot) return true
+        val candidate = current.copy(fishPathSnapshot = pathSnapshot)
+        snapshot = candidate.copy(handoff = rebuildHandoff(candidate))
+        return true
+    }
+
+    fun fishPathSnapshot(key: RecognitionRevealKey): RecognitionFishPathSnapshot? =
+        snapshot?.takeIf { it.matches(key) }?.fishPathSnapshot
 
     /** Retain the real Classifier result immediately while the independent SlimSAM task continues. */
     fun recordClassifierResult(
@@ -134,7 +170,11 @@ class RecognitionRevealSessionStore : ViewModel() {
             highConfidenceResult = highConfidenceResult,
             handoffTimestampUptimeMs = handoffTimestampUptimeMs,
             subjectStatus = current.subjectResult.status,
+            fishPathSnapshot = current.fishPathSnapshot,
         )
+        if (handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL && handoff.fishPathSnapshot == null) {
+            return null
+        }
         snapshot = candidate.copy(
             handoff = handoff,
             revealDecision = handoff.revealDecision ?: decision,
@@ -173,6 +213,7 @@ class RecognitionRevealSessionStore : ViewModel() {
             highConfidenceResult = current.highConfidenceResult,
             handoffTimestampUptimeMs = handoff.handoffTimestampUptimeMs,
             subjectStatus = current.subjectResult.status,
+            fishPathSnapshot = current.fishPathSnapshot,
         )
     }
 
