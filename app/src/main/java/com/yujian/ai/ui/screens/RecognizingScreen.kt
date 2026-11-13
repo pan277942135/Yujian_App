@@ -118,6 +118,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneTimelineProjection
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
@@ -186,6 +187,7 @@ fun RecognizingScreen(
     motionPolicyOverride: RecognitionMotionPolicy? = null,
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
+    onFishPathSnapshot: (RecognitionFishPathSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
     diagnosticPlaybackController: SceneMotionCoordinator? = null,
@@ -256,6 +258,7 @@ fun RecognitionProcessingScene(
     val phasePresentedCallback by rememberUpdatedState(onVisualPhasePresented)
     val prepareSubjectCallback = rememberUpdatedState(prepareSubject)
     val photoFramePresentedCallback = rememberUpdatedState(onPhotoFramePresented)
+    val fishPathSnapshotCallback = rememberUpdatedState(onFishPathSnapshot)
     val sceneKey = remember(
         image?.imageId,
         image?.photoSha256,
@@ -1538,6 +1541,25 @@ fun RecognitionProcessingScene(
                     energyPathLedger.returnRoute(waterLightFrame, trustedMask = false)
                 }
             } else null
+            val fishPathSnapshot = if (baseOrbEvent?.feedback == EnergyFeedback.RETURN &&
+                fishEnergyAllowed && stableContactSource != null && maskSha256.isNotBlank() && maskVersion >= 0L
+            ) energyPathLedger.exportRecognitionFishPathSnapshot(
+                waterLightFrame, maskSha256, maskVersion, stableContactSource,
+            ) else null
+            if (fishPathSnapshot != null) {
+                val snapshotAccepted = controller.onFishPathSnapshot(fishPathSnapshot, sceneIdentity)
+                if (snapshotAccepted) {
+                    fishPathSnapshotCallback.value.invoke(fishPathSnapshot)
+                } else {
+                    Log.w(
+                        "WaterLightEnergy",
+                        "FISH_PATH_SNAPSHOT_REJECTED session=${fishPathSnapshot.sessionId} " +
+                            "attempt=${fishPathSnapshot.attemptId} image=${fishPathSnapshot.imageId} " +
+                            "mask=${fishPathSnapshot.maskSha256.take(16)} geometry=${fishPathSnapshot.geometryVersion} " +
+                            "path=${fishPathSnapshot.fishPathId}",
+                    )
+                }
+            }
             val eventPathId = when (baseOrbEvent?.feedback) {
                 EnergyFeedback.ABSORB, EnergyFeedback.RETURN -> if (fishEnergyAllowed && stableContactSource != null) {
                     energyPathLedger.pathId(waterLightFrame, maskSha256, maskVersion, stableContactSource)
@@ -1556,6 +1578,10 @@ fun RecognitionProcessingScene(
                 orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
                 pathSegments = orbReturnRoute?.segments.orEmpty(),
                 pathIdOverride = orbReturnRoute?.id ?: eventPathId,
+                pathMaskSha256 = fishPathSnapshot?.maskSha256,
+                pathMaskVersion = fishPathSnapshot?.maskVersion,
+                pathGeometryVersion = fishPathSnapshot?.geometryVersion,
+                pathContactPointNormalizedSource = fishPathSnapshot?.pStarNormalizedSource,
             )
             LaunchedEffect(
                 waterLightFrame.sessionId,
@@ -1873,6 +1899,11 @@ private fun RecognitionPhoto(
             energyPathLedger.returnRoute(waterLightFrame, trustedMask = false)
         }
     } else null
+    val returnIdentitySnapshot = if (baseEnergyEvent?.feedback == EnergyFeedback.RETURN &&
+        fishEnergyAllowed && stableContactSource != null
+    ) energyPathLedger.exportRecognitionFishPathSnapshot(
+        waterLightFrame, maskSha256, maskVersion, stableContactSource,
+    ) else null
     val eventPathId = when (baseEnergyEvent?.feedback) {
         EnergyFeedback.ABSORB, EnergyFeedback.RETURN -> if (fishEnergyAllowed && stableContactSource != null) {
             energyPathLedger.pathId(waterLightFrame, maskSha256, maskVersion, stableContactSource)
@@ -1891,6 +1922,10 @@ private fun RecognitionPhoto(
         orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
         pathSegments = returnRoute?.segments.orEmpty(),
         pathIdOverride = returnRoute?.id ?: eventPathId,
+        pathMaskSha256 = returnIdentitySnapshot?.maskSha256,
+        pathMaskVersion = returnIdentitySnapshot?.maskVersion,
+        pathGeometryVersion = returnIdentitySnapshot?.geometryVersion,
+        pathContactPointNormalizedSource = returnIdentitySnapshot?.pStarNormalizedSource,
     )
     val dropletRenderer = remember(waterLightEngine) { WaterDropletRenderer() }
     DisposableEffect(dropletRenderer) {
