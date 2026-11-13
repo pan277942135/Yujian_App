@@ -7,6 +7,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
 import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,13 +22,19 @@ class WaterLightHostBindingTest {
                 WaterLightMaterialProfile.ORB_LEGACY.copy(host = host), engine)
             val rect = WaterLightHostGeometry(host, 4L, 20f, 30f, 180f, 190f)
             assertTrue(host.name, binding.accepts(frame, rect))
+            assertTrue(host.name, binding.rejectionReason(frame, rect) == null)
             assertFalse(binding.accepts(frame.copy(sessionId = "old"), rect))
+            assertEquals("SESSION_FRAME_MISMATCH", binding.rejectionReason(frame.copy(sessionId = "old"), rect))
             assertFalse(binding.accepts(frame, rect.copy(version = 3L)))
+            assertEquals("GEOMETRY_VERSION_MISMATCH", binding.rejectionReason(frame, rect.copy(version = 3L)))
             assertFalse(binding.accepts(frame, rect.copy(rightPx = 19f)))
+            assertEquals("INVALID_ORB_BOUNDS", binding.rejectionReason(frame, rect.copy(rightPx = 19f)))
             assertFalse(binding.accepts(frame, rect.copy(host = WaterLightHost.entries.first { it != host })))
+            assertEquals("HOST_MISMATCH", binding.rejectionReason(frame, rect.copy(host = WaterLightHost.entries.first { it != host })))
             val wrongMaterial = WaterLightHostBinding(host,
                 WaterLightMaterialProfile.ORB_LEGACY.copy(host = WaterLightHost.entries.first { it != host }), engine)
             assertFalse(wrongMaterial.accepts(frame, rect))
+            assertEquals("MATERIAL_HOST_MISMATCH", wrongMaterial.rejectionReason(frame, rect))
         }
         engine.release()
     }

@@ -32,6 +32,8 @@ import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
 
+enum class OrbRenderIsolationMode { NORMAL, RAW_CORE, RAW_CORE_WITH_R06 }
+
 
 /** The home button and its navigation handoff share one frozen visual identity. */
 object AIOrbCaptureVisualAssets {
@@ -80,6 +82,7 @@ fun AIOrbCore(
     orbShowDroplets: Boolean = true,
     orbShowSunlight: Boolean = true,
     orbShowCaustics: Boolean = true,
+    renderIsolationMode: OrbRenderIsolationMode = OrbRenderIsolationMode.NORMAL,
 ) {
     when (state) {
         AIOrbVisualState.CAPTURE_BUTTON_IDLE -> YuJianCaptureButton(
@@ -125,6 +128,7 @@ fun AIOrbCore(
             orbShowDroplets = orbShowDroplets,
             orbShowSunlight = orbShowSunlight,
             orbShowCaustics = orbShowCaustics,
+            renderIsolationMode = renderIsolationMode,
             modifier = modifier,
         )
         AIOrbVisualState.HIDDEN -> Unit
@@ -170,6 +174,7 @@ private fun OrbVisual(
     orbShowDroplets: Boolean,
     orbShowSunlight: Boolean,
     orbShowCaustics: Boolean,
+    renderIsolationMode: OrbRenderIsolationMode,
     modifier: Modifier,
 ) {
     val frame = aiOrbMotionFrame(entranceElapsedMs, fromCamera, reduceMotion, completion)
@@ -210,8 +215,11 @@ private fun OrbVisual(
     val context = LocalContext.current
     val density = LocalDensity.current
     val coreTextureSizePx = with(density) { (coreSize / .84f).toPx() }
-    val coreOpticalEffect = remember(context, android.os.Build.VERSION.SDK_INT, lowPerformance) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+    val opticalEffectEnabled = renderIsolationMode == OrbRenderIsolationMode.NORMAL &&
+        aiOrbOpticalEffectEnabled(sceneFrame.stage, sceneFrame.stageElapsedMs)
+    val coreOpticalEffect = remember(context, android.os.Build.VERSION.SDK_INT, lowPerformance, renderIsolationMode) {
+        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL &&
+            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             runCatching { OrbCoreImageOpticalEffect.create(context.applicationContext, lowPerformance) }
                 .onFailure { android.util.Log.w("OrbCoreOpticalEffect", "candidate and V1.1 AGSL unavailable; source core and clipped light fallback active", it) }
                 .getOrNull()
@@ -229,7 +237,7 @@ private fun OrbVisual(
     }
     SideEffect {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            coreOpticalEffect?.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
+            if (opticalEffectEnabled) coreOpticalEffect?.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
         }
     }
     Box(
@@ -240,9 +248,12 @@ private fun OrbVisual(
         },
         contentAlignment = Alignment.Center,
     ) {
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
-            orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
-            activeEnergyEvent, releaseEnergy, returnEnergy)
+        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE) {
+            OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
+                orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
+                activeEnergyEvent, releaseEnergy, returnEnergy)
+        }
+        val appliedRenderEffect = coreOpticalEffect?.renderEffect?.takeIf { opticalEffectEnabled }
         Image(
             painter = painterResource(R.drawable.processing_water_core_v1),
             contentDescription = null,
@@ -250,10 +261,10 @@ private fun OrbVisual(
                 alpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
                 scaleX = 1f
                 scaleY = 1f
-                coreOpticalEffect?.renderEffect?.let { renderEffect = it }
+                renderEffect = appliedRenderEffect
             },
         )
-        OrbCoreOpticalEffects(
+        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL) OrbCoreOpticalEffects(
             coreSize = coreSize,
             frame = sharedFrame,
             coreAlpha = 1f,
@@ -266,7 +277,7 @@ private fun OrbVisual(
             showSunlight = orbShowSunlight,
             showCaustics = orbShowCaustics,
         )
-        if (fromCamera && frame.cameraHeroAlpha > 0f) {
+        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && fromCamera && frame.cameraHeroAlpha > 0f) {
             Image(
                 painter = painterResource(R.drawable.ai_orb_camera_activated_v1),
                 contentDescription = null,
@@ -278,8 +289,10 @@ private fun OrbVisual(
                 },
             )
         }
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
-            orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
-            activeEnergyEvent, releaseEnergy, returnEnergy)
+        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE) {
+            OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
+                orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
+                activeEnergyEvent, releaseEnergy, returnEnergy)
+        }
     }
 }

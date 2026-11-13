@@ -1,5 +1,7 @@
 package com.yujian.ai.ui.designsystem.components.aiorb
 
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+
 enum class AIOrbVisualState {
     CAPTURE_BUTTON_IDLE,
     CAPTURE_BUTTON_ACTIVATED,
@@ -52,4 +54,16 @@ fun aiOrbProcessingState(
     reduceMotion -> AIOrbVisualState.ORB_ACTIVE
     entranceMs < 350L -> AIOrbVisualState.ORB_MORPH_IN
     else -> AIOrbVisualState.ORB_ACTIVE
+}
+
+/** The immutable source core must remain present through the gold-peak stage. */
+fun aiOrbPresentationCompletion(stage: RecognitionSceneStage, completion: Float): Float =
+    if (stage.ordinal <= RecognitionSceneStage.FISH_GOLD_PEAK.ordinal) 0f
+    else completion.coerceIn(0f, 1f)
+
+/** Keep the unfiltered source core visible before optics wake on the shared scene clock. */
+fun aiOrbOpticalEffectEnabled(stage: RecognitionSceneStage, stageElapsedMs: Long): Boolean = when (stage) {
+    RecognitionSceneStage.PHOTO_STABLE -> false
+    RecognitionSceneStage.ORB_WAKE -> stageElapsedMs >= 80L
+    else -> true
 }

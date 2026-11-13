@@ -21,7 +21,15 @@ class WaterLightHostBinding(
     val material: WaterLightMaterialProfile,
     private val engine: UnifiedWaterLightEngine,
 ) {
+    fun rejectionReason(frame: WaterLightFrame, geometry: WaterLightHostGeometry): String? = when {
+        geometry.host != host -> "HOST_MISMATCH"
+        material.host != host -> "MATERIAL_HOST_MISMATCH"
+        geometry.version != frame.geometryVersion -> "GEOMETRY_VERSION_MISMATCH"
+        !geometry.valid -> "INVALID_ORB_BOUNDS"
+        !engine.accepts(frame) -> "SESSION_FRAME_MISMATCH"
+        else -> null
+    }
+
     fun accepts(frame: WaterLightFrame, geometry: WaterLightHostGeometry): Boolean =
-        geometry.host == host && material.host == host &&
-            geometry.version == frame.geometryVersion && geometry.valid && engine.accepts(frame)
+        rejectionReason(frame, geometry) == null
 }

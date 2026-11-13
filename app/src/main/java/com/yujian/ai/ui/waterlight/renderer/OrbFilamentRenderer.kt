@@ -3,6 +3,8 @@ package com.yujian.ai.ui.waterlight.renderer
 import android.graphics.BlurMaskFilter
 import android.graphics.Paint as NativePaint
 import android.graphics.Path as NativePath
+import android.util.Log
+import com.yujian.ai.BuildConfig
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -83,6 +85,7 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
         val samplesX: FloatArray,
         val samplesY: FloatArray,
         val samplesU: FloatArray,
+        val samplesValid: BooleanArray,
         val samplesNormalX: FloatArray,
         val samplesNormalY: FloatArray,
         val scratch: FloatArray,
@@ -96,6 +99,7 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
 
     private val chunkCount = 12
     private val layerCount = 4
+    private val loggedMetricSamples = mutableSetOf<String>()
     private val caches = OrbRuntimeProfileV1.paths.filter { it.front == front }.map { spec ->
         val material = requireNotNull(OrbRuntimeProfileV1.materials[spec.material])
         val staticLut = OrbFilamentPathMathV1.newLut().also {
@@ -109,7 +113,7 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
             spec,
             material,
             staticLut,
-            FloatArray(97), FloatArray(97), FloatArray(97), FloatArray(97), FloatArray(97),
+            FloatArray(97), FloatArray(97), FloatArray(97), BooleanArray(97), FloatArray(97), FloatArray(97),
             FloatArray(6),
             Array(chunkCount) { Array(layerCount) { NativePath() } },
             Array(layerCount) { NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
@@ -152,7 +156,32 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
         val steps = if (low) OrbRuntimeProfileV1.R06_LOW_STEPS_PER_PATH else OrbRuntimeProfileV1.R06_NORMAL_STEPS_PER_PATH
         val active = (opening.coerceIn(0f, 1f) * lifeAlpha.coerceIn(0f, 1f) * (1f - settle.coerceIn(0f, 1f))).coerceIn(0f, 1f)
         val diameterDp = diameterPx / density
-        if (active <= 0f) return
+        var validSampleCount = 0
+        var drawnChunkCount = 0
+        var maximumEffectiveAlpha = 0f
+        val drawnPathIds = linkedSetOf<String>()
+        val metricsKey = "${frame.sessionId}:${frame.attemptId}:${frame.imageId}:${frame.geometryVersion}:" +
+            "${frame.sceneFrame.stage.name}:${if (front) "front" else "back"}"
+        fun emitMetricsIfDue() {
+            if (!BuildConfig.DEBUG) return
+            val progress = frame.sceneFrame.stageProgress.coerceIn(0f, 1f)
+            val marker = when {
+                progress <= .05f -> "start"
+                progress >= .5f -> "half"
+                else -> null
+            } ?: return
+            if (!loggedMetricSamples.add("$metricsKey:$marker")) return
+            Log.i("R06_RENDER_METRICS", "sessionId=${frame.sessionId} attemptId=${frame.attemptId} " +
+                "imageId=${frame.imageId} geometryVersion=${frame.geometryVersion} " +
+                "stage=${frame.sceneFrame.stage.name} front=$front " +
+                "orbDiameterPx=$diameterPx lifeAlpha=$lifeAlpha opening=$opening settle=$settle active=$active " +
+                "pathCount=${caches.size} validSampleCount=$validSampleCount drawnChunkCount=$drawnChunkCount " +
+                "drawnPathIds=${drawnPathIds.joinToString(",")} maximumEffectiveAlpha=$maximumEffectiveAlpha")
+        }
+        if (active <= 0f) {
+            emitMetricsIfDue()
+            return
+        }
         val canvasSave = canvas.save()
         try {
             for (cache in caches) {
@@ -198,13 +227,15 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                 val samplesX = cache.samplesX
                 val samplesY = cache.samplesY
                 val samplesU = cache.samplesU
+                val samplesValid = cache.samplesValid
                 val samplesNormalX = cache.samplesNormalX
                 val samplesNormalY = cache.samplesNormalY
+                clearR06SampleValidity(samplesValid, steps)
                 var anyPoint = false
                 for (i in 0..steps) {
                     val tailProgress = i.toFloat() / steps
                     val u = startU + move.direction * trail * tailProgress
-                    if (u !in 0f..1f) continue
+                    if (!u.isFinite() || u !in 0f..1f) continue
                     OrbFilamentPathMathV1.sampleAt(lut, u, cache.scratch, 0)
                     OrbFilamentPathMathV1.sampleAt(lut, (u - .003f).coerceIn(0f, 1f), cache.scratch, 2)
                     OrbFilamentPathMathV1.sampleAt(lut, (u + .003f).coerceIn(0f, 1f), cache.scratch, 4)
@@ -229,6 +260,10 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                     samplesU[i] = u
                     samplesNormalX[i] = nx
                     samplesNormalY[i] = ny
+                    if (samplesX[i].isFinite() && samplesY[i].isFinite() && nx.isFinite() && ny.isFinite()) {
+                        samplesValid[i] = true
+                        validSampleCount++
+                    }
                     anyPoint = true
                 }
                 if (!anyPoint) continue
@@ -244,7 +279,14 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                         val first = (chunk * chunkSize).toInt().coerceAtMost(steps)
                         val last = ((chunk + 1) * chunkSize).toInt().coerceAtMost(steps)
                         if (first >= last) continue
-                        val mid = (first + last) / 2
+                        // A cache chunk can straddle the path boundary or a clipped interval.
+                        // Derive every value from this frame's valid runs so no stale midpoint
+                        // coordinate or u value can suppress/bridge the visible part of a path.
+                        val drawableRuns = r06ValidSampleRuns(samplesValid, first, last)
+                            .filter { it.last - it.first + 1 >= 2 }
+                        if (drawableRuns.isEmpty()) continue
+                        val representativeRun = drawableRuns.maxBy { it.last - it.first }
+                        val mid = (representativeRun.first + representativeRun.last) / 2
                         val pathU = samplesU[mid]
                         val tailAlpha = tailTaper((mid.toFloat() / steps), material.tailLuminance)
                         val profileWidth = OrbFilamentPathMathV1.profileAt(material.widthProfile, pathU)
@@ -260,22 +302,26 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
                         if (layerAlpha <= .002f) continue
                         val path = cache.paths[chunk][layerIndex]
                         path.rewind()
-                        var began = false
-                        for (i in first..last) {
-                            if (samplesU[i] == 0f && samplesX[i] == 0f && samplesY[i] == 0f) {
-                                began = false
-                                continue
+                        var drawableRunCount = 0
+                        for (run in drawableRuns) {
+                            var began = false
+                            for (i in run) {
+                                val offsetFraction = layer.offsetNormalFraction ?: 0f
+                                val x = samplesX[i] + samplesNormalX[i] * offsetFraction * diameterPx * .003f
+                                val y = samplesY[i] + samplesNormalY[i] * offsetFraction * diameterPx * .003f
+                                if (!x.isFinite() || !y.isFinite()) { began = false; continue }
+                                if (!began) { path.moveTo(x, y); began = true } else path.lineTo(x, y)
                             }
-                            val offsetFraction = layer.offsetNormalFraction ?: 0f
-                            val x = samplesX[i] + samplesNormalX[i] * offsetFraction * diameterPx * .003f
-                            val y = samplesY[i] + samplesNormalY[i] * offsetFraction * diameterPx * .003f
-                            if (!began) { path.moveTo(x, y); began = true } else path.lineTo(x, y)
+                            if (began) drawableRunCount++
                         }
-                        if (!began) continue
+                        if (drawableRunCount == 0 || path.isEmpty) continue
                         paint.alpha = (255f * layerAlpha).toInt().coerceIn(0, 255)
                         paint.strokeWidth = spec.widthMinDp + (spec.widthMaxDp - spec.widthMinDp) * widthPulse
                         paint.strokeWidth *= material.widthMultiplier * profileWidth * layer.widthMultiplier * density
                         canvas.drawPath(path, paint)
+                        maximumEffectiveAlpha = max(maximumEffectiveAlpha, layerAlpha)
+                        drawnChunkCount++
+                        drawnPathIds += spec.id
                     }
                 }
                 // The moving local highlight is separate from the low-energy body and follows u.
@@ -319,6 +365,7 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
             }
         } finally {
             canvas.restoreToCount(canvasSave)
+            emitMetricsIfDue()
         }
     }
 
@@ -328,6 +375,30 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
         val smooth = fade * fade * (3f - 2f * fade)
         return tailLuminance + (1f - tailLuminance) * smooth
     }
+}
+
+/** Current-frame contiguous runs; gaps are never bridged by samples left in a reused cache. */
+internal fun r06ValidSampleRuns(valid: BooleanArray, first: Int, last: Int): List<IntRange> {
+    if (valid.isEmpty() || first > last) return emptyList()
+    val start = first.coerceAtLeast(0)
+    val end = last.coerceAtMost(valid.lastIndex)
+    if (start > end) return emptyList()
+    val runs = ArrayList<IntRange>()
+    var runStart = -1
+    for (i in start..end) {
+        if (valid[i]) {
+            if (runStart < 0) runStart = i
+        } else if (runStart >= 0) {
+            runs += runStart until i
+            runStart = -1
+        }
+    }
+    if (runStart >= 0) runs += runStart..end
+    return runs
+}
+
+internal fun clearR06SampleValidity(valid: BooleanArray, steps: Int) {
+    java.util.Arrays.fill(valid, 0, (steps + 1).coerceIn(0, valid.size), false)
 }
 
 /** Three-material elliptical implementation retained solely as an explicit fallback. */
