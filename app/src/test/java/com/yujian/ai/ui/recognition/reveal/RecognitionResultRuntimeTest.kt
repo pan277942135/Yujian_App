@@ -30,4 +30,14 @@ class RecognitionResultRuntimeTest {
         assertFalse(RecognitionResultHandoffContract.isNext(ResultHandoffSubstage.RESULT_SCENE_STABLE, completed))
         assertFalse(RecognitionResultHandoffContract.isComplete(completed))
     }
+
+    @Test
+    fun handoffSequenceAndMonotonicClockRejectDuplicateSkippedOrNonIncreasingEvents() {
+        assertTrue(RecognitionResultHandoffContract.isNextEventSequence(requested = 1L, lastAccepted = 0L))
+        assertFalse(RecognitionResultHandoffContract.isNextEventSequence(requested = 2L, lastAccepted = 0L))
+        assertFalse(RecognitionResultHandoffContract.isNextEventSequence(requested = 1L, lastAccepted = 1L))
+        assertTrue(RecognitionResultHandoffContract.hasStrictlyLaterTimestamp(requested = 101L, lastAccepted = 100L))
+        assertFalse(RecognitionResultHandoffContract.hasStrictlyLaterTimestamp(requested = 100L, lastAccepted = 100L))
+        assertFalse(RecognitionResultHandoffContract.hasStrictlyLaterTimestamp(requested = 99L, lastAccepted = 100L))
+    }
 }

@@ -408,7 +408,7 @@ fun RecognitionProcessingScene(
                 "image=${image?.imageId.orEmpty()} sha256=${image?.photoSha256.orEmpty()} " +
                 "classifier=${finishedResult?.let { if (it.ready) "READY" else "FAILED" } ?: "WAITING"} " +
                 "slimsam=${subjectResult.status} mask_trusted=$trustedSubjectMask contour_valid=${contour.isNotEmpty()} " +
-                "decision=$revealDecision",
+                "decision=$revealDecision uptime_ms=${SystemClock.uptimeMillis()}",
         )
     }
 
@@ -1093,7 +1093,8 @@ fun RecognitionProcessingScene(
                 "attempt=${diagnosticSceneFrame.identity.attemptId} image=${diagnosticSceneFrame.identity.imageId} " +
                 "sha256=${diagnosticSceneFrame.identity.photoSha256.orEmpty()} " +
                 "stage=${diagnosticSceneFrame.stage.ordinal + 1}/13 name=${diagnosticSceneFrame.stage.name} " +
-                "reference_ms=${diagnosticSceneFrame.opticalReferenceElapsedMs} playback=${diagnosticSceneFrame.playbackMode} " +
+                "reference_ms=${diagnosticSceneFrame.opticalReferenceElapsedMs} uptime_ms=${diagnosticSceneFrame.monotonicTimestampMs} " +
+                "playback=${diagnosticSceneFrame.playbackMode} " +
                 "paused=${diagnosticSceneFrame.paused} detector=${assessment?.status} " +
                 "bbox=${assessment?.primary?.box} slimsam=${subjectResult.status} trusted_mask=$trustedSubjectMask",
         )

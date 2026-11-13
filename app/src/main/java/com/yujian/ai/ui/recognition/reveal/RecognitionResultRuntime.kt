@@ -22,8 +22,19 @@ enum class ResultHandoffSubstage {
     val contractId: String get() = "13.${ordinal + 1}"
 }
 
+const val RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER =
+    "RecognitionResultScreen.emitResultHandoffMilestone"
+const val RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER =
+    "RecognitionResultHandoffConsumer.consume"
+
 /** Single ordered transition contract shared by the controller, session store and tests. */
 object RecognitionResultHandoffContract {
+    fun isNextEventSequence(requested: Long, lastAccepted: Long): Boolean =
+        lastAccepted >= 0L && requested == lastAccepted + 1L
+
+    fun hasStrictlyLaterTimestamp(requested: Long, lastAccepted: Long): Boolean =
+        lastAccepted >= 0L && requested > lastAccepted
+
     fun isNext(
         requested: ResultHandoffSubstage,
         completed: Set<ResultHandoffSubstage>,
@@ -77,7 +88,7 @@ data class RecognitionResultHandoffEvent(
     val eventSequence: Long,
     val monotonicTimestampMs: Long,
     val eventProducer: String,
-    val eventConsumer: String = "RecognitionSceneAnimationController",
+    val eventConsumer: String = RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER,
     val source: String,
     val target: String,
     val feedback: String,
@@ -102,16 +113,28 @@ data class RecognitionResultHandoffState(
     val transactionStatus: RecognitionHandoffTransactionStatus = RecognitionHandoffTransactionStatus.CREATED,
     val playbackStatus: RevealPlaybackStatus = RevealPlaybackStatus.NOT_STARTED,
     val lastEventSequence: Long = 0L,
+    val lastEventTimestampMs: Long = 0L,
     val acceptedEvents: List<RecognitionResultHandoffEvent> = emptyList(),
     val eventTrace: List<RecognitionResultHandoffTraceEntry> = emptyList(),
     val completedSubstages: Set<ResultHandoffSubstage> = emptySet(),
     val resultSceneStable: Boolean = false,
+    val resultStableTimestampMs: Long? = null,
+    val geometryReleasedTimestampMs: Long? = null,
+    val navigationTrace: List<RecognitionResultNavigationTraceEntry> = emptyList(),
     val playbackProgressStage: RecognitionSceneStage? = null,
     val playbackProgress: Float = 0f,
     val animationGeometryReleased: Boolean = false,
 ) {
     fun has(substage: ResultHandoffSubstage): Boolean = substage in completedSubstages
 }
+
+/** Actual state transition emitted by the production SessionStore/NavHost transaction. */
+data class RecognitionResultNavigationTraceEntry(
+    val status: RecognitionHandoffTransactionStatus,
+    val monotonicTimestampMs: Long,
+    val source: String,
+    val eventSequence: Long,
+)
 
 /** One immutable view of all data rendered or saved by the Result route. */
 data class RecognitionResultSnapshot(

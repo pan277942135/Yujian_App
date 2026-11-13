@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.recognition.reveal
 
 import androidx.lifecycle.ViewModel
+import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -46,11 +47,26 @@ class RecognitionRevealSessionStore : ViewModel() {
         return RecognitionRevealSessionSnapshot(recognitionSessionId = sessionId).also { snapshot = it }
     }
 
-    fun beginAttempt(sessionId: String, attemptId: String, image: SelectedImage) {
+    fun beginAttempt(
+        sessionId: String,
+        attemptId: String,
+        image: SelectedImage,
+        createdTimestampUptimeMs: Long = 0L,
+    ) {
         snapshot = RecognitionRevealSessionSnapshot(
             recognitionSessionId = sessionId,
             recognitionAttemptId = attemptId,
             image = image,
+            resultHandoffState = RecognitionResultHandoffState(
+                navigationTrace = listOf(
+                    RecognitionResultNavigationTraceEntry(
+                        status = RecognitionHandoffTransactionStatus.CREATED,
+                        monotonicTimestampMs = createdTimestampUptimeMs.coerceAtLeast(0L),
+                        source = "RecognitionRevealSessionStore.beginAttempt",
+                        eventSequence = 0L,
+                    ),
+                ),
+            ),
         )
     }
 
@@ -160,16 +176,39 @@ class RecognitionRevealSessionStore : ViewModel() {
         }
         if (existingHandoff != null) {
             if (current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.CREATED ||
-                current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.PROCESSING_COMPLETE
+                current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.PROCESSING_COMPLETE ||
+                current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.HANDOFF_REJECTED ||
+                current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.NAVIGATION_FAILED
             ) {
+                val state = current.resultHandoffState
+                val trace = if (state.transactionStatus == RecognitionHandoffTransactionStatus.CREATED) {
+                    state.navigationTrace + transition(
+                        RecognitionHandoffTransactionStatus.PROCESSING_COMPLETE,
+                        handoffTimestampUptimeMs,
+                        "RecognitionRevealSessionStore.completeAttempt",
+                        state.lastEventSequence,
+                    )
+                } else state.navigationTrace
                 snapshot = current.copy(
-                    resultHandoffState = current.resultHandoffState.copy(
+                    resultHandoffState = state.copy(
                         transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_READY,
+                        navigationTrace = trace + transition(
+                            RecognitionHandoffTransactionStatus.HANDOFF_READY,
+                            handoffTimestampUptimeMs,
+                            "RecognitionRevealSessionStore.completeAttempt",
+                            state.lastEventSequence,
+                        ),
                     ),
                 )
             }
             return existingHandoff
         }
+        val processingTrace = current.resultHandoffState.navigationTrace + transition(
+            RecognitionHandoffTransactionStatus.PROCESSING_COMPLETE,
+            handoffTimestampUptimeMs,
+            "RecognitionRevealSessionStore.completeAttempt",
+            current.resultHandoffState.lastEventSequence,
+        )
         val candidate = current.copy(
             productionResult = result,
             prediction = result.prediction,
@@ -177,6 +216,7 @@ class RecognitionRevealSessionStore : ViewModel() {
             highConfidenceResult = highConfidenceResult,
             resultHandoffState = current.resultHandoffState.copy(
                 transactionStatus = RecognitionHandoffTransactionStatus.PROCESSING_COMPLETE,
+                navigationTrace = processingTrace,
             ),
         )
         snapshot = candidate
@@ -184,6 +224,12 @@ class RecognitionRevealSessionStore : ViewModel() {
         if (!RecognitionRevealDecisionGate.isReady(decision)) {
             snapshot = candidate.copy(resultHandoffState = candidate.resultHandoffState.copy(
                 transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_REJECTED,
+                navigationTrace = processingTrace + transition(
+                    RecognitionHandoffTransactionStatus.HANDOFF_REJECTED,
+                    handoffTimestampUptimeMs,
+                    "RecognitionRevealSessionStore.completeAttempt",
+                    current.resultHandoffState.lastEventSequence,
+                ),
             ))
             return null
         }
@@ -202,6 +248,12 @@ class RecognitionRevealSessionStore : ViewModel() {
         if (handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL && handoff.fishPathSnapshot == null) {
             snapshot = candidate.copy(resultHandoffState = candidate.resultHandoffState.copy(
                 transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_REJECTED,
+                navigationTrace = processingTrace + transition(
+                    RecognitionHandoffTransactionStatus.HANDOFF_REJECTED,
+                    handoffTimestampUptimeMs,
+                    "RecognitionRevealSessionStore.completeAttempt",
+                    current.resultHandoffState.lastEventSequence,
+                ),
             ))
             return null
         }
@@ -210,13 +262,22 @@ class RecognitionRevealSessionStore : ViewModel() {
             revealDecision = handoff.revealDecision ?: decision,
             resultHandoffState = candidate.resultHandoffState.copy(
                 transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_READY,
+                navigationTrace = processingTrace + transition(
+                    RecognitionHandoffTransactionStatus.HANDOFF_READY,
+                    handoffTimestampUptimeMs,
+                    "RecognitionRevealSessionStore.completeAttempt",
+                    current.resultHandoffState.lastEventSequence,
+                ),
             ),
         )
         return handoff
     }
 
     /** Idempotent Processing → navigation transaction. Rejected handoffs remain retryable. */
-    fun requestResultNavigation(key: RecognitionRevealKey): Boolean {
+    fun requestResultNavigation(
+        key: RecognitionRevealKey,
+        monotonicTimestampMs: Long = SystemClock.uptimeMillis(),
+    ): Boolean {
         val current = snapshot?.takeIf { it.matches(key) } ?: return false
         if (current.handoff?.key != key) return false
         when (current.resultHandoffState.transactionStatus) {
@@ -228,33 +289,58 @@ class RecognitionRevealSessionStore : ViewModel() {
         snapshot = current.copy(
             resultHandoffState = current.resultHandoffState.copy(
                 transactionStatus = RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED,
+                navigationTrace = current.resultHandoffState.navigationTrace + transition(
+                    RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED,
+                    monotonicTimestampMs,
+                    "YujianApp.deliverRecognitionAttempt",
+                    current.resultHandoffState.lastEventSequence,
+                ),
             ),
         )
         return true
     }
 
-    fun markNavigationFailed(key: RecognitionRevealKey): Boolean {
+    fun markNavigationFailed(
+        key: RecognitionRevealKey,
+        monotonicTimestampMs: Long = SystemClock.uptimeMillis(),
+    ): Boolean {
         val current = snapshot?.takeIf { it.matches(key) } ?: return false
-        if (current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED) return false
+        if (current.resultHandoffState.transactionStatus !in setOf(
+                RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED,
+                RecognitionHandoffTransactionStatus.NAVIGATION_FAILED,
+            )
+        ) return false
         snapshot = current.copy(resultHandoffState = current.resultHandoffState.copy(
             transactionStatus = RecognitionHandoffTransactionStatus.NAVIGATION_FAILED,
+            navigationTrace = current.resultHandoffState.navigationTrace + transition(
+                RecognitionHandoffTransactionStatus.NAVIGATION_FAILED,
+                monotonicTimestampMs,
+                "YujianApp.deliverRecognitionAttempt",
+                current.resultHandoffState.lastEventSequence,
+            ),
         ))
         return true
     }
 
-    fun markResultAttached(key: RecognitionRevealKey): Boolean {
+    fun markResultAttached(
+        key: RecognitionRevealKey,
+        monotonicTimestampMs: Long = SystemClock.uptimeMillis(),
+    ): Boolean {
         val current = snapshot?.takeIf { it.matches(key) } ?: return false
         if (current.handoff?.key != key || current.image?.imageId != current.handoff.imageId) return false
-        if (current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED) return true
-        if (current.resultHandoffState.transactionStatus !in setOf(
-                RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED,
-                RecognitionHandoffTransactionStatus.HANDOFF_READY,
-                RecognitionHandoffTransactionStatus.RESULT_ATTACHED,
-            )
-        ) return false
+        if (current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.RESULT_ATTACHED ||
+            current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED
+        ) return true
+        if (current.resultHandoffState.transactionStatus != RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED) return false
         snapshot = current.copy(
             resultHandoffState = current.resultHandoffState.copy(
                 transactionStatus = RecognitionHandoffTransactionStatus.RESULT_ATTACHED,
+                navigationTrace = current.resultHandoffState.navigationTrace + transition(
+                    RecognitionHandoffTransactionStatus.RESULT_ATTACHED,
+                    monotonicTimestampMs,
+                    "YujianApp.resultDestination",
+                    current.resultHandoffState.lastEventSequence,
+                ),
             ),
         )
         return true
@@ -279,9 +365,23 @@ class RecognitionRevealSessionStore : ViewModel() {
             event.identity.photoContentVersion != image.bitmap.generationId.toLong().coerceAtLeast(0L)
         ) return "IDENTITY_MISMATCH"
         if (handoff.imageId != image.imageId || event.resultIdentity != prediction.top1.speciesKey) return "RESULT_IDENTITY_MISMATCH"
-        if (event.eventSequence <= current.resultHandoffState.lastEventSequence) return "DUPLICATE_OR_OUT_OF_ORDER_SEQUENCE"
+        if (current.resultHandoffState.transactionStatus !in setOf(
+                RecognitionHandoffTransactionStatus.RESULT_ATTACHED,
+                RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED,
+            )
+        ) return "RESULT_ROUTE_NOT_ATTACHED"
+        if (!RecognitionResultHandoffContract.isNextEventSequence(
+                event.eventSequence,
+                current.resultHandoffState.lastEventSequence,
+            )
+        ) return "EVENT_SEQUENCE_NOT_CONTIGUOUS"
         if (event.geometryVersion == 0L) return "RESULT_GEOMETRY_INVALID"
-        if (event.monotonicTimestampMs < 0L || event.eventProducer.isBlank() || event.eventConsumer.isBlank() ||
+        if (!RecognitionResultHandoffContract.hasStrictlyLaterTimestamp(
+                event.monotonicTimestampMs,
+                current.resultHandoffState.lastEventTimestampMs,
+            ) ||
+            event.eventProducer != RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER ||
+            event.eventConsumer != RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER ||
             event.renderStatus != "READY" || !event.progress.isFinite() || event.progress < .999f ||
             event.stage.ordinal < com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RETURN.ordinal
         ) return "EVENT_NOT_COMPLETE"
@@ -314,6 +414,7 @@ class RecognitionRevealSessionStore : ViewModel() {
             if (!current.resultHandoffState.completedSubstages.containsAll(required) ||
                 event.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.RESIDUE_SETTLE
             ) return "RESULT_STABLE_PREREQUISITES_MISSING"
+            if (current.resultHandoffState.playbackStatus != RevealPlaybackStatus.IN_PROGRESS) return "PLAYBACK_NOT_IN_PROGRESS"
         }
         return null
     }
@@ -326,13 +427,22 @@ class RecognitionRevealSessionStore : ViewModel() {
         val stable = event.substage == ResultHandoffSubstage.RESULT_SCENE_STABLE
         val transaction = if (stable) RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED
             else RecognitionHandoffTransactionStatus.RESULT_ATTACHED
+        val navigationTrace = if (stable) current.resultHandoffState.navigationTrace + transition(
+            RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED,
+            event.monotonicTimestampMs,
+            "RecognitionRevealSessionStore.recordResultHandoffEvent",
+            event.eventSequence,
+        ) else current.resultHandoffState.navigationTrace
         val nextState = current.resultHandoffState.copy(
             transactionStatus = transaction,
             lastEventSequence = event.eventSequence,
+            lastEventTimestampMs = event.monotonicTimestampMs,
             acceptedEvents = current.resultHandoffState.acceptedEvents + event,
             eventTrace = current.resultHandoffState.eventTrace + RecognitionResultHandoffTraceEntry(event, accepted = true),
+            navigationTrace = navigationTrace,
             completedSubstages = nextSubstages,
             resultSceneStable = stable,
+            resultStableTimestampMs = event.monotonicTimestampMs.takeIf { stable },
             playbackStatus = if (stable) RevealPlaybackStatus.COMPLETED else current.resultHandoffState.playbackStatus,
             animationGeometryReleased = stable && current.resultHandoffState.animationGeometryReleased,
         )
@@ -401,6 +511,19 @@ class RecognitionRevealSessionStore : ViewModel() {
         return org.json.JSONObject()
             .put("sessionId", key.recognitionSessionId)
             .put("attemptId", key.recognitionAttemptId)
+            .put("transactionStatus", state.transactionStatus.name)
+            .put("playbackStatus", state.playbackStatus.name)
+            .put("lastEventSequence", state.lastEventSequence)
+            .put("lastEventTimestampMs", state.lastEventTimestampMs)
+            .put("resultStableTimestampMs", state.resultStableTimestampMs ?: org.json.JSONObject.NULL)
+            .put("geometryReleasedTimestampMs", state.geometryReleasedTimestampMs ?: org.json.JSONObject.NULL)
+            .put("navigation", org.json.JSONArray().apply {
+                state.navigationTrace.forEach { item -> put(org.json.JSONObject()
+                    .put("status", item.status.name)
+                    .put("monotonicTimestampMs", item.monotonicTimestampMs)
+                    .put("source", item.source)
+                    .put("eventSequence", item.eventSequence)) }
+            })
             .put("events", entries)
             .put("resultSceneStable", state.resultSceneStable)
             .toString()
@@ -474,17 +597,33 @@ class RecognitionRevealSessionStore : ViewModel() {
         if (it) updatePlaybackStatus(key, RevealPlaybackStatus.FAILED)
     }
 
-    fun releaseAnimationGeometry(key: RecognitionRevealKey) {
+    fun releaseAnimationGeometry(key: RecognitionRevealKey, monotonicTimestampMs: Long = 0L) {
         val current = snapshot ?: return
         if (!current.matches(key)) return
         if (!current.resultHandoffState.resultSceneStable) return
-        snapshot = current.copy(resultHandoffState = current.resultHandoffState.copy(animationGeometryReleased = true))
+        if (current.resultHandoffState.animationGeometryReleased) return
+        snapshot = current.copy(resultHandoffState = current.resultHandoffState.copy(
+            animationGeometryReleased = true,
+            geometryReleasedTimestampMs = monotonicTimestampMs.coerceAtLeast(0L),
+        ))
     }
 
     private fun updatePlaybackStatus(key: RecognitionRevealKey, status: RevealPlaybackStatus) {
         val current = snapshot?.takeIf { it.matches(key) } ?: return
         snapshot = current.copy(resultHandoffState = current.resultHandoffState.copy(playbackStatus = status))
     }
+
+    private fun transition(
+        status: RecognitionHandoffTransactionStatus,
+        timestampMs: Long,
+        source: String,
+        eventSequence: Long,
+    ) = RecognitionResultNavigationTraceEntry(
+        status = status,
+        monotonicTimestampMs = timestampMs.coerceAtLeast(0L),
+        source = source,
+        eventSequence = eventSequence,
+    )
 
     private fun rebuildHandoff(
         current: RecognitionRevealSessionSnapshot,

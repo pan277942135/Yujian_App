@@ -4,6 +4,7 @@ import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffContract
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
+import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER
 import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 
 /**
@@ -25,6 +26,7 @@ class RecognitionSceneAnimationController(
 
     private var identity: RecognitionSceneIdentity? = null
     private var photoFirstFramePresented = false
+    private var firstFramePresentedTimestampMs: Long? = null
     private var sceneStartedAtMs = UNSET
     private var sceneElapsedBeforePauseMs = 0L
     private var sceneClockStartedAtMs: Long? = null
@@ -47,6 +49,9 @@ class RecognitionSceneAnimationController(
     private val completedResultHandoffSubstages = mutableSetOf<ResultHandoffSubstage>()
     private var lastResultHandoffEventSequence = 0L
     private var lastResultHandoffTimestampMs = 0L
+    private val stageTimeline = mutableListOf<RecognitionSceneStageTraceEntry>()
+    private var stageGateWaitStartedAtMs: Long? = null
+    private var stageGateWaitReason: String? = null
     var resultSceneStable: Boolean = false
         private set
 
@@ -54,6 +59,10 @@ class RecognitionSceneAnimationController(
     fun acceptedEnergyEventsSnapshot(): List<EnergyEvent> = acceptedEnergyEventTrace.toList()
     fun acceptedResultHandoffEventsSnapshot(): List<RecognitionResultHandoffEvent> = acceptedResultHandoffEvents.toList()
     fun completedResultHandoffSubstagesSnapshot(): Set<ResultHandoffSubstage> = completedResultHandoffSubstages.toSet()
+    fun stageTimelineSnapshot(): List<RecognitionSceneStageTraceEntry> = stageTimeline.toList()
+    fun firstFramePresentedTimestampMs(): Long? = firstFramePresentedTimestampMs
+    fun resultGeometryVersionsSnapshot(): Set<Long> = resultGeometryVersions.toSet()
+    fun resultGeometryIsReady(): Boolean = resultGeometryState == SceneGeometryState.READY
 
     private var detectorReady = false
     private var classifierReady = false
@@ -125,6 +134,7 @@ class RecognitionSceneAnimationController(
         this.identity = identity
         resetClockState(nowMs)
         photoFirstFramePresented = false
+        firstFramePresentedTimestampMs = null
         sceneStartedAtMs = UNSET
         sceneElapsedBeforePauseMs = 0L
         sceneClockStartedAtMs = null
@@ -138,6 +148,7 @@ class RecognitionSceneAnimationController(
         identity = null
         resetClockState(nowMs)
         photoFirstFramePresented = true
+        firstFramePresentedTimestampMs = nowMs
         sceneStartedAtMs = nowMs
         sceneClockStartedAtMs = nowMs.takeIf { !paused }
         stageStartedAtMs = nowMs
@@ -148,6 +159,7 @@ class RecognitionSceneAnimationController(
         identity = null
         resetClockState(0L)
         photoFirstFramePresented = false
+        firstFramePresentedTimestampMs = null
         sceneStartedAtMs = UNSET
         stageStartedAtMs = UNSET
         mode = ScenePlaybackMode.AUTO
@@ -160,8 +172,11 @@ class RecognitionSceneAnimationController(
     ): Boolean {
         if (!isCurrent(currentIdentity) || photoFirstFramePresented) return false
         photoFirstFramePresented = true
+        firstFramePresentedTimestampMs = nowMs
         sceneStartedAtMs = nowMs
         stageStartedAtMs = nowMs
+        stageGateWaitStartedAtMs = null
+        stageGateWaitReason = null
         previewStartedAtMs = nowMs.takeIf { mode == ScenePlaybackMode.MANUAL && !paused }
         if (!paused && geometryGateStartedAtMs == null) sceneClockStartedAtMs = nowMs
         bumpEventSequence()
@@ -315,14 +330,16 @@ class RecognitionSceneAnimationController(
     fun acceptResultHandoffEvent(event: RecognitionResultHandoffEvent): RecognitionResultHandoffReceipt {
         val active = identity ?: return RecognitionResultHandoffReceipt(false, "SCENE_IDENTITY_MISSING")
         if (event.identity != active) return RecognitionResultHandoffReceipt(false, "STALE_OR_MISMATCHED_ATTEMPT")
-        if (event.eventSequence <= lastResultHandoffEventSequence) {
-            return RecognitionResultHandoffReceipt(false, "DUPLICATE_OR_OUT_OF_ORDER_SEQUENCE", resultSceneStable)
+        if (!RecognitionResultHandoffContract.isNextEventSequence(event.eventSequence, lastResultHandoffEventSequence)) {
+            return RecognitionResultHandoffReceipt(false, "EVENT_SEQUENCE_NOT_CONTIGUOUS", resultSceneStable)
         }
-        if (event.monotonicTimestampMs < lastResultHandoffTimestampMs || event.geometryVersion == 0L ||
+        if (!RecognitionResultHandoffContract.hasStrictlyLaterTimestamp(event.monotonicTimestampMs, lastResultHandoffTimestampMs) ||
+            event.geometryVersion == 0L ||
             event.geometryVersion !in resultGeometryVersions || resultGeometryState != SceneGeometryState.READY
         ) return RecognitionResultHandoffReceipt(false, "RESULT_GEOMETRY_NOT_CURRENT")
         if (event.stage != currentStage || event.renderStatus != "READY" || event.progress < .999f ||
-            !event.progress.isFinite() || event.eventProducer.isBlank() || event.eventConsumer != "RecognitionSceneAnimationController" ||
+            !event.progress.isFinite() || event.eventProducer.isBlank() ||
+            event.eventConsumer != RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER ||
             event.source.isBlank() || event.target.isBlank() || event.feedback.isBlank() || event.resultIdentity.isBlank()
         ) return RecognitionResultHandoffReceipt(false, "EVENT_NOT_COMPLETE_OR_STAGE_MISMATCH")
         if (event.identity.photoSha256.isNullOrBlank() || event.identity.photoContentVersion < 0L) {
@@ -371,7 +388,11 @@ class RecognitionSceneAnimationController(
         acceptedResultHandoffEvents += event
         lastResultHandoffEventSequence = event.eventSequence
         lastResultHandoffTimestampMs = event.monotonicTimestampMs
-        if (event.substage == ResultHandoffSubstage.RESULT_SCENE_STABLE) resultSceneStable = true
+        if (event.substage == ResultHandoffSubstage.RESULT_SCENE_STABLE) {
+            resultSceneStable = true
+            bumpEventSequence()
+            closeCurrentStage(event.monotonicTimestampMs, eventSequence)
+        }
         return RecognitionResultHandoffReceipt(true, resultSceneStable = resultSceneStable)
     }
 
@@ -607,16 +628,31 @@ class RecognitionSceneAnimationController(
         if (!photoFirstFramePresented || paused || geometryGateStartedAtMs != null || failed) return currentStage
         val elapsed = stageElapsedMs(nowMs)
         val required = if (diagnosticAuto) maxOf(DIAGNOSTIC_STEP_DURATION_MS, minimum(currentStage)) else minimum(currentStage)
-        if (elapsed < required || !canAdvance(currentStage, successfulRevealAllowed)) return currentStage
+        if (elapsed < required) return currentStage
+        if (!canAdvance(currentStage, successfulRevealAllowed)) {
+            if (stageGateWaitStartedAtMs == null) {
+                stageGateWaitStartedAtMs = nowMs
+                stageGateWaitReason = modelGates.waitingReason ?: "WAITING_FOR_STAGE_EVENT_OR_MODEL_GATE"
+            }
+            return currentStage
+        }
         val next = next(currentStage, successfulRevealAllowed)
         if (next == currentStage) return currentStage
+        val previousStage = currentStage
+        bumpEventSequence()
+        closeStage(
+            stage = previousStage,
+            endedAtMs = nowMs,
+            sequence = eventSequence,
+        )
         currentStage = next
         stageStartedAtMs = nowMs
+        stageGateWaitStartedAtMs = null
+        stageGateWaitReason = null
         stageElapsedBeforePauseMs = 0L
         autoElapsedBeforePauseMs = 0L
         autoStartedAtMs = nowMs.takeIf { diagnosticAuto }
         previewCompleted = false
-        bumpEventSequence()
         return currentStage
     }
 
@@ -1039,6 +1075,9 @@ class RecognitionSceneAnimationController(
         completedResultHandoffSubstages.clear()
         lastResultHandoffEventSequence = 0L
         lastResultHandoffTimestampMs = 0L
+        stageTimeline.clear()
+        stageGateWaitStartedAtMs = null
+        stageGateWaitReason = null
         resultSceneStable = false
         detectorReady = false
         classifierReady = false
@@ -1074,6 +1113,33 @@ class RecognitionSceneAnimationController(
 
     private fun bumpEventSequence() {
         eventSequence += 1L
+    }
+
+    private fun closeCurrentStage(endedAtMs: Long, sequence: Long) {
+        closeStage(currentStage, endedAtMs, sequence)
+    }
+
+    private fun closeStage(stage: RecognitionSceneStage, endedAtMs: Long, sequence: Long) {
+        if (stageTimeline.lastOrNull()?.stage == stage) return
+        val activeIdentity = identity ?: return
+        val start = stageStartedAtMs.takeIf { it != UNSET } ?: endedAtMs
+        val duration = (endedAtMs - start).coerceAtLeast(0L)
+        val gateWait = stageGateWaitStartedAtMs?.let { (endedAtMs - it).coerceAtLeast(0L) }
+            ?.coerceAtMost(duration) ?: 0L
+        stageTimeline += RecognitionSceneStageTraceEntry(
+            stage = stage,
+            stageOrdinal = stage.ordinal,
+            stageStartTimestampMs = start,
+            stageEndTimestampMs = endedAtMs,
+            stageDurationMs = duration,
+            requiredDurationMs = minimum(stage),
+            gateWaitDurationMs = gateWait,
+            gateWaitReason = stageGateWaitReason,
+            localProgress = 1f,
+            sessionId = activeIdentity.sessionId,
+            attemptId = activeIdentity.attemptId,
+            eventSequence = sequence,
+        )
     }
 
     private fun stopSceneClock(nowMs: Long) {

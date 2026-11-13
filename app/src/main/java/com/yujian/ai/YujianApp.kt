@@ -107,7 +107,8 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealSessionStore
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGate
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
-import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffConsumer
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultProductionEvidenceWriter
 import com.yujian.ai.ui.screens.RecognizingScreen
 import com.yujian.ai.ui.screens.RecognitionSubjectAttemptRunner
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
@@ -137,7 +138,7 @@ import java.util.UUID
 
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun YujianApp() {
+fun YujianApp(productionAutoPlayback: Boolean = false) {
     val activityContext = LocalContext.current
     val context = LocalContext.current.applicationContext
     val revealSessionStore: RecognitionRevealSessionStore = viewModel()
@@ -145,7 +146,7 @@ fun YujianApp() {
     var diagnosticReturnRevision by remember(revealSessionStore) { mutableIntStateOf(0) }
     var diagnosticDisplayMode by remember(revealSessionStore) {
         mutableStateOf(
-            if (BuildConfig.DEBUG) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
+            if (BuildConfig.DEBUG && !productionAutoPlayback) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
             else RecognitionProgressDisplayMode.NORMAL_PROGRESS,
         )
     }
@@ -334,8 +335,10 @@ fun YujianApp() {
             requireNotNull(recognitionSessionId),
             requireNotNull(activeRecognitionAttemptId),
             selected,
+            createdTimestampUptimeMs = SystemClock.uptimeMillis(),
         )
-        diagnosticDisplayMode = if (BuildConfig.DEBUG) {
+        RecognitionResultProductionEvidenceWriter.reset(activityContext)
+        diagnosticDisplayMode = if (BuildConfig.DEBUG && !productionAutoPlayback) {
             RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
         } else {
             RecognitionProgressDisplayMode.NORMAL_PROGRESS
@@ -350,7 +353,7 @@ fun YujianApp() {
                 photoSha256 = selected.photoSha256,
                 photoContentVersion = selected.bitmap.generationId.toLong().coerceAtLeast(0L),
             ),
-            debugBuild = BuildConfig.DEBUG,
+            debugBuild = BuildConfig.DEBUG && !productionAutoPlayback,
             nowMs = SystemClock.uptimeMillis(),
         )
         productionResult = null
@@ -535,10 +538,10 @@ fun YujianApp() {
                 return
             }
             val key = handoff.key
-            if (!revealSessionStore.requestResultNavigation(key)) return
+            if (!revealSessionStore.requestResultNavigation(key, SystemClock.uptimeMillis())) return
             runCatching { nav.navigate("result") { popUpTo("recognizing") { inclusive = true } } }
                 .onFailure {
-                    revealSessionStore.markNavigationFailed(key)
+                    revealSessionStore.markNavigationFailed(key, SystemClock.uptimeMillis())
                     Log.e("RecognitionRevealHandoff", "RESULT_NAVIGATION_FAILED attempt=$attemptId", it)
                 }
         } else {
@@ -572,19 +575,19 @@ fun YujianApp() {
         if (!samePhoto) return "photo identity mismatch · stage 10 blocked"
         // Next owns stage progression. The stage 10 controller state and its elapsed
         // position are preserved while Result attaches to the same PhotoSession.
-        if (!revealSessionStore.requestResultNavigation(key)) return "Result navigation is already active for this Attempt"
+        if (!revealSessionStore.requestResultNavigation(key, SystemClock.uptimeMillis())) return "Result navigation is already active for this Attempt"
         if (BuildConfig.DEBUG) {
             // Keep Processing underneath Result so the shared diagnostic session can step back
             // from RR09 stage 10 without recreating recognition or its visual controller.
             runCatching { nav.navigate("result") { launchSingleTop = true } }
                 .onFailure {
-                    revealSessionStore.markNavigationFailed(key)
+                    revealSessionStore.markNavigationFailed(key, SystemClock.uptimeMillis())
                     return "Result navigation failed: ${it.message ?: "unknown error"}"
                 }
         } else {
             runCatching { nav.navigate("result") { popUpTo("recognizing") { inclusive = true } } }
                 .onFailure {
-                    revealSessionStore.markNavigationFailed(key)
+                    revealSessionStore.markNavigationFailed(key, SystemClock.uptimeMillis())
                     return "Result navigation failed: ${it.message ?: "unknown error"}"
                 }
         }
@@ -1110,6 +1113,19 @@ fun YujianApp() {
                     } else null
                     val resultSnapshot = resultKey?.let(revealSessionStore::resultSnapshot)
                     val revealHandoff = resultSnapshot?.handoff
+                    LaunchedEffect(resultSnapshot?.key) {
+                        val attachedSnapshot = resultSnapshot ?: return@LaunchedEffect
+                        val attached = revealSessionStore.markResultAttached(
+                            attachedSnapshot.key,
+                            SystemClock.uptimeMillis(),
+                        )
+                        Log.i(
+                            "RecognitionRevealHandoff",
+                            "RESULT_ROUTE_ATTACHED session=${attachedSnapshot.key.recognitionSessionId} " +
+                                "attempt=${attachedSnapshot.key.recognitionAttemptId} attached=$attached " +
+                                "uptime_ms=${SystemClock.uptimeMillis()}",
+                        )
+                    }
                     LaunchedEffect(Unit) {
                         subjectModelState = subjectModelManager.checkStatus()
                     }
@@ -1170,34 +1186,14 @@ fun YujianApp() {
                             revealHandoff = revealHandoff,
                             resultSnapshot = resultSnapshot,
                             initialResultHandoffEventSequence = resultSnapshot.handoffState.lastEventSequence,
+                            initialResultHandoffEventTimestampMs = resultSnapshot.handoffState.lastEventTimestampMs,
                             onResultHandoffEvent = { event ->
-                                val key = resultSnapshot.key
-                                val preflight = revealSessionStore.canAcceptResultHandoffEvent(key, event)
-                                if (preflight != null) {
-                                    revealSessionStore.recordRejectedResultHandoffEvent(key, event, preflight)
-                                    RecognitionResultHandoffReceipt(false, preflight, resultSnapshot.handoffState.resultSceneStable)
-                                } else {
-                                    if (event.substage == com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage.RESULT_SCENE_HANDOFF &&
-                                        !revealSessionStore.markResultAttached(key)
-                                    ) {
-                                        revealSessionStore.recordRejectedResultHandoffEvent(key, event, "RESULT_HOST_ATTACH_REJECTED")
-                                        RecognitionResultHandoffReceipt(false, "RESULT_HOST_ATTACH_REJECTED")
-                                    } else {
-                                        val controllerReceipt = diagnosticPlaybackController.acceptResultHandoffEvent(event)
-                                        if (!controllerReceipt.accepted) {
-                                            revealSessionStore.recordRejectedResultHandoffEvent(
-                                                key, event, controllerReceipt.rejectionReason ?: "CONTROLLER_REJECTED",
-                                            )
-                                            controllerReceipt
-                                        } else {
-                                            revealSessionStore.recordResultHandoffEvent(key, event).also { receipt ->
-                                                if (!receipt.accepted) revealSessionStore.recordRejectedResultHandoffEvent(
-                                                    key, event, receipt.rejectionReason ?: "SESSION_STORE_REJECTED_AFTER_CONTROLLER_ACCEPT",
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
+                                RecognitionResultHandoffConsumer.consume(
+                                    key = resultSnapshot.key,
+                                    event = event,
+                                    store = revealSessionStore,
+                                    controller = diagnosticPlaybackController,
+                                )
                             },
                             diagnosticPlaybackController = diagnosticPlaybackController,
                             diagnosticDisplayMode = diagnosticDisplayMode,
@@ -1215,7 +1211,15 @@ fun YujianApp() {
                             onPlaybackStart = revealSessionStore::startPlayback,
                             onPlaybackProgress = revealSessionStore::updatePlaybackProgress,
                             onPlaybackInterrupted = revealSessionStore::interruptPlayback,
-                            onRevealFinished = revealSessionStore::releaseAnimationGeometry,
+                            onRevealFinished = { key ->
+                                revealSessionStore.releaseAnimationGeometry(key, SystemClock.uptimeMillis())
+                                RecognitionResultProductionEvidenceWriter.writeStableResult(
+                                    context = activityContext,
+                                    key = key,
+                                    store = revealSessionStore,
+                                    controller = diagnosticPlaybackController,
+                                )
+                            },
                             onSave = { draft, feedback, destination ->
                                 val active = session
                                 val selected = resultSnapshot.image

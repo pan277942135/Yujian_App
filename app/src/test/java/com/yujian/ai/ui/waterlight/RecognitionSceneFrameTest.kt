@@ -254,6 +254,41 @@ class RecognitionSceneFrameTest {
         assertTrue(playback.acceptedResultHandoffEventsSnapshot().isEmpty())
     }
 
+    @Test fun oldAttemptResultEventCannotEnterTheNextProductionSession() {
+        val playback = SceneMotionCoordinator()
+        val oldIdentity = identity
+        val newIdentity = identity.copy(attemptId = "a2", imageId = "i2", photoSha256 = "new-sha")
+        playback.beginNewSession(oldIdentity, debugBuild = false, nowMs = 10L)
+        playback.markPhotoFirstFramePresented(oldIdentity, 11L)
+        playback.beginNewSession(newIdentity, debugBuild = false, nowMs = 20L)
+
+        val stale = RecognitionResultHandoffEvent(
+            identity = oldIdentity,
+            maskSha256 = null,
+            maskVersion = null,
+            geometryVersion = 9L,
+            pathId = null,
+            pathGeometryVersion = null,
+            pStarNormalizedSource = null,
+            pathSegments = emptyList(),
+            stage = RecognitionSceneStage.SPECIES_NAME_REVEAL,
+            substage = ResultHandoffSubstage.NAME_STABLE,
+            eventSequence = 1L,
+            monotonicTimestampMs = 21L,
+            eventProducer = "test",
+            source = "GLYPH",
+            target = "RESULT_NAME",
+            feedback = "NAME_STABLE",
+            progress = 1f,
+            renderStatus = "READY",
+            resultIdentity = "yellow_catfish",
+        )
+
+        assertEquals("STALE_OR_MISMATCHED_ATTEMPT", playback.acceptResultHandoffEvent(stale).rejectionReason)
+        assertTrue(playback.acceptedResultHandoffEventsSnapshot().isEmpty())
+        assertEquals(newIdentity, playback.currentFrame(newIdentity, 21L, 9L).identity)
+    }
+
     @Test fun sharedSceneFrameCarriesResultInformationArrivalAndStableState() {
         val frame = RecognitionSceneCoordinator.frameForStage(
             identity = identity,

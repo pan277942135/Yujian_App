@@ -124,6 +124,8 @@ import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultSnapshot
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
+import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER
+import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
 import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 import com.yujian.ai.catches.CatchSaveDraft
@@ -247,6 +249,7 @@ fun RecognitionResultScreen(
     revealHandoff: RecognitionRevealHandoff? = null,
     resultSnapshot: RecognitionResultSnapshot? = null,
     initialResultHandoffEventSequence: Long = 0L,
+    initialResultHandoffEventTimestampMs: Long = 0L,
     onResultHandoffEvent: (RecognitionResultHandoffEvent) -> RecognitionResultHandoffReceipt = {
         RecognitionResultHandoffReceipt(false, "HANDOFF_EVENT_CONSUMER_UNAVAILABLE")
     },
@@ -522,6 +525,9 @@ fun RecognitionResultScreen(
     var resultHandoffEventSequence by remember(revealHandoff?.key) {
         mutableLongStateOf(initialResultHandoffEventSequence)
     }
+    var resultHandoffEventTimestampMs by remember(revealHandoff?.key) {
+        mutableLongStateOf(initialResultHandoffEventTimestampMs)
+    }
     val latestResultHandoffEvent = rememberUpdatedState(onResultHandoffEvent)
     val latestResultHandoffFinished = rememberUpdatedState(onRevealFinished)
     val latestPlaybackProgress = rememberUpdatedState(onPlaybackProgress)
@@ -533,6 +539,7 @@ fun RecognitionResultScreen(
         val handoff = visualHandoff ?: return RecognitionResultHandoffReceipt(false, "HANDOFF_MISSING")
         val path = handoff.fishPathSnapshot
         val eventSequence = resultHandoffEventSequence + 1L
+        val eventTimestampMs = SystemClock.uptimeMillis()
         val sourceTargetFeedback = when (substage) {
             ResultHandoffSubstage.NAME_STABLE -> Triple("GLYPH", "RESULT_NAME", "NAME_STABLE")
             ResultHandoffSubstage.PHOTO_SETTLE -> Triple("PROCESSING_PHOTO", "RESULT_HERO", "PHOTO_SETTLE")
@@ -552,14 +559,9 @@ fun RecognitionResultScreen(
             stage = frame.stage,
             substage = substage,
             eventSequence = eventSequence,
-            monotonicTimestampMs = SystemClock.uptimeMillis(),
-            eventProducer = when (substage) {
-                ResultHandoffSubstage.NAME_STABLE -> "RecognitionResultScreen.GlyphLayout"
-                ResultHandoffSubstage.PHOTO_SETTLE -> "RecognitionResultScreen.PhotoTransform"
-                ResultHandoffSubstage.RESULT_SCENE_HANDOFF -> "RecognitionResultScreen.ResultSceneCommit"
-                ResultHandoffSubstage.RESULT_INFO_ARRIVAL -> "RecognitionResultScreen.ResultInfoLayout"
-                ResultHandoffSubstage.RESULT_SCENE_STABLE -> "RecognitionResultScreen.ResultSceneGate"
-            },
+            monotonicTimestampMs = eventTimestampMs,
+            eventProducer = RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER,
+            eventConsumer = RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER,
             source = sourceTargetFeedback.first,
             target = sourceTargetFeedback.second,
             feedback = sourceTargetFeedback.third,
@@ -567,6 +569,7 @@ fun RecognitionResultScreen(
             renderStatus = "READY",
             resultIdentity = resultSnapshot?.glyphSpeciesKey ?: prediction.top1.speciesKey,
         )
+        resultHandoffEventTimestampMs = eventTimestampMs
         if (resultGeometryReady) {
             diagnosticPlaybackController?.setResultGeometryState(
                 SceneGeometryState.READY,

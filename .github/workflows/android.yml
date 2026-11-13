@@ -69,6 +69,11 @@ on:
         options:
           - self-hosted
           - github-hosted
+      run_recognition_result_handoff:
+        description: Run the isolated API 36 HUAWEI CMS-AL20 physical-device production closure
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted' }}
@@ -597,7 +602,7 @@ jobs:
           retention-days: 14
 
   android-runtime:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_recognition_result_handoff != true }}
     needs: build
     runs-on: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "yujian-android", "api28"]') }}
     timeout-minutes: 60
@@ -952,6 +957,100 @@ jobs:
           classification="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["classification"])' "$result")"
           if [[ "${{ steps.runtime_gate.outcome }}" != "success" || "$classification" != "PASS" ]]; then
             echo "Runtime gate failed: classification=$classification action_outcome=${{ steps.runtime_gate.outcome }}"
+            exit 1
+          fi
+
+  recognition-result-handoff-api36-physical:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_recognition_result_handoff == true }}
+    needs: build
+    runs-on: [self-hosted, yujian-android]
+    timeout-minutes: 60
+    env:
+      YUJIAN_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+    steps:
+      - name: Checkout exact source commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.source_sha }}
+
+      - name: Prepare runtime evidence tools
+        run: |
+          set -euo pipefail
+          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
+          test -x /opt/android-sdk/platform-tools/adb
+          if ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          python3 --version
+          ffprobe -version | head -n 1
+
+      - name: Download APK pair built from the exact source commit
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          path: build/runtime-apks
+
+      - name: Verify exact APK pair
+        run: |
+          set -euo pipefail
+          test -s build/runtime-apks/app-debug.apk
+          test -s build/runtime-apks/app-debug-androidTest.apk
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+          ! find build/runtime-apks -type f -name '*.apk' | grep -vE '/(app-debug|app-debug-androidTest)\.apk$'
+
+      - name: Run API 36 physical-device production closure
+        id: recognition_result_handoff
+        continue-on-error: true
+        run: |
+          export ADB=/opt/android-sdk/platform-tools/adb
+          bash scripts/run_recognition_result_handoff_gate.sh \
+            --api-level 36 \
+            --build-sha "$YUJIAN_SOURCE_SHA" \
+            --app-apk build/runtime-apks/app-debug.apk \
+            --test-apk build/runtime-apks/app-debug-androidTest.apk \
+            --evidence-dir evidence/runtime/recognition-result-handoff
+
+      - name: Materialize gate status if the runner stopped before Harness startup
+        if: ${{ always() }}
+        run: |
+          result="evidence/runtime/recognition-result-handoff/runtime_gate_result.json"
+          if [[ ! -s "$result" ]]; then
+            mkdir -p "$(dirname "$result")"
+            python3 scripts/android_runtime/result.py \
+              --output "$result" \
+              --gate recognition-result-handoff \
+              --api-level 36 \
+              --build-sha "$YUJIAN_SOURCE_SHA" \
+              --adb-state unknown \
+              --boot-completed unknown \
+              --data-free-kb "" \
+              --preflight FAIL \
+              --install NOT_RUN \
+              --instrumentation NOT_RUN \
+              --evidence NOT_RUN \
+              --classification BLOCKED_INFRA \
+              --failure-phase PHYSICAL_DEVICE_RUNNER \
+              --failure-reason RUNNER_FAILED_BEFORE_RUNTIME_GATE \
+              --summary-file "${GITHUB_STEP_SUMMARY:-}"
+          fi
+
+      - name: Upload production runtime evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-recognition-result-handoff-${{ needs.build.outputs.source_sha }}
+          path: evidence/runtime/recognition-result-handoff
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce physical runtime classification
+        if: ${{ always() }}
+        run: |
+          result="evidence/runtime/recognition-result-handoff/runtime_gate_result.json"
+          classification="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["classification"])' "$result")"
+          if [[ "$classification" != "PASS" ]]; then
+            echo "Recognition Result Handoff runtime is $classification; full closure is not PASS."
             exit 1
           fi
 

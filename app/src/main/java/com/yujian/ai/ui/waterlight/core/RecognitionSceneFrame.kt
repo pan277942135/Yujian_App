@@ -52,6 +52,24 @@ data class RecognitionSceneIdentity(
     val photoContentVersion: Long,
 )
 
+/** One closed interval from the production scene controller's monotonic uptime clock. */
+data class RecognitionSceneStageTraceEntry(
+    val stage: RecognitionSceneStage,
+    val stageOrdinal: Int,
+    val stageStartTimestampMs: Long,
+    val stageEndTimestampMs: Long,
+    val stageDurationMs: Long,
+    val requiredDurationMs: Long,
+    val gateWaitDurationMs: Long,
+    val gateWaitReason: String?,
+    val localProgress: Float,
+    val sessionId: String,
+    val attemptId: String,
+    val eventSequence: Long,
+) {
+    val activeDurationMs: Long get() = (stageDurationMs - gateWaitDurationMs).coerceAtLeast(0L)
+}
+
 data class RecognitionSceneFrame(
     val identity: RecognitionSceneIdentity,
     val sceneElapsedMs: Long,
