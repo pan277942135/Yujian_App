@@ -64,9 +64,21 @@ class OrbStage02MaxVisualProfileTest {
         val releaseStart = OrbInteriorOpticalField.frame(
             RecognitionSceneStage.ORB_RELEASE, 0f, false, OrbStage02VisualProfile.MAX,
         )
+        val releaseMid = OrbInteriorOpticalField.frame(
+            RecognitionSceneStage.ORB_RELEASE, 40f / 600f, false, OrbStage02VisualProfile.MAX,
+        )
+        val releaseEnd = OrbInteriorOpticalField.frame(
+            RecognitionSceneStage.ORB_RELEASE, 80f / 600f, false, OrbStage02VisualProfile.MAX,
+        )
         assertEquals(1f, wakeEnd.wakeStrength, 0f)
         assertEquals(wakeEnd.wakeStrength, releaseStart.wakeStrength, 0f)
         assertEquals(wakeEnd.semanticPhase, releaseStart.semanticPhase, 0f)
+        assertEquals(0f, wakeEnd.baselineOpticalMix, 0f)
+        assertEquals(0f, releaseStart.baselineOpticalMix, 0f)
+        assertEquals(.5f, releaseMid.baselineOpticalMix, .00001f)
+        assertEquals(1f, releaseEnd.baselineOpticalMix, 0f)
+        assertTrue(OrbInteriorOpticalField.maxFluidShaderActive(RecognitionSceneStage.ORB_RELEASE, 80f / 600f))
+        assertFalse(OrbInteriorOpticalField.maxFluidShaderActive(RecognitionSceneStage.ORB_RELEASE, 81f / 600f))
         assertEquals(OrbStage02MaxVisualProfile.FLUID_DISPLACEMENT_MAX_D, wakeEnd.maxDisplacementD, 0f)
         assertEquals(OrbStage02MaxVisualProfile.FLUID_INTERIOR_MIX_MAX, wakeEnd.interiorMix, 0f)
         assertEquals(.5f, OrbInteriorOpticalField.maxFluidWakeEnvelope(

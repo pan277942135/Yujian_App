@@ -100,11 +100,11 @@ internal class OrbFluidRefractionProgramV1 private constructor(
         shader.setFloatUniform(
             "maxFluidEnabled",
             if (visualProfile == OrbStage02VisualProfile.MAX &&
-                (sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE ||
-                    (sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RELEASE && maxField.wakeStrength > 0f))
+                OrbInteriorOpticalField.maxFluidShaderActive(sceneFrame.stage, sceneFrame.stageProgress)
             ) 1f else 0f,
         )
         shader.setFloatUniform("maxWakeStrength", maxField.wakeStrength)
+        shader.setFloatUniform("maxBaselineMix", maxField.baselineOpticalMix)
         shader.setFloatUniform("maxDisplacementD", maxField.maxDisplacementD)
         shader.setFloatUniform("maxInteriorMix", maxField.interiorMix)
         shader.setFloatUniform("maxSemanticPhase", maxField.semanticPhase)

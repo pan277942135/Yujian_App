@@ -47,6 +47,7 @@ internal object OrbInteriorOpticalField {
         val interiorMix: Float,
         val semanticPhase: Float,
         val enabled: Boolean,
+        val baselineOpticalMix: Float = 0f,
     )
 
     data class Vector(val x: Float, val y: Float)
@@ -65,6 +66,15 @@ internal object OrbInteriorOpticalField {
             }
             else -> 0f
         }
+    }
+
+    fun maxFluidShaderActive(stage: RecognitionSceneStage, stageProgress: Float): Boolean = when (stage) {
+        RecognitionSceneStage.ORB_WAKE -> true
+        RecognitionSceneStage.ORB_RELEASE ->
+            stageProgress.coerceIn(0f, 1f) <=
+                OrbStage02MaxVisualProfile.STAGE03_TRANSITION_MS /
+                    RecognitionSceneStage.ORB_RELEASE.minimumVisibleMs.toFloat()
+        else -> false
     }
 
     fun shaderOverlayAlpha(
@@ -97,6 +107,7 @@ internal object OrbInteriorOpticalField {
             interiorMix = OrbStage02MaxVisualProfile.FLUID_INTERIOR_MIX_MAX * wake,
             semanticPhase = phase,
             enabled = wake > 0f,
+            baselineOpticalMix = if (stage == RecognitionSceneStage.ORB_RELEASE) 1f - wake else 0f,
         )
     }
 

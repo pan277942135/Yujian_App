@@ -21,6 +21,7 @@ uniform float edgeRefractionMixMax;
 uniform float totalSampleMixMax;
 uniform float maxFluidEnabled;
 uniform float maxWakeStrength;
+uniform float maxBaselineMix;
 uniform float maxDisplacementD;
 uniform float maxInteriorMix;
 uniform float maxSemanticPhase;
@@ -68,15 +69,17 @@ float2 maxWakeFlow(float2 uv, float phase) {
     return flow / max(length(flow), 0.00001);
 }
 
+half4 baselineOpticalSample(float2 safeCoord, half4 base, float baseAlpha);
+
 half4 main(float2 coord) {
     float2 safeCoord = boundedCoord(coord);
     half4 base = inputImage.eval(safeCoord);
     float baseAlpha = clamp(float(base.a), 0.0, 1.0);
 
     // MAX is an internal, alpha-masked resampling layer composited over the
-    // independently rendered Raw Core. The silhouette and boundary pixels stay fixed.
+    // independently rendered Raw Core. During the Stage03 hand-off it crossfades
+    // into the unchanged baseline optical sample instead of switching at one frame.
     if (maxFluidEnabled > 0.5) {
-        if (maxWakeStrength <= 0.0) return half4(0.0);
         float2 uvMax = safeCoord / max(surfaceSize, float2(1.0));
         float visibleDpxMax = min(surfaceSize.x, surfaceSize.y) * visibleDiameterRatio;
         float radiusD = length((safeCoord - surfaceSize * 0.5) / max(visibleDpxMax, 1.0));
@@ -95,11 +98,19 @@ half4 main(float2 coord) {
         float finalSampleAlpha = clamp(float(finalSample.a), 0.0, 1.0);
         float mixWeight = clamp(maxInteriorMix, 0.0, 0.92) * interiorMask;
         float overlayAlpha = baseAlpha * mixWeight * finalSampleAlpha;
-        if (overlayAlpha <= 0.0001) return half4(0.0);
-        float3 sampledStraight = float3(finalSample.rgb) / max(finalSampleAlpha, 0.0001);
-        return half4(half3(clamp(sampledStraight, 0.0, 1.0) * overlayAlpha), half(overlayAlpha));
+        half4 dynamicLayer = half4(0.0);
+        if (overlayAlpha > 0.0001 && maxWakeStrength > 0.0) {
+            float3 sampledStraight = float3(finalSample.rgb) / max(finalSampleAlpha, 0.0001);
+            dynamicLayer = half4(half3(clamp(sampledStraight, 0.0, 1.0) * overlayAlpha), half(overlayAlpha));
+        }
+        half4 baselineLayer = baselineOpticalSample(safeCoord, base, baseAlpha);
+        return mix(dynamicLayer, baselineLayer, clamp(maxBaselineMix, 0.0, 1.0));
     }
 
+    return baselineOpticalSample(safeCoord, base, baseAlpha);
+}
+
+half4 baselineOpticalSample(float2 safeCoord, half4 base, float baseAlpha) {
     float leaf = leafCoverage(safeCoord);
     float2 uv = safeCoord / max(surfaceSize, float2(1.0));
     float visibleDpx = min(surfaceSize.x, surfaceSize.y) * visibleDiameterRatio;
