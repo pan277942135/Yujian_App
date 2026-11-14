@@ -57,10 +57,21 @@ private data class OrbCoreRenderDiagnosticSnapshot(
     val shaderRoute: String,
     val shaderUpdateStatus: OrbShaderUpdateStatus,
     val hostRejectReason: String?,
+    val wakeCheckpoint: String?,
 )
 
 internal fun aiOrbRawCoreVisible(renderIsolationMode: OrbRenderIsolationMode): Boolean =
     renderIsolationMode != OrbRenderIsolationMode.SUPPRESSED
+
+internal fun orbDebugIsolationModeWithHostPriority(
+    hostRejectReason: String?,
+    hostMode: OrbRenderIsolationMode,
+    requestedDebugMode: OrbRenderIsolationMode,
+    debugSelectionEligible: Boolean,
+): OrbRenderIsolationMode = if (
+    hostRejectReason == null && debugSelectionEligible &&
+    requestedDebugMode != OrbRenderIsolationMode.SUPPRESSED
+) requestedDebugMode else hostMode
 
 internal fun aiOrbShaderOverlayVisible(
     renderIsolationMode: OrbRenderIsolationMode,
@@ -350,12 +361,23 @@ private fun OrbVisual(
     val sourceCoreAlpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
     val lastDiagnosticSnapshot = remember { arrayOfNulls<OrbCoreRenderDiagnosticSnapshot>(1) }
     SideEffect {
+        val stageProgress = sceneFrame.stageProgress.coerceIn(0f, 1f)
+        val wakeCheckpoint = if (sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE) {
+            when {
+                kotlin.math.abs(stageProgress - .25f) <= .01f -> "25"
+                kotlin.math.abs(stageProgress - .50f) <= .01f -> "50"
+                kotlin.math.abs(stageProgress - .75f) <= .01f -> "75"
+                kotlin.math.abs(stageProgress - 1f) <= .01f -> "100"
+                else -> null
+            }
+        } else null
         val currentSnapshot = OrbCoreRenderDiagnosticSnapshot(
             stage = sceneFrame.stage.name,
             shaderEnabled = shaderOverlayEnabled,
             shaderRoute = shaderRoute,
             shaderUpdateStatus = shaderUpdateStatus,
             hostRejectReason = hostRejectReason,
+            wakeCheckpoint = wakeCheckpoint,
         )
         val previous = lastDiagnosticSnapshot[0]
         val isRelevantTransition = previous != null && (
@@ -364,12 +386,20 @@ private fun OrbVisual(
                 (previous.shaderUpdateStatus == OrbShaderUpdateStatus.READY &&
                     currentSnapshot.shaderUpdateStatus == OrbShaderUpdateStatus.FAILED) ||
                 (previous.shaderRoute != currentSnapshot.shaderRoute) ||
-                (previous.hostRejectReason != currentSnapshot.hostRejectReason)
+                (previous.hostRejectReason != currentSnapshot.hostRejectReason) ||
+                (currentSnapshot.wakeCheckpoint != null &&
+                    previous.wakeCheckpoint != currentSnapshot.wakeCheckpoint)
             )
         if (isRelevantTransition) {
+            val logTag = if (sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE) {
+                "ORB_WAKE_VISIBILITY"
+            } else "ORB_CORE_RENDER"
             android.util.Log.i(
-                "ORB_CORE_RENDER",
-                "stage=${sceneFrame.stage.name} stageProgress=${sceneFrame.stageProgress} " +
+                logTag,
+                "stage=${sceneFrame.stage.name} stageProgress=$stageProgress " +
+                    "semanticLocalMs=${stageProgress * sceneFrame.stage.minimumVisibleMs} " +
+                    "wakeCheckpoint=${currentSnapshot.wakeCheckpoint ?: "TRANSITION"} " +
+                    "wakeOptics=${wake.optics} wakeWaterCore=${wake.waterCore} " +
                     "shaderEnabled=${shaderOverlayEnabled} shaderRoute=$shaderRoute " +
                     "shaderUpdateStatus=${shaderUpdateStatus.name} overlayAlpha=$shaderOverlayAlpha " +
                     "sourceCoreAlpha=$sourceCoreAlpha hostRejectReason=${hostRejectReason ?: "NONE"} " +

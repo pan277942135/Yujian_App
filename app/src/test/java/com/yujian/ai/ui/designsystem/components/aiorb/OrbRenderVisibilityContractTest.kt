@@ -100,6 +100,55 @@ class OrbRenderVisibilityContractTest {
     }
 
     @Test
+    fun debugIsolationSelectionCannotOverrideHostRejectionOrSelectSuppressed() {
+        assertEquals(
+            OrbRenderIsolationMode.RAW_CORE_WITH_R06,
+            orbDebugIsolationModeWithHostPriority(
+                hostRejectReason = null,
+                hostMode = OrbRenderIsolationMode.NORMAL,
+                requestedDebugMode = OrbRenderIsolationMode.RAW_CORE_WITH_R06,
+                debugSelectionEligible = true,
+            ),
+        )
+        assertEquals(
+            OrbRenderIsolationMode.RAW_CORE,
+            orbDebugIsolationModeWithHostPriority(
+                hostRejectReason = "GEOMETRY_MISMATCH",
+                hostMode = OrbRenderIsolationMode.RAW_CORE,
+                requestedDebugMode = OrbRenderIsolationMode.NORMAL,
+                debugSelectionEligible = true,
+            ),
+        )
+        assertEquals(
+            OrbRenderIsolationMode.SUPPRESSED,
+            orbDebugIsolationModeWithHostPriority(
+                hostRejectReason = "INVALID_IDENTITY",
+                hostMode = OrbRenderIsolationMode.SUPPRESSED,
+                requestedDebugMode = OrbRenderIsolationMode.RAW_CORE,
+                debugSelectionEligible = true,
+            ),
+        )
+        assertEquals(
+            OrbRenderIsolationMode.NORMAL,
+            orbDebugIsolationModeWithHostPriority(
+                hostRejectReason = null,
+                hostMode = OrbRenderIsolationMode.NORMAL,
+                requestedDebugMode = OrbRenderIsolationMode.SUPPRESSED,
+                debugSelectionEligible = true,
+            ),
+        )
+        assertEquals(
+            OrbRenderIsolationMode.NORMAL,
+            orbDebugIsolationModeWithHostPriority(
+                hostRejectReason = null,
+                hostMode = OrbRenderIsolationMode.NORMAL,
+                requestedDebugMode = OrbRenderIsolationMode.RAW_CORE,
+                debugSelectionEligible = false,
+            ),
+        )
+    }
+
+    @Test
     fun completionCannotHideOrbBeforeGoldPeakAndClampsAfterward() {
         RecognitionSceneStage.entries.takeWhile { it.ordinal <= RecognitionSceneStage.FISH_GOLD_PEAK.ordinal }
             .forEach { stage -> assertEquals(stage.name, 0f, aiOrbPresentationCompletion(stage, 1f), 0f) }

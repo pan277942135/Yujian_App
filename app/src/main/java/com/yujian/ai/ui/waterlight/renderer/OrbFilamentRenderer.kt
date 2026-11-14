@@ -20,6 +20,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -94,6 +95,15 @@ internal class OrbFilamentPathRenderer(
         val maximumPaintAlpha: Int,
         val maximumStrokeWidthPx: Float,
         val maximumEffectiveAlpha: Float,
+        val bodyLayerId: String?,
+        val bodyValidSegmentCount: Int,
+        val bodyDrawnRunCount: Int,
+        val bodyPaintAlpha: Int,
+        val bodyStrokeWidthPx: Float,
+        val bodyMaximumOriginalAlpha: Float,
+        val bodyMaximumFinalAlpha: Float,
+        val bodyMaximumAddedAlpha: Float,
+        val bodyMaximumEndFade: Float,
     )
 
     data class FrameMetrics(
@@ -104,7 +114,10 @@ internal class OrbFilamentPathRenderer(
         val paths: Map<String, PathFrameMetrics>,
     )
 
-    private class MutablePathFrameMetrics(val spec: OrbFilamentSpecV1) {
+    private class MutablePathFrameMetrics(
+        val spec: OrbFilamentSpecV1,
+        val bodyLayerId: String?,
+    ) {
         var validSampleCount = 0
         var validBodySegmentCount = 0
         var drawnRunCount = 0
@@ -114,6 +127,14 @@ internal class OrbFilamentPathRenderer(
         var maximumPaintAlpha = 0
         var maximumStrokeWidthPx = 0f
         var maximumEffectiveAlpha = 0f
+        var bodyValidSegmentCount = 0
+        var bodyDrawnRunCount = 0
+        var bodyPaintAlpha = 0
+        var bodyStrokeWidthPx = 0f
+        var bodyMaximumOriginalAlpha = 0f
+        var bodyMaximumFinalAlpha = 0f
+        var bodyMaximumAddedAlpha = 0f
+        var bodyMaximumEndFade = 0f
 
         fun snapshot() = PathFrameMetrics(
             pathId = spec.id,
@@ -127,12 +148,22 @@ internal class OrbFilamentPathRenderer(
             maximumPaintAlpha = maximumPaintAlpha,
             maximumStrokeWidthPx = maximumStrokeWidthPx,
             maximumEffectiveAlpha = maximumEffectiveAlpha,
+            bodyLayerId = bodyLayerId,
+            bodyValidSegmentCount = bodyValidSegmentCount,
+            bodyDrawnRunCount = bodyDrawnRunCount,
+            bodyPaintAlpha = bodyPaintAlpha,
+            bodyStrokeWidthPx = bodyStrokeWidthPx,
+            bodyMaximumOriginalAlpha = bodyMaximumOriginalAlpha,
+            bodyMaximumFinalAlpha = bodyMaximumFinalAlpha,
+            bodyMaximumAddedAlpha = bodyMaximumAddedAlpha,
+            bodyMaximumEndFade = bodyMaximumEndFade,
         )
     }
 
     private data class PathCache(
         val spec: OrbFilamentSpecV1,
         val material: OrbFilamentMaterialV1,
+        val bodyLayerId: String?,
         val lut: OrbFilamentPathMathV1.ArcLengthLut,
         val samplesX: FloatArray,
         val samplesY: FloatArray,
@@ -164,6 +195,7 @@ internal class OrbFilamentPathRenderer(
         PathCache(
             spec,
             material,
+            material.layers.firstOrNull { it.id == "translucent_body" || it.id == "fine_filament" }?.id,
             staticLut,
             FloatArray(97), FloatArray(97), FloatArray(97), BooleanArray(97), FloatArray(97), FloatArray(97),
             FloatArray(6),
@@ -212,21 +244,39 @@ internal class OrbFilamentPathRenderer(
         var drawnChunkCount = 0
         var maximumEffectiveAlpha = 0f
         val drawnPathIds = linkedSetOf<String>()
-        val pathMetrics = caches.associate { it.spec.id to MutablePathFrameMetrics(it.spec) }
+        val pathMetrics = caches.associate { cache ->
+            cache.spec.id to MutablePathFrameMetrics(cache.spec, cache.bodyLayerId)
+        }
         val metricsKey = "${frame.sessionId}:${frame.attemptId}:${frame.imageId}:${frame.geometryVersion}:" +
             "${frame.sceneFrame.stage.name}:${if (front) "front" else "back"}"
         fun emitMetricsIfDue() {
             if (!BuildConfig.DEBUG) return
             val progress = frame.sceneFrame.stageProgress.coerceIn(0f, 1f)
+            if (frame.sceneFrame.stage != RecognitionSceneStage.ORB_WAKE &&
+                frame.sceneFrame.stage != RecognitionSceneStage.ORB_RELEASE
+            ) return
             val marker = when {
-                progress <= .05f -> "start"
-                progress >= .5f -> "half"
+                abs(progress - .25f) <= .01f -> "25"
+                abs(progress - .50f) <= .01f -> "50"
+                abs(progress - .75f) <= .01f -> "75"
+                abs(progress - 1f) <= .01f -> "100"
                 else -> null
             } ?: return
             if (!loggedMetricSamples.add("$metricsKey:$marker")) return
+            pathMetrics.values.forEach { metric ->
+                Log.i("R06_WAKE_BODY", "stage=${frame.sceneFrame.stage.name} stageProgress=$progress " +
+                    "pathId=${metric.spec.id} layerId=${metric.bodyLayerId ?: "NONE"} front=$front " +
+                    "originalAlpha=${metric.bodyMaximumOriginalAlpha} finalAlpha=${metric.bodyMaximumFinalAlpha} " +
+                    "addedAlpha=${metric.bodyMaximumAddedAlpha} readabilityEnvelope=" +
+                    "${OrbWakeBreathReleaseV11.r06WakeReadabilityEnvelope(frame.sceneFrame.stage, progress)} " +
+                    "active=$active endFade=${metric.bodyMaximumEndFade} bodySegments=${metric.bodyValidSegmentCount} " +
+                    "drawnRuns=${metric.bodyDrawnRunCount} " +
+                    "paintAlpha=${metric.bodyPaintAlpha} strokeWidthPx=${metric.bodyStrokeWidthPx} " +
+                    "validSamples=${metric.validSampleCount} drawnChunks=${metric.drawnChunkCount}")
+            }
             Log.i("R06_RENDER_METRICS", "sessionId=${frame.sessionId} attemptId=${frame.attemptId} " +
                 "imageId=${frame.imageId} geometryVersion=${frame.geometryVersion} " +
-                "stage=${frame.sceneFrame.stage.name} front=$front " +
+                "stage=${frame.sceneFrame.stage.name} stageProgress=$progress front=$front " +
                 "orbDiameterPx=$diameterPx lifeAlpha=$lifeAlpha opening=$opening settle=$settle active=$active " +
                 "pathCount=${caches.size} validSampleCount=$validSampleCount drawnChunkCount=$drawnChunkCount " +
                 "drawnPathIds=${drawnPathIds.joinToString(",")} maximumEffectiveAlpha=$maximumEffectiveAlpha")
@@ -352,9 +402,33 @@ internal class OrbFilamentPathRenderer(
                         val headBoost = if (mid >= steps - max(1, (steps * material.specularBandLengthFraction).toInt())) {
                             material.headLuminance
                         } else 1f
-                        val layerAlpha = (active * alphaPulse * profileOpacity * crossOpacity * tailAlpha * longitudinal *
+                        val originalLayerAlpha = (active * alphaPulse * profileOpacity * crossOpacity * tailAlpha * longitudinal *
                             headBoost * eventBrightness * layer.alphaMax * endFade * OrbWakeBreathReleaseV11.R06_ALPHA_GAIN)
                             .coerceIn(0f, OrbWakeBreathReleaseV11.R06_ALPHA_CAP)
+                        val layerAlpha = OrbWakeBreathReleaseV11.r06WakeBodyAlpha(
+                            stage = sceneFrame.stage,
+                            stageProgress = sceneFrame.stageProgress,
+                            originalLayerAlpha = originalLayerAlpha,
+                            layerId = layer.id,
+                            front = front,
+                            active = active,
+                            endFade = endFade,
+                            tailAlpha = tailAlpha,
+                            profileOpacity = profileOpacity,
+                            crossOpacity = crossOpacity,
+                        )
+                        val isBodyLayer = layer.id == "translucent_body" || layer.id == "fine_filament"
+                        if (isBodyLayer) {
+                            pathMetrics.getValue(spec.id).apply {
+                                bodyMaximumOriginalAlpha = max(bodyMaximumOriginalAlpha, originalLayerAlpha)
+                                bodyMaximumFinalAlpha = max(bodyMaximumFinalAlpha, layerAlpha)
+                                bodyMaximumAddedAlpha = max(
+                                    bodyMaximumAddedAlpha,
+                                    (layerAlpha - originalLayerAlpha).coerceAtLeast(0f),
+                                )
+                                bodyMaximumEndFade = max(bodyMaximumEndFade, endFade)
+                            }
+                        }
                         if (layerAlpha <= .002f) continue
                         val path = cache.paths[chunk][layerIndex]
                         path.rewind()
@@ -388,6 +462,14 @@ internal class OrbFilamentPathRenderer(
                             maximumPaintAlpha = max(maximumPaintAlpha, paint.alpha)
                             maximumStrokeWidthPx = max(maximumStrokeWidthPx, paint.strokeWidth)
                             maximumEffectiveAlpha = max(this.maximumEffectiveAlpha, layerAlpha)
+                            if (isBodyLayer) {
+                                bodyDrawnRunCount += drawableRunCount
+                                bodyValidSegmentCount += drawableRuns.sumOf {
+                                    (it.last - it.first).coerceAtLeast(0)
+                                }
+                                bodyPaintAlpha = max(bodyPaintAlpha, paint.alpha)
+                                bodyStrokeWidthPx = max(bodyStrokeWidthPx, paint.strokeWidth)
+                            }
                         }
                     }
                 }

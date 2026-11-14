@@ -112,6 +112,7 @@ import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderIsolationMode
+import com.yujian.ai.ui.designsystem.components.aiorb.orbDebugIsolationModeWithHostPriority
 import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbOpticalEffectEnabled
 import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbPresentationCompletion
 import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbProcessingState
@@ -284,6 +285,15 @@ fun RecognitionProcessingScene(
     }
     val displayMode = diagnosticDisplayMode ?: localDisplayMode
     val diagnosticUiAvailable = BuildConfig.DEBUG && phaseOverride == null && visualClockOverrideMs == null
+    var debugOrbIsolationMode by remember(sceneKey) {
+        mutableStateOf(OrbRenderIsolationMode.NORMAL)
+    }
+    var debugOrbIsolationHostAccepted by remember(sceneKey) { mutableStateOf(false) }
+    LaunchedEffect(sceneKey, displayMode, diagnosticUiAvailable) {
+        if (!diagnosticUiAvailable || displayMode != RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) {
+            debugOrbIsolationMode = OrbRenderIsolationMode.NORMAL
+        }
+    }
     val stepDiagnosticActive = diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
     // The diagnostic shell is a fixed Debug-session policy, independent of its display toggle.
     val diagnosticModeState = rememberUpdatedState(BuildConfig.DEBUG)
@@ -1666,17 +1676,31 @@ fun RecognitionProcessingScene(
                 WaterLightHost.ORB, waterLightFrame.geometryVersion, orbX, orbY, orbX + outerPx, orbY + outerPx,
             )
             val orbHostRejectReason = orbHost.rejectionReason(waterLightFrame, orbGeometry)
-            val orbRenderIsolationMode = when {
+            val hostOrbRenderIsolationMode = when {
                 orbHostRejectReason == null -> OrbRenderIsolationMode.NORMAL
                 orbHost.canUseSourceCoreFallback(waterLightFrame, orbGeometry) -> OrbRenderIsolationMode.RAW_CORE
                 else -> OrbRenderIsolationMode.SUPPRESSED
+            }
+            val debugOrbIsolationEligible = BuildConfig.DEBUG && diagnosticUiAvailable &&
+                displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+                waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE &&
+                orbHostRejectReason == null
+            val orbRenderIsolationMode = orbDebugIsolationModeWithHostPriority(
+                hostRejectReason = orbHostRejectReason,
+                hostMode = hostOrbRenderIsolationMode,
+                requestedDebugMode = debugOrbIsolationMode,
+                debugSelectionEligible = debugOrbIsolationEligible,
+            )
+            SideEffect {
+                debugOrbIsolationHostAccepted = orbHostRejectReason == null &&
+                    waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE
             }
             val orbLifeState = if (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.PHOTO_STABLE ||
                 (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE &&
                     waterLightFrame.sceneFrame.stageProgress < .5f)
             ) OrbRuntimeProfileV1.LifeState.S1_IDLE else OrbRuntimeProfileV1.LifeState.S2_ACTIVE
             LaunchedEffect(
-                sceneIdentity, waterLightFrame.sceneFrame.stage, orbHostRejectReason,
+                sceneIdentity, waterLightFrame.sceneFrame.stage, orbHostRejectReason, orbRenderIsolationMode,
             ) {
                 val frame = waterLightFrame.sceneFrame
                 val completionAlpha = 1f - orbPresentationCompletion.coerceIn(0f, 1f)
@@ -1684,7 +1708,8 @@ fun RecognitionProcessingScene(
                     aiOrbOpticalEffectEnabled(frame.stage, frame.stageProgress)
                 Log.i("YujianOrbVisibility", "ORB_HOST_GATE sessionId=${sceneIdentity.sessionId} " +
                     "attemptId=${sceneIdentity.attemptId} imageId=${sceneIdentity.imageId} stage=${frame.stage.name} " +
-                    "stageProgress=${frame.stageProgress} hostAccepted=${orbHostRejectReason == null} " +
+                    "stageProgress=${frame.stageProgress} semanticLocalMs=${frame.stageProgress * frame.stage.minimumVisibleMs} " +
+                    "hostAccepted=${orbHostRejectReason == null} " +
                     "rejectReason=${orbHostRejectReason ?: "NONE"} geometryVersion=${waterLightFrame.geometryVersion} " +
                     "orbCenterX=${orbCenter.x} orbCenterY=${orbCenter.y} orbCoreSizePx=${currentCorePx} " +
                     "orbOuterBounds=${orbGeometry.leftPx},${orbGeometry.topPx},${orbGeometry.rightPx},${orbGeometry.bottomPx} " +
@@ -1789,6 +1814,17 @@ fun RecognitionProcessingScene(
                     )
                     diagnosticActionStatus = null
                     playbackRevision++
+                },
+                orbIsolationMode = if (
+                    diagnosticUiAvailable &&
+                    displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+                    currentStage == RecognitionSceneStage.ORB_WAKE &&
+                    debugOrbIsolationHostAccepted
+                ) debugOrbIsolationMode else null,
+                onOrbIsolationModeChange = { mode ->
+                    if (debugOrbIsolationHostAccepted && mode != OrbRenderIsolationMode.SUPPRESSED) {
+                        debugOrbIsolationMode = mode
+                    }
                 },
             )
         }

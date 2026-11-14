@@ -5,6 +5,7 @@ import com.yujian.ai.ui.waterlight.renderer.OrbFilamentPathMathV1
 import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
 import com.yujian.ai.ui.waterlight.renderer.OrbWakeBreathReleaseV11
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -12,6 +13,147 @@ import org.junit.Test
 import kotlin.math.abs
 
 class OrbWakeBreathReleaseV11Test {
+    @Test fun stage02TimingAndWakeCurvesUseSemanticStageProgressInBothPlaybackModes() {
+        assertEquals(350L, RecognitionSceneStage.ORB_WAKE.minimumVisibleMs)
+        assertEquals(3_000L, DIAGNOSTIC_STEP_DURATION_MS)
+        assertEquals(0f, OrbWakeBreathReleaseV11.wake(
+            RecognitionSceneStage.ORB_WAKE, 79f / 350f,
+        ).optics, 0f)
+        assertEquals(0f, OrbWakeBreathReleaseV11.wake(
+            RecognitionSceneStage.ORB_WAKE, 80f / 350f,
+        ).optics, 0f)
+        assertTrue(OrbWakeBreathReleaseV11.wake(
+            RecognitionSceneStage.ORB_WAKE, 81f / 350f,
+        ).optics > 0f)
+        assertEquals(0f, OrbWakeBreathReleaseV11.wake(
+            RecognitionSceneStage.ORB_WAKE, 219f / 350f,
+        ).waterCore, 0f)
+        assertEquals(0f, OrbWakeBreathReleaseV11.wake(
+            RecognitionSceneStage.ORB_WAKE, 220f / 350f,
+        ).waterCore, 0f)
+        assertTrue(OrbWakeBreathReleaseV11.wake(
+            RecognitionSceneStage.ORB_WAKE, 221f / 350f,
+        ).waterCore > 0f)
+
+        val formalProgress = 175f / 350f
+        val diagnosticProgress = 1_500f / DIAGNOSTIC_STEP_DURATION_MS
+        assertEquals(formalProgress, diagnosticProgress, 0f)
+        val formal = OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, formalProgress)
+        val diagnostic = OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, diagnosticProgress)
+        assertEquals(formal, diagnostic)
+        assertEquals(
+            OrbWakeBreathReleaseV11.r06WakeReadabilityEnvelope(RecognitionSceneStage.ORB_WAKE, formalProgress),
+            OrbWakeBreathReleaseV11.r06WakeReadabilityEnvelope(RecognitionSceneStage.ORB_WAKE, diagnosticProgress),
+            0f,
+        )
+    }
+
+    @Test fun r06WakeReadabilityEnvelopeHasFrozenStage02AndReleaseBoundaries() {
+        fun envelope(stage: RecognitionSceneStage, elapsedMs: Float): Float =
+            OrbWakeBreathReleaseV11.r06WakeReadabilityEnvelope(
+                stage, elapsedMs / stage.minimumVisibleMs,
+            )
+
+        assertEquals(0f, OrbWakeBreathReleaseV11.r06WakeReadabilityEnvelope(
+            RecognitionSceneStage.PHOTO_STABLE, 1f,
+        ), 0f)
+        assertEquals(0f, envelope(RecognitionSceneStage.ORB_WAKE, 0f), 0f)
+        assertEquals(0f, envelope(RecognitionSceneStage.ORB_WAKE, 80f), 0f)
+        assertEquals(.5f, envelope(RecognitionSceneStage.ORB_WAKE, 180f), .00001f)
+        assertEquals(1f, envelope(RecognitionSceneStage.ORB_WAKE, 280f), 0f)
+        assertEquals(1f, envelope(RecognitionSceneStage.ORB_WAKE, 350f), 0f)
+        assertEquals(1f, envelope(RecognitionSceneStage.ORB_RELEASE, 0f), 0f)
+        assertEquals(.5f, envelope(RecognitionSceneStage.ORB_RELEASE, 40f), .00001f)
+        assertEquals(0f, envelope(RecognitionSceneStage.ORB_RELEASE, 80f), 0f)
+        assertEquals(0f, envelope(RecognitionSceneStage.ORB_RELEASE, 100f), 0f)
+        assertEquals(0f, OrbWakeBreathReleaseV11.r06WakeReadabilityEnvelope(
+            RecognitionSceneStage.PERIMETER_ARRIVAL, .5f,
+        ), 0f)
+    }
+
+    @Test fun r06BodyAlphaBoostIsBoundedSelectiveAndPreservesFadeInputs() {
+        val stage = RecognitionSceneStage.ORB_WAKE
+        fun bodyAlpha(
+            layer: String,
+            front: Boolean,
+            original: Float = 0f,
+            active: Float = 1f,
+            endFade: Float = 1f,
+            tail: Float = 1f,
+            profile: Float = 1f,
+            cross: Float = 1f,
+            currentStage: RecognitionSceneStage = stage,
+            progress: Float = 1f,
+        ) = OrbWakeBreathReleaseV11.r06WakeBodyAlpha(
+            stage = currentStage,
+            stageProgress = progress,
+            originalLayerAlpha = original,
+            layerId = layer,
+            front = front,
+            active = active,
+            endFade = endFade,
+            tailAlpha = tail,
+            profileOpacity = profile,
+            crossOpacity = cross,
+        )
+
+        listOf("translucent_body", "fine_filament").forEach { layer ->
+            assertEquals(.12f, bodyAlpha(layer, front = true), .00001f)
+            assertEquals(.08f, bodyAlpha(layer, front = false), .00001f)
+            assertEquals(0f, bodyAlpha(layer, front = true, progress = 80f / 350f), 0f)
+            assertEquals(.06f, bodyAlpha(layer, front = true, progress = 180f / 350f), .00001f)
+            assertEquals(.12f, bodyAlpha(layer, front = true, progress = 280f / 350f), .00001f)
+            assertEquals(0f, bodyAlpha(layer, front = true, active = 0f), 0f)
+            assertEquals(.06f, bodyAlpha(layer, front = true, active = .225f), .00001f)
+            assertEquals(0f, bodyAlpha(layer, front = true, endFade = 0f), 0f)
+            assertEquals(0f, bodyAlpha(layer, front = true, tail = 0f), 0f)
+            assertEquals(0f, bodyAlpha(layer, front = true, profile = 0f), 0f)
+            assertEquals(0f, bodyAlpha(layer, front = true, cross = 0f), 0f)
+            assertEquals(OrbWakeBreathReleaseV11.R06_ALPHA_CAP,
+                bodyAlpha(layer, front = true, original = 1.2f), 0f)
+            assertEquals(.03f, bodyAlpha(layer, front = true, original = .03f,
+                currentStage = RecognitionSceneStage.ORB_RELEASE, progress = 80f / 600f), 0f)
+            assertEquals(.03f, bodyAlpha(layer, front = true, original = .03f,
+                currentStage = RecognitionSceneStage.PERIMETER_ARRIVAL, progress = 1f), 0f)
+            RecognitionSceneStage.entries.filter {
+                it.ordinal >= RecognitionSceneStage.PERIMETER_ARRIVAL.ordinal
+            }.forEach { laterStage ->
+                assertEquals(laterStage.name, .03f, bodyAlpha(
+                    layer, front = true, original = .03f, currentStage = laterStage, progress = 1f,
+                ), 0f)
+            }
+        }
+        assertEquals(.037f, bodyAlpha("outer_feather", front = true, original = .037f), 0f)
+        assertEquals(.041f, bodyAlpha("soft_tail", front = false, original = .041f), 0f)
+        assertEquals(.05f, bodyAlpha("inner_refractive_band", front = true, original = .05f), 0f)
+        assertEquals(.06f, bodyAlpha("specular_highlight", front = true, original = .06f), 0f)
+    }
+
+    @Test fun r06WakeBodyBoostIsContinuousAtStageBoundaryAndFadesOutAcrossFirst80Ms() {
+        fun body(stage: RecognitionSceneStage, progress: Float): Float =
+            OrbWakeBreathReleaseV11.r06WakeBodyAlpha(
+                stage = stage,
+                stageProgress = progress,
+                originalLayerAlpha = .025f,
+                layerId = "translucent_body",
+                front = true,
+                active = 1f,
+                endFade = .8f,
+                tailAlpha = .9f,
+                profileOpacity = .7f,
+                crossOpacity = .8f,
+            )
+
+        val stage02End = body(RecognitionSceneStage.ORB_WAKE, 1f)
+        val stage03Start = body(RecognitionSceneStage.ORB_RELEASE, 0f)
+        assertEquals(stage02End, stage03Start, .001f)
+        assertTrue(body(RecognitionSceneStage.ORB_RELEASE, 20f / 600f) >
+            body(RecognitionSceneStage.ORB_RELEASE, 40f / 600f))
+        assertEquals(.025f, body(RecognitionSceneStage.ORB_RELEASE, 80f / 600f), 0f)
+        assertEquals(.025f, body(RecognitionSceneStage.ORB_RELEASE, 100f / 600f), 0f)
+        assertEquals(.025f, body(RecognitionSceneStage.CONTOUR_A, 1f), 0f)
+    }
+
     @Test fun wakeAndS1ToS2EnvelopesUseSemanticStageProgress() {
         assertEquals(0f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.PHOTO_STABLE, 1f).optics, 0f)
         assertEquals(0f, OrbWakeBreathReleaseV11.wake(RecognitionSceneStage.ORB_WAKE, 0f).optics, 0f)

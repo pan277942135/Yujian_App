@@ -2,12 +2,14 @@ package com.yujian.ai.ui.waterlight.renderer
 
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import kotlin.math.PI
+import kotlin.math.sqrt
 import kotlin.math.sin
 
 /** Pure projections from the shared scene frame and its semantic stage-local progress. */
 internal object OrbWakeBreathReleaseV11 {
     private const val S2_TRANSITION_LOCAL_MS = 450f
     private const val RELEASE_RETURN_PROGRESS = 34f / 60f
+    private const val R06_WAKE_ACTIVE_NORMALIZATION = .45f
     const val R06_ALPHA_GAIN = 1.28f
     const val R06_ALPHA_CAP = .82f
     const val R06_MOVING_HIGHLIGHT_GAIN = 1.15f
@@ -21,6 +23,55 @@ internal object OrbWakeBreathReleaseV11 {
     fun smoothstep(value: Float): Float {
         val t = value.coerceIn(0f, 1f)
         return t * t * (3f - 2f * t)
+    }
+
+    /** A deterministic readability envelope tied only to the shared stage-local progress. */
+    internal fun r06WakeReadabilityEnvelope(
+        stage: RecognitionSceneStage,
+        stageProgress: Float,
+    ): Float {
+        val p = stageProgress.coerceIn(0f, 1f)
+        return when (stage) {
+            RecognitionSceneStage.ORB_WAKE -> {
+                val localMs = p * RecognitionSceneStage.ORB_WAKE.minimumVisibleMs
+                smoothstep((localMs - 80f) / 200f)
+            }
+            RecognitionSceneStage.ORB_RELEASE -> {
+                val localMs = p * RecognitionSceneStage.ORB_RELEASE.minimumVisibleMs
+                1f - smoothstep(localMs / 80f)
+            }
+            else -> 0f
+        }
+    }
+
+    /** Adds a bounded amount to the two frozen body materials while preserving natural fades. */
+    internal fun r06WakeBodyAlpha(
+        stage: RecognitionSceneStage,
+        stageProgress: Float,
+        originalLayerAlpha: Float,
+        layerId: String,
+        front: Boolean,
+        active: Float,
+        endFade: Float,
+        tailAlpha: Float,
+        profileOpacity: Float,
+        crossOpacity: Float,
+    ): Float {
+        if (layerId != "translucent_body" && layerId != "fine_filament") return originalLayerAlpha
+        val envelope = r06WakeReadabilityEnvelope(stage, stageProgress)
+        if (envelope <= 0f || active <= 0f || endFade <= 0f) return originalLayerAlpha
+
+        val readabilityCap = if (front) .12f else .08f
+        val activeWeight = (active / R06_WAKE_ACTIVE_NORMALIZATION).coerceIn(0f, 1f)
+        val naturalShapeWeight = sqrt(
+            (tailAlpha.coerceIn(0f, 1f) *
+                profileOpacity.coerceIn(0f, 1f) *
+                crossOpacity.coerceIn(0f, 1f)).coerceIn(0f, 1f),
+        )
+        val readabilityContribution = readabilityCap * envelope * activeWeight *
+            endFade.coerceIn(0f, 1f) * naturalShapeWeight
+        return maxOf(originalLayerAlpha, readabilityContribution)
+            .coerceIn(0f, R06_ALPHA_CAP)
     }
 
     /** Frozen ease-out cubic-bezier(0.16, 1.0, 0.30, 1.0), solved for x. */

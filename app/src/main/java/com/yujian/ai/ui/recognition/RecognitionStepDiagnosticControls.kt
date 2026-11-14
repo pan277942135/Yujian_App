@@ -35,6 +35,7 @@ import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
+import com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderIsolationMode
 
 /** Shared Debug-only overlay used by Processing and Result so both pages operate one controller. */
 @Composable
@@ -64,6 +65,8 @@ fun RecognitionStepDiagnosticControls(
     onPauseResume: () -> Unit,
     onReplay: () -> Unit,
     onAutoPlay: () -> Unit,
+    orbIsolationMode: OrbRenderIsolationMode? = null,
+    onOrbIsolationModeChange: ((OrbRenderIsolationMode) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
@@ -99,6 +102,33 @@ fun RecognitionStepDiagnosticControls(
                 }
             }
             if (displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) {
+                if (orbIsolationMode != null && onOrbIsolationModeChange != null) {
+                    Row(
+                        modifier = Modifier.padding(top = 4.dp).width(156.dp)
+                            .clip(RoundedCornerShape(10.dp)).background(Color(0xDDF8FFFC)).padding(2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        listOf(
+                            OrbRenderIsolationMode.RAW_CORE to "水核",
+                            OrbRenderIsolationMode.RAW_CORE_WITH_R06 to "水核+光丝",
+                            OrbRenderIsolationMode.NORMAL to "完整效果",
+                        ).forEach { (mode, label) ->
+                            val selected = orbIsolationMode == mode
+                            Text(
+                                label,
+                                color = if (selected) Color.White else Color(0xFF37666C),
+                                fontSize = 8.sp,
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
+                                    .background(if (selected) Color(0xFF287E79) else Color.Transparent)
+                                    .clickable { onOrbIsolationModeChange(mode) }
+                                    .padding(horizontal = 1.dp, vertical = 5.dp),
+                            )
+                        }
+                    }
+                }
                 val elapsed = previewElapsedMs.coerceIn(0L, DIAGNOSTIC_STEP_DURATION_MS)
                 val previewState = when {
                     stepStatus.startsWith("等待") -> stepStatus

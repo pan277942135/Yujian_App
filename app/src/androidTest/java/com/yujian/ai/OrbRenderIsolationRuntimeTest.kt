@@ -85,11 +85,17 @@ class OrbRenderIsolationRuntimeTest {
         val stageCases = listOf(
             StageCase(RecognitionSceneStage.PHOTO_STABLE, 0f,
                 listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.NORMAL)),
+            StageCase(RecognitionSceneStage.ORB_WAKE, 0f,
+                listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.NORMAL)),
             StageCase(RecognitionSceneStage.ORB_WAKE, .20f,
                 listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.NORMAL)),
             StageCase(RecognitionSceneStage.ORB_WAKE, .25f,
-                listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.NORMAL)),
+                listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.RAW_CORE_WITH_R06, OrbRenderIsolationMode.NORMAL)),
+            StageCase(RecognitionSceneStage.ORB_WAKE, .50f,
+                listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.RAW_CORE_WITH_R06, OrbRenderIsolationMode.NORMAL)),
             StageCase(RecognitionSceneStage.ORB_WAKE, .75f,
+                listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.RAW_CORE_WITH_R06, OrbRenderIsolationMode.NORMAL)),
+            StageCase(RecognitionSceneStage.ORB_WAKE, 1f,
                 listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.RAW_CORE_WITH_R06, OrbRenderIsolationMode.NORMAL)),
             StageCase(RecognitionSceneStage.ORB_RELEASE, .20f,
                 listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.RAW_CORE_WITH_R06, OrbRenderIsolationMode.NORMAL)),
@@ -360,36 +366,64 @@ class OrbRenderIsolationRuntimeTest {
 
         OrbRuntimeProfileV1.paths.forEach { spec ->
             val renderer = OrbFilamentPathRenderer(spec.front, density = 3f, pathIdFilter = spec.id)
-            listOf(.20f, .50f, .80f).forEach { progress ->
-                val stageFrame = frame(identity, RecognitionSceneStage.ORB_RELEASE, progress)
+            val pathCases = listOf(
+                RecognitionSceneStage.ORB_WAKE to .25f,
+                RecognitionSceneStage.ORB_WAKE to .50f,
+                RecognitionSceneStage.ORB_WAKE to .75f,
+                RecognitionSceneStage.ORB_WAKE to 1f,
+                RecognitionSceneStage.ORB_RELEASE to .20f,
+                RecognitionSceneStage.ORB_RELEASE to .50f,
+                RecognitionSceneStage.ORB_RELEASE to .80f,
+            )
+            pathCases.forEach { (stage, progress) ->
+                val stageFrame = frame(identity, stage, progress)
                 val (reusedBitmap, actual) = drawPath(renderer, stageFrame)
                 val freshRenderer = OrbFilamentPathRenderer(spec.front, density = 3f, pathIdFilter = spec.id)
                 val (freshBitmap, fresh) = drawPath(freshRenderer, stageFrame)
                 val pathMetrics = requireNotNull(actual.paths[spec.id])
                 val pixels = nonBlackPixels(reusedBitmap)
-                val progressTolerance = if (RecognitionSceneStage.ORB_RELEASE.minimumVisibleMs == 0L) 0f else
-                    .5f / RecognitionSceneStage.ORB_RELEASE.minimumVisibleMs
+                val expectedBodyLayerId = requireNotNull(OrbRuntimeProfileV1.materials[spec.material])
+                    .layers.firstOrNull { it.id == "translucent_body" || it.id == "fine_filament" }?.id
+                val progressTolerance = if (stage.minimumVisibleMs == 0L) 0f else
+                    .5f / stage.minimumVisibleMs + .00001f
                 assertEquals("renderer cache must not retain another stage's samples", fresh, actual)
                 assertEquals("reused renderer pixels differ from a clean renderer", bitmapDigest(freshBitmap), bitmapDigest(reusedBitmap))
                 assertTrue("stage elapsed and progress disagree", kotlin.math.abs(
                     stageFrame.sceneFrame.stageProgress - progress,
                 ) <= progressTolerance)
-                assertTrue("${spec.id} has no valid current-frame samples at $progress", pathMetrics.validSampleCount > 1)
-                assertTrue("${spec.id} did not draw a valid body segment at $progress", pathMetrics.validBodySegmentCount > 0)
+                assertTrue("${spec.id} has no valid current-frame samples at $stage/$progress", pathMetrics.validSampleCount > 1)
+                assertTrue("${spec.id} did not draw a valid body segment at $stage/$progress", pathMetrics.validBodySegmentCount > 0)
                 assertTrue("${spec.id} has no independently drawn current run at $progress", pathMetrics.drawnRunCount > 0)
-                assertTrue("${spec.id} actual Paint alpha is zero at $progress", pathMetrics.maximumPaintAlpha > 0)
-                assertTrue("${spec.id} actual Paint stroke width is zero at $progress", pathMetrics.maximumStrokeWidthPx > 0f)
+                assertTrue("${spec.id} actual Paint alpha is zero at $stage/$progress", pathMetrics.maximumPaintAlpha > 0)
+                assertTrue("${spec.id} actual Paint stroke width is zero at $stage/$progress", pathMetrics.maximumStrokeWidthPx > 0f)
                 assertEquals("${spec.id} must start a new subpath across invalid sample gaps", 0,
                     pathMetrics.bridgedInvalidGapCount)
-                assertTrue("${spec.id} has no final Android bitmap pixel contribution at $progress", pixels > 0)
+                assertTrue("${spec.id} has no final Android bitmap pixel contribution at $stage/$progress", pixels > 0)
                 assertEquals(setOf(spec.id), actual.drawnPathIds)
                 assertTrue("${spec.id} path is rendered on the frozen expected plane", pathMetrics.front == spec.front)
-                val name = "r06_${spec.id.lowercase()}_release_${(progress * 100).roundToLong()}.png"
+                assertEquals("$stage body layer for ${spec.id}", expectedBodyLayerId, pathMetrics.bodyLayerId)
+                if (stage == RecognitionSceneStage.ORB_WAKE && progress >= .50f) {
+                    assertTrue("${spec.id} has no body segment at $stage/$progress",
+                        pathMetrics.bodyValidSegmentCount > 0)
+                    assertTrue("${spec.id} has no drawn body run at $stage/$progress",
+                        pathMetrics.bodyDrawnRunCount > 0)
+                    assertTrue("${spec.id} Body Paint alpha is zero at $stage/$progress",
+                        pathMetrics.bodyPaintAlpha > 0)
+                    assertTrue("${spec.id} Body Stroke width is zero at $stage/$progress",
+                        pathMetrics.bodyStrokeWidthPx > 0f)
+                }
+                if (pathMetrics.bodyMaximumAddedAlpha > .002f) {
+                    assertTrue("${spec.id} had readable enhancement but no body draw at $stage/$progress",
+                        pathMetrics.bodyDrawnRunCount > 0 && pathMetrics.bodyPaintAlpha > 0 &&
+                            pathMetrics.bodyStrokeWidthPx > 0f)
+                }
+                val name = "r06_${spec.id.lowercase()}_${stage.name.lowercase()}_${(progress * 100).roundToLong()}.png"
                 savePng(reusedBitmap, File(outputDir, name))
                 reportRows.put(JSONObject()
                     .put("pathId", spec.id)
                     .put("plane", if (spec.front) "foreground" else "background")
-                    .put("stage", RecognitionSceneStage.ORB_RELEASE.name)
+                    .put("materialLayerId", pathMetrics.bodyLayerId)
+                    .put("stage", stage.name)
                     .put("progress", progress.toDouble())
                     .put("stageElapsedMs", stageFrame.sceneFrame.stageElapsedMs)
                     .put("sceneElapsedMs", stageFrame.sceneFrame.sceneElapsedMs)
@@ -402,6 +436,20 @@ class OrbRenderIsolationRuntimeTest {
                     .put("drawnChunks", pathMetrics.drawnChunkCount)
                     .put("paintAlpha", pathMetrics.maximumPaintAlpha)
                     .put("strokeWidthPx", pathMetrics.maximumStrokeWidthPx.toDouble())
+                    .put("bodyValidSegments", pathMetrics.bodyValidSegmentCount)
+                    .put("bodyDrawnRuns", pathMetrics.bodyDrawnRunCount)
+                    .put("bodyPaintAlpha", pathMetrics.bodyPaintAlpha)
+                    .put("bodyStrokeWidthPx", pathMetrics.bodyStrokeWidthPx.toDouble())
+                    .put("bodyOriginalAlpha", pathMetrics.bodyMaximumOriginalAlpha.toDouble())
+                    .put("bodyFinalAlpha", pathMetrics.bodyMaximumFinalAlpha.toDouble())
+                    .put("bodyAddedAlpha", pathMetrics.bodyMaximumAddedAlpha.toDouble())
+                    .put("bodyEndFade", pathMetrics.bodyMaximumEndFade.toDouble())
+                    .put("bodyDrawStatus", when {
+                        pathMetrics.bodyDrawnRunCount > 0 -> "DRAWN"
+                        pathMetrics.validSampleCount <= 1 -> "NO_VALID_SAMPLE"
+                        pathMetrics.bodyMaximumAddedAlpha <= .002f -> "BODY_ALPHA_BELOW_DRAW_THRESHOLD"
+                        else -> "NO_BODY_RUN_AFTER_ALPHA"
+                    })
                     .put("pixelContribution", pixels)
                     .put("reusedCacheMatchesCleanRender", true)
                     .put("runsDrawnSeparatelyAtInvalidGaps", true)
