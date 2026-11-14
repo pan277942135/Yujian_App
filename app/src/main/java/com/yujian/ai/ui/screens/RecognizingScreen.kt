@@ -1666,26 +1666,31 @@ fun RecognitionProcessingScene(
                 WaterLightHost.ORB, waterLightFrame.geometryVersion, orbX, orbY, orbX + outerPx, orbY + outerPx,
             )
             val orbHostRejectReason = orbHost.rejectionReason(waterLightFrame, orbGeometry)
+            val orbRenderIsolationMode = when {
+                orbHostRejectReason == null -> OrbRenderIsolationMode.NORMAL
+                orbHost.canUseSourceCoreFallback(waterLightFrame, orbGeometry) -> OrbRenderIsolationMode.RAW_CORE
+                else -> OrbRenderIsolationMode.SUPPRESSED
+            }
             val orbLifeState = if (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.PHOTO_STABLE ||
                 (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE &&
                     waterLightFrame.sceneFrame.stageProgress < .5f)
             ) OrbRuntimeProfileV1.LifeState.S1_IDLE else OrbRuntimeProfileV1.LifeState.S2_ACTIVE
             LaunchedEffect(
-                sceneIdentity, waterLightFrame.sceneFrame.stage,
-                waterLightFrame.geometryVersion, orbHostRejectReason,
+                sceneIdentity, waterLightFrame.sceneFrame.stage, orbHostRejectReason,
             ) {
                 val frame = waterLightFrame.sceneFrame
                 val completionAlpha = 1f - orbPresentationCompletion.coerceIn(0f, 1f)
-                val renderEffectEnabled = orbHostRejectReason == null &&
-                    aiOrbOpticalEffectEnabled(frame.stage, frame.stageElapsedMs)
-                Log.i("YujianOrbVisibility", "ORB_RENDER_STATE sessionId=${sceneIdentity.sessionId} " +
+                val opticalGateEligible = orbHostRejectReason == null &&
+                    aiOrbOpticalEffectEnabled(frame.stage, frame.stageProgress)
+                Log.i("YujianOrbVisibility", "ORB_HOST_GATE sessionId=${sceneIdentity.sessionId} " +
                     "attemptId=${sceneIdentity.attemptId} imageId=${sceneIdentity.imageId} stage=${frame.stage.name} " +
                     "stageProgress=${frame.stageProgress} hostAccepted=${orbHostRejectReason == null} " +
                     "rejectReason=${orbHostRejectReason ?: "NONE"} geometryVersion=${waterLightFrame.geometryVersion} " +
                     "orbCenterX=${orbCenter.x} orbCenterY=${orbCenter.y} orbCoreSizePx=${currentCorePx} " +
                     "orbOuterBounds=${orbGeometry.leftPx},${orbGeometry.topPx},${orbGeometry.rightPx},${orbGeometry.bottomPx} " +
                     "completion=${orbPresentationCompletion} completionAlpha=${completionAlpha} " +
-                    "renderEffectEnabled=${renderEffectEnabled} orbLifeState=${orbLifeState.name} " +
+                    "opticalGateEligible=${opticalGateEligible} renderIsolationMode=${orbRenderIsolationMode.name} " +
+                    "orbLifeState=${orbLifeState.name} " +
                     "r06RendererMode=${OrbFilamentRendererMode.ORB_V1_CANDIDATE.name}")
             }
             AIOrbCore(
@@ -1702,11 +1707,8 @@ fun RecognitionProcessingScene(
                 energyEvent = orbEnergyEvent,
                 waterLightMaterial = orbHost.material,
                 // Source-core fallback requires the expected scene identity and geometry to validate.
-                renderIsolationMode = when {
-                    orbHostRejectReason == null -> OrbRenderIsolationMode.NORMAL
-                    orbHost.canUseSourceCoreFallback(waterLightFrame, orbGeometry) -> OrbRenderIsolationMode.RAW_CORE
-                    else -> OrbRenderIsolationMode.SUPPRESSED
-                },
+                renderIsolationMode = orbRenderIsolationMode,
+                hostRejectReason = orbHostRejectReason,
                 modifier = Modifier.offset { IntOffset(orbX.roundToInt(), orbY.roundToInt()) },
             )
 

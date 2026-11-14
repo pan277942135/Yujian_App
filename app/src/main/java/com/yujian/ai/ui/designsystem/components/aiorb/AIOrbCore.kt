@@ -1,12 +1,20 @@
 package com.yujian.ai.ui.designsystem.components.aiorb
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
@@ -16,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.annotation.DrawableRes
+import androidx.annotation.VisibleForTesting
 import com.yujian.ai.R
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
@@ -28,11 +37,41 @@ import com.yujian.ai.ui.waterlight.renderer.OrbFilamentRendererMode
 import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
 import com.yujian.ai.ui.waterlight.renderer.OrbWakeBreathReleaseV11
 import com.yujian.ai.ui.waterlight.renderer.OrbCoreImageOpticalEffect
+import com.yujian.ai.ui.waterlight.renderer.OrbShaderRoute
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
 
 enum class OrbRenderIsolationMode { NORMAL, RAW_CORE, RAW_CORE_WITH_R06, SUPPRESSED }
+
+private const val MAX_SHADER_OVERLAY_ALPHA = 0.25f
+
+/** Test-only seam: the supplied color represents shader output while preserving the real core container. */
+internal data class OrbShaderOverlayTestOutput(val color: Color)
+
+@VisibleForTesting
+internal val LocalOrbShaderOverlayTestOutput = compositionLocalOf<OrbShaderOverlayTestOutput?> { null }
+
+private data class OrbCoreRenderDiagnosticSnapshot(
+    val stage: String,
+    val shaderEnabled: Boolean,
+    val shaderRoute: String,
+    val shaderUpdateStatus: OrbShaderUpdateStatus,
+    val hostRejectReason: String?,
+)
+
+internal fun aiOrbRawCoreVisible(renderIsolationMode: OrbRenderIsolationMode): Boolean =
+    renderIsolationMode != OrbRenderIsolationMode.SUPPRESSED
+
+internal fun aiOrbShaderOverlayVisible(
+    renderIsolationMode: OrbRenderIsolationMode,
+    opticalEffectEnabled: Boolean,
+    shaderAvailable: Boolean,
+    renderEffectAvailable: Boolean,
+    updateStatus: OrbShaderUpdateStatus,
+    overlayAlpha: Float,
+): Boolean = renderIsolationMode == OrbRenderIsolationMode.NORMAL && opticalEffectEnabled &&
+    shaderAvailable && renderEffectAvailable && updateStatus == OrbShaderUpdateStatus.READY && overlayAlpha > 0f
 
 
 /** The home button and its navigation handoff share one frozen visual identity. */
@@ -83,6 +122,7 @@ fun AIOrbCore(
     orbShowSunlight: Boolean = true,
     orbShowCaustics: Boolean = true,
     renderIsolationMode: OrbRenderIsolationMode = OrbRenderIsolationMode.NORMAL,
+    hostRejectReason: String? = null,
 ) {
     when (state) {
         AIOrbVisualState.CAPTURE_BUTTON_IDLE -> YuJianCaptureButton(
@@ -129,6 +169,7 @@ fun AIOrbCore(
             orbShowSunlight = orbShowSunlight,
             orbShowCaustics = orbShowCaustics,
             renderIsolationMode = renderIsolationMode,
+            hostRejectReason = hostRejectReason,
             modifier = modifier,
         )
         AIOrbVisualState.HIDDEN -> Unit
@@ -175,9 +216,10 @@ private fun OrbVisual(
     orbShowSunlight: Boolean,
     orbShowCaustics: Boolean,
     renderIsolationMode: OrbRenderIsolationMode,
+    hostRejectReason: String?,
     modifier: Modifier,
 ) {
-    if (renderIsolationMode == OrbRenderIsolationMode.SUPPRESSED) return
+    if (!aiOrbRawCoreVisible(renderIsolationMode)) return
     val frame = aiOrbMotionFrame(entranceElapsedMs, fromCamera, reduceMotion, completion)
     val ribbons = frame.ribbonOpening
     val settle = completion.coerceIn(0f, 1f)
@@ -217,30 +259,126 @@ private fun OrbVisual(
     val density = LocalDensity.current
     val coreTextureSizePx = with(density) { (coreSize / .84f).toPx() }
     val opticalEffectEnabled = renderIsolationMode == OrbRenderIsolationMode.NORMAL &&
-        aiOrbOpticalEffectEnabled(sceneFrame.stage, sceneFrame.stageElapsedMs)
-    val coreOpticalEffect = remember(context, android.os.Build.VERSION.SDK_INT, lowPerformance, renderIsolationMode) {
-        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL &&
-            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            runCatching { OrbCoreImageOpticalEffect.create(context.applicationContext, lowPerformance) }
-                .onFailure { android.util.Log.w("OrbCoreOpticalEffect", "candidate and V1.1 AGSL unavailable; source core and clipped light fallback active", it) }
-                .getOrNull()
-        } else {
-            android.util.Log.i("OrbCoreOpticalEffect", "API < 33 fallback: original static core with scene-clock clipped Canvas light")
-            null
-        }
+        aiOrbOpticalEffectEnabled(sceneFrame.stage, sceneFrame.stageProgress)
+    var coreOpticalEffect by remember(
+        context,
+        android.os.Build.VERSION.SDK_INT,
+        lowPerformance,
+        sharedFrame.sessionId,
+        sharedFrame.attemptId,
+    ) { mutableStateOf<OrbCoreImageOpticalEffect?>(null) }
+    var shaderCreationAttempted by remember(
+        context,
+        android.os.Build.VERSION.SDK_INT,
+        lowPerformance,
+        sharedFrame.sessionId,
+        sharedFrame.attemptId,
+    ) { mutableStateOf(false) }
+    val shaderInstance = coreOpticalEffect?.takeIf {
+        it.route != OrbShaderRoute.UNAVAILABLE && it.renderEffect != null
     }
-    DisposableEffect(coreOpticalEffect) {
+    val shaderUpdateGate = remember(shaderInstance) { OrbShaderUpdateGate(shaderInstance) }
+    val injectedShaderOutput = LocalOrbShaderOverlayTestOutput.current
+    val shaderUpdateStatus = if (injectedShaderOutput != null) OrbShaderUpdateStatus.READY
+        else shaderUpdateGate.status
+    val shaderRoute = when {
+        injectedShaderOutput != null -> "TEST_OUTPUT_INJECTION"
+        coreOpticalEffect == null -> OrbShaderRoute.UNAVAILABLE.name
+        else -> coreOpticalEffect.route.name
+    }
+    val shaderOverlayAlpha = wake.optics.coerceIn(0f, 1f) * MAX_SHADER_OVERLAY_ALPHA
+    val appliedRenderEffect = coreOpticalEffect?.renderEffect?.takeIf {
+        injectedShaderOutput == null && renderIsolationMode == OrbRenderIsolationMode.NORMAL &&
+            opticalEffectEnabled && shaderUpdateStatus == OrbShaderUpdateStatus.READY && shaderOverlayAlpha > 0f
+    }
+    val shaderAvailable = if (injectedShaderOutput != null) true else shaderInstance != null
+    val renderEffectAvailable = injectedShaderOutput != null || appliedRenderEffect != null
+    val shaderOverlayEnabled = aiOrbShaderOverlayVisible(
+        renderIsolationMode = renderIsolationMode,
+        opticalEffectEnabled = opticalEffectEnabled,
+        shaderAvailable = shaderAvailable,
+        renderEffectAvailable = renderEffectAvailable,
+        updateStatus = shaderUpdateStatus,
+        overlayAlpha = shaderOverlayAlpha,
+    )
+    val effectForDispose = coreOpticalEffect
+    DisposableEffect(effectForDispose) {
         onDispose {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                coreOpticalEffect?.close()
+                effectForDispose?.close()
             }
         }
     }
     SideEffect {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (opticalEffectEnabled) coreOpticalEffect?.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
+        if (!shaderCreationAttempted) {
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
+                shaderCreationAttempted = true
+                android.util.Log.w(
+                    "OrbCoreOpticalEffect",
+                    "API < 33 fallback: original static core with scene-clock clipped Canvas light",
+                )
+            } else if (renderIsolationMode == OrbRenderIsolationMode.NORMAL) {
+                shaderCreationAttempted = true
+                coreOpticalEffect = runCatching {
+                    OrbCoreImageOpticalEffect.create(context.applicationContext, lowPerformance)
+                }.onFailure {
+                    android.util.Log.w(
+                        "OrbCoreOpticalEffect",
+                        "candidate and V1.1 AGSL unavailable; source core and clipped light fallback active",
+                        it,
+                    )
+                }.getOrNull()
+            }
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU &&
+            injectedShaderOutput == null && opticalEffectEnabled && shaderInstance != null
+        ) {
+            val failure = shaderUpdateGate.update {
+                it.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
+            }
+            if (failure != null) {
+                val exceptionType = failure::class.qualifiedName ?: failure.javaClass.name
+                android.util.Log.e(
+                    "ORB_CORE_RENDER",
+                    "Shader uniform update failed: exceptionType=$exceptionType stage=${sceneFrame.stage.name} " +
+                        "shaderRoute=$shaderRoute",
+                    failure,
+                )
+            }
         }
     }
+    val sourceCoreAlpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
+    val lastDiagnosticSnapshot = remember { arrayOfNulls<OrbCoreRenderDiagnosticSnapshot>(1) }
+    SideEffect {
+        val currentSnapshot = OrbCoreRenderDiagnosticSnapshot(
+            stage = sceneFrame.stage.name,
+            shaderEnabled = shaderOverlayEnabled,
+            shaderRoute = shaderRoute,
+            shaderUpdateStatus = shaderUpdateStatus,
+            hostRejectReason = hostRejectReason,
+        )
+        val previous = lastDiagnosticSnapshot[0]
+        val isRelevantTransition = previous != null && (
+            (previous.stage != currentSnapshot.stage) ||
+                (!previous.shaderEnabled && currentSnapshot.shaderEnabled) ||
+                (previous.shaderUpdateStatus == OrbShaderUpdateStatus.READY &&
+                    currentSnapshot.shaderUpdateStatus == OrbShaderUpdateStatus.FAILED) ||
+                (previous.shaderRoute != currentSnapshot.shaderRoute) ||
+                (previous.hostRejectReason != currentSnapshot.hostRejectReason)
+            )
+        if (isRelevantTransition) {
+            android.util.Log.i(
+                "ORB_CORE_RENDER",
+                "stage=${sceneFrame.stage.name} stageProgress=${sceneFrame.stageProgress} " +
+                    "shaderEnabled=${shaderOverlayEnabled} shaderRoute=$shaderRoute " +
+                    "shaderUpdateStatus=${shaderUpdateStatus.name} overlayAlpha=$shaderOverlayAlpha " +
+                    "sourceCoreAlpha=$sourceCoreAlpha hostRejectReason=${hostRejectReason ?: "NONE"} " +
+                    "renderIsolationMode=${renderIsolationMode.name} geometryVersion=${sharedFrame.geometryVersion}",
+            )
+        }
+        lastDiagnosticSnapshot[0] = currentSnapshot
+    }
+    val isolateCoreForTestOutput = injectedShaderOutput != null
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
             scaleX = (1f - .18f * settle) * breath
@@ -249,23 +387,44 @@ private fun OrbVisual(
         },
         contentAlignment = Alignment.Center,
     ) {
-        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE) {
+        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput) {
             OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
                 orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
                 activeEnergyEvent, releaseEnergy, returnEnergy)
         }
-        val appliedRenderEffect = coreOpticalEffect?.renderEffect?.takeIf { opticalEffectEnabled }
-        Image(
-            painter = painterResource(R.drawable.processing_water_core_v1),
-            contentDescription = null,
+        val corePainter = painterResource(R.drawable.processing_water_core_v1)
+        Box(
             modifier = Modifier.size(coreSize / .84f).graphicsLayer {
-                alpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
-                scaleX = 1f
-                scaleY = 1f
-                renderEffect = appliedRenderEffect
+                alpha = sourceCoreAlpha
+                compositingStrategy = CompositingStrategy.Offscreen
             },
-        )
-        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL) OrbCoreOpticalEffects(
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                painter = corePainter,
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+            )
+            if (shaderOverlayEnabled) {
+                if (injectedShaderOutput != null) {
+                    Box(
+                        modifier = Modifier.matchParentSize().graphicsLayer {
+                            alpha = shaderOverlayAlpha
+                        }.background(injectedShaderOutput.color),
+                    )
+                } else {
+                    Image(
+                        painter = corePainter,
+                        contentDescription = null,
+                        modifier = Modifier.matchParentSize().graphicsLayer {
+                            alpha = shaderOverlayAlpha
+                            renderEffect = appliedRenderEffect
+                        },
+                    )
+                }
+            }
+        }
+        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && !isolateCoreForTestOutput) OrbCoreOpticalEffects(
             coreSize = coreSize,
             frame = sharedFrame,
             coreAlpha = 1f,
@@ -278,7 +437,8 @@ private fun OrbVisual(
             showSunlight = orbShowSunlight,
             showCaustics = orbShowCaustics,
         )
-        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && fromCamera && frame.cameraHeroAlpha > 0f) {
+        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && !isolateCoreForTestOutput &&
+            fromCamera && frame.cameraHeroAlpha > 0f) {
             Image(
                 painter = painterResource(R.drawable.ai_orb_camera_activated_v1),
                 contentDescription = null,
@@ -290,7 +450,7 @@ private fun OrbVisual(
                 },
             )
         }
-        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE) {
+        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput) {
             OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
                 orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
                 activeEnergyEvent, releaseEnergy, returnEnergy)

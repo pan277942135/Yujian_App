@@ -6,6 +6,7 @@ import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -21,7 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
+import com.yujian.ai.ui.designsystem.components.aiorb.LocalOrbShaderOverlayTestOutput
 import com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderIsolationMode
+import com.yujian.ai.ui.designsystem.components.aiorb.OrbShaderOverlayTestOutput
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
@@ -82,18 +85,21 @@ class OrbRenderIsolationRuntimeTest {
         val stageCases = listOf(
             StageCase(RecognitionSceneStage.PHOTO_STABLE, 0f,
                 listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.NORMAL)),
+            StageCase(RecognitionSceneStage.ORB_WAKE, .20f,
+                listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.NORMAL)),
             StageCase(RecognitionSceneStage.ORB_WAKE, .25f,
                 listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.NORMAL)),
             StageCase(RecognitionSceneStage.ORB_WAKE, .75f,
                 listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.RAW_CORE_WITH_R06, OrbRenderIsolationMode.NORMAL)),
             StageCase(RecognitionSceneStage.ORB_RELEASE, .20f,
-                listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.RAW_CORE_WITH_R06)),
+                listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.RAW_CORE_WITH_R06, OrbRenderIsolationMode.NORMAL)),
             StageCase(RecognitionSceneStage.ORB_RELEASE, .50f,
                 listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.RAW_CORE_WITH_R06, OrbRenderIsolationMode.NORMAL)),
             StageCase(RecognitionSceneStage.ORB_RELEASE, .80f,
                 listOf(OrbRenderIsolationMode.RAW_CORE, OrbRenderIsolationMode.RAW_CORE_WITH_R06, OrbRenderIsolationMode.NORMAL)),
         )
         var capturedModeCount = 0
+        val expectedCaptureCount = stageCases.sumOf { it.modes.size }
         val rows = JSONArray()
         val comparisons = JSONArray()
         var token = 1
@@ -158,7 +164,7 @@ class OrbRenderIsolationRuntimeTest {
             }
             caseCaptures.values.forEach(Bitmap::recycle)
         }
-        assertEquals("all frozen comparison modes must be captured", 15, capturedModeCount)
+        assertEquals("all frozen comparison modes must be captured", expectedCaptureCount, capturedModeCount)
         val report = JSONObject()
             .put("status", "PASS")
             .put("sourceCommitSha", BuildConfig.SOURCE_REVISION)
@@ -166,10 +172,176 @@ class OrbRenderIsolationRuntimeTest {
             .put("setContentCalls", 1)
             .put("stageElapsedDerivedFromProgress", true)
             .put("sameFrameAcrossModeComparisons", true)
+            .put("expectedCaptureCount", expectedCaptureCount)
+            .put("actualCaptureCount", capturedModeCount)
             .put("drawSynchronization", "drawWithContent token; no sleeps")
             .put("captures", rows)
             .put("r06PixelComparisons", comparisons)
         File(outputRoot, "orb_pixel_report.json").writeText(report.toString(2) + "\n")
+    }
+
+    @Test
+    fun rawCoreSurvivesBlackAndTransparentShaderOverlayOutputs() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val outputRoot = File(instrumentation.context.cacheDir, "recognition-result-handoff/orb-r06").apply {
+            mkdirs()
+        }
+        val outputDir = File(outputRoot, "shader-overlay-fault-injection").apply {
+            deleteRecursively()
+            mkdirs()
+        }
+        val identity = RecognitionSceneIdentity(
+            "orb-overlay-session", "orb-overlay-attempt", "orb-overlay-image", "c".repeat(64), 9L,
+        )
+        val sharedFrame = frame(identity, RecognitionSceneStage.ORB_RELEASE, .50f)
+        var input by mutableStateOf(RenderInput(sharedFrame, OrbRenderIsolationMode.RAW_CORE, 0))
+        val completedDrawToken = AtomicInteger(0)
+
+        composeRule.setContent {
+            val current = input
+            Box(
+                Modifier.fillMaxSize()
+                    .background(Color.Black)
+                    .drawWithContent {
+                        drawContent()
+                        completedDrawToken.set(current.drawToken)
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                OrbForRender(current.frame, current.mode, current.testOutput)
+            }
+        }
+
+        var nextToken = 0
+        fun capture(mode: OrbRenderIsolationMode, output: OrbShaderOverlayTestOutput?): Bitmap {
+            val token = ++nextToken
+            composeRule.runOnIdle { input = RenderInput(sharedFrame, mode, token, output) }
+            composeRule.waitUntil(10_000L) { completedDrawToken.get() >= token }
+            composeRule.waitForIdle()
+            val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
+            assertTrue("Android renderer produced an empty capture", bitmap.width > 0 && bitmap.height > 0)
+            return bitmap
+        }
+
+        val raw = capture(OrbRenderIsolationMode.RAW_CORE, null)
+        val blackOverlay = capture(
+            OrbRenderIsolationMode.NORMAL,
+            OrbShaderOverlayTestOutput(Color.Black),
+        )
+        val transparentOverlay = capture(
+            OrbRenderIsolationMode.NORMAL,
+            OrbShaderOverlayTestOutput(Color.Transparent),
+        )
+        assertEquals(raw.width, blackOverlay.width)
+        assertEquals(raw.height, blackOverlay.height)
+        assertEquals(raw.width, transparentOverlay.width)
+        assertEquals(raw.height, transparentOverlay.height)
+
+        val density = instrumentation.targetContext.resources.displayMetrics.density
+        val diameterPx = (120f * density).roundToLong().toInt()
+        val left = (raw.width / 2 - diameterPx / 2).coerceAtLeast(0)
+        val top = (raw.height / 2 - diameterPx / 2).coerceAtLeast(0)
+        val right = (raw.width / 2 + diameterPx / 2).coerceAtMost(raw.width)
+        val bottom = (raw.height / 2 + diameterPx / 2).coerceAtMost(raw.height)
+        val sourcePixels = mutableListOf<Pair<Int, Int>>()
+        var rawCoverage = 0
+        var blackCoverage = 0
+        var rawLumaSum = 0.0
+        var blackLumaSum = 0.0
+        var rawMass = 0.0
+        var rawMomentX = 0.0
+        var rawMomentY = 0.0
+        var blackMass = 0.0
+        var blackMomentX = 0.0
+        var blackMomentY = 0.0
+        var keyX = left
+        var keyY = top
+        var keyLuma = -1.0
+        for (y in top until bottom) for (x in left until right) {
+            val rawColor = raw.getPixel(x, y)
+            val rawBrightness = luminance(rawColor)
+            if (rawBrightness >= 16.0) {
+                sourcePixels += x to y
+                rawLumaSum += rawBrightness
+                val blackBrightness = luminance(blackOverlay.getPixel(x, y))
+                blackLumaSum += blackBrightness
+                if (rawBrightness > keyLuma) {
+                    keyLuma = rawBrightness
+                    keyX = x
+                    keyY = y
+                }
+            }
+            if (rawBrightness >= 8.0) rawCoverage++
+            val blackBrightness = luminance(blackOverlay.getPixel(x, y))
+            if (blackBrightness >= 8.0) blackCoverage++
+            if (rawBrightness > 0.0) {
+                rawMass += rawBrightness
+                rawMomentX += x * rawBrightness
+                rawMomentY += y * rawBrightness
+            }
+            if (blackBrightness > 0.0) {
+                blackMass += blackBrightness
+                blackMomentX += x * blackBrightness
+                blackMomentY += y * blackBrightness
+            }
+        }
+        assertTrue("RAW_CORE must retain a measurable source-water region", sourcePixels.size > MIN_CORE_PIXELS)
+        val relativeLuma = blackLumaSum / rawLumaSum
+        assertTrue("25% black overlay may not erase source-core brightness: ratio=$relativeLuma", relativeLuma >= .70)
+        assertTrue("core pixel coverage remains visible beneath the black overlay",
+            blackCoverage >= rawCoverage * .70)
+        assertEquals("transparent shader output leaves the raw core pixels unchanged",
+            bitmapDigest(raw), bitmapDigest(transparentOverlay))
+        assertTrue("black shader output changes the overlay pixels", bitmapDigest(raw) != bitmapDigest(blackOverlay))
+        assertEquals("same core layer bounds", raw.width, blackOverlay.width)
+        assertEquals("same core layer bounds", raw.height, blackOverlay.height)
+
+        val rawKeyAlpha = raw.getPixel(keyX, keyY) ushr 24 and 0xFF
+        val blackKeyAlpha = blackOverlay.getPixel(keyX, keyY) ushr 24 and 0xFF
+        assertTrue("key core pixel remains opaque over the same backdrop", rawKeyAlpha > 0)
+        assertEquals("overlay preserves the key pixel alpha", rawKeyAlpha, blackKeyAlpha)
+        assertTrue("black overlay keeps a visible key-pixel contribution",
+            luminance(blackOverlay.getPixel(keyX, keyY)) >= keyLuma * .70)
+
+        val rawCenterX = rawMomentX / rawMass
+        val rawCenterY = rawMomentY / rawMass
+        val blackCenterX = blackMomentX / blackMass
+        val blackCenterY = blackMomentY / blackMass
+        assertTrue("black overlay must not move the core layout", kotlin.math.abs(rawCenterX - blackCenterX) <= 1.0)
+        assertTrue("black overlay must not move the core layout", kotlin.math.abs(rawCenterY - blackCenterY) <= 1.0)
+
+        val rawName = "orb_stage03_raw_core.png"
+        val blackName = "orb_stage03_black_shader_overlay.png"
+        val transparentName = "orb_stage03_transparent_shader_overlay.png"
+        savePng(raw, File(outputDir, rawName))
+        savePng(blackOverlay, File(outputDir, blackName))
+        savePng(transparentOverlay, File(outputDir, transparentName))
+        File(outputRoot, "orb_shader_overlay_fault_report.json").writeText(
+            JSONObject()
+                .put("status", "PASS")
+                .put("sourceCommitSha", BuildConfig.SOURCE_REVISION)
+                .put("renderer", "Android Compose captureToImage + production AIOrbCore core composite")
+                .put("stage", sharedFrame.sceneFrame.stage.name)
+                .put("stageProgress", sharedFrame.sceneFrame.stageProgress.toDouble())
+                .put("sameSessionAttemptImageAndGeometry", true)
+                .put("rawCoreValidPixelCount", sourcePixels.size)
+                .put("blackOverlayMeanLuminanceRatio", relativeLuma)
+                .put("rawCoreCoveragePixels", rawCoverage)
+                .put("blackOverlayCoveragePixels", blackCoverage)
+                .put("keyPixelAlphaRaw", rawKeyAlpha)
+                .put("keyPixelAlphaBlackOverlay", blackKeyAlpha)
+                .put("transparentOutputPixelDigestMatchesRaw", true)
+                .put("blackOverlayCoreLayoutCentroidDeltaPx", maxOf(
+                    kotlin.math.abs(rawCenterX - blackCenterX),
+                    kotlin.math.abs(rawCenterY - blackCenterY),
+                ))
+                .put("blackOverlayAlphaCap", .25)
+                .put("screenshots", JSONArray().put(rawName).put(blackName).put(transparentName))
+                .toString(2) + "\n",
+        )
+        raw.recycle()
+        blackOverlay.recycle()
+        transparentOverlay.recycle()
     }
 
     @Test
@@ -310,21 +482,32 @@ class OrbRenderIsolationRuntimeTest {
     }
 
     @androidx.compose.runtime.Composable
-    private fun OrbForRender(frame: WaterLightFrame, isolation: OrbRenderIsolationMode) {
-        AIOrbCore(
-            state = AIOrbVisualState.ORB_ACTIVE,
-            coreSize = 120.dp,
-            elapsedMs = frame.elapsedMs,
-            completion = 0f,
-            waterLightFrame = frame,
-            waterLightMaterial = WaterLightMaterialProfile.ORB_LEGACY,
-            orbRendererMode = OrbFilamentRendererMode.ORB_V1_CANDIDATE,
-            orbLifeState = OrbRuntimeProfileV1.LifeState.S2_ACTIVE,
-            renderIsolationMode = isolation,
-        )
+    private fun OrbForRender(
+        frame: WaterLightFrame,
+        isolation: OrbRenderIsolationMode,
+        testOutput: OrbShaderOverlayTestOutput? = null,
+    ) {
+        CompositionLocalProvider(LocalOrbShaderOverlayTestOutput provides testOutput) {
+            AIOrbCore(
+                state = AIOrbVisualState.ORB_ACTIVE,
+                coreSize = 120.dp,
+                elapsedMs = frame.elapsedMs,
+                completion = 0f,
+                waterLightFrame = frame,
+                waterLightMaterial = WaterLightMaterialProfile.ORB_LEGACY,
+                orbRendererMode = OrbFilamentRendererMode.ORB_V1_CANDIDATE,
+                orbLifeState = OrbRuntimeProfileV1.LifeState.S2_ACTIVE,
+                renderIsolationMode = isolation,
+            )
+        }
     }
 
-    private data class RenderInput(val frame: WaterLightFrame, val mode: OrbRenderIsolationMode, val drawToken: Int)
+    private data class RenderInput(
+        val frame: WaterLightFrame,
+        val mode: OrbRenderIsolationMode,
+        val drawToken: Int,
+        val testOutput: OrbShaderOverlayTestOutput? = null,
+    )
     private data class StageCase(val stage: RecognitionSceneStage, val progress: Float, val modes: List<OrbRenderIsolationMode>)
 
     private fun savePng(bitmap: Bitmap, file: File) {
@@ -342,6 +525,13 @@ class OrbRenderIsolationRuntimeTest {
         val cx = bitmap.width / 2
         val cy = bitmap.height / 2
         return countNonBlack(bitmap, cx - 140, cy - 140, cx + 140, cy + 140)
+    }
+
+    private fun luminance(argb: Int): Double {
+        val red = argb ushr 16 and 0xFF
+        val green = argb ushr 8 and 0xFF
+        val blue = argb and 0xFF
+        return .2126 * red + .7152 * green + .0722 * blue
     }
 
     private fun countNonBlack(bitmap: Bitmap, left: Int, top: Int, right: Int, bottom: Int): Int {

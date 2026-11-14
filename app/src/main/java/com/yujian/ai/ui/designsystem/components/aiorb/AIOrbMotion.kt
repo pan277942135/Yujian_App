@@ -1,5 +1,8 @@
 package com.yujian.ai.ui.designsystem.components.aiorb
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 
 enum class AIOrbVisualState {
@@ -61,9 +64,35 @@ fun aiOrbPresentationCompletion(stage: RecognitionSceneStage, completion: Float)
     if (stage.ordinal <= RecognitionSceneStage.FISH_GOLD_PEAK.ordinal) 0f
     else completion.coerceIn(0f, 1f)
 
-/** Keep the unfiltered source core visible before optics wake on the shared scene clock. */
-fun aiOrbOpticalEffectEnabled(stage: RecognitionSceneStage, stageElapsedMs: Long): Boolean = when (stage) {
+/** Keep the source core independent; wake shader optics at the same normalized scene boundary. */
+internal fun aiOrbOpticalEffectEnabled(stage: RecognitionSceneStage, stageProgress: Float): Boolean = when (stage) {
     RecognitionSceneStage.PHOTO_STABLE -> false
-    RecognitionSceneStage.ORB_WAKE -> stageElapsedMs >= 80L
+    RecognitionSceneStage.ORB_WAKE -> stageProgress.coerceIn(0f, 1f) >=
+        80f / RecognitionSceneStage.ORB_WAKE.minimumVisibleMs
     else -> true
+}
+
+internal enum class OrbShaderUpdateStatus {
+    READY,
+    FAILED,
+    UNAVAILABLE,
+}
+
+/** A failed shader instance is latched until its owning instance is replaced. */
+internal class OrbShaderUpdateGate<T : Any>(private val shaderInstance: T?) {
+    var status by mutableStateOf(OrbShaderUpdateStatus.UNAVAILABLE)
+        private set
+
+    fun update(updateUniforms: (T) -> Unit): Exception? {
+        val instance = shaderInstance ?: return null
+        if (status == OrbShaderUpdateStatus.FAILED) return null
+        return try {
+            updateUniforms(instance)
+            status = OrbShaderUpdateStatus.READY
+            null
+        } catch (failure: Exception) {
+            status = OrbShaderUpdateStatus.FAILED
+            failure
+        }
+    }
 }

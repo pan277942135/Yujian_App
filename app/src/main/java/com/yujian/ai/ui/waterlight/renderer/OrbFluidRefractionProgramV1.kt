@@ -144,9 +144,16 @@ internal class OrbFluidGrassOpticalStackV1 private constructor(
 }
 
 /** Candidate stack with the frozen V1.1 grass shader as an all-or-nothing fallback. */
+internal enum class OrbShaderRoute {
+    FLUID_GRASS_V1_2_CANDIDATE,
+    GRASS_V1_1_LEGACY,
+    UNAVAILABLE,
+}
+
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 internal class OrbCoreImageOpticalEffect private constructor(
     val renderEffect: RenderEffect?,
+    val route: OrbShaderRoute,
     private val candidate: OrbFluidGrassOpticalStackV1?,
     private val fallback: OrbGrassWarpProgramV11?,
 ) : AutoCloseable {
@@ -179,7 +186,12 @@ internal class OrbCoreImageOpticalEffect private constructor(
             val candidate = runCatching { OrbFluidGrassOpticalStackV1.create(context) }
             if (candidate.isSuccess) {
                 val stack = candidate.getOrThrow()
-                return OrbCoreImageOpticalEffect(stack.renderEffect, stack, null)
+                return OrbCoreImageOpticalEffect(
+                    stack.renderEffect,
+                    OrbShaderRoute.FLUID_GRASS_V1_2_CANDIDATE,
+                    stack,
+                    null,
+                )
             }
             Log.w(TAG, "candidate fluid/V1.2 stack unavailable; using frozen V1.1 grass warp", candidate.exceptionOrNull())
             return createLegacy(context)
@@ -190,7 +202,12 @@ internal class OrbCoreImageOpticalEffect private constructor(
             val fallback = runCatching { OrbGrassWarpProgramV11.create(context) }
                 .onFailure { Log.w(TAG, "R01B AGSL unavailable; source core and clipped Canvas fallback active", it) }
                 .getOrNull()
-            return OrbCoreImageOpticalEffect(fallback?.renderEffect, null, fallback)
+            return OrbCoreImageOpticalEffect(
+                fallback?.renderEffect,
+                if (fallback?.renderEffect != null) OrbShaderRoute.GRASS_V1_1_LEGACY else OrbShaderRoute.UNAVAILABLE,
+                null,
+                fallback,
+            )
         }
     }
 }

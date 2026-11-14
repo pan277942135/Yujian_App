@@ -152,3 +152,19 @@
 - HUAWEI CMS-AL20 / Android 16 device evidence: NOT_RUN; this workspace has no ADB or attached device. Keep this branch Draft pending exact-source physical acceptance.
 - Exact-head Android CI run `43453935547` on `0765cef0dda66b0c3eb9b67d57debd2c3c211616` completed 405 unit tests with 1 failure: `OrbGrassFrozenAssetsV11Test.kt:62` still asserted the removed unconditional RenderEffect assignment. Production compile and prior static/resource checks passed; no APK or AndroidTest compile ran. Work failure gate allowed the first corrective attempt and recorded issue `779116f8b55520fed39a`.
 - Updated the existing frozen-source assertion to require the stage-gated applied RenderEffect and the shared-clock optical gate. The exact-head Android CI rerun is required; this source-only repair does not promote the test gate.
+
+## 2026-11-14T00:38:12Z — Orb Stage01–03 shader-safe layering P0 V2
+
+- Opened Work `YUJIAN_ORB_STAGE01_03_SHADER_SAFE_LAYERING_P0_V2` on existing PR #331 branch `fix/orb-r06-render-visibility-p0` at exact baseline `5cb01bfffdc0f427a83b6936e31e35171f821378`.
+- Scope is source, unit/harness checks, CI, AndroidTest compilation, and APK delivery. Instrumentation/device execution is explicitly excluded by the task.
+- Control Plane Admission is the next gate; no product source has been modified yet.
+
+### 2026-11-14T00:59:24Z — V2 implementation and pre-CI checks
+
+- Stage02 optical gating now consumes `stageProgress`: formal 350 ms boundary is 80/350; the 3000 ms diagnostic reaches the same normalized boundary near 686 ms. Controller timing is unchanged.
+- The frozen WebP is reused as the Raw Core and bounded Shader Overlay painter inside one offscreen composite. The frozen energy-alpha expression is applied once to the shared group.
+- Shader updates are latched per shader instance; an update exception marks the instance FAILED, stops further updates, and disables only the overlay. New Session/Attempt identity owns a fresh creation slot. Candidate/legacy route selection is preserved.
+- AndroidTest still installs one Compose root per test and uses draw-token synchronization. The matrix includes all requested stage/progress pairs, retains RAW_CORE_WITH_R06 captures, and adds injected black/transparent output pixel comparisons. No instrumentation/device execution is in scope.
+- Local prechecks passed: Control Plane Admission, R02–R06 generated profile parity, Orb WebP SHA/dimensions, frozen R06 assets and timing map, Recognition Runtime contract, capture raster decode, design closure, resource package, and Android runtime harness contract tests.
+- `git diff --check` passed. The local Gradle wrapper could not download Gradle 9.3.1 because network access is unavailable, so local Unit Test/AndroidTest compilation did not run. The local packaged-model check also cannot run before the CI asset-bootstrap step materializes the ignored classifier model; exact-head CI runs bootstrap before model validation.
+- No ADB discovery, Emulator, Device Runner, or physical runtime was invoked.
