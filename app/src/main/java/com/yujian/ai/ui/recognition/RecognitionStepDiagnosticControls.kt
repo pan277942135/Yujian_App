@@ -73,6 +73,8 @@ fun RecognitionStepDiagnosticControls(
     onOrbVisualProfileChange: ((OrbStage02VisualProfile) -> Unit)? = null,
     orbLayerIsolation: OrbStage02LayerIsolation? = null,
     onOrbLayerIsolationChange: ((OrbStage02LayerIsolation) -> Unit)? = null,
+    orbEvidenceProgress: Float? = null,
+    onOrbEvidenceProgressChange: ((Float) -> Unit)? = null,
     orbRuntimeStatus: String? = null,
     onExportOrbVisualEvidence: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
@@ -194,6 +196,29 @@ fun RecognitionStepDiagnosticControls(
                             .padding(horizontal = 5.dp, vertical = 4.dp),
                         color = Color(0xFF386766), fontSize = 7.sp, maxLines = 3,
                     )
+                }
+                if (orbEvidenceProgress != null && onOrbEvidenceProgressChange != null) {
+                    Row(
+                        modifier = Modifier.padding(top = 3.dp).width(156.dp)
+                            .clip(RoundedCornerShape(10.dp)).background(Color(0xDDF8FFFC)).padding(2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        listOf(0f, .25f, .50f, .75f, 1f).forEach { progress ->
+                            val selected = kotlin.math.abs(orbEvidenceProgress - progress) <= .001f
+                            Text(
+                                "${(progress * 100).toInt()}%",
+                                color = if (selected) Color.White else Color(0xFF37666C),
+                                fontSize = 7.sp,
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
+                                    .background(if (selected) Color(0xFF287E79) else Color.Transparent)
+                                    .clickable { onOrbEvidenceProgressChange(progress) }
+                                    .padding(horizontal = 1.dp, vertical = 5.dp),
+                            )
+                        }
+                    }
                 }
                 if (onExportOrbVisualEvidence != null) {
                     Text(

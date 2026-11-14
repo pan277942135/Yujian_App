@@ -123,6 +123,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneTimelineProjection
@@ -184,6 +185,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 private const val LOG_TAG = "RecognitionProcessingScene"
 
@@ -313,6 +315,7 @@ fun RecognitionProcessingScene(
     var debugR06Diagnostics by remember(sceneKey) { mutableStateOf<List<OrbR06PathDiagnostic>>(emptyList()) }
     var debugOrbEvidenceBounds by remember(sceneKey) { mutableStateOf(android.graphics.Rect()) }
     var debugOrbEvidenceCoreSizePx by remember(sceneKey) { mutableFloatStateOf(0f) }
+    var debugOrbEvidenceProgress by remember(sceneKey) { mutableFloatStateOf(0f) }
     var debugOrbIsolationHostAccepted by remember(sceneKey) { mutableStateOf(false) }
     LaunchedEffect(sceneKey, displayMode, diagnosticUiAvailable) {
         if (!diagnosticUiAvailable || displayMode != RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) {
@@ -1918,6 +1921,25 @@ fun RecognitionProcessingScene(
                         debugR06BackTransmissionPaths = emptySet()
                         debugR06FrontPaths = emptySet()
                         debugR06Diagnostics = emptyList()
+                    }
+                },
+                orbEvidenceProgress = if (
+                    BuildConfig.DEBUG && diagnosticUiAvailable &&
+                    displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+                    currentStage == RecognitionSceneStage.ORB_WAKE && debugOrbIsolationHostAccepted
+                ) debugOrbEvidenceProgress else null,
+                onOrbEvidenceProgressChange = { progress ->
+                    if (debugOrbIsolationHostAccepted && progress in 0f..1f) {
+                        val nowMs = recognitionMonotonicNowMs()
+                        val targetPreviewMs = (progress * DIAGNOSTIC_STEP_DURATION_MS).roundToLong()
+                        // First anchor the scene clock to real uptime, then use its existing
+                        // manual-preview start point to select an exact paused diagnostic frame.
+                        playbackController.seek(RecognitionSceneStage.ORB_WAKE, nowMs)
+                        playbackController.seek(RecognitionSceneStage.ORB_WAKE, nowMs - targetPreviewMs)
+                        playbackController.pause(authoritativeOpticalReferenceElapsedMs, nowMs)
+                        debugOrbEvidenceProgress = progress
+                        diagnosticActionStatus = null
+                        playbackRevision++
                     }
                 },
                 orbRuntimeStatus = if (
