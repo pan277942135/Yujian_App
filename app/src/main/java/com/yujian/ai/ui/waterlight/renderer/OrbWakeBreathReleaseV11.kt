@@ -102,10 +102,14 @@ internal object OrbWakeBreathReleaseV11 {
         if (stage == RecognitionSceneStage.PHOTO_STABLE) return Wake(0f, 0f, 0f)
         if (stage != RecognitionSceneStage.ORB_WAKE) return Wake(1f, 1f, 1f)
         val localMs = p * RecognitionSceneStage.ORB_WAKE.minimumVisibleMs
-        val optics = if (localMs < 80f) 0f else wakeEase(
+        // Compare in normalized progress space so the exact 80/220 ms keyframes
+        // cannot round slightly above their threshold during the ms projection.
+        val opticsStartProgress = 80f / RecognitionSceneStage.ORB_WAKE.minimumVisibleMs
+        val waterStartProgress = 220f / RecognitionSceneStage.ORB_WAKE.minimumVisibleMs
+        val optics = if (p <= opticsStartProgress) 0f else wakeEase(
             (localMs - 80f) / (RecognitionSceneStage.ORB_WAKE.minimumVisibleMs - 80f),
         )
-        val water = if (localMs < 220f) 0f else wakeEase(
+        val water = if (p <= waterStartProgress) 0f else wakeEase(
             (localMs - 220f) / (RecognitionSceneStage.ORB_WAKE.minimumVisibleMs - 220f),
         )
         return Wake(optics, water, water)
