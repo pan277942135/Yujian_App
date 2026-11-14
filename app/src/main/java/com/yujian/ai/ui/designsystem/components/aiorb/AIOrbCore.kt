@@ -3,7 +3,6 @@ package com.yujian.ai.ui.designsystem.components.aiorb
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -274,7 +273,8 @@ private fun OrbVisual(
         sharedFrame.sessionId,
         sharedFrame.attemptId,
     ) { mutableStateOf(false) }
-    val shaderInstance = coreOpticalEffect?.takeIf {
+    val currentCoreOpticalEffect = coreOpticalEffect
+    val shaderInstance = currentCoreOpticalEffect?.takeIf {
         it.route != OrbShaderRoute.UNAVAILABLE && it.renderEffect != null
     }
     val shaderUpdateGate = remember(shaderInstance) { OrbShaderUpdateGate(shaderInstance) }
@@ -283,8 +283,8 @@ private fun OrbVisual(
         else shaderUpdateGate.status
     val shaderRoute = when {
         injectedShaderOutput != null -> "TEST_OUTPUT_INJECTION"
-        coreOpticalEffect == null -> OrbShaderRoute.UNAVAILABLE.name
-        else -> coreOpticalEffect.route.name
+        currentCoreOpticalEffect == null -> OrbShaderRoute.UNAVAILABLE.name
+        else -> currentCoreOpticalEffect.route.name
     }
     val shaderOverlayAlpha = wake.optics.coerceIn(0f, 1f) * MAX_SHADER_OVERLAY_ALPHA
     val appliedRenderEffect = coreOpticalEffect?.renderEffect?.takeIf {
