@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.waterlight.renderer
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.BlurMaskFilter
 import android.graphics.RadialGradient
 import android.graphics.Paint as NativePaint
@@ -16,9 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.R
@@ -93,8 +93,11 @@ fun OrbWaterLightRibbons(
             pathIds = if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) setOf("G01", "A01") else null,
         )
     }
+    val context = LocalContext.current
     val coreMaskBitmap = if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
-        imageResource(R.drawable.processing_water_core_v1).asAndroidBitmap()
+        remember(context, renderPass) {
+            BitmapFactory.decodeResource(context.resources, R.drawable.processing_water_core_v1)
+        }
     } else null
     val lastDiagnosticCheckpoint = remember(front, renderPass, visualProfile) { arrayOfNulls<String>(1) }
     Canvas(Modifier.fillMaxSize()) {
