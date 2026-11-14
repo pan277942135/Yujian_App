@@ -4,10 +4,34 @@ YUJIAN_RESULT_HANDOFF_DEVICE_RECORDING="/sdcard/recognition_result_handoff_v3.mp
 YUJIAN_RESULT_HANDOFF_RECORDING_PID_FILE="${YUJIAN_EVIDENCE_DIR}/infra/recognition_screenrecord.pid"
 
 gate_test_classes() {
+  printf '%s\n' 'com.yujian.ai.OrbRenderIsolationRuntimeTest,com.yujian.ai.RecognitionCameraRuntimeTest,com.yujian.ai.RecognitionResultHandoffProductionNavigationTest,com.yujian.ai.RecognitionResultHandoffGuardrailRuntimeTest'
+}
+
+gate_pre_recording_test_classes() {
+  printf '%s\n' 'com.yujian.ai.OrbRenderIsolationRuntimeTest'
+}
+
+gate_camera_test_classes() {
+  printf '%s\n' 'com.yujian.ai.RecognitionCameraRuntimeTest'
+}
+
+gate_recorded_test_classes() {
   printf '%s\n' 'com.yujian.ai.RecognitionResultHandoffProductionNavigationTest,com.yujian.ai.RecognitionResultHandoffGuardrailRuntimeTest'
 }
 
 gate_instrumentation_timeout_seconds() {
+  printf '%s\n' '1200'
+}
+
+gate_pre_recording_timeout_seconds() {
+  printf '%s\n' '300'
+}
+
+gate_camera_timeout_seconds() {
+  printf '%s\n' '420'
+}
+
+gate_recorded_timeout_seconds() {
   printf '%s\n' '480'
 }
 
@@ -72,6 +96,18 @@ PY
 }
 
 gate_before_instrumentation() {
+  local permission_result permission_rc=0
+  permission_result="$("${YUJIAN_ADB_BIN}" shell pm grant "$YUJIAN_APP_PACKAGE" android.permission.CAMERA 2>&1 | tr -d '\r')" || permission_rc=$?
+  printf 'camera_permission_grant=%s\ncamera_permission_grant_exit_code=%s\n' \
+    "$permission_result" "$permission_rc" > "$YUJIAN_EVIDENCE_DIR/infra/camera_permission_preflight.txt"
+  if (( permission_rc != 0 )); then
+    runtime_set_failure "CAMERA_PERMISSION_SETUP" "PHYSICAL_GATE_CAMERA_PERMISSION_GRANT_FAILED"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+  return "$EXIT_PASS"
+}
+
+gate_before_recorded_instrumentation() {
   "${YUJIAN_ADB_BIN}" shell "rm -f '${YUJIAN_RESULT_HANDOFF_DEVICE_RECORDING}'" >/dev/null 2>&1 || true
   "${YUJIAN_ADB_BIN}" shell \
     "screenrecord --bit-rate 6000000 --time-limit 180 '${YUJIAN_RESULT_HANDOFF_DEVICE_RECORDING}' >/dev/null 2>&1 & echo \$!" \
@@ -141,6 +177,32 @@ gate_collect_evidence() {
       return "$EXIT_FAIL_EVIDENCE"
     fi
   done
+
+  local camera_name
+  local camera_names=(01_camera_open.png 02_preview_streaming.png 03_capture_ready.png
+    04_capture_pressed.png 05_post_capture.png 06_recognition_handoff.png camera_capture_trace.txt)
+  mkdir -p "$output/camera-runtime-v1"
+  for camera_name in "${camera_names[@]}"; do
+    if ! "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/camera-runtime-v1/$camera_name" > "$output/camera-runtime-v1/$camera_name"; then
+      runtime_set_failure "EVIDENCE" "CAMERA_ENTRY_EVIDENCE_MISSING:$camera_name"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+
+  local pixel_report
+  for pixel_report in orb_pixel_report.json r06_path_pixel_report.json; do
+    if ! "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_TEST_PACKAGE" cat \
+      "cache/recognition-result-handoff/orb-r06/$pixel_report" > "$output/$pixel_report"; then
+      runtime_set_failure "EVIDENCE" "ANDROID_TEST_PRIVATE_EVIDENCE_MISSING:$pixel_report"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  if ! "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_TEST_PACKAGE" sh -c \
+    "cd cache/recognition-result-handoff && tar -cf - orb-r06" > "$output/orb_r06_pixel_evidence.tar"; then
+    runtime_set_failure "EVIDENCE" "ANDROID_TEST_PIXEL_SCREENSHOTS_MISSING:orb-r06"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
 
   if ! "${YUJIAN_ADB_BIN}" exec-out cat "$YUJIAN_RESULT_HANDOFF_DEVICE_RECORDING" > "$output/recognition_result_handoff_v3.mp4"; then
     runtime_set_failure "EVIDENCE" "DEVICE_SCREENRECORD_MISSING"

@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -111,6 +112,10 @@ import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
+import com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderIsolationMode
+import com.yujian.ai.ui.designsystem.components.aiorb.orbDebugIsolationModeWithHostPriority
+import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbOpticalEffectEnabled
+import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbPresentationCompletion
 import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbProcessingState
 import com.yujian.ai.ui.designsystem.lakeglass.LakeGlassBackgroundHost
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
@@ -118,6 +123,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneTimelineProjection
@@ -138,6 +144,14 @@ import com.yujian.ai.ui.waterlight.renderer.WaterDropletRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterLightEnergyPathRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterGrassField
 import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
+import com.yujian.ai.ui.waterlight.renderer.OrbFilamentRendererMode
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02VisualProfile
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02LayerIsolation
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02MaxVisualProfile
+import com.yujian.ai.ui.waterlight.renderer.OrbInteriorOpticalField
+import com.yujian.ai.ui.waterlight.renderer.OrbR06RenderPass
+import com.yujian.ai.ui.waterlight.renderer.OrbR06PathDiagnostic
+import com.yujian.ai.ui.waterlight.renderer.OrbShaderRoute
 
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
@@ -158,8 +172,7 @@ import com.yujian.ai.ui.recognition.RecognitionPhotoFlowPlan
 import com.yujian.ai.ui.recognition.planRecognitionPhotoFlow
 import com.yujian.ai.ui.recognition.interpolateRecognitionPhotoTransform
 import com.yujian.ai.ui.recognition.RecognitionStepDiagnosticControls
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
+import com.yujian.ai.ui.recognition.OrbStage02VisualEvidenceExport
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -172,6 +185,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 private const val LOG_TAG = "RecognitionProcessingScene"
 
@@ -249,6 +263,7 @@ fun RecognitionProcessingScene(
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     val pageContext = LocalContext.current
     val pageView = LocalView.current
+    val orbEvidenceScope = rememberCoroutineScope()
     DisposableEffect(pageView) {
         val controller = (pageContext as? Activity)?.window?.let { WindowCompat.getInsetsController(it, pageView) }
         val oldStatus = controller?.isAppearanceLightStatusBars
@@ -282,6 +297,31 @@ fun RecognitionProcessingScene(
     }
     val displayMode = diagnosticDisplayMode ?: localDisplayMode
     val diagnosticUiAvailable = BuildConfig.DEBUG && phaseOverride == null && visualClockOverrideMs == null
+    var debugOrbIsolationMode by remember(sceneKey) {
+        mutableStateOf(OrbRenderIsolationMode.NORMAL)
+    }
+    var debugOrbVisualProfile by remember(sceneKey) {
+        mutableStateOf(if (BuildConfig.DEBUG) OrbStage02VisualProfile.MAX else OrbStage02VisualProfile.BASELINE)
+    }
+    var debugOrbLayerIsolation by remember(sceneKey) {
+        mutableStateOf(OrbStage02LayerIsolation.R03_R06)
+    }
+    var debugOrbShaderStage by remember(sceneKey) { mutableStateOf("PHOTO_STABLE") }
+    var debugOrbShaderRoute by remember(sceneKey) { mutableStateOf("UNAVAILABLE") }
+    var debugOrbShaderStatus by remember(sceneKey) { mutableStateOf("UNAVAILABLE") }
+    var debugR06BackPaths by remember(sceneKey) { mutableStateOf<Set<String>>(emptySet()) }
+    var debugR06BackTransmissionPaths by remember(sceneKey) { mutableStateOf<Set<String>>(emptySet()) }
+    var debugR06FrontPaths by remember(sceneKey) { mutableStateOf<Set<String>>(emptySet()) }
+    var debugR06Diagnostics by remember(sceneKey) { mutableStateOf<List<OrbR06PathDiagnostic>>(emptyList()) }
+    var debugOrbEvidenceBounds by remember(sceneKey) { mutableStateOf(android.graphics.Rect()) }
+    var debugOrbEvidenceCoreSizePx by remember(sceneKey) { mutableFloatStateOf(0f) }
+    var debugOrbEvidenceProgress by remember(sceneKey) { mutableFloatStateOf(0f) }
+    var debugOrbIsolationHostAccepted by remember(sceneKey) { mutableStateOf(false) }
+    LaunchedEffect(sceneKey, displayMode, diagnosticUiAvailable) {
+        if (!diagnosticUiAvailable || displayMode != RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) {
+            debugOrbIsolationMode = OrbRenderIsolationMode.NORMAL
+        }
+    }
     val stepDiagnosticActive = diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
     // The diagnostic shell is a fixed Debug-session policy, independent of its display toggle.
     val diagnosticModeState = rememberUpdatedState(BuildConfig.DEBUG)
@@ -292,7 +332,8 @@ fun RecognitionProcessingScene(
     )
     val playbackMode = playbackController.mode
     val playbackPaused = playbackController.paused
-    val orbCompletion = remember(sceneKey) { Animatable(0f) }
+    // Orb presentation ends only when the accepted Result handoff navigates away.
+    val orbCompletion = 0f
     var rootOrigin by remember(sceneKey) { mutableStateOf(Offset.Zero) }
     var realPhase by remember(sceneKey) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(sceneKey) { mutableStateOf(RecognitionPhase.CAPTURED) }
@@ -338,7 +379,6 @@ fun RecognitionProcessingScene(
         deliveryInProgress = true
         try {
             while (latestPhotoPresentedAtMs == null && currentCoroutineContext().isActive) withFrameNanos { }
-            orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
             currentFinishedCallback.value(result)
             val accepted = currentFinishedAcceptedCallback.value(result)
             delivered = accepted
@@ -1072,7 +1112,7 @@ fun RecognitionProcessingScene(
     val sceneBaseFrame = WaterLightFrame(
         sessionId = recognitionSessionId.orEmpty(), photoSha256 = image?.photoSha256,
         elapsedMs = sceneElapsedMs, opticalReferenceElapsedMs = opticalReferenceElapsedMs,
-        phase = WaterLightPhase.PROCESSING, completion = orbCompletion.value.coerceIn(0f, 1f),
+        phase = WaterLightPhase.PROCESSING, completion = orbCompletion.coerceIn(0f, 1f),
         reducedMotion = motionPolicy.reduceMotion,
         geometryVersion = photoGeometryVersion,
         attemptId = recognitionAttemptId.orEmpty(), imageId = image?.imageId.orEmpty(),
@@ -1230,6 +1270,7 @@ fun RecognitionProcessingScene(
     DisposableEffect(waterLightEngine) { onDispose { waterLightEngine.release() } }
     val activeSceneStage = if (stepDiagnosticActive) diagnosticSceneFrame.stage else productionSceneStage
     val activeStageProgress = if (stepDiagnosticActive) diagnosticSceneFrame.stageProgress else productionStageProgress
+    val orbPresentationCompletion = aiOrbPresentationCompletion(activeSceneStage, orbCompletion)
     val maskContourRevealProgress = recognitionMaskContourRevealProgress(
         stage = activeSceneStage,
         stageProgress = activeStageProgress,
@@ -1297,6 +1338,7 @@ fun RecognitionProcessingScene(
         LakeGlassBackgroundHost(Modifier.fillMaxSize())
         val viewportWidthPx = with(density) { maxWidth.toPx() }.coerceAtLeast(1f)
         val viewportHeightPx = with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
+        val diagnosticReservePx = if (stepDiagnosticActive) with(density) { 88.dp.toPx() } else 0f
         val photoFlowPlan = remember(
             image?.imageId,
             image?.photoSha256,
@@ -1311,6 +1353,8 @@ fun RecognitionProcessingScene(
             safeTopPx,
             safeRightPx,
             safeBottomPx,
+            stepDiagnosticActive,
+            diagnosticReservePx,
         ) {
             image?.let {
                 planRecognitionPhotoFlow(
@@ -1329,7 +1373,7 @@ fun RecognitionProcessingScene(
                             capture.previewTop - rootOrigin.y, capture.previewRight - rootOrigin.x,
                             capture.previewBottom - rootOrigin.y)
                     },
-                    diagnosticReservePx = 0f,
+                    diagnosticReservePx = diagnosticReservePx,
                     fontScale = density.fontScale,
                 )
             }
@@ -1359,7 +1403,7 @@ fun RecognitionProcessingScene(
             orbCenter = run {
                 val captureForOrb = image.capturePresentation
                 val eased = processingOrbMotionFrame(entranceElapsedMs, captureForOrb != null,
-                    motionPolicy.reduceMotion, orbCompletion.value).destinationProgress
+                    motionPolicy.reduceMotion, orbPresentationCompletion).destinationProgress
                 val startX = captureForOrb?.shutterCenterX?.minus(rootOrigin.x)
                     ?.takeIf(Float::isFinite) ?: photoFlowPlan.statusCenterXPx
                 val startY = captureForOrb?.shutterCenterY?.minus(rootOrigin.y)
@@ -1373,7 +1417,7 @@ fun RecognitionProcessingScene(
             orbRadiusPx = run {
                 val captureForOrb = image.capturePresentation
                 val eased = processingOrbMotionFrame(entranceElapsedMs, captureForOrb != null,
-                    motionPolicy.reduceMotion, orbCompletion.value).destinationProgress
+                    motionPolicy.reduceMotion, orbPresentationCompletion).destinationProgress
                 val initial = captureForOrb?.shutterSizePx?.takeIf { it.isFinite() && it > 0f }
                     ?: photoFlowPlan.orbCoreSizePx
                 (initial + (photoFlowPlan.orbCoreSizePx - initial) * eased) * .5f
@@ -1405,6 +1449,7 @@ fun RecognitionProcessingScene(
             recognitionAttemptId = recognitionAttemptId.orEmpty(),
             imageId = image.imageId,
             photoSha256 = image.photoSha256,
+            photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),
             maskSha256 = subjectResult?.maskSha256.orEmpty(),
             maskVersion = subjectBitmap?.generationId?.toLong() ?: -1L,
             maskRevealProgress = maskContourRevealProgress,
@@ -1467,7 +1512,7 @@ fun RecognitionProcessingScene(
         photoFlowPlan?.let { plan ->
             val capture = image?.capturePresentation
             val orbEntranceMs = entranceElapsedMs
-            val eased = processingOrbMotionFrame(orbEntranceMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value).destinationProgress
+            val eased = processingOrbMotionFrame(orbEntranceMs, capture != null, motionPolicy.reduceMotion, orbPresentationCompletion).destinationProgress
             val fromX = capture?.shutterCenterX?.minus(rootOrigin.x)?.takeIf { it.isFinite() } ?: plan.statusCenterXPx
             val fromY = capture?.shutterCenterY?.minus(rootOrigin.y)?.takeIf { it.isFinite() } ?: plan.orbCenterYPx
             val initialCorePx = capture?.shutterSizePx?.takeIf { it.isFinite() && it > 0f } ?: plan.orbCoreSizePx
@@ -1480,6 +1525,16 @@ fun RecognitionProcessingScene(
             )
             val orbX = orbCenter.x - outerPx / 2f
             val orbY = orbCenter.y - outerPx / 2f
+            SideEffect {
+                val nextBounds = android.graphics.Rect(
+                    orbX.roundToInt(),
+                    orbY.roundToInt(),
+                    (orbX + outerPx).roundToInt(),
+                    (orbY + outerPx).roundToInt(),
+                )
+                if (debugOrbEvidenceBounds != nextBounds) debugOrbEvidenceBounds = nextBounds
+                if (debugOrbEvidenceCoreSizePx != currentCorePx) debugOrbEvidenceCoreSizePx = currentCorePx
+            }
             val currentPhotoTransform = interpolateRecognitionPhotoTransform(
                 plan.startTransform, plan.targetTransform, photoEntryProgress,
             )
@@ -1650,29 +1705,100 @@ fun RecognitionProcessingScene(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.offset { IntOffset((plan.statusCenterXPx - with(density) { statusWidth.toPx() } / 2f).roundToInt(),
                     plan.statusPanelTopPx.roundToInt()) }.size(width = statusWidth, height = (24f * density.fontScale).dp))
-            val orbHost = remember(waterLightEngine) {
-                WaterLightHostBinding(WaterLightHost.ORB, WaterLightMaterialProfile.ORB_LEGACY, waterLightEngine)
+            val orbHost = remember(waterLightEngine, sceneIdentity) {
+                WaterLightHostBinding(
+                    WaterLightHost.ORB, WaterLightMaterialProfile.ORB_LEGACY, waterLightEngine, sceneIdentity,
+                )
             }
-            if (orbHost.accepts(waterLightFrame, WaterLightHostGeometry(
-                    WaterLightHost.ORB, waterLightFrame.geometryVersion, orbX, orbY, orbX + outerPx, orbY + outerPx,
-                ))) AIOrbCore(
-                state = aiOrbProcessingState(orbEntranceMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value),
+            val orbGeometry = WaterLightHostGeometry(
+                WaterLightHost.ORB, waterLightFrame.geometryVersion, orbX, orbY, orbX + outerPx, orbY + outerPx,
+            )
+            val orbHostRejectReason = orbHost.rejectionReason(waterLightFrame, orbGeometry)
+            val hostOrbRenderIsolationMode = when {
+                orbHostRejectReason == null -> OrbRenderIsolationMode.NORMAL
+                orbHost.canUseSourceCoreFallback(waterLightFrame, orbGeometry) -> OrbRenderIsolationMode.RAW_CORE
+                else -> OrbRenderIsolationMode.SUPPRESSED
+            }
+            val debugOrbIsolationEligible = BuildConfig.DEBUG && diagnosticUiAvailable &&
+                displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+                waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE &&
+                orbHostRejectReason == null
+            val orbRenderIsolationMode = orbDebugIsolationModeWithHostPriority(
+                hostRejectReason = orbHostRejectReason,
+                hostMode = hostOrbRenderIsolationMode,
+                requestedDebugMode = debugOrbIsolationMode,
+                debugSelectionEligible = debugOrbIsolationEligible,
+            )
+            SideEffect {
+                debugOrbIsolationHostAccepted = orbHostRejectReason == null &&
+                    waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE
+            }
+            val orbLifeState = if (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.PHOTO_STABLE ||
+                (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE &&
+                    waterLightFrame.sceneFrame.stageProgress < .5f)
+            ) OrbRuntimeProfileV1.LifeState.S1_IDLE else OrbRuntimeProfileV1.LifeState.S2_ACTIVE
+            LaunchedEffect(
+                sceneIdentity, waterLightFrame.sceneFrame.stage, orbHostRejectReason, orbRenderIsolationMode,
+            ) {
+                val frame = waterLightFrame.sceneFrame
+                val completionAlpha = 1f - orbPresentationCompletion.coerceIn(0f, 1f)
+                val opticalGateEligible = orbHostRejectReason == null &&
+                    aiOrbOpticalEffectEnabled(frame.stage, frame.stageProgress)
+                Log.i("YujianOrbVisibility", "ORB_HOST_GATE sessionId=${sceneIdentity.sessionId} " +
+                    "attemptId=${sceneIdentity.attemptId} imageId=${sceneIdentity.imageId} stage=${frame.stage.name} " +
+                    "stageProgress=${frame.stageProgress} semanticLocalMs=${frame.stageProgress * frame.stage.minimumVisibleMs} " +
+                    "hostAccepted=${orbHostRejectReason == null} " +
+                    "rejectReason=${orbHostRejectReason ?: "NONE"} geometryVersion=${waterLightFrame.geometryVersion} " +
+                    "orbCenterX=${orbCenter.x} orbCenterY=${orbCenter.y} orbCoreSizePx=${currentCorePx} " +
+                    "orbOuterBounds=${orbGeometry.leftPx},${orbGeometry.topPx},${orbGeometry.rightPx},${orbGeometry.bottomPx} " +
+                    "completion=${orbPresentationCompletion} completionAlpha=${completionAlpha} " +
+                    "opticalGateEligible=${opticalGateEligible} renderIsolationMode=${orbRenderIsolationMode.name} " +
+                    "orbLifeState=${orbLifeState.name} " +
+                    "r06RendererMode=${OrbFilamentRendererMode.ORB_V1_CANDIDATE.name}")
+            }
+            AIOrbCore(
+                state = aiOrbProcessingState(orbEntranceMs, capture != null, motionPolicy.reduceMotion, orbPresentationCompletion),
                 coreSize = core,
                 entranceElapsedMs = orbEntranceMs,
                 elapsedMs = sceneElapsedMs,
-                completion = orbCompletion.value,
+                completion = orbPresentationCompletion,
                 reduceMotion = motionPolicy.reduceMotion,
                 lowPerformance = motionPolicy.lowPerformance,
                 fromCamera = capture != null,
-                orbLifeState = if (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.PHOTO_STABLE ||
-                    (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE &&
-                        waterLightFrame.sceneFrame.stageProgress < .5f)
-                ) {
-                    OrbRuntimeProfileV1.LifeState.S1_IDLE
-                } else OrbRuntimeProfileV1.LifeState.S2_ACTIVE,
+                orbLifeState = orbLifeState,
                 waterLightFrame = waterLightFrame,
                 energyEvent = orbEnergyEvent,
                 waterLightMaterial = orbHost.material,
+                // Source-core fallback requires the expected scene identity and geometry to validate.
+                renderIsolationMode = orbRenderIsolationMode,
+                hostRejectReason = orbHostRejectReason,
+                visualProfile = if (BuildConfig.DEBUG) debugOrbVisualProfile else OrbStage02VisualProfile.BASELINE,
+                stage02LayerIsolation = debugOrbLayerIsolation,
+                onShaderRuntimeStatus = { stage, route, status ->
+                    debugOrbShaderStage = stage
+                    debugOrbShaderRoute = route
+                    debugOrbShaderStatus = status
+                },
+                onR06RenderedPaths = { front, renderPass, pathIds ->
+                    if (BuildConfig.DEBUG && waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE) {
+                        val actual = pathIds.toSet()
+                        if (front) {
+                            if (debugR06FrontPaths != actual) debugR06FrontPaths = actual
+                        } else if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
+                            if (debugR06BackTransmissionPaths != actual) debugR06BackTransmissionPaths = actual
+                        } else if (debugR06BackPaths != actual) {
+                            debugR06BackPaths = actual
+                        }
+                    }
+                },
+                onR06PathDiagnostics = { front, renderPass, metrics ->
+                    if (BuildConfig.DEBUG && waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE) {
+                        val next = debugR06Diagnostics.filterNot {
+                            it.front == front && it.renderPass == renderPass
+                        } + metrics
+                        if (debugR06Diagnostics != next) debugR06Diagnostics = next
+                    }
+                },
                 modifier = Modifier.offset { IntOffset(orbX.roundToInt(), orbY.roundToInt()) },
             )
 
@@ -1754,6 +1880,163 @@ fun RecognitionProcessingScene(
                     diagnosticActionStatus = null
                     playbackRevision++
                 },
+                orbIsolationMode = if (
+                    diagnosticUiAvailable &&
+                    displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+                    currentStage == RecognitionSceneStage.ORB_WAKE &&
+                    debugOrbIsolationHostAccepted
+                ) debugOrbIsolationMode else null,
+                onOrbIsolationModeChange = { mode ->
+                    if (debugOrbIsolationHostAccepted && mode != OrbRenderIsolationMode.SUPPRESSED) {
+                        debugOrbIsolationMode = mode
+                        debugR06BackPaths = emptySet()
+                        debugR06BackTransmissionPaths = emptySet()
+                        debugR06FrontPaths = emptySet()
+                        debugR06Diagnostics = emptyList()
+                    }
+                },
+                orbVisualProfile = if (
+                    diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+                    currentStage == RecognitionSceneStage.ORB_WAKE && debugOrbIsolationHostAccepted
+                ) debugOrbVisualProfile else null,
+                onOrbVisualProfileChange = { profile ->
+                    if (debugOrbIsolationHostAccepted) {
+                        debugOrbVisualProfile = profile
+                        if (profile == OrbStage02VisualProfile.BASELINE) {
+                            debugR06BackTransmissionPaths = emptySet()
+                            debugR06Diagnostics = debugR06Diagnostics.filterNot {
+                                it.renderPass == OrbR06RenderPass.GLASS_TRANSMISSION
+                            }
+                        }
+                    }
+                },
+                orbLayerIsolation = if (
+                    diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+                    currentStage == RecognitionSceneStage.ORB_WAKE && debugOrbIsolationHostAccepted
+                ) debugOrbLayerIsolation else null,
+                onOrbLayerIsolationChange = { isolation ->
+                    if (debugOrbIsolationHostAccepted) {
+                        debugOrbLayerIsolation = isolation
+                        debugR06BackPaths = emptySet()
+                        debugR06BackTransmissionPaths = emptySet()
+                        debugR06FrontPaths = emptySet()
+                        debugR06Diagnostics = emptyList()
+                    }
+                },
+                orbEvidenceProgress = if (
+                    BuildConfig.DEBUG && diagnosticUiAvailable &&
+                    displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+                    currentStage == RecognitionSceneStage.ORB_WAKE && debugOrbIsolationHostAccepted
+                ) debugOrbEvidenceProgress else null,
+                onOrbEvidenceProgressChange = { progress ->
+                    if (debugOrbIsolationHostAccepted && progress in 0f..1f) {
+                        val nowMs = recognitionMonotonicNowMs()
+                        val targetPreviewMs = (progress * DIAGNOSTIC_STEP_DURATION_MS).roundToLong()
+                        // First anchor the scene clock to real uptime, then use its existing
+                        // manual-preview start point to select an exact paused diagnostic frame.
+                        playbackController.seek(RecognitionSceneStage.ORB_WAKE, nowMs)
+                        playbackController.seek(RecognitionSceneStage.ORB_WAKE, nowMs - targetPreviewMs)
+                        playbackController.pause(authoritativeOpticalReferenceElapsedMs, nowMs)
+                        debugOrbEvidenceProgress = progress
+                        diagnosticActionStatus = null
+                        playbackRevision++
+                    }
+                },
+                orbRuntimeStatus = if (
+                    diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+                    currentStage == RecognitionSceneStage.ORB_WAKE && debugOrbIsolationHostAccepted
+                ) {
+                    val requestedField = OrbInteriorOpticalField.frame(
+                        currentStage,
+                        diagnosticSceneFrame.stageProgress,
+                        motionPolicy.reduceMotion,
+                        debugOrbVisualProfile,
+                    )
+                    val actualFluidApplied = debugOrbVisualProfile == OrbStage02VisualProfile.MAX &&
+                        debugOrbShaderRoute == OrbShaderRoute.FLUID_GRASS_V1_2_CANDIDATE.name &&
+                        debugOrbShaderStatus == "READY"
+                    val flowStrength = if (actualFluidApplied) requestedField.wakeStrength else 0f
+                    val displacementD = if (actualFluidApplied) requestedField.maxDisplacementD else 0f
+                    "${debugOrbShaderStage} ${(diagnosticSceneFrame.stageProgress * 100f).roundToInt()}% · " +
+                        "${debugOrbVisualProfile.name} · ${debugOrbShaderRoute}/${debugOrbShaderStatus} · " +
+                        "reduce=${motionPolicy.reduceMotion} low=${motionPolicy.lowPerformance} · " +
+                        "flow=$flowStrength d=$displacementD · " +
+                        "R06VisiblePathCount=${debugR06BackPaths.union(debugR06BackTransmissionPaths).union(debugR06FrontPaths).size} " +
+                        "back=${debugR06BackPaths.joinToString()} glass=${debugR06BackTransmissionPaths.joinToString()} " +
+                        "front=${debugR06FrontPaths.joinToString()}"
+                } else null,
+                onExportOrbVisualEvidence = if (
+                    BuildConfig.DEBUG && diagnosticUiAvailable &&
+                    displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+                    currentStage == RecognitionSceneStage.ORB_WAKE && debugOrbIsolationHostAccepted
+                ) {
+                    {
+                        orbEvidenceScope.launch {
+                            val wasPaused = playbackController.paused
+                            val pinnedOpticalMs = authoritativeOpticalReferenceElapsedMs
+                            if (!wasPaused) playbackController.pause(pinnedOpticalMs, recognitionMonotonicNowMs())
+                            playbackRevision++
+                            withFrameNanos { }
+                            val originalMode = debugOrbIsolationMode
+                            val originalLayer = debugOrbLayerIsolation
+                            try {
+                                val requestedField = OrbInteriorOpticalField.frame(
+                                    diagnosticSceneFrame.stage,
+                                    diagnosticSceneFrame.stageProgress,
+                                    motionPolicy.reduceMotion,
+                                    debugOrbVisualProfile,
+                                )
+                                val actualFluidApplied = debugOrbVisualProfile == OrbStage02VisualProfile.MAX &&
+                                    debugOrbShaderRoute == OrbShaderRoute.FLUID_GRASS_V1_2_CANDIDATE.name &&
+                                    debugOrbShaderStatus == "READY"
+                                OrbStage02VisualEvidenceExport.share(
+                                    context = pageContext,
+                                    view = pageView,
+                                    orbBoundsInView = android.graphics.Rect(debugOrbEvidenceBounds),
+                                    metadata = OrbStage02VisualEvidenceExport.Metadata(
+                                        sessionId = waterLightFrame.sessionId,
+                                        attemptId = waterLightFrame.attemptId,
+                                        imageId = waterLightFrame.imageId,
+                                        stage = diagnosticSceneFrame.stage,
+                                        stageProgress = diagnosticSceneFrame.stageProgress,
+                                        geometryVersion = diagnosticSceneFrame.geometryVersion,
+                                        visualProfile = debugOrbVisualProfile,
+                                        renderIsolationMode = debugOrbIsolationMode,
+                                        layerIsolation = debugOrbLayerIsolation,
+                                        shaderRoute = debugOrbShaderRoute,
+                                        shaderStatus = debugOrbShaderStatus,
+                                        coreSizePx = debugOrbEvidenceCoreSizePx,
+                                        reducedMotion = motionPolicy.reduceMotion,
+                                        lowPerformance = motionPolicy.lowPerformance,
+                                        interiorFlowStrength = if (actualFluidApplied) requestedField.wakeStrength else 0f,
+                                        interiorDisplacementD = if (actualFluidApplied) requestedField.maxDisplacementD else 0f,
+                                        actualFluidApplied = actualFluidApplied,
+                                        r06BackPathIds = debugR06BackPaths,
+                                        r06BackTransmissionPathIds = debugR06BackTransmissionPaths,
+                                        r06FrontPathIds = debugR06FrontPaths,
+                                        r06PathDiagnostics = debugR06Diagnostics.filter {
+                                            it.stage == diagnosticSceneFrame.stage &&
+                                                kotlin.math.abs(it.stageProgress - diagnosticSceneFrame.stageProgress) <= .01f &&
+                                                it.geometryVersion == diagnosticSceneFrame.geometryVersion
+                                        },
+                                    ),
+                                ) { capture ->
+                                    debugOrbIsolationMode = capture.mode
+                                    debugOrbLayerIsolation = capture.layer
+                                    withFrameNanos { }
+                                }
+                            } finally {
+                                debugOrbIsolationMode = originalMode
+                                debugOrbLayerIsolation = originalLayer
+                                withFrameNanos { }
+                                if (!wasPaused) {
+                                    playbackController.resume(pinnedOpticalMs, recognitionMonotonicNowMs())
+                                    playbackRevision++
+                                }
+                            }
+                        }
+                    }
+                } else null,
             )
         }
     }
@@ -1824,6 +2107,7 @@ private fun RecognitionPhoto(
     recognitionAttemptId: String,
     imageId: String,
     photoSha256: String,
+    photoContentVersion: Long,
     maskSha256: String,
     maskVersion: Long,
     maskRevealProgress: Float,
@@ -1839,9 +2123,14 @@ private fun RecognitionPhoto(
         )
     }
     LaunchedEffect(transform) { onPhotoGeometryChanged(WaterLightGeometryVersion.of(transform)) }
-    val waterHosts = remember(waterLightEngine) {
+    val waterHosts = remember(waterLightEngine, recognitionSessionId, recognitionAttemptId, imageId, photoSha256, photoContentVersion) {
         listOf(WaterLightHost.PERIMETER, WaterLightHost.PATH, WaterLightHost.CONTOUR).associateWith { host ->
-            WaterLightHostBinding(host, WaterLightMaterialProfile.forHost(host), waterLightEngine)
+            WaterLightHostBinding(
+                host, WaterLightMaterialProfile.forHost(host), waterLightEngine,
+                RecognitionSceneIdentity(
+                    recognitionSessionId, recognitionAttemptId, imageId, photoSha256, photoContentVersion,
+                ),
+            )
         }
     }
     val photoBounds = transform.photoContentRect

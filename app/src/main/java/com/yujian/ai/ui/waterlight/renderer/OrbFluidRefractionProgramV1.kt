@@ -67,7 +67,11 @@ internal class OrbFluidRefractionProgramV1 private constructor(
     val androidRenderEffect: AndroidRenderEffect,
     private val maskSizePx: Float,
 ) {
-    fun update(frame: WaterLightFrame, surfaceSizePx: Float) {
+    fun update(
+        frame: WaterLightFrame,
+        surfaceSizePx: Float,
+        visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
+    ) {
         val size = surfaceSizePx.coerceAtLeast(1f)
         val profile = OrbFluidOpticalProfileV1
         shader.setFloatUniform("surfaceSize", size, size)
@@ -86,6 +90,26 @@ internal class OrbFluidRefractionProgramV1 private constructor(
         shader.setFloatUniform("waterMixMax", profile.WATER_MIX_MAX)
         shader.setFloatUniform("edgeRefractionMixMax", profile.EDGE_REFRACTION_MIX_MAX)
         shader.setFloatUniform("totalSampleMixMax", profile.TOTAL_SAMPLE_MIX_MAX)
+        val sceneFrame = frame.sceneFrame
+        val maxField = OrbInteriorOpticalField.frame(
+            stage = sceneFrame.stage,
+            stageProgress = sceneFrame.stageProgress,
+            reducedMotion = frame.reducedMotion,
+            profile = visualProfile,
+        )
+        shader.setFloatUniform(
+            "maxFluidEnabled",
+            if (visualProfile == OrbStage02VisualProfile.MAX &&
+                OrbInteriorOpticalField.maxFluidShaderActive(sceneFrame.stage, sceneFrame.stageProgress)
+            ) 1f else 0f,
+        )
+        shader.setFloatUniform("maxWakeStrength", maxField.wakeStrength)
+        shader.setFloatUniform("maxBaselineMix", maxField.baselineOpticalMix)
+        shader.setFloatUniform("maxDisplacementD", maxField.maxDisplacementD)
+        shader.setFloatUniform("maxInteriorMix", maxField.interiorMix)
+        shader.setFloatUniform("maxSemanticPhase", maxField.semanticPhase)
+        shader.setFloatUniform("maxEdgeStartD", OrbStage02MaxVisualProfile.FLUID_EDGE_PROTECTION_START_D)
+        shader.setFloatUniform("maxEdgeEndD", OrbStage02MaxVisualProfile.FLUID_EDGE_PROTECTION_END_D)
     }
 
     companion object {
@@ -114,8 +138,14 @@ internal class OrbFluidGrassOpticalStackV1 private constructor(
     private val grass: OrbGrassWarpProgramV12,
     val renderEffect: RenderEffect,
 ) : AutoCloseable {
-    fun update(frame: WaterLightFrame, s2Progress: Float, grassLight: Float, surfaceSizePx: Float) {
-        fluid.update(frame, surfaceSizePx)
+    fun update(
+        frame: WaterLightFrame,
+        s2Progress: Float,
+        grassLight: Float,
+        surfaceSizePx: Float,
+        visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
+    ) {
+        fluid.update(frame, surfaceSizePx, visualProfile)
         grass.update(frame, s2Progress, grassLight, surfaceSizePx)
     }
 
@@ -144,14 +174,27 @@ internal class OrbFluidGrassOpticalStackV1 private constructor(
 }
 
 /** Candidate stack with the frozen V1.1 grass shader as an all-or-nothing fallback. */
+internal enum class OrbShaderRoute {
+    FLUID_GRASS_V1_2_CANDIDATE,
+    GRASS_V1_1_LEGACY,
+    UNAVAILABLE,
+}
+
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 internal class OrbCoreImageOpticalEffect private constructor(
     val renderEffect: RenderEffect?,
+    val route: OrbShaderRoute,
     private val candidate: OrbFluidGrassOpticalStackV1?,
     private val fallback: OrbGrassWarpProgramV11?,
 ) : AutoCloseable {
-    fun update(frame: WaterLightFrame, s2Progress: Float, grassLight: Float, surfaceSizePx: Float) {
-        candidate?.update(frame, s2Progress, grassLight, surfaceSizePx)
+    fun update(
+        frame: WaterLightFrame,
+        s2Progress: Float,
+        grassLight: Float,
+        surfaceSizePx: Float,
+        visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
+    ) {
+        candidate?.update(frame, s2Progress, grassLight, surfaceSizePx, visualProfile)
         if (candidate == null) {
             fallback?.update(
                 if (frame.reducedMotion) 0L else frame.elapsedMs,
@@ -179,7 +222,12 @@ internal class OrbCoreImageOpticalEffect private constructor(
             val candidate = runCatching { OrbFluidGrassOpticalStackV1.create(context) }
             if (candidate.isSuccess) {
                 val stack = candidate.getOrThrow()
-                return OrbCoreImageOpticalEffect(stack.renderEffect, stack, null)
+                return OrbCoreImageOpticalEffect(
+                    stack.renderEffect,
+                    OrbShaderRoute.FLUID_GRASS_V1_2_CANDIDATE,
+                    stack,
+                    null,
+                )
             }
             Log.w(TAG, "candidate fluid/V1.2 stack unavailable; using frozen V1.1 grass warp", candidate.exceptionOrNull())
             return createLegacy(context)
@@ -190,7 +238,12 @@ internal class OrbCoreImageOpticalEffect private constructor(
             val fallback = runCatching { OrbGrassWarpProgramV11.create(context) }
                 .onFailure { Log.w(TAG, "R01B AGSL unavailable; source core and clipped Canvas fallback active", it) }
                 .getOrNull()
-            return OrbCoreImageOpticalEffect(fallback?.renderEffect, null, fallback)
+            return OrbCoreImageOpticalEffect(
+                fallback?.renderEffect,
+                if (fallback?.renderEffect != null) OrbShaderRoute.GRASS_V1_1_LEGACY else OrbShaderRoute.UNAVAILABLE,
+                null,
+                fallback,
+            )
         }
     }
 }

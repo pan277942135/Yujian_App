@@ -141,3 +141,30 @@
 
 - Exact source `49684ae9f7e4dc8ed62e07919c91977773477fe1`; Android CI run `43404913307` failed at `:app:compileDebugKotlin` in `RecognitionResultProductionEvidenceWriter.kt`. Kotlin parsed unparenthesized Boolean expressions adjacent to infix `to` as nested `Pair` values, causing the qualification-report entries T17, T23, T24, and T27 to fail type checking. No unit tests, APK, or device runtime completed.
 - Parenthesized each Boolean expression before constructing its `(pass, evidenceFile)` pair. The follow-up exact-head CI must pass before this source repair is accepted. API36 physical runtime remains a separate gate.
+
+## 2026-11-13 — Orb source visibility and R06 current-frame integrity
+
+- Work: `YUJIAN_ORB_R06_RENDER_VISIBILITY_P0_V1`; independent branch `fix/orb-r06-render-visibility-p0`, created from PR #330 exact head `6692b5d7bf8254442df1aacfe9798286a3ecc010`; Main baseline remains `81200da2e41163b04cfd340de59c3f43700c329a`.
+- Admission on the repair branch: PASS after initializing its private branch-local state. It verifies all six canonical control-plane layers, 753-path sync, Project Master State, and Work Execution State. The initial local admission attempt reported only missing state files; no test gate ran before re-admission.
+- Implemented the source-core presentation contract (no PHOTO_STABLE shader, shader wake at 80 ms, no added timer), removed the pre-handoff 280 ms Orb fade, and keep the source core visible if WaterLight host validation rejects geometry/session. Debug step mode alone reserves 88 dp below the processing layout.
+- R06 sampling now invalidates per-frame samples, draws only contiguous valid runs, derives chunk visual parameters from the current valid run, and logs identity-bound stage-start/half render metrics. Added unit coverage for stage gates, geometry reserve profiles, host rejection reasons, release/return movement, stale-frame invalidation, and 48/96 sample tiers, plus a Compose pixel-capture AndroidTest for NORMAL/RAW_CORE/RAW_CORE_WITH_R06.
+- Static resource/runtime checks passed: immutable Orb WebP SHA/dimensions; frozen wake/release asset verification; R02–R06 generated profile parity; recognition runtime contract. `git diff --check`: PASS. Local Gradle unit-test and AndroidTest compile attempt: NOT_RUN because Gradle 9.3.1 is not cached and `services.gradle.org` is unreachable; this is an environment blocker, not a source-test failure. Exact-head Android CI is pending push.
+- HUAWEI CMS-AL20 / Android 16 device evidence: NOT_RUN; this workspace has no ADB or attached device. Keep this branch Draft pending exact-source physical acceptance.
+- Exact-head Android CI run `43453935547` on `0765cef0dda66b0c3eb9b67d57debd2c3c211616` completed 405 unit tests with 1 failure: `OrbGrassFrozenAssetsV11Test.kt:62` still asserted the removed unconditional RenderEffect assignment. Production compile and prior static/resource checks passed; no APK or AndroidTest compile ran. Work failure gate allowed the first corrective attempt and recorded issue `779116f8b55520fed39a`.
+- Updated the existing frozen-source assertion to require the stage-gated applied RenderEffect and the shared-clock optical gate. The exact-head Android CI rerun is required; this source-only repair does not promote the test gate.
+
+## 2026-11-14T00:38:12Z — Orb Stage01–03 shader-safe layering P0 V2
+
+- Opened Work `YUJIAN_ORB_STAGE01_03_SHADER_SAFE_LAYERING_P0_V2` on existing PR #331 branch `fix/orb-r06-render-visibility-p0` at exact baseline `5cb01bfffdc0f427a83b6936e31e35171f821378`.
+- Scope is source, unit/harness checks, CI, AndroidTest compilation, and APK delivery. Instrumentation/device execution is explicitly excluded by the task.
+- Control Plane Admission is the next gate; no product source has been modified yet.
+
+### 2026-11-14T00:59:24Z — V2 implementation and pre-CI checks
+
+- Stage02 optical gating now consumes `stageProgress`: formal 350 ms boundary is 80/350; the 3000 ms diagnostic reaches the same normalized boundary near 686 ms. Controller timing is unchanged.
+- The frozen WebP is reused as the Raw Core and bounded Shader Overlay painter inside one offscreen composite. The frozen energy-alpha expression is applied once to the shared group.
+- Shader updates are latched per shader instance; an update exception marks the instance FAILED, stops further updates, and disables only the overlay. New Session/Attempt identity owns a fresh creation slot. Candidate/legacy route selection is preserved.
+- AndroidTest still installs one Compose root per test and uses draw-token synchronization. The matrix includes all requested stage/progress pairs, retains RAW_CORE_WITH_R06 captures, and adds injected black/transparent output pixel comparisons. No instrumentation/device execution is in scope.
+- Local prechecks passed: Control Plane Admission, R02–R06 generated profile parity, Orb WebP SHA/dimensions, frozen R06 assets and timing map, Recognition Runtime contract, capture raster decode, design closure, resource package, and Android runtime harness contract tests.
+- `git diff --check` passed. The local Gradle wrapper could not download Gradle 9.3.1 because network access is unavailable, so local Unit Test/AndroidTest compilation did not run. The local packaged-model check also cannot run before the CI asset-bootstrap step materializes the ignored classifier model; exact-head CI runs bootstrap before model validation.
+- No ADB discovery, Emulator, Device Runner, or physical runtime was invoked.

@@ -19,6 +19,14 @@ uniform float refractionNormalStrength;
 uniform float waterMixMax;
 uniform float edgeRefractionMixMax;
 uniform float totalSampleMixMax;
+uniform float maxFluidEnabled;
+uniform float maxWakeStrength;
+uniform float maxBaselineMix;
+uniform float maxDisplacementD;
+uniform float maxInteriorMix;
+uniform float maxSemanticPhase;
+uniform float maxEdgeStartD;
+uniform float maxEdgeEndD;
 
 float2 boundedCoord(float2 p) {
     return clamp(p, float2(0.0), max(surfaceSize - float2(1.0), float2(0.0)));
@@ -56,11 +64,53 @@ float2 liquidFlow(float2 uv) {
     return magnitude > 1.0 ? combined / magnitude : combined;
 }
 
+float2 maxWakeFlow(float2 uv, float phase) {
+    float2 flow = float2(sin(uv.y * 5.2 + phase), cos(uv.x * 4.2 - phase));
+    return flow / max(length(flow), 0.00001);
+}
+
+half4 baselineOpticalSample(float2 safeCoord, half4 base, float baseAlpha);
+
 half4 main(float2 coord) {
     float2 safeCoord = boundedCoord(coord);
     half4 base = inputImage.eval(safeCoord);
     float baseAlpha = clamp(float(base.a), 0.0, 1.0);
 
+    // MAX is an internal, alpha-masked resampling layer composited over the
+    // independently rendered Raw Core. During the Stage03 hand-off it crossfades
+    // into the unchanged baseline optical sample instead of switching at one frame.
+    if (maxFluidEnabled > 0.5) {
+        float2 uvMax = safeCoord / max(surfaceSize, float2(1.0));
+        float visibleDpxMax = min(surfaceSize.x, surfaceSize.y) * visibleDiameterRatio;
+        float radiusD = length((safeCoord - surfaceSize * 0.5) / max(visibleDpxMax, 1.0));
+        float edgeProtection = 1.0 - smoothstep(maxEdgeStartD, maxEdgeEndD, radiusD);
+        float sourceMask = smoothstep(0.02, 0.12, baseAlpha);
+        float interiorMask = clamp(edgeProtection * sourceMask, 0.0, 1.0);
+        float2 wakeDirection = maxWakeFlow(uvMax, maxSemanticPhase);
+        float2 ambientDirection = liquidFlow(uvMax);
+        float2 sharedFlow = ambientDirection * 0.35 + wakeDirection * 0.65;
+        float sharedFlowLength = length(sharedFlow);
+        if (sharedFlowLength > 1.0) sharedFlow /= sharedFlowLength;
+        float2 wakeOffset = sharedFlow * visibleDpxMax * maxDisplacementD * interiorMask;
+        float2 wakeCoord = boundedCoord(safeCoord + wakeOffset);
+        float2 finalCoord = boundedCoord(mix(safeCoord, wakeCoord, clamp(maxInteriorMix, 0.0, 0.92)));
+        half4 finalSample = inputImage.eval(finalCoord);
+        float finalSampleAlpha = clamp(float(finalSample.a), 0.0, 1.0);
+        float mixWeight = clamp(maxInteriorMix, 0.0, 0.92) * interiorMask;
+        float overlayAlpha = baseAlpha * mixWeight * finalSampleAlpha;
+        half4 dynamicLayer = half4(0.0);
+        if (overlayAlpha > 0.0001 && maxWakeStrength > 0.0) {
+            float3 sampledStraight = float3(finalSample.rgb) / max(finalSampleAlpha, 0.0001);
+            dynamicLayer = half4(half3(clamp(sampledStraight, 0.0, 1.0) * overlayAlpha), half(overlayAlpha));
+        }
+        half4 baselineLayer = baselineOpticalSample(safeCoord, base, baseAlpha);
+        return mix(dynamicLayer, baselineLayer, clamp(maxBaselineMix, 0.0, 1.0));
+    }
+
+    return baselineOpticalSample(safeCoord, base, baseAlpha);
+}
+
+half4 baselineOpticalSample(float2 safeCoord, half4 base, float baseAlpha) {
     float leaf = leafCoverage(safeCoord);
     float2 uv = safeCoord / max(surfaceSize, float2(1.0));
     float visibleDpx = min(surfaceSize.x, surfaceSize.y) * visibleDiameterRatio;

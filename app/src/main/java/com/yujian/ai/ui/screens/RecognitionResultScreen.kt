@@ -491,10 +491,10 @@ fun RecognitionResultScreen(
     val diagnosticUiAvailable = BuildConfig.DEBUG && diagnosticPlaybackController != null
     val diagnosticManualActive = diagnosticUiAvailable &&
         diagnosticPlaybackController?.mode == ScenePlaybackMode.MANUAL
-    val resultSceneIdentity = remember(revealHandoff?.key, image?.imageId) {
+    val resultSceneIdentity = remember(visualHandoff?.key, image?.imageId, image?.bitmap?.generationId) {
         RecognitionSceneIdentity(
-            sessionId = revealHandoff?.key?.recognitionSessionId.orEmpty(),
-            attemptId = revealHandoff?.key?.recognitionAttemptId.orEmpty(),
+            sessionId = visualHandoff?.key?.recognitionSessionId.orEmpty(),
+            attemptId = visualHandoff?.key?.recognitionAttemptId.orEmpty(),
             imageId = image?.imageId.orEmpty(),
             photoSha256 = image?.photoSha256,
             photoContentVersion = image?.bitmap?.generationId?.toLong()?.coerceAtLeast(0L) ?: 0L,
@@ -1327,8 +1327,10 @@ fun RecognitionResultScreen(
         val resultWaterEngine = remember(presentedHandoff?.key, image?.imageId) { UnifiedWaterLightEngine() }
         resultWaterEngine.activate(resultFrame)
         DisposableEffect(resultWaterEngine) { onDispose { resultWaterEngine.release() } }
-        val resultHost = remember(resultWaterEngine, hostType) {
-            WaterLightHostBinding(hostType, WaterLightMaterialProfile.forHost(hostType), resultWaterEngine)
+        val resultHost = remember(resultWaterEngine, hostType, resultSceneIdentity) {
+            WaterLightHostBinding(
+                hostType, WaterLightMaterialProfile.forHost(hostType), resultWaterEngine, resultSceneIdentity,
+            )
         }
         val activeEnergyCurve = when (revealFrameState.value.phase) {
             RecognitionRevealPhase.PHOTO_CONTINUITY,

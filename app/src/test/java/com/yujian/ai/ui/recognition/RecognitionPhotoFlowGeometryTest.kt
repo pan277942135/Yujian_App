@@ -88,4 +88,48 @@ class RecognitionPhotoFlowGeometryTest {
         assertEquals(start.translationX, interpolateRecognitionPhotoTransform(start, target, 0f).translationX, 0f)
         assertEquals(target.translationX, interpolateRecognitionPhotoTransform(start, target, 1f).translationX, 0f)
     }
+
+    @Test
+    fun diagnosticReservationKeepsOrbAboveControlsAcrossScreenProfiles() {
+        data class Profile(val width: Float, val height: Float, val density: Float, val fontScale: Float,
+                           val safeTop: Float, val safeBottom: Float)
+        val profiles = listOf(
+            Profile(1080f, 2340f, 3f, 1f, 72f, 72f),
+            Profile(720f, 1280f, 2f, 1f, 40f, 48f),
+            Profile(1080f, 2340f, 3f, 1.5f, 72f, 72f),
+            Profile(1920f, 900f, 2f, 1f, 32f, 32f),
+        )
+        profiles.forEach { profile ->
+            val reserved = 88f * profile.density
+            val plan = planRecognitionPhotoFlow(
+                sourceWidth = 1200,
+                sourceHeight = 1800,
+                viewportWidthPx = profile.width,
+                viewportHeightPx = profile.height,
+                density = profile.density,
+                safeLeftPx = 0f,
+                safeTopPx = profile.safeTop,
+                safeRightPx = 0f,
+                safeBottomPx = profile.safeBottom,
+                cameraSource = false,
+                diagnosticReservePx = reserved,
+                fontScale = profile.fontScale,
+            )
+            val orbOuterDiameter = plan.orbCoreSizePx + 28f * profile.density
+            assertTrue("orb overlaps diagnostic controls: $profile",
+                plan.orbCenterYPx + orbOuterDiameter * .5f <= profile.height - profile.safeBottom - reserved + 1f)
+            assertTrue("orb overlaps status text: $profile",
+                plan.orbCenterYPx - orbOuterDiameter * .5f >= plan.statusPanelTopPx + 24f * profile.fontScale - 1f)
+
+            val normalPlan = planRecognitionPhotoFlow(
+                sourceWidth = 1200, sourceHeight = 1800,
+                viewportWidthPx = profile.width, viewportHeightPx = profile.height,
+                density = profile.density, safeLeftPx = 0f, safeTopPx = profile.safeTop,
+                safeRightPx = 0f, safeBottomPx = profile.safeBottom, cameraSource = false,
+                diagnosticReservePx = 0f, fontScale = profile.fontScale,
+            )
+            assertTrue("diagnostic toggle must move Orb away from the bottom controls: $profile",
+                plan.orbCenterYPx < normalPlan.orbCenterYPx)
+        }
+    }
 }
