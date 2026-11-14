@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.PixelCopy
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderIsolationMode
@@ -108,6 +109,7 @@ object OrbStage02VisualEvidenceExport {
         }, "导出Orb真实渲染证据"))
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun pixelCopy(view: View, bounds: Rect): Bitmap = suspendCancellableCoroutine { continuation ->
         val activity = view.context.findActivity()
         requireNotNull(activity) { "Orb pixel evidence requires an Activity window" }
