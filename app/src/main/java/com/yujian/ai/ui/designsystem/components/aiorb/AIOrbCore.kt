@@ -37,13 +37,16 @@ import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
 import com.yujian.ai.ui.waterlight.renderer.OrbWakeBreathReleaseV11
 import com.yujian.ai.ui.waterlight.renderer.OrbCoreImageOpticalEffect
 import com.yujian.ai.ui.waterlight.renderer.OrbShaderRoute
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02VisualProfile
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02LayerIsolation
+import com.yujian.ai.ui.waterlight.renderer.OrbR06RenderPass
+import com.yujian.ai.ui.waterlight.renderer.OrbInteriorOpticalField
+import com.yujian.ai.ui.waterlight.renderer.OrbR06PathDiagnostic
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
 
 enum class OrbRenderIsolationMode { NORMAL, RAW_CORE, RAW_CORE_WITH_R06, SUPPRESSED }
-
-private const val MAX_SHADER_OVERLAY_ALPHA = 0.25f
 
 /** Test-only seam: the supplied color represents shader output while preserving the real core container. */
 internal data class OrbShaderOverlayTestOutput(val color: Color)
@@ -133,6 +136,11 @@ fun AIOrbCore(
     orbShowCaustics: Boolean = true,
     renderIsolationMode: OrbRenderIsolationMode = OrbRenderIsolationMode.NORMAL,
     hostRejectReason: String? = null,
+    visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.currentBuildDefault(),
+    stage02LayerIsolation: OrbStage02LayerIsolation = OrbStage02LayerIsolation.R03_R06,
+    onShaderRuntimeStatus: ((String, String, String) -> Unit)? = null,
+    onR06RenderedPaths: ((Boolean, OrbR06RenderPass, Set<String>) -> Unit)? = null,
+    onR06PathDiagnostics: ((Boolean, OrbR06RenderPass, List<OrbR06PathDiagnostic>) -> Unit)? = null,
 ) {
     when (state) {
         AIOrbVisualState.CAPTURE_BUTTON_IDLE -> YuJianCaptureButton(
@@ -180,6 +188,11 @@ fun AIOrbCore(
             orbShowCaustics = orbShowCaustics,
             renderIsolationMode = renderIsolationMode,
             hostRejectReason = hostRejectReason,
+            visualProfile = visualProfile,
+            stage02LayerIsolation = stage02LayerIsolation,
+            onShaderRuntimeStatus = onShaderRuntimeStatus,
+            onR06RenderedPaths = onR06RenderedPaths,
+            onR06PathDiagnostics = onR06PathDiagnostics,
             modifier = modifier,
         )
         AIOrbVisualState.HIDDEN -> Unit
@@ -227,6 +240,11 @@ private fun OrbVisual(
     orbShowCaustics: Boolean,
     renderIsolationMode: OrbRenderIsolationMode,
     hostRejectReason: String?,
+    visualProfile: OrbStage02VisualProfile,
+    stage02LayerIsolation: OrbStage02LayerIsolation,
+    onShaderRuntimeStatus: ((String, String, String) -> Unit)?,
+    onR06RenderedPaths: ((Boolean, OrbR06RenderPass, Set<String>) -> Unit)?,
+    onR06PathDiagnostics: ((Boolean, OrbR06RenderPass, List<OrbR06PathDiagnostic>) -> Unit)?,
     modifier: Modifier,
 ) {
     if (!aiOrbRawCoreVisible(renderIsolationMode)) return
@@ -256,6 +274,21 @@ private fun OrbVisual(
         (sharedFrame.opticalReferenceElapsedMs - sharedFrame.sceneFrame.stageElapsedMs).coerceAtLeast(0L)
     } else orbMotionEventStartOpticalMs
     val sceneFrame = sharedFrame.sceneFrame
+    val isMaxStage02 = visualProfile == OrbStage02VisualProfile.MAX &&
+        sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE
+    val isMaxTransitionActive = visualProfile == OrbStage02VisualProfile.MAX && (
+        isMaxStage02 || (sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RELEASE &&
+            OrbInteriorOpticalField.maxFluidWakeEnvelope(sceneFrame.stage, sceneFrame.stageProgress) > 0f)
+        )
+    val r03Visible = sceneFrame.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE ||
+        stage02LayerIsolation != OrbStage02LayerIsolation.R06_ONLY &&
+        stage02LayerIsolation != OrbStage02LayerIsolation.R06_BACK_TRANSMISSION_ONLY
+    val r06Visible = sceneFrame.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE ||
+        stage02LayerIsolation != OrbStage02LayerIsolation.R03_ONLY
+    val r06ExteriorVisible = sceneFrame.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE ||
+        stage02LayerIsolation == OrbStage02LayerIsolation.R06_ONLY ||
+        stage02LayerIsolation == OrbStage02LayerIsolation.R03_R06
+    val r06FrontVisible = r06ExteriorVisible
     val wake = OrbWakeBreathReleaseV11.wake(sceneFrame.stage, sceneFrame.stageProgress)
     val lifeProgress = OrbWakeBreathReleaseV11.s2Progress(sceneFrame.stage, sceneFrame.stageProgress)
     val candidateLifeAlpha = orbLifeAlpha ?: lifeProgress
@@ -297,7 +330,13 @@ private fun OrbVisual(
         currentCoreOpticalEffect == null -> OrbShaderRoute.UNAVAILABLE.name
         else -> currentCoreOpticalEffect.route.name
     }
-    val shaderOverlayAlpha = wake.optics.coerceIn(0f, 1f) * MAX_SHADER_OVERLAY_ALPHA
+    val shaderProfileForRoute = if (
+        visualProfile == OrbStage02VisualProfile.MAX &&
+        currentCoreOpticalEffect?.route != OrbShaderRoute.FLUID_GRASS_V1_2_CANDIDATE
+    ) OrbStage02VisualProfile.BASELINE else visualProfile
+    val shaderOverlayAlpha = OrbInteriorOpticalField.shaderOverlayAlpha(
+        shaderProfileForRoute, sceneFrame.stage, sceneFrame.stageProgress, wake.optics,
+    )
     val appliedRenderEffect = coreOpticalEffect?.renderEffect?.takeIf {
         injectedShaderOutput == null && renderIsolationMode == OrbRenderIsolationMode.NORMAL &&
             opticalEffectEnabled && shaderUpdateStatus == OrbShaderUpdateStatus.READY && shaderOverlayAlpha > 0f
@@ -312,6 +351,14 @@ private fun OrbVisual(
         updateStatus = shaderUpdateStatus,
         overlayAlpha = shaderOverlayAlpha,
     )
+    val lastReportedShaderStatus = remember { arrayOfNulls<String>(1) }
+    SideEffect {
+        val statusKey = "${sceneFrame.stage.name}|$shaderRoute|${shaderUpdateStatus.name}"
+        if (lastReportedShaderStatus[0] != statusKey) {
+            lastReportedShaderStatus[0] = statusKey
+            onShaderRuntimeStatus?.invoke(sceneFrame.stage.name, shaderRoute, shaderUpdateStatus.name)
+        }
+    }
     val effectForDispose = coreOpticalEffect
     DisposableEffect(effectForDispose) {
         onDispose {
@@ -345,7 +392,7 @@ private fun OrbVisual(
             injectedShaderOutput == null && opticalEffectEnabled && shaderInstance != null
         ) {
             val failure = shaderUpdateGate.update {
-                it.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
+                it.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx, visualProfile)
             }
             if (failure != null) {
                 val exceptionType = failure::class.qualifiedName ?: failure.javaClass.name
@@ -417,10 +464,11 @@ private fun OrbVisual(
         },
         contentAlignment = Alignment.Center,
     ) {
-        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput) {
+        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput && r06ExteriorVisible) {
             OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
                 orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
-                activeEnergyEvent, releaseEnergy, returnEnergy)
+                activeEnergyEvent, releaseEnergy, returnEnergy, visualProfile = visualProfile,
+                onPathMetrics = onR06RenderedPaths, onPathDiagnostics = onR06PathDiagnostics)
         }
         val corePainter = painterResource(R.drawable.processing_water_core_v1)
         Box(
@@ -435,7 +483,7 @@ private fun OrbVisual(
                 contentDescription = null,
                 modifier = Modifier.matchParentSize(),
             )
-            if (shaderOverlayEnabled) {
+            if (shaderOverlayEnabled && r03Visible) {
                 if (injectedShaderOutput != null) {
                     Box(
                         modifier = Modifier.matchParentSize().graphicsLayer {
@@ -454,7 +502,18 @@ private fun OrbVisual(
                 }
             }
         }
-        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && !isolateCoreForTestOutput) OrbCoreOpticalEffects(
+        if (isMaxTransitionActive && r06Visible &&
+            renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput
+        ) OrbWaterLightRibbons(
+            coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
+            orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
+            activeEnergyEvent, releaseEnergy, returnEnergy,
+            visualProfile = visualProfile,
+            renderPass = OrbR06RenderPass.GLASS_TRANSMISSION,
+            onPathMetrics = onR06RenderedPaths,
+            onPathDiagnostics = onR06PathDiagnostics,
+        )
+        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && !isolateCoreForTestOutput && r03Visible) OrbCoreOpticalEffects(
             coreSize = coreSize,
             frame = sharedFrame,
             coreAlpha = 1f,
@@ -466,6 +525,7 @@ private fun OrbVisual(
             showDroplets = orbShowDroplets,
             showSunlight = orbShowSunlight,
             showCaustics = orbShowCaustics,
+            visualProfile = visualProfile,
         )
         if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && !isolateCoreForTestOutput &&
             fromCamera && frame.cameraHeroAlpha > 0f) {
@@ -480,10 +540,11 @@ private fun OrbVisual(
                 },
             )
         }
-        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput) {
+        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput && r06FrontVisible) {
             OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
                 orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
-                activeEnergyEvent, releaseEnergy, returnEnergy)
+                activeEnergyEvent, releaseEnergy, returnEnergy, visualProfile = visualProfile,
+                onPathMetrics = onR06RenderedPaths, onPathDiagnostics = onR06PathDiagnostics)
         }
     }
 }

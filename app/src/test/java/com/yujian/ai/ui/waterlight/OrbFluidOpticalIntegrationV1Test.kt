@@ -72,7 +72,7 @@ class OrbFluidOpticalIntegrationV1Test {
         assertTrue(grassShader.contains("sharedCurrent(uv)"))
         assertTrue(grassShader.contains("clamp(local * sharedLocalWeight + shared * sharedCurrentWeight + flutter * flutterWeight"))
         assertTrue(program.contains("createChainEffect("))
-        assertTrue(program.contains("fluid.update(frame, surfaceSizePx)"))
+        assertTrue(program.contains("fluid.update(frame, surfaceSizePx, visualProfile)"))
         assertTrue(program.contains("grass.update(frame, s2Progress, grassLight, surfaceSizePx)"))
         assertFalse(program.contains("Handler("))
         assertFalse(program.contains("postDelayed("))

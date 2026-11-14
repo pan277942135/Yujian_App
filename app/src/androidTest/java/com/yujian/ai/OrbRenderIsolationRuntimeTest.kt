@@ -1,6 +1,7 @@
 package com.yujian.ai
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.background
@@ -20,6 +21,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
+import com.yujian.ai.R
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
 import com.yujian.ai.ui.designsystem.components.aiorb.LocalOrbShaderOverlayTestOutput
@@ -34,7 +36,10 @@ import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.renderer.OrbFilamentPathRenderer
 import com.yujian.ai.ui.waterlight.renderer.OrbFilamentRendererMode
+import com.yujian.ai.ui.waterlight.renderer.OrbR06RenderPass
 import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02LayerIsolation
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02VisualProfile
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -78,7 +83,13 @@ class OrbRenderIsolationRuntimeTest {
                     },
                 contentAlignment = Alignment.Center,
             ) {
-                OrbForRender(current.frame, current.mode)
+                OrbForRender(
+                    current.frame,
+                    current.mode,
+                    current.testOutput,
+                    current.visualProfile,
+                    current.layerIsolation,
+                )
             }
         }
 
@@ -351,6 +362,88 @@ class OrbRenderIsolationRuntimeTest {
     }
 
     @Test
+    fun maxFluidChangesProductionNormalPixelsButRawCoreRemainsIdenticalAtSameFrame() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val outputRoot = File(instrumentation.context.cacheDir, "recognition-result-handoff/orb-r06/max-fluid").apply {
+            mkdirs()
+        }
+        val identity = RecognitionSceneIdentity(
+            "orb-max-fluid-session", "orb-max-fluid-attempt", "orb-max-fluid-image", "d".repeat(64), 10L,
+        )
+        val sharedFrame = frame(identity, RecognitionSceneStage.ORB_WAKE, .75f)
+        var input by mutableStateOf(
+            RenderInput(
+                sharedFrame,
+                OrbRenderIsolationMode.NORMAL,
+                0,
+                visualProfile = OrbStage02VisualProfile.BASELINE,
+                layerIsolation = OrbStage02LayerIsolation.R03_ONLY,
+            ),
+        )
+        val completedDrawToken = AtomicInteger(-1)
+        composeRule.setContent {
+            val current = input
+            Box(
+                Modifier.fillMaxSize().background(Color.Black).drawWithContent {
+                    drawContent()
+                    completedDrawToken.set(current.drawToken)
+                },
+                contentAlignment = Alignment.Center,
+            ) {
+                OrbForRender(
+                    current.frame,
+                    current.mode,
+                    current.testOutput,
+                    current.visualProfile,
+                    current.layerIsolation,
+                )
+            }
+        }
+        var token = 0
+        fun capture(profile: OrbStage02VisualProfile, isolation: OrbRenderIsolationMode): Bitmap {
+            val next = ++token
+            composeRule.runOnIdle {
+                input = RenderInput(
+                    sharedFrame,
+                    isolation,
+                    next,
+                    visualProfile = profile,
+                    layerIsolation = OrbStage02LayerIsolation.R03_ONLY,
+                )
+            }
+            composeRule.waitUntil(10_000L) { completedDrawToken.get() >= next }
+            composeRule.waitForIdle()
+            return composeRule.onRoot().captureToImage().asAndroidBitmap()
+        }
+
+        val baselineFluid = capture(OrbStage02VisualProfile.BASELINE, OrbRenderIsolationMode.NORMAL)
+        val maxFluid = capture(OrbStage02VisualProfile.MAX, OrbRenderIsolationMode.NORMAL)
+        val rawBaseline = capture(OrbStage02VisualProfile.BASELINE, OrbRenderIsolationMode.RAW_CORE)
+        val rawMax = capture(OrbStage02VisualProfile.MAX, OrbRenderIsolationMode.RAW_CORE)
+        val maxFluidDelta = bitmapDifferencePixels(baselineFluid, maxFluid, threshold = 2)
+        assertTrue("same-frame production R03 MAX must change interior rendered pixels", maxFluidDelta > 0)
+        assertEquals("profile switching must not alter Raw Core pixels", bitmapDigest(rawBaseline), bitmapDigest(rawMax))
+        assertTrue("R03 MAX keeps the raw water core visible", nonBlackCorePixels(maxFluid) > MIN_CORE_PIXELS)
+        savePng(baselineFluid, File(outputRoot, "r03_baseline_stage02_75.png"))
+        savePng(maxFluid, File(outputRoot, "r03_max_stage02_75.png"))
+        File(outputRoot, "r03_max_pixel_report.json").writeText(
+            JSONObject()
+                .put("sourceCommitSha", BuildConfig.SOURCE_REVISION)
+                .put("stage", sharedFrame.sceneFrame.stage.name)
+                .put("stageProgress", sharedFrame.sceneFrame.stageProgress.toDouble())
+                .put("visualComparison", "production AIOrbCore NORMAL R03_ONLY")
+                .put("maxChangedPixels", maxFluidDelta)
+                .put("rawCoreProfileDigestMatches", true)
+                .put("sameSceneFrameAndGeometry", true)
+                .toString(2) + "\n",
+        )
+        baselineFluid.recycle()
+        maxFluid.recycle()
+        rawBaseline.recycle()
+        rawMax.recycle()
+    }
+
+    @Test
     fun everyFrozenR06PathHasCurrentFrameAndroidPaintAndPixelEvidence() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val outputRoot = File(instrumentation.context.cacheDir, "recognition-result-handoff/orb-r06").apply {
@@ -412,6 +505,34 @@ class OrbRenderIsolationRuntimeTest {
                     assertTrue("${spec.id} Body Stroke width is zero at $stage/$progress",
                         pathMetrics.bodyStrokeWidthPx > 0f)
                 }
+                if (stage == RecognitionSceneStage.ORB_WAKE && progress == .75f &&
+                    spec.id in setOf("G02", "A02", "C01")
+                ) {
+                    val baseline = OrbFilamentPathRenderer(spec.front, density = 3f, pathIdFilter = spec.id)
+                    val max = OrbFilamentPathRenderer(spec.front, density = 3f, pathIdFilter = spec.id)
+                    val (baselineBitmap, baselineMetrics) = drawPath(
+                        baseline, stageFrame, OrbStage02VisualProfile.BASELINE,
+                    )
+                    val (maxBitmap, maxMetrics) = drawPath(max, stageFrame, OrbStage02VisualProfile.MAX)
+                    val delta = bitmapDifferencePixels(baselineBitmap, maxBitmap, threshold = 1)
+                    val maxBody = requireNotNull(maxMetrics.paths[spec.id])
+                    assertTrue("${spec.id} MAX body layer must have a real Canvas run", maxBody.bodyDrawnRunCount > 0)
+                    assertTrue("${spec.id} MAX body has no effective Paint alpha", maxBody.bodyPaintAlpha > 0)
+                    assertTrue("${spec.id} MAX body has no effective Stroke width", maxBody.bodyStrokeWidthPx > 0f)
+                    assertTrue("${spec.id} MAX changes the selected frozen path pixels", delta > 0)
+                    reportRows.put(JSONObject()
+                        .put("pathId", spec.id)
+                        .put("stage", stage.name)
+                        .put("progress", progress.toDouble())
+                        .put("comparison", "MAX minus BASELINE same path/frame/geometry")
+                        .put("changedPixels", delta)
+                        .put("baselineBodyRuns", baselineMetrics.paths[spec.id]?.bodyDrawnRunCount ?: 0)
+                        .put("maxBodyRuns", maxBody.bodyDrawnRunCount)
+                        .put("maxBodyPaintAlpha", maxBody.bodyPaintAlpha)
+                        .put("maxBodyStrokeWidthPx", maxBody.bodyStrokeWidthPx.toDouble()))
+                    baselineBitmap.recycle()
+                    maxBitmap.recycle()
+                }
                 if (pathMetrics.bodyMaximumAddedAlpha > .002f) {
                     assertTrue("${spec.id} had readable enhancement but no body draw at $stage/$progress",
                         pathMetrics.bodyDrawnRunCount > 0 && pathMetrics.bodyPaintAlpha > 0 &&
@@ -468,9 +589,48 @@ class OrbRenderIsolationRuntimeTest {
         File(outputRoot, "r06_path_pixel_report.json").writeText(report.toString(2) + "\n")
     }
 
+    @Test
+    fun maxBackGlassTransmissionUsesOnlyG01AndA01InsideTheSourceWaterCore() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val outputRoot = File(instrumentation.context.cacheDir, "recognition-result-handoff/orb-r06/glass").apply {
+            mkdirs()
+        }
+        val identity = RecognitionSceneIdentity("glass-session", "glass-attempt", "glass-image", "e".repeat(64), 11L)
+        val stageFrame = frame(identity, RecognitionSceneStage.ORB_WAKE, .75f)
+        val coreMask = requireNotNull(BitmapFactory.decodeResource(
+            instrumentation.targetContext.resources,
+            R.drawable.processing_water_core_v1,
+        ))
+        try {
+            listOf("G01", "A01").forEach { pathId ->
+                val renderer = OrbFilamentPathRenderer(
+                    front = false,
+                    density = 3f,
+                    renderPass = OrbR06RenderPass.GLASS_TRANSMISSION,
+                    pathIds = setOf(pathId),
+                )
+                val (bitmap, metrics) = drawPath(renderer, stageFrame, OrbStage02VisualProfile.MAX, coreMask)
+                val pathMetrics = metrics.paths[pathId]
+                assertTrue("$pathId glass pass must use frozen back geometry", pathMetrics?.front == false)
+                assertTrue("$pathId glass pass must have valid source-path samples", (pathMetrics?.validSampleCount ?: 0) > 1)
+                assertTrue("$pathId glass pass must draw an actual body run", (pathMetrics?.bodyDrawnRunCount ?: 0) > 0)
+                val pixelsInside = nonBlackPixelsWithinCircle(bitmap, diameter = 240f, radiusFraction = .47f)
+                val pixelsOutside = nonBlackPixelsOutsideCircle(bitmap, diameter = 240f, radiusFraction = .50f)
+                assertTrue("$pathId glass pass has no interior pixel contribution", pixelsInside > 0)
+                assertEquals("$pathId glass pass leaked pixels outside core/transmission edge", 0, pixelsOutside)
+                savePng(bitmap, File(outputRoot, "${pathId.lowercase()}_glass_stage02_75.png"))
+                bitmap.recycle()
+            }
+        } finally {
+            coreMask.recycle()
+        }
+    }
+
     private fun drawPath(
         renderer: OrbFilamentPathRenderer,
         frame: WaterLightFrame,
+        visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
+        coreMaskBitmap: Bitmap? = null,
     ): Pair<Bitmap, OrbFilamentPathRenderer.FrameMetrics> {
         val bitmap = Bitmap.createBitmap(CANVAS_SIZE, CANVAS_SIZE, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap).apply { drawColor(AndroidColor.BLACK) }
@@ -487,6 +647,8 @@ class OrbRenderIsolationRuntimeTest {
             event = OrbRuntimeProfileV1.MotionEvent.NONE,
             eventStartMs = 0L,
             density = 3f,
+            visualProfile = visualProfile,
+            coreMaskBitmap = coreMaskBitmap,
         )
         return bitmap to metrics
     }
@@ -534,6 +696,8 @@ class OrbRenderIsolationRuntimeTest {
         frame: WaterLightFrame,
         isolation: OrbRenderIsolationMode,
         testOutput: OrbShaderOverlayTestOutput? = null,
+        visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
+        layerIsolation: OrbStage02LayerIsolation = OrbStage02LayerIsolation.R03_R06,
     ) {
         CompositionLocalProvider(LocalOrbShaderOverlayTestOutput provides testOutput) {
             AIOrbCore(
@@ -546,6 +710,8 @@ class OrbRenderIsolationRuntimeTest {
                 orbRendererMode = OrbFilamentRendererMode.ORB_V1_CANDIDATE,
                 orbLifeState = OrbRuntimeProfileV1.LifeState.S2_ACTIVE,
                 renderIsolationMode = isolation,
+                visualProfile = visualProfile,
+                stage02LayerIsolation = layerIsolation,
             )
         }
     }
@@ -555,6 +721,8 @@ class OrbRenderIsolationRuntimeTest {
         val mode: OrbRenderIsolationMode,
         val drawToken: Int,
         val testOutput: OrbShaderOverlayTestOutput? = null,
+        val visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
+        val layerIsolation: OrbStage02LayerIsolation = OrbStage02LayerIsolation.R03_R06,
     )
     private data class StageCase(val stage: RecognitionSceneStage, val progress: Float, val modes: List<OrbRenderIsolationMode>)
 
@@ -608,6 +776,50 @@ class OrbRenderIsolationRuntimeTest {
         var count = 0
         for (y in 0 until bitmap.height) for (x in 0 until bitmap.width) {
             if ((bitmap.getPixel(x, y) and 0x00FFFFFF) != 0) count++
+        }
+        return count
+    }
+
+    private fun bitmapDifferencePixels(left: Bitmap, right: Bitmap, threshold: Int): Int {
+        assertEquals(left.width, right.width)
+        assertEquals(left.height, right.height)
+        var count = 0
+        for (y in 0 until left.height) for (x in 0 until left.width) {
+            val a = left.getPixel(x, y)
+            val b = right.getPixel(x, y)
+            val delta = maxOf(
+                kotlin.math.abs((a ushr 24 and 0xFF) - (b ushr 24 and 0xFF)),
+                kotlin.math.abs((a ushr 16 and 0xFF) - (b ushr 16 and 0xFF)),
+                kotlin.math.abs((a ushr 8 and 0xFF) - (b ushr 8 and 0xFF)),
+                kotlin.math.abs((a and 0xFF) - (b and 0xFF)),
+            )
+            if (delta > threshold) count++
+        }
+        return count
+    }
+
+    private fun nonBlackPixelsWithinCircle(bitmap: Bitmap, diameter: Float, radiusFraction: Float): Int {
+        val cx = bitmap.width * .5f
+        val cy = bitmap.height * .5f
+        val radius = diameter * radiusFraction
+        var count = 0
+        for (y in 0 until bitmap.height) for (x in 0 until bitmap.width) {
+            val dx = x + .5f - cx
+            val dy = y + .5f - cy
+            if (dx * dx + dy * dy <= radius * radius && (bitmap.getPixel(x, y) and 0x00FFFFFF) != 0) count++
+        }
+        return count
+    }
+
+    private fun nonBlackPixelsOutsideCircle(bitmap: Bitmap, diameter: Float, radiusFraction: Float): Int {
+        val cx = bitmap.width * .5f
+        val cy = bitmap.height * .5f
+        val radius = diameter * radiusFraction
+        var count = 0
+        for (y in 0 until bitmap.height) for (x in 0 until bitmap.width) {
+            val dx = x + .5f - cx
+            val dy = y + .5f - cy
+            if (dx * dx + dy * dy > radius * radius && (bitmap.getPixel(x, y) and 0x00FFFFFF) != 0) count++
         }
         return count
     }

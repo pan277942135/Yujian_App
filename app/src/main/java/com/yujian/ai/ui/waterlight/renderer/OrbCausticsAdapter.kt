@@ -53,6 +53,7 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
         val geometryVersion: Long,
         val sizePx: Int,
         val profileVersion: String,
+        val visualProfile: OrbStage02VisualProfile,
         val low: Boolean,
     )
 
@@ -71,7 +72,14 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
 
     data class Metrics(val framesRendered: Long, val lastRenderMs: Double, val averageRenderMs: Double)
 
-    fun request(frame: WaterLightFrame, coreSizeDp: Float, density: Float, low: Boolean, onReady: () -> Unit) {
+    fun request(
+        frame: WaterLightFrame,
+        coreSizeDp: Float,
+        density: Float,
+        low: Boolean,
+        visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
+        onReady: () -> Unit,
+    ) {
         if (coreSizeDp <= 0f || density <= 0f) return
         val textureBase = if (low) OrbRuntimeProfileV1.CAUSTIC_LOW_TEXTURE_PX_80DP else OrbRuntimeProfileV1.CAUSTIC_NORMAL_TEXTURE_PX_80DP
         val size = (textureBase * coreSizeDp / 80f).roundToInt().coerceAtLeast(1)
@@ -80,7 +88,7 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
         val cacheKey = CacheKey(
             frame.sessionId, frame.attemptId, frame.imageId, frame.photoSha256,
             frame.photoContentVersion, frame.geometryVersion, size,
-            OrbRuntimeProfileV1.PROFILE_VERSION, low,
+            OrbRuntimeProfileV1.PROFILE_VERSION, visualProfile, low,
         )
         synchronized(lock) {
             if (closed) return
@@ -102,9 +110,18 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
             lastRequestedSceneMs = elapsedMs
             val targetGeneration = generation
             val targetPixels = pixels ?: return
+            val interiorField = OrbInteriorOpticalField.frame(
+                frame.sceneFrame.stage,
+                frame.sceneFrame.stageProgress,
+                frame.reducedMotion,
+                visualProfile,
+            )
             job = scope.launch(Dispatchers.Default) {
                 val started = System.nanoTime()
-                renderPixels(targetPixels, size, elapsedMs, coreSizeDp, low)
+                renderPixels(
+                    targetPixels, size, elapsedMs, coreSizeDp, low,
+                    interiorField.wakeStrength, interiorField.semanticPhase,
+                )
                 val tookNanos = System.nanoTime() - started
                 val publishedCount = synchronized(lock) {
                     if (closed || targetGeneration != generation || key != cacheKey ||
@@ -132,7 +149,16 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
         }
     }
 
-    private suspend fun renderPixels(pixels: IntArray, size: Int, elapsedMs: Long, @Suppress("UNUSED_PARAMETER") coreSizeDp: Float, @Suppress("UNUSED_PARAMETER") low: Boolean) {
+    private suspend fun renderPixels(
+        pixels: IntArray,
+        size: Int,
+        elapsedMs: Long,
+        @Suppress("UNUSED_PARAMETER") coreSizeDp: Float,
+        @Suppress("UNUSED_PARAMETER") low: Boolean,
+        wakeStrength: Float = 0f,
+        semanticPhase: Float = 0f,
+    ) {
+        val sharedFlowScratch = FloatArray(2)
         val layers = OrbRuntimeProfileV1.causticLayers
         val normalColor = WaterCausticsField.Rgb(.78, .94, .91)
         val waterTint = WaterCausticsField.Rgb(.10, .32, .36)
@@ -152,6 +178,19 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
                     ((OrbRuntimeProfileV1.CAUSTIC_INNER_RADIUS_D - distanceD) / OrbRuntimeProfileV1.CAUSTIC_EDGE_FADE_D).coerceIn(0.0, 1.0)
                 }
                 val edgeAlpha = edge * edge * (3.0 - 2.0 * edge)
+                val uvX = (x + .5f) / size
+                val uvY = (y + .5f) / size
+                if (wakeStrength > 0f) OrbInteriorOpticalField.writeSharedFlowDirectionAt(
+                    uvX, uvY, semanticPhase, elapsedMs, sharedFlowScratch, 0,
+                )
+                val sharedWakeOffsetX = if (wakeStrength > 0f) {
+                    sharedFlowScratch[0] * size *
+                        OrbStage02MaxVisualProfile.FLUID_DISPLACEMENT_MAX_D * wakeStrength
+                } else 0f
+                val sharedWakeOffsetY = if (wakeStrength > 0f) {
+                    sharedFlowScratch[1] * size *
+                        OrbStage02MaxVisualProfile.FLUID_DISPLACEMENT_MAX_D * wakeStrength
+                } else 0f
                 var alpha = 0.0
                 var red = 0.0
                 var green = 0.0
@@ -161,8 +200,8 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
                     val advectX = layer.advectionXDps * frameSeconds * size
                     val advectY = layer.advectionYDps * frameSeconds * size
                     val sample = WaterCausticsField.sampleCaustic(
-                        x + .5 + advectX,
-                        y + .5 + advectY,
+                        x + .5 + advectX + sharedWakeOffsetX,
+                        y + .5 + advectY + sharedWakeOffsetY,
                         size.toDouble(),
                         size.toDouble(),
                         layerSeconds,
@@ -250,6 +289,7 @@ internal fun OrbCoreOpticalEffects(
     showDroplets: Boolean = true,
     showSunlight: Boolean = true,
     showCaustics: Boolean = true,
+    visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
 ) {
     if (!candidate) return
     val scope = rememberCoroutineScope()
@@ -272,8 +312,8 @@ internal fun OrbCoreOpticalEffects(
     val droplets = remember { OrbDropletRenderer() }
     val sunlight = remember { OrbSunlightRenderer() }
     val mask = ImageBitmap.imageResource(R.drawable.processing_water_core_v1)
-    LaunchedEffect(caustics, frame, sizeDp, densityValue, low, showCaustics) {
-        if (showCaustics) caustics.request(frame, sizeDp, densityValue, low) { revision++ }
+    LaunchedEffect(caustics, frame, sizeDp, densityValue, low, showCaustics, visualProfile) {
+        if (showCaustics) caustics.request(frame, sizeDp, densityValue, low, visualProfile) { revision++ }
     }
     DisposableEffect(caustics) { onDispose { caustics.close() } }
     @Suppress("UNUSED_VARIABLE") val renderRevision = revision

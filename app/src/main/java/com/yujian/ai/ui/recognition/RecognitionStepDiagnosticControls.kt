@@ -36,6 +36,8 @@ import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderIsolationMode
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02VisualProfile
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02LayerIsolation
 
 /** Shared Debug-only overlay used by Processing and Result so both pages operate one controller. */
 @Composable
@@ -67,6 +69,12 @@ fun RecognitionStepDiagnosticControls(
     onAutoPlay: () -> Unit,
     orbIsolationMode: OrbRenderIsolationMode? = null,
     onOrbIsolationModeChange: ((OrbRenderIsolationMode) -> Unit)? = null,
+    orbVisualProfile: OrbStage02VisualProfile? = null,
+    onOrbVisualProfileChange: ((OrbStage02VisualProfile) -> Unit)? = null,
+    orbLayerIsolation: OrbStage02LayerIsolation? = null,
+    onOrbLayerIsolationChange: ((OrbStage02LayerIsolation) -> Unit)? = null,
+    orbRuntimeStatus: String? = null,
+    onExportOrbVisualEvidence: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
@@ -128,6 +136,74 @@ fun RecognitionStepDiagnosticControls(
                             )
                         }
                     }
+                }
+                if (orbVisualProfile != null && onOrbVisualProfileChange != null) {
+                    Row(
+                        modifier = Modifier.padding(top = 4.dp).width(156.dp)
+                            .clip(RoundedCornerShape(10.dp)).background(Color(0xDDF8FFFC)).padding(2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        OrbStage02VisualProfile.entries.forEach { profile ->
+                            val selected = orbVisualProfile == profile
+                            Text(
+                                profile.name,
+                                color = if (selected) Color.White else Color(0xFF37666C),
+                                fontSize = 8.sp,
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
+                                    .background(if (selected) Color(0xFF287E79) else Color.Transparent)
+                                    .clickable { onOrbVisualProfileChange(profile) }
+                                    .padding(horizontal = 1.dp, vertical = 5.dp),
+                            )
+                        }
+                    }
+                }
+                if (orbLayerIsolation != null && onOrbLayerIsolationChange != null) {
+                    Row(
+                        modifier = Modifier.padding(top = 4.dp).width(156.dp)
+                            .clip(RoundedCornerShape(10.dp)).background(Color(0xDDF8FFFC)).padding(2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        listOf(
+                            OrbStage02LayerIsolation.R03_ONLY to "R03 ONLY",
+                            OrbStage02LayerIsolation.R06_ONLY to "R06 ONLY",
+                            OrbStage02LayerIsolation.R03_R06 to "R03 + R06",
+                        ).forEach { (isolation, label) ->
+                            val selected = orbLayerIsolation == isolation
+                            Text(
+                                label,
+                                color = if (selected) Color.White else Color(0xFF37666C),
+                                fontSize = 7.sp,
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
+                                    .background(if (selected) Color(0xFF287E79) else Color.Transparent)
+                                    .clickable { onOrbLayerIsolationChange(isolation) }
+                                    .padding(horizontal = 1.dp, vertical = 5.dp),
+                            )
+                        }
+                    }
+                }
+                if (orbRuntimeStatus != null) {
+                    Text(
+                        orbRuntimeStatus,
+                        modifier = Modifier.padding(top = 3.dp).width(156.dp)
+                            .clip(RoundedCornerShape(8.dp)).background(Color(0xDDF8FFFC))
+                            .padding(horizontal = 5.dp, vertical = 4.dp),
+                        color = Color(0xFF386766), fontSize = 7.sp, maxLines = 3,
+                    )
+                }
+                if (onExportOrbVisualEvidence != null) {
+                    Text(
+                        "导出Orb真实像素对照",
+                        modifier = Modifier.padding(top = 3.dp).width(156.dp)
+                            .clip(RoundedCornerShape(8.dp)).background(Color(0xFF287E79))
+                            .clickable(onClick = onExportOrbVisualEvidence)
+                            .padding(horizontal = 5.dp, vertical = 5.dp),
+                        color = Color.White, fontSize = 8.sp, textAlign = TextAlign.Center,
+                    )
                 }
                 val elapsed = previewElapsedMs.coerceIn(0L, DIAGNOSTIC_STEP_DURATION_MS)
                 val previewState = when {

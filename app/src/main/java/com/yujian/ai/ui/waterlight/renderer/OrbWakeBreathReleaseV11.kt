@@ -74,6 +74,31 @@ internal object OrbWakeBreathReleaseV11 {
             .coerceIn(0f, R06_ALPHA_CAP)
     }
 
+    /** MAX-only body contribution; Stage03 shares the existing 80 ms release envelope. */
+    internal fun r06MaxBodyAlpha(
+        stage: RecognitionSceneStage,
+        stageProgress: Float,
+        originalAlpha: Float,
+        active: Float,
+        endFade: Float,
+        tailAlpha: Float,
+        profileOpacity: Float,
+        crossOpacity: Float,
+        front: Boolean,
+    ): Float {
+        val envelope = r06WakeReadabilityEnvelope(stage, stageProgress)
+        if (envelope <= 0f || active <= 0f || endFade <= 0f) return originalAlpha
+        val target = if (front) OrbStage02MaxVisualProfile.R06_FRONT_BODY_ALPHA_TARGET
+        else OrbStage02MaxVisualProfile.R06_BACK_BODY_ALPHA_TARGET
+        val activeWeight = (active / .25f).coerceIn(0f, 1f)
+        val shapeWeight = sqrt(
+            (tailAlpha.coerceIn(0f, 1f) * profileOpacity.coerceIn(0f, 1f) *
+                crossOpacity.coerceIn(0f, 1f)).coerceIn(0f, 1f),
+        )
+        val contribution = target * envelope * activeWeight * endFade.coerceIn(0f, 1f) * shapeWeight
+        return maxOf(originalAlpha, contribution).coerceIn(0f, R06_ALPHA_CAP)
+    }
+
     /** Frozen ease-out cubic-bezier(0.16, 1.0, 0.30, 1.0), solved for x. */
     fun wakeEase(value: Float): Float {
         val x = value.coerceIn(0f, 1f)
