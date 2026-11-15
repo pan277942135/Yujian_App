@@ -123,3 +123,11 @@ No valid Code-local-only product source or resource file was found. The local
 untracked set consists of branch-local state, existing worktrees and generated
 Python bytecode. These are retained in the external snapshot and intentionally
 not published to the QA branch.
+
+## Post-merge derived-source repair
+
+`app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbRuntimeProfileV1.kt`
+was regenerated from the PR's checked-in R02–R06 JSON and geometry authorities.
+The only changed values are the seven derived JSON/geometry SHA constants; no
+runtime parameters, path geometry, timing, materials or rendering behavior changed.
+`generate_orb_runtime_profile.py --check` passes on the resulting source.
