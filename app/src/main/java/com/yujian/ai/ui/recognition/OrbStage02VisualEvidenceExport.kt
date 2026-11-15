@@ -165,7 +165,13 @@ object OrbStage02VisualEvidenceExport {
                             throw IllegalStateException("RENDER_LAYER_NOT_UPDATED: ${capture.captureId}", timeout)
                         }
                     }
-                    awaitCommittedWindowFrame(view)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        awaitCommittedWindowFrame(view)
+                    } else {
+                        throw IllegalStateException(
+                            "CAPTURE_FRAME_UNVERIFIED: window frame commit callback requires API 29+",
+                        )
+                    }
                     val committedState = OrbStage02RenderTrace.captureState(capture.captureId)
                         ?: throw IllegalStateException("CAPTURE_STATE_MISSING: ${capture.captureId}")
                     validateCaptureState(metadata, capture, committedState)
