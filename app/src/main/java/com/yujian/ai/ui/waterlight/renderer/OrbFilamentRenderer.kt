@@ -161,6 +161,10 @@ fun OrbWaterLightRibbons(
                             "bodyEndFade" to metric.bodyMaximumEndFade,
                             "bodyTailAlpha" to metric.bodyMaximumTailAlpha,
                             "transmissionFactor" to metric.bodyMaximumTransmissionFactor,
+                            "representativeRawCoreAlpha" to metric.bodyMaximumRepresentativeRawCoreAlpha,
+                            "runMaxRawCoreAlpha" to metric.bodyMaximumRunRawCoreAlpha,
+                            "runMaxInteriorMask" to metric.bodyMaximumRunInteriorMask,
+                            "maskEligibleSampleCount" to metric.bodyMaximumMaskEligibleSamples,
                             "edgeFade" to metric.bodyMaximumEdgeFade,
                             "headPaintAlpha" to metric.headPaintAlpha,
                             "finalPixelContribution" to "NOT_MEASURED_IN_RUNTIME_TRACE",
@@ -241,6 +245,10 @@ internal class OrbFilamentPathRenderer(
         val bodyMaximumAddedAlpha: Float,
         val bodyMaximumEndFade: Float,
         val bodyMaximumTransmissionFactor: Float,
+        val bodyMaximumRepresentativeRawCoreAlpha: Float,
+        val bodyMaximumRunRawCoreAlpha: Float,
+        val bodyMaximumRunInteriorMask: Float,
+        val bodyMaximumMaskEligibleSamples: Int,
         val bodyMaximumEdgeFade: Float,
         val bodyMaximumEffectiveAlpha: Float,
         val pathPhaseU: Float,
@@ -280,6 +288,10 @@ internal class OrbFilamentPathRenderer(
         var bodyMaximumAddedAlpha = 0f
         var bodyMaximumEndFade = 0f
         var bodyMaximumTransmissionFactor = 0f
+        var bodyMaximumRepresentativeRawCoreAlpha = 0f
+        var bodyMaximumRunRawCoreAlpha = 0f
+        var bodyMaximumRunInteriorMask = 0f
+        var bodyMaximumMaskEligibleSamples = 0
         var bodyMaximumEdgeFade = 0f
         var bodyMaximumEffectiveAlpha = 0f
         var pathPhaseU = -1f
@@ -310,6 +322,10 @@ internal class OrbFilamentPathRenderer(
             bodyMaximumAddedAlpha = bodyMaximumAddedAlpha,
             bodyMaximumEndFade = bodyMaximumEndFade,
             bodyMaximumTransmissionFactor = bodyMaximumTransmissionFactor,
+            bodyMaximumRepresentativeRawCoreAlpha = bodyMaximumRepresentativeRawCoreAlpha,
+            bodyMaximumRunRawCoreAlpha = bodyMaximumRunRawCoreAlpha,
+            bodyMaximumRunInteriorMask = bodyMaximumRunInteriorMask,
+            bodyMaximumMaskEligibleSamples = bodyMaximumMaskEligibleSamples,
             bodyMaximumEdgeFade = bodyMaximumEdgeFade,
             bodyMaximumEffectiveAlpha = bodyMaximumEffectiveAlpha,
             pathPhaseU = pathPhaseU,
@@ -329,6 +345,7 @@ internal class OrbFilamentPathRenderer(
         val samplesY: FloatArray,
         val samplesU: FloatArray,
         val samplesValid: BooleanArray,
+        val samplesRawCoreAlpha: FloatArray,
         val samplesNormalX: FloatArray,
         val samplesNormalY: FloatArray,
         val scratch: FloatArray,
@@ -366,7 +383,7 @@ internal class OrbFilamentPathRenderer(
             material,
             material.layers.firstOrNull { it.id == "translucent_body" || it.id == "fine_filament" }?.id,
             staticLut,
-            FloatArray(97), FloatArray(97), FloatArray(97), BooleanArray(97), FloatArray(97), FloatArray(97),
+            FloatArray(97), FloatArray(97), FloatArray(97), BooleanArray(97), FloatArray(97), FloatArray(97), FloatArray(97),
             FloatArray(6),
             Array(chunkCount) { Array(layerCount) { NativePath() } },
             Array(layerCount) { NativePaint(NativePaint.ANTI_ALIAS_FLAG).apply {
@@ -552,6 +569,7 @@ internal class OrbFilamentPathRenderer(
                 val samplesY = cache.samplesY
                 val samplesU = cache.samplesU
                 val samplesValid = cache.samplesValid
+                val samplesRawCoreAlpha = cache.samplesRawCoreAlpha
                 val samplesNormalX = cache.samplesNormalX
                 val samplesNormalY = cache.samplesNormalY
                 clearR06SampleValidity(samplesValid, steps)
@@ -615,6 +633,13 @@ internal class OrbFilamentPathRenderer(
                     )
                 }
                 if (!anyPoint) continue
+                if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
+                    for (i in 0..steps) {
+                        samplesRawCoreAlpha[i] = if (samplesValid[i]) {
+                            rawCoreAlphaAt(samplesX[i], samplesY[i], centerX, centerY, diameterPx)
+                        } else 0f
+                    }
+                }
                 pathMetrics.getValue(spec.id).apply {
                     validSampleCount = currentPathValidSampleCount
                     pathPhaseU = move.u
@@ -705,29 +730,57 @@ internal class OrbFilamentPathRenderer(
                         val representativeRadiusD = kotlin.math.hypot(samplesX[mid] - centerX, samplesY[mid] - centerY) / diameterPx
                         var transmissionFactor = 1f
                         var representativeEdgeFade = 1f
+                        var representativeRawCoreAlpha = 1f
+                        var runMaximumRawCoreAlpha = 1f
+                        var runMaximumInteriorMask = 1f
+                        var maskEligibleSampleCount = 0
                         if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
                             representativeEdgeFade = OrbInteriorOpticalField.interiorWeight(representativeRadiusD)
-                            val rawCoreAlpha = rawCoreAlphaAt(
-                                samplesX[mid], samplesY[mid], centerX, centerY, diameterPx,
+                            representativeRawCoreAlpha = samplesRawCoreAlpha[mid]
+                            runMaximumRawCoreAlpha = r06MaximumRawCoreAlphaInRuns(
+                                samplesRawCoreAlpha,
+                                drawableRuns,
                             )
-                            transmissionFactor = OrbStage02MaxVisualProfile.GLASS_BACK_TRANSMISSION_MAX * rawCoreAlpha
-                            if (rawCoreAlpha <= 0f || representativeEdgeFade <= 0f) {
+                            runMaximumInteriorMask = 0f
+                            drawableRuns.forEach { run ->
+                                for (sampleIndex in run) {
+                                    val sampleRadiusD = kotlin.math.hypot(
+                                        samplesX[sampleIndex] - centerX,
+                                        samplesY[sampleIndex] - centerY,
+                                    ) / diameterPx
+                                    val sampleInteriorMask = OrbInteriorOpticalField.interiorWeight(sampleRadiusD)
+                                    if (sampleInteriorMask > runMaximumInteriorMask) {
+                                        runMaximumInteriorMask = sampleInteriorMask
+                                    }
+                                    if (samplesRawCoreAlpha[sampleIndex] > 0f && sampleInteriorMask > 0f) {
+                                        maskEligibleSampleCount++
+                                    }
+                                }
+                            }
+                            transmissionFactor =
+                                OrbStage02MaxVisualProfile.GLASS_BACK_TRANSMISSION_MAX * runMaximumRawCoreAlpha
+                            if (runMaximumRawCoreAlpha <= 0f || runMaximumInteriorMask <= 0f) {
                                 OrbStage02RenderTrace.recordRateLimited(
                                     throttleKey = "GLASS_MASK_ZERO:${spec.id}:${front}:${renderPass.name}",
                                     eventType = "GLASS_MASK_ZERO",
                                     dataSource = "CALCULATED_VALUE",
                                     fields = mapOf(
                                         "pathId" to spec.id,
-                                        "radialPositionD" to representativeRadiusD,
-                                        "rawCoreAlpha" to rawCoreAlpha,
-                                        "interiorMask" to representativeEdgeFade,
+                                        "representativeRadiusD" to representativeRadiusD,
+                                        "representativeRawCoreAlpha" to representativeRawCoreAlpha,
+                                        "runMaximumRawCoreAlpha" to runMaximumRawCoreAlpha,
+                                        "runMaximumInteriorMask" to runMaximumInteriorMask,
+                                        "maskEligibleSampleCount" to maskEligibleSampleCount,
                                         "renderPass" to renderPass.name,
                                     ),
                                 )
                             }
-                            // The source silhouette gates the pass here. The single radial
-                            // interior/edge mask is applied per output pixel by the Paint shader.
-                            layerAlpha = r06GlassTransmissionBodyAlpha(layerAlpha, rawCoreAlpha)
+                            // The representative point is diagnostic only. Source alpha comes
+                            // from this chunk's current valid runs; the single radial edge mask
+                            // remains per output pixel on the Paint shader.
+                            layerAlpha = if (runMaximumRawCoreAlpha > 0f && runMaximumInteriorMask > 0f) {
+                                r06GlassTransmissionBodyAlpha(layerAlpha, runMaximumRawCoreAlpha)
+                            } else 0f
                         }
                         if (isBodyLayer) {
                             pathMetrics.getValue(spec.id).apply {
@@ -740,6 +793,16 @@ internal class OrbFilamentPathRenderer(
                                 bodyMaximumEndFade = max(bodyMaximumEndFade, endFade)
                                 bodyMaximumTailAlpha = max(bodyMaximumTailAlpha, tailAlpha)
                                 bodyMaximumTransmissionFactor = max(bodyMaximumTransmissionFactor, transmissionFactor)
+                                bodyMaximumRepresentativeRawCoreAlpha = max(
+                                    bodyMaximumRepresentativeRawCoreAlpha,
+                                    representativeRawCoreAlpha,
+                                )
+                                bodyMaximumRunRawCoreAlpha = max(bodyMaximumRunRawCoreAlpha, runMaximumRawCoreAlpha)
+                                bodyMaximumRunInteriorMask = max(bodyMaximumRunInteriorMask, runMaximumInteriorMask)
+                                bodyMaximumMaskEligibleSamples = max(
+                                    bodyMaximumMaskEligibleSamples,
+                                    maskEligibleSampleCount,
+                                )
                                 bodyMaximumEdgeFade = max(bodyMaximumEdgeFade, representativeEdgeFade)
                                 bodyMaximumEffectiveAlpha = max(
                                     bodyMaximumEffectiveAlpha,

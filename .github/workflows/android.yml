@@ -7,6 +7,7 @@ on:
       - work/unified-waterlight-a02-core-component-v1
       - work/android-ai-orb-r02-r06-runtime-v1
       - 'fix/**'
+      - 'qa/**'
       - 'feature/**'
       - 'refactor/**'
       - 'integration/**'

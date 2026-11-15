@@ -332,6 +332,8 @@ object OrbStage02VisualEvidenceExport {
                     .put("productionStage02TraceStatus", if (OrbStage02RenderTrace.productionStage02FrameCount() > 0) {
                         "AVAILABLE"
                     } else "PRODUCTION_STAGE02_TRACE_MISSING")
+                    .put("manualStage02TraceFrameCount", OrbStage02RenderTrace.manualStage02FrameCount())
+                    .put("traceRetention", OrbStage02RenderTrace.retentionDiagnosticsJson())
                     .put("humanVisualDiscernibility", "NOT_ASSESSED")
                     .put("r03PixelMeasurement", if (r03PixelPairsMeasured) {
                         "PIXELCOPY_PAIR_MEASURED; FLUID_INTERPRETATION_REQUIRES_ROUTE_AND_FIXED_PROGRESS_QUALIFICATION"
@@ -354,6 +356,7 @@ object OrbStage02VisualEvidenceExport {
                     .put("captureCount", captured.size)
                     .put("failureCount", failures.size)
                     .put("droppedTraceEvents", OrbStage02RenderTrace.droppedEventCount())
+                    .put("traceRetention", OrbStage02RenderTrace.retentionDiagnosticsJson())
                     .put("files", manifestFiles)
                     .put("failures", JSONArray(failures.map { JSONObject()
                         .put("captureId", it.capture.captureId).put("fileName", it.capture.fileName).put("reason", it.reason) }))

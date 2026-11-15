@@ -21,3 +21,20 @@
 ## Iteration rule
 
 Iteration 001 makes source-level progress but has no measured visual delta. Do not claim improvement from code, logs, or CI alone. Close a visual issue only when evidence is bound to the exact source SHA and identifies the first failing layer. Keep `R03_VISUAL_PASS`, `R06_VISUAL_PASS`, `GPU_PIXEL_PASS`, and `DEVICE_PASS` unclaimed until current-source device evidence and user visual review exist.
+
+
+## Iteration 002 — retained production trace and current-run glass sampling
+
+**Source baseline:** `10de57b467542596b55a9e96b7df1330fe1de1de`  
+**Device evidence source:** `7da3604ac310348e9567268226792832ca59beef` (older APK; not evidence for this iteration’s source)  
+**Evidence files:** `YuJian_20261115_Stage02_Device_QA_7da3604.md`, `orb-stage02-1794741649201.zip`, `SVID_20261115_191941_1.mp4`
+
+| ID | Finding | Evidence level | Iteration 002 action | Status |
+|---|---|---|---|---|
+| QA-06 | The device ZIP reports zero production AUTO Stage02 frames after 7,880 general trace events were dropped; the export counted only the shared 4,096-row ring. | L2 for the older ZIP’s recorded counters; current-source mechanism confirmed by code | Retain AUTO Stage02 and MANUAL Stage02 events in separate bounded streams; export retained/dropped counts and nearest checkpoint references to real retained frames. | SOURCE_FIX_IN_EXACT_HEAD_CANDIDATE; DEVICE_RECAPTURE_PENDING |
+| R06-03 | In the frozen A01 Stage02 0ms sample, the representative sample at about 0.4723D is outside the 0.47D mask while later samples in the same valid run are inside; selecting only the midpoint source alpha can underweight that drawable run. | L1/L2 local source/math evidence; not current-source GPU causality | Compute source alpha from the current valid drawable run, preserve the single per-pixel radial glass mask, and record representative plus run-level diagnostics. | SOURCE_FIX_IN_EXACT_HEAD_CANDIDATE; DEVICE_RECAPTURE_PENDING |
+| R03-04 | The projected T0/T500/T1500 captures show time-dependent pixels, but the Stage02 frame was pinned and the projected clock is not proof of production AUTO motion. | L2 static/projected PixelCopy evidence; not L3 production dynamic proof | Keep the wake progress semantic clock separate from the shared continuous optical clock; preserve production AUTO frames independently in the trace. No further R03 intensity change is justified by current evidence. | PRODUCTION_CLOCK_PIXEL_VALIDATION_PENDING |
+
+**Interpretation guardrails:** The prior ZIP’s zero AUTO frame count is a trace-retention failure, not proof that production Stage02 did not run. A PixelCopy image showing no glass transmission at one sampled phase is not proof that G01/A01 can never overlap the interior. Draw submission, retained runtime metrics, and shader READY remain below final pixel or human-visibility evidence.
+
+**Next exact-source device evidence:** Install the APK whose source SHA equals this PR’s final HEAD; capture one normal AUTO Stage01–03 recording and one Debug evidence ZIP. Confirm the ZIP has retained AUTO Stage02 frame checkpoints and per-capture IDs before interpreting R03/R06. Keep the continuous-motion conclusion separate from paused MANUAL projected samples.

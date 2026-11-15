@@ -7,6 +7,7 @@ import com.yujian.ai.ui.waterlight.renderer.OrbStage02MaxVisualProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02VisualProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbWakeBreathReleaseV11
 import com.yujian.ai.ui.waterlight.renderer.r06GlassTransmissionBodyAlpha
+import com.yujian.ai.ui.waterlight.renderer.r06MaximumRawCoreAlphaInRuns
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -162,6 +163,25 @@ class OrbStage02MaxVisualProfileTest {
         assertEquals(.28f, r06GlassTransmissionBodyAlpha(.70f, .50f), .00001f)
         assertEquals(0f, r06GlassTransmissionBodyAlpha(.70f, 0f), 0f)
         assertEquals(.80f, r06GlassTransmissionBodyAlpha(1f, 1f), .00001f)
+    }
+
+    @Test fun glassTransmissionUsesHighestRawCoreAlphaInTheCurrentDrawableRunAndExcludesGaps() {
+        val coreAlphaBySample = FloatArray(9)
+        coreAlphaBySample[4] = .2196f // frozen A01 midpoint sample at radius 0.4723D
+        coreAlphaBySample[7] = .9882f // frozen A01 sample at radius 0.4656D in the same run
+        val sameRun = listOf(0..8)
+        val splitRuns = listOf(0..3, 5..8)
+
+        assertEquals(.9882f, r06MaximumRawCoreAlphaInRuns(coreAlphaBySample, sameRun), .00001f)
+        assertEquals(0f, r06MaximumRawCoreAlphaInRuns(coreAlphaBySample, splitRuns), 0f)
+        assertEquals(
+            .70f * .80f * .9882f,
+            r06GlassTransmissionBodyAlpha(.70f, r06MaximumRawCoreAlphaInRuns(coreAlphaBySample, sameRun)),
+            .00001f,
+        )
+        assertEquals(0f, r06GlassTransmissionBodyAlpha(
+            .70f, r06MaximumRawCoreAlphaInRuns(coreAlphaBySample, splitRuns),
+        ), 0f)
     }
 
     @Test fun shaderBlendIsContinuousAtStage02ToStage03AndReturnsToBaselineAfter80ms() {

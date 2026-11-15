@@ -48,6 +48,23 @@ internal fun r06GlassTransmissionBodyAlpha(
     OrbStage02MaxVisualProfile.GLASS_BACK_TRANSMISSION_MAX *
     rawCoreAlpha.coerceIn(0f, 1f)).coerceIn(0f, 1f)
 
+internal fun r06MaximumRawCoreAlphaInRuns(
+    rawCoreAlphaBySample: FloatArray,
+    drawableRuns: List<IntRange>,
+): Float {
+    var maximum = 0f
+    drawableRuns.forEach { run ->
+        var index = run.first.coerceAtLeast(0)
+        val last = run.last.coerceAtMost(rawCoreAlphaBySample.lastIndex)
+        while (index <= last) {
+            val sampleAlpha = rawCoreAlphaBySample[index]
+            if (sampleAlpha.isFinite() && sampleAlpha > maximum) maximum = sampleAlpha
+            index++
+        }
+    }
+    return maximum.coerceIn(0f, 1f)
+}
+
 /** Stateless shared Stage02 field used by the fluid shader and the R06 glass pass. */
 internal object OrbInteriorOpticalField {
     data class Frame(
