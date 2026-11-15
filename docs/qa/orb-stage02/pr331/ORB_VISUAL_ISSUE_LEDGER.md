@@ -38,3 +38,8 @@ Iteration 001 makes source-level progress but has no measured visual delta. Do n
 **Interpretation guardrails:** The prior ZIP’s zero AUTO frame count is a trace-retention failure, not proof that production Stage02 did not run. A PixelCopy image showing no glass transmission at one sampled phase is not proof that G01/A01 can never overlap the interior. Draw submission, retained runtime metrics, and shader READY remain below final pixel or human-visibility evidence.
 
 **Next exact-source device evidence:** Install the APK whose source SHA equals this PR’s final HEAD; capture one normal AUTO Stage01–03 recording and one Debug evidence ZIP. Confirm the ZIP has retained AUTO Stage02 frame checkpoints and per-capture IDs before interpreting R03/R06. Keep the continuous-motion conclusion separate from paused MANUAL projected samples.
+
+
+## Iteration 002 — exact-head Control Plane Admission route
+
+The existing admission workflow was limited to `main` pushes and PRs targeting `main`; PR #332 targets `work/recognition-runtime-result-handoff-v1`, so its standalone admission job did not run. The existing workflow now also accepts `qa/**` pushes, allowing the final QA branch commit to run Control Plane Admission without changing the PR base or adding a workflow. The corresponding exact-head run is recorded in the delivery result.

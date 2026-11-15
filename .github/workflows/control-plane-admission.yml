@@ -6,7 +6,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     branches: [main]
   push:
-    branches: [main]
+    branches: [main, 'qa/**']
   workflow_dispatch:
   merge_group:
     types: [checks_requested]
