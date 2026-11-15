@@ -11,7 +11,10 @@ import com.yujian.ai.ui.components.applyExifOrientation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.text.SimpleDateFormat
 import java.security.MessageDigest
+import java.util.Locale
+import java.util.TimeZone
 import java.util.UUID
 
 object RecognitionImageStore {
@@ -70,6 +73,7 @@ object RecognitionImageStore {
         context: Context,
         file: File,
         previewAspectRatio: Float? = null,
+        captureTimestampEpochMs: Long? = null,
     ): CameraNormalizationResult = withContext(Dispatchers.IO) {
         require(file.exists() && file.length() > 0L) { "没有读取到拍照内容，请重新拍摄" }
 
@@ -87,7 +91,13 @@ object RecognitionImageStore {
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val decoded = BitmapFactory.decodeFile(file.absolutePath, options)
             ?: error("拍照文件无法解析，请重新拍摄")
-        val selected = persistNormalized(context, decoded, orientation, rotation, "camera", previewAspectRatio)
+        val importedAt = System.currentTimeMillis()
+        val exifCaptureTime = captureTimeFromExif(exif, importedAt)
+        val selected = persistNormalized(
+            context, decoded, orientation, rotation, "camera", previewAspectRatio,
+            captureTimestampEpochMs = captureTimestampEpochMs ?: exifCaptureTime.first,
+            captureTimestampSource = if (captureTimestampEpochMs != null) "CAMERA_CAPTURE_CALLBACK" else exifCaptureTime.second,
+        )
         CameraNormalizationResult(
             selectedImage = selected,
             rotationDegrees = rotation,
@@ -119,7 +129,12 @@ object RecognitionImageStore {
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val decoded = BitmapFactory.decodeFile(file.absolutePath, options)
             ?: error(invalidMessage)
-        return persistNormalized(context, decoded, orientation, rotation, source)
+        val captureTime = captureTimeFromExif(exif, System.currentTimeMillis())
+        return persistNormalized(
+            context, decoded, orientation, rotation, source,
+            captureTimestampEpochMs = captureTime.first,
+            captureTimestampSource = captureTime.second,
+        )
     }
 
     private fun persistNormalized(
@@ -129,6 +144,8 @@ object RecognitionImageStore {
         rotation: Int,
         source: String,
         previewAspectRatio: Float? = null,
+        captureTimestampEpochMs: Long,
+        captureTimestampSource: String,
     ): SelectedImage {
         // Normalize all eight EXIF orientations, including mirrors, before any
         // detector, segmenter, crop or UI consumes this canonical bitmap.
@@ -165,6 +182,32 @@ object RecognitionImageStore {
             sourceOrientationDegrees = rotation,
             sourceExifOrientation = orientation,
             photoSha256 = sha256,
+            captureTimestampEpochMs = captureTimestampEpochMs,
+            captureTimestampSource = captureTimestampSource,
         )
+    }
+
+    private fun captureTimeFromExif(exif: ExifInterface?, fallbackEpochMs: Long): Pair<Long, String> {
+        val raw = exif?.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
+            ?.takeIf(String::isNotBlank) ?: return fallbackEpochMs to "SYSTEM_INGESTION"
+        val parser = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US).apply { isLenient = false }
+        val offset = exif?.getAttribute("OffsetTimeOriginal")
+            ?.takeIf { it.matches(Regex("^[+-]\\d{2}:\\d{2}$")) }
+        if (offset != null) {
+            val sign = if (offset[0] == '-') -1 else 1
+            val hours = offset.substring(1, 3).toIntOrNull() ?: return fallbackEpochMs to "SYSTEM_INGESTION"
+            val minutes = offset.substring(4, 6).toIntOrNull() ?: return fallbackEpochMs to "SYSTEM_INGESTION"
+            if (hours > 23 || minutes > 59) return fallbackEpochMs to "SYSTEM_INGESTION"
+            val offsetMinutes = sign * (hours * 60 + minutes)
+            val zoneId = "GMT${if (offsetMinutes >= 0) "+" else "-"}${String.format(Locale.US, "%02d:%02d", kotlin.math.abs(offsetMinutes) / 60, kotlin.math.abs(offsetMinutes) % 60)}"
+            parser.timeZone = TimeZone.getTimeZone(zoneId)
+        } else {
+            // EXIF stores local wall time when OffsetTimeOriginal is absent. Bind it to
+            // the device's configured zone at import and retain its source explicitly.
+            parser.timeZone = TimeZone.getDefault()
+        }
+        val epochMs = runCatching { parser.parse(raw)?.time }.getOrNull()
+            ?.takeIf { it > 0L } ?: return fallbackEpochMs to "SYSTEM_INGESTION"
+        return epochMs to if (offset == null) "EXIF_DATETIME_ORIGINAL_DEVICE_ZONE" else "EXIF_DATETIME_ORIGINAL_OFFSET"
     }
 }

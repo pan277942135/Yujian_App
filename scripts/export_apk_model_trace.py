@@ -38,7 +38,12 @@ def main() -> int:
             class_map = archive.read(f"assets/{ANDROID_CLASS_MAP_FILE}")
             tensor_contract = archive.read(f"assets/{ANDROID_TENSOR_CONTRACT_FILE}")
             snapshot_bytes = archive.read(f"assets/{ANDROID_SNAPSHOT_FILE}")
+            detector = archive.read("assets/fish_detector_yolox_nano_v0_1.onnx")
+            detector_metadata_bytes = archive.read("assets/detector_metadata.json")
+            slim_sam_encoder = archive.read("assets/slimsam/vision_encoder_quantized.onnx")
+            slim_sam_decoder = archive.read("assets/slimsam/prompt_encoder_mask_decoder_quantized.onnx")
         snapshot = json.loads(snapshot_bytes.decode("utf-8"))
+        detector_metadata = json.loads(detector_metadata_bytes.decode("utf-8"))
         verified = verify_model_snapshot(
             model=model,
             metadata_bytes=metadata,
@@ -51,6 +56,11 @@ def main() -> int:
 
     if verified.get("build_sha") and verified["build_sha"] != args.build_sha:
         raise SystemExit("APK_MODEL_TRACE_FAILED: packaged model snapshot belongs to a different app commit")
+    detector_sha = sha256_bytes(detector)
+    if detector_metadata.get("model_version") != "DET_FISH_v0.1" or detector_metadata.get("onnx_sha256") != detector_sha:
+        raise SystemExit("APK_MODEL_TRACE_FAILED: packaged Detector metadata does not match the APK ONNX bytes")
+    if int(detector_metadata.get("onnx_bytes") or 0) != len(detector):
+        raise SystemExit("APK_MODEL_TRACE_FAILED: packaged Detector byte count does not match the APK ONNX bytes")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / ANDROID_SNAPSHOT_FILE).write_bytes(snapshot_bytes)
     trace = {
@@ -67,6 +77,27 @@ def main() -> int:
         "CLASS_MAP_SHA256": verified["class_map_sha256"],
         "TENSOR_CONTRACT_SHA256": verified["tensor_contract_sha256"],
         "model_release_contract_sha256": sha256_bytes(snapshot_bytes),
+        "detector": {
+            "model_id": detector_metadata["model_version"],
+            "sha256": detector_sha,
+            "bytes": len(detector),
+            "input_shape": (detector_metadata.get("onnx") or {}).get("input_shape"),
+            "output_shape": (detector_metadata.get("onnx") or {}).get("output_shape"),
+            "metadata_sha256": sha256_bytes(detector_metadata_bytes),
+        },
+        "slim_sam": {
+            "model_id": "SlimSAM quantized ONNX",
+            "encoder": {
+                "asset": "assets/slimsam/vision_encoder_quantized.onnx",
+                "sha256": sha256_bytes(slim_sam_encoder),
+                "bytes": len(slim_sam_encoder),
+            },
+            "decoder": {
+                "asset": "assets/slimsam/prompt_encoder_mask_decoder_quantized.onnx",
+                "sha256": sha256_bytes(slim_sam_decoder),
+                "bytes": len(slim_sam_decoder),
+            },
+        },
     }
     trace_path = args.output_dir / "apk_model_trace.json"
     trace_path.write_text(json.dumps(trace, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")

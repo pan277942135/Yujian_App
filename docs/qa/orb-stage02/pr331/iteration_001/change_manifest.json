@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "workId": "YUJIAN_PR331_R03_R06_ITERATIVE_VISUAL_ENGINEERING_CLOSURE_V1",
+  "iteration": "iteration_001",
+  "baselineSha": "762b656591be3129bf2ec02768a65109371fe4ab",
+  "currentSha": "PENDING_EXACT_HEAD_COMMIT",
+  "pr": 331,
+  "prRequiredState": "OPEN_DRAFT_UNMERGED",
+  "changes": [
+    {
+      "id": "R03-CONTINUOUS-PHASE",
+      "files": [
+        "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02MaxVisualProfile.kt",
+        "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFluidRefractionProgramV1.kt",
+        "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbCausticsAdapter.kt"
+      ],
+      "oldBehavior": "MAX flow phase was solely a function of StageProgress; at fixed progress, the MAX phase stopped changing.",
+      "newBehavior": "Keeps wakeStrength as a stage-progress envelope and adds a 0.65 cycles/second phase derived from the existing shared Scene Clock.",
+      "preserved": [
+        "350ms Stage02",
+        "3000ms diagnostic duration",
+        "80ms wake start",
+        "280ms full wake",
+        "Stage03 80ms transition",
+        "Reduced Motion"
+      ],
+      "automatedEvidence": "OrbStage02MaxVisualProfileTest continuousFlowUsesSceneClockWithoutChangingWakeSemantics",
+      "expectedVisualDelta": "At constant StageProgress, shader sample direction may evolve as shared scene time advances; not a visual pass without PixelCopy/device evidence.",
+      "actualVisualDelta": "NOT_MEASURED"
+    },
+    {
+      "id": "R03-AVOID-DUPLICATE-DISPLACEMENT-MIX",
+      "files": [
+        "app/src/main/assets/orb_fluid_v1/orb_fluid_refraction_v1.agsl"
+      ],
+      "oldBehavior": "maxInteriorMix attenuated the sample coordinate and then attenuated the dynamic layer contribution again.",
+      "newBehavior": "Uses the bounded displaced sample coordinate directly; maxInteriorMix gates the final interior dynamic contribution once.",
+      "preserved": [
+        "raw Core fallback",
+        "source alpha silhouette",
+        "interior edge mask",
+        "MAX displacement and mix caps"
+      ],
+      "automatedEvidence": "OrbFluidOpticalIntegrationV1Test AGSL source contract",
+      "expectedVisualDelta": "Avoids the redundant coordinate attenuation; GPU output and perceptual impact remain unmeasured.",
+      "actualVisualDelta": "NOT_MEASURED"
+    },
+    {
+      "id": "R06-SINGLE-GLASS-RADIAL-MASK",
+      "files": [
+        "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02MaxVisualProfile.kt",
+        "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt"
+      ],
+      "oldBehavior": "Back body alpha multiplied by radialMask twice before a radial Paint gradient applied another edge fade.",
+      "newBehavior": "Applies the transmission cap and source alpha once; leaves one smooth per-pixel radial edge mask on the Paint.",
+      "preserved": [
+        "G01/A01 Back identity",
+        "path geometry",
+        "tail fade",
+        "shared refraction field",
+        "0.80 transmission cap",
+        "14dp outer bound"
+      ],
+      "automatedEvidence": "OrbStage02MaxVisualProfileTest glassTransmissionUsesOneSourceTransmissionFactorBeforeOnePixelEdgeMask",
+      "expectedVisualDelta": "Raises mid-radius glass contribution by removing the duplicate mask while preserving edge fade; final pixels pending.",
+      "actualVisualDelta": "NOT_MEASURED"
+    },
+    {
+      "id": "EVIDENCE-PER-CAPTURE-AND-PER-PATH",
+      "files": [
+        "app/src/main/java/com/yujian/ai/ui/recognition/OrbStage02VisualEvidenceExport.kt",
+        "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02RenderTrace.kt",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt",
+        "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+        "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt"
+      ],
+      "oldBehavior": "Metadata was shared across mode-switched captures; PixelCopy did not bind the PNG to a target Orb draw; final per-path pixels were not exported.",
+      "newBehavior": "Adds per-capture source/frame/mode/identity binding, committed-window-frame fence, same-frame five-path pixel ablations, projected fixed-progress R03 samples, and pixel metrics that reject unaligned pairs; inference is labeled separately from pixel evidence.",
+      "evidenceLabels": [
+        "RUNTIME_STATE_INFERRED",
+        "CANVAS_DRAW_SUBMISSION",
+        "PIXEL_COPY_RESULT",
+        "PIXEL_MEASUREMENT",
+        "HUMAN_VISUAL_NOT_ASSESSED"
+      ],
+      "automatedEvidence": "Source contract unit tests and Compose AndroidTest capture cases added; exact-head CI pending.",
+      "actualPixelCapture": "NOT_RUN_BY_SCOPE"
+    }
+  ],
+  "knownVisualEvidence": {
+    "264191.mp4": {
+      "sha256": "7d3fb4924f544122720575f9ba5fad788bcb6d50793d08798e2404b37540c872",
+      "use": "Historical screen-level diagnostic observation only",
+      "sameProgressAdvancingClockSeries": false,
+      "perPathAblation": false,
+      "pixelCopyZipAvailable": false
+    }
+  },
+  "nonGoalsPreserved": [
+    "No device, ADB, emulator, runner or queue execution",
+    "No R06 geometry/material/resource changes",
+    "No model, camera, result handoff, Stage04-13 or 6000ms contract changes",
+    "No PR merge or draft-state change"
+  ],
+  "additionalReviewFixes": [
+    "Stage03 semantic Wake phase holds the Stage02 terminal phase while the added displacement fades over the existing 80ms transition.",
+    "Pixel metrics qualify as measured only when capture alignment and measurement status both pass.",
+    "Recurring render-issue logs are bounded and rate-limited."
+  ]
+}

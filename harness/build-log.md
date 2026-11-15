@@ -94,3 +94,108 @@
 - Exact-head Android CI run `41592577764` on `c7545cd5697da57d467f35ec75e5106f36d7f029`: frozen resource checks passed; `testDebugUnitTest` ran 360 tests and exposed one assertion failure at `OrbWakeBreathReleaseV11Test.kt:19`. The 80 ms wake start was numerically nonzero because Bezier inversion approximated the exact x=0 endpoint. Recorded through `failure_gate.py` (first attempt allowed); corrected `wakeEase` to return exact endpoint values before bisection. The fix, regression test, lint, Debug APK, Release Kotlin compile, and product-owner visual acceptance remain pending exact-head rerun; no emulator or connected test ran.
 - Exact-head Android CI run `41593211664` on `26c2225cc768df827c4d2ae558233a1979825bfd`: all 360 unit tests passed, Debug APK assembled, Android runtime-test APK compiled but not run, and packaged launcher/recognition/Core/model checks passed. `lintDebug` then failed with 2 errors and 85 warnings; the first reported `NewApi` error was disposal of the API-33 grass-warp renderer in `AIOrbCore.kt:221` under the project API-24 minimum. Recorded through `failure_gate.py` (first attempt allowed); added an explicit API-33 runtime guard to the cleanup path. Lint and the downstream APK/release gates require exact-head rerun; no emulator or connected test ran.
 - Follow-up lint run `41594346091` on `6adb22b7fa1dd25e3fb06d7690c3c72f3d9f4a3e`: unit tests, Debug APK assembly, Android runtime-test APK compilation, and packaged-resource checks passed. `lintDebug` reduced to 1 error, now identifying the per-frame `OrbGrassWarpProgramV11.update()` call at `AIOrbCore.kt:229` as API 33 on the API-24-minimum app. Recorded as the second occurrence under the same lint failure budget; added the matching explicit API-33 guard around uniform updates. New exact-head verification is pending.
+
+## 2026-11-13 — Recognition Runtime × Result Handoff closure started
+
+- Work: `YUJIAN_RECOGNITION_RUNTIME_RESULT_HANDOFF_ARCHITECTURE_CLOSURE_V1`; canonical task binding: `YUJIAN_WP2_13_STAGE_RECOGNITION_EXPERIENCE_RUNTIME_CLOSURE_V3` (P6).
+- Re-verified Main `81200da2e41163b04cfd340de59c3f43700c329a`, PR #327 head `076c830e043dfc7644188b9f730e9c6d53ba48e6`, base Main, Draft/Open/Unmerged.
+- Exact-head Android CI run `42950331889` succeeded: unit tests, camera runtime harness contract tests, Debug APK assembly, AndroidTest APK compilation, packaged model/resource checks, lint, and Release Kotlin compile passed. Android runtime and fish-optics API36 runtime jobs were skipped; production runtime and device visual acceptance remain `NOT_RUN`.
+- Exact-head Debug APK artifact `13824533268` is available. Recorded artifact archive size/digest only; APK-internal SHA-256 has not yet been verified. Do not treat the ZIP digest as the APK digest.
+- Initial local Control Plane Admission failed because branch-local `PROJECT_MASTER_STATE.yaml` and `WORK_EXECUTION_STATE.json` were missing. No source or test gate failed. Initialized this branch-local checkpoint; exact Admission rerun is pending.
+- Independent repair branch `work/recognition-runtime-result-handoff-v1` created from exact PR #327 HEAD `076c830e043dfc7644188b9f730e9c6d53ba48e6`. PR #327 remains Draft/Open/Unmerged; this branch owns the new closure work.
+- Branch-local state now points to the independent branch. Re-admission is required before code changes.
+- Exact Control Plane Admission passed on `work/recognition-runtime-result-handoff-v1`: canonical registry, Feature Matrix, Phase/Task State Machine, Unified Contract, 753-path Main sync, Project Master State, and Work Execution State all PASS. This is admission only; no runtime/device result is implied.
+- Started P0-1 at source baseline `076c830e043dfc7644188b9f730e9c6d53ba48e6`: trace the existing production path ledger, immutable handoff, session store, Result RETURN producer and controller acceptance before changing code.
+
+
+## 2026-11-13 — P0-1 Processing Path Snapshot candidate
+
+- Source candidate SHA: `86e42b887d38cf5db828f7dd162728227016fb1a` on `work/recognition-runtime-result-handoff-v1`; PR #327 remains unchanged and unmerged.
+- Added immutable `RecognitionFishPathSnapshot` export from the Processing `WaterLightPathLedger`, validated by controller/session identity, and carried it through `RecognitionRevealSessionStore` and `RecognitionRevealHandoff`. FULL_REVEAL Result RETURN now requires the original path ID, RETURN segments, Mask SHA/version, original Geometry Version, and P*; explicit Orb-only/BBOX_ONLY paths remain separate.
+- Added path identity and stale-identity unit coverage, and extended the real-model Android production runtime test to assert that the same Processing snapshot survives SessionStore into FULL_REVEAL. Tests are awaiting exact-head Android CI.
+- Local `./gradlew :app:testDebugUnitTest` is `NOT_RUN`: the wrapper could not download Gradle 9.3.1 because network access to `services.gradle.org` is blocked. This is not recorded as a test failure or pass. Device runtime and visual acceptance remain `NOT_RUN`.
+
+- Opened draft PR [#330](https://github.com/pan277942135/Yujian_App/pull/330), base Main `81200da2e41163b04cfd340de59c3f43700c329a`, head `c6f66c106a1cee09892db172936de7baa74ec482`. The PR is independent of #327, which remains unchanged and unmerged. Exact-head Actions run discovery is pending; no build or test result is attributed to this commit yet.
+
+## 2026-11-13 — P0-1 exact-head CI compile failure recorded
+
+- Exact source: `e5ade8c2490d5338b816f39e03817c482b705092`; Android CI run `43356522026` failed at `:app:compileDebugKotlin`. The wrapper declared and forwarded `onFishPathSnapshot`, but `RecognitionProcessingScene` did not declare the parameter, producing an unknown named argument and unresolved callback reference. No unit tests, APK, or runtime stage completed.
+- Recorded as a source compile failure; current hypothesis is an incomplete callback contract between the outer RecognizingScreen and its Processing scene. Repair remains limited to that producer/consumer wiring; exact-head CI must rerun before P0-1 can pass.
+- Control Plane Admission currently requires checkpoint synchronization after this source change; physical Android runtime remains `NOT_RUN`.
+
+## 2026-11-13 — P0-1 callback repair exact-head CI
+
+- Repair commit `65829b9c9c49a5c1e9f212dcae332d6e1e6204d7` declares the forwarded `onFishPathSnapshot` parameter on `RecognitionProcessingScene`, restoring the real Processing PathLedger → YujianApp/SessionStore callback. Exact-head Android CI run `43358018059` passed unit tests, AndroidTest APK compilation, Debug APK assembly, packaged resource/model checks, Android lint, and Release Kotlin compilation. The preceding compile failure on `e5ade8c2490d5338b816f39e03817c482b705092` is recorded and its fix verified.
+- The AndroidTest APK was compiled but not executed; no HUAWEI CMS-AL20 / Android 16 runtime evidence exists. P0-1 remains open for full SessionStore/Handoff/RETURN acceptance evidence.
+
+## 2026-11-13 — P0 Recognition Runtime × Result Handoff exact-head automated acceptance
+
+- Work: `YUJIAN_RECOGNITION_RUNTIME_RESULT_HANDOFF_ARCHITECTURE_CLOSURE_V1`; PR #330 remains independent of PR #327. Runtime source SHA: `e79ef2eba133ef6a703c9a65eb2aba331cc06744`.
+- Unified the Session/Attempt/Photo/Mask/Path/Geometry identity in the immutable Result snapshot and typed 13.1–13.5 event/receipt lifecycle. Stage progression waits for accepted name stability, measured photo settle, result-scene commit, info arrival, and residue settle. Playback and navigation lifecycle state are retained. Frozen 13-stage order and 6000 ms total are unchanged; frozen visual handoff contract is reused without edits.
+- Exact-head Android CI run `43365705354` passed unit tests, camera runtime harness contract tests, Debug APK assembly, AndroidTest APK compilation, packaged resource/model verification, Android lint, Release Kotlin compilation, and artifact upload. Control Plane Admission `43365705359` and Work Execution V2 Contract Smoke `43365705461` passed.
+- Debug artifact `14010576852`; APK size `144217818` bytes; independently streamed APK SHA-256 `aa3b0c6897852ded1c10f9af43833b68e83c483ae3fed68220dbda02c4e6cb9b`. Artifact archive SHA-256 `548fe0c789230d65da6ee7d5cd3ac0c07071d915341b10852621a9c45de82c1c` is recorded separately.
+- Independently verified packaged identity: DET_FISH v0.1 ONNX SHA-256 `12b97f7c081987f33f99d255cdd2e935fb9cf93b893146f54ff98b9c4e3a8e4f`; MODEL_CROP_M1 v0.2 SHA-256 `29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18`; both SlimSAM ONNX assets are present. This candidate does not claim DET_FISH v0.3 integration.
+- Android runtime, API36 fish-optics runtime, and visual-evidence jobs were skipped. AndroidTest APK compiled but was not executed. HUAWEI CMS-AL20 / Android 16 end-to-end recognition and Result handoff, visual evidence, and product acceptance remain `NOT_RUN`; PR #330 remains Draft/Open.
+
+## 2026-11-13 — Result Handoff exact-head compile repair
+
+- Exact source `49684ae9f7e4dc8ed62e07919c91977773477fe1`; Android CI run `43404913307` failed at `:app:compileDebugKotlin` in `RecognitionResultProductionEvidenceWriter.kt`. Kotlin parsed unparenthesized Boolean expressions adjacent to infix `to` as nested `Pair` values, causing the qualification-report entries T17, T23, T24, and T27 to fail type checking. No unit tests, APK, or device runtime completed.
+- Parenthesized each Boolean expression before constructing its `(pass, evidenceFile)` pair. The follow-up exact-head CI must pass before this source repair is accepted. API36 physical runtime remains a separate gate.
+
+## 2026-11-13 — Orb source visibility and R06 current-frame integrity
+
+- Work: `YUJIAN_ORB_R06_RENDER_VISIBILITY_P0_V1`; independent branch `fix/orb-r06-render-visibility-p0`, created from PR #330 exact head `6692b5d7bf8254442df1aacfe9798286a3ecc010`; Main baseline remains `81200da2e41163b04cfd340de59c3f43700c329a`.
+- Admission on the repair branch: PASS after initializing its private branch-local state. It verifies all six canonical control-plane layers, 753-path sync, Project Master State, and Work Execution State. The initial local admission attempt reported only missing state files; no test gate ran before re-admission.
+- Implemented the source-core presentation contract (no PHOTO_STABLE shader, shader wake at 80 ms, no added timer), removed the pre-handoff 280 ms Orb fade, and keep the source core visible if WaterLight host validation rejects geometry/session. Debug step mode alone reserves 88 dp below the processing layout.
+- R06 sampling now invalidates per-frame samples, draws only contiguous valid runs, derives chunk visual parameters from the current valid run, and logs identity-bound stage-start/half render metrics. Added unit coverage for stage gates, geometry reserve profiles, host rejection reasons, release/return movement, stale-frame invalidation, and 48/96 sample tiers, plus a Compose pixel-capture AndroidTest for NORMAL/RAW_CORE/RAW_CORE_WITH_R06.
+- Static resource/runtime checks passed: immutable Orb WebP SHA/dimensions; frozen wake/release asset verification; R02–R06 generated profile parity; recognition runtime contract. `git diff --check`: PASS. Local Gradle unit-test and AndroidTest compile attempt: NOT_RUN because Gradle 9.3.1 is not cached and `services.gradle.org` is unreachable; this is an environment blocker, not a source-test failure. Exact-head Android CI is pending push.
+- HUAWEI CMS-AL20 / Android 16 device evidence: NOT_RUN; this workspace has no ADB or attached device. Keep this branch Draft pending exact-source physical acceptance.
+- Exact-head Android CI run `43453935547` on `0765cef0dda66b0c3eb9b67d57debd2c3c211616` completed 405 unit tests with 1 failure: `OrbGrassFrozenAssetsV11Test.kt:62` still asserted the removed unconditional RenderEffect assignment. Production compile and prior static/resource checks passed; no APK or AndroidTest compile ran. Work failure gate allowed the first corrective attempt and recorded issue `779116f8b55520fed39a`.
+- Updated the existing frozen-source assertion to require the stage-gated applied RenderEffect and the shared-clock optical gate. The exact-head Android CI rerun is required; this source-only repair does not promote the test gate.
+
+## 2026-11-14T00:38:12Z — Orb Stage01–03 shader-safe layering P0 V2
+
+- Opened Work `YUJIAN_ORB_STAGE01_03_SHADER_SAFE_LAYERING_P0_V2` on existing PR #331 branch `fix/orb-r06-render-visibility-p0` at exact baseline `5cb01bfffdc0f427a83b6936e31e35171f821378`.
+- Scope is source, unit/harness checks, CI, AndroidTest compilation, and APK delivery. Instrumentation/device execution is explicitly excluded by the task.
+- Control Plane Admission is the next gate; no product source has been modified yet.
+
+### 2026-11-14T00:59:24Z — V2 implementation and pre-CI checks
+
+- Stage02 optical gating now consumes `stageProgress`: formal 350 ms boundary is 80/350; the 3000 ms diagnostic reaches the same normalized boundary near 686 ms. Controller timing is unchanged.
+- The frozen WebP is reused as the Raw Core and bounded Shader Overlay painter inside one offscreen composite. The frozen energy-alpha expression is applied once to the shared group.
+- Shader updates are latched per shader instance; an update exception marks the instance FAILED, stops further updates, and disables only the overlay. New Session/Attempt identity owns a fresh creation slot. Candidate/legacy route selection is preserved.
+- AndroidTest still installs one Compose root per test and uses draw-token synchronization. The matrix includes all requested stage/progress pairs, retains RAW_CORE_WITH_R06 captures, and adds injected black/transparent output pixel comparisons. No instrumentation/device execution is in scope.
+- Local prechecks passed: Control Plane Admission, R02–R06 generated profile parity, Orb WebP SHA/dimensions, frozen R06 assets and timing map, Recognition Runtime contract, capture raster decode, design closure, resource package, and Android runtime harness contract tests.
+- `git diff --check` passed. The local Gradle wrapper could not download Gradle 9.3.1 because network access is unavailable, so local Unit Test/AndroidTest compilation did not run. The local packaged-model check also cannot run before the CI asset-bootstrap step materializes the ignored classifier model; exact-head CI runs bootstrap before model validation.
+- No ADB discovery, Emulator, Device Runner, or physical runtime was invoked.
+
+## 2026-11-15 — PR #331 R03/R06 iterative visual closure baseline initialization
+
+- Work ID: `YUJIAN_PR331_R03_R06_ITERATIVE_VISUAL_ENGINEERING_CLOSURE_V1`.
+- Registered parent task binding: `YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3` / `G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3`.
+- Exact PR HEAD: `762b656591be3129bf2ec02768a65109371fe4ab`; PR remains OPEN / DRAFT / UNMERGED.
+- Existing exact-source CI `43602865617` was recorded as historical PASS; no CI was run for this checkpoint. Device execution remains prohibited by task scope.
+- Prior audit established: manual diagnostic progress-100 clock freeze; back transmission radial-mask-squared attenuation candidate; per-image capture metadata and per-path final-pixel evidence gaps.
+- Local workspace isolation: current PR branch was materialized in a separate worktree; original `work/recognition-runtime-result-handoff-v1` tree and its existing changes were left untouched.
+- Admission attempt at exact HEAD failed because branch-local `PROJECT_MASTER_STATE.yaml` and `WORK_EXECUTION_STATE.json` were absent. State initialization is in progress; no product source or tests were changed/executed.
+
+## 2026-11-15 — PR #331 R03/R06 iterative visual closure implementation
+
+- Work `YUJIAN_PR331_R03_R06_ITERATIVE_VISUAL_ENGINEERING_CLOSURE_V1` continued from exact PR head `762b656591be3129bf2ec02768a65109371fe4ab`; PR #331 remains Open / Draft / Unmerged. No PR state transition or device operation was performed.
+- Implemented R03 continuous flow phase from the existing `WaterLightFrame.elapsedMs`, retained progress-based wake strength, held the semantic phase through the Stage03 80 ms fade, and removed duplicate displacement attenuation in AGSL. This is a source correction only; current GPU pixels are unavailable.
+- Removed the duplicate scalar radial mask from the G01/A01 glass body alpha while keeping the source Core alpha, single smooth Paint edge mask, Back pass and frozen R06 geometry/material contracts.
+- Added bounded Debug trace events and capture identity, target draw marker, Android window frame-commit callback, PixelCopy crop/hash metadata, projected fixed-progress R03 samples, and five same-frame R06 path ablations. Pixel evidence is marked measured only after alignment and measured-comparison status pass.
+- Local checks: Control Plane Admission PASS; immutable Orb Core WebP SHA/alpha PASS; frozen R06 assets/material/timing PASS; generated profile parity PASS; Recognition runtime contract PASS; camera/recognition harness contract PASS; resource package validation PASS; Recognition design closure PASS; runtime evidence source-closure tests 6/6 PASS; bootstrap asset contract tests 6/6 PASS; JSON parsing and `git diff --check` PASS.
+- Local `:app:testDebugUnitTest` was attempted but Gradle did not start: wrapper distribution 9.3.1 is uncached and `services.gradle.org` is unreachable. This is `BLOCKED_INFRA`, not a test failure or PASS. Exact-head Android CI must run the Unit Tests, AndroidTest APK compile, Debug APK, resource/model checks, lint and Release Kotlin compile.
+- No current-source PixelCopy ZIP or same-mode advancing-clock video is available. Pixel delta remains `NOT_MEASURED`; AndroidTest instrumentation and API36 device visual QA remain `NOT_RUN_BY_SCOPE`.
+
+- Remote branch publication: implementation source commit `317ade8de606dd673e4bb04a4f24063b41bd95c7` was created from Main `98684af617206027e3fbba35e0d2a45bd475e3ba`; the four implementation/test/verifier files are byte-identical to the locally validated tree (SHA-256 verified per file). Exact-head CI is pending.
+
+## 2026-11-07 — WP1-B dynamic Mask content identity checkpoint (local Work evidence)
+
+- Implementation source commit `6e4daf5cae54b33a9d2b1ce0440d9de929ad5810` computes SHA-256 from the actual encoded transparent SlimSAM PNG after mask cleanup. The value is propagated through `FishSubjectResult`, mask geometry, Processing geometry, and `RecognitionRevealHandoff`; it does not relabel DET_FISH v0.1 or supply the blocked v0.3 model.
+- Local Debug unit-test startup located Android Studio JBR, then stopped before Kotlin compilation because Gradle Wrapper could not download `gradle-9.3.1-bin.zip` (network timeout). No test, build, APK, AndroidTest, device, or visual result is claimed for `6e4daf5`.
+- GitHub Actions run `42319889988` initially rejected public copies of `PROJECT_MASTER_STATE.yaml` and `WORK_EXECUTION_STATE.json` in PR #320. The public PR tree was corrected at `59e5c7b22c07ca512008b8376367126cf32df24f`; the state and this observation remain local Work evidence.
+- Next: obtain the declared Gradle distribution or an exact-head CI build, then record the actual Debug test/compile/package outcome and APK SHA-256 only if packaging succeeds.
+
+- Exact-head PR #320 run `42320179675` on `59e5c7b22c07ca512008b8376367126cf32df24f` passed control-plane admission after state isolation, but Android CI stopped in `verify_lake_glass_route_coverage.py`: `NavHost route mismatch; missing=['record_calendar']`. This is a pre-existing resource/route gate outside the dynamic Mask SHA-256 scope. Gradle, Kotlin tests, APK assembly, AndroidTest, device, and visual evidence remain `NOT_RUN` on this exact SHA.

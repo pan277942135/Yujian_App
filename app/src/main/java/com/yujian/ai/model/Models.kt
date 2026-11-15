@@ -31,6 +31,10 @@ data class SelectedImage(
     val capturePresentation: CapturePresentation? = null,
     /** Original EXIF 1..8; records mirrors that rotationDegrees alone cannot represent. */
     val sourceExifOrientation: Int = 1,
+    /** Timestamp captured/imported with this image; Result rendering must never regenerate it. */
+    val captureTimestampEpochMs: Long = System.currentTimeMillis(),
+    /** CAMERA_CAPTURE_CALLBACK, EXIF_DATETIME_ORIGINAL, or SYSTEM_INGESTION. */
+    val captureTimestampSource: String = "SYSTEM_INGESTION",
 )
 
 data class CapturePresentation(

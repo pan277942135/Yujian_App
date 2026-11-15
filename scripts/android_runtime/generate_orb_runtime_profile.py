@@ -8,6 +8,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -16,9 +17,56 @@ OUTPUT = ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbRunti
 TEMPLATE = (ROOT / "scripts/android_runtime/OrbRuntimeProfileV1.kt.in").read_text(encoding="utf-8")
 
 
+def _git_blob_bytes_if_clean(path: Path) -> bytes | None:
+    """Use the canonical Git Blob only when Index and Worktree are clean.
+
+    A clean Windows checkout may materialize tracked JSON with CRLF while CI
+    checks out the same Blob with LF.  Reading the Blob in the clean case
+    makes generated provenance deterministic without hiding real local edits:
+    any staged, unstaged or untracked change falls back to Worktree bytes.
+    """
+    try:
+        relative = path.relative_to(ROOT).as_posix()
+        tracked = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", "--", relative],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        ).returncode == 0
+        if not tracked:
+            return None
+        index_clean = subprocess.run(
+            ["git", "diff", "--quiet", "--cached", "--", relative],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        ).returncode == 0
+        worktree_clean = subprocess.run(
+            ["git", "diff", "--quiet", "--", relative],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        ).returncode == 0
+        if not (index_clean and worktree_clean):
+            return None
+        blob = subprocess.run(
+            ["git", "cat-file", "blob", f"HEAD:{relative}"],
+            cwd=ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        return blob.stdout if blob.returncode == 0 else None
+    except (OSError, ValueError):
+        return None
+
+
 def read_json(name: str) -> tuple[dict, str]:
     path = DESIGN / name
-    raw = path.read_bytes()
+    raw = _git_blob_bytes_if_clean(path) or path.read_bytes()
     return json.loads(raw), hashlib.sha256(raw).hexdigest()
 
 

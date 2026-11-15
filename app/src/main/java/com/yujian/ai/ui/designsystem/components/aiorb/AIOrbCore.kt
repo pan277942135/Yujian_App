@@ -1,21 +1,30 @@
 package com.yujian.ai.ui.designsystem.components.aiorb
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.annotation.DrawableRes
+import androidx.annotation.VisibleForTesting
 import com.yujian.ai.R
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
@@ -28,9 +37,56 @@ import com.yujian.ai.ui.waterlight.renderer.OrbFilamentRendererMode
 import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
 import com.yujian.ai.ui.waterlight.renderer.OrbWakeBreathReleaseV11
 import com.yujian.ai.ui.waterlight.renderer.OrbCoreImageOpticalEffect
+import com.yujian.ai.ui.waterlight.renderer.OrbShaderRoute
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02VisualProfile
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02LayerIsolation
+import com.yujian.ai.ui.waterlight.renderer.OrbR06RenderPass
+import com.yujian.ai.ui.waterlight.renderer.OrbInteriorOpticalField
+import com.yujian.ai.ui.waterlight.renderer.OrbR06PathDiagnostic
+import com.yujian.ai.ui.waterlight.renderer.OrbStage02RenderTrace
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
+
+enum class OrbRenderIsolationMode { NORMAL, RAW_CORE, RAW_CORE_WITH_R06, SUPPRESSED }
+
+/** Test-only seam: the supplied color represents shader output while preserving the real core container. */
+internal data class OrbShaderOverlayTestOutput(val color: Color)
+
+@VisibleForTesting
+internal val LocalOrbShaderOverlayTestOutput = compositionLocalOf<OrbShaderOverlayTestOutput?> { null }
+
+private data class OrbCoreRenderDiagnosticSnapshot(
+    val stage: String,
+    val shaderEnabled: Boolean,
+    val shaderRoute: String,
+    val shaderUpdateStatus: OrbShaderUpdateStatus,
+    val hostRejectReason: String?,
+    val wakeCheckpoint: String?,
+)
+
+internal fun aiOrbRawCoreVisible(renderIsolationMode: OrbRenderIsolationMode): Boolean =
+    renderIsolationMode != OrbRenderIsolationMode.SUPPRESSED
+
+internal fun orbDebugIsolationModeWithHostPriority(
+    hostRejectReason: String?,
+    hostMode: OrbRenderIsolationMode,
+    requestedDebugMode: OrbRenderIsolationMode,
+    debugSelectionEligible: Boolean,
+): OrbRenderIsolationMode = if (
+    hostRejectReason == null && debugSelectionEligible &&
+    requestedDebugMode != OrbRenderIsolationMode.SUPPRESSED
+) requestedDebugMode else hostMode
+
+internal fun aiOrbShaderOverlayVisible(
+    renderIsolationMode: OrbRenderIsolationMode,
+    opticalEffectEnabled: Boolean,
+    shaderAvailable: Boolean,
+    renderEffectAvailable: Boolean,
+    updateStatus: OrbShaderUpdateStatus,
+    overlayAlpha: Float,
+): Boolean = renderIsolationMode == OrbRenderIsolationMode.NORMAL && opticalEffectEnabled &&
+    shaderAvailable && renderEffectAvailable && updateStatus == OrbShaderUpdateStatus.READY && overlayAlpha > 0f
 
 
 /** The home button and its navigation handoff share one frozen visual identity. */
@@ -80,6 +136,17 @@ fun AIOrbCore(
     orbShowDroplets: Boolean = true,
     orbShowSunlight: Boolean = true,
     orbShowCaustics: Boolean = true,
+    renderIsolationMode: OrbRenderIsolationMode = OrbRenderIsolationMode.NORMAL,
+    hostRejectReason: String? = null,
+    visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.currentBuildDefault(),
+    stage02LayerIsolation: OrbStage02LayerIsolation = OrbStage02LayerIsolation.R03_R06,
+    onShaderRuntimeStatus: ((String, String, String) -> Unit)? = null,
+    onR06RenderedPaths: ((Boolean, OrbR06RenderPass, Set<String>) -> Unit)? = null,
+    onR06PathDiagnostics: ((Boolean, OrbR06RenderPass, List<OrbR06PathDiagnostic>) -> Unit)? = null,
+    /** Debug evidence sampling only; the production scene controller/frame is not advanced. */
+    debugOpticalSampleMs: Long? = null,
+    debugCaptureId: String? = null,
+    debugExcludedPathId: String? = null,
 ) {
     when (state) {
         AIOrbVisualState.CAPTURE_BUTTON_IDLE -> YuJianCaptureButton(
@@ -125,6 +192,16 @@ fun AIOrbCore(
             orbShowDroplets = orbShowDroplets,
             orbShowSunlight = orbShowSunlight,
             orbShowCaustics = orbShowCaustics,
+            renderIsolationMode = renderIsolationMode,
+            hostRejectReason = hostRejectReason,
+            visualProfile = visualProfile,
+            stage02LayerIsolation = stage02LayerIsolation,
+            onShaderRuntimeStatus = onShaderRuntimeStatus,
+            onR06RenderedPaths = onR06RenderedPaths,
+            onR06PathDiagnostics = onR06PathDiagnostics,
+            debugOpticalSampleMs = debugOpticalSampleMs,
+            debugCaptureId = debugCaptureId,
+            debugExcludedPathId = debugExcludedPathId,
             modifier = modifier,
         )
         AIOrbVisualState.HIDDEN -> Unit
@@ -170,16 +247,34 @@ private fun OrbVisual(
     orbShowDroplets: Boolean,
     orbShowSunlight: Boolean,
     orbShowCaustics: Boolean,
+    renderIsolationMode: OrbRenderIsolationMode,
+    hostRejectReason: String?,
+    visualProfile: OrbStage02VisualProfile,
+    stage02LayerIsolation: OrbStage02LayerIsolation,
+    onShaderRuntimeStatus: ((String, String, String) -> Unit)?,
+    onR06RenderedPaths: ((Boolean, OrbR06RenderPass, Set<String>) -> Unit)?,
+    onR06PathDiagnostics: ((Boolean, OrbR06RenderPass, List<OrbR06PathDiagnostic>) -> Unit)?,
+    debugOpticalSampleMs: Long?,
+    debugCaptureId: String?,
+    debugExcludedPathId: String?,
     modifier: Modifier,
 ) {
+    if (!aiOrbRawCoreVisible(renderIsolationMode)) return
     val frame = aiOrbMotionFrame(entranceElapsedMs, fromCamera, reduceMotion, completion)
     val ribbons = frame.ribbonOpening
     val settle = completion.coerceIn(0f, 1f)
-    val sharedFrame = waterLightFrame ?: WaterLightFrame(
+    val sourceFrame = waterLightFrame ?: WaterLightFrame(
         sessionId = "", photoSha256 = null, elapsedMs = elapsedMs.coerceAtLeast(0L),
         opticalReferenceElapsedMs = elapsedMs.coerceAtLeast(0L), phase = WaterLightPhase.PROCESSING,
         completion = completion.coerceIn(0f, 1f), reducedMotion = reduceMotion, geometryVersion = 0L,
     )
+    val sharedFrame = debugOpticalSampleMs?.let { sampleMs ->
+        sourceFrame.copy(
+            elapsedMs = sampleMs.coerceAtLeast(0L),
+            opticalReferenceElapsedMs = sampleMs.coerceAtLeast(0L),
+            playbackPaused = true,
+        )
+    } ?: sourceFrame
     val activeEnergyEvent = energyEvent?.takeIf { it.matches(sharedFrame) }
     val releaseEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RELEASE) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
     val returnEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RETURN) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
@@ -198,6 +293,34 @@ private fun OrbVisual(
         (sharedFrame.opticalReferenceElapsedMs - sharedFrame.sceneFrame.stageElapsedMs).coerceAtLeast(0L)
     } else orbMotionEventStartOpticalMs
     val sceneFrame = sharedFrame.sceneFrame
+    val frameTraceId = remember(sceneFrame, sharedFrame.elapsedMs, visualProfile, debugCaptureId) {
+        OrbStage02RenderTrace.beginFrame(sceneFrame, visualProfile)
+    }
+    val interiorField = OrbInteriorOpticalField.frame(
+        stage = sceneFrame.stage,
+        stageProgress = sceneFrame.stageProgress,
+        reducedMotion = reduceMotion,
+        profile = visualProfile,
+        sceneElapsedMs = sharedFrame.elapsedMs,
+    )
+    val phaseTracker = remember(sharedFrame.sessionId, sharedFrame.attemptId) { floatArrayOf(Float.NaN) }
+    val lastFlowTraceKey = remember(sharedFrame.sessionId, sharedFrame.attemptId) { arrayOf("") }
+    val lastFlowTraceElapsedMs = remember(sharedFrame.sessionId, sharedFrame.attemptId) { longArrayOf(Long.MIN_VALUE) }
+    val isMaxStage02 = visualProfile == OrbStage02VisualProfile.MAX &&
+        sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE
+    val isMaxTransitionActive = visualProfile == OrbStage02VisualProfile.MAX && (
+        isMaxStage02 || (sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RELEASE &&
+            OrbInteriorOpticalField.maxFluidWakeEnvelope(sceneFrame.stage, sceneFrame.stageProgress) > 0f)
+        )
+    val r03Visible = sceneFrame.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE ||
+        stage02LayerIsolation != OrbStage02LayerIsolation.R06_ONLY &&
+        stage02LayerIsolation != OrbStage02LayerIsolation.R06_BACK_TRANSMISSION_ONLY
+    val r06Visible = sceneFrame.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE ||
+        stage02LayerIsolation != OrbStage02LayerIsolation.R03_ONLY
+    val r06ExteriorVisible = sceneFrame.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE ||
+        stage02LayerIsolation == OrbStage02LayerIsolation.R06_ONLY ||
+        stage02LayerIsolation == OrbStage02LayerIsolation.R03_R06
+    val r06FrontVisible = r06ExteriorVisible
     val wake = OrbWakeBreathReleaseV11.wake(sceneFrame.stage, sceneFrame.stageProgress)
     val lifeProgress = OrbWakeBreathReleaseV11.s2Progress(sceneFrame.stage, sceneFrame.stageProgress)
     val candidateLifeAlpha = orbLifeAlpha ?: lifeProgress
@@ -210,50 +333,346 @@ private fun OrbVisual(
     val context = LocalContext.current
     val density = LocalDensity.current
     val coreTextureSizePx = with(density) { (coreSize / .84f).toPx() }
-    val coreOpticalEffect = remember(context, android.os.Build.VERSION.SDK_INT, lowPerformance) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            runCatching { OrbCoreImageOpticalEffect.create(context.applicationContext, lowPerformance) }
-                .onFailure { android.util.Log.w("OrbCoreOpticalEffect", "candidate and V1.1 AGSL unavailable; source core and clipped light fallback active", it) }
-                .getOrNull()
-        } else {
-            android.util.Log.i("OrbCoreOpticalEffect", "API < 33 fallback: original static core with scene-clock clipped Canvas light")
-            null
+    val opticalEffectEnabled = renderIsolationMode == OrbRenderIsolationMode.NORMAL &&
+        aiOrbOpticalEffectEnabled(sceneFrame.stage, sceneFrame.stageProgress)
+    var coreOpticalEffect by remember(
+        context,
+        android.os.Build.VERSION.SDK_INT,
+        lowPerformance,
+        sharedFrame.sessionId,
+        sharedFrame.attemptId,
+    ) { mutableStateOf<OrbCoreImageOpticalEffect?>(null) }
+    var shaderCreationAttempted by remember(
+        context,
+        android.os.Build.VERSION.SDK_INT,
+        lowPerformance,
+        sharedFrame.sessionId,
+        sharedFrame.attemptId,
+    ) { mutableStateOf(false) }
+    val currentCoreOpticalEffect = coreOpticalEffect
+    val shaderInstance = currentCoreOpticalEffect?.takeIf {
+        it.route != OrbShaderRoute.UNAVAILABLE && it.renderEffect != null
+    }
+    val shaderUniformRevisionForTrace = if (
+        android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU
+    ) shaderInstance?.uniformRevision ?: 0L else 0L
+    val shaderUpdateGate = remember(shaderInstance) { OrbShaderUpdateGate(shaderInstance) }
+    val injectedShaderOutput = LocalOrbShaderOverlayTestOutput.current
+    val shaderUpdateStatus = if (injectedShaderOutput != null) OrbShaderUpdateStatus.READY
+        else shaderUpdateGate.status
+    val shaderRoute = when {
+        injectedShaderOutput != null -> "TEST_OUTPUT_INJECTION"
+        currentCoreOpticalEffect == null -> OrbShaderRoute.UNAVAILABLE.name
+        else -> currentCoreOpticalEffect.route.name
+    }
+    val shaderProfileForRoute = if (
+        visualProfile == OrbStage02VisualProfile.MAX &&
+        currentCoreOpticalEffect?.route != OrbShaderRoute.FLUID_GRASS_V1_2_CANDIDATE
+    ) OrbStage02VisualProfile.BASELINE else visualProfile
+    val shaderOverlayAlpha = OrbInteriorOpticalField.shaderOverlayAlpha(
+        shaderProfileForRoute, sceneFrame.stage, sceneFrame.stageProgress, wake.optics,
+    )
+    val appliedRenderEffect = coreOpticalEffect?.renderEffect?.takeIf {
+        injectedShaderOutput == null && renderIsolationMode == OrbRenderIsolationMode.NORMAL &&
+            opticalEffectEnabled && shaderUpdateStatus == OrbShaderUpdateStatus.READY && shaderOverlayAlpha > 0f
+    }
+    val shaderAvailable = if (injectedShaderOutput != null) true else shaderInstance != null
+    val renderEffectAvailable = injectedShaderOutput != null || appliedRenderEffect != null
+    val shaderOverlayEnabled = aiOrbShaderOverlayVisible(
+        renderIsolationMode = renderIsolationMode,
+        opticalEffectEnabled = opticalEffectEnabled,
+        shaderAvailable = shaderAvailable,
+        renderEffectAvailable = renderEffectAvailable,
+        updateStatus = shaderUpdateStatus,
+        overlayAlpha = shaderOverlayAlpha,
+    )
+    val lastReportedShaderStatus = remember { arrayOfNulls<String>(1) }
+    SideEffect {
+        val statusKey = "${sceneFrame.stage.name}|$shaderRoute|${shaderUpdateStatus.name}"
+        if (lastReportedShaderStatus[0] != statusKey) {
+            lastReportedShaderStatus[0] = statusKey
+            onShaderRuntimeStatus?.invoke(sceneFrame.stage.name, shaderRoute, shaderUpdateStatus.name)
         }
     }
-    DisposableEffect(coreOpticalEffect) {
+    val effectForDispose = coreOpticalEffect
+    DisposableEffect(effectForDispose) {
         onDispose {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                coreOpticalEffect?.close()
+                effectForDispose?.close()
             }
         }
     }
     SideEffect {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            coreOpticalEffect?.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx)
+        var shaderUniformUpdateAttempted = false
+        if (!shaderCreationAttempted) {
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.TIRAMISU) {
+                shaderCreationAttempted = true
+                android.util.Log.w(
+                    "OrbCoreOpticalEffect",
+                    "API < 33 fallback: original static core with scene-clock clipped Canvas light",
+                )
+            } else if (renderIsolationMode == OrbRenderIsolationMode.NORMAL) {
+                shaderCreationAttempted = true
+                coreOpticalEffect = runCatching {
+                    OrbCoreImageOpticalEffect.create(context.applicationContext, lowPerformance)
+                }.onFailure { failure ->
+                    val exceptionType = failure::class.qualifiedName ?: failure.javaClass.name
+                    android.util.Log.w(
+                        "OrbCoreOpticalEffect",
+                        "candidate and V1.1 AGSL unavailable; source core and clipped light fallback active " +
+                            "stage=${sceneFrame.stage.name} shaderRoute=${shaderRoute} exceptionType=$exceptionType",
+                        failure,
+                    )
+                    OrbStage02RenderTrace.record(
+                        eventType = "SHADER_CREATE_FAILED",
+                        dataSource = "RUNTIME_STATE",
+                        captureId = debugCaptureId,
+                        fields = mapOf(
+                            "exceptionType" to exceptionType,
+                            "stage" to sceneFrame.stage.name,
+                            "shaderRoute" to shaderRoute,
+                            "reducedMotion" to reduceMotion,
+                        ),
+                    )
+                }.getOrNull()
+            }
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU &&
+            injectedShaderOutput == null && opticalEffectEnabled && shaderInstance != null
+        ) {
+            shaderUniformUpdateAttempted = shaderUpdateGate.status != OrbShaderUpdateStatus.FAILED
+            val failure = shaderUpdateGate.update {
+                it.update(sharedFrame, lifeProgress, wake.grassLight, coreTextureSizePx, visualProfile)
+            }
+            if (failure != null) {
+                val exceptionType = failure::class.qualifiedName ?: failure.javaClass.name
+                android.util.Log.e(
+                    "ORB_CORE_RENDER",
+                    "Shader uniform update failed: exceptionType=$exceptionType stage=${sceneFrame.stage.name} " +
+                        "shaderRoute=$shaderRoute",
+                    failure,
+                )
+                OrbStage02RenderTrace.record(
+                    eventType = "SHADER_UPDATE_FAILED",
+                    dataSource = "RUNTIME_STATE",
+                    captureId = debugCaptureId,
+                    fields = mapOf(
+                        "exceptionType" to exceptionType,
+                        "shaderRoute" to shaderRoute,
+                        "shaderStatus" to shaderUpdateStatus.name,
+                    ),
+                )
+            }
+        }
+        val previousPhase = phaseTracker[0]
+        val phaseDelta = if (previousPhase.isFinite()) interiorField.semanticPhase - previousPhase else 0f
+        phaseTracker[0] = interiorField.semanticPhase
+        val stageProgress = sceneFrame.stageProgress.coerceIn(0f, 1f)
+        val progressCheckpoint = when {
+            kotlin.math.abs(stageProgress - .25f) <= .01f -> "25"
+            kotlin.math.abs(stageProgress - .50f) <= .01f -> "50"
+            kotlin.math.abs(stageProgress - .75f) <= .01f -> "75"
+            kotlin.math.abs(stageProgress - 1f) <= .01f -> "100"
+            else -> "NONE"
+        }
+        val traceKey = "${sceneFrame.stage.name}:$progressCheckpoint:$shaderRoute:${shaderUpdateStatus.name}:${debugCaptureId.orEmpty()}"
+        val shouldRecordFlow = traceKey != lastFlowTraceKey[0] ||
+            (lastFlowTraceElapsedMs[0] != Long.MIN_VALUE &&
+                kotlin.math.abs(sharedFrame.elapsedMs - lastFlowTraceElapsedMs[0]) >= 250L)
+        if (shouldRecordFlow) {
+            lastFlowTraceKey[0] = traceKey
+            lastFlowTraceElapsedMs[0] = sharedFrame.elapsedMs
+            OrbStage02RenderTrace.record(
+                eventType = "ORB_R03_FLOW",
+                dataSource = "CALCULATED_VALUE",
+                captureId = debugCaptureId,
+                fields = mapOf(
+                    "wakeStrength" to interiorField.wakeStrength,
+                    "continuousFlowPhase" to interiorField.semanticPhase,
+                    "flowPhaseDelta" to phaseDelta,
+                    "maxDisplacementD" to interiorField.maxDisplacementD,
+                    "interiorMix" to interiorField.interiorMix,
+                    "interiorMaskMean" to "NOT_MEASURED_GPU_TEXTURE_ALPHA",
+                    "interiorMaskMin" to "NOT_MEASURED_GPU_TEXTURE_ALPHA",
+                    "interiorMaskMax" to "NOT_MEASURED_GPU_TEXTURE_ALPHA",
+                    "dynamicOverlayMeanAlpha" to "NOT_MEASURED_GPU_OUTPUT",
+                    "shaderRoute" to shaderRoute,
+                    "shaderStatus" to shaderUpdateStatus.name,
+                    "reducedMotion" to reduceMotion,
+                    "rawCoreVisible" to aiOrbRawCoreVisible(renderIsolationMode),
+                ),
+            )
+            OrbStage02RenderTrace.record(
+                eventType = "ORB_R03_SHADER",
+                dataSource = "RUNTIME_STATE",
+                captureId = debugCaptureId,
+                fields = mapOf(
+                    "shaderRoute" to shaderRoute,
+                    "shaderStatus" to shaderUpdateStatus.name,
+                    "shaderUpdateAttempted" to shaderUniformUpdateAttempted,
+                    "shaderUniformRevision" to shaderUniformRevisionForTrace,
+                    "renderEffectAttached" to (appliedRenderEffect != null),
+                    "layerDrawSubmitted" to "AWAITING_ORB_R03_RENDER_EVENT",
+                    "dynamicOverlayMeanAlpha" to "NOT_MEASURED_GPU_OUTPUT",
+                ),
+            )
         }
     }
+    val sourceCoreAlpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
+    val lastDiagnosticSnapshot = remember { arrayOfNulls<OrbCoreRenderDiagnosticSnapshot>(1) }
+    SideEffect {
+        val stageProgress = sceneFrame.stageProgress.coerceIn(0f, 1f)
+        val wakeCheckpoint = if (sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE) {
+            when {
+                kotlin.math.abs(stageProgress - .25f) <= .01f -> "25"
+                kotlin.math.abs(stageProgress - .50f) <= .01f -> "50"
+                kotlin.math.abs(stageProgress - .75f) <= .01f -> "75"
+                kotlin.math.abs(stageProgress - 1f) <= .01f -> "100"
+                else -> null
+            }
+        } else null
+        val currentSnapshot = OrbCoreRenderDiagnosticSnapshot(
+            stage = sceneFrame.stage.name,
+            shaderEnabled = shaderOverlayEnabled,
+            shaderRoute = shaderRoute,
+            shaderUpdateStatus = shaderUpdateStatus,
+            hostRejectReason = hostRejectReason,
+            wakeCheckpoint = wakeCheckpoint,
+        )
+        val previous = lastDiagnosticSnapshot[0]
+        val isRelevantTransition = previous != null && (
+            (previous.stage != currentSnapshot.stage) ||
+                (!previous.shaderEnabled && currentSnapshot.shaderEnabled) ||
+                (previous.shaderUpdateStatus == OrbShaderUpdateStatus.READY &&
+                    currentSnapshot.shaderUpdateStatus == OrbShaderUpdateStatus.FAILED) ||
+                (previous.shaderRoute != currentSnapshot.shaderRoute) ||
+                (previous.hostRejectReason != currentSnapshot.hostRejectReason) ||
+                (currentSnapshot.wakeCheckpoint != null &&
+                    previous.wakeCheckpoint != currentSnapshot.wakeCheckpoint)
+            )
+        if (isRelevantTransition) {
+            val logTag = if (sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE) {
+                "ORB_WAKE_VISIBILITY"
+            } else "ORB_CORE_RENDER"
+            android.util.Log.i(
+                logTag,
+                "stage=${sceneFrame.stage.name} stageProgress=$stageProgress " +
+                    "semanticLocalMs=${stageProgress * sceneFrame.stage.minimumVisibleMs} " +
+                    "wakeCheckpoint=${currentSnapshot.wakeCheckpoint ?: "TRANSITION"} " +
+                    "wakeOptics=${wake.optics} wakeWaterCore=${wake.waterCore} " +
+                    "shaderEnabled=${shaderOverlayEnabled} shaderRoute=$shaderRoute " +
+                    "shaderUpdateStatus=${shaderUpdateStatus.name} overlayAlpha=$shaderOverlayAlpha " +
+                    "sourceCoreAlpha=$sourceCoreAlpha hostRejectReason=${hostRejectReason ?: "NONE"} " +
+                    "renderIsolationMode=${renderIsolationMode.name} geometryVersion=${sharedFrame.geometryVersion}",
+            )
+        }
+        lastDiagnosticSnapshot[0] = currentSnapshot
+    }
+    val isolateCoreForTestOutput = injectedShaderOutput != null
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
             scaleX = (1f - .18f * settle) * breath
             scaleY = scaleX
             alpha = frame.completionAlpha
+        }.drawWithContent {
+            drawContent()
+            debugCaptureId?.let { captureId ->
+                OrbStage02RenderTrace.markCaptureDrawn(
+                    captureId,
+                    fields = mapOf(
+                        "stage" to sceneFrame.stage.name,
+                        "stageProgress" to sceneFrame.stageProgress,
+                        "playbackMode" to sceneFrame.playbackMode.name,
+                        "playbackPaused" to sceneFrame.paused,
+                        "frameSceneElapsedMs" to sceneFrame.sceneElapsedMs,
+                        "sampledOpticalElapsedMs" to sharedFrame.elapsedMs,
+                        "geometryVersion" to sharedFrame.geometryVersion,
+                        "renderIsolationMode" to renderIsolationMode.name,
+                        "layerIsolation" to stage02LayerIsolation.name,
+                        "excludedPathId" to debugExcludedPathId.orEmpty(),
+                        "visualProfile" to visualProfile.name,
+                        "shaderRoute" to shaderRoute,
+                        "shaderStatus" to shaderUpdateStatus.name,
+                        "shaderOverlayEnabled" to shaderOverlayEnabled,
+                        "captureWidthPx" to size.width,
+                        "captureHeightPx" to size.height,
+                    ),
+                )
+            }
         },
         contentAlignment = Alignment.Center,
     ) {
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
-            orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
-            activeEnergyEvent, releaseEnergy, returnEnergy)
-        Image(
-            painter = painterResource(R.drawable.processing_water_core_v1),
-            contentDescription = null,
+        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput && r06ExteriorVisible) {
+            OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
+                orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
+                activeEnergyEvent, releaseEnergy, returnEnergy, visualProfile = visualProfile,
+                debugExcludedPathId = debugExcludedPathId,
+                onPathMetrics = onR06RenderedPaths, onPathDiagnostics = onR06PathDiagnostics,
+                debugCaptureId = debugCaptureId)
+        }
+        val corePainter = painterResource(R.drawable.processing_water_core_v1)
+        Box(
             modifier = Modifier.size(coreSize / .84f).graphicsLayer {
-                alpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
-                scaleX = 1f
-                scaleY = 1f
-                coreOpticalEffect?.renderEffect?.let { renderEffect = it }
+                alpha = sourceCoreAlpha
+                compositingStrategy = CompositingStrategy.Offscreen
             },
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                painter = corePainter,
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+            )
+            if (shaderOverlayEnabled && r03Visible) {
+                if (injectedShaderOutput != null) {
+                    Box(
+                        modifier = Modifier.matchParentSize().graphicsLayer {
+                            alpha = shaderOverlayAlpha
+                        }.background(injectedShaderOutput.color),
+                    )
+                } else {
+                    Image(
+                        painter = corePainter,
+                        contentDescription = null,
+                        modifier = Modifier.matchParentSize().graphicsLayer {
+                            alpha = shaderOverlayAlpha
+                            renderEffect = appliedRenderEffect
+                        }.drawWithContent {
+                            drawContent()
+                            OrbStage02RenderTrace.record(
+                                eventType = "ORB_R03_RENDER",
+                                dataSource = "CANVAS_DRAW_SUBMISSION",
+                                captureId = debugCaptureId,
+                                fields = mapOf(
+                                    "shaderRoute" to shaderRoute,
+                                    "shaderStatus" to shaderUpdateStatus.name,
+                                    "uniformRevision" to shaderUniformRevisionForTrace,
+                                    "renderEffectAttached" to (appliedRenderEffect != null),
+                                    "layerDrawSubmitted" to true,
+                                    "layerDrawDataSource" to "COMPOSE_DRAW_SUBMISSION_NOT_GPU_READBACK",
+                                    "renderLayerRevision" to frameTraceId,
+                                    "overlayAlpha" to shaderOverlayAlpha,
+                                ),
+                            )
+                        },
+                    )
+                }
+            }
+        }
+        if (isMaxTransitionActive && r06Visible &&
+            renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput
+        ) OrbWaterLightRibbons(
+            coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
+            orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
+            activeEnergyEvent, releaseEnergy, returnEnergy,
+            visualProfile = visualProfile,
+            renderPass = OrbR06RenderPass.GLASS_TRANSMISSION,
+            debugExcludedPathId = debugExcludedPathId,
+            onPathMetrics = onR06RenderedPaths,
+            onPathDiagnostics = onR06PathDiagnostics,
+            debugCaptureId = debugCaptureId,
         )
-        OrbCoreOpticalEffects(
+        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && !isolateCoreForTestOutput && r03Visible) OrbCoreOpticalEffects(
             coreSize = coreSize,
             frame = sharedFrame,
             coreAlpha = 1f,
@@ -265,8 +684,10 @@ private fun OrbVisual(
             showDroplets = orbShowDroplets,
             showSunlight = orbShowSunlight,
             showCaustics = orbShowCaustics,
+            visualProfile = visualProfile,
         )
-        if (fromCamera && frame.cameraHeroAlpha > 0f) {
+        if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && !isolateCoreForTestOutput &&
+            fromCamera && frame.cameraHeroAlpha > 0f) {
             Image(
                 painter = painterResource(R.drawable.ai_orb_camera_activated_v1),
                 contentDescription = null,
@@ -278,8 +699,13 @@ private fun OrbVisual(
                 },
             )
         }
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
-            orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
-            activeEnergyEvent, releaseEnergy, returnEnergy)
+        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput && r06FrontVisible) {
+            OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
+                orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
+                activeEnergyEvent, releaseEnergy, returnEnergy, visualProfile = visualProfile,
+                debugExcludedPathId = debugExcludedPathId,
+                onPathMetrics = onR06RenderedPaths, onPathDiagnostics = onR06PathDiagnostics,
+                debugCaptureId = debugCaptureId)
+        }
     }
 }

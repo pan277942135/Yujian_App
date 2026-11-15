@@ -50,7 +50,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             YujianTheme {
-                YujianApp()
+                YujianApp(
+                    productionAutoPlayback = BuildConfig.DEBUG &&
+                        intent.getBooleanExtra(EXTRA_PRODUCTION_AUTO_PLAYBACK, false),
+                )
             }
         }
     }
@@ -109,6 +112,10 @@ class MainActivity : ComponentActivity() {
             })
         }, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         setContentView(layout)
+    }
+
+    companion object {
+        const val EXTRA_PRODUCTION_AUTO_PLAYBACK = "com.yujian.ai.extra.PRODUCTION_AUTO_PLAYBACK"
     }
 
 }

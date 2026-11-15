@@ -2,6 +2,7 @@
 import io
 import os
 import sys
+import urllib.error
 import tempfile
 import unittest
 import zipfile
@@ -33,6 +34,42 @@ class BootstrapContractTest(unittest.TestCase):
                 asset_request = urlopen_mock.call_args.args[0]
                 self.assertEqual(asset_request.get_header("Authorization"), "Bearer workflow-token")
                 self.assertEqual(saved, payload)
+
+    def test_detector_bundle_download_retries_transient_504_by_asset_id(self) -> None:
+        url = bootstrap.DETECTOR_DEFAULTS["DETECTOR_BUNDLE_URL"]
+        transient = urllib.error.HTTPError(
+            url, 504, "Gateway Time-out", {}, io.BytesIO(b"gateway timeout")
+        )
+        payload = b"verified-detector-bundle"
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "detector_bundle.zip"
+            with mock.patch.object(
+                bootstrap, "urlopen", side_effect=[transient, io.BytesIO(payload)]
+            ) as urlopen_mock, mock.patch.object(bootstrap.time, "sleep") as sleep_mock:
+                bootstrap._download(url, destination, "detector bundle")
+            self.assertEqual(destination.read_bytes(), payload)
+            self.assertEqual(urlopen_mock.call_count, 2)
+            request = urlopen_mock.call_args_list[0].args[0]
+            self.assertEqual(
+                request.full_url,
+                f"https://api.github.com/repos/{bootstrap.DETECTOR_RELEASE_REPOSITORY}/releases/assets/"
+                f"{bootstrap.DETECTOR_BUNDLE_ASSET_ID}",
+            )
+            self.assertEqual(request.get_header("Accept"), "application/octet-stream")
+            sleep_mock.assert_called_once_with(3.0)
+
+    def test_detector_bundle_download_does_not_retry_permanent_404(self) -> None:
+        url = bootstrap.DETECTOR_DEFAULTS["DETECTOR_BUNDLE_URL"]
+        not_found = urllib.error.HTTPError(
+            url, 404, "Not Found", {}, io.BytesIO(b"not found")
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "detector_bundle.zip"
+            with mock.patch.object(bootstrap, "urlopen", side_effect=not_found) as urlopen_mock:
+                with self.assertRaises(bootstrap.BootstrapError):
+                    bootstrap._download(url, destination, "detector bundle")
+            self.assertEqual(urlopen_mock.call_count, 1)
+            self.assertFalse(destination.exists())
 
     def test_missing_model_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

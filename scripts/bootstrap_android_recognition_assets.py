@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
 import urllib.request
 import zipfile
 from dataclasses import dataclass
@@ -45,8 +46,12 @@ TEST_DETECTOR_ASSETS = ROOT / "app" / "src" / "androidTest" / "assets" / "detect
 PRODUCTION_RELEASE_API_URL = (
     f"https://api.github.com/repos/{RELEASE_REPOSITORY}/releases/tags/{RELEASE_TAG}"
 )
+DETECTOR_RELEASE_REPOSITORY = "pan277942135/Yujian"
+DETECTOR_BUNDLE_ASSET_ID = 537791631
 DETECTOR_DEFAULTS = {
-    "DETECTOR_BUNDLE_URL": "https://github.com/pan277942135/Yujian/releases/download/detector-model-v0.1/det_fish_v0_1_android_bundle.zip",
+    "DETECTOR_BUNDLE_URL": (
+        f"https://api.github.com/repos/{DETECTOR_RELEASE_REPOSITORY}/releases/assets/{DETECTOR_BUNDLE_ASSET_ID}"
+    ),
     "DETECTOR_BUNDLE_SHA256": "246ddacaf89ca7ecc9c64a47d3e12c5ee9088d92c763a38626778505ae8c15ee",
 }
 
@@ -57,6 +62,10 @@ REQUIRED_DETECTOR_MEMBERS = (
     "golden_cases.json",
 )
 REQUIRED_GOLDEN_CASES = ("ready", "no_fish", "incomplete_fish", "fish_too_small", "multiple_fish")
+
+DOWNLOAD_RETRY_ATTEMPTS = 5
+DOWNLOAD_TIMEOUT_SECONDS = 180
+RETRYABLE_HTTP_STATUS_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
 
 
 class BootstrapError(RuntimeError):
@@ -132,6 +141,58 @@ def _release_fingerprint(release: dict) -> tuple:
     )
 
 
+def _is_retryable_download_error(error: Exception) -> bool:
+    if isinstance(error, urllib.error.HTTPError):
+        return error.code in RETRYABLE_HTTP_STATUS_CODES
+    if isinstance(error, urllib.error.URLError):
+        return True
+    return isinstance(error, (TimeoutError, ConnectionError, OSError))
+
+
+def _download_retry_delay_seconds(error: Exception, attempt: int) -> float:
+    headers = getattr(error, "headers", None)
+    retry_after = headers.get("Retry-After") if headers is not None else None
+    if retry_after:
+        try:
+            return min(max(float(retry_after), 0.0), 30.0)
+        except (TypeError, ValueError):
+            pass
+    return min(3.0 * (2 ** attempt), 30.0)
+
+
+def _download_to_path(request: Request, destination: Path, label: str) -> bytes:
+    """Download atomically with bounded retries for transient GitHub/CDN failures."""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    last_error: Exception | None = None
+    for attempt in range(DOWNLOAD_RETRY_ATTEMPTS):
+        temporary = destination.with_name(
+            f".{destination.name}.download-{os.getpid()}-{time.time_ns()}"
+        )
+        try:
+            with urlopen(request, timeout=DOWNLOAD_TIMEOUT_SECONDS) as response, temporary.open("wb") as output:
+                shutil.copyfileobj(response, output)
+            if not temporary.is_file() or temporary.stat().st_size == 0:
+                raise OSError(f"{label}: downloaded file is empty")
+            payload = temporary.read_bytes()
+            os.replace(temporary, destination)
+            return payload
+        except Exception as error:
+            temporary.unlink(missing_ok=True)
+            last_error = error
+            if not _is_retryable_download_error(error) or attempt + 1 >= DOWNLOAD_RETRY_ATTEMPTS:
+                raise BootstrapError(
+                    f"{label}: download failed after {attempt + 1}/{DOWNLOAD_RETRY_ATTEMPTS} attempts: {error}"
+                ) from error
+            delay = _download_retry_delay_seconds(error, attempt)
+            print(
+                f"{label}: transient download failure on attempt {attempt + 1}/"
+                f"{DOWNLOAD_RETRY_ATTEMPTS}: {error}; retrying in {delay:g}s",
+                file=sys.stderr,
+            )
+            time.sleep(delay)
+    raise BootstrapError(f"{label}: download failed: {last_error}")
+
+
 def download_release_asset(asset: dict, destination: Path) -> bytes:
     """Download by Release asset id so mutable tag URLs cannot mix versions."""
     url = asset.get("url")
@@ -148,19 +209,7 @@ def download_release_asset(asset: dict, destination: Path) -> bytes:
             **_github_api_authorization(),
         },
     )
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    temporary = destination.with_name(f".{destination.name}.download-{time.time_ns()}")
-    try:
-        with urlopen(request, timeout=180) as response, temporary.open("wb") as output:
-            shutil.copyfileobj(response, output)
-        payload = temporary.read_bytes()
-        if not payload:
-            raise BootstrapError(f"empty production Release asset: {asset.get('name')}")
-        os.replace(temporary, destination)
-        return payload
-    except Exception:
-        temporary.unlink(missing_ok=True)
-        raise
+    return _download_to_path(request, destination, f"production Release asset {asset.get('name')}")
 
 
 def verify_file_hash(path: Path, expected: str, label: str) -> None:
@@ -172,27 +221,18 @@ def verify_file_hash(path: Path, expected: str, label: str) -> None:
 
 
 def _download(url: str, destination: Path, label: str) -> None:
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    temporary = destination.with_name(f".{destination.name}.download-{os.getpid()}-{time.time_ns()}")
-    try:
-        last_error: Exception | None = None
-        for attempt in range(3):
-            try:
-                request = urllib.request.Request(url, headers={"User-Agent": "YuJian-recognition-bootstrap/1"})
-                with urllib.request.urlopen(request, timeout=120) as response, temporary.open("wb") as output:
-                    shutil.copyfileobj(response, output)
-                if temporary.stat().st_size == 0:
-                    raise BootstrapError(f"{label}: downloaded file is zero bytes")
-                os.replace(temporary, destination)
-                return
-            except Exception as error:  # retry network and transient file errors
-                last_error = error
-                temporary.unlink(missing_ok=True)
-                if attempt < 2:
-                    time.sleep(2 ** attempt)
-        raise BootstrapError(f"{label}: download failed from {url}: {last_error}")
-    finally:
-        temporary.unlink(missing_ok=True)
+    headers = {"User-Agent": "YuJian-recognition-bootstrap/1"}
+    if url.startswith(
+        f"https://api.github.com/repos/{DETECTOR_RELEASE_REPOSITORY}/releases/assets/"
+    ):
+        headers.update(
+            {
+                "Accept": "application/octet-stream",
+                "X-GitHub-Api-Version": "2022-11-28",
+            }
+        )
+    request = Request(url, headers=headers)
+    _download_to_path(request, destination, label)
 
 
 def _member_candidates(archive: zipfile.ZipFile, basename: str) -> list[str]:

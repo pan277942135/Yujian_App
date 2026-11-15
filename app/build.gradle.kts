@@ -1,4 +1,5 @@
 import java.security.MessageDigest
+import java.time.Instant
 import javax.imageio.ImageIO
 
 plugins {
@@ -51,7 +52,12 @@ android {
 
     defaultConfig {
         applicationId = "com.yujian.ai.uiv2"
-        buildConfigField("String", "SOURCE_REVISION", quotedBuildConfig(providers.environmentVariable("GITHUB_SHA").orElse("LOCAL_UNVERIFIED").get()))
+        val sourceRevision = providers.environmentVariable("SOURCE_SHA")
+            .orElse(providers.environmentVariable("BUILD_SHA"))
+            .orElse(providers.environmentVariable("GITHUB_SHA"))
+            .orElse("LOCAL_UNVERIFIED")
+        buildConfigField("String", "SOURCE_REVISION", quotedBuildConfig(sourceRevision.get()))
+        buildConfigField("String", "BUILD_TIMESTAMP_UTC", quotedBuildConfig(Instant.now().toString()))
         minSdk = 24
         targetSdk = 35
         versionCode = 6

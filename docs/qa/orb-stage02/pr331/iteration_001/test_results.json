@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "iteration": "iteration_001",
+  "baselineSha": "762b656591be3129bf2ec02768a65109371fe4ab",
+  "currentSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9",
+  "checks": {
+    "controlPlaneAdmission": {
+      "status": "PASS_BASELINE_ONLY",
+      "details": "Baseline admission passed after resynchronizing origin/main. The separate admission workflow was not triggered for this PR because its PR base filter is main; exact-head admission is not run."
+    },
+    "gitDiffCheck": {
+      "status": "NOT_RUN_REMOTE_DOC_UPDATE",
+      "details": "The report/ledger refresh is being committed through GitHub Git Data API; no local git diff --check was run for this remote-only update."
+    },
+    "unitTests": {
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 passed the Unit tests step on 2e11dea1761296cdd19625bfc45a6c47be1376d9. The local Gradle attempt remains BLOCKED_INFRA before Gradle starts."
+    },
+    "recognitionHarness": {
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 passed Camera runtime harness contract tests on 2e11dea1761296cdd19625bfc45a6c47be1376d9."
+    },
+    "androidTestCompile": {
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 compiled the Android runtime test APK on 2e11dea1761296cdd19625bfc45a6c47be1376d9; instrumentation was not run."
+    },
+    "androidTestRuntime": {
+      "status": "NOT_RUN_BY_SCOPE",
+      "details": "No instrumentation/device execution is permitted in this task; CI device/API36 jobs were skipped."
+    },
+    "androidLint": {
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 passed Android lint on 2e11dea1761296cdd19625bfc45a6c47be1376d9."
+    },
+    "releaseKotlinCompile": {
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 passed Release Kotlin compilation on 2e11dea1761296cdd19625bfc45a6c47be1376d9."
+    },
+    "resourceShaCheck": {
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 passed frozen asset and packaged resource checks on 2e11dea1761296cdd19625bfc45a6c47be1376d9."
+    },
+    "modelShaCheck": {
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 exported and verified model identity from the actual APK on 2e11dea1761296cdd19625bfc45a6c47be1376d9; detector packaged is DET_FISH_v0.1 (no v0.3 claim)."
+    },
+    "controlPlaneAdmissionFinal": {
+      "status": "NOT_TRIGGERED_BY_PR_BASE_FILTER",
+      "details": "The separate control-plane-admission workflow accepts pull requests targeting main. PR #331 targets work/recognition-runtime-result-handoff-v1. Baseline admission passed, but exact-head admission was not run."
+    },
+    "exactHeadCi": {
+      "status": "PASS",
+      "runId": 43671108469,
+      "sourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9",
+      "details": "Android CI run completed with success on the exact implementation source commit."
+    },
+    "debugApk": {
+      "status": "PASS",
+      "artifactId": 14144831040,
+      "artifactUrl": "https://github.com/pan277942135/Yujian_App/actions/runs/43671108469/artifacts/14144831040",
+      "apkSha256": "4bdbb1ab4347bb8e325ec24369e20e08cea747ad460038f3cb2d38e740de6a3e",
+      "sizeBytes": 144397930,
+      "sourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9"
+    },
+    "devicePixelEvidence": {
+      "status": "NOT_RUN_BY_SCOPE",
+      "details": "No device discovery, ADB, emulator, API36 runner, PixelCopy capture or instrumentation run."
+    },
+    "visualDelta": {
+      "status": "NOT_CONFIRMED",
+      "details": "No current-source device PixelCopy evidence or owner visual review."
+    },
+    "runtimeProfileParity": {
+      "status": "PASS",
+      "details": "generate_orb_runtime_profile.py --check passed."
+    },
+    "recognitionRuntimeContract": {
+      "status": "PASS",
+      "details": "verify_recognition_runtime_contract.py passed."
+    },
+    "cameraRecognitionHarnessContract": {
+      "status": "PASS",
+      "details": "android_runtime/tests/test_contract.sh passed including no-device classification scenarios."
+    }
+  },
+  "prStateRequired": "OPEN_DRAFT_UNMERGED"
+}

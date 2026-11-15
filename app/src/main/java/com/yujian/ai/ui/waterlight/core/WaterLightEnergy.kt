@@ -36,6 +36,11 @@ data class EnergyEvent(
     val pathGeometry: WaterLightPathGeometry? = null,
     /** Ordered cubic segments; RETURN stores the outward route in reverse order and direction. */
     val pathSegments: List<WaterLightPathGeometry> = emptyList(),
+    /** Mask/P* identity of the original Processing path. Separate from the Result host geometry. */
+    val pathMaskSha256: String? = null,
+    val pathMaskVersion: Long? = null,
+    val pathGeometryVersion: Long? = null,
+    val pathContactPointNormalizedSource: WaterLightPathPoint? = null,
     val eventSequence: Long = 0L,
     val monotonicTimestampMs: Long = 0L,
     val sourceHost: String? = null,
@@ -59,6 +64,10 @@ object WaterLightEnergy {
         orbOnlyRevealAllowed: Boolean = false,
         pathSegments: List<WaterLightPathGeometry> = emptyList(),
         pathIdOverride: String? = null,
+        pathMaskSha256: String? = null,
+        pathMaskVersion: Long? = null,
+        pathGeometryVersion: Long? = null,
+        pathContactPointNormalizedSource: WaterLightPathPoint? = null,
     ): EnergyEvent? {
         val photo = frame.photoSha256?.takeIf(String::isNotBlank) ?: return null
         val scene = frame.sceneFrame
@@ -91,6 +100,21 @@ object WaterLightEnergy {
                 EnergyAnchor.REVEAL_TEXT, EnergyAnchor.RESIDUE, EnergyFeedback.SETTLE, scene.stageProgress)
             else -> return null
         }
+        // FULL_REVEAL RETURN must carry the exact Processing path and its Mask/P* identity.
+        // The Result host may have a new measured layout fingerprint, carried separately by
+        // WaterLightFrame.geometryVersion; it may not replace the path's original fingerprint.
+        val returnContact = pathContactPointNormalizedSource
+        if (feedback == EnergyFeedback.RETURN && from == EnergyAnchor.FISH_CONTOUR &&
+            (pathIdOverride.isNullOrBlank() || pathSegments.size != 3 ||
+                pathMaskSha256?.matches(Regex("(?i)^[a-f0-9]{64}$")) != true ||
+                pathMaskVersion == null || pathMaskVersion < 0L ||
+                pathGeometryVersion == null || pathGeometryVersion == 0L ||
+                returnContact == null || !returnContact.isValid() ||
+                returnContact.x !in 0f..1f ||
+                returnContact.y !in 0f..1f ||
+                pathSegments.any { !it.isValid() || it.coordinateSpace != pathSegments.first().coordinateSpace } ||
+                pathSegments.zipWithNext().any { (a, b) -> a.end != b.start })
+        ) return null
         return EnergyEvent(frame.sessionId, photo, from, to, feedback, level,
             scene.opticalReferenceElapsedMs, frame.geometryVersion, frame.attemptId, frame.imageId, frame.photoContentVersion,
             pathId = pathIdOverride ?: when (feedback) {
@@ -107,6 +131,10 @@ object WaterLightEnergy {
             },
             pathGeometry = pathGeometry?.takeIf(WaterLightPathGeometry::isValid),
             pathSegments = pathSegments.filter(WaterLightPathGeometry::isValid),
+            pathMaskSha256 = pathMaskSha256,
+            pathMaskVersion = pathMaskVersion,
+            pathGeometryVersion = pathGeometryVersion,
+            pathContactPointNormalizedSource = pathContactPointNormalizedSource,
             eventSequence = scene.eventSequence,
             monotonicTimestampMs = scene.monotonicTimestampMs,
             sourceHost = from.name,

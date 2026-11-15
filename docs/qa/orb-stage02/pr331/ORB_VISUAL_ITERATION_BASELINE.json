@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "workId": "YUJIAN_PR331_R03_R06_ITERATIVE_VISUAL_ENGINEERING_CLOSURE_V1",
+  "pr": 331,
+  "baselineSha": "762b656591be3129bf2ec02768a65109371fe4ab",
+  "historicalCiRun": "43602865617",
+  "historicalApkSha256": {
+    "value": "df7f184a416982dd432a13181d9c5eec9b4e57ed06a38055eea9c32984ab527b",
+    "verification": "USER_REPORTED_NOT_REVERIFIED"
+  },
+  "baselineVideo": {
+    "name": "264191.mp4",
+    "sha256": "7d3fb4924f544122720575f9ba5fad788bcb6d50793d08798e2404b37540c872",
+    "role": "MAX V3 diagnostic screen recording; screen-level pixels, not PixelCopy or GPU pass dump"
+  },
+  "priorVideo": {
+    "name": "264184.mp4",
+    "sha256": "992af0f459ed5345cc7d439a97d5c4f66ff8e90aa7d778d416ecdb41d4194ef1"
+  },
+  "r03VisualStatus": "FAIL_UNDER_PRIOR_OWNER_REVIEW",
+  "r06VisualStatus": "FAIL_UNDER_PRIOR_OWNER_REVIEW",
+  "devicePixelEvidence": "PARTIAL_SCREEN_RECORDING; PIXELCOPY_ZIP_NOT_AVAILABLE; PER_PATH_ABLATION_NOT_AVAILABLE",
+  "rootCauseStatus": "PARTIALLY_CONFIRMED",
+  "confirmedSourceFindings": [
+    "MANUAL diagnostic preview completion stops the unified Scene Clock at StageProgress 100%; this does not establish production AUTO flow failure.",
+    "Back glass transmission multiplies radialMask twice and later applies a radial gradient; code/math confirm attenuation, but not final visual causality.",
+    "Evidence exporter reuses one metadata record across mode-switched images and actualFluidApplied is runtime-state-inferred rather than pixel-measured."
+  ],
+  "openQuestions": [
+    "Does exact-source production AUTO produce measurable local R03 texture movement across the 350ms Stage02?",
+    "Do G01/A01 gain measurable final screen contribution from removal of the duplicate radial factor?",
+    "Do G02/A02/C01 each contribute distinguishable final pixels in same-frame per-path ablation?",
+    "Do users judge any measured contribution visually discernible in the full composite?"
+  ],
+  "iteration001": {
+    "sourceBaseSha": "762b656591be3129bf2ec02768a65109371fe4ab",
+    "currentSourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9",
+    "codeChanges": [
+      "MAX continuous flow phase now derives from the existing shared scene clock; stage wake remains a separate progress envelope.",
+      "AGSL uses the displaced coordinate once and applies interior mix only to the dynamic layer contribution.",
+      "R06 glass body removes radialMask squared while preserving source-alpha and one smooth radial edge mask.",
+      "Debug exporter adds capture/frame identity, a frame-commit fence, per-path ablations, fixed-progress optical samples, and pixel comparison metrics."
+    ],
+    "sourceFindings": {
+      "manualDiagnosticClockCanPauseAtProgress100": "CONFIRMED_SOURCE_DIAGNOSTIC_BEHAVIOR",
+      "maxDisplacementCoordinateWasAttenuatedTwice": "CONFIRMED_SOURCE_MECHANISM; VISUAL_CAUSALITY_UNCONFIRMED",
+      "backGlassHadSquaredRadialFactorAndGradient": "CONFIRMED_SOURCE_MECHANISM; VISUAL_CAUSALITY_UNCONFIRMED",
+      "frontPathVisualFailureLayer": "UNLOCATED"
+    },
+    "newDevicePixelEvidence": "NOT_MEASURED",
+    "visualDelta": "NOT_CONFIRMED",
+    "deviceExecution": "NOT_RUN_BY_SCOPE",
+    "nextEvidence": [
+      "Normal production Stage02 screen recording from final exact-source Debug APK.",
+      "orb-stage02-evidence.zip from final exact-source Debug APK with R03 and five-path PixelCopy comparisons."
+    ],
+    "exactHeadCi": {
+      "runId": 43671108469,
+      "status": "PASS",
+      "sourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9"
+    },
+    "debugApk": {
+      "artifactId": 14144831040,
+      "status": "PASS",
+      "sizeBytes": 144397930,
+      "sha256": "4bdbb1ab4347bb8e325ec24369e20e08cea747ad460038f3cb2d38e740de6a3e",
+      "sourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9"
+    },
+    "controlPlaneAdmission": "NOT_RUN_EXACT_HEAD_PR_BASE_FILTER",
+    "packagedDetector": "DET_FISH_v0.1"
+  },
+  "evidenceStatus": "BASELINE_LOCKED; ITERATION_001_SOURCE_FIXES_APPLIED; EXACT_HEAD_CI_PASS; DEVICE_PIXEL_EFFECT_NOT_MEASURED"
+}

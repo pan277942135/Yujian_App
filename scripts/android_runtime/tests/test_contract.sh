@@ -4,10 +4,16 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 ENTRYPOINT="$ROOT_DIR/scripts/run_android_runtime_gate.sh"
+HANDOFF_ENTRYPOINT="$ROOT_DIR/scripts/run_recognition_result_handoff_gate.sh"
 FAKE_ADB="$ROOT_DIR/scripts/android_runtime/tests/fake_adb.sh"
 
 grep -q 'gemini-home-v2' "$ENTRYPOINT" || {
   echo "Gemini Home V2 runtime gate is not registered" >&2
+  exit 1
+}
+
+grep -q 'recognition-result-handoff' "$HANDOFF_ENTRYPOINT" || {
+  echo "Recognition Result Handoff physical runtime entrypoint is not registered" >&2
   exit 1
 }
 
@@ -135,6 +141,40 @@ run_case camera-application-error camera-closed FAIL_TEST 30
 run_case process-crash process-crash FAIL_TEST 30
 run_case evidence-missing missing-evidence FAIL_EVIDENCE 40
 run_case pass ready PASS 0
+
+run_recognition_handoff_without_physical_device() {
+  local tmp rc
+  tmp="$(mktemp -d)"
+  printf 'app-apk' > "$tmp/app-debug.apk"
+  printf 'test-apk' > "$tmp/app-debug-androidTest.apk"
+  set +e
+    FAKE_ADB_MODE=offline \
+    ADB="$FAKE_ADB" \
+    YUJIAN_WAIT_ATTEMPTS=1 \
+    YUJIAN_PREFLIGHT_ATTEMPTS=1 \
+    YUJIAN_PREFLIGHT_SLEEP_SECONDS=0 \
+    bash "$HANDOFF_ENTRYPOINT" \
+      --api-level 36 \
+      --build-sha fake-sha \
+      --app-apk "$tmp/app-debug.apk" \
+      --test-apk "$tmp/app-debug-androidTest.apk" \
+      --evidence-dir "$tmp/evidence" > "$tmp/output.log" 2>&1
+  rc=$?
+  set -e
+  assert_result "$tmp/evidence/runtime_gate_result.json" BLOCKED_DEVICE 10 "$rc" "$tmp/output.log"
+  [[ ! -e "$tmp/evidence/infra/adb_restart_count" ]] || {
+    echo 'physical-device preflight must not restart ADB or fall through to generic recovery' >&2
+    exit 1
+  }
+  [[ ! -e "$tmp/evidence/instrumentation.log" ]] || {
+    echo 'no-device classification must occur before installing APKs or starting instrumentation' >&2
+    exit 1
+  }
+  printf '%s\n' 'PASS recognition-result-handoff classifies an absent physical device as BLOCKED_DEVICE'
+  rm -rf "$tmp"
+}
+
+run_recognition_handoff_without_physical_device
 
 run_only_representative_adaptive_matrix() {
   local tmp rc trace adb_trace install_count

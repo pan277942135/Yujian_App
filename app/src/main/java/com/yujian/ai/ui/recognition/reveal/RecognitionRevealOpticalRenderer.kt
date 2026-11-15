@@ -386,7 +386,7 @@ internal fun RecognitionRevealOpticalOverlay(
             if (activeRevealGeometry != null && orbToGlyphMeasure != null &&
                 frame.stage == RecognitionSceneStage.ORB_TO_NAME
             ) {
-                val p = frame.titleFormationProgress.coerceIn(0f, 1f)
+                val p = frame.liquidBrushProgress.coerceIn(0f, 1f)
                 val distance = orbToGlyphMeasure.length * p
                 transferTail.reset()
                 if (distance > 0f) {
@@ -460,7 +460,7 @@ internal fun RecognitionRevealOpticalOverlay(
     ) {
         val coreSize = with(density) { orbDiameterPx.toDp() }
         val outerSizePx = with(density) { (coreSize + 28.dp).toPx() }
-        val morph = if (frame.stage == RecognitionSceneStage.ORB_TO_NAME) frame.titleFormationProgress.coerceIn(0f, 1f) else 0f
+        val morph = if (frame.stage == RecognitionSceneStage.ORB_TO_NAME) frame.orbHorizontalStretchProgress.coerceIn(0f, 1f) else 0f
         AIOrbCore(
             state = AIOrbVisualState.ORB_ACTIVE,
             modifier = Modifier.offset {
@@ -474,7 +474,7 @@ internal fun RecognitionRevealOpticalOverlay(
                 transformOrigin = TransformOrigin.Center
                 scaleX = 1f + .62f * morph
                 scaleY = 1f - .32f * morph
-                alpha = 1f - morph
+                alpha = 1f - .35f * morph
             },
             coreSize = coreSize,
             entranceElapsedMs = 900L,
