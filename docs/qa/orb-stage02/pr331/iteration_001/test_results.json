@@ -2,68 +2,73 @@
   "schemaVersion": 1,
   "iteration": "iteration_001",
   "baselineSha": "762b656591be3129bf2ec02768a65109371fe4ab",
-  "currentSha": "PENDING_EXACT_HEAD_COMMIT",
+  "currentSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9",
   "checks": {
     "controlPlaneAdmission": {
-      "status": "PASS",
-      "details": "Ran scripts/validate_control_plane_admission.py after resynchronizing origin/main; baseline branch and private state passed."
+      "status": "PASS_BASELINE_ONLY",
+      "details": "Baseline admission passed after resynchronizing origin/main. The separate admission workflow was not triggered for this PR because its PR base filter is main; exact-head admission is not run."
     },
     "gitDiffCheck": {
-      "status": "PASS",
-      "details": "git diff --check passed after source and report updates; repeat before commit."
+      "status": "NOT_RUN_REMOTE_DOC_UPDATE",
+      "details": "The report/ledger refresh is being committed through GitHub Git Data API; no local git diff --check was run for this remote-only update."
     },
     "unitTests": {
-      "status": "BLOCKED_INFRA",
-      "details": "Attempted ./gradlew --offline :app:testDebugUnitTest --no-daemon --max-workers=2. Gradle 9.3.1 distribution was uncached; services.gradle.org was unreachable, so Gradle did not start and tests did not run. Exact-head CI pending."
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 passed the Unit tests step on 2e11dea1761296cdd19625bfc45a6c47be1376d9. The local Gradle attempt remains BLOCKED_INFRA before Gradle starts."
     },
     "recognitionHarness": {
-      "status": "PASS",
-      "details": "python3 scripts/verify_recognition_runtime_contract.py and bash scripts/android_runtime/tests/test_contract.sh passed."
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 passed Camera runtime harness contract tests on 2e11dea1761296cdd19625bfc45a6c47be1376d9."
     },
     "androidTestCompile": {
-      "status": "PENDING_EXACT_HEAD_CI",
-      "details": "Will be compiled by exact-head standard CI; instrumentation will not run by scope."
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 compiled the Android runtime test APK on 2e11dea1761296cdd19625bfc45a6c47be1376d9; instrumentation was not run."
     },
     "androidTestRuntime": {
       "status": "NOT_RUN_BY_SCOPE",
-      "details": "No instrumentation/device execution is permitted in this task."
+      "details": "No instrumentation/device execution is permitted in this task; CI device/API36 jobs were skipped."
     },
     "androidLint": {
-      "status": "PENDING_EXACT_HEAD_CI"
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 passed Android lint on 2e11dea1761296cdd19625bfc45a6c47be1376d9."
     },
     "releaseKotlinCompile": {
-      "status": "PENDING_EXACT_HEAD_CI"
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 passed Release Kotlin compilation on 2e11dea1761296cdd19625bfc45a6c47be1376d9."
     },
     "resourceShaCheck": {
-      "status": "PASS_STATIC",
-      "details": "Original Orb WebP SHA/alpha and frozen R06 asset/material/path checks passed. Packaged APK verification pending exact-head CI."
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 passed frozen asset and packaged resource checks on 2e11dea1761296cdd19625bfc45a6c47be1376d9."
     },
     "modelShaCheck": {
-      "status": "PENDING_EXACT_HEAD_CI",
-      "details": "Packaged model SHA requires final CI APK bootstrap/package verification."
+      "status": "PASS_EXACT_HEAD_CI",
+      "details": "Android CI run 43671108469 exported and verified model identity from the actual APK on 2e11dea1761296cdd19625bfc45a6c47be1376d9; detector packaged is DET_FISH_v0.1 (no v0.3 claim)."
     },
     "controlPlaneAdmissionFinal": {
-      "status": "PENDING_FINAL_STATE_CHECKPOINT"
+      "status": "NOT_TRIGGERED_BY_PR_BASE_FILTER",
+      "details": "The separate control-plane-admission workflow accepts pull requests targeting main. PR #331 targets work/recognition-runtime-result-handoff-v1. Baseline admission passed, but exact-head admission was not run."
     },
     "exactHeadCi": {
-      "status": "PENDING",
-      "runId": null,
-      "sourceSha": null
+      "status": "PASS",
+      "runId": 43671108469,
+      "sourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9",
+      "details": "Android CI run completed with success on the exact implementation source commit."
     },
     "debugApk": {
-      "status": "PENDING_EXACT_HEAD_CI",
-      "artifactId": null,
-      "apkSha256": null,
-      "sizeBytes": null,
-      "sourceSha": null
+      "status": "PASS",
+      "artifactId": 14144831040,
+      "artifactUrl": "https://github.com/pan277942135/Yujian_App/actions/runs/43671108469/artifacts/14144831040",
+      "apkSha256": "4bdbb1ab4347bb8e325ec24369e20e08cea747ad460038f3cb2d38e740de6a3e",
+      "sizeBytes": 144397930,
+      "sourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9"
     },
     "devicePixelEvidence": {
       "status": "NOT_RUN_BY_SCOPE",
-      "details": "No ADB, device discovery, emulator, runner or PixelCopy capture was run; current-source visual ZIP was unavailable."
+      "details": "No device discovery, ADB, emulator, API36 runner, PixelCopy capture or instrumentation run."
     },
     "visualDelta": {
       "status": "NOT_CONFIRMED",
-      "details": "Source mechanisms were corrected, but no current-source real Android pixels or human review exist."
+      "details": "No current-source device PixelCopy evidence or owner visual review."
     },
     "runtimeProfileParity": {
       "status": "PASS",

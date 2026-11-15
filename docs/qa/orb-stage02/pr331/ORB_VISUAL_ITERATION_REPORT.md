@@ -3,13 +3,13 @@
 **Task:** `YUJIAN_PR331_R03_R06_ITERATIVE_VISUAL_ENGINEERING_CLOSURE_V1`
 **Repository / PR:** `pan277942135/Yujian_App` / #331
 **Baseline:** `762b656591be3129bf2ec02768a65109371fe4ab`
-**Candidate source:** pending commit
+**Implementation source checkpoint:** `2e11dea1761296cdd19625bfc45a6c47be1376d9`
 **PR state requirement:** Open / Draft / Unmerged
 **Device execution:** prohibited for Work; product-owner QA pending.
 
 ## Result
 
-`SOURCE_FIXES_APPLIED · SOURCE_ROOT_CAUSES_NARROWED · EXACT_HEAD_CI_PENDING · VISUAL_DELTA_NOT_CONFIRMED`
+`SOURCE_FIXES_APPLIED · SOURCE_ROOT_CAUSES_NARROWED · EXACT_HEAD_CI_PASS · DEBUG_APK_DELIVERED · VISUAL_DELTA_NOT_CONFIRMED`
 
 This iteration fixes two R03 source mechanisms and one R06 source mechanism, and adds exact-capture and per-path pixel evidence. No current-source device PixelCopy bundle exists, so there is no measured visual delta, GPU pixel pass, or human visibility verdict.
 
@@ -40,15 +40,18 @@ Capture-bound `ORB_R06_PATH`, `ORB_R06_MATERIAL`, and `ORB_R06_GLASS` values are
 - The source environment passed the Control Plane Admission before final source changes; re-run for the exact candidate is required.
 - Locally passed: original Orb WebP SHA/alpha check; frozen R06 wake/release asset and material checks; generated runtime-profile parity; recognition runtime contract; camera/recognition harness contract test.
 - Local `:app:testDebugUnitTest` was attempted and blocked before Gradle started: the Gradle 9.3.1 distribution is uncached and the workspace cannot reach `services.gradle.org`. This is `BLOCKED_INFRA`, not a source test failure or a PASS.
-- Exact-head CI, AndroidTest APK compilation, packaged resource/model checks, lint, Release Kotlin compile, Debug APK, and APK SHA are pending until the candidate is pushed.
+- Exact-head Android CI [43671108469](https://github.com/pan277942135/Yujian_App/actions/runs/43671108469) passed on `2e11dea1761296cdd19625bfc45a6c47be1376d9`: Unit Tests, Recognition/Camera Harness, AndroidTest APK compilation, packaged resource/model checks, lint, Release Kotlin compile, Debug APK assembly, and model-trace export.
+- Debug APK artifact [14144831040](https://github.com/pan277942135/Yujian_App/actions/runs/43671108469/artifacts/14144831040); APK size 144,397,930 bytes, SHA-256 `4bdbb1ab4347bb8e325ec24369e20e08cea747ad460038f3cb2d38e740de6a3e`, embedded source revision `2e11dea1761296cdd19625bfc45a6c47be1376d9`.
+- AndroidTest instrumentation was not run. Device/API36 jobs were skipped; PixelCopy, GPU pixels, and visual QA remain NOT_RUN.
+- The separate Control Plane Admission workflow did not trigger because this PR's base is the work branch rather than `main`; its exact-head state is NOT_RUN (baseline admission had passed).
 - AndroidTest instrumentation, ADB/device discovery, Emulator, API36 runner, PixelCopy, and visual QA were not run by Work.
 
 ## Next iteration decision
 
-`READY_FOR_EXACT_HEAD_CI_AND_DEVICE_EVIDENCE`. Install the delivered exact-source Debug APK, record a normal recognition attempt through Stage02, then use the same Debug session/Attempt to export MAX, `ORB_WAKE` 100%, candidate route READY, Reduced Motion off. Upload only the screen recording and the generated evidence ZIP. The first repair in the next cycle must follow the first failing link in the ZIP/trace; do not globally raise MAX parameters or alter a module whose evidence passes.
+`EXACT_HEAD_CI_PASS · DEVICE_EVIDENCE_PENDING`. Install the exact-source artifact from the final Work handoff; record normal AUTO through Stage02, then in the same session export the pinned MAX diagnostic ZIP at `ORB_WAKE` 100%, candidate route READY, Reduced Motion off. Upload only the screen recording and the generated evidence ZIP. Do not treat CI as visual evidence. The next repair must follow the first failing link in the ZIP/trace.
 
 ## Current status
 
-`CODE_BUILD_PENDING_EXACT_HEAD_CI · DEVICE_QA_PENDING_USER · VISUAL_DELTA_NOT_CONFIRMED`
+`CODE_BUILD_COMPLETE · DEVICE_QA_PENDING_USER · VISUAL_DELTA_NOT_CONFIRMED`
 
 Do not report `R03_VISUAL_PASS`, `R06_VISUAL_PASS`, `GPU_PIXEL_PASS`, or `DEVICE_PASS` from this iteration.

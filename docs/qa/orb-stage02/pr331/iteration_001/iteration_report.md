@@ -6,7 +6,7 @@
 **Device status:** `DEVICE_QA_PENDING_USER`
 **PR:** #331 must remain Open / Draft / Unmerged.
 **Baseline:** `762b656591be3129bf2ec02768a65109371fe4ab`
-**Final source SHA:** pending exact-head commit and CI.
+**Implementation source SHA:** `2e11dea1761296cdd19625bfc45a6c47be1376d9` (the report-only checkpoint does not change production source).
 
 This round advances the code and the evidence needed for the next device pass. It does not claim that the current Orb looks better. The only accessible visual baseline, 264191.mp4, is a manually switched diagnostic screen recording and does not contain the same-mode, same-progress, advancing-clock sequence or path ablations required for attribution.
 
@@ -48,4 +48,14 @@ The detailed chains and numeric glass-mask calculation are in [R03_RENDER_CHAIN_
 
 ## Delivery state
 
-Static asset/profile/runtime contract checks and the existing camera/recognition harness contract tests passed locally. The local Unit Test task is blocked before Gradle starts because Gradle 9.3.1 is not cached and this environment cannot reach `services.gradle.org`; this is infrastructure-blocked, not a test failure. Exact-head CI, AndroidTest compilation, lint, Release Kotlin compile, packaged model checks, APK artifact and APK SHA-256 remain pending until the source is pushed. Instrumentation and device visual QA remain out of scope for Work and are not claimed.
+Local `:app:testDebugUnitTest` remains blocked before Gradle starts because Gradle 9.3.1 was not cached and this workspace could not reach `services.gradle.org`. This is an environment limitation, not a source test failure.
+
+Exact-head Android CI [run 43671108469](https://github.com/pan277942135/Yujian_App/actions/runs/43671108469) completed successfully on `2e11dea1761296cdd19625bfc45a6c47be1376d9`:
+- Unit Tests, Recognition/Camera Harness, AndroidTest APK compile, Android lint, Release Kotlin compile: **PASS**.
+- Packaged resources/models and model-trace export: **PASS**.
+- Debug APK: artifact [14144831040](https://github.com/pan277942135/Yujian_App/actions/runs/43671108469/artifacts/14144831040); `app-debug.apk`, 144,397,930 bytes, SHA-256 `4bdbb1ab4347bb8e325ec24369e20e08cea747ad460038f3cb2d38e740de6a3e`; embedded `build_sha` matches `2e11dea1761296cdd19625bfc45a6c47be1376d9`.
+- AndroidTest instrumentation and device/API36 jobs: **NOT_RUN_BY_SCOPE / SKIPPED**. No PixelCopy output or visual pass is claimed.
+- Control Plane Admission: baseline check passed; exact-head workflow was not triggered because this PR's base is `work/recognition-runtime-result-handoff-v1`. Exact-head admission is **NOT_RUN**.
+- Packaged detector identity is `DET_FISH_v0.1`; this delivery does not upgrade or claim v0.3.
+
+The PR remains Open/Draft/Unmerged. A report-only follow-up is being added to replace stale pending records; its own exact-head build must be used for installation after the follow-up lands.

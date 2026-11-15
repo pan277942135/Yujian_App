@@ -34,7 +34,7 @@
   ],
   "iteration001": {
     "sourceBaseSha": "762b656591be3129bf2ec02768a65109371fe4ab",
-    "currentSourceSha": "PENDING_EXACT_HEAD_COMMIT",
+    "currentSourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9",
     "codeChanges": [
       "MAX continuous flow phase now derives from the existing shared scene clock; stage wake remains a separate progress envelope.",
       "AGSL uses the displaced coordinate once and applies interior mix only to the dynamic layer contribution.",
@@ -53,7 +53,21 @@
     "nextEvidence": [
       "Normal production Stage02 screen recording from final exact-source Debug APK.",
       "orb-stage02-evidence.zip from final exact-source Debug APK with R03 and five-path PixelCopy comparisons."
-    ]
+    ],
+    "exactHeadCi": {
+      "runId": 43671108469,
+      "status": "PASS",
+      "sourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9"
+    },
+    "debugApk": {
+      "artifactId": 14144831040,
+      "status": "PASS",
+      "sizeBytes": 144397930,
+      "sha256": "4bdbb1ab4347bb8e325ec24369e20e08cea747ad460038f3cb2d38e740de6a3e",
+      "sourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9"
+    },
+    "controlPlaneAdmission": "NOT_RUN_EXACT_HEAD_PR_BASE_FILTER",
+    "packagedDetector": "DET_FISH_v0.1"
   },
-  "evidenceStatus": "BASELINE_LOCKED; ITERATION_001_SOURCE_FIXES_APPLIED; FINAL_DEVICE_PIXEL_EFFECT_NOT_MEASURED"
+  "evidenceStatus": "BASELINE_LOCKED; ITERATION_001_SOURCE_FIXES_APPLIED; EXACT_HEAD_CI_PASS; DEVICE_PIXEL_EFFECT_NOT_MEASURED"
 }
