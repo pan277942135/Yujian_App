@@ -13,7 +13,7 @@ Status: **Draft QA integration ready for remote review; Main was not modified or
 | Actual common ancestor | `59e5c7b22c07ca512008b8376367126cf32df24f` | Verified; differs from the task's expected merge-base, recorded as evidence |
 | Code Local snapshot | `c303acf5160ea37735490c0fdb4863f0449f8f1f` / `snapshot/code-local-20261115` | Created before integration |
 | Normal merge commit | `40977c9774e76c7023f3823bb7714e678211be24` | `--no-ff` merge; only `harness/build-log.md` conflicted |
-| Implementation/build HEAD | `27b51c5ab1e6bb3d5f1d462623e6747a2d97e118` | Exact source used for the build |
+| Implementation/build HEAD | `d8aa12a2e9908ecd363db11a6e9d8c94e99dd15f` | Exact source used for the final build |
 | QA report commit | `94bf0ad` | Documentation-only commit after the implementation build |
 
 The complete file-level decision record is in [`CODE_LOCAL_VS_PR331_MERGE_MANIFEST.md`](CODE_LOCAL_VS_PR331_MERGE_MANIFEST.md). No global ours/theirs merge was used. Dynamic state, worktrees and Python caches are excluded from commits.
@@ -49,9 +49,9 @@ Artifact (kept outside Git history to avoid adding a 144 MB binary to the QA PR)
 
 `artifacts/YuJian_Unified_PR331_CodeLocal_QA_Debug.apk`
 
-- Source SHA: `27b51c5ab1e6bb3d5f1d462623e6747a2d97e118`
-- Size: `144,398,266` bytes
-- SHA-256: `b46509b585f6a547b6b3d14579879043bbf60791e003cc9f2b7f7a06ff07f818`
+- Source SHA: `d8aa12a2e9908ecd363db11a6e9d8c94e99dd15f`
+- Size: `144,395,166` bytes
+- SHA-256: `e7111da9fb251549b8c88f9a8d40c36756d3fec0354cc681ca8798f61dfb3e62`
 - Classifier: `MODEL_CROP_M1_v0.2`; SHA-256 `29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18`
 - Detector: `DET_FISH_v0.1`; SHA-256 `12b97f7c081987f33f99d255cdd2e935fb9cf93b893146f54ff98b9c4e3a8e4f`
 - Capture button packaged pixel SHA-256: `501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327`
@@ -66,6 +66,7 @@ No DET_FISH v0.3 was introduced or claimed.
 3. The R01B frozen-bundle verifier cannot run to completion because the repository checkout does not contain the external `PACKAGE_MANIFEST.json`/`SHA256SUMS.txt` frozen bundle directory; the checked-in runtime asset verifier still reports the known CRLF-vs-raw-blob mismatch when run against the worktree bytes. This was not “fixed” by changing frozen assets or expected hashes.
 4. The camera contract shell harness negative-path scenarios pass. Its synthetic ready/pass case stops at `RR09_NATIVE_FRAME_EVIDENCE_INVALID` because the Windows test environment lacks the required `ffprobe` executable; this is an environment/evidence limitation, not a product PASS.
 5. B009 remains unverified. The APK uses only the authorized/pinned `DET_FISH_v0.1` path.
+6. Android CI run `43680405577` against the earlier documentation-only HEAD `760fa236199dc732a0e7a90afb89e5e82e9a5695` correctly failed at the now-fixed generated-profile parity check; it did not execute later build steps. The cross-platform fix is now at `d8aa12a2e9908ecd363db11a6e9d8c94e99dd15f` and must be rerun remotely after this push.
 
 ## Delivery state
 
