@@ -170,7 +170,7 @@ class OrbStage02MaxVisualProfileTest {
         coreAlphaBySample[4] = .2196f // frozen A01 midpoint sample at radius 0.4723D
         coreAlphaBySample[7] = .9882f // frozen A01 sample at radius 0.4656D in the same run
         val sameRun = listOf(0..8)
-        val splitRuns = listOf(0..3, 5..8)
+        val splitRuns = listOf(0..3, 5..6)
 
         assertEquals(.9882f, r06MaximumRawCoreAlphaInRuns(coreAlphaBySample, sameRun), .00001f)
         assertEquals(0f, r06MaximumRawCoreAlphaInRuns(coreAlphaBySample, splitRuns), 0f)

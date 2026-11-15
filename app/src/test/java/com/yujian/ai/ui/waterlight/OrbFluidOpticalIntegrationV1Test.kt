@@ -129,7 +129,7 @@ class OrbFluidOpticalIntegrationV1Test {
         val root = moduleFile("")
         val renderer = File(root, "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt").readText()
         val trace = File(root, "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02RenderTrace.kt").readText()
-        assertTrue(renderer.contains("layerAlpha = r06GlassTransmissionBodyAlpha(layerAlpha, rawCoreAlpha)"))
+        assertTrue(renderer.contains("r06GlassTransmissionBodyAlpha(layerAlpha, runMaximumRawCoreAlpha)"))
         assertFalse(renderer.contains("radialMask * radialMask"))
         assertTrue(renderer.contains("OrbInteriorOpticalField.interiorWeight(stop * radiusD)"))
         assertTrue(trace.contains("fun recordRateLimited"))
