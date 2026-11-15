@@ -26,6 +26,8 @@ internal object OrbStage02MaxVisualProfile {
     const val FLUID_WAKE_START_MS = 80f
     const val FLUID_WAKE_FULL_MS = 280f
     const val FLUID_WAKE_PHASE_CYCLES = 0.65f
+    /** Continuous phase rate uses the same scene clock as the ambient fluid field. */
+    const val FLUID_CONTINUOUS_PHASE_CYCLES_PER_SECOND = 0.65f
     const val FLUID_EDGE_PROTECTION_START_D = 0.34f
     const val FLUID_EDGE_PROTECTION_END_D = 0.47f
     const val FLUID_OUTLINE_DISPLACEMENT_D = 0f
@@ -37,6 +39,14 @@ internal object OrbStage02MaxVisualProfile {
     const val R06_BODY_STROKE_GAIN_MAX = 1.35f
     const val STAGE03_TRANSITION_MS = 80f
 }
+
+/** Body alpha before the single per-pixel radial edge mask attached to the glass Paint. */
+internal fun r06GlassTransmissionBodyAlpha(
+    originalBodyAlpha: Float,
+    rawCoreAlpha: Float,
+): Float = (originalBodyAlpha.coerceIn(0f, 1f) *
+    OrbStage02MaxVisualProfile.GLASS_BACK_TRANSMISSION_MAX *
+    rawCoreAlpha.coerceIn(0f, 1f)).coerceIn(0f, 1f)
 
 /** Stateless shared Stage02 field used by the fluid shader and the R06 glass pass. */
 internal object OrbInteriorOpticalField {
@@ -94,12 +104,22 @@ internal object OrbInteriorOpticalField {
         stageProgress: Float,
         reducedMotion: Boolean,
         profile: OrbStage02VisualProfile,
+        sceneElapsedMs: Long = 0L,
     ): Frame {
         if (profile != OrbStage02VisualProfile.MAX) return Frame(0f, 0f, 0f, 0f, 0f, false)
         val wake = maxFluidWakeEnvelope(stage, stageProgress)
         val displacement = if (reducedMotion) 0f else OrbStage02MaxVisualProfile.FLUID_DISPLACEMENT_MAX_D * wake
-        val phase = if (reducedMotion) 0f else (2f * PI.toFloat() *
-            OrbStage02MaxVisualProfile.FLUID_WAKE_PHASE_CYCLES * wake)
+        val phase = if (reducedMotion) 0f else {
+            // The Wake phase reaches its terminal value at Stage02 completion. Stage03
+            // fades the added layer's strength, but must not run that phase backwards.
+            val phaseEnvelope = when (stage) {
+                RecognitionSceneStage.ORB_RELEASE -> 1f
+                else -> wake
+            }
+            val wakePhase = OrbStage02MaxVisualProfile.FLUID_WAKE_PHASE_CYCLES * phaseEnvelope
+            val continuousPhase = continuousFlowPhase(sceneElapsedMs, reducedMotion) / (2f * PI.toFloat())
+            2f * PI.toFloat() * (wakePhase + continuousPhase)
+        }
         return Frame(
             wakeStrength = wake,
             maxDisplacementD = displacement,
@@ -110,6 +130,12 @@ internal object OrbInteriorOpticalField {
             baselineOpticalMix = if (stage == RecognitionSceneStage.ORB_RELEASE) 1f - wake else 0f,
         )
     }
+
+    /** Continuous motion is a projection of the existing scene clock, never a new timer. */
+    fun continuousFlowPhase(sceneElapsedMs: Long, reducedMotion: Boolean): Float =
+        if (reducedMotion) 0f else 2f * PI.toFloat() *
+            OrbStage02MaxVisualProfile.FLUID_CONTINUOUS_PHASE_CYCLES_PER_SECOND *
+            sceneElapsedMs.coerceAtLeast(0L) / 1_000f
 
     /** Same normalized wake-flow vector is mirrored in the AGSL fluid program. */
     fun flowDirectionAt(u: Float, v: Float, semanticPhase: Float): Vector {

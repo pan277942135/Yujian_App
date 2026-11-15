@@ -56,6 +56,7 @@ android {
             .orElse(providers.environmentVariable("GITHUB_SHA"))
             .orElse("LOCAL_UNVERIFIED")
         buildConfigField("String", "SOURCE_REVISION", quotedBuildConfig(sourceRevision.get()))
+        buildConfigField("String", "BUILD_TIMESTAMP_UTC", quotedBuildConfig(java.time.Instant.now().toString()))
         minSdk = 24
         targetSdk = 35
         versionCode = 6

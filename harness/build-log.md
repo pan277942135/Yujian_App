@@ -168,3 +168,23 @@
 - Local prechecks passed: Control Plane Admission, R02–R06 generated profile parity, Orb WebP SHA/dimensions, frozen R06 assets and timing map, Recognition Runtime contract, capture raster decode, design closure, resource package, and Android runtime harness contract tests.
 - `git diff --check` passed. The local Gradle wrapper could not download Gradle 9.3.1 because network access is unavailable, so local Unit Test/AndroidTest compilation did not run. The local packaged-model check also cannot run before the CI asset-bootstrap step materializes the ignored classifier model; exact-head CI runs bootstrap before model validation.
 - No ADB discovery, Emulator, Device Runner, or physical runtime was invoked.
+
+## 2026-11-15 — PR #331 R03/R06 iterative visual closure baseline initialization
+
+- Work ID: `YUJIAN_PR331_R03_R06_ITERATIVE_VISUAL_ENGINEERING_CLOSURE_V1`.
+- Registered parent task binding: `YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3` / `G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3`.
+- Exact PR HEAD: `762b656591be3129bf2ec02768a65109371fe4ab`; PR remains OPEN / DRAFT / UNMERGED.
+- Existing exact-source CI `43602865617` was recorded as historical PASS; no CI was run for this checkpoint. Device execution remains prohibited by task scope.
+- Prior audit established: manual diagnostic progress-100 clock freeze; back transmission radial-mask-squared attenuation candidate; per-image capture metadata and per-path final-pixel evidence gaps.
+- Local workspace isolation: current PR branch was materialized in a separate worktree; original `work/recognition-runtime-result-handoff-v1` tree and its existing changes were left untouched.
+- Admission attempt at exact HEAD failed because branch-local `PROJECT_MASTER_STATE.yaml` and `WORK_EXECUTION_STATE.json` were absent. State initialization is in progress; no product source or tests were changed/executed.
+
+## 2026-11-15 — PR #331 R03/R06 iterative visual closure implementation
+
+- Work `YUJIAN_PR331_R03_R06_ITERATIVE_VISUAL_ENGINEERING_CLOSURE_V1` continued from exact PR head `762b656591be3129bf2ec02768a65109371fe4ab`; PR #331 remains Open / Draft / Unmerged. No PR state transition or device operation was performed.
+- Implemented R03 continuous flow phase from the existing `WaterLightFrame.elapsedMs`, retained progress-based wake strength, held the semantic phase through the Stage03 80 ms fade, and removed duplicate displacement attenuation in AGSL. This is a source correction only; current GPU pixels are unavailable.
+- Removed the duplicate scalar radial mask from the G01/A01 glass body alpha while keeping the source Core alpha, single smooth Paint edge mask, Back pass and frozen R06 geometry/material contracts.
+- Added bounded Debug trace events and capture identity, target draw marker, Android window frame-commit callback, PixelCopy crop/hash metadata, projected fixed-progress R03 samples, and five same-frame R06 path ablations. Pixel evidence is marked measured only after alignment and measured-comparison status pass.
+- Local checks: Control Plane Admission PASS; immutable Orb Core WebP SHA/alpha PASS; frozen R06 assets/material/timing PASS; generated profile parity PASS; Recognition runtime contract PASS; camera/recognition harness contract PASS; resource package validation PASS; Recognition design closure PASS; runtime evidence source-closure tests 6/6 PASS; bootstrap asset contract tests 6/6 PASS; JSON parsing and `git diff --check` PASS.
+- Local `:app:testDebugUnitTest` was attempted but Gradle did not start: wrapper distribution 9.3.1 is uncached and `services.gradle.org` is unreachable. This is `BLOCKED_INFRA`, not a test failure or PASS. Exact-head Android CI must run the Unit Tests, AndroidTest APK compile, Debug APK, resource/model checks, lint and Release Kotlin compile.
+- No current-source PixelCopy ZIP or same-mode advancing-clock video is available. Pixel delta remains `NOT_MEASURED`; AndroidTest instrumentation and API36 device visual QA remain `NOT_RUN_BY_SCOPE`.

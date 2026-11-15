@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "iteration": "iteration_001",
+  "baselineSha": "762b656591be3129bf2ec02768a65109371fe4ab",
+  "currentSha": "PENDING_EXACT_HEAD_COMMIT",
+  "checks": {
+    "controlPlaneAdmission": {
+      "status": "PASS",
+      "details": "Ran scripts/validate_control_plane_admission.py after resynchronizing origin/main; baseline branch and private state passed."
+    },
+    "gitDiffCheck": {
+      "status": "PASS",
+      "details": "git diff --check passed after source and report updates; repeat before commit."
+    },
+    "unitTests": {
+      "status": "BLOCKED_INFRA",
+      "details": "Attempted ./gradlew --offline :app:testDebugUnitTest --no-daemon --max-workers=2. Gradle 9.3.1 distribution was uncached; services.gradle.org was unreachable, so Gradle did not start and tests did not run. Exact-head CI pending."
+    },
+    "recognitionHarness": {
+      "status": "PASS",
+      "details": "python3 scripts/verify_recognition_runtime_contract.py and bash scripts/android_runtime/tests/test_contract.sh passed."
+    },
+    "androidTestCompile": {
+      "status": "PENDING_EXACT_HEAD_CI",
+      "details": "Will be compiled by exact-head standard CI; instrumentation will not run by scope."
+    },
+    "androidTestRuntime": {
+      "status": "NOT_RUN_BY_SCOPE",
+      "details": "No instrumentation/device execution is permitted in this task."
+    },
+    "androidLint": {
+      "status": "PENDING_EXACT_HEAD_CI"
+    },
+    "releaseKotlinCompile": {
+      "status": "PENDING_EXACT_HEAD_CI"
+    },
+    "resourceShaCheck": {
+      "status": "PASS_STATIC",
+      "details": "Original Orb WebP SHA/alpha and frozen R06 asset/material/path checks passed. Packaged APK verification pending exact-head CI."
+    },
+    "modelShaCheck": {
+      "status": "PENDING_EXACT_HEAD_CI",
+      "details": "Packaged model SHA requires final CI APK bootstrap/package verification."
+    },
+    "controlPlaneAdmissionFinal": {
+      "status": "PENDING_FINAL_STATE_CHECKPOINT"
+    },
+    "exactHeadCi": {
+      "status": "PENDING",
+      "runId": null,
+      "sourceSha": null
+    },
+    "debugApk": {
+      "status": "PENDING_EXACT_HEAD_CI",
+      "artifactId": null,
+      "apkSha256": null,
+      "sizeBytes": null,
+      "sourceSha": null
+    },
+    "devicePixelEvidence": {
+      "status": "NOT_RUN_BY_SCOPE",
+      "details": "No ADB, device discovery, emulator, runner or PixelCopy capture was run; current-source visual ZIP was unavailable."
+    },
+    "visualDelta": {
+      "status": "NOT_CONFIRMED",
+      "details": "Source mechanisms were corrected, but no current-source real Android pixels or human review exist."
+    },
+    "runtimeProfileParity": {
+      "status": "PASS",
+      "details": "generate_orb_runtime_profile.py --check passed."
+    },
+    "recognitionRuntimeContract": {
+      "status": "PASS",
+      "details": "verify_recognition_runtime_contract.py passed."
+    },
+    "cameraRecognitionHarnessContract": {
+      "status": "PASS",
+      "details": "android_runtime/tests/test_contract.sh passed including no-device classification scenarios."
+    }
+  },
+  "prStateRequired": "OPEN_DRAFT_UNMERGED"
+}

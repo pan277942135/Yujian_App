@@ -89,6 +89,7 @@ class OrbRenderIsolationRuntimeTest {
                     current.testOutput,
                     current.visualProfile,
                     current.layerIsolation,
+                    current.excludedPathId,
                 )
             }
         }
@@ -225,7 +226,7 @@ class OrbRenderIsolationRuntimeTest {
                     },
                 contentAlignment = Alignment.Center,
             ) {
-                OrbForRender(current.frame, current.mode, current.testOutput)
+                OrbForRender(current.frame, current.mode, current.testOutput, excludedPathId = current.excludedPathId)
             }
         }
 
@@ -396,6 +397,7 @@ class OrbRenderIsolationRuntimeTest {
                     current.testOutput,
                     current.visualProfile,
                     current.layerIsolation,
+                    current.excludedPathId,
                 )
             }
         }
@@ -626,6 +628,120 @@ class OrbRenderIsolationRuntimeTest {
         }
     }
 
+    @Test
+    fun eachFrozenR06PathHasFinalComposePixelContributionInMaxProfile() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val outputRoot = File(instrumentation.context.cacheDir, "recognition-result-handoff/orb-r06/path-ablation").apply {
+            mkdirs()
+        }
+        val identity = RecognitionSceneIdentity("r06-ablation-session", "r06-ablation-attempt", "r06-ablation-image", "f".repeat(64), 12L)
+        val progressSamples = listOf(.25f, .50f, .75f, 1f)
+        var input by mutableStateOf(
+            RenderInput(
+                frame(identity, RecognitionSceneStage.ORB_WAKE, progressSamples.first()),
+                OrbRenderIsolationMode.NORMAL,
+                0,
+                visualProfile = OrbStage02VisualProfile.MAX,
+                layerIsolation = OrbStage02LayerIsolation.R06_ONLY,
+            ),
+        )
+        val completedDrawToken = AtomicInteger(-1)
+        composeRule.setContent {
+            val current = input
+            Box(
+                Modifier.fillMaxSize().background(Color.Black).drawWithContent {
+                    drawContent()
+                    completedDrawToken.set(current.drawToken)
+                },
+                contentAlignment = Alignment.Center,
+            ) {
+                OrbForRender(
+                    frame = current.frame,
+                    isolation = current.mode,
+                    visualProfile = current.visualProfile,
+                    layerIsolation = current.layerIsolation,
+                    excludedPathId = current.excludedPathId,
+                )
+            }
+        }
+
+        var drawToken = 0
+        fun capture(progress: Float, excludedPathId: String?): Bitmap {
+            val nextToken = ++drawToken
+            val sharedFrame = frame(identity, RecognitionSceneStage.ORB_WAKE, progress)
+            composeRule.runOnIdle {
+                input = RenderInput(
+                    frame = sharedFrame,
+                    mode = OrbRenderIsolationMode.NORMAL,
+                    drawToken = nextToken,
+                    visualProfile = OrbStage02VisualProfile.MAX,
+                    layerIsolation = OrbStage02LayerIsolation.R06_ONLY,
+                    excludedPathId = excludedPathId,
+                )
+            }
+            composeRule.waitUntil(10_000L) { completedDrawToken.get() >= nextToken }
+            composeRule.waitForIdle()
+            return composeRule.onRoot().captureToImage().asAndroidBitmap()
+        }
+
+        val pathRows = JSONArray()
+        listOf("G01", "G02", "A01", "A02", "C01").forEach { pathId ->
+            var bestDelta = 0
+            var bestProgress = 0f
+            var bestFull: Bitmap? = null
+            var bestWithout: Bitmap? = null
+            progressSamples.forEach { progress ->
+                val full = capture(progress, excludedPathId = null)
+                val without = capture(progress, excludedPathId = pathId)
+                val changedPixels = bitmapDifferencePixels(full, without, threshold = 1)
+                pathRows.put(JSONObject()
+                    .put("pathId", pathId)
+                    .put("stage", RecognitionSceneStage.ORB_WAKE.name)
+                    .put("stageProgress", progress.toDouble())
+                    .put("comparison", "R06_FULL minus R06_WITHOUT_$pathId")
+                    .put("changedPixelCount", changedPixels)
+                    .put("captureRenderer", "production AIOrbCore Compose captureToImage")
+                    .put("dataSource", "ANDROID_RENDER_PIXEL_MEASUREMENT"))
+                if (changedPixels > bestDelta) {
+                    bestFull?.recycle()
+                    bestWithout?.recycle()
+                    bestDelta = changedPixels
+                    bestProgress = progress
+                    bestFull = full
+                    bestWithout = without
+                } else {
+                    full.recycle()
+                    without.recycle()
+                }
+            }
+            assertTrue("$pathId has no measurable final composite contribution at tested valid Stage02 samples", bestDelta > 0)
+            val fullFile = File(outputRoot, "${pathId.lowercase()}_full.png")
+            val withoutFile = File(outputRoot, "${pathId.lowercase()}_without.png")
+            savePng(requireNotNull(bestFull), fullFile)
+            savePng(requireNotNull(bestWithout), withoutFile)
+            bestFull?.recycle()
+            bestWithout?.recycle()
+            pathRows.put(JSONObject()
+                .put("pathId", pathId)
+                .put("selectedProgress", bestProgress.toDouble())
+                .put("selectedChangedPixelCount", bestDelta)
+                .put("fullCapture", fullFile.name)
+                .put("withoutCapture", withoutFile.name)
+                .put("status", "FINAL_PIXEL_CONTRIBUTION_MEASURED"))
+        }
+        File(outputRoot, "r06_per_path_final_pixel_report.json").writeText(
+            JSONObject()
+                .put("sourceCommitSha", BuildConfig.SOURCE_REVISION)
+                .put("stage", RecognitionSceneStage.ORB_WAKE.name)
+                .put("visualProfile", OrbStage02VisualProfile.MAX.name)
+                .put("layerIsolation", OrbStage02LayerIsolation.R06_ONLY.name)
+                .put("sameIdentityGeometryAndSceneFramePerAblation", true)
+                .put("progressSamples", JSONArray(progressSamples.map { it.toDouble() }))
+                .put("paths", pathRows)
+                .toString(2) + "\n",
+        )
+    }
+
     private fun drawPath(
         renderer: OrbFilamentPathRenderer,
         frame: WaterLightFrame,
@@ -698,6 +814,7 @@ class OrbRenderIsolationRuntimeTest {
         testOutput: OrbShaderOverlayTestOutput? = null,
         visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
         layerIsolation: OrbStage02LayerIsolation = OrbStage02LayerIsolation.R03_R06,
+        excludedPathId: String? = null,
     ) {
         CompositionLocalProvider(LocalOrbShaderOverlayTestOutput provides testOutput) {
             AIOrbCore(
@@ -712,6 +829,7 @@ class OrbRenderIsolationRuntimeTest {
                 renderIsolationMode = isolation,
                 visualProfile = visualProfile,
                 stage02LayerIsolation = layerIsolation,
+                debugExcludedPathId = excludedPathId,
             )
         }
     }
@@ -723,6 +841,7 @@ class OrbRenderIsolationRuntimeTest {
         val testOutput: OrbShaderOverlayTestOutput? = null,
         val visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
         val layerIsolation: OrbStage02LayerIsolation = OrbStage02LayerIsolation.R03_R06,
+        val excludedPathId: String? = null,
     )
     private data class StageCase(val stage: RecognitionSceneStage, val progress: Float, val modes: List<OrbRenderIsolationMode>)
 

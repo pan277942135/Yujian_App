@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "iteration": "iteration_001",
+  "baselineVideo": {
+    "name": "264191.mp4",
+    "sha256": "7d3fb4924f544122720575f9ba5fad788bcb6d50793d08798e2404b37540c872",
+    "evidenceKind": "SCREEN_RECORDING",
+    "sameProgressSameModeAdvancingClock": false,
+    "pixelCopyFrames": false,
+    "perPathAblation": false
+  },
+  "currentSourcePixelEvidence": {
+    "sourceSha": "PENDING_EXACT_HEAD_COMMIT",
+    "pixelCopyZip": "NOT_AVAILABLE",
+    "r03": {
+      "rawVsR03": "NOT_MEASURED",
+      "fixedProgressT0VsT500": "NOT_MEASURED",
+      "fixedProgressT500VsT1500": "NOT_MEASURED",
+      "normalizedTextureMotion": "NOT_MEASURED",
+      "edgeRingStability": "NOT_MEASURED",
+      "humanDiscernibility": "NOT_ASSESSED",
+      "measurementStatus": "NOT_MEASURED_NO_CURRENT_SOURCE_PIXELCOPY_ZIP"
+    },
+    "r06": {
+      "G01": "NOT_MEASURED",
+      "G02": "NOT_MEASURED",
+      "A01": "NOT_MEASURED",
+      "A02": "NOT_MEASURED",
+      "C01": "NOT_MEASURED",
+      "humanDiscernibilityByPath": "NOT_ASSESSED",
+      "measurementStatus": "NOT_MEASURED_NO_CURRENT_SOURCE_PIXELCOPY_ZIP"
+    }
+  },
+  "interpretation": "No improvement percentages or simulated pixel values are provided. Source/math changes are not final screen evidence."
+}

@@ -6,6 +6,7 @@ import com.yujian.ai.ui.waterlight.renderer.OrbInteriorOpticalField
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02MaxVisualProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02VisualProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbWakeBreathReleaseV11
+import com.yujian.ai.ui.waterlight.renderer.r06GlassTransmissionBodyAlpha
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -65,7 +66,7 @@ class OrbStage02MaxVisualProfileTest {
             RecognitionSceneStage.ORB_RELEASE, 0f, false, OrbStage02VisualProfile.MAX,
         )
         val releaseMid = OrbInteriorOpticalField.frame(
-            RecognitionSceneStage.ORB_RELEASE, 40f / 600f, false, OrbStage02VisualProfile.MAX,
+            RecognitionSceneStage.ORB_RELEASE, 40f / 600f, false, OrbStage02VisualProfile.MAX, sceneElapsedMs = 390L,
         )
         val releaseEnd = OrbInteriorOpticalField.frame(
             RecognitionSceneStage.ORB_RELEASE, 80f / 600f, false, OrbStage02VisualProfile.MAX,
@@ -114,6 +115,53 @@ class OrbStage02MaxVisualProfileTest {
         assertEquals(0f, OrbInteriorOpticalField.frame(
             RecognitionSceneStage.PHOTO_STABLE, 1f, false, OrbStage02VisualProfile.MAX,
         ).wakeStrength, 0f)
+    }
+
+    @Test fun continuousFlowUsesSceneClockWithoutChangingWakeSemantics() {
+        val early = OrbInteriorOpticalField.frame(
+            RecognitionSceneStage.ORB_WAKE, 1f, false, OrbStage02VisualProfile.MAX, sceneElapsedMs = 350L,
+        )
+        val later = OrbInteriorOpticalField.frame(
+            RecognitionSceneStage.ORB_WAKE, 1f, false, OrbStage02VisualProfile.MAX, sceneElapsedMs = 1_850L,
+        )
+        assertEquals(early.wakeStrength, later.wakeStrength, 0f)
+        assertTrue("fixed StageProgress must not freeze the shared flow phase",
+            abs(early.semanticPhase - later.semanticPhase) > .01f)
+        val earlyDirection = OrbInteriorOpticalField.sharedFlowDirectionAt(.31f, .68f, early.semanticPhase, 350L)
+        val laterDirection = OrbInteriorOpticalField.sharedFlowDirectionAt(.31f, .68f, later.semanticPhase, 1_850L)
+        assertTrue("same-progress R03 sample direction must evolve with the existing scene clock",
+            abs(earlyDirection.x - laterDirection.x) + abs(earlyDirection.y - laterDirection.y) > .01f)
+        assertEquals(0f, OrbInteriorOpticalField.continuousFlowPhase(1_850L, reducedMotion = true), 0f)
+
+        val sameClockEarlyWake = OrbInteriorOpticalField.frame(
+            RecognitionSceneStage.ORB_WAKE, .25f, false, OrbStage02VisualProfile.MAX, sceneElapsedMs = 1_000L,
+        )
+        val sameClockLateWake = OrbInteriorOpticalField.frame(
+            RecognitionSceneStage.ORB_WAKE, .75f, false, OrbStage02VisualProfile.MAX, sceneElapsedMs = 1_000L,
+        )
+        assertTrue("StageProgress controls wake strength separately from continuous phase",
+            sameClockLateWake.wakeStrength > sameClockEarlyWake.wakeStrength)
+
+        val releaseStart = OrbInteriorOpticalField.frame(
+            RecognitionSceneStage.ORB_RELEASE, 0f, false, OrbStage02VisualProfile.MAX, sceneElapsedMs = 350L,
+        )
+        val releaseMid = OrbInteriorOpticalField.frame(
+            RecognitionSceneStage.ORB_RELEASE, 40f / 600f, false, OrbStage02VisualProfile.MAX, sceneElapsedMs = 390L,
+        )
+        assertEquals("Stage02 end and Stage03 start must inherit the same scene phase",
+            early.semanticPhase, releaseStart.semanticPhase, 0f)
+        val expectedReleaseMidPhase = early.semanticPhase + OrbInteriorOpticalField.continuousFlowPhase(390L, false) -
+            OrbInteriorOpticalField.continuousFlowPhase(350L, false)
+        assertEquals("Stage03 fade changes strength while the shared phase keeps moving forward",
+            expectedReleaseMidPhase, releaseMid.semanticPhase, .00001f)
+        assertTrue("new Wake phase must not run backward during the Stage03 fade",
+            releaseMid.semanticPhase > releaseStart.semanticPhase)
+    }
+
+    @Test fun glassTransmissionUsesOneSourceTransmissionFactorBeforeOnePixelEdgeMask() {
+        assertEquals(.28f, r06GlassTransmissionBodyAlpha(.70f, .50f), .00001f)
+        assertEquals(0f, r06GlassTransmissionBodyAlpha(.70f, 0f), 0f)
+        assertEquals(.80f, r06GlassTransmissionBodyAlpha(1f, 1f), .00001f)
     }
 
     @Test fun shaderBlendIsContinuousAtStage02ToStage03AndReturnsToBaselineAfter80ms() {

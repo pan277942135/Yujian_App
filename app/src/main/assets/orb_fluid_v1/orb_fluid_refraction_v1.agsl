@@ -93,7 +93,9 @@ half4 main(float2 coord) {
         if (sharedFlowLength > 1.0) sharedFlow /= sharedFlowLength;
         float2 wakeOffset = sharedFlow * visibleDpxMax * maxDisplacementD * interiorMask;
         float2 wakeCoord = boundedCoord(safeCoord + wakeOffset);
-        float2 finalCoord = boundedCoord(mix(safeCoord, wakeCoord, clamp(maxInteriorMix, 0.0, 0.92)));
+        // Displacement sets the sample location; interiorMix gates only the dynamic
+        // layer's final contribution. Applying it to both would attenuate motion twice.
+        float2 finalCoord = wakeCoord;
         half4 finalSample = inputImage.eval(finalCoord);
         float finalSampleAlpha = clamp(float(finalSample.a), 0.0, 1.0);
         float mixWeight = clamp(maxInteriorMix, 0.0, 0.92) * interiorMask;

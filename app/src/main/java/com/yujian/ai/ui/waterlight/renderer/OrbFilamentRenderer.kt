@@ -31,6 +31,7 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -51,6 +52,13 @@ data class OrbR06PathDiagnostic(
     val bodyOriginalAlpha: Float,
     val bodyFinalAlpha: Float,
     val bodyAddedAlpha: Float,
+    val transmissionFactor: Float,
+    val edgeFade: Float,
+    val pathPhaseU: Float,
+    val effectiveTrailStartU: Float,
+    val effectiveTrailEndU: Float,
+    val bodyTailAlpha: Float,
+    val headPaintAlpha: Int,
 )
 
 /**
@@ -75,8 +83,10 @@ fun OrbWaterLightRibbons(
     returnEnergy: Float = 0f,
     visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
     renderPass: OrbR06RenderPass = OrbR06RenderPass.BASELINE,
+    debugExcludedPathId: String? = null,
     onPathMetrics: ((Boolean, OrbR06RenderPass, Set<String>) -> Unit)? = null,
     onPathDiagnostics: ((Boolean, OrbR06RenderPass, List<OrbR06PathDiagnostic>) -> Unit)? = null,
+    debugCaptureId: String? = null,
 ) {
     if (mode == OrbFilamentRendererMode.LEGACY) {
         if (renderPass == OrbR06RenderPass.BASELINE) {
@@ -117,7 +127,47 @@ fun OrbWaterLightRibbons(
                 density,
                 visualProfile,
                 coreMaskBitmap,
+                debugExcludedPathId,
             )
+            debugCaptureId?.let { captureId ->
+                OrbStage02RenderTrace.recordCapturePathDiagnostics(
+                    captureId = captureId,
+                    renderPass = renderPass.name,
+                    front = front,
+                    excludedPathId = debugExcludedPathId,
+                    paths = metrics.paths.values.map { metric ->
+                        mapOf(
+                            "pathId" to metric.pathId,
+                            "layerId" to metric.bodyLayerId,
+                            "stage" to frame.sceneFrame.stage.name,
+                            "stageProgress" to frame.sceneFrame.stageProgress,
+                            "sceneElapsedMs" to frame.sceneFrame.sceneElapsedMs,
+                            "opticalSampleElapsedMs" to frame.elapsedMs,
+                            "geometryVersion" to frame.geometryVersion,
+                            "pathPhaseU" to metric.pathPhaseU,
+                            "effectiveTrailStartU" to metric.effectiveTrailStartU,
+                            "effectiveTrailEndU" to metric.effectiveTrailEndU,
+                            "validSampleCount" to metric.validSampleCount,
+                            "validBodySegmentCount" to metric.bodyValidSegmentCount,
+                            "drawnRunCount" to metric.drawnRunCount,
+                            "bodyDrawnRunCount" to metric.bodyDrawnRunCount,
+                            "bodyPaintAlpha" to metric.bodyPaintAlpha,
+                            "bodyStrokeWidthPx" to metric.bodyStrokeWidthPx,
+                            "bodyOriginalAlpha" to metric.bodyMaximumOriginalAlpha,
+                            "bodyFinalAlphaBeforePixelMask" to metric.bodyMaximumFinalAlpha,
+                            "bodyEffectiveAlphaAtRepresentativeSample" to metric.bodyMaximumEffectiveAlpha,
+                            "bodyAlphaDataSource" to "CALCULATED_RENDER_METRIC_NOT_PIXEL_READBACK",
+                            "bodyAddedAlpha" to metric.bodyMaximumAddedAlpha,
+                            "bodyEndFade" to metric.bodyMaximumEndFade,
+                            "bodyTailAlpha" to metric.bodyMaximumTailAlpha,
+                            "transmissionFactor" to metric.bodyMaximumTransmissionFactor,
+                            "edgeFade" to metric.bodyMaximumEdgeFade,
+                            "headPaintAlpha" to metric.headPaintAlpha,
+                            "finalPixelContribution" to "NOT_MEASURED_IN_RUNTIME_TRACE",
+                        )
+                    },
+                )
+            }
             onPathMetrics?.invoke(front, renderPass, metrics.drawnPathIds)
             val progress = frame.sceneFrame.stageProgress.coerceIn(0f, 1f)
             val checkpoint = when {
@@ -147,6 +197,13 @@ fun OrbWaterLightRibbons(
                         bodyOriginalAlpha = metric.bodyMaximumOriginalAlpha,
                         bodyFinalAlpha = metric.bodyMaximumFinalAlpha,
                         bodyAddedAlpha = metric.bodyMaximumAddedAlpha,
+                        transmissionFactor = metric.bodyMaximumTransmissionFactor,
+                        edgeFade = metric.bodyMaximumEdgeFade,
+                        pathPhaseU = metric.pathPhaseU,
+                        effectiveTrailStartU = metric.effectiveTrailStartU,
+                        effectiveTrailEndU = metric.effectiveTrailEndU,
+                        bodyTailAlpha = metric.bodyMaximumTailAlpha,
+                        headPaintAlpha = metric.headPaintAlpha,
                     )
                 })
             }
@@ -183,6 +240,14 @@ internal class OrbFilamentPathRenderer(
         val bodyMaximumFinalAlpha: Float,
         val bodyMaximumAddedAlpha: Float,
         val bodyMaximumEndFade: Float,
+        val bodyMaximumTransmissionFactor: Float,
+        val bodyMaximumEdgeFade: Float,
+        val bodyMaximumEffectiveAlpha: Float,
+        val pathPhaseU: Float,
+        val effectiveTrailStartU: Float,
+        val effectiveTrailEndU: Float,
+        val bodyMaximumTailAlpha: Float,
+        val headPaintAlpha: Int,
     )
 
     data class FrameMetrics(
@@ -214,6 +279,14 @@ internal class OrbFilamentPathRenderer(
         var bodyMaximumFinalAlpha = 0f
         var bodyMaximumAddedAlpha = 0f
         var bodyMaximumEndFade = 0f
+        var bodyMaximumTransmissionFactor = 0f
+        var bodyMaximumEdgeFade = 0f
+        var bodyMaximumEffectiveAlpha = 0f
+        var pathPhaseU = -1f
+        var effectiveTrailStartU = -1f
+        var effectiveTrailEndU = -1f
+        var bodyMaximumTailAlpha = 0f
+        var headPaintAlpha = 0
 
         fun snapshot() = PathFrameMetrics(
             pathId = spec.id,
@@ -236,6 +309,14 @@ internal class OrbFilamentPathRenderer(
             bodyMaximumFinalAlpha = bodyMaximumFinalAlpha,
             bodyMaximumAddedAlpha = bodyMaximumAddedAlpha,
             bodyMaximumEndFade = bodyMaximumEndFade,
+            bodyMaximumTransmissionFactor = bodyMaximumTransmissionFactor,
+            bodyMaximumEdgeFade = bodyMaximumEdgeFade,
+            bodyMaximumEffectiveAlpha = bodyMaximumEffectiveAlpha,
+            pathPhaseU = pathPhaseU,
+            effectiveTrailStartU = effectiveTrailStartU,
+            effectiveTrailEndU = effectiveTrailEndU,
+            bodyMaximumTailAlpha = bodyMaximumTailAlpha,
+            headPaintAlpha = headPaintAlpha,
         )
     }
 
@@ -328,6 +409,7 @@ internal class OrbFilamentPathRenderer(
         density: Float,
         visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
         coreMaskBitmap: Bitmap? = null,
+        debugExcludedPathId: String? = null,
     ): FrameMetrics {
         if (diameterPx <= 0f) return FrameMetrics(0, 0, emptySet(), 0f, emptyMap())
         if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION &&
@@ -341,7 +423,7 @@ internal class OrbFilamentPathRenderer(
         val diameterDp = diameterPx / density
         val sceneFrame = frame.sceneFrame
         val interiorField = OrbInteriorOpticalField.frame(
-            sceneFrame.stage, sceneFrame.stageProgress, frame.reducedMotion, visualProfile,
+            sceneFrame.stage, sceneFrame.stageProgress, frame.reducedMotion, visualProfile, frame.elapsedMs,
         )
         if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION && interiorField.wakeStrength <= 0f) {
             return FrameMetrics(0, 0, emptySet(), 0f, emptyMap())
@@ -372,6 +454,7 @@ internal class OrbFilamentPathRenderer(
         val metricsKey = "${frame.sessionId}:${frame.attemptId}:${frame.imageId}:${frame.geometryVersion}:" +
             "${frame.sceneFrame.stage.name}:${if (front) "front" else "back"}:" +
             "${visualProfile.name}:${renderPass.name}"
+        var emitCheckpointTrace = false
         fun emitMetricsIfDue() {
             if (!BuildConfig.DEBUG) return
             val progress = frame.sceneFrame.stageProgress.coerceIn(0f, 1f)
@@ -386,6 +469,7 @@ internal class OrbFilamentPathRenderer(
                 else -> null
             } ?: return
             if (!loggedMetricSamples.add("$metricsKey:$marker")) return
+            emitCheckpointTrace = true
             pathMetrics.values.forEach { metric ->
                 Log.i("R06_WAKE_BODY", "stage=${frame.sceneFrame.stage.name} stageProgress=$progress " +
                     "pathId=${metric.spec.id} layerId=${metric.bodyLayerId ?: "NONE"} front=$front " +
@@ -412,6 +496,7 @@ internal class OrbFilamentPathRenderer(
         try {
             for (cache in caches) {
                 val spec = cache.spec
+                if (BuildConfig.DEBUG && debugExcludedPathId == spec.id) continue
                 val material = cache.material
                 val lut = cache.lut
                 if (!frame.reducedMotion) OrbFilamentPathMathV1.fillLut(spec, sceneMs, lut)
@@ -471,7 +556,10 @@ internal class OrbFilamentPathRenderer(
                 val samplesNormalY = cache.samplesNormalY
                 clearR06SampleValidity(samplesValid, steps)
                 var anyPoint = false
+                var invalidPathSampleCount = 0
                 var currentPathValidSampleCount = 0
+                var currentPathMinU = Float.POSITIVE_INFINITY
+                var currentPathMaxU = Float.NEGATIVE_INFINITY
                 for (i in 0..steps) {
                     val tailProgress = i.toFloat() / steps
                     val u = startU + move.direction * trail * tailProgress
@@ -504,11 +592,35 @@ internal class OrbFilamentPathRenderer(
                         samplesValid[i] = true
                         validSampleCount++
                         currentPathValidSampleCount++
-                    }
+                        currentPathMinU = min(currentPathMinU, u)
+                        currentPathMaxU = max(currentPathMaxU, u)
+                    } else invalidPathSampleCount++
                     anyPoint = true
                 }
+                if (invalidPathSampleCount > 0) {
+                    OrbStage02RenderTrace.recordRateLimited(
+                        throttleKey = "INVALID_PATH_SAMPLE:${spec.id}:${front}:${renderPass.name}",
+                        eventType = "INVALID_PATH_SAMPLE",
+                        dataSource = "CALCULATED_VALUE",
+                        fields = mapOf(
+                            "pathId" to spec.id,
+                            "front" to front,
+                            "renderPass" to renderPass.name,
+                            "invalidSampleCount" to invalidPathSampleCount,
+                            "validSampleCount" to currentPathValidSampleCount,
+                            "stage" to sceneFrame.stage.name,
+                            "stageProgress" to sceneFrame.stageProgress,
+                            "geometryVersion" to frame.geometryVersion,
+                        ),
+                    )
+                }
                 if (!anyPoint) continue
-                pathMetrics.getValue(spec.id).validSampleCount = currentPathValidSampleCount
+                pathMetrics.getValue(spec.id).apply {
+                    validSampleCount = currentPathValidSampleCount
+                    pathPhaseU = move.u
+                    effectiveTrailStartU = if (currentPathValidSampleCount > 0) currentPathMinU else -1f
+                    effectiveTrailEndU = if (currentPathValidSampleCount > 0) currentPathMaxU else -1f
+                }
                 val layerCountForMaterial = material.layers.size.coerceAtMost(layerCount)
                 for (layerIndex in 0 until layerCountForMaterial) {
                     val layer = material.layers[layerIndex]
@@ -532,7 +644,25 @@ internal class OrbFilamentPathRenderer(
                         // coordinate or u value can suppress/bridge the visible part of a path.
                         val drawableRuns = r06ValidSampleRuns(samplesValid, first, last)
                             .filter { it.last - it.first + 1 >= 2 }
-                        if (drawableRuns.isEmpty()) continue
+                        if (drawableRuns.isEmpty()) {
+                            if (isBodyLayer) {
+                                OrbStage02RenderTrace.recordRateLimited(
+                                    throttleKey = "EMPTY_VALID_RUN:${spec.id}:${layer.id}:${front}:${renderPass.name}",
+                                    eventType = "EMPTY_VALID_RUN",
+                                    dataSource = "CALCULATED_VALUE",
+                                    fields = mapOf(
+                                        "pathId" to spec.id,
+                                        "layerId" to layer.id,
+                                        "front" to front,
+                                        "renderPass" to renderPass.name,
+                                        "validSampleCount" to currentPathValidSampleCount,
+                                        "stage" to sceneFrame.stage.name,
+                                        "stageProgress" to sceneFrame.stageProgress,
+                                    ),
+                                )
+                            }
+                            continue
+                        }
                         val representativeRun = drawableRuns.maxBy { it.last - it.first }
                         val mid = (representativeRun.first + representativeRun.last) / 2
                         val pathU = samplesU[mid]
@@ -573,14 +703,31 @@ internal class OrbFilamentPathRenderer(
                             )
                         }
                         val representativeRadiusD = kotlin.math.hypot(samplesX[mid] - centerX, samplesY[mid] - centerY) / diameterPx
+                        var transmissionFactor = 1f
+                        var representativeEdgeFade = 1f
                         if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
-                            val radialMask = OrbInteriorOpticalField.interiorWeight(representativeRadiusD)
+                            representativeEdgeFade = OrbInteriorOpticalField.interiorWeight(representativeRadiusD)
                             val rawCoreAlpha = rawCoreAlphaAt(
                                 samplesX[mid], samplesY[mid], centerX, centerY, diameterPx,
                             )
-                            // The original WebP alpha, radial interior and edge fade all gate transmission.
-                            layerAlpha *= OrbStage02MaxVisualProfile.GLASS_BACK_TRANSMISSION_MAX *
-                                rawCoreAlpha * radialMask * radialMask
+                            transmissionFactor = OrbStage02MaxVisualProfile.GLASS_BACK_TRANSMISSION_MAX * rawCoreAlpha
+                            if (rawCoreAlpha <= 0f || representativeEdgeFade <= 0f) {
+                                OrbStage02RenderTrace.recordRateLimited(
+                                    throttleKey = "GLASS_MASK_ZERO:${spec.id}:${front}:${renderPass.name}",
+                                    eventType = "GLASS_MASK_ZERO",
+                                    dataSource = "CALCULATED_VALUE",
+                                    fields = mapOf(
+                                        "pathId" to spec.id,
+                                        "radialPositionD" to representativeRadiusD,
+                                        "rawCoreAlpha" to rawCoreAlpha,
+                                        "interiorMask" to representativeEdgeFade,
+                                        "renderPass" to renderPass.name,
+                                    ),
+                                )
+                            }
+                            // The source silhouette gates the pass here. The single radial
+                            // interior/edge mask is applied per output pixel by the Paint shader.
+                            layerAlpha = r06GlassTransmissionBodyAlpha(layerAlpha, rawCoreAlpha)
                         }
                         if (isBodyLayer) {
                             pathMetrics.getValue(spec.id).apply {
@@ -591,9 +738,35 @@ internal class OrbFilamentPathRenderer(
                                     (layerAlpha - originalLayerAlpha).coerceAtLeast(0f),
                                 )
                                 bodyMaximumEndFade = max(bodyMaximumEndFade, endFade)
+                                bodyMaximumTailAlpha = max(bodyMaximumTailAlpha, tailAlpha)
+                                bodyMaximumTransmissionFactor = max(bodyMaximumTransmissionFactor, transmissionFactor)
+                                bodyMaximumEdgeFade = max(bodyMaximumEdgeFade, representativeEdgeFade)
+                                bodyMaximumEffectiveAlpha = max(
+                                    bodyMaximumEffectiveAlpha,
+                                    layerAlpha * representativeEdgeFade,
+                                )
                             }
                         }
-                        if (layerAlpha <= .002f) continue
+                        if (layerAlpha <= .002f) {
+                            if (isBodyLayer) {
+                                OrbStage02RenderTrace.recordRateLimited(
+                                    throttleKey = "ALPHA_BELOW_RENDER_THRESHOLD:${spec.id}:${layer.id}:${front}:${renderPass.name}",
+                                    eventType = "ALPHA_BELOW_RENDER_THRESHOLD",
+                                    dataSource = "CALCULATED_VALUE",
+                                    fields = mapOf(
+                                        "pathId" to spec.id,
+                                        "layerId" to layer.id,
+                                        "originalAlpha" to originalLayerAlpha,
+                                        "finalAlpha" to layerAlpha,
+                                        "threshold" to .002f,
+                                        "renderPass" to renderPass.name,
+                                        "stage" to sceneFrame.stage.name,
+                                        "stageProgress" to sceneFrame.stageProgress,
+                                    ),
+                                )
+                            }
+                            continue
+                        }
                         val path = cache.paths[chunk][layerIndex]
                         path.rewind()
                         var drawableRunCount = 0
@@ -632,12 +805,17 @@ internal class OrbFilamentPathRenderer(
                                 OrbStage02MaxVisualProfile.FLUID_EDGE_PROTECTION_END_D
                             val clearColor = colorInt and 0x00FFFFFF
                             paint.shader = glassMaskShaders.getOrPut(colorInt) {
+                                val radiusD = OrbStage02MaxVisualProfile.FLUID_EDGE_PROTECTION_END_D
+                                fun edgeColor(stop: Float) = withAlpha(
+                                    colorInt,
+                                    OrbInteriorOpticalField.interiorWeight(stop * radiusD),
+                                )
                                 RadialGradient(
                                     centerX,
                                     centerY,
-                                    diameterPx * OrbStage02MaxVisualProfile.FLUID_EDGE_PROTECTION_END_D,
-                                    intArrayOf(colorInt, colorInt, clearColor),
-                                    floatArrayOf(0f, alphaStop, 1f),
+                                    diameterPx * radiusD,
+                                    intArrayOf(colorInt, colorInt, edgeColor(.82f), edgeColor(.90f), edgeColor(.96f), clearColor),
+                                    floatArrayOf(0f, alphaStop, .82f, .90f, .96f, 1f),
                                     Shader.TileMode.CLAMP,
                                 )
                             }
@@ -677,16 +855,47 @@ internal class OrbFilamentPathRenderer(
                     val length = sqrt(dx * dx + dy * dy).coerceAtLeast(.0001f)
                     val nx = -dy / length
                     val ny = dx / length
-                    cache.headPaint.color = material.highlightColor.toInt() or (0xFF shl 24)
+                    val highlightColor = material.highlightColor.toInt() or (0xFF shl 24)
+                    cache.headPaint.color = highlightColor
+                    cache.headPaint.shader = if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
+                        glassMaskShaders.getOrPut(highlightColor) {
+                            val alphaStop = OrbStage02MaxVisualProfile.FLUID_EDGE_PROTECTION_START_D /
+                                OrbStage02MaxVisualProfile.FLUID_EDGE_PROTECTION_END_D
+                            val radiusD = OrbStage02MaxVisualProfile.FLUID_EDGE_PROTECTION_END_D
+                            fun edgeColor(stop: Float) = withAlpha(
+                                highlightColor,
+                                OrbInteriorOpticalField.interiorWeight(stop * radiusD),
+                            )
+                            RadialGradient(
+                                centerX, centerY,
+                                diameterPx * radiusD,
+                                intArrayOf(highlightColor, highlightColor, edgeColor(.82f), edgeColor(.90f),
+                                    edgeColor(.96f), highlightColor and 0x00FFFFFF),
+                                floatArrayOf(0f, alphaStop, .82f, .90f, .96f, 1f),
+                                Shader.TileMode.CLAMP,
+                            )
+                        }
+                    } else null
                     val headAlpha = (active * alphaPulse * material.specularHeadAlpha * eventBrightness *
                         OrbWakeBreathReleaseV11.R06_ALPHA_GAIN * OrbWakeBreathReleaseV11.R06_MOVING_HIGHLIGHT_GAIN * endFade)
                         .coerceIn(0f, OrbWakeBreathReleaseV11.R06_ALPHA_CAP)
-                    cache.headPaint.alpha = (255f * headAlpha).toInt().coerceIn(0, 255)
+                    val headX = centerX + (cache.scratch[0] + nx * spec.normalAmplitudeD) * diameterPx
+                    val headY = centerY + (cache.scratch[1] + ny * spec.normalAmplitudeD) * diameterPx
+                    val headTransmission = if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
+                        r06GlassTransmissionBodyAlpha(
+                            headAlpha,
+                            rawCoreAlphaAt(headX, headY, centerX, centerY, diameterPx),
+                        )
+                    } else 1f
+                    cache.headPaint.alpha = (255f * (if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION)
+                        headTransmission else headAlpha)).toInt().coerceIn(0, 255)
+                    pathMetrics.getValue(spec.id).headPaintAlpha = max(
+                        pathMetrics.getValue(spec.id).headPaintAlpha,
+                        cache.headPaint.alpha,
+                    )
                     val radiusDp = material.specularHeadRadiusDpMin +
                         (material.specularHeadRadiusDpMax - material.specularHeadRadiusDpMin) * widthPulse
-                    canvas.drawCircle(centerX + (cache.scratch[0] + nx * spec.normalAmplitudeD) * diameterPx,
-                        centerY + (cache.scratch[1] + ny * spec.normalAmplitudeD) * diameterPx,
-                        radiusDp * density, cache.headPaint)
+                    canvas.drawCircle(headX, headY, radiusDp * density, cache.headPaint)
                     cache.bandPath.rewind()
                     val fromU = (move.u - move.direction * material.specularBandLengthFraction * trail).coerceIn(0f, 1f)
                     val toU = move.u.coerceIn(0f, 1f)
@@ -697,11 +906,21 @@ internal class OrbFilamentPathRenderer(
                         OrbFilamentPathMathV1.sampleAt(lut, u, cache.scratch, 0)
                         cache.bandPath.lineTo(centerX + cache.scratch[0] * diameterPx, centerY + cache.scratch[1] * diameterPx)
                     }
-                    cache.bandPaint.color = material.highlightColor.toInt() or (0xFF shl 24)
+                    cache.bandPaint.color = highlightColor
+                    cache.bandPaint.shader = cache.headPaint.shader
                     val bandAlpha = (active * alphaPulse * material.specularHeadAlpha * eventBrightness *
                         OrbWakeBreathReleaseV11.R06_ALPHA_GAIN * OrbWakeBreathReleaseV11.R06_MOVING_HIGHLIGHT_GAIN * .58f * endFade)
                         .coerceIn(0f, OrbWakeBreathReleaseV11.R06_ALPHA_CAP)
-                    cache.bandPaint.alpha = (255f * bandAlpha).toInt().coerceIn(0, 255)
+                    val bandMidX = (centerX + cache.scratch[0] * diameterPx)
+                    val bandMidY = (centerY + cache.scratch[1] * diameterPx)
+                    val bandTransmission = if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
+                        r06GlassTransmissionBodyAlpha(
+                            bandAlpha,
+                            rawCoreAlphaAt(bandMidX, bandMidY, centerX, centerY, diameterPx),
+                        )
+                    } else 1f
+                    cache.bandPaint.alpha = (255f * (if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION)
+                        bandTransmission else bandAlpha)).toInt().coerceIn(0, 255)
                     cache.bandPaint.strokeWidth = max(.28f, spec.widthMinDp * .34f) * density
                     canvas.drawPath(cache.bandPath, cache.bandPaint)
                 }
@@ -710,12 +929,81 @@ internal class OrbFilamentPathRenderer(
             canvas.restoreToCount(canvasSave)
             emitMetricsIfDue()
         }
+        val pathSnapshots = pathMetrics.mapValues { it.value.snapshot() }
+        if (BuildConfig.DEBUG && emitCheckpointTrace && visualProfile == OrbStage02VisualProfile.MAX &&
+            sceneFrame.stage == RecognitionSceneStage.ORB_WAKE
+        ) {
+            pathSnapshots.values.forEach { metric ->
+                OrbStage02RenderTrace.record(
+                    eventType = "ORB_R06_PATH",
+                    dataSource = "CANVAS_DRAW_SUBMISSION",
+                    fields = mapOf(
+                        "pathId" to metric.pathId,
+                        "pathPhaseU" to metric.pathPhaseU,
+                        "effectiveTrailStartU" to metric.effectiveTrailStartU,
+                        "effectiveTrailEndU" to metric.effectiveTrailEndU,
+                        "front" to metric.front,
+                        "renderPass" to renderPass.name,
+                        "excludedPathId" to debugExcludedPathId,
+                        "validSampleCount" to metric.validSampleCount,
+                        "validRunCount" to metric.drawnRunCount,
+                        "bodyValidSegmentCount" to metric.bodyValidSegmentCount,
+                        "bodyTailAlpha" to metric.bodyMaximumTailAlpha,
+                        "headPaintAlpha" to metric.headPaintAlpha,
+                        "bodyOriginalAlpha" to metric.bodyMaximumOriginalAlpha,
+                        "bodyFinalAlphaBeforePixelMask" to metric.bodyMaximumFinalAlpha,
+                        "bodyPaintAlpha" to metric.bodyPaintAlpha,
+                        "bodyStrokeWidthPx" to metric.bodyStrokeWidthPx,
+                        "transmissionFactor" to metric.bodyMaximumTransmissionFactor,
+                        "edgeFade" to metric.bodyMaximumEdgeFade,
+                        "effectiveBodyAlpha" to metric.bodyMaximumEffectiveAlpha,
+                        "effectiveBodyAlphaDataSource" to "CALCULATED_REPRESENTATIVE_CHUNK_NOT_PIXEL",
+                        "finalPixelContribution" to "NOT_MEASURED",
+                        "drawnRuns" to metric.bodyDrawnRunCount,
+                        "drawnChunks" to metric.drawnChunkCount,
+                    ),
+                )
+                OrbStage02RenderTrace.record(
+                    eventType = "ORB_R06_MATERIAL",
+                    dataSource = "CANVAS_DRAW_SUBMISSION",
+                    fields = mapOf(
+                        "pathId" to metric.pathId,
+                        "layerId" to (metric.bodyLayerId ?: "NONE"),
+                        "originalAlpha" to metric.bodyMaximumOriginalAlpha,
+                        "finalAlpha" to metric.bodyMaximumFinalAlpha,
+                        "paintAlpha" to metric.bodyPaintAlpha,
+                        "strokeWidthPx" to metric.bodyStrokeWidthPx,
+                        "endFade" to metric.bodyMaximumEndFade,
+                        "pathPhaseU" to metric.pathPhaseU,
+                        "effectiveTrailStartU" to metric.effectiveTrailStartU,
+                        "effectiveTrailEndU" to metric.effectiveTrailEndU,
+                        "bodyTailAlpha" to metric.bodyMaximumTailAlpha,
+                        "headPaintAlpha" to metric.headPaintAlpha,
+                        "drawnRuns" to metric.bodyDrawnRunCount,
+                    ),
+                )
+                if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
+                    OrbStage02RenderTrace.record(
+                        eventType = "ORB_R06_GLASS",
+                        dataSource = "CALCULATED_VALUE",
+                        fields = mapOf(
+                            "pathId" to metric.pathId,
+                            "transmissionFactor" to metric.bodyMaximumTransmissionFactor,
+                            "interiorEdgeFade" to metric.bodyMaximumEdgeFade,
+                            "alphaBeforeEdgeMask" to metric.bodyMaximumFinalAlpha,
+                            "effectiveBodyAlpha" to metric.bodyMaximumEffectiveAlpha,
+                            "effectiveBodyAlphaDataSource" to "CALCULATED_REPRESENTATIVE_CHUNK_NOT_PIXEL",
+                        ),
+                    )
+                }
+            }
+        }
         return FrameMetrics(
             validSampleCount = validSampleCount,
             drawnChunkCount = drawnChunkCount,
             drawnPathIds = drawnPathIds,
             maximumEffectiveAlpha = maximumEffectiveAlpha,
-            paths = pathMetrics.mapValues { it.value.snapshot() },
+            paths = pathSnapshots,
         )
     }
 
@@ -737,6 +1025,9 @@ internal class OrbFilamentPathRenderer(
         if (bx !in 0 until bitmap.width || by !in 0 until bitmap.height) return 0f
         return (pixels[by * bitmap.width + bx] ushr 24 and 0xFF) / 255f
     }
+
+    private fun withAlpha(color: Int, alpha: Float): Int =
+        (color and 0x00FFFFFF) or ((alpha.coerceIn(0f, 1f) * 255f).toInt() shl 24)
 }
 
 /** Current-frame contiguous runs; gaps are never bridged by samples left in a reused cache. */

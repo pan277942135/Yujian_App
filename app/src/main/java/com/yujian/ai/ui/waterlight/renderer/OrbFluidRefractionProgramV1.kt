@@ -67,6 +67,9 @@ internal class OrbFluidRefractionProgramV1 private constructor(
     val androidRenderEffect: AndroidRenderEffect,
     private val maskSizePx: Float,
 ) {
+    var uniformRevision: Long = 0L
+        private set
+
     fun update(
         frame: WaterLightFrame,
         surfaceSizePx: Float,
@@ -96,6 +99,7 @@ internal class OrbFluidRefractionProgramV1 private constructor(
             stageProgress = sceneFrame.stageProgress,
             reducedMotion = frame.reducedMotion,
             profile = visualProfile,
+            sceneElapsedMs = frame.elapsedMs,
         )
         shader.setFloatUniform(
             "maxFluidEnabled",
@@ -110,6 +114,7 @@ internal class OrbFluidRefractionProgramV1 private constructor(
         shader.setFloatUniform("maxSemanticPhase", maxField.semanticPhase)
         shader.setFloatUniform("maxEdgeStartD", OrbStage02MaxVisualProfile.FLUID_EDGE_PROTECTION_START_D)
         shader.setFloatUniform("maxEdgeEndD", OrbStage02MaxVisualProfile.FLUID_EDGE_PROTECTION_END_D)
+        uniformRevision++
     }
 
     companion object {
@@ -187,6 +192,9 @@ internal class OrbCoreImageOpticalEffect private constructor(
     private val candidate: OrbFluidGrassOpticalStackV1?,
     private val fallback: OrbGrassWarpProgramV11?,
 ) : AutoCloseable {
+    var uniformRevision: Long = 0L
+        private set
+
     fun update(
         frame: WaterLightFrame,
         s2Progress: Float,
@@ -203,6 +211,7 @@ internal class OrbCoreImageOpticalEffect private constructor(
                 surfaceSizePx,
             )
         }
+        uniformRevision++
     }
 
     override fun close() {

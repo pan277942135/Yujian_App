@@ -115,6 +115,7 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
                 frame.sceneFrame.stageProgress,
                 frame.reducedMotion,
                 visualProfile,
+                frame.elapsedMs,
             )
             job = scope.launch(Dispatchers.Default) {
                 val started = System.nanoTime()

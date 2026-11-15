@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "taskId": "YUJIAN_PR331_R03_R06_ITERATIVE_VISUAL_ENGINEERING_CLOSURE_V1",
+  "pr": 331,
+  "baselineSourceSha": "762b656591be3129bf2ec02768a65109371fe4ab",
+  "candidateSourceSha": "PENDING_EXACT_HEAD_COMMIT",
+  "prRequiredState": "OPEN_DRAFT_UNMERGED",
+  "historicalEvidence": [
+    {
+      "file": "264191.mp4",
+      "sha256": "7d3fb4924f544122720575f9ba5fad788bcb6d50793d08798e2404b37540c872",
+      "evidenceLevel": "HISTORICAL_SCREEN_RECORDING",
+      "supports": ["aggregate diagnostic screen observation"],
+      "doesNotSupport": ["GPU readback", "same-progress advancing-clock R03 motion", "per-path R06 pixel contribution", "current candidate visual pass"]
+    }
+  ],
+  "candidatePixelCopyBundle": {
+    "status": "NOT_AVAILABLE",
+    "r03ProjectedSamples": "NOT_MEASURED",
+    "r03ProductionAutoProgression": "NOT_MEASURED",
+    "r06PerPath": {
+      "G01": "NOT_MEASURED",
+      "G02": "NOT_MEASURED",
+      "A01": "NOT_MEASURED",
+      "A02": "NOT_MEASURED",
+      "C01": "NOT_MEASURED"
+    },
+    "captureSynchronization": "SOURCE_IMPLEMENTED_DEVICE_UNVALIDATED",
+    "humanDiscernibility": "NOT_ASSESSED"
+  },
+  "staticChecks": {
+    "controlPlaneAdmissionAtBaseline": "PASS",
+    "orbCoreAssetSha": "PASS",
+    "frozenR06AssetAndMaterial": "PASS",
+    "runtimeProfileParity": "PASS",
+    "recognitionRuntimeContract": "PASS",
+    "cameraRecognitionHarnessContract": "PASS"
+  },
+  "buildChecks": {
+    "localUnitTests": "BLOCKED_INFRA_GRADLE_9_3_1_UNCACHED_NETWORK_UNAVAILABLE",
+    "exactHeadCi": "PENDING",
+    "androidTestCompile": "PENDING_EXACT_HEAD_CI",
+    "androidTestInstrumentation": "NOT_RUN_BY_SCOPE",
+    "debugApk": "PENDING_EXACT_HEAD_CI"
+  },
+  "evidenceLabels": {
+    "RUNTIME_STATE_INFERRED": "runtime eligibility/status only; not GPU pixel evidence",
+    "CANVAS_DRAW_SUBMISSION": "renderer submits a path/layer; not pixel contribution",
+    "PIXEL_COPY_RESULT": "actual Android window capture result for one capture id",
+    "PIXEL_MEASUREMENT": "aligned captured-image difference; not human visibility",
+    "HUMAN_VISUAL_NOT_ASSESSED": "requires product-owner device review"
+  }
+}
