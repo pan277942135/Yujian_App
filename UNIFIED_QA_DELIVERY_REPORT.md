@@ -13,7 +13,8 @@ Status: **Draft QA integration ready for remote review; Main was not modified or
 | Actual common ancestor | `59e5c7b22c07ca512008b8376367126cf32df24f` | Verified; differs from the task's expected merge-base, recorded as evidence |
 | Code Local snapshot | `c303acf5160ea37735490c0fdb4863f0449f8f1f` / `snapshot/code-local-20261115` | Created before integration |
 | Normal merge commit | `40977c9774e76c7023f3823bb7714e678211be24` | `--no-ff` merge; only `harness/build-log.md` conflicted |
-| Final integration HEAD | `27b51c5ab1e6bb3d5f1d462623e6747a2d97e118` | Exact source used for the build |
+| Implementation/build HEAD | `27b51c5ab1e6bb3d5f1d462623e6747a2d97e118` | Exact source used for the build |
+| QA report commit | `94bf0ad` | Documentation-only commit after the implementation build |
 
 The complete file-level decision record is in [`CODE_LOCAL_VS_PR331_MERGE_MANIFEST.md`](CODE_LOCAL_VS_PR331_MERGE_MANIFEST.md). No global ours/theirs merge was used. Dynamic state, worktrees and Python caches are excluded from commits.
 
