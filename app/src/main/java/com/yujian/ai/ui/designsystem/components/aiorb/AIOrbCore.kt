@@ -353,6 +353,9 @@ private fun OrbVisual(
     val shaderInstance = currentCoreOpticalEffect?.takeIf {
         it.route != OrbShaderRoute.UNAVAILABLE && it.renderEffect != null
     }
+    val shaderUniformRevisionForTrace = if (
+        android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU
+    ) shaderInstance?.uniformRevision ?: 0L else 0L
     val shaderUpdateGate = remember(shaderInstance) { OrbShaderUpdateGate(shaderInstance) }
     val injectedShaderOutput = LocalOrbShaderOverlayTestOutput.current
     val shaderUpdateStatus = if (injectedShaderOutput != null) OrbShaderUpdateStatus.READY
@@ -507,7 +510,7 @@ private fun OrbVisual(
                     "shaderRoute" to shaderRoute,
                     "shaderStatus" to shaderUpdateStatus.name,
                     "shaderUpdateAttempted" to shaderUniformUpdateAttempted,
-                    "shaderUniformRevision" to (shaderInstance?.uniformRevision ?: 0L),
+                    "shaderUniformRevision" to shaderUniformRevisionForTrace,
                     "renderEffectAttached" to (appliedRenderEffect != null),
                     "layerDrawSubmitted" to "AWAITING_ORB_R03_RENDER_EVENT",
                     "dynamicOverlayMeanAlpha" to "NOT_MEASURED_GPU_OUTPUT",
@@ -643,7 +646,7 @@ private fun OrbVisual(
                                 fields = mapOf(
                                     "shaderRoute" to shaderRoute,
                                     "shaderStatus" to shaderUpdateStatus.name,
-                                    "uniformRevision" to (shaderInstance?.uniformRevision ?: 0L),
+                                    "uniformRevision" to shaderUniformRevisionForTrace,
                                     "renderEffectAttached" to (appliedRenderEffect != null),
                                     "layerDrawSubmitted" to true,
                                     "layerDrawDataSource" to "COMPOSE_DRAW_SUBMISSION_NOT_GPU_READBACK",
