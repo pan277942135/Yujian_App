@@ -138,3 +138,12 @@
 
 
 - Remote branch publication: implementation source commit `317ade8de606dd673e4bb04a4f24063b41bd95c7` was created from Main `98684af617206027e3fbba35e0d2a45bd475e3ba`; the four implementation/test/verifier files are byte-identical to the locally validated tree (SHA-256 verified per file). Exact-head CI is pending.
+
+## 2026-11-07 — WP1-B dynamic Mask content identity checkpoint (local Work evidence)
+
+- Implementation source commit `6e4daf5cae54b33a9d2b1ce0440d9de929ad5810` computes SHA-256 from the actual encoded transparent SlimSAM PNG after mask cleanup. The value is propagated through `FishSubjectResult`, mask geometry, Processing geometry, and `RecognitionRevealHandoff`; it does not relabel DET_FISH v0.1 or supply the blocked v0.3 model.
+- Local Debug unit-test startup located Android Studio JBR, then stopped before Kotlin compilation because Gradle Wrapper could not download `gradle-9.3.1-bin.zip` (network timeout). No test, build, APK, AndroidTest, device, or visual result is claimed for `6e4daf5`.
+- GitHub Actions run `42319889988` initially rejected public copies of `PROJECT_MASTER_STATE.yaml` and `WORK_EXECUTION_STATE.json` in PR #320. The public PR tree was corrected at `59e5c7b22c07ca512008b8376367126cf32df24f`; the state and this observation remain local Work evidence.
+- Next: obtain the declared Gradle distribution or an exact-head CI build, then record the actual Debug test/compile/package outcome and APK SHA-256 only if packaging succeeds.
+
+- Exact-head PR #320 run `42320179675` on `59e5c7b22c07ca512008b8376367126cf32df24f` passed control-plane admission after state isolation, but Android CI stopped in `verify_lake_glass_route_coverage.py`: `NavHost route mismatch; missing=['record_calendar']`. This is a pre-existing resource/route gate outside the dynamic Mask SHA-256 scope. Gradle, Kotlin tests, APK assembly, AndroidTest, device, and visual evidence remain `NOT_RUN` on this exact SHA.
