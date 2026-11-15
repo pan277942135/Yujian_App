@@ -3,15 +3,22 @@
   "taskId": "YUJIAN_PR331_R03_R06_ITERATIVE_VISUAL_ENGINEERING_CLOSURE_V1",
   "pr": 331,
   "baselineSourceSha": "762b656591be3129bf2ec02768a65109371fe4ab",
-  "candidateSourceSha": "PENDING_EXACT_HEAD_COMMIT",
+  "candidateSourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9",
   "prRequiredState": "OPEN_DRAFT_UNMERGED",
   "historicalEvidence": [
     {
       "file": "264191.mp4",
       "sha256": "7d3fb4924f544122720575f9ba5fad788bcb6d50793d08798e2404b37540c872",
       "evidenceLevel": "HISTORICAL_SCREEN_RECORDING",
-      "supports": ["aggregate diagnostic screen observation"],
-      "doesNotSupport": ["GPU readback", "same-progress advancing-clock R03 motion", "per-path R06 pixel contribution", "current candidate visual pass"]
+      "supports": [
+        "aggregate diagnostic screen observation"
+      ],
+      "doesNotSupport": [
+        "GPU readback",
+        "same-progress advancing-clock R03 motion",
+        "per-path R06 pixel contribution",
+        "current candidate visual pass"
+      ]
     }
   ],
   "candidatePixelCopyBundle": {
@@ -25,7 +32,7 @@
       "A02": "NOT_MEASURED",
       "C01": "NOT_MEASURED"
     },
-    "captureSynchronization": "SOURCE_IMPLEMENTED_DEVICE_UNVALIDATED",
+    "captureSynchronization": "SOURCE_IMPLEMENTED_API29_FRAME_COMMIT_FENCE; API36_DEVICE_UNVALIDATED",
     "humanDiscernibility": "NOT_ASSESSED"
   },
   "staticChecks": {
@@ -37,11 +44,20 @@
     "cameraRecognitionHarnessContract": "PASS"
   },
   "buildChecks": {
-    "localUnitTests": "BLOCKED_INFRA_GRADLE_9_3_1_UNCACHED_NETWORK_UNAVAILABLE",
-    "exactHeadCi": "PENDING",
-    "androidTestCompile": "PENDING_EXACT_HEAD_CI",
+    "controlPlaneAdmission": "NOT_TRIGGERED_BY_PR_BASE_FILTER",
+    "exactHeadCi": "PASS",
+    "exactHeadCiRunId": 43671108469,
+    "exactHeadCiSourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9",
+    "androidTestCompile": "PASS",
     "androidTestInstrumentation": "NOT_RUN_BY_SCOPE",
-    "debugApk": "PENDING_EXACT_HEAD_CI"
+    "debugApk": "PASS",
+    "debugApkArtifactId": 14144831040,
+    "debugApkSha256": "4bdbb1ab4347bb8e325ec24369e20e08cea747ad460038f3cb2d38e740de6a3e",
+    "debugApkBytes": 144397930,
+    "debugApkSourceSha": "2e11dea1761296cdd19625bfc45a6c47be1376d9",
+    "packagedResourceAndModelChecks": "PASS",
+    "androidLint": "PASS",
+    "releaseKotlinCompile": "PASS"
   },
   "evidenceLabels": {
     "RUNTIME_STATE_INFERRED": "runtime eligibility/status only; not GPU pixel evidence",

@@ -16,7 +16,15 @@
 | QA-02 | Waiting one Compose frame did not verify target Android window submission | Baseline waited a Compose frame before PixelCopy | IMPLEMENTED_NOT_DEVICE_VALIDATED | New matching Orb draw marker + Android frame-commit callback; mismatch/timeout is a capture failure |
 | QA-03 | Export had no final-pixel ablation for each R06 path | Baseline export was aggregate | IMPLEMENTED_NOT_DEVICE_VALIDATED | New `R06_FULL` vs path-excluded capture for G01/G02/A01/A02/C01 |
 | QA-04 | Paused diagnostic had no fixed-progress optical sample series | Manual preview completion can pause clock | IMPLEMENTED_AS_PROJECTED_SAMPLES_NOT_SCENE_CLOCK_ADVANCE | Capture T0/T+500/T+1500 at same progress/identity/geometry; keep production AUTO evidence separate |
-| QA-05 | Local Gradle tests cannot start in the isolated environment | Gradle 9.3.1 distribution is not cached; `services.gradle.org` is unreachable from this workspace | BLOCKED_INFRA_LOCAL; EXACT_HEAD_CI_PENDING | Use standard non-device exact-head Android CI; do not call this a source test failure or a PASS |
+| QA-05 | Local Gradle tests cannot start in the isolated environment | Gradle 9.3.1 distribution is not cached; `services.gradle.org` is unreachable from this workspace; exact-head GitHub Actions completed on `2e11dea…` | BLOCKED_INFRA_LOCAL; EXACT_HEAD_CI_PASS_ON_2E11 | Use run `43671108469` for source/build evidence; collect API36 pixels separately |
+
+## Recovery checkpoint — 2026-11-15
+
+- PR #331 remains **OPEN / DRAFT / UNMERGED**; implementation source at the checkpoint is `2e11dea1761296cdd19625bfc45a6c47be1376d9`.
+- Exact-head Android CI run [43671108469](https://github.com/pan277942135/Yujian_App/actions/runs/43671108469) succeeded. Unit tests, Recognition/Camera Harness, AndroidTest APK compile, lint, Release Kotlin compile, packaged resource/model checks and model-trace export passed. AndroidTest instrumentation and API36/device jobs were skipped by scope.
+- Debug APK artifact [14144831040](https://github.com/pan277942135/Yujian_App/actions/runs/43671108469/artifacts/14144831040) contains `app-debug.apk` (144,397,930 bytes; SHA-256 `4bdbb1ab4347bb8e325ec24369e20e08cea747ad460038f3cb2d38e740de6a3e`); embedded build revision matches `2e11dea1761296cdd19625bfc45a6c47be1376d9`.
+- The separately scoped Control Plane Admission workflow did not run: its pull-request trigger targets PRs based on `main`, while #331 targets `work/recognition-runtime-result-handoff-v1`. Baseline admission was recorded as passing; exact-head admission is NOT_RUN.
+- No current-source PixelCopy ZIP or visual review is available. R03/R06 pixel contribution and human discernibility remain NOT_MEASURED.
 
 ## Iteration rule
 
