@@ -20,7 +20,7 @@ The complete file-level decision record is in [`CODE_LOCAL_VS_PR331_MERGE_MANIFE
 
 ## Post-merge derived-source repair
 
-`app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbRuntimeProfileV1.kt` contained generated provenance constants that did not match the checked-in R02–R06 JSON resources. Commit `27b51c5ab1e6bb3d5f1d462623e6747a2d97e118` updates only those seven generated SHA constants and records the repair in the merge manifest. `python scripts/android_runtime/generate_orb_runtime_profile.py --check` passes; no timeline, geometry, model ID, mask identity or renderer behavior was changed.
+`app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbRuntimeProfileV1.kt` contained generated provenance constants that did not match the checked-in R02–R06 JSON resources. Commit `27b51c5ab1e6bb3d5f1d462623e6747a2d97e118` updates only those seven generated SHA constants and records the repair in the merge manifest. A subsequent exact-HEAD CI run exposed the Windows-CRLF/Linux-LF portability edge; the generator now reads the canonical Git Blob only when Index and Worktree are clean and falls back to Worktree bytes for real edits. The profile was regenerated from canonical Blob bytes, and `python scripts/android_runtime/generate_orb_runtime_profile.py --check` passes on both platforms. No timeline, geometry, model ID, mask identity or renderer behavior was changed.
 
 ## Local exact-head verification
 
@@ -32,7 +32,7 @@ All commands below used source HEAD `27b51c5ab1e6bb3d5f1d462623e6747a2d97e118` i
 | Project Master State | PASS | `scripts/validate_project_master_state.py` |
 | Work Execution State | PASS | `scripts/validate_work_execution_state.py` |
 | Control-plane sync | PASS | `scripts/validate_control_plane_sync.py --base origin/main --no-fetch`; 753 paths, 0 errors |
-| Orb profile generated-source check | PASS | `scripts/android_runtime/generate_orb_runtime_profile.py --check` |
+| Orb profile generated-source check | PASS | `scripts/android_runtime/generate_orb_runtime_profile.py --check` with clean-tree Git-Blob provenance |
 | JVM unit tests | PASS | `:app:testDebugUnitTest`; 426 tests |
 | Debug APK | PASS | `:app:assembleDebug` |
 | AndroidTest APK compilation | PASS | `:app:assembleDebugAndroidTest` |

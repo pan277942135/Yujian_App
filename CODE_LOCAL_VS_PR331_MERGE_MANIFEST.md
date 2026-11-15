@@ -131,3 +131,11 @@ was regenerated from the PR's checked-in R02–R06 JSON and geometry authorities
 The only changed values are the seven derived JSON/geometry SHA constants; no
 runtime parameters, path geometry, timing, materials or rendering behavior changed.
 `generate_orb_runtime_profile.py --check` passes on the resulting source.
+
+The follow-up CI run exposed a cross-platform provenance defect: a clean
+Windows checkout materialized the tracked JSON with CRLF while Linux CI read
+the same Git Blob as LF. `generate_orb_runtime_profile.py` now reads the
+canonical `HEAD` Blob only when both Index and Worktree are clean, and falls
+back to Worktree bytes whenever a real staged/unstaged edit exists. The
+generated profile was regenerated from the canonical Blob hashes; this is a
+fail-closed provenance correction, not a contract or rendering change.
