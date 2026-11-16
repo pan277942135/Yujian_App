@@ -528,7 +528,7 @@ private fun OrbVisual(
     val sourceCoreAlpha = 1f
     SideEffect {
         val bucket = sharedFrame.elapsedMs.coerceAtLeast(0L) / 250L
-        if (BuildConfig.DEBUG && lastRotationTraceBucket[0] != bucket) {
+        if (onOrbRuntimeDiagnostics != null && lastRotationTraceBucket[0] != bucket) {
             lastRotationTraceBucket[0] = bucket
             val sample = OrbCoreRotationFieldV1.sample(sharedFrame.elapsedMs, .55f, reduceMotion)
             val fields = mapOf(

@@ -1816,7 +1816,11 @@ fun RecognitionProcessingScene(
                 val accepted = if (waterLightFrame.sceneFrame.stageProgress >= .999f) {
                     controller.recordEnergyEvent(waterLightFrame.sceneFrame, event)
                 } else null
-                if (accepted != null) recognitionEvidenceRecorder?.recordEnergyEvent(event, accepted)
+                if (accepted != null) recognitionEvidenceRecorder?.recordEnergyEvent(
+                    event = event,
+                    accepted = accepted,
+                    taskEnergyMergedBeforeEvent = waterLightFrame.sceneFrame.taskEnergyMerged,
+                )
                 Log.i(
                     "WaterLightEnergy",
                     "ENERGY_EVENT session=${event.sessionId} attempt=${event.attemptId} image=${event.imageId} " +

@@ -6,6 +6,8 @@ import android.os.SystemClock
 import android.view.Window
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.RecognitionTaskFilamentState
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
@@ -139,10 +141,41 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
         }
     }
 
-    fun recordEnergyEvent(event: EnergyEvent, accepted: Boolean) {
-        val payload = energyPayload(event) + ("controllerAccepted" to accepted)
+    fun recordEnergyEvent(
+        event: EnergyEvent,
+        accepted: Boolean,
+        taskEnergyMergedBeforeEvent: Boolean = false,
+    ) {
+        val merged = event.feedback == EnergyFeedback.RETURN && accepted && event.level >= .999f
+        val taskState = RecognitionTaskFilamentState.fromEvent(
+            event,
+            taskEnergyMerged = taskEnergyMergedBeforeEvent || merged,
+        )
+        val payload = energyPayload(event) + mapOf(
+            "controllerAccepted" to accepted,
+            "taskFilamentState" to taskState?.let {
+                mapOf(
+                    "phase" to it.phase.name,
+                    "taskId" to it.taskId,
+                    "taskPathId" to it.taskPathId,
+                    "pStarPathId" to it.pStarPathId,
+                    "sessionId" to it.sessionId,
+                    "attemptId" to it.attemptId,
+                    "imageId" to it.imageId,
+                    "maskSha256" to it.maskSha256,
+                    "maskVersion" to it.maskVersion,
+                    "geometryVersion" to it.geometryVersion,
+                    "pathGeometryVersion" to it.pathGeometryVersion,
+                    "eventSequence" to it.eventSequence,
+                    "releaseProgress" to it.releaseProgress,
+                    "contactProgress" to it.contactProgress,
+                    "returnProgress" to it.returnProgress,
+                    "taskAlpha" to it.taskAlpha,
+                )
+            },
+        )
         record("TASK_WATERLIGHT_EVENT", "waterlight_paths.jsonl", payload)
-        if (event.feedback.name == "RETURN" && accepted && event.level >= .999f) {
+        if (merged) {
             record(
                 "TASK_ENERGY_MERGED",
                 "recognition_events.jsonl",
@@ -153,6 +186,17 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
                     "maskSha256" to event.pathMaskSha256,
                     "geometryVersion" to event.pathGeometryVersion,
                     "eventSequence" to event.eventSequence,
+                ),
+            )
+        }
+        if (event.feedback == EnergyFeedback.TRANSLATE && accepted && taskEnergyMergedBeforeEvent) {
+            record(
+                "ORB_DISSOLVE",
+                "recognition_events.jsonl",
+                payload + mapOf(
+                    "dissolveEvent" to "ORB_DISSOLVE",
+                    "sourceEvent" to "ORB_TO_GLYPH_ACCEPTED",
+                    "taskEnergyMerged" to taskEnergyMergedBeforeEvent,
                 ),
             )
         }
