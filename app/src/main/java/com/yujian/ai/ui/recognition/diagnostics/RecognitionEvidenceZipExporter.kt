@@ -57,6 +57,21 @@ object RecognitionEvidenceZipExporter {
             val deviceInfo = deviceInfoJson(context)
             File(attemptDirectory, "device_info.json").writeText(deviceInfo.toString(2), Charsets.UTF_8)
             writeSummaryReports(context, attemptDirectory, summary, captureIndex, recorder.diagnostics())
+            val resultEvidenceStatus = summary.optString("resultEvidenceStatus", "RESULT_EVIDENCE_NOT_AVAILABLE")
+            File(reportsFolder, "result_evidence_status.json").writeText(
+                JSONObject()
+                    .put("status", resultEvidenceStatus)
+                    .put(
+                        "missingReason",
+                        if (resultEvidenceStatus == "AVAILABLE") JSONObject.NULL else "RESULT_EVIDENCE_NOT_AVAILABLE",
+                    )
+                    .put(
+                        "resultStablePixelCopySucceeded",
+                        resultEvidenceStatus == "AVAILABLE",
+                    )
+                    .toString(2),
+                Charsets.UTF_8,
+            )
 
             ensureExpectedFiles(logsFolder, reportsFolder)
             val filesBeforeManifest = listFiles(attemptDirectory).filter { it.name != "manifest.json" }
@@ -287,6 +302,7 @@ object RecognitionEvidenceZipExporter {
         listOf(
             "model_summary.json", "r03_rotation_summary.json", "r06_summary.json",
             "resident_lifecycle_summary.json", "task_energy_summary.json", "capture_integrity.json",
+            "result_evidence_status.json",
         ).forEach { name -> File(reports, name).takeIf { !it.exists() }?.writeText("{}\n", Charsets.UTF_8) }
     }
 

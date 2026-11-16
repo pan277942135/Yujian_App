@@ -145,6 +145,10 @@ class RecognitionRevealPolicyTest {
         )
         assertEquals(
             RecognitionGeometryTrustState.TRUSTED_BBOX_ONLY,
+            RecognitionRevealPolicy.geometryTrust(box, subject(box).copy(maskSha256 = ""), "image-a", 1200, 800, .96f),
+        )
+        assertEquals(
+            RecognitionGeometryTrustState.TRUSTED_BBOX_ONLY,
             RecognitionRevealPolicy.geometryTrust(
                 box,
                 subject(box).copy(subjectBox = NormalizedSourceRect(.2f, .2f, .8f, .8f)),
@@ -199,11 +203,25 @@ class RecognitionRevealPolicyTest {
         val trusted = RecognitionGeometryTrustState.TRUSTED_MASK
         assertEquals(
             RecognitionRevealEligibility.FULL_REVEAL,
-            RecognitionRevealPolicy.eligibility(true, true, true, trusted, true, true),
+            RecognitionRevealPolicy.eligibility(
+                true, true, true, trusted, true, true, contourClosed = true, pStarPathValid = true,
+            ),
         )
         assertEquals(
-            RecognitionRevealEligibility.PHOTO_ONLY,
+            RecognitionRevealEligibility.STATIC_RESULT,
             RecognitionRevealPolicy.eligibility(true, true, false, trusted, true, true),
+        )
+        assertEquals(
+            RecognitionRevealEligibility.TITLE_FADE_ONLY,
+            RecognitionRevealPolicy.eligibility(
+                true, true, true, trusted, true, true, contourClosed = false, pStarPathValid = true,
+            ),
+        )
+        assertEquals(
+            RecognitionRevealEligibility.TITLE_FADE_ONLY,
+            RecognitionRevealPolicy.eligibility(
+                true, true, true, trusted, true, true, contourClosed = true, pStarPathValid = false,
+            ),
         )
         assertEquals(
             RecognitionRevealEligibility.TITLE_FADE_ONLY,
@@ -363,5 +381,6 @@ class RecognitionRevealPolicyTest {
         quality = FishSubjectQuality.GOOD,
         maskSize = 64,
         expectedMaskSize = 64,
+        maskSha256 = "a".repeat(64),
     )
 }

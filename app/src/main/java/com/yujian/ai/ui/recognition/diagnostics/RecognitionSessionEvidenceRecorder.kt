@@ -7,9 +7,11 @@ import android.view.Window
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.EnergyEventRejectionReason
 import com.yujian.ai.ui.waterlight.core.RecognitionTaskFilamentState
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneModelGates
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStageEvent
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStageEventAction
@@ -202,6 +204,39 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
         }
     }
 
+    fun recordEnergyEventRejection(
+        frame: RecognitionSceneFrame,
+        event: EnergyEvent,
+        reason: EnergyEventRejectionReason,
+        modelGates: RecognitionSceneModelGates,
+    ) {
+        record(
+            type = "ENERGY_EVENT_REJECTED",
+            fileName = "waterlight_paths.jsonl",
+            payload = energyPayload(event) + mapOf(
+                "stage" to frame.stage.name,
+                "stageProgress" to frame.stageProgress,
+                "feedback" to event.feedback.name,
+                "pathId" to event.pathId,
+                "geometryVersion" to event.geometryVersion,
+                "maskSha256" to event.pathMaskSha256,
+                "eventSequence" to event.eventSequence,
+                "sessionIdHash" to sha256(event.sessionId),
+                "attemptIdHash" to sha256(event.attemptId),
+                "imageIdHash" to sha256(event.imageId),
+                "modelGates" to mapOf(
+                    "detector" to modelGates.detector.name,
+                    "classifier" to modelGates.classifier.name,
+                    "slimSam" to modelGates.slimSam.name,
+                    "mask" to modelGates.mask.name,
+                    "geometry" to modelGates.geometry.name,
+                    "waitingReason" to modelGates.waitingReason,
+                ),
+                "rejectionReason" to reason.name,
+            ),
+        )
+    }
+
     fun recordResultHandoff(event: RecognitionResultHandoffEvent, accepted: Boolean, reason: String?) {
         record(
             "RESULT_HANDOFF_${event.substage.name}",
@@ -275,6 +310,7 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
         maskVersion: Long?,
         geometryVersion: Long?,
         fallbackReason: String?,
+        extra: Map<String, Any?> = emptyMap(),
     ) {
         record(
             "MASK_RUNTIME",
@@ -287,7 +323,7 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
                 "geometryVersion" to geometryVersion,
                 "fallback" to if (trusted) "NONE" else "BBOX_ONLY",
                 "fallbackReason" to fallbackReason,
-            ),
+            ) + extra,
         )
     }
 
@@ -395,6 +431,11 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
             .put("attemptIdHash", activeIdentity?.let { sha256(it.attemptId) })
             .put("imageIdHash", activeIdentity?.let { sha256(it.imageId) })
             .put("photoSha256", activeIdentity?.photoSha256)
+            .put("resultEvidenceStatus", resultEvidenceStatusLocked())
+            .put(
+                "resultEvidenceMissingReason",
+                if (resultEvidenceStatusLocked() == "AVAILABLE") JSONObject.NULL else "RESULT_EVIDENCE_NOT_AVAILABLE",
+            )
             .put("firstFrameTimestampMs", firstFrameTimestampMs ?: -1L)
             .put("recognitionDurationMs", latestSceneElapsedMs)
             .put("stageStatuses", stageArray)
@@ -409,6 +450,11 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
             .put("eventWriteFailureCount", sinkStatus?.writeFailures ?: 0L)
             .put("incompleteReasons", JSONArray(sinkStatus?.incompleteReasons.orEmpty()))
     }
+
+    private fun resultEvidenceStatusLocked(): String = if (captureRows.any { row ->
+            row.optString("captureType") == "RESULT_SCENE_STABLE" && row.optString("pixelCopyStatus") == "SUCCESS"
+        }
+    ) "AVAILABLE" else "RESULT_EVIDENCE_NOT_AVAILABLE"
 
     fun captureIndexJson(): JSONArray = synchronized(lock) { JSONArray(captureRows.map { JSONObject(it.toString()) }) }
 

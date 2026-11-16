@@ -1444,7 +1444,29 @@ fun RecognitionResultScreen(
         ) {
             val event = resultEnergyEvent ?: return@LaunchedEffect
             if (event.level >= .999f && resultSceneFrame != null) {
-                diagnosticPlaybackController?.recordEnergyEvent(resultSceneFrame, event)
+                val activeController = diagnosticPlaybackController
+                val receipt = activeController?.recordEnergyEventWithReason(resultSceneFrame, event)
+                if (receipt?.accepted == true) {
+                    recognitionEvidenceRecorder?.recordEnergyEvent(
+                        event = event,
+                        accepted = true,
+                        taskEnergyMergedBeforeEvent = resultSceneFrame.taskEnergyMerged,
+                    )
+                } else if (activeController != null && receipt?.rejectionReason != null) {
+                    recognitionEvidenceRecorder?.recordEnergyEventRejection(
+                        frame = resultSceneFrame,
+                        event = event,
+                        reason = requireNotNull(receipt.rejectionReason),
+                        modelGates = activeController.modelGates,
+                    )
+                }
+                Log.i(
+                    "WaterLightEnergy",
+                    "RESULT_ENERGY_EVENT session=${event.sessionId} attempt=${event.attemptId} " +
+                        "stage=${event.stage} feedback=${event.feedback} path=${event.pathId} " +
+                        "geometry=${event.geometryVersion} accepted=${receipt?.accepted ?: "NOT_RECORDED"} " +
+                        "reject=${receipt?.rejectionReason}",
+                )
             }
             Log.i(
                 "WaterLightEnergy",

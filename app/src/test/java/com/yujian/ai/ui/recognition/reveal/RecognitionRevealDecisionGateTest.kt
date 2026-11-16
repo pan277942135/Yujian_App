@@ -16,6 +16,8 @@ class RecognitionRevealDecisionGateTest {
             SubjectStatus.READY,
             trusted = true,
             contourValid = true,
+            contourClosed = true,
+            pStarPathReady = true,
             expected = RecognitionRevealDecisionState.FISH_FOCUS_READY,
         )
     }
@@ -56,6 +58,8 @@ class RecognitionRevealDecisionGateTest {
             SubjectStatus.READY,
             trusted = true,
             contourValid = true,
+            contourClosed = true,
+            pStarPathReady = true,
             expected = RecognitionRevealDecisionState.FISH_FOCUS_READY,
         )
     }
@@ -79,9 +83,55 @@ class RecognitionRevealDecisionGateTest {
             subject = SubjectStatus.READY,
             maskTrusted = true,
             contourValid = true,
+            contourClosed = true,
+            pStarPathReady = true,
         )
         assertEquals(RecognitionRevealDecisionState.FISH_FOCUS_READY, decision)
         assertEquals(true, RecognitionRevealDecisionGate.isReady(decision))
+    }
+
+    @Test fun openContourCannotEnterFullRevealAndPStarWaitIsExplicitlyTerminalizable() {
+        assertDecision(
+            RecognitionClassifierTaskState.READY,
+            SubjectStatus.READY,
+            trusted = true,
+            contourValid = true,
+            contourClosed = false,
+            pStarPathReady = true,
+            expected = RecognitionRevealDecisionState.ORB_ONLY_READY,
+        )
+        assertDecision(
+            RecognitionClassifierTaskState.READY,
+            SubjectStatus.READY,
+            trusted = true,
+            contourValid = true,
+            contourClosed = true,
+            pStarPathReady = false,
+            expected = RecognitionRevealDecisionState.WAITING_PSTAR_PATH,
+        )
+        assertDecision(
+            RecognitionClassifierTaskState.READY,
+            SubjectStatus.READY,
+            trusted = true,
+            contourValid = true,
+            contourClosed = true,
+            pStarPathReady = false,
+            pStarPathTerminalUnavailable = true,
+            expected = RecognitionRevealDecisionState.ORB_ONLY_READY,
+        )
+    }
+
+    @Test fun mediumOrLowClassifierResultUsesNavigableStaticRouteWithoutAnimationPass() {
+        val decision = RecognitionRevealDecisionGate.decide(
+            classifier = RecognitionClassifierTaskState.READY,
+            subject = SubjectStatus.PROCESSING,
+            maskTrusted = false,
+            contourValid = false,
+            highConfidenceResult = false,
+        )
+        assertEquals(RecognitionRevealDecisionState.STATIC_RESULT, decision)
+        assertEquals(false, RecognitionRevealDecisionGate.isReady(decision))
+        assertEquals(true, RecognitionRevealDecisionGate.isNavigable(decision))
     }
 
     @Test fun processingIsNeverTreatedAsSlimSamFailureEvenAfterLongWait() {
@@ -140,6 +190,10 @@ class RecognitionRevealDecisionGateTest {
         subject: SubjectStatus,
         trusted: Boolean = false,
         contourValid: Boolean = false,
+        contourClosed: Boolean = false,
+        pStarPathReady: Boolean = false,
+        pStarPathTerminalUnavailable: Boolean = false,
+        highConfidenceResult: Boolean = true,
         expected: RecognitionRevealDecisionState,
     ) {
         assertEquals(
@@ -149,6 +203,10 @@ class RecognitionRevealDecisionGateTest {
                 subject = subject,
                 maskTrusted = trusted,
                 contourValid = contourValid,
+                contourClosed = contourClosed,
+                pStarPathReady = pStarPathReady,
+                pStarPathTerminalUnavailable = pStarPathTerminalUnavailable,
+                highConfidenceResult = highConfidenceResult,
             ),
         )
     }
