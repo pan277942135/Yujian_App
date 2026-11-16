@@ -80,7 +80,11 @@ private data class WaterLightPathIdentity(
     val photoSha256: String,
     val photoContentVersion: Long,
     val geometryVersion: Long,
-)
+) {
+    fun sameAttempt(other: WaterLightPathIdentity): Boolean =
+        sessionId == other.sessionId && attemptId == other.attemptId && imageId == other.imageId &&
+            photoSha256 == other.photoSha256 && photoContentVersion == other.photoContentVersion
+}
 
 private data class WaterLightPathMaskBinding(
     val maskIdentity: WaterLightPathMaskIdentity,
@@ -88,6 +92,15 @@ private data class WaterLightPathMaskBinding(
     val creationTimestampMonotonicMs: Long,
     val creationEventSequence: Long,
 )
+
+/** Stage-04 perimeter entry route. It is photo-bound and deliberately carries no Mask/P* identity. */
+data class WaterLightPerimeterArrivalSnapshot(
+    val pathId: String,
+    val geometry: WaterLightPathGeometry,
+    val geometryVersion: Long,
+) {
+    fun isValid(): Boolean = pathId.isNotBlank() && geometryVersion != 0L && geometry.isValid()
+}
 
 /**
  * One attempt-scoped ledger. The release route and trusted-mask route are recorded once,
@@ -97,14 +110,24 @@ private data class WaterLightPathMaskBinding(
 class WaterLightPathLedger {
     private var identity: WaterLightPathIdentity? = null
     private var orbToPerimeter: WaterLightPathGeometry? = null
+    private var perimeterArrival: WaterLightPerimeterArrivalSnapshot? = null
     private var maskBinding: WaterLightPathMaskBinding? = null
     private var perimeterBridge: WaterLightPathGeometry? = null
 
     fun bind(frame: WaterLightFrame): Boolean {
         val next = frame.identityOrNull() ?: return false
-        if (identity != next) {
+        val current = identity
+        if (current == null || !current.sameAttempt(next)) {
             identity = next
             orbToPerimeter = null
+            perimeterArrival = null
+            maskBinding = null
+            perimeterBridge = null
+        } else if (current.geometryVersion != next.geometryVersion) {
+            // Keep the authored Stage-03 endpoint for Stage-04, but rebuild routes whose
+            // geometry and P* are bound to the photo's current measured transform.
+            identity = next
+            perimeterArrival = null
             maskBinding = null
             perimeterBridge = null
         }
@@ -115,6 +138,31 @@ class WaterLightPathLedger {
         if (!bind(frame) || !geometry.isValid()) return false
         if (orbToPerimeter == null) orbToPerimeter = geometry
         return orbToPerimeter == geometry
+    }
+
+    /**
+     * Record the one authoritative Stage-04 route from the Stage-03 release endpoint into the
+     * current photo. This route is independent of SlimSAM, Mask trust, and P*.
+     */
+    fun recordPerimeterArrivalPath(
+        frame: WaterLightFrame,
+        geometry: WaterLightPathGeometry,
+    ): Boolean {
+        if (!bind(frame) || !geometry.isValid()) return false
+        val release = orbToPerimeter ?: return false
+        if (geometry.start != release.end || geometry.end == geometry.start) return false
+        val pathId = pathId(frame)?.plus(":arrival") ?: return false
+        val snapshot = WaterLightPerimeterArrivalSnapshot(pathId, geometry, frame.geometryVersion)
+        if (!snapshot.isValid()) return false
+        val existing = perimeterArrival
+        if (existing != null) return existing == snapshot
+        perimeterArrival = snapshot
+        return true
+    }
+
+    fun perimeterArrivalPath(frame: WaterLightFrame): WaterLightPerimeterArrivalSnapshot? {
+        if (!bind(frame)) return null
+        return perimeterArrival?.takeIf { it.geometryVersion == frame.geometryVersion }
     }
 
     fun recordFishPath(
@@ -317,6 +365,7 @@ class WaterLightPathLedger {
     fun clear() {
         identity = null
         orbToPerimeter = null
+        perimeterArrival = null
         maskBinding = null
         perimeterBridge = null
     }
