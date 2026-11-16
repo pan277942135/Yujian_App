@@ -638,6 +638,20 @@ class RecognitionVisualStateControllerTest {
         controller.beginNewSession(identity, debugBuild = false, nowMs = 0L)
         assertTrue(controller.markPhotoFirstFramePresented(identity, 0L))
         controller.setResultGeometryState(SceneGeometryState.READY, 0L, identity, setOf(9L))
+        controller.updateModelJoin(
+            detectorReady = true,
+            classifierReady = true,
+            slimSamTerminal = true,
+            maskTrusted = false,
+            contourValid = false,
+            contourClosed = false,
+            currentIdentity = identity,
+        )
+        controller.onRevealDecision(
+            RecognitionRevealDecisionState.ORB_ONLY_READY,
+            nowMs = 0L,
+            currentIdentity = identity,
+        )
         controller.beginStepPreview(RecognitionSceneStage.SPECIES_NAME_REVEAL, 0L)
         val descriptor = RecognitionGlyphPathDescriptor(
             identity = identity,
