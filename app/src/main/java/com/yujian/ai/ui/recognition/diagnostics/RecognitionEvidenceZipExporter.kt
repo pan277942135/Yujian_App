@@ -12,8 +12,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
+import java.io.InputStream
 import java.security.MessageDigest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -385,6 +387,19 @@ object RecognitionEvidenceZipExporter {
     private fun relativePath(root: File, child: File): String = child.relativeTo(root).invariantSeparatorsPath
 
     private fun sha256(file: File): String = FileInputStream(file).use(::sha256)
+
+    private fun sha256(input: InputStream): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        BufferedInputStream(input).use { stream ->
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val read = stream.read(buffer)
+                if (read < 0) break
+                digest.update(buffer, 0, read)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
 
     private fun sha256(value: String): String = MessageDigest.getInstance("SHA-256")
         .digest(value.toByteArray(Charsets.UTF_8))
