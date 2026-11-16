@@ -805,7 +805,7 @@ internal class OrbFilamentPathRenderer(
                                 if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
                                     val u = (x - centerX) / diameterPx + .5f
                                     val v = (y - centerY) / diameterPx + .5f
-                            val localWeight = OrbInteriorOpticalField.interiorWeight(
+                                    val localWeight = OrbInteriorOpticalField.interiorWeight(
                                         kotlin.math.hypot(x - centerX, y - centerY) / diameterPx,
                                     ) * residentState.effectiveAlpha
                                     OrbInteriorOpticalField.writeSharedFlowDirectionAt(
