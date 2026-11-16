@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import org.junit.Test
 
 class RecognitionResultRuntimeTest {
