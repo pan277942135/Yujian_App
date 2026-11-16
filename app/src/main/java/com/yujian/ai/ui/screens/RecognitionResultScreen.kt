@@ -123,6 +123,12 @@ import com.yujian.ai.ai.subject.SubjectModelState
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultSnapshot
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathDescriptor
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathInspector
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadinessContract
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffContract
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER
@@ -534,6 +540,9 @@ fun RecognitionResultScreen(
     var resultHandoffEventTimestampMs by remember(revealHandoff?.key) {
         mutableLongStateOf(initialResultHandoffEventTimestampMs)
     }
+    var glyphReadinessState by remember(revealHandoff?.key) {
+        mutableStateOf(resultSnapshot?.handoffState?.glyphReadiness ?: RecognitionGlyphReadiness())
+    }
     val latestResultHandoffEvent = rememberUpdatedState(onResultHandoffEvent)
     val latestResultHandoffFinished = rememberUpdatedState(onRevealFinished)
     val latestPlaybackProgress = rememberUpdatedState(onPlaybackProgress)
@@ -545,7 +554,7 @@ fun RecognitionResultScreen(
         val handoff = visualHandoff ?: return RecognitionResultHandoffReceipt(false, "HANDOFF_MISSING")
         val path = handoff.fishPathSnapshot
         val eventSequence = resultHandoffEventSequence + 1L
-        val eventTimestampMs = SystemClock.uptimeMillis()
+        val eventTimestampMs = maxOf(SystemClock.uptimeMillis(), resultHandoffEventTimestampMs + 1L)
         val sourceTargetFeedback = when (substage) {
             ResultHandoffSubstage.NAME_STABLE -> Triple("GLYPH", "RESULT_NAME", "NAME_STABLE")
             ResultHandoffSubstage.PHOTO_SETTLE -> Triple("PROCESSING_PHOTO", "RESULT_HERO", "PHOTO_SETTLE")
@@ -553,6 +562,9 @@ fun RecognitionResultScreen(
             ResultHandoffSubstage.RESULT_INFO_ARRIVAL -> Triple("RESULT_SNAPSHOT", "RESULT_INFO_LAYOUT", "INFO_ARRIVAL")
             ResultHandoffSubstage.RESULT_SCENE_STABLE -> Triple("RESULT_HOST", "RESULT_SCENE", "SCENE_STABLE")
         }
+        val eventGlyphReadiness = if (substage == ResultHandoffSubstage.NAME_STABLE) {
+            glyphReadinessState.copy(nameStable = true)
+        } else glyphReadinessState
         val event = RecognitionResultHandoffEvent(
             identity = resultSceneIdentity,
             maskSha256 = path?.maskSha256,
@@ -574,6 +586,7 @@ fun RecognitionResultScreen(
             progress = progress.coerceIn(0f, 1f),
             renderStatus = "READY",
             resultIdentity = resultSnapshot?.glyphSpeciesKey ?: prediction.top1.speciesKey,
+            glyphReadiness = eventGlyphReadiness,
         )
         resultHandoffEventTimestampMs = eventTimestampMs
         if (resultGeometryReady) {
@@ -587,6 +600,7 @@ fun RecognitionResultScreen(
         val receipt = latestResultHandoffEvent.value(event)
         if (receipt.accepted) {
             resultHandoffEventSequence = eventSequence
+            if (substage == ResultHandoffSubstage.NAME_STABLE) glyphReadinessState = eventGlyphReadiness
             Log.i(
                 "RecognitionResultHandoff",
                 "accepted=true substage=${substage.name} session=${event.identity.sessionId} attempt=${event.identity.attemptId} " +
@@ -674,8 +688,26 @@ fun RecognitionResultScreen(
     val resultSceneHandoffAccepted = resultSnapshot?.handoffState?.has(ResultHandoffSubstage.RESULT_SCENE_HANDOFF) == true
     val resultInfoArrivalAccepted = resultSnapshot?.handoffState?.has(ResultHandoffSubstage.RESULT_INFO_ARRIVAL) == true
     val resultInteractionsEnabled = !resultHandoffMotionActive || resultSnapshot?.resultSceneStable == true
-    val resultContentAlpha = if (resultHandoffMotionActive && !resultSceneHandoffAccepted) 0f else 1f
-    val resultInfoAlpha = if (resultHandoffMotionActive && !resultInfoArrivalAccepted) 0f else 1f
+    // Keep the photo and classifier Glyph in the same visible Result host during stages 10–12.
+    // Detail controls remain gated by the accepted 13.4 event.
+    val resultContentAlpha = 1f
+    val resultInfoArrivalPermitted = RecognitionResultHandoffContract.mayExposeResultInfo(
+        resultHandoffMotionActive,
+        resultSnapshot?.handoffState?.completedSubstages.orEmpty(),
+    )
+    val resultInfoEntranceProgress = when {
+        !resultInfoArrivalPermitted -> 0f
+        !resultHandoffMotionActive -> 1f
+        !resultSceneHandoffAccepted || !resultInfoArrivalAccepted -> 0f
+        diagnosticFrame?.stage != RecognitionSceneStage.RESIDUE_SETTLE -> 1f
+        else -> {
+            val t = ((diagnosticFrame?.stageElapsedMs ?: 0L) - 350L).coerceAtLeast(0L).toFloat() / 100f
+            val clamped = t.coerceIn(0f, 1f)
+            clamped * clamped * (3f - 2f * clamped)
+        }
+    }
+    val resultInfoAlpha = if (resultHandoffMotionActive) resultInfoEntranceProgress else 1f
+    val resultInfoTranslationY = if (resultHandoffMotionActive) 8.dp * (1f - resultInfoEntranceProgress) else 0.dp
     LaunchedEffect(revealHandoff?.key, resultGeometryReady, geometryInvalid, resultGeometryVersions) {
         val playback = diagnosticPlaybackController ?: return@LaunchedEffect
         if (revealHandoff == null) return@LaunchedEffect
@@ -690,7 +722,6 @@ fun RecognitionResultScreen(
             resultSceneIdentity,
             geometryVersions = resultGeometryVersions.takeIf { state == SceneGeometryState.READY }.orEmpty(),
         )
-        playback.onGlyphAvailable(resultGeometryReady && prediction.top1.speciesName.isNotBlank(), resultSceneIdentity)
         diagnosticNowMs = SystemClock.uptimeMillis()
     }
     DisposableEffect(diagnosticPlaybackController, revealHandoff?.key, resultSceneIdentity) {
@@ -774,23 +805,35 @@ fun RecognitionResultScreen(
     LaunchedEffect(
         revealHandoff?.key,
         diagnosticFrame?.stage,
-        diagnosticFrame?.stageEventComplete,
         resultGeometryReady,
         revealTitleBounds,
         prediction.top1.speciesKey,
         selectedKey,
         selectedName,
+        glyphReadinessState,
         resultSnapshot?.handoffState?.completedSubstages,
     ) {
         val frame = diagnosticFrame ?: return@LaunchedEffect
-        if (frame.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL && frame.stageEventComplete &&
+        val expectedName = resultSpeciesDisplayName(prediction.top1.speciesName)
+        val actuallyRendered = RecognitionGlyphReadinessContract.isRendered(
+            resultSceneIdentity,
+            prediction.top1.speciesKey,
+            expectedName,
+            glyphReadinessState,
+        )
+        if (frame.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL && actuallyRendered &&
             resultGeometryReady && revealTitleBounds?.isValid() == true &&
-            resultSnapshot?.resultDataReady == true &&
+            resultSnapshot != null && resultSnapshot.key == revealHandoff?.key && resultSnapshot.resultDataReady &&
             ResultHandoffSubstage.NAME_STABLE !in resultSnapshot.handoffState.completedSubstages &&
             resultSnapshot.glyphSpeciesKey == prediction.top1.speciesKey &&
-            selectedKey == prediction.top1.speciesKey && selectedName == prediction.top1.speciesName
+            resultSnapshot.glyphSpeciesName == prediction.top1.speciesName &&
+            selectedKey == prediction.top1.speciesKey && resultSpeciesDisplayName(selectedName) == expectedName
         ) {
-            emitResultHandoffMilestone(ResultHandoffSubstage.NAME_STABLE, frame, 1f)
+            emitResultHandoffMilestone(
+                ResultHandoffSubstage.NAME_STABLE,
+                frame,
+                glyphReadinessState.renderReceipt?.renderedProgress ?: 0f,
+            )
         }
     }
     val photoTransformAtTarget = remember(photoTransitionGeometry, revealFrameState.value.photoProgress) {
@@ -838,13 +881,12 @@ fun RecognitionResultScreen(
         revealHandoff?.key,
         diagnosticFrame?.stage,
         resultInfoLayoutReady,
-        currentTime,
         selectedName,
         resultSnapshot?.handoffState?.completedSubstages,
     ) {
         val frame = diagnosticFrame ?: return@LaunchedEffect
-        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && resultInfoLayoutReady && currentTime.isNotBlank() &&
-            resultSnapshot?.resultDataReady == true && selectedName.isNotBlank() &&
+        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && resultInfoLayoutReady &&
+            resultSnapshot != null && resultSnapshot.key == revealHandoff?.key && resultSnapshot.resultDataReady && selectedName.isNotBlank() &&
             ResultHandoffSubstage.RESULT_SCENE_HANDOFF in resultSnapshot.handoffState.completedSubstages &&
             ResultHandoffSubstage.RESULT_INFO_ARRIVAL !in resultSnapshot.handoffState.completedSubstages &&
             resultSnapshot.glyphSpeciesName == prediction.top1.speciesName
@@ -863,7 +905,15 @@ fun RecognitionResultScreen(
         val frame = diagnosticFrame ?: return@LaunchedEffect
         if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && frame.stageEventComplete &&
             frame.stageProgress >= .999f && revealFrameState.value.afterglowAlpha <= .001f && resultInfoLayoutReady &&
+            resultGeometryReady && photoTransformAtTarget && heroSnapshot?.renderReady == true &&
+            revealFrameState.value.photoProgress >= .999f &&
+            resultInfoEntranceProgress >= .999f &&
+            resultHandoffEventSequence == (resultSnapshot?.handoffState?.lastEventSequence ?: -1L) &&
+            ResultHandoffSubstage.NAME_STABLE in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet()) &&
+            ResultHandoffSubstage.PHOTO_SETTLE in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet()) &&
+            ResultHandoffSubstage.RESULT_SCENE_HANDOFF in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet()) &&
             ResultHandoffSubstage.RESULT_INFO_ARRIVAL in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet()) &&
+            resultSnapshot?.resultSceneStable != true &&
             ResultHandoffSubstage.RESULT_SCENE_STABLE !in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet())
         ) {
             emitResultHandoffMilestone(ResultHandoffSubstage.RESULT_SCENE_STABLE, frame, 1f)
@@ -1074,7 +1124,7 @@ fun RecognitionResultScreen(
         BgContentSurface()
         Column(Modifier.fillMaxSize()) {
             YuJianBackCenterTitleTopBar(
-                title = if (resultContentAlpha == 0f) "识别中" else "识别结果",
+                title = if (resultHandoffMotionActive && !resultSceneHandoffAccepted) "识别中" else "识别结果",
                 onBack = { requestExit(PendingExitAction.BACK) },
                 backEnabled = !saving && !saveRequested,
             )
@@ -1128,6 +1178,45 @@ fun RecognitionResultScreen(
                                     RecognitionRevealDecisionState.ORB_ONLY_READY,
                                 )),
                             onTitleBounds = { revealTitleBounds = it },
+                            glyphSceneIdentity = resultSceneIdentity,
+                            glyphSpeciesKey = prediction.top1.speciesKey,
+                            onGlyphPathReady = { descriptor ->
+                                val expectedName = resultSpeciesDisplayName(prediction.top1.speciesName)
+                                val speciesResultReady = resultSnapshot != null && resultSnapshot.key == revealHandoff?.key &&
+                                    resultSnapshot.resultDataReady &&
+                                    resultSnapshot.glyphSpeciesKey == prediction.top1.speciesKey &&
+                                    resultSnapshot.glyphSpeciesName == prediction.top1.speciesName
+                                val pathReady = speciesResultReady && descriptor?.matches(
+                                    resultSceneIdentity, prediction.top1.speciesKey, expectedName,
+                                ) == true
+                                val readiness = RecognitionGlyphReadiness(
+                                    speciesResultReady = speciesResultReady,
+                                    glyphPathReady = pathReady,
+                                    descriptor = descriptor.takeIf { pathReady },
+                                )
+                                glyphReadinessState = readiness
+                                diagnosticPlaybackController?.onGlyphPathReady(readiness, resultSceneIdentity)
+                            },
+                            onGlyphRevealRendered = { receipt ->
+                                val descriptor = glyphReadinessState.descriptor
+                                if (descriptor != null && receipt.identity == resultSceneIdentity &&
+                                    receipt.pathId == descriptor.pathId &&
+                                    receipt.geometryVersion == descriptor.geometryVersion
+                                ) {
+                                    val readiness = glyphReadinessState.copy(
+                                        glyphRevealRendered = true,
+                                        nameStable = false,
+                                        renderReceipt = receipt,
+                                    )
+                                    if (RecognitionGlyphReadinessContract.isRendered(
+                                            resultSceneIdentity, descriptor.speciesKey, descriptor.speciesName, readiness,
+                                        )
+                                    ) {
+                                        glyphReadinessState = readiness
+                                        diagnosticPlaybackController?.onGlyphRevealRendered(readiness, resultSceneIdentity)
+                                    }
+                                }
+                            },
                             onChange = { openSpeciesSelector() },
                         )
                         if (geometryInvalid || (geometryWaitExpired && !resultGeometryReady)) {
@@ -1150,7 +1239,7 @@ fun RecognitionResultScreen(
                             location = locationText,
                             resolvingLocation = resolvingLocation,
                             modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin)
-                                .graphicsLayer(alpha = resultInfoAlpha)
+                                .graphicsLayer { alpha = resultInfoAlpha; translationY = resultInfoTranslationY.toPx() }
                                 .onGloballyPositioned { coordinates ->
                                     resultInfoLayoutReady = coordinates.size.width > 0 && coordinates.size.height > 0
                                 },
@@ -1163,7 +1252,7 @@ fun RecognitionResultScreen(
                             value = storyText,
                             onValueChange = { storyText = it.takeUnicodeCodePoints(300) },
                             modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin)
-                                .graphicsLayer(alpha = resultInfoAlpha),
+                                .graphicsLayer { alpha = resultInfoAlpha; translationY = resultInfoTranslationY.toPx() },
                             enabled = !saveBusy && resultInteractionsEnabled,
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                         )
@@ -1174,7 +1263,7 @@ fun RecognitionResultScreen(
                             actionLabel = inlineErrorActionLabel,
                             onAction = inlineErrorAction,
                             enabled = !saveBusy && resultInteractionsEnabled,
-                            modifier = Modifier.graphicsLayer(alpha = resultInfoAlpha),
+                            modifier = Modifier.graphicsLayer { alpha = resultInfoAlpha; translationY = resultInfoTranslationY.toPx() },
                         )
                         ResultDualActions(
                             useResultSurfaceActions = true,
@@ -1184,7 +1273,7 @@ fun RecognitionResultScreen(
                             compactLayout = compactResultActions,
                             sideMargin = if (compactResultActions) 16.dp else 24.dp,
                             interactiveEnabled = resultInteractionsEnabled,
-                            modifier = Modifier.graphicsLayer(alpha = resultInfoAlpha),
+                            modifier = Modifier.graphicsLayer { alpha = resultInfoAlpha; translationY = resultInfoTranslationY.toPx() },
                             onContinue = { save(RecognitionSaveDestination.MEMORY) },
                             onSave = { save(RecognitionSaveDestination.HOME) },
                         )
@@ -1490,6 +1579,12 @@ fun RecognitionResultScreen(
             material = resultHost.material,
             energyEvent = resultEnergyEvent,
             waterLightFrame = resultFrame,
+            sceneIdentity = resultSceneIdentity,
+            onOrbCoreDissolveRendered = { receipt ->
+                if (receipt.identity == resultSceneIdentity) {
+                    diagnosticPlaybackController?.onOrbCoreDissolveRendered(receipt)
+                }
+            },
         )
         if (diagnosticUiAvailable) {
             val playback = requireNotNull(diagnosticPlaybackController)
@@ -1757,6 +1852,10 @@ private fun SpeciesIdentityRow(
     revealFrameState: State<RecognitionRevealFrame>? = null,
     holdNameUntilHandoff: Boolean = false,
     onTitleBounds: ((RecognitionRevealWindowRect) -> Unit)? = null,
+    glyphSceneIdentity: RecognitionSceneIdentity? = null,
+    glyphSpeciesKey: String? = null,
+    onGlyphPathReady: ((RecognitionGlyphPathDescriptor?) -> Unit)? = null,
+    onGlyphRevealRendered: ((RecognitionGlyphDrawReceipt) -> Unit)? = null,
     onChange: () -> Unit,
 ) {
     val compactTitle = widthDp <= 359
@@ -1765,8 +1864,19 @@ private fun SpeciesIdentityRow(
     val revealFormationProgress = revealFrame?.titleFormationProgress ?: 1f
     val revealProgress = revealFrame?.titleRevealProgress ?: 1f
     val speciesDisplayName = resultSpeciesDisplayName(speciesName)
-    var speciesGlyphPath by remember(speciesDisplayName, compactTitle, widthDp) { mutableStateOf<android.graphics.Path?>(null) }
-    val glyphReveal = remember(speciesDisplayName) { com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal() }
+    var speciesGlyphPath by remember(
+        speciesDisplayName, compactTitle, widthDp, glyphSceneIdentity, glyphSpeciesKey,
+    ) { mutableStateOf<android.graphics.Path?>(null) }
+    var speciesGlyphDescriptor by remember(
+        speciesDisplayName, compactTitle, widthDp, glyphSceneIdentity, glyphSpeciesKey,
+    ) { mutableStateOf<RecognitionGlyphPathDescriptor?>(null) }
+    val glyphDrawReceiptSent = remember(
+        speciesDisplayName, compactTitle, widthDp, glyphSceneIdentity, glyphSpeciesKey,
+    ) { AtomicBoolean(false) }
+    val glyphReveal = remember(glyphSceneIdentity, glyphSpeciesKey, speciesDisplayName) {
+        com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal()
+    }
+    val glyphReceiptHandler = remember { Handler(Looper.getMainLooper()) }
     val showScientificName = !holdNameUntilHandoff && (revealFrame == null ||
         revealFrame.isComplete || revealTitleMode == RecognitionRevealTitleMode.VISIBLE ||
         revealTitleMode == RecognitionRevealTitleMode.STATIC)
@@ -1793,12 +1903,32 @@ private fun SpeciesIdentityRow(
                         val settled = revealTitleMode == RecognitionRevealTitleMode.STATIC ||
                             revealTitleMode == RecognitionRevealTitleMode.VISIBLE
                         if (settled) drawContent() else speciesGlyphPath?.let { glyph ->
-                            glyphReveal.draw(drawContext.canvas.nativeCanvas, glyph, size.width, size.height,
+                            val drawResult = glyphReveal.draw(
+                                drawContext.canvas.nativeCanvas, glyph, size.width, size.height,
                                 mode = revealTitleMode,
                                 formationProgress = revealFormationProgress,
                                 revealProgress = revealProgress,
                                 sweepProgress = revealFrame?.titleSweepProgress ?: revealProgress,
                             )
+                            val descriptor = speciesGlyphDescriptor
+                            if (revealFrame?.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL &&
+                                drawResult?.renderedProgress?.let { it >= .999f } == true &&
+                                descriptor != null && glyphSceneIdentity != null && !glyphSpeciesKey.isNullOrBlank() &&
+                                glyphDrawReceiptSent.compareAndSet(false, true)
+                            ) {
+                                val receipt = RecognitionGlyphDrawReceipt(
+                                    identity = descriptor.identity,
+                                    speciesKey = descriptor.speciesKey,
+                                    speciesName = descriptor.speciesName,
+                                    pathId = descriptor.pathId,
+                                    geometryVersion = descriptor.geometryVersion,
+                                    renderedProgress = drawResult.renderedProgress,
+                                    fillPathDrawn = drawResult.fillPathDrawn,
+                                    contourPathDrawn = drawResult.contourPathDrawn,
+                                    drawPassSequence = drawResult.drawPassSequence,
+                                )
+                                glyphReceiptHandler.post { onGlyphRevealRendered?.invoke(receipt) }
+                            }
                         }
                     }
                     .testTag("recognition-result-species-name"),
@@ -1808,8 +1938,34 @@ private fun SpeciesIdentityRow(
                 fontWeight = FontWeight.SemiBold,
                 overflow = TextOverflow.Clip,
                 onTextLayout = { layout ->
-                    if (speciesGlyphPath == null) {
-                        speciesGlyphPath = layout.getPathForRange(0, speciesDisplayName.length).asAndroidPath()
+                    if (speciesGlyphPath == null || speciesGlyphDescriptor == null) {
+                        val path = layout.getPathForRange(0, speciesDisplayName.length).asAndroidPath()
+                        var characterOffset = 0
+                        var builtCharacterCount = 0
+                        while (characterOffset < speciesDisplayName.length) {
+                            val nextOffset = characterOffset + Character.charCount(Character.codePointAt(speciesDisplayName, characterOffset))
+                            val characterPath = layout.getPathForRange(characterOffset, nextOffset).asAndroidPath()
+                            val characterBounds = android.graphics.RectF()
+                            characterPath.computeBounds(characterBounds, true)
+                            if (!characterPath.isEmpty && characterBounds.width() > 1f && characterBounds.height() > 1f) {
+                                builtCharacterCount++
+                            }
+                            characterOffset = nextOffset
+                        }
+                        val descriptor = if (glyphSceneIdentity != null && !glyphSpeciesKey.isNullOrBlank()) {
+                            RecognitionGlyphPathInspector.inspect(
+                                identity = glyphSceneIdentity,
+                                speciesKey = glyphSpeciesKey,
+                                speciesName = speciesDisplayName,
+                                path = path,
+                                fullTextRangeStart = 0,
+                                fullTextRangeEnd = speciesDisplayName.length,
+                                builtCharacterCount = builtCharacterCount,
+                            )
+                        } else null
+                        speciesGlyphPath = path
+                        speciesGlyphDescriptor = descriptor
+                        onGlyphPathReady?.invoke(descriptor)
                     }
                 },
             )

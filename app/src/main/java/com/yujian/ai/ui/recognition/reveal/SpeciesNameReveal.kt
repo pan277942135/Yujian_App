@@ -26,6 +26,7 @@ internal class SpeciesNameReveal {
     private val glyphSweepPath = Path()
     private var cachedGlyph: Path? = null
     private var inkPoints: List<InkPoint> = emptyList()
+    private var completedDrawPassSequence = 0L
 
     fun draw(
         canvas: Canvas,
@@ -36,20 +37,36 @@ internal class SpeciesNameReveal {
         formationProgress: Float,
         revealProgress: Float,
         sweepProgress: Float = revealProgress,
-    ) {
+    ): RecognitionGlyphDrawResult? {
         if (glyph.isEmpty || width <= 0f || height <= 0f || mode == RecognitionRevealTitleMode.HIDDEN ||
             mode == RecognitionRevealTitleMode.STATIC || mode == RecognitionRevealTitleMode.VISIBLE
-        ) return
+        ) return null
         if (cachedGlyph !== glyph) {
             cachedGlyph = glyph
             inkPoints = sampleGlyph(glyph)
         }
-        when (mode) {
-            RecognitionRevealTitleMode.FORMING -> drawFormingInk(canvas, glyph, width, height, formationProgress)
-            RecognitionRevealTitleMode.REVEALING -> drawReveal(canvas, glyph, width, height, revealProgress, sweepProgress)
+        return when (mode) {
+            RecognitionRevealTitleMode.FORMING -> {
+                drawFormingInk(canvas, glyph, width, height, formationProgress)
+                null
+            }
+            RecognitionRevealTitleMode.REVEALING -> {
+                val progress = revealProgress.coerceIn(0f, 1f)
+                val (fillDrawn, contourDrawn) = drawReveal(canvas, glyph, width, height, progress, sweepProgress)
+                val complete = progress >= .999f && fillDrawn && contourDrawn
+                if (!complete) null else {
+                    completedDrawPassSequence += 1L
+                    RecognitionGlyphDrawResult(
+                        renderedProgress = 1f,
+                        fillPathDrawn = fillDrawn,
+                        contourPathDrawn = contourDrawn,
+                        drawPassSequence = completedDrawPassSequence,
+                    )
+                }
+            }
             RecognitionRevealTitleMode.HIDDEN,
             RecognitionRevealTitleMode.STATIC,
-            RecognitionRevealTitleMode.VISIBLE -> Unit
+            RecognitionRevealTitleMode.VISIBLE -> null
         }
     }
 
@@ -77,24 +94,25 @@ internal class SpeciesNameReveal {
         }
     }
 
-    private fun drawReveal(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float, sweepProgress: Float) {
+    private fun drawReveal(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float, sweepProgress: Float): Pair<Boolean, Boolean> {
         val p = progress.coerceIn(0f, 1f)
-        if (p <= 0f) return
+        if (p <= 0f) return false to false
         val sweep = sweepProgress.coerceIn(p * .78f, 1f)
-        drawSweptGlyph(canvas, glyph, width, height, sweep, alpha = (245 * p).toInt().coerceIn(0, 245))
-        drawGlyphPathSweep(canvas, glyph, sweep, alpha = (155 * (1f - p * .45f)).toInt())
+        val fillDrawn = drawSweptGlyph(canvas, glyph, width, height, sweep, alpha = (245 * p).toInt().coerceIn(0, 245))
+        val contourDrawn = drawGlyphPathSweep(canvas, glyph, sweep, alpha = (155 * (1f - p * .45f)).toInt())
+        return fillDrawn to contourDrawn
     }
 
     /** Trace the actual classifier Glyph contours continuously, in their Path order. */
-    private fun drawGlyphPathSweep(canvas: Canvas, glyph: Path, progress: Float, alpha: Int = 150) {
+    private fun drawGlyphPathSweep(canvas: Canvas, glyph: Path, progress: Float, alpha: Int = 150): Boolean {
         val p = progress.coerceIn(0f, 1f)
-        if (p <= 0f) return
+        if (p <= 0f) return false
         glyphPathMeasure.setPath(glyph, false)
         var totalLength = 0f
         do {
             totalLength += glyphPathMeasure.length
         } while (glyphPathMeasure.nextContour())
-        if (totalLength <= 0f) return
+        if (totalLength <= 0f) return false
 
         glyphSweepPath.reset()
         glyphPathMeasure.setPath(glyph, false)
@@ -114,9 +132,10 @@ internal class SpeciesNameReveal {
         } finally {
             canvas.restoreToCount(save)
         }
+        return remaining <= .01f
     }
 
-    private fun drawSweptGlyph(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float, alpha: Int) {
+    private fun drawSweptGlyph(canvas: Canvas, glyph: Path, width: Float, height: Float, progress: Float, alpha: Int): Boolean {
         val save = canvas.save()
         try {
             canvas.clipRect(0f, 0f, max(1f, width * progress), height)
@@ -131,6 +150,7 @@ internal class SpeciesNameReveal {
             sweepPaint.shader = null
             canvas.restoreToCount(save)
         }
+        return true
     }
 
     private fun sampleGlyph(glyph: Path): List<InkPoint> {

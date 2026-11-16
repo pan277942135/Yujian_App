@@ -149,6 +149,8 @@ class RecognitionResultHandoffProductionNavigationTest {
                 "NAME_STABLE", "PHOTO_SETTLE", "RESULT_SCENE_HANDOFF", "RESULT_INFO_ARRIVAL", "RESULT_SCENE_STABLE",
             )
             var previousTimestamp = 0L
+            var acceptedGlyphPathId: String? = null
+            var acceptedGlyphGeometryVersion: Long? = null
             for (index in 0 until events.length()) {
                 val event = events.getJSONObject(index)
                 assertTrue("Result handoff event was rejected", event.getBoolean("accepted"))
@@ -157,6 +159,22 @@ class RecognitionResultHandoffProductionNavigationTest {
                 assertEquals("RecognitionResultScreen.emitResultHandoffMilestone", event.getString("eventProducer"))
                 assertEquals("RecognitionResultHandoffConsumer.consume", event.getString("eventConsumer"))
                 assertEquals("yellow_catfish", event.getString("resultIdentity"))
+                assertEquals("yellow_catfish", event.getString("glyphSpeciesKey"))
+                assertEquals("黄颡鱼", event.getString("glyphSpeciesName"))
+                assertTrue("The Glyph Path must be built for the current Result", event.getBoolean("glyphPathReady"))
+                assertTrue("The Glyph Path must be actually drawn before handoff", event.getBoolean("glyphRevealRendered"))
+                assertTrue("The accepted name event must carry NAME_STABLE", event.getBoolean("glyphNameStable"))
+                assertTrue(event.getDouble("glyphDrawProgress") >= .999)
+                assertTrue(event.getLong("glyphDrawPassSequence") > 0L)
+                assertTrue(event.getString("glyphPathId").startsWith("glyph:"))
+                assertTrue(event.getLong("glyphPathGeometryVersion") != 0L)
+                if (acceptedGlyphPathId == null) {
+                    acceptedGlyphPathId = event.getString("glyphPathId")
+                    acceptedGlyphGeometryVersion = event.getLong("glyphPathGeometryVersion")
+                } else {
+                    assertEquals(acceptedGlyphPathId, event.getString("glyphPathId"))
+                    assertEquals(acceptedGlyphGeometryVersion, event.getLong("glyphPathGeometryVersion"))
+                }
                 assertEquals(runtimeIdentity.getString("recognitionSessionId"), event.getString("sessionId"))
                 assertEquals(runtimeIdentity.getString("recognitionAttemptId"), event.getString("attemptId"))
                 val timestamp = event.getLong("timestamp")

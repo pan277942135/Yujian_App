@@ -140,14 +140,17 @@ import java.util.UUID
 
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun YujianApp() {
+fun YujianApp(productionAutoPlayback: Boolean = true) {
     val activityContext = LocalContext.current
     val context = LocalContext.current.applicationContext
     val revealSessionStore: RecognitionRevealSessionStore = viewModel()
     val diagnosticPlaybackController = remember(revealSessionStore) { SceneMotionCoordinator() }
     var diagnosticReturnRevision by remember(revealSessionStore) { mutableIntStateOf(0) }
     var diagnosticDisplayMode by remember(revealSessionStore) {
-        mutableStateOf(RecognitionProgressDisplayMode.NORMAL_PROGRESS)
+        mutableStateOf(
+            if (BuildConfig.DEBUG && !productionAutoPlayback) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
+            else RecognitionProgressDisplayMode.NORMAL_PROGRESS,
+        )
     }
     val nav = rememberNavController()
     val scope = rememberCoroutineScope()
@@ -350,8 +353,12 @@ fun YujianApp() {
             createdTimestampUptimeMs = SystemClock.uptimeMillis(),
         )
         RecognitionResultProductionEvidenceWriter.reset(activityContext)
-        diagnosticDisplayMode = RecognitionProgressDisplayMode.NORMAL_PROGRESS
-        // Debug and Release enter the same event-gated AUTO lifecycle.
+        diagnosticDisplayMode = if (BuildConfig.DEBUG && !productionAutoPlayback) {
+            RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
+        } else {
+            RecognitionProgressDisplayMode.NORMAL_PROGRESS
+        }
+        // Both camera and gallery enter the same single-clock lifecycle; Debug defaults to Production AUTO.
         diagnosticPlaybackController.beginNewSession(
             RecognitionSceneIdentity(
                 sessionId = requireNotNull(recognitionSessionId),
@@ -360,7 +367,7 @@ fun YujianApp() {
                 photoSha256 = selected.photoSha256,
                 photoContentVersion = selected.bitmap.generationId.toLong().coerceAtLeast(0L),
             ),
-            debugBuild = false,
+            debugBuild = BuildConfig.DEBUG && !productionAutoPlayback,
             nowMs = SystemClock.uptimeMillis(),
         )
         productionResult = null
