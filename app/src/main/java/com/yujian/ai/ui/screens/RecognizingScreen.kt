@@ -1338,7 +1338,7 @@ fun RecognitionProcessingScene(
                 "maskQuality" to subjectResult.quality?.name,
                 "maskRoiDimensions" to listOf(maskRoiDimensions.first, maskRoiDimensions.second),
                 "photoIdentityMatch" to maskPhotoIdentityMatches,
-                "geometryMatch" to maskGeometryMatches && diagnosticSceneFrame.geometryVersion != 0L,
+                "geometryMatch" to (maskGeometryMatches && diagnosticSceneFrame.geometryVersion != 0L),
                 "contourClosed" to (contour.lastOrNull()?.closesContour == true),
                 "maskTrusted" to trustedSubjectMask,
                 "revealDecision" to revealDecision.name,
