@@ -578,7 +578,7 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
             file.parentFile?.mkdirs()
             val compressed = file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
             if (!compressed || !file.isFile) error("PNG_WRITE_FAILED")
-            val digest = sha256(file)
+            val digest = file.sha256()
             val row = JSONObject()
                 .put("captureId", captureId)
                 .put("sessionIdHash", sessionHash)

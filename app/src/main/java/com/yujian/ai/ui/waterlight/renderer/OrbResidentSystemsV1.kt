@@ -78,7 +78,7 @@ object OrbResidentFilamentMotionV1 {
     }
 
     /** Rotates each frozen irregular curve around the Core while keeping its radial profile. */
-    fun transformLut(
+    internal fun transformLut(
         spec: OrbFilamentSpecV1,
         lut: OrbFilamentPathMathV1.ArcLengthLut,
         sceneElapsedMs: Long,

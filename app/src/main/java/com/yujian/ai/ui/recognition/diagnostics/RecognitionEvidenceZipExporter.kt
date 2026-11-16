@@ -61,7 +61,7 @@ object RecognitionEvidenceZipExporter {
             ensureExpectedFiles(logsFolder, reportsFolder)
             val filesBeforeManifest = listFiles(attemptDirectory).filter { it.name != "manifest.json" }
             val fileHashes = JSONObject()
-            filesBeforeManifest.forEach { fileHashes[relativePath(attemptDirectory, it)] = sha256(file) }
+            filesBeforeManifest.forEach { file -> fileHashes.put(relativePath(attemptDirectory, file), sha256(file)) }
             val integrityStatus = evidenceStatus(summary, captureIndex, recorder.diagnostics(), filesBeforeManifest)
             val identity = recorder.exportIdentity()
             val manifest = JSONObject()
