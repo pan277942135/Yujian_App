@@ -138,7 +138,7 @@ import java.util.UUID
 
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun YujianApp(productionAutoPlayback: Boolean = false) {
+fun YujianApp(productionAutoPlayback: Boolean = true) {
     val activityContext = LocalContext.current
     val context = LocalContext.current.applicationContext
     val revealSessionStore: RecognitionRevealSessionStore = viewModel()

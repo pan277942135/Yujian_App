@@ -16,6 +16,11 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPathLedger
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphBounds
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathDescriptor
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
+import com.yujian.ai.ui.recognition.reveal.RecognitionOrbCoreDissolveReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
 import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 import org.junit.Assert.assertEquals
@@ -585,17 +590,92 @@ class RecognitionVisualStateControllerTest {
         assertEquals(RecognitionSceneStage.ORB_TO_NAME, controller.advanceToNextStage(7_001L))
     }
 
+    @Test fun orbToNameRequiresARealDrawReceiptForTheFullyDissolvedCore() {
+        val controller = SceneMotionCoordinator()
+        controller.beginNewSession(identity, debugBuild = false, nowMs = 0L)
+        assertTrue(controller.markPhotoFirstFramePresented(identity, 0L))
+        controller.setResultGeometryState(SceneGeometryState.READY, 0L, identity, setOf(9L))
+        controller.beginStepPreview(RecognitionSceneStage.ORB_TO_NAME, 10L)
+
+        controller.onSceneTransitionComplete(RecognitionSceneStage.ORB_TO_NAME, identity)
+        assertFalse("Clock completion cannot stand in for Orb Core dissolution", controller.currentFrame(identity, 900L, 9L).stageEventComplete)
+        assertFalse(
+            controller.onOrbCoreDissolveRendered(
+                RecognitionOrbCoreDissolveReceipt(
+                    identity = identity.copy(attemptId = "previous-attempt"),
+                    stage = RecognitionSceneStage.ORB_TO_NAME,
+                    horizontalStretchProgress = 1f,
+                    coreAlpha = 0f,
+                    drawPassSequence = 1L,
+                ),
+            ),
+        )
+        assertFalse(
+            controller.onOrbCoreDissolveRendered(
+                RecognitionOrbCoreDissolveReceipt(
+                    identity = identity,
+                    stage = RecognitionSceneStage.ORB_TO_NAME,
+                    horizontalStretchProgress = 1f,
+                    coreAlpha = .35f,
+                    drawPassSequence = 1L,
+                ),
+            ),
+        )
+
+        val receipt = RecognitionOrbCoreDissolveReceipt(
+            identity = identity,
+            stage = RecognitionSceneStage.ORB_TO_NAME,
+            horizontalStretchProgress = 1f,
+            coreAlpha = 0f,
+            drawPassSequence = 1L,
+        )
+        assertTrue(controller.onOrbCoreDissolveRendered(receipt))
+        assertEquals(receipt, controller.orbCoreDissolveReceiptSnapshot())
+        assertTrue(controller.currentFrame(identity, 900L, 9L).stageEventComplete)
+    }
+
     @Test fun productionHoldsAtNameUntilMeasuredNameStableMilestoneIsAccepted() {
         val controller = SceneMotionCoordinator()
         controller.beginNewSession(identity, debugBuild = false, nowMs = 0L)
         assertTrue(controller.markPhotoFirstFramePresented(identity, 0L))
         controller.setResultGeometryState(SceneGeometryState.READY, 0L, identity, setOf(9L))
         controller.beginStepPreview(RecognitionSceneStage.SPECIES_NAME_REVEAL, 0L)
-        controller.onGlyphAvailable(true, identity)
+        val descriptor = RecognitionGlyphPathDescriptor(
+            identity = identity,
+            speciesKey = "species-1",
+            speciesName = "黄颡鱼",
+            pathId = "glyph:test-path",
+            geometryVersion = 17L,
+            expectedCharacterCount = 3,
+            builtCharacterCount = 3,
+            contourCount = 18,
+            totalPathLengthPx = 421f,
+            bounds = RecognitionGlyphBounds(0f, 0f, 120f, 42f),
+        )
+        val pathReady = RecognitionGlyphReadiness(
+            speciesResultReady = true,
+            glyphPathReady = true,
+            descriptor = descriptor,
+        )
+        controller.onGlyphPathReady(pathReady, identity)
         controller.onSceneTransitionComplete(RecognitionSceneStage.SPECIES_NAME_REVEAL, identity)
         controller.playProductionTimeline(0L, 0L)
 
         assertEquals(RecognitionSceneStage.SPECIES_NAME_REVEAL, controller.currentSceneStage(800L))
+        assertFalse("Stage time and transition completion cannot stand in for a Canvas draw", controller.acceptedResultHandoffEventsSnapshot().isNotEmpty())
+        val receipt = RecognitionGlyphDrawReceipt(
+            identity = identity,
+            speciesKey = descriptor.speciesKey,
+            speciesName = descriptor.speciesName,
+            pathId = descriptor.pathId,
+            geometryVersion = descriptor.geometryVersion,
+            renderedProgress = 1f,
+            fillPathDrawn = true,
+            contourPathDrawn = true,
+            drawPassSequence = 1L,
+        )
+        val rendered = pathReady.copy(glyphRevealRendered = true, renderReceipt = receipt)
+        controller.onGlyphRevealRendered(rendered, identity)
         val event = RecognitionResultHandoffEvent(
             identity = identity,
             maskSha256 = null,
@@ -616,6 +696,7 @@ class RecognitionVisualStateControllerTest {
             progress = 1f,
             renderStatus = "READY",
             resultIdentity = "species-1",
+            glyphReadiness = rendered.copy(nameStable = true),
         )
         assertTrue(controller.acceptResultHandoffEvent(event).accepted)
         assertEquals(RecognitionSceneStage.RESIDUE_SETTLE, controller.currentSceneStage(800L))

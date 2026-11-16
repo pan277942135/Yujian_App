@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.recognition.reveal
 
 import androidx.lifecycle.ViewModel
+import com.yujian.ai.ui.recognition.result.resultSpeciesDisplayName
 import android.os.SystemClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -388,6 +389,19 @@ class RecognitionRevealSessionStore : ViewModel() {
         if (!RecognitionResultHandoffContract.isNext(event.substage, current.resultHandoffState.completedSubstages)) {
             return "RESULT_SUBSTAGE_OUT_OF_ORDER"
         }
+        val glyphReadiness = event.glyphReadiness ?: return "GLYPH_READINESS_MISSING"
+        val expectedGlyphName = resultSpeciesDisplayName(prediction.top1.speciesName)
+        if (event.substage == ResultHandoffSubstage.NAME_STABLE) {
+            if (!RecognitionGlyphReadinessContract.isNameStableClaim(
+                    event.identity, prediction.top1.speciesKey, expectedGlyphName, glyphReadiness,
+                )
+            ) return "GLYPH_NOT_ACTUALLY_RENDERED"
+        } else {
+            val acceptedGlyph = current.resultHandoffState.glyphReadiness
+            if (!acceptedGlyph.nameStable || glyphReadiness != acceptedGlyph) {
+                return "GLYPH_PATH_IDENTITY_CHANGED"
+            }
+        }
         if (event.substage == ResultHandoffSubstage.NAME_STABLE) {
             if (event.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.SPECIES_NAME_REVEAL) {
                 return "NAME_STABILITY_STAGE_MISMATCH"
@@ -442,6 +456,7 @@ class RecognitionRevealSessionStore : ViewModel() {
             navigationTrace = navigationTrace,
             completedSubstages = nextSubstages,
             resultSceneStable = stable,
+            glyphReadiness = event.glyphReadiness?.copy(nameStable = true) ?: current.resultHandoffState.glyphReadiness,
             resultStableTimestampMs = event.monotonicTimestampMs.takeIf { stable },
             playbackStatus = if (stable) RevealPlaybackStatus.COMPLETED else current.resultHandoffState.playbackStatus,
             animationGeometryReleased = stable && current.resultHandoffState.animationGeometryReleased,
@@ -504,6 +519,15 @@ class RecognitionRevealSessionStore : ViewModel() {
                 .put("progress", event.progress.toDouble())
                 .put("renderStatus", event.renderStatus)
                 .put("resultIdentity", event.resultIdentity)
+                .put("glyphSpeciesKey", event.glyphReadiness?.descriptor?.speciesKey ?: org.json.JSONObject.NULL)
+                .put("glyphSpeciesName", event.glyphReadiness?.descriptor?.speciesName ?: org.json.JSONObject.NULL)
+                .put("glyphPathId", event.glyphReadiness?.descriptor?.pathId ?: org.json.JSONObject.NULL)
+                .put("glyphPathGeometryVersion", event.glyphReadiness?.descriptor?.geometryVersion ?: org.json.JSONObject.NULL)
+                .put("glyphPathReady", event.glyphReadiness?.glyphPathReady == true)
+                .put("glyphRevealRendered", event.glyphReadiness?.glyphRevealRendered == true)
+                .put("glyphNameStable", event.glyphReadiness?.nameStable == true)
+                .put("glyphDrawProgress", event.glyphReadiness?.renderReceipt?.renderedProgress?.toDouble() ?: 0.0)
+                .put("glyphDrawPassSequence", event.glyphReadiness?.renderReceipt?.drawPassSequence ?: 0L)
                 .put("accepted", trace.accepted)
                 .put("rejectionReason", trace.rejectionReason ?: org.json.JSONObject.NULL)
             entries.put(row)

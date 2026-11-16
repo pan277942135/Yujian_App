@@ -1,6 +1,10 @@
 package com.yujian.ai.ui.waterlight.core
 
 import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadinessContract
+import com.yujian.ai.ui.recognition.reveal.RecognitionOrbCoreDissolveContract
+import com.yujian.ai.ui.recognition.reveal.RecognitionOrbCoreDissolveReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffContract
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
@@ -87,7 +91,9 @@ class RecognitionSceneAnimationController(
     private var fishGoldComplete = false
     private var orbReturnComplete = false
     private var orbToGlyphComplete = false
+    private var orbCoreDissolveReceipt: RecognitionOrbCoreDissolveReceipt? = null
     private var glyphRevealComplete = false
+    private var glyphReadiness = RecognitionGlyphReadiness()
     private var residueSettleComplete = false
     private var resultGeometryState = SceneGeometryState.PENDING
     private var failed = false
@@ -308,10 +314,58 @@ class RecognitionSceneAnimationController(
     }
 
     fun onGlyphAvailable(ready: Boolean, currentIdentity: RecognitionSceneIdentity? = null) {
-        if (isCurrent(currentIdentity)) glyphAvailable = ready
+        if (isCurrent(currentIdentity)) {
+            glyphReadiness = if (ready) glyphReadiness.copy(speciesResultReady = true) else RecognitionGlyphReadiness()
+            val active = identity
+            glyphAvailable = active != null && RecognitionGlyphReadinessContract.isPathReady(
+                active, glyphReadiness.descriptor?.speciesKey.orEmpty(),
+                glyphReadiness.descriptor?.speciesName.orEmpty(), glyphReadiness,
+            )
+        }
+    }
+
+    fun onGlyphPathReady(readiness: RecognitionGlyphReadiness, currentIdentity: RecognitionSceneIdentity? = null) {
+        if (!isCurrent(currentIdentity)) return
+        val descriptor = readiness.descriptor
+        val valid = descriptor != null &&
+            RecognitionGlyphReadinessContract.isPathReady(descriptor.identity, descriptor.speciesKey, descriptor.speciesName, readiness) &&
+            descriptor.identity == identity
+        glyphReadiness = if (valid) readiness.copy(
+            glyphRevealRendered = false,
+            nameStable = false,
+            renderReceipt = null,
+        ) else RecognitionGlyphReadiness(speciesResultReady = readiness.speciesResultReady)
+        glyphAvailable = valid
+        glyphRevealComplete = false
+    }
+
+    fun onGlyphRevealRendered(readiness: RecognitionGlyphReadiness, currentIdentity: RecognitionSceneIdentity? = null) {
+        if (!isCurrent(currentIdentity)) return
+        val descriptor = glyphReadiness.descriptor ?: return
+        if (readiness.descriptor != descriptor ||
+            !RecognitionGlyphReadinessContract.isRendered(
+                descriptor.identity, descriptor.speciesKey, descriptor.speciesName, readiness,
+            )
+        ) return
+        glyphReadiness = readiness.copy(nameStable = false)
+        glyphAvailable = true
+        glyphRevealComplete = true
     }
 
     private var glyphAvailable = false
+
+    fun onOrbCoreDissolveRendered(receipt: RecognitionOrbCoreDissolveReceipt): Boolean {
+        val active = identity ?: return false
+        if (!isCurrent(receipt.identity) || currentStage != RecognitionSceneStage.ORB_TO_NAME ||
+            !RecognitionOrbCoreDissolveContract.isComplete(active, receipt)
+        ) return false
+        orbCoreDissolveReceipt = receipt
+        orbToGlyphComplete = true
+        bumpEventSequence()
+        return true
+    }
+
+    fun orbCoreDissolveReceiptSnapshot(): RecognitionOrbCoreDissolveReceipt? = orbCoreDissolveReceipt
 
     fun onSceneTransitionComplete(
         stage: RecognitionSceneStage,
@@ -319,8 +373,8 @@ class RecognitionSceneAnimationController(
     ) {
         if (!isCurrent(currentIdentity)) return
         when (stage) {
-            RecognitionSceneStage.ORB_TO_NAME -> orbToGlyphComplete = true
-            RecognitionSceneStage.SPECIES_NAME_REVEAL -> glyphRevealComplete = true
+            RecognitionSceneStage.ORB_TO_NAME -> Unit
+            RecognitionSceneStage.SPECIES_NAME_REVEAL -> Unit
             RecognitionSceneStage.RESIDUE_SETTLE -> residueSettleComplete = true
             else -> Unit
         }
@@ -360,6 +414,25 @@ class RecognitionSceneAnimationController(
         if (!RecognitionResultHandoffContract.isNext(event.substage, completedResultHandoffSubstages)) {
             return RecognitionResultHandoffReceipt(false, "RESULT_SUBSTAGE_OUT_OF_ORDER", resultSceneStable)
         }
+        val descriptor = glyphReadiness.descriptor
+            ?: return RecognitionResultHandoffReceipt(false, "GLYPH_PATH_NOT_READY", resultSceneStable)
+        val expectedReadiness = glyphReadiness.copy(
+            nameStable = event.substage == ResultHandoffSubstage.NAME_STABLE || glyphReadiness.nameStable,
+        )
+        if (event.glyphReadiness != expectedReadiness ||
+            event.resultIdentity != descriptor.speciesKey ||
+            !RecognitionGlyphReadinessContract.isRendered(
+                active, descriptor.speciesKey, descriptor.speciesName, expectedReadiness,
+            )
+        ) return RecognitionResultHandoffReceipt(false, "GLYPH_PATH_OR_RENDER_IDENTITY_MISMATCH", resultSceneStable)
+        if (event.substage == ResultHandoffSubstage.NAME_STABLE &&
+            !RecognitionGlyphReadinessContract.isNameStableClaim(
+                active, descriptor.speciesKey, descriptor.speciesName, expectedReadiness,
+            )
+        ) return RecognitionResultHandoffReceipt(false, "GLYPH_NOT_RENDERED", resultSceneStable)
+        if (event.substage != ResultHandoffSubstage.NAME_STABLE && !glyphReadiness.nameStable) {
+            return RecognitionResultHandoffReceipt(false, "NAME_STABLE_NOT_ACCEPTED", resultSceneStable)
+        }
         val prerequisites = when (event.substage) {
             ResultHandoffSubstage.NAME_STABLE -> currentStage == RecognitionSceneStage.SPECIES_NAME_REVEAL &&
                 event.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL && event.progress >= .999f &&
@@ -385,6 +458,7 @@ class RecognitionSceneAnimationController(
         }
         if (!prerequisites) return RecognitionResultHandoffReceipt(false, "SUBSTAGE_PREREQUISITES_MISSING")
         completedResultHandoffSubstages += event.substage
+        if (event.substage == ResultHandoffSubstage.NAME_STABLE) glyphReadiness = expectedReadiness
         acceptedResultHandoffEvents += event
         lastResultHandoffEventSequence = event.eventSequence
         lastResultHandoffTimestampMs = event.monotonicTimestampMs
@@ -503,10 +577,8 @@ class RecognitionSceneAnimationController(
             ) contourValid = true
             EnergyFeedback.RETURN -> orbReturnComplete = event.stage == RecognitionSceneStage.ORB_RETURN &&
                 event.target == EnergyAnchor.ORB_CORE && event.source in setOf(EnergyAnchor.FISH_CONTOUR, EnergyAnchor.PHOTO_PERIMETER)
-            EnergyFeedback.TRANSLATE -> orbToGlyphComplete = event.stage == RecognitionSceneStage.ORB_TO_NAME &&
-                event.source == EnergyAnchor.ORB_CORE && event.target == EnergyAnchor.REVEAL_TEXT
-            EnergyFeedback.REVEAL -> glyphRevealComplete = event.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL &&
-                event.target == EnergyAnchor.REVEAL_TEXT
+            EnergyFeedback.TRANSLATE -> Unit
+            EnergyFeedback.REVEAL -> Unit
             EnergyFeedback.SETTLE -> residueSettleComplete = event.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
                 event.target == EnergyAnchor.RESIDUE
         }
@@ -1042,7 +1114,10 @@ class RecognitionSceneAnimationController(
         fishGoldComplete = false
         orbReturnComplete = false
         orbToGlyphComplete = false
+        orbCoreDissolveReceipt = null
         glyphRevealComplete = false
+        glyphReadiness = RecognitionGlyphReadiness()
+        glyphAvailable = false
         residueSettleComplete = false
     }
 
@@ -1102,6 +1177,7 @@ class RecognitionSceneAnimationController(
         fishGoldComplete = false
         orbReturnComplete = false
         orbToGlyphComplete = false
+        orbCoreDissolveReceipt = null
         glyphRevealComplete = false
         residueSettleComplete = false
         glyphAvailable = false

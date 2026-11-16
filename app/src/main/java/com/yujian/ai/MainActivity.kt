@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
             YujianTheme {
                 YujianApp(
                     productionAutoPlayback = BuildConfig.DEBUG &&
-                        intent.getBooleanExtra(EXTRA_PRODUCTION_AUTO_PLAYBACK, false),
+                        intent.getBooleanExtra(EXTRA_PRODUCTION_AUTO_PLAYBACK, true),
                 )
             }
         }
