@@ -70,7 +70,6 @@ class RecognitionResultHandoffProductionNavigationTest {
         }
 
         val launchIntent = android.content.Intent(targetContext, MainActivity::class.java).apply {
-            putExtra(MainActivity.EXTRA_PRODUCTION_AUTO_PLAYBACK, true)
             addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
         ActivityScenario.launch<MainActivity>(launchIntent).use {

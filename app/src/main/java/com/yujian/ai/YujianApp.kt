@@ -95,6 +95,8 @@ import com.yujian.ai.ui.screens.EditProfileScreen
 import com.yujian.ai.ui.screens.LegalDocumentScreen
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceIdentity
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorder
 import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.identify.RecognitionUiState
 import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideStore
@@ -138,17 +140,14 @@ import java.util.UUID
 
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun YujianApp(productionAutoPlayback: Boolean = false) {
+fun YujianApp() {
     val activityContext = LocalContext.current
     val context = LocalContext.current.applicationContext
     val revealSessionStore: RecognitionRevealSessionStore = viewModel()
     val diagnosticPlaybackController = remember(revealSessionStore) { SceneMotionCoordinator() }
     var diagnosticReturnRevision by remember(revealSessionStore) { mutableIntStateOf(0) }
     var diagnosticDisplayMode by remember(revealSessionStore) {
-        mutableStateOf(
-            if (BuildConfig.DEBUG && !productionAutoPlayback) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
-            else RecognitionProgressDisplayMode.NORMAL_PROGRESS,
-        )
+        mutableStateOf(RecognitionProgressDisplayMode.NORMAL_PROGRESS)
     }
     val nav = rememberNavController()
     val scope = rememberCoroutineScope()
@@ -167,6 +166,11 @@ fun YujianApp(productionAutoPlayback: Boolean = false) {
     val subjectModelManager = remember { FishSubjectModelManager(context) }
     val feedbackRepository = remember { FeedbackRepository(context) }
     val inferenceRecorder = remember { InferenceRecorder(context) }
+    val recognitionEvidenceRecorder = remember(context) { RecognitionSessionEvidenceRecorder(context) }
+    DisposableEffect(diagnosticPlaybackController, recognitionEvidenceRecorder) {
+        diagnosticPlaybackController.setStageEventObserver(recognitionEvidenceRecorder::recordStageEvent)
+        onDispose { diagnosticPlaybackController.setStageEventObserver(null) }
+    }
     val fishKnowledgeRepository = remember { FishKnowledgeRepository() }
     var session by remember { mutableStateOf(sessionManager.current()) }
     var authLoading by remember { mutableStateOf(false) }
@@ -331,6 +335,14 @@ fun YujianApp(productionAutoPlayback: Boolean = false) {
         recognitionSessionId = UUID.randomUUID().toString()
         sessionImage = selected
         activeRecognitionAttemptId = UUID.randomUUID().toString()
+        recognitionEvidenceRecorder.beginAttempt(
+            RecognitionEvidenceIdentity(
+                sessionId = requireNotNull(recognitionSessionId),
+                attemptId = requireNotNull(activeRecognitionAttemptId),
+                imageId = selected.imageId,
+                photoSha256 = selected.photoSha256,
+            ),
+        )
         revealSessionStore.beginAttempt(
             requireNotNull(recognitionSessionId),
             requireNotNull(activeRecognitionAttemptId),
@@ -338,13 +350,8 @@ fun YujianApp(productionAutoPlayback: Boolean = false) {
             createdTimestampUptimeMs = SystemClock.uptimeMillis(),
         )
         RecognitionResultProductionEvidenceWriter.reset(activityContext)
-        diagnosticDisplayMode = if (BuildConfig.DEBUG && !productionAutoPlayback) {
-            RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
-        } else {
-            RecognitionProgressDisplayMode.NORMAL_PROGRESS
-        }
-        // Both camera and gallery enter the same one-clock lifecycle. Debug stays at
-        // PHOTO_STABLE/MANUAL until the real photo first frame is presented.
+        diagnosticDisplayMode = RecognitionProgressDisplayMode.NORMAL_PROGRESS
+        // Debug and Release enter the same event-gated AUTO lifecycle.
         diagnosticPlaybackController.beginNewSession(
             RecognitionSceneIdentity(
                 sessionId = requireNotNull(recognitionSessionId),
@@ -353,7 +360,7 @@ fun YujianApp(productionAutoPlayback: Boolean = false) {
                 photoSha256 = selected.photoSha256,
                 photoContentVersion = selected.bitmap.generationId.toLong().coerceAtLeast(0L),
             ),
-            debugBuild = BuildConfig.DEBUG && !productionAutoPlayback,
+            debugBuild = false,
             nowMs = SystemClock.uptimeMillis(),
         )
         productionResult = null
@@ -1044,6 +1051,7 @@ fun YujianApp(productionAutoPlayback: Boolean = false) {
                         },
                         recognitionSessionId = recognitionSessionId,
                         recognitionAttemptId = attemptId,
+                        recognitionEvidenceRecorder = recognitionEvidenceRecorder,
                         recognitionAttemptDeadline = recognitionAttemptDeadline,
                         diagnosticPlaybackController = diagnosticPlaybackController,
                         diagnosticDisplayMode = diagnosticDisplayMode,
@@ -1184,16 +1192,20 @@ fun YujianApp(productionAutoPlayback: Boolean = false) {
                             availableSpecies = guideSpecies.ifEmpty { localGuideItems() },
                             speciesCoverUrlFor = fishKnowledgeRepository::resolveAssetUrl,
                             revealHandoff = revealHandoff,
+                            recognitionEvidenceRecorder = recognitionEvidenceRecorder,
                             resultSnapshot = resultSnapshot,
                             initialResultHandoffEventSequence = resultSnapshot.handoffState.lastEventSequence,
                             initialResultHandoffEventTimestampMs = resultSnapshot.handoffState.lastEventTimestampMs,
                             onResultHandoffEvent = { event ->
-                                RecognitionResultHandoffConsumer.consume(
+                                val receipt = RecognitionResultHandoffConsumer.consume(
                                     key = resultSnapshot.key,
                                     event = event,
                                     store = revealSessionStore,
                                     controller = diagnosticPlaybackController,
                                 )
+                                recognitionEvidenceRecorder.recordResultHandoff(event, receipt.accepted, receipt.rejectionReason)
+                                recognitionEvidenceRecorder.recordStageTimeline(diagnosticPlaybackController.stageTimelineSnapshot())
+                                receipt
                             },
                             diagnosticPlaybackController = diagnosticPlaybackController,
                             diagnosticDisplayMode = diagnosticDisplayMode,

@@ -173,18 +173,13 @@ fun OrbWaterLightRibbons(
                 )
             }
             onPathMetrics?.invoke(front, renderPass, metrics.drawnPathIds)
-            val progress = frame.sceneFrame.stageProgress.coerceIn(0f, 1f)
-            val checkpoint = when {
-                frame.sceneFrame.stage != RecognitionSceneStage.ORB_WAKE -> null
-                abs(progress - .25f) <= .01f -> "25"
-                abs(progress - .50f) <= .01f -> "50"
-                abs(progress - .75f) <= .01f -> "75"
-                abs(progress - 1f) <= .01f -> "100"
-                else -> null
-            }
-            val checkpointKey = checkpoint?.let { "${frame.sceneFrame.stage.name}:$it" }
-            if (onPathDiagnostics != null && checkpointKey != null && lastDiagnosticCheckpoint[0] != checkpointKey) {
-                lastDiagnosticCheckpoint[0] = checkpointKey
+            val sampleBucket = frame.sceneFrame.sceneElapsedMs / 250L
+            val sampleKey = "${frame.sceneFrame.stage.name}:$sampleBucket"
+            if (BuildConfig.DEBUG && onPathDiagnostics != null &&
+                frame.sceneFrame.stage != RecognitionSceneStage.PHOTO_STABLE &&
+                lastDiagnosticCheckpoint[0] != sampleKey
+            ) {
+                lastDiagnosticCheckpoint[0] = sampleKey
                 onPathDiagnostics.invoke(front, renderPass, metrics.paths.values.map { metric ->
                     OrbR06PathDiagnostic(
                         pathId = metric.pathId,
@@ -429,22 +424,24 @@ internal class OrbFilamentPathRenderer(
         debugExcludedPathId: String? = null,
     ): FrameMetrics {
         if (diameterPx <= 0f) return FrameMetrics(0, 0, emptySet(), 0f, emptyMap())
+        val sceneFrame = frame.sceneFrame
+        val residentState = OrbResidentFilamentMotionV1.lifecycle(
+            sceneFrame.stage,
+            sceneFrame.stageProgress,
+            sceneFrame.orbToGlyphAccepted,
+        )
         if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION &&
-            (front || visualProfile != OrbStage02VisualProfile.MAX || pathIds.isNullOrEmpty() ||
+            (front || !OrbResidentTransmissionFieldV1.enabled(residentState, coreVisible = true) || pathIds.isNullOrEmpty() ||
                 pathIds.any { it != "G01" && it != "A01" })
         ) return FrameMetrics(0, 0, emptySet(), 0f, emptyMap())
         val sceneMs = if (frame.reducedMotion) 0L else frame.elapsedMs
         val opticalMs = frame.opticalReferenceElapsedMs
         val steps = if (low) OrbRuntimeProfileV1.R06_LOW_STEPS_PER_PATH else OrbRuntimeProfileV1.R06_NORMAL_STEPS_PER_PATH
-        val active = (opening.coerceIn(0f, 1f) * lifeAlpha.coerceIn(0f, 1f) * (1f - settle.coerceIn(0f, 1f))).coerceIn(0f, 1f)
+        val active = residentState.effectiveAlpha
         val diameterDp = diameterPx / density
-        val sceneFrame = frame.sceneFrame
         val interiorField = OrbInteriorOpticalField.frame(
             sceneFrame.stage, sceneFrame.stageProgress, frame.reducedMotion, visualProfile, frame.elapsedMs,
         )
-        if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION && interiorField.wakeStrength <= 0f) {
-            return FrameMetrics(0, 0, emptySet(), 0f, emptyMap())
-        }
         if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION &&
             (diameterPx.toBits() != glassShaderDiameterBits || centerX.toBits() != glassShaderCenterXBits || centerY.toBits() != glassShaderCenterYBits)
         ) {
@@ -514,23 +511,15 @@ internal class OrbFilamentPathRenderer(
             for (cache in caches) {
                 val spec = cache.spec
                 if (BuildConfig.DEBUG && debugExcludedPathId == spec.id) continue
+                if (OrbResidentFilamentMotionV1.role(spec.id) != OrbFilamentRole.RESIDENT_AMBIENT) continue
                 val material = cache.material
                 val lut = cache.lut
                 if (!frame.reducedMotion) OrbFilamentPathMathV1.fillLut(spec, sceneMs, lut)
-                val sceneFrame = frame.sceneFrame
-                val localRelease = OrbWakeBreathReleaseV11.localRelease(
-                    sceneFrame.stage, sceneFrame.stageProgress,
-                ) != OrbWakeBreathReleaseV11.LocalRelease.AMBIENT
-                val move = when {
-                    localRelease -> OrbFilamentPathMathV1.localReleaseMovementForStage(
-                        spec, sceneMs, sceneFrame.stage, sceneFrame.stageProgress,
-                        frame.reducedMotion, lut.cumulativeD.last(), diameterDp,
-                    )
-                    event != OrbRuntimeProfileV1.MotionEvent.NONE ->
-                        OrbFilamentPathMathV1.movement(spec, opticalMs, frame.reducedMotion, event, eventStartMs)
-                    else -> OrbFilamentPathMathV1.movement(spec, sceneMs, frame.reducedMotion,
-                        OrbRuntimeProfileV1.MotionEvent.NONE, 0L)
-                }
+                OrbResidentFilamentMotionV1.transformLut(spec, lut, sceneMs, frame.reducedMotion)
+                // Task EnergyEvent is deliberately excluded from resident path movement.
+                val move = OrbFilamentPathMathV1.movement(
+                    spec, sceneMs, frame.reducedMotion, OrbRuntimeProfileV1.MotionEvent.NONE, 0L,
+                )
                 val trail = material.trailLengthFraction
                 val maxStrokeEnvelope = if (visualProfile == OrbStage02VisualProfile.MAX) {
                     OrbWakeBreathReleaseV11.r06WakeReadabilityEnvelope(
@@ -554,11 +543,7 @@ internal class OrbFilamentPathRenderer(
                 val widthCycle = if (frame.reducedMotion) OrbRuntimeProfileV1.R06_REDUCED_MOTION_PHASE else sceneMs.toFloat() / spec.periodMs
                 val widthPulse = .5f + .5f * sin((2.0 * PI * (widthCycle + spec.phase)).toFloat())
                 val alphaPulse = spec.alphaMin + (spec.alphaMax - spec.alphaMin) * widthPulse
-                val eventBrightness = if (localRelease) OrbWakeBreathReleaseV11.R06_RELEASE_HEAD_BRIGHTNESS_GAIN else when (event) {
-                    OrbRuntimeProfileV1.MotionEvent.RELEASE -> OrbWakeBreathReleaseV11.R06_RELEASE_HEAD_BRIGHTNESS_GAIN
-                    OrbRuntimeProfileV1.MotionEvent.RETURN -> 1.07f
-                    OrbRuntimeProfileV1.MotionEvent.NONE -> 1f
-                }
+                val eventBrightness = 1f
                 val endFade = when {
                     move.unclampedU < 0f -> (1f - abs(move.unclampedU) / trail).coerceIn(0f, 1f)
                     move.unclampedU > 1f -> (1f - (move.unclampedU - 1f) / trail).coerceIn(0f, 1f)
@@ -702,31 +687,9 @@ internal class OrbFilamentPathRenderer(
                         val originalLayerAlpha = (active * alphaPulse * profileOpacity * crossOpacity * tailAlpha * longitudinal *
                             headBoost * eventBrightness * layer.alphaMax * endFade * OrbWakeBreathReleaseV11.R06_ALPHA_GAIN)
                             .coerceIn(0f, OrbWakeBreathReleaseV11.R06_ALPHA_CAP)
-                        var layerAlpha = OrbWakeBreathReleaseV11.r06WakeBodyAlpha(
-                            stage = sceneFrame.stage,
-                            stageProgress = sceneFrame.stageProgress,
-                            originalLayerAlpha = originalLayerAlpha,
-                            layerId = layer.id,
-                            front = front,
-                            active = active,
-                            endFade = endFade,
-                            tailAlpha = tailAlpha,
-                            profileOpacity = profileOpacity,
-                            crossOpacity = crossOpacity,
-                        )
-                        if (visualProfile == OrbStage02VisualProfile.MAX && isBodyLayer) {
-                            layerAlpha = OrbWakeBreathReleaseV11.r06MaxBodyAlpha(
-                                stage = sceneFrame.stage,
-                                stageProgress = sceneFrame.stageProgress,
-                                originalAlpha = layerAlpha,
-                                active = active,
-                                endFade = endFade,
-                                tailAlpha = tailAlpha,
-                                profileOpacity = profileOpacity,
-                                crossOpacity = crossOpacity,
-                                front = front,
-                            )
-                        }
+                        // Resident lifecycle is the only additive visibility envelope. In
+                        // particular, stage release/return and Task EnergyEvent do not fade it.
+                        var layerAlpha = originalLayerAlpha
                         val representativeRadiusD = kotlin.math.hypot(samplesX[mid] - centerX, samplesY[mid] - centerY) / diameterPx
                         var transmissionFactor = 1f
                         var representativeEdgeFade = 1f
@@ -842,9 +805,9 @@ internal class OrbFilamentPathRenderer(
                                 if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
                                     val u = (x - centerX) / diameterPx + .5f
                                     val v = (y - centerY) / diameterPx + .5f
-                                    val localWeight = OrbInteriorOpticalField.interiorWeight(
+                            val localWeight = OrbInteriorOpticalField.interiorWeight(
                                         kotlin.math.hypot(x - centerX, y - centerY) / diameterPx,
-                                    ) * interiorField.wakeStrength
+                                    ) * residentState.effectiveAlpha
                                     OrbInteriorOpticalField.writeSharedFlowDirectionAt(
                                         u, v, interiorField.semanticPhase, sceneMs, cache.scratch, 4,
                                     )
@@ -993,7 +956,7 @@ internal class OrbFilamentPathRenderer(
             emitMetricsIfDue()
         }
         val pathSnapshots = pathMetrics.mapValues { it.value.snapshot() }
-        if (BuildConfig.DEBUG && emitCheckpointTrace && visualProfile == OrbStage02VisualProfile.MAX &&
+        if (BuildConfig.DEBUG && emitCheckpointTrace && visualProfile.usesProductionOptics() &&
             sceneFrame.stage == RecognitionSceneStage.ORB_WAKE
         ) {
             pathSnapshots.values.forEach { metric ->

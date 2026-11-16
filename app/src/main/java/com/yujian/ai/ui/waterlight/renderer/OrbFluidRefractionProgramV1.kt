@@ -80,6 +80,14 @@ internal class OrbFluidRefractionProgramV1 private constructor(
         shader.setFloatUniform("surfaceSize", size, size)
         shader.setFloatUniform("maskSize", maskSizePx)
         shader.setFloatUniform("sceneSeconds", if (frame.reducedMotion) 0f else frame.elapsedMs.coerceAtLeast(0L) / 1000f)
+        shader.setFloatUniform("rotationEnabled", if (visualProfile.usesProductionOptics() && !frame.reducedMotion) 1f else 0f)
+        shader.setFloatUniform("rotationDirection", OrbCoreRotationProfileV1.DIRECTION)
+        shader.setFloatUniform("rotationPeriodSeconds", OrbCoreRotationProfileV1.PERIOD_MS / 1000f)
+        shader.setFloatUniform("rotationCenterOmega", OrbCoreRotationProfileV1.CENTER_ANGULAR_VELOCITY_RAD_S)
+        shader.setFloatUniform("rotationEdgeOmega", OrbCoreRotationProfileV1.EDGE_ANGULAR_VELOCITY_RAD_S)
+        shader.setFloatUniform("rotationRadialFalloff", OrbCoreRotationProfileV1.RADIAL_FALLOFF)
+        shader.setFloatUniform("rotationStrength", OrbCoreRotationProfileV1.ROTATION_STRENGTH)
+        shader.setFloatUniform("rotationDisplacementMaxD", OrbCoreRotationProfileV1.MAX_ROTATION_DISPLACEMENT_D)
         shader.setFloatUniform("visibleDiameterRatio", OrbGrassMotionProfileV11.VISIBLE_DIAMETER_TO_SOURCE_UV)
         shader.setFloatUniform("flowScaleA", profile.FLOW_SCALE_A)
         shader.setFloatUniform("flowScaleB", profile.FLOW_SCALE_B)
@@ -103,7 +111,7 @@ internal class OrbFluidRefractionProgramV1 private constructor(
         )
         shader.setFloatUniform(
             "maxFluidEnabled",
-            if (visualProfile == OrbStage02VisualProfile.MAX &&
+            if (visualProfile.usesProductionOptics() &&
                 OrbInteriorOpticalField.maxFluidShaderActive(sceneFrame.stage, sceneFrame.stageProgress)
             ) 1f else 0f,
         )

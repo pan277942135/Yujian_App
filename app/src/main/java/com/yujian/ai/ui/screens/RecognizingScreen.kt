@@ -153,6 +153,7 @@ import com.yujian.ai.ui.waterlight.renderer.OrbStage02RenderTrace
 import com.yujian.ai.ui.waterlight.renderer.OrbR06RenderPass
 import com.yujian.ai.ui.waterlight.renderer.OrbR06PathDiagnostic
 import com.yujian.ai.ui.waterlight.renderer.OrbShaderRoute
+import com.yujian.ai.ui.waterlight.renderer.OrbResidentFilamentMotionV1
 
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
@@ -174,6 +175,8 @@ import com.yujian.ai.ui.recognition.planRecognitionPhotoFlow
 import com.yujian.ai.ui.recognition.interpolateRecognitionPhotoTransform
 import com.yujian.ai.ui.recognition.RecognitionStepDiagnosticControls
 import com.yujian.ai.ui.recognition.OrbStage02VisualEvidenceExport
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorder
+import com.yujian.ai.ui.recognition.diagnostics.recognitionEvidenceWindow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -192,6 +195,14 @@ private const val LOG_TAG = "RecognitionProcessingScene"
 
 private fun recognitionMonotonicNowMs(): Long = SystemClock.uptimeMillis()
 
+private fun evidenceGeometry(geometry: com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry): Map<String, Any?> = mapOf(
+    "start" to listOf(geometry.start.x, geometry.start.y),
+    "control1" to listOf(geometry.control1.x, geometry.control1.y),
+    "control2" to listOf(geometry.control2.x, geometry.control2.y),
+    "end" to listOf(geometry.end.x, geometry.end.y),
+    "coordinateSpace" to geometry.coordinateSpace,
+)
+
 @Composable
 fun RecognizingScreen(
     image: SelectedImage?, onBack: () -> Unit,
@@ -205,6 +216,7 @@ fun RecognizingScreen(
     onFishPathSnapshot: (RecognitionFishPathSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
+    recognitionEvidenceRecorder: RecognitionSessionEvidenceRecorder? = null,
     diagnosticPlaybackController: SceneMotionCoordinator? = null,
     diagnosticDisplayMode: RecognitionProgressDisplayMode? = null,
     onDiagnosticDisplayModeChange: ((RecognitionProgressDisplayMode) -> Unit)? = null,
@@ -222,6 +234,7 @@ fun RecognizingScreen(
     onFishPathSnapshot = onFishPathSnapshot,
     recognitionSessionId = recognitionSessionId,
     recognitionAttemptId = recognitionAttemptId,
+    recognitionEvidenceRecorder = recognitionEvidenceRecorder,
     diagnosticPlaybackController = diagnosticPlaybackController,
     diagnosticDisplayMode = diagnosticDisplayMode,
     onDiagnosticDisplayModeChange = onDiagnosticDisplayModeChange,
@@ -250,6 +263,7 @@ fun RecognitionProcessingScene(
     onFishPathSnapshot: (RecognitionFishPathSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
+    recognitionEvidenceRecorder: RecognitionSessionEvidenceRecorder? = null,
     diagnosticPlaybackController: SceneMotionCoordinator? = null,
     diagnosticDisplayMode: RecognitionProgressDisplayMode? = null,
     onDiagnosticDisplayModeChange: ((RecognitionProgressDisplayMode) -> Unit)? = null,
@@ -294,15 +308,15 @@ fun RecognitionProcessingScene(
         RecognitionAttemptDeadline(recognitionMonotonicNowMs())
     }
     var localDisplayMode by remember(sceneKey) {
-        mutableStateOf(if (BuildConfig.DEBUG) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC else RecognitionProgressDisplayMode.NORMAL_PROGRESS)
+        mutableStateOf(RecognitionProgressDisplayMode.NORMAL_PROGRESS)
     }
     val displayMode = diagnosticDisplayMode ?: localDisplayMode
-    val diagnosticUiAvailable = BuildConfig.DEBUG && phaseOverride == null && visualClockOverrideMs == null
+    val diagnosticUiAvailable = false
     var debugOrbIsolationMode by remember(sceneKey) {
         mutableStateOf(OrbRenderIsolationMode.NORMAL)
     }
     var debugOrbVisualProfile by remember(sceneKey) {
-        mutableStateOf(if (BuildConfig.DEBUG) OrbStage02VisualProfile.MAX else OrbStage02VisualProfile.BASELINE)
+        mutableStateOf(OrbStage02VisualProfile.PRODUCTION_V1)
     }
     var debugOrbLayerIsolation by remember(sceneKey) {
         mutableStateOf(OrbStage02LayerIsolation.R03_R06)
@@ -314,6 +328,7 @@ fun RecognitionProcessingScene(
     var debugR06BackTransmissionPaths by remember(sceneKey) { mutableStateOf<Set<String>>(emptySet()) }
     var debugR06FrontPaths by remember(sceneKey) { mutableStateOf<Set<String>>(emptySet()) }
     var debugR06Diagnostics by remember(sceneKey) { mutableStateOf<List<OrbR06PathDiagnostic>>(emptyList()) }
+    val r06EvidenceSampleBuckets = remember(sceneKey) { mutableMapOf<String, Long>() }
     var debugOrbEvidenceBounds by remember(sceneKey) { mutableStateOf(android.graphics.Rect()) }
     var debugOrbEvidenceCoreSizePx by remember(sceneKey) { mutableFloatStateOf(0f) }
     var debugOrbEvidenceProgress by remember(sceneKey) { mutableFloatStateOf(0f) }
@@ -328,7 +343,7 @@ fun RecognitionProcessingScene(
     }
     val stepDiagnosticActive = diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
     // The diagnostic shell is a fixed Debug-session policy, independent of its display toggle.
-    val diagnosticModeState = rememberUpdatedState(BuildConfig.DEBUG)
+    val diagnosticModeState = rememberUpdatedState(false)
     val playbackController = diagnosticPlaybackController ?: remember(sceneKey) { SceneMotionCoordinator() }
     var playbackRevision by remember(sceneKey) { mutableIntStateOf(0) }
     val diagnosticStepDisplayState = rememberUpdatedState(
@@ -454,16 +469,6 @@ fun RecognitionProcessingScene(
                 "slimsam=${subjectResult.status} mask_trusted=$trustedSubjectMask contour_valid=${contour.isNotEmpty()} " +
                 "decision=$revealDecision uptime_ms=${SystemClock.uptimeMillis()}",
         )
-    }
-
-    LaunchedEffect(sceneKey, diagnosticPlaybackController, diagnosticUiAvailable) {
-        if (diagnosticPlaybackController == null && diagnosticUiAvailable) {
-            // Every Debug session opens on step 01. The clock starts only after the
-            // actual PhotoSession first frame is presented; choosing the diagnostic
-            // display must not silently switch playback to AUTO.
-            playbackController.beginNewSession(sceneIdentity, debugBuild = true, nowMs = recognitionMonotonicNowMs())
-            playbackRevision++
-        }
     }
 
     LaunchedEffect(sceneKey) {
@@ -1130,6 +1135,7 @@ fun RecognitionProcessingScene(
         sceneStageProgressOverride = if (stepDiagnosticActive || phaseOverride != null || deterministicMotion) null else productionStageProgress,
     )
     val diagnosticSceneFrame = authoritativeSceneFrame ?: sceneBaseFrame.sceneFrame
+    val latestEvidenceSceneFrame = rememberUpdatedState(diagnosticSceneFrame)
     LaunchedEffect(sceneKey, diagnosticSceneFrame.stage) {
         Log.i(
             LOG_TAG,
@@ -1141,6 +1147,86 @@ fun RecognitionProcessingScene(
                 "playback=${diagnosticSceneFrame.playbackMode} " +
                 "paused=${diagnosticSceneFrame.paused} detector=${assessment?.status} " +
                 "bbox=${assessment?.primary?.box} slimsam=${subjectResult.status} trusted_mask=$trustedSubjectMask",
+        )
+    }
+    LaunchedEffect(sceneKey, recognitionEvidenceRecorder) {
+        while (isActive) {
+            recognitionEvidenceRecorder?.recordHeartbeat(latestEvidenceSceneFrame.value)
+            delay(1_000L)
+        }
+    }
+    LaunchedEffect(
+        sceneKey,
+        recognitionEvidenceRecorder,
+        finishedResult,
+        assessment?.primary?.box,
+        subjectResult.status,
+        subjectResult.maskSha256,
+        trustedSubjectMask,
+        contour.size,
+    ) {
+        val recorder = recognitionEvidenceRecorder ?: return@LaunchedEffect
+        val result = finishedResult
+        val detector = result?.detectorRun
+        val prediction = result?.prediction
+        val geometry = subjectResult.geometry
+        recorder.recordModelState(
+            stage = diagnosticSceneFrame.stage,
+            sceneElapsedMs = diagnosticSceneFrame.sceneElapsedMs,
+            detectorStatus = when {
+                detector != null -> "READY"
+                realPhase == RecognitionPhase.FAILURE -> "FAILED"
+                else -> "WAITING"
+            },
+            classifierStatus = when {
+                prediction != null -> "READY"
+                result != null -> "FAILED"
+                else -> "WAITING"
+            },
+            slimSamStatus = subjectResult.status.name,
+            maskStatus = if (trustedSubjectMask) "TRUSTED" else "BBOX_ONLY",
+            waitingReason = diagnosticSceneFrame.modelGates.waitingReason,
+            extra = mapOf(
+                "detectorVersion" to (detector?.modelVersion ?: "NOT_RECORDED"),
+                "detectorSha256" to (detector?.onnxSha256 ?: "NOT_RECORDED"),
+                "detectorInputSize" to detector?.inputSize,
+                "detectorInputTensorShape" to detector?.inputTensorShape,
+                "detectorOutputTensorShape" to detector?.outputTensorShape,
+                "detectorDrawSize" to detector?.let { listOf(it.inputDrawWidth, it.inputDrawHeight) },
+                "orientationRetryPolicy" to (detector?.retryPolicyVersion ?: "NOT_RECORDED"),
+                "orientationAttempts" to detector?.attemptTrace?.map {
+                    mapOf(
+                        "orientationAttempt" to it.orientationAttempt,
+                        "detectionCount" to it.detectionCount,
+                        "topConfidence" to it.topConfidence,
+                        "qualityStatus" to it.qualityStatus,
+                        "qualityLevel" to it.qualityLevel,
+                    )
+                },
+                "orientationSelectedAttempt" to (detector?.selectedAttempt ?: "NOT_RECORDED"),
+                "bbox" to assessment?.primary?.box?.let { listOf(it.x1, it.y1, it.x2, it.y2) },
+                "crop" to assessment?.cropBox?.let { listOf(it.x1, it.y1, it.x2, it.y2) },
+                "cropPixelCount" to result?.cropPixels?.size,
+                "classifierVersion" to (prediction?.modelVersion ?: "NOT_RECORDED"),
+                "classifierSha256" to (prediction?.modelSha256 ?: "NOT_RECORDED"),
+                "classifierInputSize" to prediction?.modelInputBitmap?.let { listOf(it.width, it.height) },
+                "top1" to (prediction?.top1?.speciesName ?: "NOT_RECORDED"),
+                "confidence" to prediction?.top1?.confidence,
+                "slimSamModelSha256" to (geometry?.modelSha256 ?: "NOT_RECORDED"),
+                "maskSha256" to (subjectResult.maskSha256.ifBlank { "NOT_RECORDED" }),
+                "maskVersion" to subjectBitmap?.generationId?.toLong(),
+                "maskGeometryVersion" to diagnosticSceneFrame.geometryVersion,
+                "maskFallbackReason" to if (trustedSubjectMask) "NONE" else (subjectResult.errorCode ?: "MASK_UNTRUSTED"),
+                "contourPointCount" to contour.size,
+            ),
+        )
+        recorder.recordMaskRuntime(
+            status = subjectResult.status.name,
+            trusted = trustedSubjectMask,
+            maskSha256 = subjectResult.maskSha256.takeIf(String::isNotBlank),
+            maskVersion = subjectBitmap?.generationId?.toLong(),
+            geometryVersion = diagnosticSceneFrame.geometryVersion,
+            fallbackReason = if (trustedSubjectMask) null else subjectResult.errorCode ?: "MASK_UNTRUSTED",
         )
     }
     var diagnosticHandoffDelivered by remember(sceneKey) { mutableStateOf(false) }
@@ -1336,9 +1422,19 @@ fun RecognitionProcessingScene(
             )
         }
     }
-    BoxWithConstraints(Modifier.fillMaxSize().onGloballyPositioned {
-        rootOrigin = it.boundsInWindow().topLeft
-    }) {
+    val evidenceWindow = recognitionEvidenceWindow(pageContext)
+    BoxWithConstraints(
+        Modifier.fillMaxSize()
+            .drawWithContent {
+                drawContent()
+                recognitionEvidenceRecorder?.onFramePresented(
+                    window = evidenceWindow,
+                    frame = waterLightFrame.sceneFrame,
+                    latestFrame = { latestEvidenceSceneFrame.value },
+                )
+            }
+            .onGloballyPositioned { rootOrigin = it.boundsInWindow().topLeft },
+    ) {
         LakeGlassBackgroundHost(Modifier.fillMaxSize())
         val viewportWidthPx = with(density) { maxWidth.toPx() }.coerceAtLeast(1f)
         val viewportHeightPx = with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
@@ -1624,6 +1720,32 @@ fun RecognitionProcessingScene(
             if (fishPathSnapshot != null) {
                 val snapshotAccepted = controller.onFishPathSnapshot(fishPathSnapshot, sceneIdentity)
                 if (snapshotAccepted) {
+                    recognitionEvidenceRecorder?.recordOrbRuntime(
+                        fileName = "waterlight_paths.jsonl",
+                        type = "TRUSTED_FISH_PATH_SNAPSHOT",
+                        payload = mapOf(
+                            "sessionIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(fishPathSnapshot.sessionId),
+                            "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(fishPathSnapshot.attemptId),
+                            "imageIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(fishPathSnapshot.imageId),
+                            "fishPathId" to fishPathSnapshot.fishPathId,
+                            "returnPathId" to fishPathSnapshot.returnPathId,
+                            "maskSha256" to fishPathSnapshot.maskSha256,
+                            "maskVersion" to fishPathSnapshot.maskVersion,
+                            "geometryVersion" to fishPathSnapshot.geometryVersion,
+                            "pStarNormalizedSource" to listOf(
+                                fishPathSnapshot.pStarNormalizedSource.x,
+                                fishPathSnapshot.pStarNormalizedSource.y,
+                            ),
+                            "fishPathGeometry" to evidenceGeometry(fishPathSnapshot.fishPathGeometry),
+                            "perimeterBridge" to evidenceGeometry(fishPathSnapshot.perimeterBridge),
+                            "orbReleasePath" to evidenceGeometry(fishPathSnapshot.orbReleasePath),
+                            "returnPathSegments" to fishPathSnapshot.returnPathSegments.map(::evidenceGeometry),
+                            "sourceCoordinateSpace" to fishPathSnapshot.sourceCoordinateSpace,
+                            "creationTimestampMonotonicMs" to fishPathSnapshot.creationTimestampMonotonicMs,
+                            "creationEventSequence" to fishPathSnapshot.creationEventSequence,
+                            "valid" to fishPathSnapshot.isValid(),
+                        ),
+                    )
                     fishPathSnapshotCallback.value.invoke(fishPathSnapshot)
                 } else {
                     Log.w(
@@ -1694,6 +1816,7 @@ fun RecognitionProcessingScene(
                 val accepted = if (waterLightFrame.sceneFrame.stageProgress >= .999f) {
                     controller.recordEnergyEvent(waterLightFrame.sceneFrame, event)
                 } else null
+                if (accepted != null) recognitionEvidenceRecorder?.recordEnergyEvent(event, accepted)
                 Log.i(
                     "WaterLightEnergy",
                     "ENERGY_EVENT session=${event.sessionId} attempt=${event.attemptId} image=${event.imageId} " +
@@ -1776,7 +1899,7 @@ fun RecognitionProcessingScene(
                 // Source-core fallback requires the expected scene identity and geometry to validate.
                 renderIsolationMode = orbRenderIsolationMode,
                 hostRejectReason = orbHostRejectReason,
-                visualProfile = if (BuildConfig.DEBUG) debugOrbVisualProfile else OrbStage02VisualProfile.BASELINE,
+                visualProfile = OrbStage02VisualProfile.PRODUCTION_V1,
                 stage02LayerIsolation = debugOrbLayerIsolation,
                 debugOpticalSampleMs = debugOrbOpticalSampleMs,
                 debugCaptureId = debugOrbCaptureId,
@@ -1785,6 +1908,17 @@ fun RecognitionProcessingScene(
                     debugOrbShaderStage = stage
                     debugOrbShaderRoute = route
                     debugOrbShaderStatus = status
+                },
+                onOrbRuntimeDiagnostics = { payload ->
+                    recognitionEvidenceRecorder?.recordOrbRuntime(
+                        fileName = "orb_render_trace.jsonl",
+                        type = payload["eventType"]?.toString() ?: "ORB_RUNTIME_SAMPLE",
+                        payload = payload + mapOf(
+                            "sessionIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.sessionId),
+                            "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.attemptId),
+                            "imageIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.imageId),
+                        ),
+                    )
                 },
                 onR06RenderedPaths = { front, renderPass, pathIds ->
                     if (BuildConfig.DEBUG && waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE) {
@@ -1799,6 +1933,55 @@ fun RecognitionProcessingScene(
                     }
                 },
                 onR06PathDiagnostics = { front, renderPass, metrics ->
+                    val frame = waterLightFrame.sceneFrame
+                    val sampleBucket = frame.sceneElapsedMs / 250L
+                    val throttleKey = "${frame.stage.name}|$front|${renderPass.name}"
+                    if (r06EvidenceSampleBuckets[throttleKey] != sampleBucket) {
+                        r06EvidenceSampleBuckets[throttleKey] = sampleBucket
+                        val resident = OrbResidentFilamentMotionV1.lifecycle(
+                            frame.stage,
+                            frame.stageProgress,
+                            frame.orbToGlyphAccepted,
+                        )
+                        recognitionEvidenceRecorder?.recordOrbRuntime(
+                            fileName = "orb_render_trace.jsonl",
+                            type = "R06_RESIDENT_PATH_RENDER_SAMPLE",
+                            payload = mapOf(
+                                "stage" to frame.stage.name,
+                                "stageProgress" to frame.stageProgress,
+                                "sceneElapsedMs" to frame.sceneElapsedMs,
+                                "geometryVersion" to frame.geometryVersion,
+                                "front" to front,
+                                "renderPass" to renderPass.name,
+                                "residentLifecycle" to resident.lifecycle.name,
+                                "residentAlpha" to resident.effectiveAlpha,
+                                "orbToGlyphAccepted" to frame.orbToGlyphAccepted,
+                                "pathDataSource" to "CANVAS_RENDER_METRICS_NOT_PIXEL_READBACK",
+                                "paths" to metrics.map { metric ->
+                                    val spec = OrbRuntimeProfileV1.paths.firstOrNull { it.id == metric.pathId }
+                                    val motion = spec?.let(OrbResidentFilamentMotionV1::parameters)
+                                    mapOf(
+                                        "pathId" to metric.pathId,
+                                        "role" to OrbResidentFilamentMotionV1.role(metric.pathId).name,
+                                        "periodMs" to motion?.periodMs,
+                                        "phase" to motion?.phase,
+                                        "direction" to motion?.direction,
+                                        "validSampleCount" to metric.validSampleCount,
+                                        "bodyValidSegmentCount" to metric.bodyValidSegmentCount,
+                                        "drawnRunCount" to metric.bodyDrawnRunCount,
+                                        "bodyPaintAlpha" to metric.bodyPaintAlpha,
+                                        "bodyStrokeWidthPx" to metric.bodyStrokeWidthPx,
+                                        "bodyAlpha" to metric.bodyFinalAlpha,
+                                        "transmissionFactor" to metric.transmissionFactor,
+                                        "edgeFade" to metric.edgeFade,
+                                        "pathPhaseU" to metric.pathPhaseU,
+                                        "trailStartU" to metric.effectiveTrailStartU,
+                                        "trailEndU" to metric.effectiveTrailEndU,
+                                    )
+                                },
+                            ),
+                        )
+                    }
                     if (BuildConfig.DEBUG && waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE) {
                         val next = debugR06Diagnostics.filterNot {
                             it.front == front && it.renderPass == renderPass

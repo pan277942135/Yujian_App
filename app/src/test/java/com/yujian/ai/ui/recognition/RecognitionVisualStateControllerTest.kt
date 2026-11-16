@@ -26,10 +26,11 @@ import org.junit.Test
 class RecognitionVisualStateControllerTest {
     private val identity = RecognitionSceneIdentity("session", "attempt", "image", "sha256", 12L)
 
-    @Test fun manualCanInspectAllStagesWithoutModelDataAndNeverAutoAdvances() {
+    @Test fun explicitStepPreviewCanInspectStagesWithoutModelData() {
         val controller = SceneMotionCoordinator()
         controller.beginNewSession(identity, debugBuild = true, nowMs = 0L)
         controller.markPhotoFirstFramePresented(identity, 100L)
+        controller.beginStepPreview(RecognitionSceneStage.PHOTO_STABLE, 100L)
         assertEquals(ScenePlaybackMode.MANUAL, controller.mode)
         assertEquals(RecognitionSceneStage.PHOTO_STABLE, controller.currentSceneStage(30_100L))
         assertTrue(controller.previewCompleted)

@@ -52,6 +52,8 @@ class RecognitionSceneAnimationController(
     private val stageTimeline = mutableListOf<RecognitionSceneStageTraceEntry>()
     private var stageGateWaitStartedAtMs: Long? = null
     private var stageGateWaitReason: String? = null
+    private var stageEventObserver: ((RecognitionSceneStageEvent) -> Unit)? = null
+    private var lastObservedGeometryVersion = 0L
     var resultSceneStable: Boolean = false
         private set
 
@@ -60,6 +62,9 @@ class RecognitionSceneAnimationController(
     fun acceptedResultHandoffEventsSnapshot(): List<RecognitionResultHandoffEvent> = acceptedResultHandoffEvents.toList()
     fun completedResultHandoffSubstagesSnapshot(): Set<ResultHandoffSubstage> = completedResultHandoffSubstages.toSet()
     fun stageTimelineSnapshot(): List<RecognitionSceneStageTraceEntry> = stageTimeline.toList()
+    fun setStageEventObserver(observer: ((RecognitionSceneStageEvent) -> Unit)?) {
+        stageEventObserver = observer
+    }
     fun firstFramePresentedTimestampMs(): Long? = firstFramePresentedTimestampMs
     fun resultGeometryVersionsSnapshot(): Set<Long> = resultGeometryVersions.toSet()
     fun resultGeometryIsReady(): Boolean = resultGeometryState == SceneGeometryState.READY
@@ -125,10 +130,10 @@ class RecognitionSceneAnimationController(
             waitingReason = waitingReason(),
         )
 
-    /** Begin a fresh PhotoSession timeline. Debug starts MANUAL; Release starts event-driven AUTO. */
+    /** Begin a fresh PhotoSession timeline. Normal application sessions always use event-gated AUTO. */
     fun beginNewSession(
         identity: RecognitionSceneIdentity,
-        debugBuild: Boolean,
+        @Suppress("UNUSED_PARAMETER") debugBuild: Boolean,
         nowMs: Long,
     ) {
         this.identity = identity
@@ -139,8 +144,11 @@ class RecognitionSceneAnimationController(
         sceneElapsedBeforePauseMs = 0L
         sceneClockStartedAtMs = null
         stageStartedAtMs = UNSET
-        mode = if (debugBuild) ScenePlaybackMode.MANUAL else ScenePlaybackMode.AUTO
-        if (debugBuild) prepareInitialStepPreview()
+        mode = ScenePlaybackMode.AUTO
+        currentStage = RecognitionSceneStage.PHOTO_STABLE
+        paused = false
+        previewCompleted = false
+        diagnosticAuto = false
     }
 
     /** Compatibility reset for deterministic unit fixtures; production uses beginNewSession. */
@@ -180,6 +188,13 @@ class RecognitionSceneAnimationController(
         previewStartedAtMs = nowMs.takeIf { mode == ScenePlaybackMode.MANUAL && !paused }
         if (!paused && geometryGateStartedAtMs == null) sceneClockStartedAtMs = nowMs
         bumpEventSequence()
+        emitStageEvent(
+            action = RecognitionSceneStageEventAction.ENTERED,
+            stage = RecognitionSceneStage.PHOTO_STABLE,
+            nowMs = nowMs,
+            progress = 0f,
+            waitingReason = null,
+        )
         return true
     }
 
@@ -627,12 +642,21 @@ class RecognitionSceneAnimationController(
         }
         if (!photoFirstFramePresented || paused || geometryGateStartedAtMs != null || failed) return currentStage
         val elapsed = stageElapsedMs(nowMs)
+        val progress = stageProgress(nowMs)
         val required = if (diagnosticAuto) maxOf(DIAGNOSTIC_STEP_DURATION_MS, minimum(currentStage)) else minimum(currentStage)
         if (elapsed < required) return currentStage
         if (!canAdvance(currentStage, successfulRevealAllowed)) {
-            if (stageGateWaitStartedAtMs == null) {
+            val nextWaitReason = modelGates.waitingReason ?: "WAITING_FOR_STAGE_EVENT_OR_MODEL_GATE"
+            if (stageGateWaitStartedAtMs == null || stageGateWaitReason != nextWaitReason) {
                 stageGateWaitStartedAtMs = nowMs
-                stageGateWaitReason = modelGates.waitingReason ?: "WAITING_FOR_STAGE_EVENT_OR_MODEL_GATE"
+                stageGateWaitReason = nextWaitReason
+                emitStageEvent(
+                    action = RecognitionSceneStageEventAction.BLOCKED,
+                    stage = currentStage,
+                    nowMs = nowMs,
+                    progress = progress,
+                    waitingReason = nextWaitReason,
+                )
             }
             return currentStage
         }
@@ -649,10 +673,18 @@ class RecognitionSceneAnimationController(
         stageStartedAtMs = nowMs
         stageGateWaitStartedAtMs = null
         stageGateWaitReason = null
+        lastObservedGeometryVersion = 0L
         stageElapsedBeforePauseMs = 0L
         autoElapsedBeforePauseMs = 0L
         autoStartedAtMs = nowMs.takeIf { diagnosticAuto }
         previewCompleted = false
+        emitStageEvent(
+            action = RecognitionSceneStageEventAction.ENTERED,
+            stage = next,
+            nowMs = nowMs,
+            progress = 0f,
+            waitingReason = null,
+        )
         return currentStage
     }
 
@@ -694,6 +726,7 @@ class RecognitionSceneAnimationController(
         val reference = opticalReferenceElapsedMs(nowMs)
         val sceneElapsed = sceneElapsedMs(nowMs)
         val gates = modelGates
+        lastObservedGeometryVersion = geometryVersion
         val resultSubstage = acceptedResultHandoffEvents.lastOrNull()?.substage
         return RecognitionSceneCoordinator.frameForStage(
             identity = currentIdentity,
@@ -714,6 +747,8 @@ class RecognitionSceneAnimationController(
             resultHandoffSubstage = resultSubstage,
             resultInfoArrivalProgress = if (ResultHandoffSubstage.RESULT_INFO_ARRIVAL in completedResultHandoffSubstages || resultSceneStable) 1f else 0f,
             resultSceneStable = resultSceneStable,
+            taskEnergyMerged = orbReturnComplete,
+            orbToGlyphAccepted = orbToGlyphComplete,
         )
     }
 
@@ -759,14 +794,18 @@ class RecognitionSceneAnimationController(
     }
 
     fun advanceToNextStage(nowMs: Long): RecognitionSceneStage? {
-        if (!photoFirstFramePresented || currentStage == RecognitionSceneStage.entries.last()) return null
+        if (mode != ScenePlaybackMode.MANUAL || !photoFirstFramePresented ||
+            currentStage == RecognitionSceneStage.entries.last()
+        ) return null
         val next = RecognitionSceneStage.entries[currentStage.ordinal + 1]
         beginStepPreview(next, nowMs)
         return next
     }
 
     fun returnToPreviousStage(nowMs: Long): RecognitionSceneStage? {
-        if (!photoFirstFramePresented || currentStage == RecognitionSceneStage.entries.first()) return null
+        if (mode != ScenePlaybackMode.MANUAL || !photoFirstFramePresented ||
+            currentStage == RecognitionSceneStage.entries.first()
+        ) return null
         val previous = RecognitionSceneStage.entries[currentStage.ordinal - 1]
         beginStepPreview(previous, nowMs)
         return previous
@@ -1078,6 +1117,7 @@ class RecognitionSceneAnimationController(
         stageTimeline.clear()
         stageGateWaitStartedAtMs = null
         stageGateWaitReason = null
+        lastObservedGeometryVersion = 0L
         resultSceneStable = false
         detectorReady = false
         classifierReady = false
@@ -1139,6 +1179,43 @@ class RecognitionSceneAnimationController(
             sessionId = activeIdentity.sessionId,
             attemptId = activeIdentity.attemptId,
             eventSequence = sequence,
+        )
+        emitStageEvent(
+            action = RecognitionSceneStageEventAction.EXITED,
+            stage = stage,
+            nowMs = endedAtMs,
+            elapsedMs = duration,
+            progress = 1f,
+            waitingReason = null,
+            sequence = sequence,
+        )
+    }
+
+    private fun emitStageEvent(
+        action: RecognitionSceneStageEventAction,
+        stage: RecognitionSceneStage,
+        nowMs: Long,
+        progress: Float,
+        waitingReason: String?,
+        elapsedMs: Long = if (stage == currentStage) stageElapsedMs(nowMs) else 0L,
+        sequence: Long = eventSequence,
+    ) {
+        val activeIdentity = identity ?: return
+        stageEventObserver?.invoke(
+            RecognitionSceneStageEvent(
+                action = action,
+                stage = stage,
+                sceneElapsedMs = sceneElapsedMs(nowMs),
+                stageElapsedMs = elapsedMs.coerceAtLeast(0L),
+                stageProgress = progress.coerceIn(0f, 1f),
+                geometryVersion = lastObservedGeometryVersion,
+                playbackMode = mode,
+                modelGates = modelGates,
+                waitingReason = waitingReason,
+                eventSequence = sequence,
+                sessionId = activeIdentity.sessionId,
+                attemptId = activeIdentity.attemptId,
+            ),
         )
     }
 

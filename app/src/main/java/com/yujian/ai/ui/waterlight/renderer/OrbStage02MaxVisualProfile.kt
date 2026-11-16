@@ -10,13 +10,17 @@ import kotlin.math.max
 /** Selects the frozen pre-V3 rendering or the high-visibility Stage02 candidate. */
 enum class OrbStage02VisualProfile {
     BASELINE,
-    MAX;
+    MAX,
+    PRODUCTION_V1;
 
     companion object {
         fun currentBuildDefault(): OrbStage02VisualProfile =
-            if (com.yujian.ai.BuildConfig.DEBUG) MAX else BASELINE
+            PRODUCTION_V1
     }
 }
+
+internal fun OrbStage02VisualProfile.usesProductionOptics(): Boolean =
+    this == OrbStage02VisualProfile.MAX || this == OrbStage02VisualProfile.PRODUCTION_V1
 
 /** Stage02 MAX candidate values. These are runtime parameters; source assets remain frozen. */
 internal object OrbStage02MaxVisualProfile {
@@ -109,12 +113,23 @@ internal object OrbInteriorOpticalField {
         stage: RecognitionSceneStage,
         stageProgress: Float,
         baselineOptics: Float,
-    ): Float = if (profile == OrbStage02VisualProfile.MAX &&
-        (stage == RecognitionSceneStage.ORB_WAKE || stage == RecognitionSceneStage.ORB_RELEASE)
-    ) {
-        OrbStage02MaxVisualProfile.BASELINE_SHADER_OVERLAY_ALPHA +
-            (1f - OrbStage02MaxVisualProfile.BASELINE_SHADER_OVERLAY_ALPHA) * maxFluidWakeEnvelope(stage, stageProgress)
-    } else baselineOptics.coerceIn(0f, 1f) * OrbStage02MaxVisualProfile.BASELINE_SHADER_OVERLAY_ALPHA
+    ): Float = when {
+        profile == OrbStage02VisualProfile.PRODUCTION_V1 -> when (stage) {
+            RecognitionSceneStage.PHOTO_STABLE,
+            RecognitionSceneStage.RESIDUE_SETTLE -> 0f
+            RecognitionSceneStage.ORB_WAKE,
+            RecognitionSceneStage.ORB_RELEASE -> OrbStage02MaxVisualProfile.BASELINE_SHADER_OVERLAY_ALPHA +
+                (1f - OrbStage02MaxVisualProfile.BASELINE_SHADER_OVERLAY_ALPHA) * maxFluidWakeEnvelope(stage, stageProgress)
+            RecognitionSceneStage.SPECIES_NAME_REVEAL -> OrbStage02MaxVisualProfile.BASELINE_SHADER_OVERLAY_ALPHA *
+                (1f - smoothstep(stageProgress))
+            else -> OrbStage02MaxVisualProfile.BASELINE_SHADER_OVERLAY_ALPHA
+        }
+        profile == OrbStage02VisualProfile.MAX &&
+            (stage == RecognitionSceneStage.ORB_WAKE || stage == RecognitionSceneStage.ORB_RELEASE) ->
+            OrbStage02MaxVisualProfile.BASELINE_SHADER_OVERLAY_ALPHA +
+                (1f - OrbStage02MaxVisualProfile.BASELINE_SHADER_OVERLAY_ALPHA) * maxFluidWakeEnvelope(stage, stageProgress)
+        else -> baselineOptics.coerceIn(0f, 1f) * OrbStage02MaxVisualProfile.BASELINE_SHADER_OVERLAY_ALPHA
+    }
 
     fun frame(
         stage: RecognitionSceneStage,
@@ -123,7 +138,7 @@ internal object OrbInteriorOpticalField {
         profile: OrbStage02VisualProfile,
         sceneElapsedMs: Long = 0L,
     ): Frame {
-        if (profile != OrbStage02VisualProfile.MAX) return Frame(0f, 0f, 0f, 0f, 0f, false)
+        if (!profile.usesProductionOptics()) return Frame(0f, 0f, 0f, 0f, 0f, false)
         val wake = maxFluidWakeEnvelope(stage, stageProgress)
         val displacement = if (reducedMotion) 0f else OrbStage02MaxVisualProfile.FLUID_DISPLACEMENT_MAX_D * wake
         val phase = if (reducedMotion) 0f else {

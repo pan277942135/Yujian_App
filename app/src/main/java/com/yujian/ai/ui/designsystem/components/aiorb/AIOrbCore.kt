@@ -42,6 +42,10 @@ import com.yujian.ai.ui.waterlight.renderer.OrbStage02VisualProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02LayerIsolation
 import com.yujian.ai.ui.waterlight.renderer.OrbR06RenderPass
 import com.yujian.ai.ui.waterlight.renderer.OrbInteriorOpticalField
+import com.yujian.ai.ui.waterlight.renderer.OrbCoreRotationFieldV1
+import com.yujian.ai.ui.waterlight.renderer.OrbResidentFilamentMotionV1
+import com.yujian.ai.ui.waterlight.renderer.OrbResidentTransmissionFieldV1
+import com.yujian.ai.ui.waterlight.renderer.usesProductionOptics
 import com.yujian.ai.ui.waterlight.renderer.OrbR06PathDiagnostic
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02RenderTrace
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
@@ -141,6 +145,7 @@ fun AIOrbCore(
     visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.currentBuildDefault(),
     stage02LayerIsolation: OrbStage02LayerIsolation = OrbStage02LayerIsolation.R03_R06,
     onShaderRuntimeStatus: ((String, String, String) -> Unit)? = null,
+    onOrbRuntimeDiagnostics: ((Map<String, Any?>) -> Unit)? = null,
     onR06RenderedPaths: ((Boolean, OrbR06RenderPass, Set<String>) -> Unit)? = null,
     onR06PathDiagnostics: ((Boolean, OrbR06RenderPass, List<OrbR06PathDiagnostic>) -> Unit)? = null,
     /** Debug evidence sampling only; the production scene controller/frame is not advanced. */
@@ -197,6 +202,7 @@ fun AIOrbCore(
             visualProfile = visualProfile,
             stage02LayerIsolation = stage02LayerIsolation,
             onShaderRuntimeStatus = onShaderRuntimeStatus,
+            onOrbRuntimeDiagnostics = onOrbRuntimeDiagnostics,
             onR06RenderedPaths = onR06RenderedPaths,
             onR06PathDiagnostics = onR06PathDiagnostics,
             debugOpticalSampleMs = debugOpticalSampleMs,
@@ -252,6 +258,7 @@ private fun OrbVisual(
     visualProfile: OrbStage02VisualProfile,
     stage02LayerIsolation: OrbStage02LayerIsolation,
     onShaderRuntimeStatus: ((String, String, String) -> Unit)?,
+    onOrbRuntimeDiagnostics: ((Map<String, Any?>) -> Unit)?,
     onR06RenderedPaths: ((Boolean, OrbR06RenderPass, Set<String>) -> Unit)?,
     onR06PathDiagnostics: ((Boolean, OrbR06RenderPass, List<OrbR06PathDiagnostic>) -> Unit)?,
     debugOpticalSampleMs: Long?,
@@ -278,11 +285,6 @@ private fun OrbVisual(
     val activeEnergyEvent = energyEvent?.takeIf { it.matches(sharedFrame) }
     val releaseEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RELEASE) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
     val returnEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RETURN) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
-    val orbEnergyDepletion = when (activeEnergyEvent?.feedback) {
-        EnergyFeedback.RELEASE -> .18f * releaseEnergy
-        EnergyFeedback.RETURN -> .18f * (1f - returnEnergy)
-        else -> 0f
-    }
     // Actual event geometry/time stays in the one shared frame; no additional timer is created.
     val effectiveMotionEvent = if (orbMotionEvent != OrbRuntimeProfileV1.MotionEvent.NONE) orbMotionEvent else when (activeEnergyEvent?.feedback) {
         EnergyFeedback.RELEASE -> OrbRuntimeProfileV1.MotionEvent.RELEASE
@@ -296,6 +298,7 @@ private fun OrbVisual(
     val frameTraceId = remember(sceneFrame, sharedFrame.elapsedMs, visualProfile, debugCaptureId) {
         OrbStage02RenderTrace.beginFrame(sceneFrame, visualProfile)
     }
+    val lastRotationTraceBucket = remember(sharedFrame.sessionId, sharedFrame.attemptId) { longArrayOf(Long.MIN_VALUE) }
     val interiorField = OrbInteriorOpticalField.frame(
         stage = sceneFrame.stage,
         stageProgress = sceneFrame.stageProgress,
@@ -306,12 +309,16 @@ private fun OrbVisual(
     val phaseTracker = remember(sharedFrame.sessionId, sharedFrame.attemptId) { floatArrayOf(Float.NaN) }
     val lastFlowTraceKey = remember(sharedFrame.sessionId, sharedFrame.attemptId) { arrayOf("") }
     val lastFlowTraceElapsedMs = remember(sharedFrame.sessionId, sharedFrame.attemptId) { longArrayOf(Long.MIN_VALUE) }
-    val isMaxStage02 = visualProfile == OrbStage02VisualProfile.MAX &&
-        sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE
-    val isMaxTransitionActive = visualProfile == OrbStage02VisualProfile.MAX && (
-        isMaxStage02 || (sceneFrame.stage == com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_RELEASE &&
-            OrbInteriorOpticalField.maxFluidWakeEnvelope(sceneFrame.stage, sceneFrame.stageProgress) > 0f)
-        )
+    val residentState = OrbResidentFilamentMotionV1.lifecycle(
+        sceneFrame.stage,
+        sceneFrame.stageProgress,
+        sceneFrame.orbToGlyphAccepted,
+    )
+    val residentTransmissionActive = OrbResidentTransmissionFieldV1.enabled(
+        residentState,
+        coreVisible = renderIsolationMode != OrbRenderIsolationMode.SUPPRESSED &&
+            renderIsolationMode != OrbRenderIsolationMode.RAW_CORE,
+    )
     val r03Visible = sceneFrame.stage != com.yujian.ai.ui.waterlight.core.RecognitionSceneStage.ORB_WAKE ||
         stage02LayerIsolation != OrbStage02LayerIsolation.R06_ONLY &&
         stage02LayerIsolation != OrbStage02LayerIsolation.R06_BACK_TRANSMISSION_ONLY
@@ -366,7 +373,7 @@ private fun OrbVisual(
         else -> currentCoreOpticalEffect.route.name
     }
     val shaderProfileForRoute = if (
-        visualProfile == OrbStage02VisualProfile.MAX &&
+        visualProfile.usesProductionOptics() &&
         currentCoreOpticalEffect?.route != OrbShaderRoute.FLUID_GRASS_V1_2_CANDIDATE
     ) OrbStage02VisualProfile.BASELINE else visualProfile
     val shaderOverlayAlpha = OrbInteriorOpticalField.shaderOverlayAlpha(
@@ -518,7 +525,37 @@ private fun OrbVisual(
             )
         }
     }
-    val sourceCoreAlpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)
+    val sourceCoreAlpha = 1f
+    SideEffect {
+        val bucket = sharedFrame.elapsedMs.coerceAtLeast(0L) / 250L
+        if (BuildConfig.DEBUG && lastRotationTraceBucket[0] != bucket) {
+            lastRotationTraceBucket[0] = bucket
+            val sample = OrbCoreRotationFieldV1.sample(sharedFrame.elapsedMs, .55f, reduceMotion)
+            val fields = mapOf(
+                "eventType" to "ORB_R03_ROTATION_SAMPLE",
+                "stage" to sceneFrame.stage.name,
+                "sceneElapsedMs" to sharedFrame.elapsedMs,
+                "rotationEnabled" to OrbCoreRotationFieldV1.ENABLED,
+                "rotationPhaseRadians" to sample.phaseRadians,
+                "rotationPeriodMs" to OrbCoreRotationFieldV1.PERIOD_MS,
+                "angularVelocityRadiansPerSecond" to sample.angularVelocityRadiansPerSecond,
+                "radialProfile" to sample.radiusNormalized,
+                "rotationDisplacementBudgetD" to sample.maxFlowDisplacementD,
+                "shaderRoute" to shaderRoute,
+                "shaderUpdateStatus" to shaderUpdateStatus.name,
+                "renderEffectAttached" to (appliedRenderEffect != null),
+                "uniformRevision" to shaderUniformRevisionForTrace,
+                "coreAlpha" to sourceCoreAlpha,
+                "fluidFlowStrength" to interiorField.wakeStrength,
+            )
+            onOrbRuntimeDiagnostics?.invoke(fields)
+            OrbStage02RenderTrace.record(
+                eventType = "ORB_R03_ROTATION_SAMPLE",
+                dataSource = "SCENE_CLOCK_PROFILE_AND_RUNTIME_STATUS",
+                fields = fields,
+            )
+        }
+    }
     val lastDiagnosticSnapshot = remember { arrayOfNulls<OrbCoreRenderDiagnosticSnapshot>(1) }
     SideEffect {
         val stageProgress = sceneFrame.stageProgress.coerceIn(0f, 1f)
@@ -659,7 +696,7 @@ private fun OrbVisual(
                 }
             }
         }
-        if (isMaxTransitionActive && r06Visible &&
+        if (residentTransmissionActive && r06Visible &&
             renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput
         ) OrbWaterLightRibbons(
             coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,

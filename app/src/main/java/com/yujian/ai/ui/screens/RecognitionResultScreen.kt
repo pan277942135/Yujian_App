@@ -1,7 +1,7 @@
 package com.yujian.ai.ui.screens
 
 import com.yujian.ai.BuildConfig
-import com.yujian.ai.ui.recognition.RecognitionDiagnosticExport
+import android.app.Activity
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -128,6 +128,9 @@ import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_CONS
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
 import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporter
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorder
+import com.yujian.ai.ui.recognition.diagnostics.recognitionEvidenceWindow
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.catches.CatchSaveMetadataParser
 import com.yujian.ai.feedback.FeedbackDraft
@@ -253,6 +256,7 @@ fun RecognitionResultScreen(
     onResultHandoffEvent: (RecognitionResultHandoffEvent) -> RecognitionResultHandoffReceipt = {
         RecognitionResultHandoffReceipt(false, "HANDOFF_EVENT_CONSUMER_UNAVAILABLE")
     },
+    recognitionEvidenceRecorder: RecognitionSessionEvidenceRecorder? = null,
     /** Injects one semantic frame in tests; production reads the shared scene controller. */
     sceneFrameOverrideForTest: RecognitionSceneFrame? = null,
     revealAlreadyPlayed: Boolean = false,
@@ -350,6 +354,8 @@ fun RecognitionResultScreen(
     var locationError by remember(prediction) { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var evidenceExportStatus by remember(revealHandoff?.key) { mutableStateOf("READY") }
+    var evidenceExportError by remember(revealHandoff?.key) { mutableStateOf<String?>(null) }
     val placeRecentStore = remember(context) { RecognitionPlaceRecentStore(context) }
     fun resolveCurrentLocation() {
         scope.launch {
@@ -488,7 +494,7 @@ fun RecognitionResultScreen(
     )
     val resultGeometryReady = revealPhotoIdentityMatches && photoTransitionGeometry != null &&
         heroSnapshot?.renderReady == true && revealTitleBounds?.isValid() == true && revealGeometry != null
-    val diagnosticUiAvailable = BuildConfig.DEBUG && diagnosticPlaybackController != null
+    val diagnosticUiAvailable = false
     val diagnosticManualActive = diagnosticUiAvailable &&
         diagnosticPlaybackController?.mode == ScenePlaybackMode.MANUAL
     val resultSceneIdentity = remember(visualHandoff?.key, image?.imageId, image?.bitmap?.generationId) {
@@ -621,6 +627,7 @@ fun RecognitionResultScreen(
     val diagnosticFrame = if (diagnosticPlaybackController != null && revealHandoff != null && image != null) {
         diagnosticPlaybackController.currentFrame(resultSceneIdentity, diagnosticNowMs, resultGeometryVersion, revealMotionPolicy.reduceMotion)
     } else null
+    val latestEvidenceResultFrame = rememberUpdatedState(diagnosticFrame ?: sceneFrameOverrideForTest)
     val diagnosticStage = diagnosticFrame?.stage ?: diagnosticPlaybackController?.currentStage ?: RecognitionSceneStage.ORB_RETURN
     LaunchedEffect(revealHandoff?.key, diagnosticStage, diagnosticDisplayMode, diagnosticPreviewCompleted, diagnosticUiAvailable) {
         if (diagnosticUiAvailable && diagnosticFrame != null) {
@@ -1003,6 +1010,15 @@ fun RecognitionResultScreen(
     Box(
         Modifier.fillMaxSize().drawWithContent {
             drawContent()
+            val evidenceFrame = latestEvidenceResultFrame.value
+            if (evidenceFrame != null) {
+                recognitionEvidenceRecorder?.onFramePresented(
+                    window = recognitionEvidenceWindow(context),
+                    frame = evidenceFrame,
+                    latestFrame = { latestEvidenceResultFrame.value },
+                    resultSceneStable = evidenceFrame.resultSceneStable,
+                )
+            }
             val handoff = revealHandoff
             val frameImageId = image?.imageId
             if (resultFirstFrameCallbackPosted.compareAndSet(false, true)) {
@@ -1010,6 +1026,13 @@ fun RecognitionResultScreen(
                     if (latestImageId.value == frameImageId && resultFirstPresentedAtMs.value == null) {
                         val presentedAtMs = SystemClock.uptimeMillis()
                         resultFirstPresentedAtMs.value = presentedAtMs
+                        latestEvidenceResultFrame.value?.let { frame ->
+                            recognitionEvidenceRecorder?.recordResultFirstPresented(
+                                sceneElapsedMs = frame.sceneElapsedMs,
+                                geometryVersion = frame.geometryVersion,
+                                resultIdentity = resultSnapshot?.glyphSpeciesKey ?: prediction.top1.speciesKey,
+                            )
+                        }
                         if (handoff == null) {
                             revealStartAllowed.value = false
                             Log.i(
@@ -1286,10 +1309,43 @@ fun RecognitionResultScreen(
                     }
                     else -> Unit
                 }
-                if (BuildConfig.DEBUG) TextButton(
-                    onClick = { scope.launch { RecognitionDiagnosticExport.share(context) } },
+                if (BuildConfig.DEBUG && recognitionEvidenceRecorder != null) TextButton(
+                    enabled = evidenceExportStatus != "EXPORTING",
+                    onClick = {
+                        evidenceExportStatus = "EXPORTING"
+                        evidenceExportError = null
+                        scope.launch {
+                            runCatching {
+                                val exported = RecognitionEvidenceZipExporter.export(
+                                    context,
+                                    recognitionEvidenceRecorder,
+                                )
+                                RecognitionEvidenceZipExporter.share(context, exported)
+                                exported
+                            }.onSuccess { exported ->
+                                evidenceExportStatus = "EXPORTED"
+                                Log.i(
+                                    "RecognitionEvidenceExport",
+                                    "status=EXPORTED sha256=${exported.sha256} sizeBytes=${exported.sizeBytes} " +
+                                        "sourceSha=${exported.sourceSha} integrity=${exported.integrityStatus}",
+                                )
+                            }.onFailure { failure ->
+                                evidenceExportStatus = "FAILED"
+                                evidenceExportError = failure.javaClass.simpleName
+                                Log.e("RecognitionEvidenceExport", "status=FAILED", failure)
+                            }
+                        }
+                    },
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                ) { Text("导出识别诊断日志") }
+                ) { Text("导出本次识鱼诊断包") }
+                if (BuildConfig.DEBUG && recognitionEvidenceRecorder != null) {
+                    Text(
+                        text = evidenceExportError?.let { "诊断包导出失败：$it" } ?: "诊断包状态：$evidenceExportStatus",
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        color = MutedInk,
+                        fontSize = 12.sp,
+                    )
+                }
                 Spacer(Modifier.height(20.dp))
             }
         }
