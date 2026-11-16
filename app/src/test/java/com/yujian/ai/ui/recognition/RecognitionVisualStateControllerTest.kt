@@ -69,6 +69,7 @@ class RecognitionVisualStateControllerTest {
         val controller = SceneMotionCoordinator()
         controller.beginNewSession(identity, debugBuild = true, nowMs = 0L)
         controller.markPhotoFirstFramePresented(identity, 100L)
+        controller.beginStepPreview(RecognitionSceneStage.PHOTO_STABLE, 100L)
         assertEquals(RecognitionSceneStage.ORB_WAKE, controller.advanceToNextStage(200L))
         assertEquals(RecognitionSceneStage.ORB_RELEASE, controller.advanceToNextStage(300L))
         assertEquals(RecognitionSceneStage.ORB_RELEASE, controller.currentStage)
