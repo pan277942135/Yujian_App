@@ -110,6 +110,7 @@ class RecognitionSceneFrameTest {
         playback.beginNewSession(identity, debugBuild = false, nowMs = 0L)
         playback.markPhotoFirstFramePresented(identity, 0L)
         playback.onOrbAnchorAvailable(true, identity)
+        playback.onPhotoTransformAvailable(true, identity, geometryVersion = 9L)
         assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(0L))
         assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(350L))
         assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(949L))
@@ -147,6 +148,7 @@ class RecognitionSceneFrameTest {
         playback.beginNewSession(identity, debugBuild = false, nowMs = 0L)
         playback.markPhotoFirstFramePresented(identity, 0L)
         playback.onOrbAnchorAvailable(true, identity)
+        playback.onPhotoTransformAvailable(true, identity, geometryVersion = 9L)
         assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(0L))
         assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(350L))
 
@@ -171,8 +173,13 @@ class RecognitionSceneFrameTest {
         val arrivalPath = WaterLightPathGeometryFactory.between(
             WaterLightPathPoint(200f, 24f), WaterLightPathPoint(200f, 220f), seed = 7,
         )!!
+        val arrivalPathId = "stage04-arrival:${identity.sessionId}:${identity.attemptId}:${identity.imageId}:9"
+        assertTrue(playback.onPerimeterArrivalPathAvailable(
+            arrivalPathId, arrivalPath, geometryVersion = 9L, currentIdentity = identity,
+        ))
         val ready = WaterLightEnergy.at(
             waterLightFrame(readyScene), trustedMask = false, pathGeometry = arrivalPath,
+            pathIdOverride = arrivalPathId,
         )!!
         assertEquals(EnergyFeedback.ARRIVE, ready.feedback)
         assertEquals("READY", ready.renderStatus)

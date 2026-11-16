@@ -17,6 +17,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -362,6 +363,7 @@ class RecognitionVisualStateControllerTest {
         )
         controller.onRevealDecisionReady(identity)
         controller.beginStepPreview(RecognitionSceneStage.PATH_TO_FISH, 200L)
+        controller.onOrbAnchorAvailable(true, identity)
 
         assertFalse(controller.onFishContactPathAvailable(
             pathId, nextMaskSha, 42L, geometryVersion, contact, identity,
@@ -415,26 +417,15 @@ class RecognitionVisualStateControllerTest {
 
         controller.beginStepPreview(RecognitionSceneStage.CONTOUR_A, 3_201L)
         controller.onPhotoTransformAvailable(true, identity, geometryVersion = geometryVersion + 1L)
-        assertEquals("WAITING_FOR_MASK_BOUND_PSTAR_ABSORB_EVENT", controller.modelGates.waitingReason)
+        assertEquals(RecognitionSceneStage.ORB_RETURN, controller.currentSceneStage(3_202L))
+        assertEquals("WAITING_FOR_RETURN_ENERGY_EVENT", controller.modelGates.waitingReason)
         assertFalse(controller.onFishContactPathAvailable(
             pathId, maskSha, 42L, geometryVersion, contact, identity,
         ))
         val nextGeometryPathId = pathId.replace(":$geometryVersion:mask:", ":${geometryVersion + 1L}:mask:")
-        assertTrue(controller.onFishContactPathAvailable(
+        assertFalse(controller.onFishContactPathAvailable(
             nextGeometryPathId, maskSha, 42L, geometryVersion + 1L, contact, identity,
         ))
-        val contourFrame = controller.currentFrame(identity, 6_201L, geometryVersion + 1L)
-        val contourEvent = event.copy(
-            level = .5f,
-            referenceMs = contourFrame.opticalReferenceElapsedMs,
-            geometryVersion = geometryVersion + 1L,
-            pathId = nextGeometryPathId,
-            eventSequence = contourFrame.eventSequence,
-            monotonicTimestampMs = contourFrame.monotonicTimestampMs,
-            stage = RecognitionSceneStage.CONTOUR_A,
-        )
-        assertTrue(controller.recordEnergyEvent(contourFrame, contourEvent))
-        assertEquals(null, controller.modelGates.waitingReason)
 
         controller.updateModelJoin(
             detectorReady = true,
@@ -449,6 +440,12 @@ class RecognitionVisualStateControllerTest {
         )
         assertFalse(controller.onFishContactPathAvailable(
             nextGeometryPathId, maskSha, 42L, geometryVersion + 1L, contact, identity,
+        ))
+        val nextMaskPathId = nextGeometryPathId.replace(
+            ":mask:${maskSha.take(16)}:42:", ":mask:${nextMaskSha.take(16)}:43:",
+        )
+        assertFalse(controller.onFishContactPathAvailable(
+            nextMaskPathId, nextMaskSha, 43L, geometryVersion + 1L, contact, identity,
         ))
     }
 
@@ -594,6 +591,7 @@ class RecognitionVisualStateControllerTest {
         controller.setResultGeometryState(SceneGeometryState.READY, 0L, identity, setOf(9L))
         controller.beginStepPreview(RecognitionSceneStage.SPECIES_NAME_REVEAL, 0L)
         controller.onGlyphAvailable(true, identity)
+        controller.onRevealDecisionReady(identity)
         controller.onSceneTransitionComplete(RecognitionSceneStage.SPECIES_NAME_REVEAL, identity)
         controller.playProductionTimeline(0L, 0L)
 

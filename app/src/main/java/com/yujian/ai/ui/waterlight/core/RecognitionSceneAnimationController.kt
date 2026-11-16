@@ -733,6 +733,13 @@ class RecognitionSceneAnimationController(
         currentIdentity: RecognitionSceneIdentity? = null,
     ): Boolean {
         if (!isCurrent(currentIdentity)) return false
+        if (revealDecisionState in setOf(
+                RecognitionRevealDecisionState.ORB_ONLY_READY,
+                RecognitionRevealDecisionState.STATIC_RESULT,
+                RecognitionRevealDecisionState.RECOGNITION_FAILED,
+                RecognitionRevealDecisionState.CANCELLED,
+            )
+        ) return false
         val activeIdentity = identity ?: return false
         val suppliedMaskSha = maskSha256.trim()
         val normalizedMaskSha = suppliedMaskSha.takeIf {
