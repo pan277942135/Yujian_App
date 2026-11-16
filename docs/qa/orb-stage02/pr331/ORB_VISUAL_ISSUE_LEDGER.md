@@ -51,3 +51,61 @@ Iteration 001 makes source-level progress but has no measured visual delta. Do n
 ## Iteration 002 — exact-head Control Plane Admission route
 
 The existing admission workflow was limited to `main` pushes and PRs targeting `main`; PR #332 targets `work/recognition-runtime-result-handoff-v1`, so its standalone admission job did not run. The existing workflow now also accepts `qa/**` pushes, allowing the final QA branch commit to run Control Plane Admission without changing the PR base or adding a workflow. The corresponding exact-head run is recorded in the delivery result.
+
+
+## Iteration 003 — Mainline exact-head regression and APK provenance
+
+**Main source baseline:** `e454e3af28e925a03ecf03d1ca2db37a61ff328c`  
+**Integrated sampling/trace fix:** `a0b7ac45e00e5ea86eb96c2c94f87b3e3c890569`  
+**Verification date:** 2026-11-16
+
+### Source reconciliation
+
+- Current remote `main` resolves to `e454e3af28e925a03ecf03d1ca2db37a61ff328c`.
+- PR #332 is CLOSED / MERGED; merge commit is the current Main HEAD. Do not reopen, cherry-pick, or re-integrate it.
+- Commit `a0b7ac45` is an ancestor of Main. Comparing `a0b7ac45...e454e3af` reports Main ahead by 6 commits and behind by 0.
+- PR #331 is CLOSED / UNMERGED; its Code Local evidence and implementation were integrated through PR #332. Do not treat PR #331 as an active merge target.
+- PR #333 is CLOSED / MERGED into the QA integration branch and its documentation commit is included in Main through PR #332.
+
+### Exact-head CI and build evidence
+
+- Android CI run: [43721682644](https://github.com/pan277942135/Yujian_App/actions/runs/43721682644), exact `head_sha=e454e3af28e925a03ecf03d1ca2db37a61ff328c`, conclusion SUCCESS.
+- Control Plane Admission run: [43721682719](https://github.com/pan277942135/Yujian_App/actions/runs/43721682719), exact Main HEAD, conclusion SUCCESS.
+- Android CI build job completed successfully. Its steps include Unit tests, Camera runtime harness contract tests, Debug APK assembly, Android runtime test APK compilation, packaged asset/model verification, model-trace export, Android lint, and Release Kotlin compilation; all listed steps completed successfully.
+- The Android runtime, Orb visual evidence, Fish optics API36 runtime, and Recognition Result Handoff API36 physical jobs were SKIPPED. This is not device/instrumentation or visual acceptance.
+
+### Exact Main Debug APK
+
+- Workflow artifact: [14164514683](https://github.com/pan277942135/Yujian_App/actions/runs/43721682644/artifacts/14164514683)
+- Artifact archive: `YuJian_Debug_e454e3af28e925a03ecf03d1ca2db37a61ff328c.zip`
+- APK: `app/build/outputs/apk/debug/YuJian-debug.apk`
+- APK bytes: `144408678`
+- APK SHA-256: `3645151d125f9eda48da45789d8cde99bd8f0c44a011afcd98b27c0038903696`
+- Embedded `apk_model_trace.json` reports `build_sha=e454e3af28e925a03ecf03d1ca2db37a61ff328c` and the same APK byte count and SHA-256.
+
+### Model inventory in the exact Main APK
+
+- Detector: `DET_FISH_v0.1`, input `[1,3,416,416]`, output `[1,3549,6]`, SHA-256 `12b97f7c081987f33f99d255cdd2e935fb9cf93b893146f54ff98b9c4e3a8e4f`.
+- Classifier: `MODEL_CROP_M1_v0.2`, 15 classes, input `[1,3,224,224]`, output `[1,15]`, SHA-256 `29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18`.
+- SlimSAM quantized ONNX encoder SHA-256: `cce23c7b2e5d4f330932738fb67ba518e04b0d99ccdd1cccd22a7da4e01f2971`.
+- SlimSAM quantized ONNX decoder SHA-256: `cb90b279f549d2cab7fd6e20c38522438c65d84bdcca3d2a764cff7d857fdce2`.
+- DET_FISH v0.3 is NOT present in this Main APK and must not be claimed as integrated.
+
+### DET_FISH v0.3 PR status
+
+- PR #329 remains OPEN / DRAFT at head `6e39db5f78f13d245aa2dbc880c9504f31e25f6a`.
+- Exact-head Android CI run [43176522155](https://github.com/pan277942135/Yujian_App/actions/runs/43176522155) reports build SUCCESS and device-run bundle preparation SUCCESS; the bundle job is not physical-device execution.
+- The PR body explicitly leaves physical inference, APK-internal v0.3 model SHA verification, Orientation Retry, BBox/Crop and Top1/Top5 acceptance pending.
+- Comparing current Main `e454e3af` with PR #329 head `6e39db5f` reports DIVERGED (44 commits ahead, 101 behind) and GitHub reports `mergeable_state=dirty`. Reconcile the branch against current Main before any merge decision; do not merge as-is.
+
+### Visual acceptance status
+
+- R03 GPU/pixel continuity: NOT DEVICE-VERIFIED.
+- R06 five-path per-path pixel contribution and human discernibility: NOT DEVICE-VERIFIED.
+- Stage02 AUTO production trace retention: source fix included; current-source device recapture pending.
+- Result Handoff / API36 physical runtime: NOT DEVICE-VERIFIED.
+- Keep `R03_VISUAL_PASS`, `R06_VISUAL_PASS`, `GPU_PIXEL_PASS`, and `DEVICE_PASS` unclaimed.
+
+### Next action
+
+Product owner installs the exact Main APK above on the existing HUAWEI CMS-AL20 / Android 16 (API36), captures a normal AUTO recognition recording plus the current-build Debug evidence ZIP, and supplies both for source-bound review. Do not start an Emulator or claim physical-device acceptance from CI/build evidence.
