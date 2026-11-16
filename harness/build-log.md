@@ -199,3 +199,25 @@
 - Next: obtain the declared Gradle distribution or an exact-head CI build, then record the actual Debug test/compile/package outcome and APK SHA-256 only if packaging succeeds.
 
 - Exact-head PR #320 run `42320179675` on `59e5c7b22c07ca512008b8376367126cf32df24f` passed control-plane admission after state isolation, but Android CI stopped in `verify_lake_glass_route_coverage.py`: `NavHost route mismatch; missing=['record_calendar']`. This is a pre-existing resource/route gate outside the dynamic Mask SHA-256 scope. Gradle, Kotlin tests, APK assembly, AndroidTest, device, and visual evidence remain `NOT_RUN` on this exact SHA.
+
+
+## 2026-11-16 — PR #335 + PR #336 Main integration admission checkpoint
+
+- Work ID: `YUJIAN_PR335_PR336_INTEGRATION_MAIN_APK_V1`; integration branch `integration/pr335-pr336-main-apk` starts from the exact PR #335 head `8ee42198afa9684ffb651964f505eeb59bc02af0`. Main remains `e454e3af28e925a03ecf03d1ca2db37a61ff328c`.
+- Re-verified PR #335 and PR #336 are Open/Draft/Unmerged; PR #336 exact head is `bc72263a9b6b9f2bd8d249768fdd55afd801f5a1` and its four-commit history is based on the same Main SHA.
+- PR #335 exact-head Android CI run [43878634104](https://github.com/pan277942135/Yujian_App/actions/runs/43878634104) succeeded, including Unit Tests, Runtime Harness, Debug APK, AndroidTest APK compilation, packaged resource/model checks, lint and Release Kotlin compile. Device/runtime jobs were skipped (`NOT_RUN`).
+- PR #335 Control Plane Admission run [43878634146](https://github.com/pan277942135/Yujian_App/actions/runs/43878634146) succeeded. PR #336 exact-head Android CI run [43845709918](https://github.com/pan277942135/Yujian_App/actions/runs/43845709918) succeeded; device/runtime jobs were skipped (`NOT_RUN`).
+- This local checkpoint updates only ignored branch-local Work state and this execution log; no product source has changed. Local admission is being rerun for the new integration branch. No Main merge, ADB, Emulator, or device execution has occurred.
+
+
+### Combined source checkpoint — `dbc5049d72c50061bf92a94ccb9c5f36d2d29905`
+
+- Merged PR #336's four original commits `fb3d2a0fffd64b355f245d50877dffcb8f2a37ec`, `ca05a2e77babfcf262019021f985b7735a9fd896`, `38099578a67674f8dced423e77b5db3d6f9fe738`, `bc72263a9b6b9f2bd8d249768fdd55afd801f5a1` into the integration branch whose first product parent is PR #335 exact HEAD `8ee42198afa9684ffb651964f505eeb59bc02af0`. The merge commit is `dbc5049d72c50061bf92a94ccb9c5f36d2d29905`; neither source PR branch was modified.
+- Resolved `MainActivity.kt`, `YujianApp.kt`, and `RecognitionVisualStateControllerTest.kt` manually. The combined wiring retains PR #335 evidence recording and `isNavigable` (including `STATIC_RESULT`), while adding PR #336's draw-receipt gates and Debug AUTO default.
+- Component CI runs are source-specific only; combined tests/build/CI remain `NOT_RUN` at this checkpoint. No model or frozen visual asset was changed; no ADB, Emulator, or device execution occurred.
+
+
+### Combined CI execution environment — `dbc5049d72c50061bf92a94ccb9c5f36d2d29905`
+
+- Local `./gradlew --version` stopped before Gradle startup because the wrapper could not reach `services.gradle.org` to fetch Gradle 9.3.1. This is `NOT_RUN_NETWORK_UNAVAILABLE`; no local JVM test or APK task ran. The Android environment was not rebuilt.
+- The integration tree is unchanged. Combined source tests and build gates will be evaluated by GitHub Actions at its exact source SHA; device jobs remain prohibited and will be recorded as `SKIPPED/NOT_RUN`, never PASS.

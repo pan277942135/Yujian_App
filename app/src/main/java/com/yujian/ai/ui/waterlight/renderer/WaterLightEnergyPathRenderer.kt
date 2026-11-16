@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.RecognitionTaskFilamentState
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
@@ -32,12 +33,14 @@ fun WaterLightEnergyPathRenderer(
     if (!current.matches(frame) || current.level <= 0f ||
         current.feedback !in setOf(EnergyFeedback.RELEASE, EnergyFeedback.ARRIVE, EnergyFeedback.ABSORB, EnergyFeedback.RETURN)
     ) return
+    val taskState = RecognitionTaskFilamentState.from(frame, current) ?: return
+    if (taskState.taskAlpha <= 0f || taskState.taskPathId != current.pathId) return
     val route = current.pathSegments.takeIf { it.isNotEmpty() }
         ?: listOfNotNull(current.pathGeometry)
     if (route.isEmpty() || route.any { !it.isValid() }) return
     val lengths = route.map(::approximateLength)
     val totalLength = lengths.sum().coerceAtLeast(1f)
-    val progress = current.level.coerceIn(0f, 1f)
+    val progress = taskState.taskAlpha
 
     Canvas(modifier.fillMaxSize()) {
         val visible = Path()

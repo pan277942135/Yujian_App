@@ -1,10 +1,16 @@
 package com.yujian.ai.ui.waterlight
 
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightPerimeterArrivalSnapshot
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometryFactory
 import com.yujian.ai.ui.waterlight.core.WaterLightPathLedger
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
+import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.ui.identify.NormalizedSourceRect
+import com.yujian.ai.ui.identify.RecognitionContentScaleMode
+import com.yujian.ai.ui.identify.RecognitionImageTransform
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPathGeometry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -193,6 +199,43 @@ class WaterLightPathLedgerTest {
         assertTrue(!recordFish(ledger, current, fish(), trusted = false))
         val route = ledger.returnRoute(current, trustedMask = false)!!
         assertEquals(1, route.segments.size)
+    }
+
+    @Test fun stage04ArrivalIsPhotoAndDetectorBoundWithoutMaskOrPStarIdentity() {
+        val current = frame(geometryVersion = -11L)
+        val release = release()
+        val ledger = WaterLightPathLedger()
+        assertTrue(ledger.recordRelease(current, release))
+        val transform = RecognitionImageTransform(
+            sourceWidthPx = 1_000,
+            sourceHeightPx = 800,
+            viewportWidthPx = 500f,
+            viewportHeightPx = 600f,
+            contentScaleMode = RecognitionContentScaleMode.FIT,
+            scale = .5f,
+            translationX = 0f,
+            translationY = 100f,
+            drawnWidth = 500f,
+            drawnHeight = 400f,
+            visibleSourceRect = NormalizedSourceRect(0f, 0f, 1f, 1f),
+        )
+        val path = requireNotNull(
+            RecognitionRevealPathGeometry.perimeterArrival(
+                transform,
+                NormalizedFishBox(.30f, .20f, .70f, .80f),
+                release.end,
+                seed = 99,
+            ),
+        )
+        assertTrue(ledger.recordPerimeterArrivalPath(current, path))
+        val arrival: WaterLightPerimeterArrivalSnapshot = requireNotNull(ledger.perimeterArrivalPath(current))
+        assertTrue(arrival.isValid())
+        assertEquals(release.end, arrival.geometry.start)
+        assertTrue(arrival.geometry.end.x in 0f..500f)
+        assertTrue(arrival.geometry.end.y in 100f..500f)
+        assertTrue(arrival.pathId.endsWith(":arrival"))
+        assertNull(ledger.fishPath(current, maskShaA, 42L, contactA))
+        assertNull(ledger.pathId(current, maskShaA, 42L, contactA))
     }
 
     @Test fun signedGeometryFingerprintIsAcceptedButZeroRemainsTheUnmeasuredSentinel() {

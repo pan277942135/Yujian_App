@@ -70,6 +70,24 @@ data class RecognitionSceneStageTraceEntry(
     val activeDurationMs: Long get() = (stageDurationMs - gateWaitDurationMs).coerceAtLeast(0L)
 }
 
+enum class RecognitionSceneStageEventAction { ENTERED, EXITED, BLOCKED }
+
+/** Controller-authored event. Screens may consume it, but never infer stage changes themselves. */
+data class RecognitionSceneStageEvent(
+    val action: RecognitionSceneStageEventAction,
+    val stage: RecognitionSceneStage,
+    val sceneElapsedMs: Long,
+    val stageElapsedMs: Long,
+    val stageProgress: Float,
+    val geometryVersion: Long,
+    val playbackMode: ScenePlaybackMode,
+    val modelGates: RecognitionSceneModelGates,
+    val waitingReason: String?,
+    val eventSequence: Long,
+    val sessionId: String,
+    val attemptId: String,
+)
+
 data class RecognitionSceneFrame(
     val identity: RecognitionSceneIdentity,
     val sceneElapsedMs: Long,
@@ -90,6 +108,8 @@ data class RecognitionSceneFrame(
     val resultHandoffSubstage: ResultHandoffSubstage? = null,
     val resultInfoArrivalProgress: Float = 0f,
     val resultSceneStable: Boolean = false,
+    val taskEnergyMerged: Boolean = false,
+    val orbToGlyphAccepted: Boolean = false,
 ) {
     init {
         require(sceneElapsedMs >= 0L && opticalReferenceElapsedMs >= 0L && stageElapsedMs >= 0L)
@@ -124,6 +144,8 @@ object RecognitionSceneCoordinator {
         resultHandoffSubstage: ResultHandoffSubstage? = null,
         resultInfoArrivalProgress: Float = 0f,
         resultSceneStable: Boolean = false,
+        taskEnergyMerged: Boolean = false,
+        orbToGlyphAccepted: Boolean = false,
     ): RecognitionSceneFrame = RecognitionSceneFrame(
         identity = identity,
         sceneElapsedMs = sceneElapsedMs.coerceAtLeast(0L),
@@ -143,6 +165,8 @@ object RecognitionSceneCoordinator {
         resultHandoffSubstage = resultHandoffSubstage,
         resultInfoArrivalProgress = resultInfoArrivalProgress.coerceIn(0f, 1f),
         resultSceneStable = resultSceneStable,
+        taskEnergyMerged = taskEnergyMerged,
+        orbToGlyphAccepted = orbToGlyphAccepted,
     )
 }
 

@@ -60,7 +60,8 @@ class OrbGrassFrozenAssetsV11Test {
         assertEquals(1, Regex("painterResource\\(R\\.drawable\\.processing_water_core_v1\\)").findAll(core).count())
         assertFalse("The old synthetic grass sheet would duplicate baked leaves", core.contains("WaterGrassField"))
         assertTrue(core.contains("val corePainter = painterResource(R.drawable.processing_water_core_v1)"))
-        assertTrue(core.contains("val sourceCoreAlpha = (1f - orbEnergyDepletion + .22f * returnEnergy).coerceIn(0f, 1f)"))
+        assertTrue(core.contains("val sourceCoreAlpha = 1f"))
+        assertFalse(core.contains("orbEnergyDepletion"))
         assertTrue(core.contains("alpha = sourceCoreAlpha"))
         assertEquals("source energy alpha is applied once on the shared group",
             1, Regex("alpha = sourceCoreAlpha").findAll(core).count())

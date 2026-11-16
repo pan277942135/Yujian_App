@@ -6,6 +6,14 @@ uniform shader maskFrontF2;
 uniform float2 surfaceSize;
 uniform float maskSize;
 uniform float sceneSeconds;
+uniform float rotationEnabled;
+uniform float rotationDirection;
+uniform float rotationPeriodSeconds;
+uniform float rotationCenterOmega;
+uniform float rotationEdgeOmega;
+uniform float rotationRadialFalloff;
+uniform float rotationStrength;
+uniform float rotationDisplacementMaxD;
 uniform float visibleDiameterRatio;
 uniform float flowScaleA;
 uniform float flowScaleB;
@@ -69,6 +77,28 @@ float2 maxWakeFlow(float2 uv, float phase) {
     return flow / max(length(flow), 0.00001);
 }
 
+float2 rotateCoreSampleCoord(float2 coord, float2 uv, float visibleDpx) {
+    if (rotationEnabled < 0.5 || visibleDpx <= 0.0) return coord;
+    float2 d = uv - float2(0.5);
+    float radius = length(d);
+    if (radius <= 0.00001) return coord;
+    float radial = clamp(radius / 0.5, 0.0, 1.0);
+    float radialProfile = pow(radial, max(rotationRadialFalloff, 0.1));
+    float omega = mix(rotationCenterOmega, rotationEdgeOmega, radialProfile);
+    float periodOmega = 6.28318530718 / max(rotationPeriodSeconds, 0.001);
+    // Center/edge omega are authoritative; periodOmega normalizes the profile's phase domain.
+    float angle = rotationDirection * omega * sceneSeconds * rotationStrength;
+    angle *= clamp(periodOmega / max(rotationCenterOmega, 0.0001), 0.0, 2.0);
+    float edgeFade = 1.0 - smoothstep(0.78, 1.0, radial);
+    angle *= edgeFade;
+    float c = cos(angle);
+    float s = sin(angle);
+    float2 rotated = float2(d.x * c - d.y * s, d.x * s + d.y * c);
+    // Pure angular remapping preserves radius and the source alpha silhouette.
+    float2 outCoord = (float2(0.5) + rotated) * surfaceSize;
+    return boundedCoord(outCoord);
+}
+
 half4 baselineOpticalSample(float2 safeCoord, half4 base, float baseAlpha);
 
 half4 main(float2 coord) {
@@ -95,7 +125,8 @@ half4 main(float2 coord) {
         float2 wakeCoord = boundedCoord(safeCoord + wakeOffset);
         // Displacement sets the sample location; interiorMix gates only the dynamic
         // layer's final contribution. Applying it to both would attenuate motion twice.
-        float2 finalCoord = wakeCoord;
+        float2 rotatedCoord = rotateCoreSampleCoord(safeCoord, uvMax, visibleDpxMax);
+        float2 finalCoord = boundedCoord(rotatedCoord + (wakeCoord - safeCoord));
         half4 finalSample = inputImage.eval(finalCoord);
         float finalSampleAlpha = clamp(float(finalSample.a), 0.0, 1.0);
         float mixWeight = clamp(maxInteriorMix, 0.0, 0.92) * interiorMask;
@@ -139,7 +170,13 @@ half4 baselineOpticalSample(float2 safeCoord, half4 base, float baseAlpha) {
     float displacementLength = length(displacement);
     if (displacementLength > maxDisplacementPx) displacement *= maxDisplacementPx / displacementLength;
 
-    float2 refractedCoord = boundedCoord(safeCoord + displacement);
+    float2 rotatedCoord = rotateCoreSampleCoord(safeCoord, uv, visibleDpx);
+    float maxProfileDisplacementPx = visibleDpx * min(rotationDisplacementMaxD, flowMaxDisplacementD + refractionMaxDisplacementD);
+    float profileDisplacementLength = length(displacement);
+    if (profileDisplacementLength > maxProfileDisplacementPx) {
+        displacement *= maxProfileDisplacementPx / max(profileDisplacementLength, 0.0001);
+    }
+    float2 refractedCoord = boundedCoord(rotatedCoord + displacement);
     float refractedLeaf = leafCoverage(refractedCoord);
     float waterRegion = (1.0 - smoothstep(0.02, 0.98, leaf)) *
         (1.0 - smoothstep(0.02, 0.35, refractedLeaf));

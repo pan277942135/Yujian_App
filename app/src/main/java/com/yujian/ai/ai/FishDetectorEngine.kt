@@ -63,6 +63,8 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val selectionReason: String = "ORIGINAL_ASSESSMENT_PRESERVED",
         val attemptTrace: List<DetectorAttemptTrace> = emptyList(),
         val retryPolicyVersion: String = ORIENTATION_RETRY_POLICY_VERSION,
+        val inputTensorShape: List<Int> = emptyList(),
+        val outputTensorShape: List<Int> = emptyList(),
     )
 
     private data class PreparedInput(
@@ -207,10 +209,12 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val prepared = prepareInput(bitmap, model.inputSize)
         val shape = longArrayOf(1, 3, model.inputSize.toLong(), model.inputSize.toLong())
 
+        var outputShape = emptyList<Int>()
         val rows = OnnxTensor.createTensor(environment, prepared.buffer.asFloatBuffer(), shape).use { tensor ->
             session.run(mapOf(model.inputName to tensor)).use { result ->
                 val output = result[0] as? OnnxTensor
                     ?: error("DET_FISH_v0.1 输出不是 FLOAT tensor")
+                outputShape = output.info.shape.map { it.toInt() }
                 materializeRows(output.value)
             }
         }
@@ -232,6 +236,8 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
             inputDrawHeight = prepared.drawHeight,
             latencyMs = (System.nanoTime() - attemptStarted) / 1_000_000,
             detections = detections,
+            inputTensorShape = shape.map { it.toInt() },
+            outputTensorShape = outputShape,
         )
     }
 

@@ -84,21 +84,25 @@ class RecognitionSceneFrameTest {
         assertEquals(1f, RecognitionSceneTimelineProjection.photoEntryProgress(0L, settled = true), 0f)
     }
 
-    @Test fun newDebugSessionWaitsForRealPhotoFrameThenStaysManualPastThirtySeconds() {
+    @Test fun debugAndReleaseSessionsBothStartInAutoAndWaitForTheRealPhotoFrame() {
         val playback = SceneMotionCoordinator()
         playback.beginNewSession(identity, debugBuild = true, nowMs = 1_000L)
-        assertEquals(ScenePlaybackMode.MANUAL, playback.mode)
+        assertEquals(ScenePlaybackMode.AUTO, playback.mode)
         assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
-        assertEquals(0L, playback.previewElapsedMs(31_000L))
+        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentSceneStage(31_000L))
+        assertEquals(0L, playback.sceneElapsedMs(31_000L))
         assertFalse(playback.canControl())
 
         assertTrue(playback.markPhotoFirstFramePresented(identity, 40_000L))
-        assertEquals(0L, playback.previewElapsedMs(40_000L))
-        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentSceneStage(70_000L))
-        assertTrue(playback.previewCompleted)
-        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.advanceToNextStage(70_000L))
+        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(40_000L))
+        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(70_000L))
+        assertFalse(playback.previewCompleted)
+        assertEquals(null, playback.advanceToNextStage(70_000L))
         assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentStage)
-        assertEquals(0L, playback.previewElapsedMs(70_000L))
+
+        val releasePlayback = SceneMotionCoordinator()
+        releasePlayback.beginNewSession(identity.copy(sessionId = "release"), debugBuild = false, nowMs = 1_000L)
+        assertEquals(ScenePlaybackMode.AUTO, releasePlayback.mode)
     }
 
     @Test fun productionStageDoesNotAdvanceUntilTheRenderedReleaseEventCompletes() {
@@ -106,6 +110,7 @@ class RecognitionSceneFrameTest {
         playback.beginNewSession(identity, debugBuild = false, nowMs = 0L)
         playback.markPhotoFirstFramePresented(identity, 0L)
         playback.onOrbAnchorAvailable(true, identity)
+        playback.onPhotoTransformAvailable(true, identity, geometryVersion = 9L)
         assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(0L))
         assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(350L))
         assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(949L))
@@ -143,6 +148,7 @@ class RecognitionSceneFrameTest {
         playback.beginNewSession(identity, debugBuild = false, nowMs = 0L)
         playback.markPhotoFirstFramePresented(identity, 0L)
         playback.onOrbAnchorAvailable(true, identity)
+        playback.onPhotoTransformAvailable(true, identity, geometryVersion = 9L)
         assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentSceneStage(0L))
         assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentSceneStage(350L))
 
@@ -154,7 +160,7 @@ class RecognitionSceneFrameTest {
         assertTrue(playback.recordEnergyEvent(releaseScene, release))
         assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(950L))
         playback.onDetectorTargetAvailable(true, identity)
-        playback.onPhotoTransformAvailable(true, identity)
+        playback.onPhotoTransformAvailable(true, identity, geometryVersion = 9L)
 
         val pendingScene = playback.currentFrame(identity, 1_074L, 9L)
         val pending = WaterLightEnergy.at(waterLightFrame(pendingScene), trustedMask = false)!!
@@ -167,8 +173,13 @@ class RecognitionSceneFrameTest {
         val arrivalPath = WaterLightPathGeometryFactory.between(
             WaterLightPathPoint(200f, 24f), WaterLightPathPoint(200f, 220f), seed = 7,
         )!!
+        val arrivalPathId = "stage04-arrival:${identity.sessionId}:${identity.attemptId}:${identity.imageId}:9"
+        assertTrue(playback.onPerimeterArrivalPathAvailable(
+            arrivalPathId, arrivalPath, geometryVersion = 9L, currentIdentity = identity,
+        ))
         val ready = WaterLightEnergy.at(
             waterLightFrame(readyScene), trustedMask = false, pathGeometry = arrivalPath,
+            pathIdOverride = arrivalPathId,
         )!!
         assertEquals(EnergyFeedback.ARRIVE, ready.feedback)
         assertEquals("READY", ready.renderStatus)

@@ -17,6 +17,7 @@ import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
+import com.yujian.ai.ui.recognition.reveal.RecognitionMaskIntegrity
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionSubjectGeometrySnapshot
 import com.yujian.ai.ui.waterlight.mask.WaterLightMaskAdapter
@@ -137,7 +138,10 @@ class RecognitionSubjectAttemptRunner(
         val metadata = result.geometry ?: return null
         if (!metadata.matches(sessionId, attemptId, image.imageId, image.photoSha256,
                 image.bitmap.width, image.bitmap.height)) return null
-        val bitmap = BitmapFactory.decodeFile(result.bitmapPath ?: return null) ?: return null
+        val maskFile = java.io.File(result.bitmapPath ?: return null)
+        val actualMaskSha256 = RecognitionMaskIntegrity.sha256File(maskFile) ?: return null
+        if (!RecognitionMaskIntegrity.matches(result.maskSha256, metadata.maskSha256, actualMaskSha256)) return null
+        val bitmap = BitmapFactory.decodeFile(maskFile.absolutePath) ?: return null
         try {
             if (bitmap.width != result.roiWidth || bitmap.height != result.roiHeight ||
                 bitmap.width != metadata.roiPx.width() || bitmap.height != metadata.roiPx.height()) return null

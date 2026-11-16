@@ -104,15 +104,22 @@ def main() -> None:
           "normalize(bezierTangent" in shader and "clamp(coord - displacement * surfaceSize" in shader,
           "local normal bending clamps the single original Core sample to its source bounds")
     path_math = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentPathMathV1.kt").read_text()
-    check("localRelease -> OrbFilamentPathMathV1.localReleaseMovementForStage(" in renderer and
-          "spec, sceneMs, sceneFrame.stage, sceneFrame.stageProgress" in renderer and
-          "movement(spec, opticalMs, frame.reducedMotion, event, eventStartMs)" in renderer and
-          "stage != RecognitionSceneStage.ORB_RELEASE" in path_math and
-          "releaseOffset(stage, progress, peakArcFraction)" in path_math and
-          "R06_MAX_EXTENSION_DP / (pathLengthD * diameterDp)" in
-          path_math and
+    task_ledger = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/core/WaterLightPathLedger.kt").read_text()
+    task_renderer = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/WaterLightEnergyPathRenderer.kt").read_text()
+    task_state = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionTaskFilamentState.kt").read_text()
+    recognizing_screen = (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt").read_text()
+    check("OrbResidentFilamentMotionV1.role(spec.id) != OrbFilamentRole.RESIDENT_AMBIENT" in renderer and
+          "OrbResidentFilamentMotionV1.transformLut(spec, lut, sceneMs, frame.reducedMotion)" in renderer and
+          "Task EnergyEvent is deliberately excluded from resident path movement." in renderer and
+          "localReleaseMovementForStage(" not in renderer and
+          "class WaterLightPathLedger" in task_ledger and
+          "WaterLightEnergyPathRenderer(" in recognizing_screen and
+          "RecognitionTaskFilamentState.from(frame, current)" in task_renderer and
+          all(field in task_state for field in ("taskPathId", "pStarPathId", "sessionId", "attemptId",
+                                                 "imageId", "maskSha256", "geometryVersion", "eventSequence")) and
+          "current.matches(frame)" in task_renderer and
           all(token not in shader for token in ("R01_grass_back.svg", "R01_grass_front.svg")),
-          "R06 release is stage-local, split from continuous motion, and revoked SVGs are absent")
+          "resident R06 motion is independent of task release/return; task routes retain their own ledger and renderer")
     for parameter in ("R06_ALPHA_GAIN = 1.28f", "R06_ALPHA_CAP = .82f",
                       "R06_MOVING_HIGHLIGHT_GAIN = 1.15f", "R06_RELEASE_HEAD_BRIGHTNESS_GAIN = 1.18f",
                       "R06_MAX_EXTENSION_DP = 14f"):

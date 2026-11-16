@@ -19,6 +19,12 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
+import android.os.Handler
+import android.os.Looper
+import java.util.concurrent.atomic.AtomicBoolean
+import com.yujian.ai.ui.recognition.reveal.RecognitionOrbCoreDissolveReceipt
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
@@ -52,6 +58,8 @@ internal fun RecognitionRevealOpticalOverlay(
     material: WaterLightMaterialProfile = WaterLightMaterialProfile.HANDOFF,
     energyEvent: EnergyEvent? = null,
     waterLightFrame: WaterLightFrame? = null,
+    sceneIdentity: RecognitionSceneIdentity? = null,
+    onOrbCoreDissolveRendered: ((RecognitionOrbCoreDissolveReceipt) -> Unit)? = null,
 ) {
     val frame = frameState.value
     val sourceBitmap = bitmap ?: return
@@ -449,6 +457,8 @@ internal fun RecognitionRevealOpticalOverlay(
 
         }
     }
+    val orbCoreDissolveReceiptSent = remember(handoff.key, sceneIdentity) { AtomicBoolean(false) }
+    val orbCoreDissolveHandler = remember { Handler(Looper.getMainLooper()) }
     val orbCenter = handoff.processingOrbCenterInWindow?.let { anchor ->
         activeRevealGeometry?.rootWindowOrigin?.let { origin ->
             (anchor.x - origin.x) to (anchor.y - origin.y)
@@ -461,6 +471,7 @@ internal fun RecognitionRevealOpticalOverlay(
         val coreSize = with(density) { orbDiameterPx.toDp() }
         val outerSizePx = with(density) { (coreSize + 28.dp).toPx() }
         val morph = if (frame.stage == RecognitionSceneStage.ORB_TO_NAME) frame.orbHorizontalStretchProgress.coerceIn(0f, 1f) else 0f
+        val orbCoreAlpha = 1f - morph
         AIOrbCore(
             state = AIOrbVisualState.ORB_ACTIVE,
             modifier = Modifier.offset {
@@ -468,13 +479,27 @@ internal fun RecognitionRevealOpticalOverlay(
                     (orbCenter.first - outerSizePx / 2f).roundToInt(),
                     (orbCenter.second - outerSizePx / 2f).roundToInt(),
                 )
+            }.drawWithContent {
+                drawContent()
+                if (frame.stage == RecognitionSceneStage.ORB_TO_NAME && morph >= .999f &&
+                    orbCoreAlpha <= .001f && sceneIdentity != null &&
+                    orbCoreDissolveReceiptSent.compareAndSet(false, true)
+                ) {
+                    val receipt = RecognitionOrbCoreDissolveReceipt(
+                        identity = sceneIdentity,
+                        stage = frame.stage,
+                        horizontalStretchProgress = morph,
+                        coreAlpha = orbCoreAlpha,
+                        drawPassSequence = 1L,
+                    )
+                    orbCoreDissolveHandler.post { onOrbCoreDissolveRendered?.invoke(receipt) }
+                }
             }.graphicsLayer {
-                // This remains the same measured Processing Orb; it stretches and
-                // releases its material toward the Glyph instead of being replaced by an oval.
+                // Preserve the measured Processing Orb while it stretches, then let its core dissolve completely into the Glyph path.
                 transformOrigin = TransformOrigin.Center
                 scaleX = 1f + .62f * morph
                 scaleY = 1f - .32f * morph
-                alpha = 1f - .35f * morph
+                alpha = orbCoreAlpha
             },
             coreSize = coreSize,
             entranceElapsedMs = 900L,

@@ -10,6 +10,7 @@ import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
+import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 
 data class RecognitionRevealKey(
     val recognitionSessionId: String,
@@ -136,6 +137,7 @@ object RecognitionRevealHandoffFactory {
         handoffTimestampUptimeMs: Long,
         subjectStatus: SubjectStatus = if (subject == null) SubjectStatus.FAILED else SubjectStatus.READY,
         fishPathSnapshot: RecognitionFishPathSnapshot? = null,
+        pStarPathTerminalUnavailable: Boolean = false,
     ): RecognitionRevealHandoff {
         val key = RecognitionRevealKey(recognitionSessionId, recognitionAttemptId)
         val primary = result.assessment.primary
@@ -154,14 +156,6 @@ object RecognitionRevealHandoffFactory {
             photoSha256 = image.photoSha256,
         )
         val maskTrusted = geometryTrust == RecognitionGeometryTrustState.TRUSTED_MASK
-        val decision = RecognitionRevealDecisionGate.decide(
-            classifier = if (result.ready) RecognitionClassifierTaskState.READY else RecognitionClassifierTaskState.FAILED,
-            subject = subjectStatus,
-            maskTrusted = maskTrusted,
-            contourValid = subject?.contour?.isNotEmpty() == true,
-            identityCurrent = recognitionSessionId.isNotBlank() && recognitionAttemptId.isNotBlank() &&
-                image.imageId.isNotBlank() && image.photoSha256.isNotBlank(),
-        )
         val photo = processingPhoto?.takeIf {
             it.imageId == image.imageId &&
                 it.viewportBoundsInWindow.isValid() &&
@@ -203,14 +197,6 @@ object RecognitionRevealHandoffFactory {
         val resultIdentity = result.prediction?.top1?.speciesKey?.takeIf(String::isNotBlank)
         val identityValid = resultIdentity != null &&
             result.prediction?.top1?.speciesName?.isNotBlank() == true
-        val eligibility = RecognitionRevealPolicy.eligibility(
-            resultReady = result.ready,
-            identityValid = identityValid,
-            highConfidenceResult = highConfidenceResult,
-            geometryTrust = geometryTrust,
-            processingPhotoValid = photo != null,
-            anchorValid = anchor != null && orbAnchor != null,
-        )
         val contour = if (maskTrusted) subject?.contour?.toList().orEmpty() else emptyList()
         val subjectBox = if (maskTrusted) subject?.subjectBox else null
         val validFishPathSnapshot = fishPathSnapshot?.takeIf { snapshot ->
@@ -224,6 +210,36 @@ object RecognitionRevealHandoffFactory {
                     com.yujian.ai.ui.waterlight.core.WaterLightPathPoint(it.x, it.y)
                 }
         }
+        val contourClosed = maskTrusted && subject?.contour?.lastOrNull()?.closesContour == true
+        val pStarCandidateValid = maskTrusted && photo != null && anchorSource != null &&
+            RecognitionRevealPathGeometry.fishContact(
+                transform = photo.sourceToViewport,
+                contactPointNormalizedSource = WaterLightPathPoint(anchorSource.x, anchorSource.y),
+                seed = recognitionSessionId.hashCode() xor image.imageId.hashCode(),
+            ) != null
+        val decision = RecognitionRevealDecisionGate.decide(
+            classifier = if (result.ready) RecognitionClassifierTaskState.READY else RecognitionClassifierTaskState.FAILED,
+            subject = subjectStatus,
+            maskTrusted = maskTrusted,
+            contourValid = subject?.contour?.isNotEmpty() == true,
+            identityCurrent = recognitionSessionId.isNotBlank() && recognitionAttemptId.isNotBlank() &&
+                image.imageId.isNotBlank() && image.photoSha256.isNotBlank(),
+            contourClosed = contourClosed,
+            pStarPathReady = pStarCandidateValid,
+            pStarPathTerminalUnavailable = pStarPathTerminalUnavailable ||
+                (maskTrusted && contourClosed && photo != null && !pStarCandidateValid),
+            highConfidenceResult = highConfidenceResult,
+        )
+        val eligibility = RecognitionRevealPolicy.eligibility(
+            resultReady = result.ready,
+            identityValid = identityValid,
+            highConfidenceResult = highConfidenceResult,
+            geometryTrust = geometryTrust,
+            processingPhotoValid = photo != null,
+            anchorValid = anchor != null && orbAnchor != null,
+            contourClosed = contourClosed,
+            pStarPathValid = pStarCandidateValid && validFishPathSnapshot != null,
+        )
 
         return RecognitionRevealHandoff(
             key = key,
