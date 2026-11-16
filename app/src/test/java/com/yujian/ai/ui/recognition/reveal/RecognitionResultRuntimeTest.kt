@@ -115,6 +115,24 @@ class RecognitionResultRuntimeTest {
     }
 
     @Test
+    fun orbCoreDissolveReceiptRequiresTheCurrentAttemptFullStretchAndCompletedDraw() {
+        val identity = RecognitionSceneIdentity("session", "attempt", "image", "photo-sha", 1L)
+        val complete = RecognitionOrbCoreDissolveReceipt(
+            identity = identity,
+            stage = RecognitionSceneStage.ORB_TO_NAME,
+            horizontalStretchProgress = 1f,
+            coreAlpha = 0f,
+            drawPassSequence = 1L,
+        )
+        assertTrue(RecognitionOrbCoreDissolveContract.isComplete(identity, complete))
+        assertFalse(RecognitionOrbCoreDissolveContract.isComplete(identity.copy(attemptId = "old-attempt"), complete))
+        assertFalse(RecognitionOrbCoreDissolveContract.isComplete(identity, complete.copy(horizontalStretchProgress = .98f)))
+        assertFalse(RecognitionOrbCoreDissolveContract.isComplete(identity, complete.copy(coreAlpha = .35f)))
+        assertFalse(RecognitionOrbCoreDissolveContract.isComplete(identity, complete.copy(drawPassSequence = 0L)))
+        assertFalse(RecognitionOrbCoreDissolveContract.isComplete(identity, complete.copy(stage = RecognitionSceneStage.ORB_RETURN)))
+    }
+
+    @Test
     fun resultDetailsStayHiddenUntilTheAcceptedInfoArrivalMilestone() {
         val beforeInfo = setOf(
             ResultHandoffSubstage.NAME_STABLE,
