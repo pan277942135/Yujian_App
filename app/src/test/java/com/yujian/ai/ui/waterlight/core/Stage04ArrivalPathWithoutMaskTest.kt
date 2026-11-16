@@ -6,6 +6,9 @@ import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPathGeometry
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphBounds
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathDescriptor
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -124,7 +127,26 @@ class Stage04ArrivalPathWithoutMaskTest {
         assertEquals(RecognitionSceneStage.CONTOUR_C, fixture.controller.currentSceneStage(3_100L))
         assertEquals(RecognitionSceneStage.FISH_GOLD_PEAK, fixture.controller.currentSceneStage(3_550L))
         fixture.controller.onFishGoldComplete(true, fixture.identity)
-        fixture.controller.onGlyphAvailable(true, fixture.identity)
+        val glyphDescriptor = RecognitionGlyphPathDescriptor(
+            identity = fixture.identity,
+            speciesKey = "yellow_catfish",
+            speciesName = "黄颡鱼",
+            pathId = "glyph:${fixture.identity.attemptId}:yellow_catfish",
+            geometryVersion = fixture.geometryVersion,
+            expectedCharacterCount = 3,
+            builtCharacterCount = 3,
+            contourCount = 18,
+            totalPathLengthPx = 421f,
+            bounds = RecognitionGlyphBounds(0f, 0f, 120f, 42f),
+        )
+        fixture.controller.onGlyphPathReady(
+            RecognitionGlyphReadiness(
+                speciesResultReady = true,
+                glyphPathReady = true,
+                descriptor = glyphDescriptor,
+            ),
+            fixture.identity,
+        )
         fixture.controller.setResultGeometryState(
             SceneGeometryState.READY,
             nowMs = 3_550L,
