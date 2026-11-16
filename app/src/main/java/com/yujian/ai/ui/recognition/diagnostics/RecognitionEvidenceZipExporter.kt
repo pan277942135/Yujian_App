@@ -12,12 +12,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.security.MessageDigest
 import java.util.zip.ZipEntry
-import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 data class RecognitionEvidenceZipExportResult(
@@ -105,7 +103,18 @@ object RecognitionEvidenceZipExporter {
                     zip.closeEntry()
                 }
             }
-            verifyArchive(archive, fileHashes)
+            val expectedFileHashes = buildMap {
+                val keys = fileHashes.keys()
+                while (keys.hasNext()) {
+                    val path = keys.next()
+                    put(path, fileHashes.getString(path))
+                }
+            }
+            RecognitionEvidenceArchiveVerifier.verify(
+                archive,
+                expectedFileHashes,
+                File(attemptDirectory, "manifest.json").readBytes(),
+            )
             val archiveHash = sha256(archive)
             File(diagnosticDir, archive.name + ".sha256").writeText("$archiveHash  ${archive.name}\n", Charsets.UTF_8)
             RecognitionEvidenceZipExportResult(
@@ -235,25 +244,37 @@ object RecognitionEvidenceZipExporter {
         val hasEvents = files.any { it.name == "recognition_events.jsonl" && it.length() > 0L }
         val hasStages = files.any { it.name == "stage_timeline.jsonl" && it.length() > 0L }
         val enteredStages = summary.optJSONArray("stageStatuses") ?: JSONArray()
-        val successfulEntries = buildSet {
-            for (i in 0 until captureIndex.length()) {
-                val row = captureIndex.optJSONObject(i) ?: continue
-                if (row.optString("captureType") == "STAGE_ENTRY" && row.optString("pixelCopyStatus") == "SUCCESS") {
-                    add(row.optString("stage"))
-                }
+        val stageSnapshots = buildList {
+            for (i in 0 until enteredStages.length()) {
+                val row = enteredStages.optJSONObject(i) ?: continue
+                add(RecognitionEvidenceStageSnapshot(row.optString("stage"), row.optString("status")))
             }
         }
-        var missingEntry = false
-        for (i in 0 until enteredStages.length()) {
-            val row = enteredStages.optJSONObject(i) ?: continue
-            if (row.optString("status") in setOf("ENTERED", "COMPLETED", "BLOCKED") &&
-                row.optString("stage") !in successfulEntries
-            ) missingEntry = true
+        val captures = buildList {
+            for (i in 0 until captureIndex.length()) {
+                val row = captureIndex.optJSONObject(i) ?: continue
+                add(
+                    RecognitionEvidenceCaptureSnapshot(
+                        stage = row.optString("stage"),
+                        captureType = row.optString("captureType"),
+                        pixelCopyStatus = row.optString("pixelCopyStatus"),
+                    ),
+                )
+            }
         }
-        return if (
-            !hasEvents || !hasStages || missingEntry || summary.optInt("screenshotFailureCount") > 0 ||
-            queue.droppedCriticalEvents > 0 || queue.writeFailures > 0 || queue.incompleteReasons.isNotEmpty()
-        ) "EVIDENCE_INCOMPLETE" else "COMPLETE"
+        val failures = RecognitionEvidenceIntegrityPolicy.incompleteReasons(
+            hasEventLog = hasEvents,
+            hasStageLog = hasStages,
+            nonEmptyFileNames = files.filter { it.length() > 0L }.map(File::getName).toSet(),
+            stageStatuses = stageSnapshots,
+            captures = captures,
+            screenshotFailureCount = summary.optInt("screenshotFailureCount"),
+            droppedCriticalEventCount = queue.droppedCriticalEvents,
+            droppedSampleEventCount = queue.droppedSampleEvents,
+            writeFailures = queue.writeFailures,
+            queueIncompleteReasons = queue.incompleteReasons,
+        )
+        return if (failures.isEmpty()) "COMPLETE" else "EVIDENCE_INCOMPLETE"
     }
 
     private fun ensureExpectedFiles(logs: File, reports: File) {
@@ -363,32 +384,7 @@ object RecognitionEvidenceZipExporter {
 
     private fun relativePath(root: File, child: File): String = child.relativeTo(root).invariantSeparatorsPath
 
-    private fun verifyArchive(archive: File, expected: JSONObject) {
-        ZipFile(archive).use { zip ->
-            val keys = expected.keys()
-            while (keys.hasNext()) {
-                val path = keys.next()
-                val entry = zip.getEntry(path) ?: error("ZIP_MISSING_ENTRY:$path")
-                val actual = zip.getInputStream(entry).use { sha256(it) }
-                check(actual == expected.getString(path)) { "ZIP_HASH_MISMATCH:$path" }
-            }
-        }
-    }
-
     private fun sha256(file: File): String = FileInputStream(file).use(::sha256)
-
-    private fun sha256(input: java.io.InputStream): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        BufferedInputStream(input).use { stream ->
-            val buffer = ByteArray(64 * 1024)
-            while (true) {
-                val read = stream.read(buffer)
-                if (read < 0) break
-                digest.update(buffer, 0, read)
-            }
-        }
-        return digest.digest().joinToString("") { "%02x".format(it) }
-    }
 
     private fun sha256(value: String): String = MessageDigest.getInstance("SHA-256")
         .digest(value.toByteArray(Charsets.UTF_8))

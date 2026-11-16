@@ -315,9 +315,14 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
         if (resultSceneStable && synchronized(lock) { !resultStableCaptureRequested.also { if (!it) resultStableCaptureRequested = true } }) {
             requestCapture(window, frame, latestFrame, "RESULT_SCENE_STABLE", "stage_entry", priority = "KEY")
         }
-        // Capture the real visual cadence even when a model gate holds a stage.
-        // Waiting is diagnostic context, not a reason to stop sampling the Orb.
-        val visibleMotion = !frame.paused && frame.stage != RecognitionSceneStage.PHOTO_STABLE
+        // Motion screenshots are reserved for visible AUTO progress. Model waits are
+        // represented by the one-second heartbeat and must not trigger high-frequency capture.
+        val visibleMotion = RecognitionEvidenceCapturePolicy.shouldCaptureMotion(
+            paused = frame.paused,
+            runState = frame.modelGates.runState,
+            waitingReason = frame.modelGates.waitingReason,
+            stage = frame.stage,
+        )
         val now = frame.monotonicTimestampMs
         if (visibleMotion && now >= 0L) {
             val shouldRequest = synchronized(lock) {
@@ -484,13 +489,12 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
                 completeCapture()
                 return@request
             }
-            val sameStage = result.stageAtCompletion == frame.stage.name
-            val status = when {
-                result.status != "SUCCESS" -> result.status
-                !sameStage -> "STAGE_MISMATCH"
-                !result.sameSceneIdentity -> "SCENE_IDENTITY_MISMATCH"
-                else -> "SUCCESS"
-            }
+            val status = RecognitionEvidenceCapturePolicy.pixelCopyStatus(
+                pixelCopyStatus = result.status,
+                requestedStage = frame.stage.name,
+                completedStage = result.stageAtCompletion,
+                sameSceneIdentityAndGeometry = result.sameSceneIdentity,
+            )
             if (status != "SUCCESS" || result.bitmap == null) {
                 result.bitmap?.recycle()
                 synchronized(lock) {
@@ -498,7 +502,10 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
                         screenshotFailureCount++
                         eventSink?.markIncomplete(status)
                         appendCaptureRow(
-                            failureRow(captureId, frame, captureType, status, requestTimestamp, result.completionTimestampMs, result.stageAtCompletion),
+                            failureRow(
+                                captureId, frame, captureType, status, requestTimestamp,
+                                result.completionTimestampMs, result.stageAtCompletion, result.geometryVersionAtCompletion,
+                            ),
                         )
                     }
                 }
@@ -509,6 +516,8 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
                         "captureId" to captureId,
                         "stage" to frame.stage.name,
                         "stageAtCompletion" to result.stageAtCompletion,
+                        "geometryVersionAtRequest" to frame.geometryVersion,
+                        "geometryVersionAtCompletion" to result.geometryVersionAtCompletion,
                         "sameSceneIdentity" to result.sameSceneIdentity,
                         "requestTimestamp" to requestTimestamp,
                         "completionTimestamp" to result.completionTimestampMs,
@@ -589,6 +598,7 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
                 .put("sceneElapsedMs", frame.sceneElapsedMs)
                 .put("frameSequence", drawFrameSequence)
                 .put("geometryVersion", frame.geometryVersion)
+                .put("geometryVersionAtCompletion", frame.geometryVersion)
                 .put("requestTimestamp", requestTimestamp)
                 .put("completionTimestamp", completionTimestamp)
                 .put("stageAtRequest", frame.stage.name)
@@ -639,6 +649,7 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
         requestTimestamp: Long,
         completionTimestamp: Long,
         stageAtCompletion: String,
+        geometryVersionAtCompletion: Long? = null,
     ) = JSONObject()
         .put("captureId", captureId)
         .put("sessionIdHash", sha256(frame.identity.sessionId))
@@ -649,6 +660,7 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
         .put("sceneElapsedMs", frame.sceneElapsedMs)
         .put("frameSequence", frameSequence)
         .put("geometryVersion", frame.geometryVersion)
+        .put("geometryVersionAtCompletion", geometryVersionAtCompletion)
         .put("requestTimestamp", requestTimestamp)
         .put("completionTimestamp", completionTimestamp)
         .put("stageAtRequest", frame.stage.name)

@@ -28,6 +28,7 @@ data class RecognitionPixelCopyResult(
     val stageAtCompletion: String,
     val sameSceneIdentity: Boolean,
     val completionTimestampMs: Long,
+    val geometryVersionAtCompletion: Long? = null,
 )
 
 /** Captures the real Android Window buffer. The caller compares stage identity after completion. */
@@ -63,7 +64,12 @@ object RecognitionPixelCopyCapture {
             PixelCopy.request(window, bitmap, { copyResult ->
                 val latest = currentFrame()
                 val completionTime = android.os.SystemClock.uptimeMillis()
-                val sameIdentity = latest?.identity == frame.identity
+                val sameIdentity = RecognitionEvidenceCapturePolicy.sameSceneIdentityAndGeometry(
+                    requestedIdentity = frame.identity,
+                    completedIdentity = latest?.identity,
+                    requestedGeometryVersion = frame.geometryVersion,
+                    completedGeometryVersion = latest?.geometryVersion,
+                )
                 val status = when (copyResult) {
                     PixelCopy.SUCCESS -> "SUCCESS"
                     PixelCopy.ERROR_SOURCE_NO_DATA,
@@ -84,6 +90,7 @@ object RecognitionPixelCopyCapture {
                         stageAtCompletion = latest?.stage?.name ?: "NOT_RECORDED",
                         sameSceneIdentity = sameIdentity,
                         completionTimestampMs = maxOf(requestTime, completionTime),
+                        geometryVersionAtCompletion = latest?.geometryVersion,
                     ),
                 )
             }, Handler(Looper.getMainLooper()))
