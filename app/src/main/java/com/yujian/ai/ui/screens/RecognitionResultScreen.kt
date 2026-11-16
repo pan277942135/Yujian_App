@@ -129,7 +129,6 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadinessContract
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffContract
-import java.util.concurrent.atomic.AtomicBoolean
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER
@@ -701,7 +700,7 @@ fun RecognitionResultScreen(
         }
     }
     val resultInfoAlpha = if (resultHandoffMotionActive) resultInfoEntranceProgress else 1f
-    val resultInfoTranslationY = if (resultHandoffMotionActive) (1f - resultInfoEntranceProgress) * 8.dp else 0.dp
+    val resultInfoTranslationY = if (resultHandoffMotionActive) 8.dp * (1f - resultInfoEntranceProgress) else 0.dp
     LaunchedEffect(revealHandoff?.key, resultGeometryReady, geometryInvalid, resultGeometryVersions) {
         val playback = diagnosticPlaybackController ?: return@LaunchedEffect
         if (revealHandoff == null) return@LaunchedEffect
@@ -817,7 +816,7 @@ fun RecognitionResultScreen(
         )
         if (frame.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL && actuallyRendered &&
             resultGeometryReady && revealTitleBounds?.isValid() == true &&
-            resultSnapshot?.key == revealHandoff?.key && resultSnapshot.resultDataReady &&
+            resultSnapshot != null && resultSnapshot.key == revealHandoff?.key && resultSnapshot.resultDataReady &&
             ResultHandoffSubstage.NAME_STABLE !in resultSnapshot.handoffState.completedSubstages &&
             resultSnapshot.glyphSpeciesKey == prediction.top1.speciesKey &&
             resultSnapshot.glyphSpeciesName == prediction.top1.speciesName &&
@@ -880,7 +879,7 @@ fun RecognitionResultScreen(
     ) {
         val frame = diagnosticFrame ?: return@LaunchedEffect
         if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && resultInfoLayoutReady &&
-            resultSnapshot?.key == revealHandoff?.key && resultSnapshot.resultDataReady && selectedName.isNotBlank() &&
+            resultSnapshot != null && resultSnapshot.key == revealHandoff?.key && resultSnapshot.resultDataReady && selectedName.isNotBlank() &&
             ResultHandoffSubstage.RESULT_SCENE_HANDOFF in resultSnapshot.handoffState.completedSubstages &&
             ResultHandoffSubstage.RESULT_INFO_ARRIVAL !in resultSnapshot.handoffState.completedSubstages &&
             resultSnapshot.glyphSpeciesName == prediction.top1.speciesName
@@ -1160,7 +1159,7 @@ fun RecognitionResultScreen(
                             glyphSpeciesKey = prediction.top1.speciesKey,
                             onGlyphPathReady = { descriptor ->
                                 val expectedName = resultSpeciesDisplayName(prediction.top1.speciesName)
-                                val speciesResultReady = resultSnapshot?.key == revealHandoff?.key &&
+                                val speciesResultReady = resultSnapshot != null && resultSnapshot.key == revealHandoff?.key &&
                                     resultSnapshot.resultDataReady &&
                                     resultSnapshot.glyphSpeciesKey == prediction.top1.speciesKey &&
                                     resultSnapshot.glyphSpeciesName == prediction.top1.speciesName
