@@ -160,7 +160,7 @@ class RecognitionSceneFrameTest {
         assertTrue(playback.recordEnergyEvent(releaseScene, release))
         assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.currentSceneStage(950L))
         playback.onDetectorTargetAvailable(true, identity)
-        playback.onPhotoTransformAvailable(true, identity)
+        playback.onPhotoTransformAvailable(true, identity, geometryVersion = 9L)
 
         val pendingScene = playback.currentFrame(identity, 1_074L, 9L)
         val pending = WaterLightEnergy.at(waterLightFrame(pendingScene), trustedMask = false)!!
