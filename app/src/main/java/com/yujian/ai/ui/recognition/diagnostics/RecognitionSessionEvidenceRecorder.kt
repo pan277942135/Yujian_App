@@ -414,6 +414,7 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
 
     fun summaryJson(): JSONObject = synchronized(lock) {
         val sinkStatus = eventSink?.diagnostics()
+        val resultEvidenceStatus = resultEvidenceStatusSnapshotLocked()
         val stageArray = JSONArray()
         stageStatuses.values.forEach { status ->
             stageArray.put(
@@ -431,11 +432,8 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
             .put("attemptIdHash", activeIdentity?.let { sha256(it.attemptId) })
             .put("imageIdHash", activeIdentity?.let { sha256(it.imageId) })
             .put("photoSha256", activeIdentity?.photoSha256)
-            .put("resultEvidenceStatus", resultEvidenceStatusLocked())
-            .put(
-                "resultEvidenceMissingReason",
-                if (resultEvidenceStatusLocked() == "AVAILABLE") JSONObject.NULL else "RESULT_EVIDENCE_NOT_AVAILABLE",
-            )
+            .put("resultEvidenceStatus", resultEvidenceStatus.status)
+            .put("resultEvidenceMissingReason", resultEvidenceStatus.missingReason ?: JSONObject.NULL)
             .put("firstFrameTimestampMs", firstFrameTimestampMs ?: -1L)
             .put("recognitionDurationMs", latestSceneElapsedMs)
             .put("stageStatuses", stageArray)
@@ -451,10 +449,16 @@ class RecognitionSessionEvidenceRecorder(context: Context) {
             .put("incompleteReasons", JSONArray(sinkStatus?.incompleteReasons.orEmpty()))
     }
 
-    private fun resultEvidenceStatusLocked(): String = if (captureRows.any { row ->
-            row.optString("captureType") == "RESULT_SCENE_STABLE" && row.optString("pixelCopyStatus") == "SUCCESS"
-        }
-    ) "AVAILABLE" else "RESULT_EVIDENCE_NOT_AVAILABLE"
+    private fun resultEvidenceStatusSnapshotLocked(): RecognitionEvidenceResultStatusSnapshot =
+        RecognitionEvidenceResultStatusPolicy.fromCaptureSnapshots(
+            captureRows.map { row ->
+                RecognitionEvidenceCaptureSnapshot(
+                    stage = row.optString("stage"),
+                    captureType = row.optString("captureType"),
+                    pixelCopyStatus = row.optString("pixelCopyStatus"),
+                )
+            },
+        )
 
     fun captureIndexJson(): JSONArray = synchronized(lock) { JSONArray(captureRows.map { JSONObject(it.toString()) }) }
 

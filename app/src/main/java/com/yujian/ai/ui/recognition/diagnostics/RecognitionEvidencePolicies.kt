@@ -12,6 +12,38 @@ internal data class RecognitionEvidenceCaptureSnapshot(
     val pixelCopyStatus: String,
 )
 
+internal data class RecognitionEvidenceResultStatusSnapshot(
+    val status: String,
+    val missingReason: String?,
+    val resultStablePixelCopySucceeded: Boolean,
+) {
+    fun toJsonString(): String {
+        val missingReasonJson = missingReason?.let { "\"$it\"" } ?: "null"
+        return """{"status":"$status","missingReason":$missingReasonJson,"resultStablePixelCopySucceeded":$resultStablePixelCopySucceeded}"""
+    }
+}
+
+internal object RecognitionEvidenceResultStatusPolicy {
+    fun fromCaptureSnapshots(captures: List<RecognitionEvidenceCaptureSnapshot>): RecognitionEvidenceResultStatusSnapshot =
+        fromStatus(
+            if (captures.any {
+                    it.captureType == "RESULT_SCENE_STABLE" && it.pixelCopyStatus == "SUCCESS"
+                }
+            ) "AVAILABLE" else "RESULT_EVIDENCE_NOT_AVAILABLE",
+        )
+
+    fun fromStatus(status: String?): RecognitionEvidenceResultStatusSnapshot =
+        if (status == "AVAILABLE") {
+            RecognitionEvidenceResultStatusSnapshot("AVAILABLE", null, true)
+        } else {
+            RecognitionEvidenceResultStatusSnapshot(
+                "RESULT_EVIDENCE_NOT_AVAILABLE",
+                "RESULT_EVIDENCE_NOT_AVAILABLE",
+                false,
+            )
+        }
+}
+
 internal object RecognitionEvidenceCapturePolicy {
     fun sameSceneIdentityAndGeometry(
         requestedIdentity: RecognitionSceneIdentity,
