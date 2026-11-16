@@ -123,7 +123,10 @@ class RecognitionRevealSessionStore : ViewModel() {
         if (existing != null && existing != pathSnapshot) return false
         if (existing == pathSnapshot) return true
         val candidate = current.copy(fishPathSnapshot = pathSnapshot)
-        snapshot = candidate.copy(handoff = rebuildHandoff(candidate))
+        snapshot = candidate.copy(
+            handoff = rebuildHandoff(candidate),
+            revealDecision = decisionFor(candidate),
+        )
         return true
     }
 
@@ -172,7 +175,9 @@ class RecognitionRevealSessionStore : ViewModel() {
         val existingHandoff = current.handoff?.takeIf {
             it.key == key && it.imageId == image.imageId &&
                 it.resultIdentity == result.prediction?.top1?.speciesKey &&
-                RecognitionRevealDecisionGate.isReady(it.revealDecision ?: RecognitionRevealDecisionState.WAITING_BOTH)
+                RecognitionRevealDecisionGate.isNavigable(it.revealDecision ?: RecognitionRevealDecisionState.WAITING_BOTH) &&
+                !(highConfidenceResult && current.fishPathSnapshot == null &&
+                    it.revealDecision == RecognitionRevealDecisionState.FISH_FOCUS_READY)
         }
         if (existingHandoff != null) {
             if (current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.CREATED ||
@@ -191,9 +196,13 @@ class RecognitionRevealSessionStore : ViewModel() {
                 } else state.navigationTrace
                 snapshot = current.copy(
                     resultHandoffState = state.copy(
-                        transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_READY,
+                    transactionStatus = if (existingHandoff.eligibility == RecognitionRevealEligibility.STATIC_RESULT) {
+                        RecognitionHandoffTransactionStatus.NON_ANIMATED_RESULT_READY
+                    } else RecognitionHandoffTransactionStatus.HANDOFF_READY,
                         navigationTrace = trace + transition(
-                            RecognitionHandoffTransactionStatus.HANDOFF_READY,
+                            if (existingHandoff.eligibility == RecognitionRevealEligibility.STATIC_RESULT) {
+                                RecognitionHandoffTransactionStatus.NON_ANIMATED_RESULT_READY
+                            } else RecognitionHandoffTransactionStatus.HANDOFF_READY,
                             handoffTimestampUptimeMs,
                             "RecognitionRevealSessionStore.completeAttempt",
                             state.lastEventSequence,
@@ -220,8 +229,24 @@ class RecognitionRevealSessionStore : ViewModel() {
             ),
         )
         snapshot = candidate
-        val decision = decisionFor(candidate)
-        if (!RecognitionRevealDecisionGate.isReady(decision)) {
+        // At Result handoff time, the Stage-05 fish path is terminal. If the real Ledger
+        // snapshot did not arrive, downgrade to the legal Orb-only route instead of retrying
+        // a FULL_REVEAL transaction forever.
+        val terminalPathUnavailable = highConfidenceResult && current.fishPathSnapshot == null
+        val decision = decisionFor(candidate, pathBindingTerminalUnavailable = terminalPathUnavailable)
+        if (!RecognitionRevealDecisionGate.isNavigable(decision)) {
+            snapshot = candidate.copy(resultHandoffState = candidate.resultHandoffState.copy(
+                transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_REJECTED,
+                navigationTrace = processingTrace + transition(
+                    RecognitionHandoffTransactionStatus.HANDOFF_REJECTED,
+                    handoffTimestampUptimeMs,
+                    "RecognitionRevealSessionStore.completeAttempt",
+                    current.resultHandoffState.lastEventSequence,
+                ),
+            ))
+            return null
+        }
+        if (decision == RecognitionRevealDecisionState.FISH_FOCUS_READY && current.fishPathSnapshot == null) {
             snapshot = candidate.copy(resultHandoffState = candidate.resultHandoffState.copy(
                 transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_REJECTED,
                 navigationTrace = processingTrace + transition(
@@ -244,6 +269,7 @@ class RecognitionRevealSessionStore : ViewModel() {
             handoffTimestampUptimeMs = handoffTimestampUptimeMs,
             subjectStatus = current.subjectResult.status,
             fishPathSnapshot = current.fishPathSnapshot,
+            pStarPathTerminalUnavailable = terminalPathUnavailable,
         )
         if (handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL && handoff.fishPathSnapshot == null) {
             snapshot = candidate.copy(resultHandoffState = candidate.resultHandoffState.copy(
@@ -257,13 +283,16 @@ class RecognitionRevealSessionStore : ViewModel() {
             ))
             return null
         }
+        val readyStatus = if (handoff.eligibility == RecognitionRevealEligibility.STATIC_RESULT) {
+            RecognitionHandoffTransactionStatus.NON_ANIMATED_RESULT_READY
+        } else RecognitionHandoffTransactionStatus.HANDOFF_READY
         snapshot = candidate.copy(
             handoff = handoff,
             revealDecision = handoff.revealDecision ?: decision,
             resultHandoffState = candidate.resultHandoffState.copy(
-                transactionStatus = RecognitionHandoffTransactionStatus.HANDOFF_READY,
+                transactionStatus = readyStatus,
                 navigationTrace = processingTrace + transition(
-                    RecognitionHandoffTransactionStatus.HANDOFF_READY,
+                    readyStatus,
                     handoffTimestampUptimeMs,
                     "RecognitionRevealSessionStore.completeAttempt",
                     current.resultHandoffState.lastEventSequence,
@@ -647,7 +676,10 @@ class RecognitionRevealSessionStore : ViewModel() {
         )
     }
 
-    private fun decisionFor(current: RecognitionRevealSessionSnapshot): RecognitionRevealDecisionState {
+    private fun decisionFor(
+        current: RecognitionRevealSessionSnapshot,
+        pathBindingTerminalUnavailable: Boolean = false,
+    ): RecognitionRevealDecisionState {
         val result = current.productionResult
         val image = current.image
         val classifier = when {
@@ -667,6 +699,25 @@ class RecognitionRevealSessionStore : ViewModel() {
             recognitionAttemptId = current.recognitionAttemptId,
             photoSha256 = image.photoSha256,
         ) else RecognitionGeometryTrustState.MISSING
+        val contact = current.processingPhoto?.contactPointNormalizedSource
+        val contactMaskMatches = contact != null && current.subjectGeometry?.let { subject ->
+            current.processingPhoto.contactPointMaskSha256 == subject.maskSha256 &&
+                current.processingPhoto.contactPointMaskVersion == subject.maskVersion &&
+                current.processingPhoto.contactPointGeometryVersion != 0L
+        } == true
+        val contourClosed = current.subjectGeometry?.contour?.lastOrNull()?.closesContour == true
+        val pStarPathReady = contactMaskMatches && current.processingPhoto?.let { photo ->
+            RecognitionRevealPathGeometry.fishContact(
+                transform = photo.sourceToViewport,
+                contactPointNormalizedSource = WaterLightPathPoint(requireNotNull(contact).x, requireNotNull(contact).y),
+                seed = current.recognitionSessionId.hashCode() xor image?.imageId.orEmpty().hashCode(),
+            ) != null
+        } == true
+        val terminalPathUnavailable = current.subjectResult.status == SubjectStatus.READY &&
+            trust == RecognitionGeometryTrustState.TRUSTED_MASK && contourClosed && (
+                (current.processingPhoto != null && !pStarPathReady) ||
+                    (pathBindingTerminalUnavailable && current.fishPathSnapshot == null)
+            )
         return RecognitionRevealDecisionGate.decide(
             classifier = classifier,
             subject = current.subjectResult.status,
@@ -675,6 +726,10 @@ class RecognitionRevealSessionStore : ViewModel() {
             identityCurrent = image != null && !current.recognitionSessionId.isBlank() &&
                 !current.recognitionAttemptId.isNullOrBlank() && image.imageId.isNotBlank() &&
                 image.photoSha256.isNotBlank(),
+            contourClosed = contourClosed,
+            pStarPathReady = pStarPathReady,
+            pStarPathTerminalUnavailable = terminalPathUnavailable,
+            highConfidenceResult = current.highConfidenceResult,
         )
     }
 

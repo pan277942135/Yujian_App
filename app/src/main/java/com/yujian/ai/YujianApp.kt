@@ -533,7 +533,7 @@ fun YujianApp() {
         if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return
         if (result.ready) {
             val handoff = completeRecognitionAttempt(result, attemptId)
-            if (handoff == null || !RecognitionRevealDecisionGate.isReady(
+            if (handoff == null || !RecognitionRevealDecisionGate.isNavigable(
                     handoff.revealDecision ?: RecognitionRevealDecisionState.WAITING_BOTH,
                 )
             ) {
@@ -569,6 +569,8 @@ fun YujianApp() {
                 RecognitionRevealDecisionState.WAITING_SLIMSAM -> "等待 SlimSAM 完成质量判断；Next 可继续检查诊断阶段"
                 RecognitionRevealDecisionState.WAITING_CLASSIFIER -> "等待 Classifier 返回真实鱼种名称"
                 RecognitionRevealDecisionState.WAITING_BOTH -> "等待 Classifier 与 SlimSAM 完成；Next 可继续检查诊断阶段"
+                RecognitionRevealDecisionState.WAITING_PSTAR_PATH -> "等待真实 P* 路径绑定；路径终态不可用时将降级为 Orb-only"
+                RecognitionRevealDecisionState.STATIC_RESULT -> "当前分类置信度使用静态候选或手动确认 Result"
                 RecognitionRevealDecisionState.RECOGNITION_FAILED -> "Classifier 结果未达到揭晓条件"
                 RecognitionRevealDecisionState.CANCELLED -> "识别尝试已取消或被新照片替换"
                 RecognitionRevealDecisionState.FISH_FOCUS_READY,
