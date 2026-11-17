@@ -9,42 +9,28 @@ plugins {
 }
 
 fun quotedBuildConfig(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
-val feedbackBaseUrl = providers.gradleProperty("YUJIAN_FEEDBACK_BASE_URL")
-    .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_BASE_URL")).orElse("https://81.71.1.11").get()
-val fishKnowledgeBaseUrl = providers.gradleProperty("YUJIAN_FISH_KNOWLEDGE_BASE_URL")
-    .orElse(providers.environmentVariable("YUJIAN_FISH_KNOWLEDGE_BASE_URL")).orElse(feedbackBaseUrl).get()
-val userApiBaseUrl = providers.gradleProperty("YUJIAN_API_BASE_URL")
-    .orElse(providers.environmentVariable("YUJIAN_API_BASE_URL")).orElse(feedbackBaseUrl).get()
-val feedbackIngestKey = providers.gradleProperty("YUJIAN_FEEDBACK_INGEST_KEY")
-    .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_INGEST_KEY")).orElse("").get()
-
-val accountPrivacyBackgroundSource = rootProject.layout.projectDirectory.file(
-    "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-)
-val accountPrivacyGeneratedResDir = layout.buildDirectory.dir("generated/accountPrivacyRes")
-
-val generateAccountPrivacyBackground by tasks.registering {
-    inputs.file(accountPrivacyBackgroundSource)
-    outputs.dir(accountPrivacyGeneratedResDir)
-
-    doLast {
-        val sourceFile = accountPrivacyBackgroundSource.asFile
-        require(sourceFile.isFile) { "Missing Account Privacy Morning Lake source: $sourceFile" }
-        val sourceSha = MessageDigest.getInstance("SHA-256")
-            .digest(sourceFile.readBytes())
-            .joinToString("") { "%02x".format(it) }
-        require(sourceSha == "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7") {
-            "Account Privacy Morning Lake SHA mismatch: $sourceSha"
-        }
-        val image = requireNotNull(ImageIO.read(sourceFile)) { "Unable to decode Account Privacy Morning Lake source" }
-        require(image.width == 941 && image.height == 1672) {
-            "Unexpected Account Privacy Morning Lake dimensions: " + image.width + "x" + image.height
-        }
-        val drawableDir = accountPrivacyGeneratedResDir.get().dir("drawable-nodpi").asFile
-        drawableDir.mkdirs()
-        sourceFile.copyTo(drawableDir.resolve("account_privacy_morning_lake.png"), overwrite = true)
+fun validHttpBaseUrl(value: String?): String? {
+    val trimmed = value?.trim()?.trimEnd('/').orEmpty()
+    return trimmed.takeIf {
+        it.startsWith("http://", ignoreCase = true) || it.startsWith("https://", ignoreCase = true)
     }
 }
+
+val defaultBackendBaseUrl = "https://81.71.1.11"
+val feedbackBaseUrl = validHttpBaseUrl(
+    providers.gradleProperty("YUJIAN_FEEDBACK_BASE_URL")
+        .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_BASE_URL")).orNull,
+) ?: defaultBackendBaseUrl
+val fishKnowledgeBaseUrl = validHttpBaseUrl(
+    providers.gradleProperty("YUJIAN_FISH_KNOWLEDGE_BASE_URL")
+        .orElse(providers.environmentVariable("YUJIAN_FISH_KNOWLEDGE_BASE_URL")).orNull,
+) ?: feedbackBaseUrl
+val userApiBaseUrl = validHttpBaseUrl(
+    providers.gradleProperty("YUJIAN_API_BASE_URL")
+        .orElse(providers.environmentVariable("YUJIAN_API_BASE_URL")).orNull,
+) ?: feedbackBaseUrl
+val feedbackIngestKey = providers.gradleProperty("YUJIAN_FEEDBACK_INGEST_KEY")
+    .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_INGEST_KEY")).orElse("").get()
 
 android {
     namespace = "com.yujian.ai"
@@ -94,20 +80,12 @@ android {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
         jniLibs.useLegacyPackaging = true
     }
-
-    sourceSets.getByName("main").res.srcDir(accountPrivacyGeneratedResDir.get().asFile)
 }
 
 secrets {
     propertiesFileName = ".env"
     defaultPropertiesFileName = ".env.example"
     ignoreList.add("YUJIAN_.*")
-}
-
-tasks.configureEach {
-    if (name == "preBuild") {
-        dependsOn(generateAccountPrivacyBackground)
-    }
 }
 
 dependencies {

@@ -1,9 +1,11 @@
 package com.yujian.ai.ui.designsystem.lakeglass
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
-import androidx.core.view.WindowCompat
+import androidx.activity.enableEdgeToEdge
 
 /** Debug-variant-only entry point for independent optical effect tuning. */
 class LakeGlassShaderLabActivity : ComponentActivity() {
@@ -12,9 +14,10 @@ class LakeGlassShaderLabActivity : ComponentActivity() {
         val initialMode = intent.getStringExtra("effect_mode") ?: "static"
         val viewportOnly = intent.getBooleanExtra("viewport_only", false)
         if (viewportOnly) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-            window.statusBarColor = android.graphics.Color.TRANSPARENT
-            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+            enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+                navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+            )
         }
         setContent {
             LakeGlassShaderLabScreen(

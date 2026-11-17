@@ -59,7 +59,7 @@ internal fun RecognitionRevealOpticalOverlay(
     energyEvent: EnergyEvent? = null,
     waterLightFrame: WaterLightFrame? = null,
     sceneIdentity: RecognitionSceneIdentity? = null,
-    onOrbCoreDissolveRendered: ((RecognitionOrbCoreDissolveReceipt) -> Unit)? = null,
+    onOrbCoreDissolveRendered: ((RecognitionOrbCoreDissolveReceipt) -> Boolean)? = null,
 ) {
     val frame = frameState.value
     val sourceBitmap = bitmap ?: return
@@ -457,8 +457,13 @@ internal fun RecognitionRevealOpticalOverlay(
 
         }
     }
-    val orbCoreDissolveReceiptSent = remember(handoff.key, sceneIdentity) { AtomicBoolean(false) }
+    val orbCoreDissolveAccepted = remember(handoff.key, sceneIdentity) { AtomicBoolean(false) }
+    val orbCoreDissolveInFlight = remember(handoff.key, sceneIdentity) { AtomicBoolean(false) }
     val orbCoreDissolveHandler = remember { Handler(Looper.getMainLooper()) }
+    val latestOnOrbCoreDissolveRendered = androidx.compose.runtime.rememberUpdatedState(onOrbCoreDissolveRendered)
+    androidx.compose.runtime.DisposableEffect(orbCoreDissolveHandler, handoff.key, sceneIdentity) {
+        onDispose { orbCoreDissolveHandler.removeCallbacksAndMessages(null) }
+    }
     val orbCenter = handoff.processingOrbCenterInWindow?.let { anchor ->
         activeRevealGeometry?.rootWindowOrigin?.let { origin ->
             (anchor.x - origin.x) to (anchor.y - origin.y)
@@ -483,7 +488,8 @@ internal fun RecognitionRevealOpticalOverlay(
                 drawContent()
                 if (frame.stage == RecognitionSceneStage.ORB_TO_NAME && morph >= .999f &&
                     orbCoreAlpha <= .001f && sceneIdentity != null &&
-                    orbCoreDissolveReceiptSent.compareAndSet(false, true)
+                    !orbCoreDissolveAccepted.get() &&
+                    orbCoreDissolveInFlight.compareAndSet(false, true)
                 ) {
                     val receipt = RecognitionOrbCoreDissolveReceipt(
                         identity = sceneIdentity,
@@ -492,7 +498,14 @@ internal fun RecognitionRevealOpticalOverlay(
                         coreAlpha = orbCoreAlpha,
                         drawPassSequence = 1L,
                     )
-                    orbCoreDissolveHandler.post { onOrbCoreDissolveRendered?.invoke(receipt) }
+                    orbCoreDissolveHandler.post {
+                        val accepted = try {
+                            latestOnOrbCoreDissolveRendered.value?.invoke(receipt) == true
+                        } finally {
+                            orbCoreDissolveInFlight.set(false)
+                        }
+                        if (accepted) orbCoreDissolveAccepted.set(true)
+                    }
                 }
             }.graphicsLayer {
                 // Preserve the measured Processing Orb while it stretches, then let its core dissolve completely into the Glyph path.

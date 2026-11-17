@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "渔见 AI"
+rootProject.name = "Yujian"
 include(":app")

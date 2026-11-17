@@ -521,7 +521,7 @@ internal class OrbFilamentPathRenderer(
                     spec, sceneMs, frame.reducedMotion, OrbRuntimeProfileV1.MotionEvent.NONE, 0L,
                 )
                 val trail = material.trailLengthFraction
-                val maxStrokeEnvelope = if (visualProfile == OrbStage02VisualProfile.MAX) {
+                val maxStrokeEnvelope = if (visualProfile.usesProductionOptics()) {
                     OrbWakeBreathReleaseV11.r06WakeReadabilityEnvelope(
                         sceneFrame.stage, sceneFrame.stageProgress,
                     )
@@ -689,7 +689,34 @@ internal class OrbFilamentPathRenderer(
                             .coerceIn(0f, OrbWakeBreathReleaseV11.R06_ALPHA_CAP)
                         // Resident lifecycle is the only additive visibility envelope. In
                         // particular, stage release/return and Task EnergyEvent do not fade it.
-                        var layerAlpha = originalLayerAlpha
+                        var layerAlpha = if (renderPass == OrbR06RenderPass.BASELINE && isBodyLayer) {
+                            if (visualProfile == OrbStage02VisualProfile.MAX) {
+                                OrbWakeBreathReleaseV11.r06MaxBodyAlpha(
+                                    stage = sceneFrame.stage,
+                                    stageProgress = sceneFrame.stageProgress,
+                                    originalAlpha = originalLayerAlpha,
+                                    active = active,
+                                    endFade = endFade,
+                                    tailAlpha = tailAlpha,
+                                    profileOpacity = profileOpacity,
+                                    crossOpacity = crossOpacity,
+                                    front = front,
+                                )
+                            } else {
+                                OrbWakeBreathReleaseV11.r06WakeBodyAlpha(
+                                    stage = sceneFrame.stage,
+                                    stageProgress = sceneFrame.stageProgress,
+                                    originalLayerAlpha = originalLayerAlpha,
+                                    layerId = layer.id,
+                                    front = front,
+                                    active = active,
+                                    endFade = endFade,
+                                    tailAlpha = tailAlpha,
+                                    profileOpacity = profileOpacity,
+                                    crossOpacity = crossOpacity,
+                                )
+                            }
+                        } else originalLayerAlpha
                         val representativeRadiusD = kotlin.math.hypot(samplesX[mid] - centerX, samplesY[mid] - centerY) / diameterPx
                         var transmissionFactor = 1f
                         var representativeEdgeFade = 1f

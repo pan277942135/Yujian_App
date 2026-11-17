@@ -141,7 +141,10 @@ class RecognitionSubjectAttemptRunner(
         val maskFile = java.io.File(result.bitmapPath ?: return null)
         val actualMaskSha256 = RecognitionMaskIntegrity.sha256File(maskFile) ?: return null
         if (!RecognitionMaskIntegrity.matches(result.maskSha256, metadata.maskSha256, actualMaskSha256)) return null
-        val bitmap = BitmapFactory.decodeFile(maskFile.absolutePath) ?: return null
+        val bitmap = BitmapFactory.decodeFile(
+            maskFile.absolutePath,
+            android.graphics.BitmapFactory.Options().apply { inScaled = false },
+        ) ?: return null
         try {
             if (bitmap.width != result.roiWidth || bitmap.height != result.roiHeight ||
                 bitmap.width != metadata.roiPx.width() || bitmap.height != metadata.roiPx.height()) return null

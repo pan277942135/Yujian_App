@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
@@ -72,6 +73,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.painterResource
@@ -701,22 +703,40 @@ fun RecognitionProcessingScene(
         maskFileExists = result?.bitmapPath?.let { path -> java.io.File(path).isFile } == true
         maskRoiDimensions = (result?.roiWidth ?: 0) to (result?.roiHeight ?: 0)
         if (result?.status != SubjectStatus.READY || result.bitmapPath.isNullOrBlank()) {
-            maskRuntimeRejectReason = result?.errorCode ?: "MASK_FILE_NOT_GENERATED"
+            val rejectCode = result?.errorCode ?: "MASK_FILE_NOT_GENERATED"
+            maskRuntimeRejectReason = rejectCode
+            if (result?.status == SubjectStatus.READY) {
+                subjectResult = subjectResult.copy(status = SubjectStatus.FAILED, errorCode = rejectCode)
+            }
             onSubjectGeometry(subjectResult, null)
+            controller.onMaskTerminal(
+                trusted = false, contourValid = false, contourClosed = false,
+                failedTerminal = true, currentIdentity = sceneIdentity,
+            )
             Log.i(
                 LOG_TAG,
                 "MASK_REJECT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
                     "image=${selected.imageId} sha256=${selected.photoSha256} trust=UNTRUSTED " +
-                    "reason=${result?.errorCode ?: "SUBJECT_RESULT_NOT_READY"} quality=${result?.quality} contours=0",
+                    "reason=$rejectCode quality=${result?.quality} contours=0",
             )
             logFocusDiagnostic(subjectResult, contour.size, null, false, false)
             return@LaunchedEffect
         }
-        val loaded = withContext(Dispatchers.IO) { BitmapFactory.decodeFile(result.bitmapPath) }
+        val loaded = withContext(Dispatchers.IO) {
+            BitmapFactory.decodeFile(
+                result.bitmapPath,
+                BitmapFactory.Options().apply { inScaled = false },
+            )
+        }
         if (loaded == null) {
             maskBitmapDecodeStatus = "MASK_BITMAP_DECODE_FAILED"
             maskRuntimeRejectReason = "MASK_BITMAP_DECODE_FAILED"
+            subjectResult = subjectResult.copy(status = SubjectStatus.FAILED, errorCode = "MASK_BITMAP_DECODE_FAILED")
             onSubjectGeometry(subjectResult, null)
+            controller.onMaskTerminal(
+                trusted = false, contourValid = false, contourClosed = false,
+                failedTerminal = true, currentIdentity = sceneIdentity,
+            )
             Log.i(
                 LOG_TAG,
                 "MASK_REJECT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
@@ -852,16 +872,22 @@ fun RecognitionProcessingScene(
                 else -> "NONE"
             }
             maskRuntimeRejectReason = maskRejectReason
-            Log.i(
-                LOG_TAG,
-                "MASK_REJECT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
-                    "image=${selected.imageId} sha256=${selected.photoSha256} quality=${result.quality} " +
-                    "mask=${result.maskSize}/${result.expectedMaskSize} roi=${loaded.width}x${loaded.height} " +
-                    "mask_area_ratio=${result.maskAreaRatio} iou=${result.maskIouScore?.toString() ?: "NOT_AVAILABLE"} " +
-                    "contours=${if (trustedForReveal) extractedContour.size else 0} " +
-                    "acceptance_phase=$maskAcceptancePhase trust=${if (trustedForReveal) trustState else RecognitionGeometryTrustState.UNTRUSTED} " +
-                    "reject_reason=$maskRejectReason",
-            )
+            if (!trustedForReveal) {
+                controller.onMaskTerminal(
+                    trusted = false, contourValid = false, contourClosed = false,
+                    failedTerminal = result.quality != FishSubjectQuality.GOOD && result.quality != FishSubjectQuality.WARNING,
+                    currentIdentity = sceneIdentity,
+                )
+                Log.i(
+                    LOG_TAG,
+                    "MASK_REJECT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                        "image=${selected.imageId} sha256=${selected.photoSha256} quality=${result.quality} " +
+                        "mask=${result.maskSize}/${result.expectedMaskSize} roi=${loaded.width}x${loaded.height} " +
+                        "mask_area_ratio=${result.maskAreaRatio} iou=${result.maskIouScore?.toString() ?: "NOT_AVAILABLE"} " +
+                        "contours=0 acceptance_phase=$maskAcceptancePhase trust=${RecognitionGeometryTrustState.UNTRUSTED} " +
+                        "reject_reason=$maskRejectReason",
+                )
+            }
         logFocusDiagnostic(result, if (trustedForReveal) extractedContour.size else 0, primary.box, false, false)
         } finally {
             // This decoded bitmap is still local unless it was handed to Compose.
@@ -1144,8 +1170,10 @@ fun RecognitionProcessingScene(
                     visualPhase = nextVisualPhase
                     phasePresentedCallback(nextVisualPhase, visualNowMs)
                 }
+                val fishPathReady = latestRevealDecision.value != RecognitionRevealDecisionState.FISH_FOCUS_READY ||
+                    controller.fishPathSnapshotReady()
                 if (nextSceneStage == RecognitionSceneStage.ORB_RETURN && latestFinishedResult.value?.ready == true &&
-                    controller.resultVisualReady(visualNowMs) && !delivered && !diagnosticStepDisplayState.value) {
+                    controller.resultVisualReady(visualNowMs) && fishPathReady && !delivered && !diagnosticStepDisplayState.value) {
                     // The adaptive beats and real model result are both ready. Result
                     // continues from this same controller frame at ORB_RETURN.
                     Log.i(LOG_TAG, "delivering RESULT_READY at monotonic=$visualNowMs")
@@ -1661,9 +1689,7 @@ fun RecognitionProcessingScene(
                     fromY + (photoFlowPlan.orbCenterYPx - fromY) * eased,
                 ),
                 corePx * .5f,
-                interpolateRecognitionPhotoTransform(
-                    photoFlowPlan.startTransform, photoFlowPlan.targetTransform, photoEntryProgress,
-                ),
+                photoFlowPlan.targetTransform,
             )
         } else null
         val energyProducerSnapshot = if (image != null && photoFlowPlan != null && producerOrbGeometry != null) {
@@ -1695,13 +1721,14 @@ fun RecognitionProcessingScene(
                 maskSha256 = maskSha,
                 maskVersion = maskVersion,
                 highConfidenceResult = successfulRevealAllowed,
-                pStarBindRejected = pStarBindRejectionReason != null,
             )
         } else null
         val energyProducerEvent = energyProducerSnapshot?.event
+        var lastRecordedOrbOnlyPathNotApplicableKey by remember(sceneKey) { mutableStateOf<String?>(null) }
         LaunchedEffect(
             sceneIdentity,
             energyProducerSnapshot?.decision,
+            energyProducerSnapshot?.pathApplicability,
             energyProducerEvent?.stage,
             energyProducerEvent?.feedback,
             energyProducerEvent?.pathId,
@@ -1710,11 +1737,34 @@ fun RecognitionProcessingScene(
             energyProducerEvent?.geometryVersion,
             waterLightFrame.sceneFrame.stageProgress >= .999f,
             energyProducerSnapshot?.fishPathSnapshot,
+            trustedSubjectMask,
+            subjectResult.maskSha256,
+            subjectBitmap?.generationId,
+            photoGeometryVersion,
+            waterLightFrame.sceneFrame.modelGates,
             pStarBindRejectionReason,
         ) {
             val producer = energyProducerSnapshot ?: return@LaunchedEffect
             val nowMs = recognitionMonotonicNowMs()
             controller.onRevealDecision(producer.decision, nowMs, sceneIdentity)
+            if (producer.pathApplicability == "NOT_APPLICABLE_ORB_ONLY") {
+                val traceKey = "${sceneIdentity.attemptId}:${waterLightFrame.geometryVersion}:${RecognitionSceneStage.PATH_TO_FISH.name}"
+                if (lastRecordedOrbOnlyPathNotApplicableKey != traceKey) {
+                    lastRecordedOrbOnlyPathNotApplicableKey = traceKey
+                    recognitionEvidenceRecorder?.recordOrbRuntime(
+                        fileName = "waterlight_paths.jsonl",
+                        type = "PATH_TO_FISH_NOT_APPLICABLE",
+                        payload = mapOf(
+                            "sessionIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.sessionId),
+                            "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.attemptId),
+                            "imageIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.imageId),
+                            "decision" to producer.decision.name,
+                            "applicability" to producer.pathApplicability,
+                            "geometryVersion" to waterLightFrame.geometryVersion,
+                        ),
+                    )
+                }
+            }
             val event = producer.event ?: return@LaunchedEffect
             pStarPathId = event.takeIf {
                 it.feedback == EnergyFeedback.ABSORB &&
@@ -1745,10 +1795,16 @@ fun RecognitionProcessingScene(
                     currentIdentity = sceneIdentity,
                 )
                 if (!registered) {
-                    pStarBindRejectionReason = "PSTAR_BIND_REJECTED"
+                    val terminal = controller.currentRevealDecision() in setOf(
+                        RecognitionRevealDecisionState.ORB_ONLY_READY,
+                        RecognitionRevealDecisionState.STATIC_RESULT,
+                        RecognitionRevealDecisionState.RECOGNITION_FAILED,
+                        RecognitionRevealDecisionState.CANCELLED,
+                    )
+                    pStarBindRejectionReason = if (terminal) "PSTAR_BIND_TERMINAL_REJECTED" else "PSTAR_BIND_DEFERRED"
                     Log.w(
                         "WaterLightEnergy",
-                        "PSTAR_BIND_REJECTED session=${event.sessionId} attempt=${event.attemptId} " +
+                        "${pStarBindRejectionReason} session=${event.sessionId} attempt=${event.attemptId} " +
                             "mask_sha256=${event.pathMaskSha256.take(16)} path=${event.pathId}",
                     )
                 } else {
@@ -2409,6 +2465,9 @@ fun RecognitionProcessingScene(
                 if (recognitionEvidenceRecorder != null) {
                     TextButton(
                         enabled = evidenceExportStatus != "EXPORTING",
+                        modifier = Modifier
+                            .defaultMinSize(minHeight = 48.dp)
+                            .testTag("processing_export_diagnostics_button"),
                         onClick = {
                             if (evidenceExportStatus == "EXPORTING") return@TextButton
                             evidenceExportStatus = "EXPORTING"
@@ -2418,12 +2477,22 @@ fun RecognitionProcessingScene(
                                         pageContext,
                                         recognitionEvidenceRecorder,
                                     )
-                                    RecognitionEvidenceZipExporter.share(pageContext, exported)
-                                    evidenceExportStatus =
-                                        "EXPORTED · ${exported.integrityStatus} · ${exported.sha256.take(12)}"
+                                    val shareOutcome = RecognitionEvidenceZipExporter.share(pageContext, exported)
+                                    val kb = (exported.sizeBytes / 1024L).coerceAtLeast(1L)
+                                    evidenceExportStatus = if (shareOutcome.chooserLaunched) {
+                                        "EXPORTED · 导出成功 · ${exported.integrityStatus} · ${kb}KB · ${exported.sha256.take(12)}"
+                                    } else {
+                                        "EXPORTED · 已保存(${shareOutcome.errorReason ?: "NO_SHARE_APP"}) · ${exported.file.name} · ${exported.sha256.take(12)}"
+                                    }
+                                    Log.i(
+                                        LOG_TAG,
+                                        "PROCESSING_EVIDENCE_EXPORTED sha256=${exported.sha256} " +
+                                            "sizeBytes=${exported.sizeBytes} integrity=${exported.integrityStatus} " +
+                                            "chooserLaunched=${shareOutcome.chooserLaunched} degraded=${exported.degradedReasons}",
+                                    )
                                 } catch (failure: Throwable) {
                                     if (failure is CancellationException) throw failure
-                                    evidenceExportStatus = "FAILED · ${failure::class.simpleName}"
+                                    evidenceExportStatus = "FAILED · 导出失败 · ${failure.message ?: failure::class.simpleName}"
                                     Log.e(
                                         LOG_TAG,
                                         "PROCESSING_EVIDENCE_EXPORT_FAILED stage=${debugStage.name} " +
@@ -2434,13 +2503,18 @@ fun RecognitionProcessingScene(
                             }
                         },
                     ) {
-                        Text(if (evidenceExportStatus == "EXPORTING") "正在导出本次识鱼诊断 ZIP…" else "导出本次识鱼诊断 ZIP")
+                        Text(if (evidenceExportStatus == "EXPORTING") "正在导出本次识鱼诊断 ZIP…" else "导出本次识鱼诊断包")
                     }
-                    if (evidenceExportStatus != "READY") Text(
-                        evidenceExportStatus,
+                    Text(
+                        text = when {
+                            evidenceExportStatus == "READY" -> "诊断包状态：待导出"
+                            evidenceExportStatus == "EXPORTING" -> "诊断包状态：正在冻结快照并打包导出…"
+                            else -> "诊断包状态：$evidenceExportStatus"
+                        },
                         color = Color(0xFF31545A),
                         fontSize = 11.sp,
                         textAlign = TextAlign.Center,
+                        modifier = Modifier.testTag("processing_export_diagnostics_status"),
                     )
                 }
             }
@@ -2527,7 +2601,10 @@ private fun RecognitionPhoto(
             photoEntryProgress,
         )
     }
-    LaunchedEffect(transform) { onPhotoGeometryChanged(WaterLightGeometryVersion.of(transform)) }
+    val settledGeometryVersion = remember(photoFlowPlan.targetTransform) {
+        WaterLightGeometryVersion.of(photoFlowPlan.targetTransform)
+    }
+    LaunchedEffect(settledGeometryVersion) { onPhotoGeometryChanged(settledGeometryVersion) }
     val waterHosts = remember(waterLightEngine, recognitionSessionId, recognitionAttemptId, imageId, photoSha256, photoContentVersion) {
         listOf(WaterLightHost.PERIMETER, WaterLightHost.PATH, WaterLightHost.CONTOUR).associateWith { host ->
             WaterLightHostBinding(
@@ -2566,6 +2643,9 @@ private fun RecognitionPhoto(
     val firstFrameCallback by rememberUpdatedState(onPhotoFirstFramePresented)
     val photoSnapshotCallback by rememberUpdatedState(onProcessingPhotoSnapshot)
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
+    DisposableEffect(mainHandler) {
+        onDispose { mainHandler.removeCallbacksAndMessages(null) }
+    }
     val density = LocalDensity.current
     val viewportWidthPx = photoFlowPlan.targetTransform.viewportWidthPx.coerceAtLeast(1f)
     val viewportHeightPx = photoFlowPlan.targetTransform.viewportHeightPx.coerceAtLeast(1f)
@@ -2857,6 +2937,7 @@ private data class RecognitionEnergyProducerSnapshot(
     val contactPointNormalizedSource: WaterLightPathPoint?,
     val fishPathSnapshot: RecognitionFishPathSnapshot?,
     val perimeterArrivalPath: WaterLightPerimeterArrivalSnapshot?,
+    val pathApplicability: String = "APPLICABLE",
 )
 
 /** Single path and event producer shared by the Processing renderer and scene Controller. */
@@ -2876,7 +2957,6 @@ private fun createRecognitionEnergyProducerSnapshot(
     maskSha256: String,
     maskVersion: Long,
     highConfidenceResult: Boolean,
-    pStarBindRejected: Boolean,
 ): RecognitionEnergyProducerSnapshot {
     val validContour = maskTrusted && maskVersion >= 0L && subjectBox != null && contour.isNotEmpty()
     val contourClosed = validContour && contour.lastOrNull()?.closesContour == true
@@ -2908,11 +2988,11 @@ private fun createRecognitionEnergyProducerSnapshot(
         pStarPathTerminalUnavailable = pStarUnavailable,
         highConfidenceResult = highConfidenceResult,
     )
-    if (pStarBindRejected && decision == RecognitionRevealDecisionState.FISH_FOCUS_READY) {
-        decision = RecognitionRevealDecisionState.ORB_ONLY_READY
-    }
     val fishEnergyAllowed = decision == RecognitionRevealDecisionState.FISH_FOCUS_READY && maskTrusted
     val orbOnlyAllowed = decision == RecognitionRevealDecisionState.ORB_ONLY_READY
+    val pathApplicability = if (orbOnlyAllowed && scene.stage == RecognitionSceneStage.PATH_TO_FISH) {
+        "NOT_APPLICABLE_ORB_ONLY"
+    } else "APPLICABLE"
     val baseEvent = WaterLightEnergy.at(
         frame = frame,
         trustedMask = fishEnergyAllowed,
@@ -3045,6 +3125,7 @@ private fun createRecognitionEnergyProducerSnapshot(
         contactPointNormalizedSource = stableContact,
         fishPathSnapshot = fishPathSnapshot,
         perimeterArrivalPath = arrivalPath,
+        pathApplicability = pathApplicability,
     )
 }
 

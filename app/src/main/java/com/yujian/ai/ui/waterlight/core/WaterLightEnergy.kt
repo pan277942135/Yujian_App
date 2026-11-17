@@ -83,7 +83,10 @@ object WaterLightEnergy {
                 EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB, .25f + scene.stageProgress * .25f)
             trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_B -> Quad(
                 EnergyAnchor.PHOTO_PATH, EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB,
-                .5f + scene.stageProgress * .5f)
+                .5f + scene.stageProgress * .25f)
+            trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_C -> Quad(
+                EnergyAnchor.PHOTO_PATH, EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB,
+                .75f + scene.stageProgress * .25f)
             trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.ORB_RETURN -> Quad(EnergyAnchor.FISH_CONTOUR,
                 EnergyAnchor.ORB_CORE, EnergyFeedback.RETURN, scene.stageProgress)
             !trustedMask && orbOnlyRevealAllowed && successfulRevealAllowed &&

@@ -81,6 +81,114 @@ class RecognitionEvidenceZipExporterTest {
         )
     }
 
+    @Test fun concurrentWritesDoNotCorruptImmutableSnapshotPackagingOrHashes() {
+        val tempRoot = java.nio.file.Files.createTempDirectory("yujian-p0-snapshot-test").toFile()
+        val attemptDir = File(tempRoot, "attempt").apply { mkdirs() }
+        val stagingDir = File(tempRoot, "staging").apply { mkdirs() }
+        val outputDir = File(tempRoot, "diagnostics").apply { mkdirs() }
+        var nowMs = 100L
+        val sink = RecognitionEvidenceEventSink(attemptDir) { ++nowMs }
+        val keepWriting = java.util.concurrent.atomic.AtomicBoolean(true)
+        val writerThread = Thread {
+            var idx = 0
+            while (keepWriting.get()) {
+                sink.recordRawLine("recognition_events.jsonl", """{"seq":${++idx}}""")
+                Thread.sleep(1L)
+            }
+        }.apply { start() }
+        try {
+            Thread.sleep(25L)
+            val snapshot = sink.snapshotLogsTo(File(stagingDir, "logs"), flushTimeoutMs = 500L)
+            assertTrue(snapshot.copiedFiles.contains("recognition_events.jsonl"))
+            val frozenLog = File(stagingDir, "logs/recognition_events.jsonl")
+            val frozenBytesBeforePack = frozenLog.readBytes()
+            Thread.sleep(25L)
+            val liveBytesAfter = File(attemptDir, "logs/recognition_events.jsonl").readBytes()
+            assertTrue(liveBytesAfter.size >= frozenBytesBeforePack.size)
+            assertTrue(frozenLog.readBytes().contentEquals(frozenBytesBeforePack))
+
+            val outputZip = File(outputDir, "YuJian_Recognition_Evidence_test.zip")
+            val packaged = RecognitionEvidenceZipExporter.packageSnapshotAndVerify(stagingDir, outputZip) { hashes ->
+                """{"schemaVersion":1,"fileCount":${hashes.size}}""".toByteArray(Charsets.UTF_8)
+            }
+            assertTrue(packaged.archive.isFile)
+            assertEquals(packaged.sha256, sha256(packaged.archive.readBytes()))
+            val sidecar = File(outputDir, "${outputZip.name}.sha256")
+            assertTrue(sidecar.isFile)
+            assertTrue(sidecar.readText().startsWith(packaged.sha256))
+        } finally {
+            keepWriting.set(false)
+            writerThread.join(1_000L)
+            sink.dispose()
+            tempRoot.deleteRecursively()
+        }
+    }
+
+    @Test fun logSnapshotEnforcesByteCapAndMarksIncompleteReason() {
+        val tempRoot = java.nio.file.Files.createTempDirectory("yujian-p0-cap-test").toFile()
+        val attemptDir = File(tempRoot, "attempt").apply { mkdirs() }
+        val logsDir = File(attemptDir, "logs").apply { mkdirs() }
+        val sink = RecognitionEvidenceEventSink(attemptDir) { 1_000L }
+        try {
+            val payload = (1..200).joinToString("\n") { """{"line":$it,"msg":"abcdefghij"}""" } + "\n"
+            File(logsDir, "waterlight_paths.jsonl").writeText(payload, Charsets.UTF_8)
+            val stagingLogs = File(tempRoot, "staging_logs")
+            val result = sink.snapshotLogsTo(stagingLogs, maxTotalBytes = 512L)
+            assertTrue(result.sizeCapReached)
+            assertTrue(result.truncatedFiles.contains("waterlight_paths.jsonl"))
+            assertTrue(result.diagnostics.incompleteReasons.contains("LOG_SNAPSHOT_SIZE_CAP_REACHED"))
+            val copied = File(stagingLogs, "waterlight_paths.jsonl")
+            assertTrue(copied.length() <= 512L)
+            assertTrue(copied.readText().contains("""{"line":200"""))
+        } finally {
+            sink.dispose()
+            tempRoot.deleteRecursively()
+        }
+    }
+
+    @Test fun boundedCommandCaptureDegradesGracefullyOnTimeoutTruncationAndMissingBinary() {
+        val tempRoot = java.nio.file.Files.createTempDirectory("yujian-p0-logcat-test").toFile()
+        try {
+            val timeoutFile = File(tempRoot, "timeout.txt")
+            val startedNs = System.nanoTime()
+            val timeoutResult = RecognitionEvidenceZipExporter.captureBoundedCommandOutput(
+                command = listOf("sh", "-c", "echo first_line; sleep 2"),
+                target = timeoutFile,
+                timeoutMs = 150L,
+                maxBytes = 4_096,
+            )
+            val elapsedMs = (System.nanoTime() - startedNs) / 1_000_000L
+            assertEquals("TIMEOUT", timeoutResult.status)
+            assertEquals("LOGCAT_TIMEOUT", timeoutResult.degradedReason)
+            assertTrue(elapsedMs < 1_500L)
+            assertTrue(timeoutFile.readText().contains("LOGCAT_TIMEOUT"))
+
+            val truncatedFile = File(tempRoot, "truncated.txt")
+            val truncatedResult = RecognitionEvidenceZipExporter.captureBoundedCommandOutput(
+                command = listOf("sh", "-c", "i=0; while [ \$i -lt 400 ]; do echo 'logline1234567890'; i=\$((i+1)); done"),
+                target = truncatedFile,
+                timeoutMs = 2_000L,
+                maxBytes = 1_024,
+            )
+            assertEquals("TRUNCATED", truncatedResult.status)
+            assertTrue(truncatedResult.truncated)
+            assertEquals("LOGCAT_SIZE_CAP_REACHED", truncatedResult.degradedReason)
+            assertTrue(truncatedFile.length() <= 1_100L)
+
+            val missingFile = File(tempRoot, "missing.txt")
+            val missingResult = RecognitionEvidenceZipExporter.captureBoundedCommandOutput(
+                command = listOf("/no/such/logcat_binary_for_test"),
+                target = missingFile,
+                timeoutMs = 500L,
+                maxBytes = 1_024,
+            )
+            assertEquals("FAILED", missingResult.status)
+            assertTrue(missingFile.readText().startsWith("LOGCAT_NOT_RECORDED:"))
+        } finally {
+            tempRoot.deleteRecursively()
+        }
+    }
+
     private fun createArchive(content: ByteArray, manifest: ByteArray): File {
         return createArchive(mapOf("logs/recognition_events.jsonl" to content), manifest)
     }

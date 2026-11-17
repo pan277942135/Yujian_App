@@ -33,9 +33,20 @@ class OrbResidentSystemsV1Test {
         assertEquals(releaseEarly, returning)
         assertEquals(1f, returning.effectiveAlpha, 0f)
 
-        val dissolve = OrbResidentFilamentMotionV1.lifecycle(RecognitionSceneStage.SPECIES_NAME_REVEAL, .5f, true)
-        assertEquals(OrbResidentFilamentLifecycle.DISSOLVE, dissolve.lifecycle)
-        assertTrue(dissolve.effectiveAlpha in 0f..1f)
+        val orbToNameEarly = OrbResidentFilamentMotionV1.lifecycle(RecognitionSceneStage.ORB_TO_NAME, 0f, false)
+        val orbToNameMid = OrbResidentFilamentMotionV1.lifecycle(RecognitionSceneStage.ORB_TO_NAME, .5f, false)
+        val orbToNameEnd = OrbResidentFilamentMotionV1.lifecycle(RecognitionSceneStage.ORB_TO_NAME, 1f, false)
+        assertEquals(OrbResidentFilamentLifecycle.DISSOLVE, orbToNameEarly.lifecycle)
+        assertEquals(1f, orbToNameEarly.effectiveAlpha, 0f)
+        assertEquals(.5f, orbToNameMid.effectiveAlpha, .001f)
+        assertEquals(0f, orbToNameEnd.effectiveAlpha, 0f)
+
+        val disposedName = OrbResidentFilamentMotionV1.lifecycle(RecognitionSceneStage.SPECIES_NAME_REVEAL, .5f, true)
+        val disposedResidue = OrbResidentFilamentMotionV1.lifecycle(RecognitionSceneStage.RESIDUE_SETTLE, 1f, true)
+        assertEquals(OrbResidentFilamentLifecycle.DISPOSED, disposedName.lifecycle)
+        assertEquals(0f, disposedName.effectiveAlpha, 0f)
+        assertEquals(OrbResidentFilamentLifecycle.DISPOSED, disposedResidue.lifecycle)
+        assertEquals(0f, disposedResidue.effectiveAlpha, 0f)
     }
 
     @Test fun residentGeometryRotatesOnSceneTimeAndReducedMotionFreezesIt() {

@@ -7,16 +7,34 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /** Bounded asynchronous append-only writer. Critical and sampling traffic have separate budgets. */
-class RecognitionEvidenceEventSink internal constructor(private val attemptDirectory: File) {
-    private data class Queued(val sequence: Long, val timestampMs: Long, val event: RecognitionEvidenceEvent)
+class RecognitionEvidenceEventSink internal constructor(
+    private val attemptDirectory: File,
+    private val clockMs: () -> Long = { SystemClock.uptimeMillis() },
+) {
+    private data class Queued(
+        val sequence: Long,
+        val fileName: String,
+        val priority: RecognitionEvidencePriority,
+        val encodedLine: (sequence: Long, timestampMs: Long) -> String,
+        val timestampMs: Long,
+    )
+
+    internal data class LogSnapshotResult(
+        val diagnostics: RecognitionEvidenceQueueDiagnostics,
+        val copiedFiles: List<String>,
+        val truncatedFiles: List<String>,
+        val sizeCapReached: Boolean,
+    )
 
     private val lock = Any()
+    private val logFileLock = Any()
     private val criticalQueue = ArrayDeque<Queued>()
     private val sampleQueue = ArrayDeque<Queued>()
     private val executor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "yujian-recognition-evidence").apply { isDaemon = true }
     }
     private var draining = false
+    private var disposed = false
     private var nextSequence = 0L
     private var eventCount = 0L
     private var droppedCritical = 0L
@@ -24,13 +42,34 @@ class RecognitionEvidenceEventSink internal constructor(private val attemptDirec
     private var writeFailures = 0L
     private val incompleteReasons = linkedSetOf<String>()
 
-    fun record(event: RecognitionEvidenceEvent): Boolean {
+    fun record(event: RecognitionEvidenceEvent): Boolean = enqueue(
+        fileName = event.fileName,
+        priority = event.priority,
+        encodedLine = { seq, ts -> event.json(seq, ts) },
+    )
+
+    internal fun recordRawLine(
+        fileName: String,
+        encodedJsonLine: String,
+        priority: RecognitionEvidencePriority = RecognitionEvidencePriority.CRITICAL,
+    ): Boolean = enqueue(
+        fileName = fileName,
+        priority = priority,
+        encodedLine = { _, _ -> encodedJsonLine },
+    )
+
+    private fun enqueue(
+        fileName: String,
+        priority: RecognitionEvidencePriority,
+        encodedLine: (sequence: Long, timestampMs: Long) -> String,
+    ): Boolean {
         val accepted = synchronized(lock) {
-            val row = Queued(++nextSequence, SystemClock.uptimeMillis(), event)
-            val queue = if (event.priority == RecognitionEvidencePriority.CRITICAL) criticalQueue else sampleQueue
-            val capacity = if (event.priority == RecognitionEvidencePriority.CRITICAL) MAX_CRITICAL else MAX_SAMPLES
+            if (disposed) return false
+            val row = Queued(++nextSequence, fileName, priority, encodedLine, clockMs())
+            val queue = if (priority == RecognitionEvidencePriority.CRITICAL) criticalQueue else sampleQueue
+            val capacity = if (priority == RecognitionEvidencePriority.CRITICAL) MAX_CRITICAL else MAX_SAMPLES
             val enqueued = if (queue.size >= capacity) {
-                if (event.priority == RecognitionEvidencePriority.CRITICAL) {
+                if (priority == RecognitionEvidencePriority.CRITICAL) {
                     droppedCritical++
                     incompleteReasons += "CRITICAL_EVENT_QUEUE_OVERFLOW"
                 } else {
@@ -44,7 +83,11 @@ class RecognitionEvidenceEventSink internal constructor(private val attemptDirec
             }
             if (!draining && (criticalQueue.isNotEmpty() || sampleQueue.isNotEmpty())) {
                 draining = true
-                executor.execute(::drain)
+                runCatching { executor.execute(::drain) }.onFailure {
+                    draining = false
+                    writeFailures++
+                    incompleteReasons += "EVENT_EXECUTOR_REJECTED:${it.javaClass.simpleName}"
+                }
             }
             enqueued
         }
@@ -65,15 +108,78 @@ class RecognitionEvidenceEventSink internal constructor(private val attemptDirec
         )
     }
 
-    fun flush(timeoutMs: Long = 10_000L): Boolean = runCatching {
-        executor.submit { drain() }.get(timeoutMs, TimeUnit.MILLISECONDS)
-        true
-    }.getOrElse {
-        markIncomplete("EVENT_FLUSH_FAILED:${it.javaClass.simpleName}")
-        false
+    fun flush(timeoutMs: Long = DEFAULT_FLUSH_TIMEOUT_MS): Boolean {
+        val clampedTimeoutMs = timeoutMs.coerceIn(1L, MAX_FLUSH_TIMEOUT_MS)
+        val disposedNow = synchronized(lock) { disposed }
+        if (disposedNow) return true
+        return runCatching {
+            executor.submit { drain() }.get(clampedTimeoutMs, TimeUnit.MILLISECONDS)
+            true
+        }.getOrElse { failure ->
+            val reason = if (failure is java.util.concurrent.TimeoutException) {
+                "EVENT_FLUSH_TIMEOUT"
+            } else {
+                "EVENT_FLUSH_FAILED:${failure.javaClass.simpleName}"
+            }
+            markIncomplete(reason)
+            false
+        }
+    }
+
+    /**
+     * Establishes a write-locked immutable snapshot of current log files into [targetLogsDir].
+     * UI threads calling [record] remain unblocked in memory while existing log files are copied atomically.
+     */
+    internal fun snapshotLogsTo(
+        targetLogsDir: File,
+        flushTimeoutMs: Long = DEFAULT_FLUSH_TIMEOUT_MS,
+        maxTotalBytes: Long = MAX_SNAPSHOT_LOG_BYTES,
+    ): LogSnapshotResult {
+        flush(flushTimeoutMs)
+        targetLogsDir.mkdirs()
+        return synchronized(logFileLock) {
+            val sourceLogsDir = File(attemptDirectory, "logs")
+            val copied = mutableListOf<String>()
+            val truncated = mutableListOf<String>()
+            var remainingBudget = maxTotalBytes.coerceAtLeast(1L)
+            var capReached = false
+            val files = sourceLogsDir.listFiles()?.filter(File::isFile)?.sortedBy(File::getName).orEmpty()
+            for (source in files) {
+                val dest = File(targetLogsDir, source.name)
+                val length = source.length()
+                if (remainingBudget <= 0L) {
+                    capReached = true
+                    truncated += source.name
+                    dest.writeText("", Charsets.UTF_8)
+                    copied += source.name
+                    continue
+                }
+                if (length <= remainingBudget && length <= MAX_SINGLE_LOG_FILE_BYTES) {
+                    source.copyTo(dest, overwrite = true)
+                    remainingBudget -= length
+                } else {
+                    val allowed = minOf(remainingBudget, MAX_SINGLE_LOG_FILE_BYTES)
+                    copyTailBounded(source, dest, allowed)
+                    remainingBudget = (remainingBudget - dest.length()).coerceAtLeast(0L)
+                    truncated += source.name
+                    capReached = true
+                }
+                copied += source.name
+            }
+            if (capReached) {
+                markIncomplete("LOG_SNAPSHOT_SIZE_CAP_REACHED")
+            }
+            LogSnapshotResult(
+                diagnostics = diagnostics(),
+                copiedFiles = copied,
+                truncatedFiles = truncated,
+                sizeCapReached = capReached,
+            )
+        }
     }
 
     fun dispose() {
+        synchronized(lock) { disposed = true }
         executor.shutdown()
     }
 
@@ -89,10 +195,18 @@ class RecognitionEvidenceEventSink internal constructor(private val attemptDirec
                     }
                 }
             } ?: return
-            val target = File(File(attemptDirectory, "logs"), queued.event.fileName)
+            val target = File(File(attemptDirectory, "logs"), queued.fileName)
             try {
-                target.parentFile?.mkdirs()
-                target.appendText(queued.event.json(queued.sequence, queued.timestampMs) + "\n", Charsets.UTF_8)
+                val line = queued.encodedLine(queued.sequence, queued.timestampMs) + "\n"
+                synchronized(logFileLock) {
+                    target.parentFile?.mkdirs()
+                    if (target.isFile && target.length() >= MAX_SINGLE_LOG_FILE_BYTES) {
+                        val rotated = File(target.parentFile, "${queued.fileName}.1")
+                        if (rotated.exists()) rotated.delete()
+                        target.renameTo(rotated)
+                    }
+                    target.appendText(line, Charsets.UTF_8)
+                }
                 synchronized(lock) { eventCount++ }
             } catch (failure: Throwable) {
                 synchronized(lock) {
@@ -103,8 +217,42 @@ class RecognitionEvidenceEventSink internal constructor(private val attemptDirec
         }
     }
 
-    private companion object {
+    private fun copyTailBounded(source: File, dest: File, maxBytes: Long) {
+        if (maxBytes <= 0L) {
+            dest.writeText("", Charsets.UTF_8)
+            return
+        }
+        val length = source.length()
+        if (length <= maxBytes) {
+            source.copyTo(dest, overwrite = true)
+            return
+        }
+        java.io.RandomAccessFile(source, "r").use { raf ->
+            val skip = length - maxBytes
+            raf.seek(skip)
+            // Align to the next newline so truncated JSONL keeps valid lines.
+            if (skip > 0L) {
+                while (raf.filePointer < length) {
+                    if (raf.read() == '\n'.code) break
+                }
+            }
+            dest.outputStream().buffered().use { out ->
+                val buffer = ByteArray(16 * 1024)
+                while (true) {
+                    val read = raf.read(buffer)
+                    if (read <= 0) break
+                    out.write(buffer, 0, read)
+                }
+            }
+        }
+    }
+
+    internal companion object {
         const val MAX_CRITICAL = 2_048
         const val MAX_SAMPLES = 2_048
+        const val DEFAULT_FLUSH_TIMEOUT_MS = 2_000L
+        const val MAX_FLUSH_TIMEOUT_MS = 5_000L
+        const val MAX_SINGLE_LOG_FILE_BYTES = 2L * 1024L * 1024L
+        const val MAX_SNAPSHOT_LOG_BYTES = 8L * 1024L * 1024L
     }
 }

@@ -33,10 +33,13 @@ data class RecognitionPixelCopyResult(
 
 /** Captures the real Android Window buffer. The caller compares stage identity after completion. */
 object RecognitionPixelCopyCapture {
+    const val DEFAULT_TIMEOUT_MS = 2_000L
+
     fun request(
         window: Window?,
         frame: RecognitionSceneFrame,
         currentFrame: () -> RecognitionSceneFrame?,
+        timeoutMs: Long = DEFAULT_TIMEOUT_MS,
         callback: (RecognitionPixelCopyResult) -> Unit,
     ) {
         val requestTime = android.os.SystemClock.uptimeMillis()
@@ -60,16 +63,43 @@ object RecognitionPixelCopyCapture {
             callback(RecognitionPixelCopyResult(null, "REQUEST_FAILED", currentFrame()?.stage?.name.orEmpty(), false, android.os.SystemClock.uptimeMillis()))
             return
         }
+        val handler = Handler(Looper.getMainLooper())
+        val completed = java.util.concurrent.atomic.AtomicBoolean(false)
+        fun sameIdentityFor(latest: RecognitionSceneFrame?): Boolean =
+            RecognitionEvidenceCapturePolicy.sameSceneIdentityAndGeometry(
+                requestedIdentity = frame.identity,
+                completedIdentity = latest?.identity,
+                requestedGeometryVersion = frame.geometryVersion,
+                completedGeometryVersion = latest?.geometryVersion,
+            )
+        val timeoutRunnable = Runnable {
+            if (!completed.compareAndSet(false, true)) return@Runnable
+            val latest = currentFrame()
+            val completionTime = android.os.SystemClock.uptimeMillis()
+            // Do not recycle bitmap here because the OS PixelCopy thread may still write into it
+            // until the real callback runs (which recycles it cleanly when completed is already true).
+            callback(
+                RecognitionPixelCopyResult(
+                    bitmap = null,
+                    status = "PIXELCOPY_TIMEOUT",
+                    stageAtCompletion = latest?.stage?.name ?: "NOT_RECORDED",
+                    sameSceneIdentity = sameIdentityFor(latest),
+                    completionTimestampMs = maxOf(requestTime, completionTime),
+                    geometryVersionAtCompletion = latest?.geometryVersion,
+                ),
+            )
+        }
+        handler.postDelayed(timeoutRunnable, timeoutMs.coerceAtLeast(1L))
         runCatching {
             PixelCopy.request(window, bitmap, { copyResult ->
+                handler.removeCallbacks(timeoutRunnable)
+                if (!completed.compareAndSet(false, true)) {
+                    runCatching { if (!bitmap.isRecycled) bitmap.recycle() }
+                    return@request
+                }
                 val latest = currentFrame()
                 val completionTime = android.os.SystemClock.uptimeMillis()
-                val sameIdentity = RecognitionEvidenceCapturePolicy.sameSceneIdentityAndGeometry(
-                    requestedIdentity = frame.identity,
-                    completedIdentity = latest?.identity,
-                    requestedGeometryVersion = frame.geometryVersion,
-                    completedGeometryVersion = latest?.geometryVersion,
-                )
+                val sameIdentity = sameIdentityFor(latest)
                 val status = when (copyResult) {
                     PixelCopy.SUCCESS -> "SUCCESS"
                     PixelCopy.ERROR_SOURCE_NO_DATA,
@@ -80,7 +110,7 @@ object RecognitionPixelCopyCapture {
                     else -> "PIXELCOPY_ERROR_$copyResult"
                 }
                 val resolved = if (status == "SUCCESS") bitmap else {
-                    bitmap.recycle()
+                    runCatching { if (!bitmap.isRecycled) bitmap.recycle() }
                     null
                 }
                 callback(
@@ -93,18 +123,21 @@ object RecognitionPixelCopyCapture {
                         geometryVersionAtCompletion = latest?.geometryVersion,
                     ),
                 )
-            }, Handler(Looper.getMainLooper()))
+            }, handler)
         }.onFailure {
-            bitmap.recycle()
-            callback(
-                RecognitionPixelCopyResult(
-                    bitmap = null,
-                    status = "REQUEST_FAILED",
-                    stageAtCompletion = currentFrame()?.stage?.name.orEmpty(),
-                    sameSceneIdentity = false,
-                    completionTimestampMs = android.os.SystemClock.uptimeMillis(),
-                ),
-            )
+            handler.removeCallbacks(timeoutRunnable)
+            if (completed.compareAndSet(false, true)) {
+                runCatching { if (!bitmap.isRecycled) bitmap.recycle() }
+                callback(
+                    RecognitionPixelCopyResult(
+                        bitmap = null,
+                        status = "REQUEST_FAILED",
+                        stageAtCompletion = currentFrame()?.stage?.name.orEmpty(),
+                        sameSceneIdentity = false,
+                        completionTimestampMs = android.os.SystemClock.uptimeMillis(),
+                    ),
+                )
+            }
         }
     }
 }

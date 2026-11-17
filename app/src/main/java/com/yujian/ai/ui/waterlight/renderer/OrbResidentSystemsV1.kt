@@ -67,14 +67,17 @@ object OrbResidentFilamentMotionV1 {
         RecognitionSceneStage.CONTOUR_B,
         RecognitionSceneStage.CONTOUR_C,
         RecognitionSceneStage.FISH_GOLD_PEAK,
-        RecognitionSceneStage.ORB_RETURN,
-        RecognitionSceneStage.ORB_TO_NAME -> state(OrbResidentFilamentLifecycle.ACTIVE, 1f, 1f, 0f)
-        RecognitionSceneStage.SPECIES_NAME_REVEAL -> if (orbToGlyphAccepted) {
-            state(OrbResidentFilamentLifecycle.DISSOLVE, 1f, 1f, smoothstep(stageProgress))
-        } else state(OrbResidentFilamentLifecycle.ACTIVE, 1f, 1f, 0f)
+        RecognitionSceneStage.ORB_RETURN -> state(OrbResidentFilamentLifecycle.ACTIVE, 1f, 1f, 0f)
+        RecognitionSceneStage.ORB_TO_NAME -> state(
+            OrbResidentFilamentLifecycle.DISSOLVE,
+            residentAlpha = 1f,
+            wakeInAlpha = 1f,
+            dissolveProgress = smoothstep(stageProgress),
+        )
+        RecognitionSceneStage.SPECIES_NAME_REVEAL,
         RecognitionSceneStage.RESIDUE_SETTLE -> if (orbToGlyphAccepted) {
             state(OrbResidentFilamentLifecycle.DISPOSED, 0f, 1f, 1f)
-        } else state(OrbResidentFilamentLifecycle.ACTIVE, 1f, 1f, 0f)
+        } else state(OrbResidentFilamentLifecycle.DISSOLVE, 1f, 1f, 1f)
     }
 
     /** Rotates each frozen irregular curve around the Core while keeping its radial profile. */

@@ -20,6 +20,7 @@ import com.yujian.ai.ui.waterlight.renderer.OrbStage02LayerIsolation
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02MaxVisualProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02RenderTrace
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02VisualProfile
+import com.yujian.ai.ui.waterlight.renderer.usesProductionOptics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CancellationException
@@ -608,7 +609,7 @@ object OrbStage02VisualEvidenceExport {
         .put("r06", JSONObject()
             .put("glassBackTransmissionMax", OrbStage02MaxVisualProfile.GLASS_BACK_TRANSMISSION_MAX)
             .put("glassRefractionMaxD", OrbStage02MaxVisualProfile.GLASS_BACK_REFRACTION_MAX_D)
-            .put("glassTransmissionEnabled", value.visualProfile == OrbStage02VisualProfile.MAX)
+            .put("glassTransmissionEnabled", value.visualProfile.usesProductionOptics())
             .put("backDrawnPathIdsRuntime", JSONArray(value.r06BackPathIds.sorted()))
             .put("backGlassPathIdsRuntime", JSONArray(value.r06BackTransmissionPathIds.sorted()))
             .put("frontDrawnPathIdsRuntime", JSONArray(value.r06FrontPathIds.sorted()))

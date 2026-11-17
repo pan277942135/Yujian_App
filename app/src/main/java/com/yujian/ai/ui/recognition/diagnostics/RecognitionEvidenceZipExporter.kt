@@ -13,10 +13,13 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.security.MessageDigest
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -26,37 +29,89 @@ data class RecognitionEvidenceZipExportResult(
     val sizeBytes: Long,
     val integrityStatus: String,
     val sourceSha: String,
+    val degradedReasons: List<String> = emptyList(),
+)
+
+data class RecognitionEvidenceShareOutcome(
+    val chooserLaunched: Boolean,
+    val shareUri: String? = null,
+    val errorReason: String? = null,
+)
+
+internal data class RecognitionEvidencePackagedArchive(
+    val archive: File,
+    val sha256: String,
+    val sizeBytes: Long,
+    val fileHashes: Map<String, String>,
+)
+
+internal data class LogcatCaptureResult(
+    val status: String,
+    val truncated: Boolean,
+    val degradedReason: String? = null,
 )
 
 object RecognitionEvidenceZipExporter {
-    suspend fun export(context: Context, recorder: RecognitionSessionEvidenceRecorder): RecognitionEvidenceZipExportResult =
-        withContext(Dispatchers.IO) {
-            check(BuildConfig.DEBUG) { "Evidence ZIP export is available only in Debug/QA builds" }
-            check(recorder.flush()) { "Event queue did not flush" }
-            val attemptDirectory = requireNotNull(recorder.activeAttemptDirectory()) { "No active recognition Attempt" }
-            val summary = recorder.summaryJson()
-            val captureIndex = recorder.captureIndexJson()
-            val sessionFolder = File(attemptDirectory, "session").apply { mkdirs() }
-            val framesFolder = File(attemptDirectory, "frames").apply { mkdirs() }
-            val logsFolder = File(attemptDirectory, "logs").apply { mkdirs() }
-            val reportsFolder = File(attemptDirectory, "reports").apply { mkdirs() }
+    suspend fun export(
+        context: Context,
+        recorder: RecognitionSessionEvidenceRecorder,
+        flushTimeoutMs: Long = RecognitionSessionEvidenceRecorder.DEFAULT_FLUSH_TIMEOUT_MS,
+    ): RecognitionEvidenceZipExportResult = withContext(Dispatchers.IO) {
+        check(BuildConfig.DEBUG) { "Evidence ZIP export is available only in Debug/QA builds" }
+        val diagnosticDir = File(context.cacheDir, "diagnostics").apply { mkdirs() }
+        cleanupStaleTempArtifacts(diagnosticDir)
+        val stagingDir = File(diagnosticDir, ".staging_${UUID.randomUUID()}").apply { mkdirs() }
+        try {
+            val snapshot = requireNotNull(recorder.createImmutableExportSnapshot(stagingDir, flushTimeoutMs)) {
+                "No active recognition Attempt"
+            }
+            val degradedReasons = snapshot.degradedReasons.toMutableList()
+            val summary = JSONObject(snapshot.summary.toString())
+            val captureIndex = JSONArray(snapshot.captureIndex.toString())
+            val sessionFolder = File(stagingDir, "session").apply { mkdirs() }
+            val framesFolder = File(stagingDir, "frames").apply { mkdirs() }
+            val logsFolder = File(stagingDir, "logs").apply { mkdirs() }
+            val reportsFolder = File(stagingDir, "reports").apply { mkdirs() }
 
             File(sessionFolder, "session_summary.json").writeText(summary.toString(2), Charsets.UTF_8)
             File(sessionFolder, "stage_timeline.json").writeText(stageTimelineJson(summary).toString(2), Charsets.UTF_8)
             File(framesFolder, "frame_index.json").writeText(captureIndex.toString(2), Charsets.UTF_8)
-            File(logsFolder, "orb_render_trace.jsonl").writeText(OrbStage02RenderTrace.snapshotJsonLines(), Charsets.UTF_8)
-            captureLogcat(Process.myPid(), File(logsFolder, "logcat.txt"))
 
-            val successfulFrames = captureIndex.filesFrom(attemptDirectory).filter(File::isFile)
-            RecognitionEvidenceContactSheet.create(
-                successfulFrames,
-                File(framesFolder, "screenshot_contact_sheet.jpg"),
-            )
+            val rawOrbTrace = OrbStage02RenderTrace.snapshotJsonLines().toByteArray(Charsets.UTF_8)
+            val orbTraceBytes = if (rawOrbTrace.size <= MAX_ORB_TRACE_BYTES) {
+                rawOrbTrace
+            } else {
+                degradedReasons += "ORB_RENDER_TRACE_TRUNCATED"
+                tailAlignedUtf8Bytes(rawOrbTrace, MAX_ORB_TRACE_BYTES)
+            }
+            File(logsFolder, "orb_render_trace.jsonl").writeBytes(orbTraceBytes)
+
+            val logcatOutcome = captureLogcat(Process.myPid(), File(logsFolder, "logcat.txt"))
+            logcatOutcome.degradedReason?.let { degradedReasons += it }
+
+            val successfulFrames = captureIndex.filesFrom(stagingDir).filter(File::isFile)
+            runCatching {
+                RecognitionEvidenceContactSheet.create(
+                    successfulFrames,
+                    File(framesFolder, "screenshot_contact_sheet.jpg"),
+                )
+            }.onFailure { failure ->
+                degradedReasons += "CONTACT_SHEET_FAILED:${failure.javaClass.simpleName}"
+            }
+
             val buildInfo = buildInfoJson(context)
-            File(attemptDirectory, "build_info.json").writeText(buildInfo.toString(2), Charsets.UTF_8)
+            File(stagingDir, "build_info.json").writeText(buildInfo.toString(2), Charsets.UTF_8)
             val deviceInfo = deviceInfoJson(context)
-            File(attemptDirectory, "device_info.json").writeText(deviceInfo.toString(2), Charsets.UTF_8)
-            writeSummaryReports(context, attemptDirectory, summary, captureIndex, recorder.diagnostics())
+            File(stagingDir, "device_info.json").writeText(deviceInfo.toString(2), Charsets.UTF_8)
+            val uniqueDegraded = degradedReasons.distinct()
+            writeSummaryReports(
+                context = context,
+                attemptDirectory = stagingDir,
+                summary = summary,
+                captureIndex = captureIndex,
+                queue = snapshot.queueDiagnostics,
+                degradedReasons = uniqueDegraded,
+            )
             val resultEvidenceStatus = RecognitionEvidenceResultStatusPolicy.fromStatus(
                 summary.optString("resultEvidenceStatus", "RESULT_EVIDENCE_NOT_AVAILABLE"),
             )
@@ -66,77 +121,68 @@ object RecognitionEvidenceZipExporter {
             )
 
             ensureExpectedFiles(logsFolder, reportsFolder)
-            val filesBeforeManifest = listFiles(attemptDirectory).filter { it.name != "manifest.json" }
-            val fileHashes = JSONObject()
-            filesBeforeManifest.forEach { file -> fileHashes.put(relativePath(attemptDirectory, file), sha256(file)) }
-            val integrityStatus = evidenceStatus(summary, captureIndex, recorder.diagnostics(), filesBeforeManifest)
-            val identity = recorder.exportIdentity()
-            val manifest = JSONObject()
-                .put("schemaVersion", 1)
-                .put("sourceSha", BuildConfig.SOURCE_REVISION)
-                .put("apkSha256", buildInfo.optJSONObject("installedApks")?.optJSONObject("base")?.optString("sha256") ?: "NOT_RECORDED")
-                .put("apkSizeBytes", buildInfo.optJSONObject("installedApks")?.optJSONObject("base")?.optLong("sizeBytes") ?: -1L)
-                .put("installedApks", buildInfo.optJSONObject("installedApks") ?: JSONObject())
-                .put("buildType", BuildConfig.BUILD_TYPE)
-                .put("appVersion", BuildConfig.VERSION_NAME)
-                .put("deviceModel", Build.MODEL)
-                .put("androidVersion", Build.VERSION.RELEASE)
-                .put("apiLevel", Build.VERSION.SDK_INT)
-                .put("screenResolution", "${context.resources.displayMetrics.widthPixels}x${context.resources.displayMetrics.heightPixels}")
-                .put("density", context.resources.displayMetrics.density)
-                .put("sessionIdHash", identity?.let { sha256(it.sessionId) } ?: "NOT_RECORDED")
-                .put("attemptIdHash", identity?.let { sha256(it.attemptId) } ?: "NOT_RECORDED")
-                .put("imageIdHash", identity?.let { sha256(it.imageId) } ?: "NOT_RECORDED")
-                .put("photoSha256", identity?.photoSha256 ?: "NOT_RECORDED")
-                .put("firstFrameTimestampMs", summary.optLong("firstFrameTimestampMs", -1L))
-                .put("recognitionDurationMs", summary.optLong("recognitionDurationMs", -1L))
-                .put("completedStageCount", summary.optInt("completedStageCount"))
-                .put("screenshotRequestCount", summary.optInt("screenshotRequestCount"))
-                .put("screenshotSuccessCount", summary.optInt("screenshotSuccessCount"))
-                .put("screenshotFailureCount", summary.optInt("screenshotFailureCount"))
-                .put("eventCount", summary.optLong("eventCount"))
-                .put("droppedEventCount", summary.optLong("droppedCriticalEventCount") + summary.optLong("droppedSampleEventCount"))
-                .put("evidenceIntegrityStatus", integrityStatus)
-                .put("modelAssetSha256", buildInfo.optJSONObject("modelAssets") ?: JSONObject().put("status", "NOT_RECORDED"))
-                .put("fileSha256", fileHashes)
-            File(attemptDirectory, "manifest.json").writeText(manifest.toString(2), Charsets.UTF_8)
-
-            val diagnosticDir = File(context.cacheDir, "diagnostics").apply { mkdirs() }
+            val filesBeforeManifest = listFiles(stagingDir).filter { it.name != "manifest.json" }
+            val integrityStatus = evidenceStatus(summary, captureIndex, snapshot.queueDiagnostics, filesBeforeManifest)
+            val identity = snapshot.identity
             val sessionId = identity?.let { sha256(it.sessionId).take(12) } ?: "unknown"
             val archive = File(diagnosticDir, "YuJian_Recognition_Evidence_${sessionId}.zip")
-            ZipOutputStream(archive.outputStream().buffered()).use { zip ->
-                listFiles(attemptDirectory).forEach { source ->
-                    val relative = relativePath(attemptDirectory, source)
-                    zip.putNextEntry(ZipEntry(relative))
-                    FileInputStream(source).buffered().use { it.copyTo(zip) }
-                    zip.closeEntry()
+
+            val packaged = packageSnapshotAndVerify(stagingDir, archive) { fileHashesMap ->
+                val fileHashes = JSONObject().apply {
+                    fileHashesMap.forEach { (path, hash) -> put(path, hash) }
                 }
+                val manifest = JSONObject()
+                    .put("schemaVersion", 1)
+                    .put("sourceSha", BuildConfig.SOURCE_REVISION)
+                    .put("apkSha256", buildInfo.optJSONObject("installedApks")?.optJSONObject("base")?.optString("sha256") ?: "NOT_RECORDED")
+                    .put("apkSizeBytes", buildInfo.optJSONObject("installedApks")?.optJSONObject("base")?.optLong("sizeBytes") ?: -1L)
+                    .put("installedApks", buildInfo.optJSONObject("installedApks") ?: JSONObject())
+                    .put("buildType", BuildConfig.BUILD_TYPE)
+                    .put("appVersion", BuildConfig.VERSION_NAME)
+                    .put("deviceModel", Build.MODEL)
+                    .put("androidVersion", Build.VERSION.RELEASE)
+                    .put("apiLevel", Build.VERSION.SDK_INT)
+                    .put("screenResolution", "${context.resources.displayMetrics.widthPixels}x${context.resources.displayMetrics.heightPixels}")
+                    .put("density", context.resources.displayMetrics.density)
+                    .put("sessionIdHash", identity?.let { sha256(it.sessionId) } ?: "NOT_RECORDED")
+                    .put("attemptIdHash", identity?.let { sha256(it.attemptId) } ?: "NOT_RECORDED")
+                    .put("imageIdHash", identity?.let { sha256(it.imageId) } ?: "NOT_RECORDED")
+                    .put("photoSha256", identity?.photoSha256 ?: "NOT_RECORDED")
+                    .put("firstFrameTimestampMs", summary.optLong("firstFrameTimestampMs", -1L))
+                    .put("recognitionDurationMs", summary.optLong("recognitionDurationMs", -1L))
+                    .put("completedStageCount", summary.optInt("completedStageCount"))
+                    .put("screenshotRequestCount", summary.optInt("screenshotRequestCount"))
+                    .put("screenshotSuccessCount", summary.optInt("screenshotSuccessCount"))
+                    .put("screenshotFailureCount", summary.optInt("screenshotFailureCount"))
+                    .put("eventCount", summary.optLong("eventCount"))
+                    .put("droppedEventCount", summary.optLong("droppedCriticalEventCount") + summary.optLong("droppedSampleEventCount"))
+                    .put("evidenceIntegrityStatus", integrityStatus)
+                    .put("degradedReasons", JSONArray(uniqueDegraded))
+                    .put("modelAssetSha256", buildInfo.optJSONObject("modelAssets") ?: JSONObject().put("status", "NOT_RECORDED"))
+                    .put("fileSha256", fileHashes)
+                manifest.toString(2).toByteArray(Charsets.UTF_8)
             }
-            val expectedFileHashes = buildMap {
-                val keys = fileHashes.keys()
-                while (keys.hasNext()) {
-                    val path = keys.next()
-                    put(path, fileHashes.getString(path))
-                }
-            }
-            RecognitionEvidenceArchiveVerifier.verify(
-                archive,
-                expectedFileHashes,
-                File(attemptDirectory, "manifest.json").readBytes(),
-            )
-            val archiveHash = sha256(archive)
-            File(diagnosticDir, archive.name + ".sha256").writeText("$archiveHash  ${archive.name}\n", Charsets.UTF_8)
             RecognitionEvidenceZipExportResult(
-                file = archive,
-                sha256 = archiveHash,
-                sizeBytes = archive.length(),
+                file = packaged.archive,
+                sha256 = packaged.sha256,
+                sizeBytes = packaged.sizeBytes,
                 integrityStatus = integrityStatus,
                 sourceSha = BuildConfig.SOURCE_REVISION,
+                degradedReasons = uniqueDegraded,
             )
+        } finally {
+            stagingDir.deleteRecursively()
         }
+    }
 
-    fun share(context: Context, result: RecognitionEvidenceZipExportResult) {
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", result.file)
+    internal fun resolveShareUri(context: Context, file: File): android.net.Uri =
+        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+
+    internal fun createShareIntent(
+        context: Context,
+        result: RecognitionEvidenceZipExportResult,
+        uri: android.net.Uri = resolveShareUri(context, result.file),
+    ): Intent {
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "application/zip"
             putExtra(Intent.EXTRA_STREAM, uri)
@@ -145,7 +191,83 @@ object RecognitionEvidenceZipExporter {
             clipData = android.content.ClipData.newUri(context.contentResolver, result.file.name, uri)
             if (context !is android.app.Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        context.startActivity(Intent.createChooser(send, "导出本次识鱼诊断包"))
+        return Intent.createChooser(send, "导出本次识鱼诊断包").apply {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (context !is android.app.Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+    }
+
+    fun share(context: Context, result: RecognitionEvidenceZipExportResult): RecognitionEvidenceShareOutcome {
+        val uri = runCatching { resolveShareUri(context, result.file) }.getOrElse { failure ->
+            return RecognitionEvidenceShareOutcome(
+                chooserLaunched = false,
+                shareUri = null,
+                errorReason = "FILEPROVIDER_URI_FAILED:${failure.javaClass.simpleName}",
+            )
+        }
+        val chooser = createShareIntent(context, result, uri)
+        return runCatching {
+            context.startActivity(chooser)
+            RecognitionEvidenceShareOutcome(chooserLaunched = true, shareUri = uri.toString())
+        }.getOrElse { failure ->
+            RecognitionEvidenceShareOutcome(
+                chooserLaunched = false,
+                shareUri = uri.toString(),
+                errorReason = "SHARE_ACTIVITY_FAILED:${failure.javaClass.simpleName}",
+            )
+        }
+    }
+
+    /**
+     * Packages an already-frozen [snapshotDir] into [outputArchive], computing hashes and
+     * verifying all entries + manifest against a temp archive before atomic replacement.
+     */
+    internal fun packageSnapshotAndVerify(
+        snapshotDir: File,
+        outputArchive: File,
+        writeManifest: (Map<String, String>) -> ByteArray,
+    ): RecognitionEvidencePackagedArchive {
+        val filesBeforeManifest = listFiles(snapshotDir)
+            .filter { it.name != "manifest.json" }
+            .sortedBy { relativePath(snapshotDir, it) }
+        val fileHashes = linkedMapOf<String, String>()
+        filesBeforeManifest.forEach { file ->
+            fileHashes[relativePath(snapshotDir, file)] = sha256(file)
+        }
+        val manifestBytes = writeManifest(fileHashes)
+        File(snapshotDir, "manifest.json").writeBytes(manifestBytes)
+
+        val archiveDir = outputArchive.parentFile?.apply { mkdirs() }
+        val tempArchive = File(archiveDir, "${outputArchive.name}.tmp.${UUID.randomUUID()}")
+        try {
+            ZipOutputStream(tempArchive.outputStream().buffered()).use { zip ->
+                listFiles(snapshotDir)
+                    .sortedBy { relativePath(snapshotDir, it) }
+                    .forEach { source ->
+                        val relative = relativePath(snapshotDir, source)
+                        zip.putNextEntry(ZipEntry(relative))
+                        FileInputStream(source).buffered().use { it.copyTo(zip) }
+                        zip.closeEntry()
+                    }
+            }
+            RecognitionEvidenceArchiveVerifier.verify(tempArchive, fileHashes, manifestBytes)
+            val archiveHash = sha256(tempArchive)
+            if (outputArchive.exists()) outputArchive.delete()
+            if (!tempArchive.renameTo(outputArchive)) {
+                tempArchive.copyTo(outputArchive, overwrite = true)
+                tempArchive.delete()
+            }
+            File(archiveDir, outputArchive.name + ".sha256")
+                .writeText("$archiveHash  ${outputArchive.name}\n", Charsets.UTF_8)
+            return RecognitionEvidencePackagedArchive(
+                archive = outputArchive,
+                sha256 = archiveHash,
+                sizeBytes = outputArchive.length(),
+                fileHashes = fileHashes,
+            )
+        } finally {
+            if (tempArchive.exists()) tempArchive.delete()
+        }
     }
 
     private fun writeSummaryReports(
@@ -154,6 +276,7 @@ object RecognitionEvidenceZipExporter {
         summary: JSONObject,
         captureIndex: JSONArray,
         queue: RecognitionEvidenceQueueDiagnostics,
+        degradedReasons: List<String> = emptyList(),
     ) {
         val reports = File(attemptDirectory, "reports")
         val modelRuntime = lastJsonLine(File(attemptDirectory, "logs/model_inference.jsonl"))
@@ -239,7 +362,8 @@ object RecognitionEvidenceZipExporter {
                 .put("droppedCriticalEventCount", queue.droppedCriticalEvents)
                 .put("droppedSampleEventCount", queue.droppedSampleEvents)
                 .put("writeFailures", queue.writeFailures)
-                .put("incompleteReasons", JSONArray(queue.incompleteReasons))
+                .put("incompleteReasons", JSONArray((queue.incompleteReasons + degradedReasons).distinct()))
+                .put("degradedReasons", JSONArray(degradedReasons))
                 .toString(2), Charsets.UTF_8,
         )
     }
@@ -352,14 +476,101 @@ object RecognitionEvidenceZipExporter {
             .put("densityDpi", metrics.densityDpi)
     }
 
-    private fun captureLogcat(pid: Int, target: File) {
-        runCatching {
-            val process = ProcessBuilder("logcat", "-d", "-v", "threadtime", "--pid=$pid")
-                .redirectErrorStream(true).start()
-            val content = process.inputStream.bufferedReader().use { it.readText() }
-            process.waitFor()
-            target.writeText(content, Charsets.UTF_8)
-        }.onFailure { target.writeText("LOGCAT_NOT_RECORDED:${it.javaClass.simpleName}\n", Charsets.UTF_8) }
+    private fun captureLogcat(pid: Int, target: File): LogcatCaptureResult = captureBoundedCommandOutput(
+        command = listOf("logcat", "-d", "-v", "threadtime", "-t", MAX_LOGCAT_LINES.toString(), "--pid=$pid"),
+        target = target,
+        timeoutMs = LOGCAT_TIMEOUT_MS,
+        maxBytes = MAX_LOGCAT_BYTES,
+    )
+
+    internal fun captureBoundedCommandOutput(
+        command: List<String>,
+        target: File,
+        timeoutMs: Long = LOGCAT_TIMEOUT_MS,
+        maxBytes: Int = MAX_LOGCAT_BYTES,
+    ): LogcatCaptureResult {
+        val clampedTimeoutMs = timeoutMs.coerceIn(1L, MAX_LOGCAT_TIMEOUT_MS)
+        val clampedMaxBytes = maxBytes.coerceIn(1_024, MAX_LOGCAT_BYTES_HARD_LIMIT)
+        return runCatching {
+            val process = ProcessBuilder(command).redirectErrorStream(true).start()
+            val captured = ByteArrayOutputStream()
+            var truncated = false
+            val readerThread = Thread({
+                runCatching {
+                    process.inputStream.use { stream ->
+                        val buffer = ByteArray(8 * 1024)
+                        while (true) {
+                            val read = stream.read(buffer)
+                            if (read < 0) break
+                            val remaining = clampedMaxBytes - captured.size()
+                            if (remaining > 0) {
+                                val toWrite = minOf(read, remaining)
+                                captured.write(buffer, 0, toWrite)
+                                if (toWrite < read) truncated = true
+                            } else {
+                                truncated = true
+                            }
+                        }
+                    }
+                }
+            }, "yujian-logcat-reader").apply {
+                isDaemon = true
+                start()
+            }
+            val finished = process.waitFor(clampedTimeoutMs, TimeUnit.MILLISECONDS)
+            if (!finished) {
+                process.destroyForcibly()
+                readerThread.join(200L)
+                val prefix = captured.toByteArray()
+                val suffix = "\nLOGCAT_TIMEOUT:${clampedTimeoutMs}ms\n".toByteArray(Charsets.UTF_8)
+                target.writeBytes(prefix + suffix)
+                LogcatCaptureResult(status = "TIMEOUT", truncated = truncated, degradedReason = "LOGCAT_TIMEOUT")
+            } else {
+                readerThread.join(500L)
+                val bytes = captured.toByteArray()
+                val exit = runCatching { process.exitValue() }.getOrDefault(-1)
+                if (exit != 0 && bytes.isEmpty()) {
+                    target.writeText("LOGCAT_NOT_RECORDED:EXIT_$exit\n", Charsets.UTF_8)
+                    LogcatCaptureResult(status = "FAILED", truncated = false, degradedReason = "LOGCAT_EXIT_$exit")
+                } else if (truncated) {
+                    val suffix = "\nLOGCAT_TRUNCATED:${clampedMaxBytes}B\n".toByteArray(Charsets.UTF_8)
+                    target.writeBytes(bytes + suffix)
+                    LogcatCaptureResult(status = "TRUNCATED", truncated = true, degradedReason = "LOGCAT_SIZE_CAP_REACHED")
+                } else {
+                    target.writeBytes(bytes)
+                    LogcatCaptureResult(status = "SUCCESS", truncated = false, degradedReason = null)
+                }
+            }
+        }.getOrElse { failure ->
+            target.writeText("LOGCAT_NOT_RECORDED:${failure.javaClass.simpleName}\n", Charsets.UTF_8)
+            LogcatCaptureResult(
+                status = "FAILED",
+                truncated = false,
+                degradedReason = "LOGCAT_FAILED:${failure.javaClass.simpleName}",
+            )
+        }
+    }
+
+    private fun cleanupStaleTempArtifacts(diagnosticDir: File) {
+        val cutoffMs = System.currentTimeMillis() - STALE_TEMP_CLEANUP_AGE_MS
+        diagnosticDir.listFiles()?.forEach { child ->
+            if ((child.name.startsWith(".staging_") || child.name.contains(".tmp.")) &&
+                child.lastModified() in 1L until cutoffMs
+            ) {
+                child.deleteRecursively()
+            }
+        }
+    }
+
+    private fun tailAlignedUtf8Bytes(raw: ByteArray, maxBytes: Int): ByteArray {
+        if (raw.size <= maxBytes) return raw
+        var start = raw.size - maxBytes
+        while (start < raw.size && raw[start] != '\n'.code.toByte()) {
+            start++
+        }
+        if (start < raw.size && raw[start] == '\n'.code.toByte()) start++
+        return if (start >= raw.size) raw.copyOfRange(raw.size - maxBytes, raw.size)
+        else raw.copyOfRange(start, raw.size)
     }
 
     private fun lastJsonLine(file: File): JSONObject = runCatching {
@@ -414,4 +625,11 @@ object RecognitionEvidenceZipExporter {
         .joinToString("") { "%02x".format(it) }
 
     private val MODEL_EXTENSIONS = setOf("onnx", "tflite", "task", "model", "bin")
+    internal const val LOGCAT_TIMEOUT_MS = 2_500L
+    internal const val MAX_LOGCAT_TIMEOUT_MS = 5_000L
+    internal const val MAX_LOGCAT_LINES = 2_000
+    internal const val MAX_LOGCAT_BYTES = 512 * 1024
+    internal const val MAX_LOGCAT_BYTES_HARD_LIMIT = 2 * 1024 * 1024
+    internal const val MAX_ORB_TRACE_BYTES = 4 * 1024 * 1024
+    private const val STALE_TEMP_CLEANUP_AGE_MS = 10 * 60 * 1000L
 }

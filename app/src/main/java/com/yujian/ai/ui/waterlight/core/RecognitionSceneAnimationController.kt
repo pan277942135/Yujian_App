@@ -392,6 +392,8 @@ class RecognitionSceneAnimationController(
         revealDecisionReady = true
     }
 
+    fun currentRevealDecision(): RecognitionRevealDecisionState = revealDecisionState
+
     fun onRevealDecision(
         decision: RecognitionRevealDecisionState,
         nowMs: Long = lastNowMs,
@@ -464,17 +466,20 @@ class RecognitionSceneAnimationController(
         glyphRevealComplete = false
     }
 
-    fun onGlyphRevealRendered(readiness: RecognitionGlyphReadiness, currentIdentity: RecognitionSceneIdentity? = null) {
-        if (!isCurrent(currentIdentity)) return
-        val descriptor = glyphReadiness.descriptor ?: return
+    fun onGlyphRevealRendered(readiness: RecognitionGlyphReadiness, currentIdentity: RecognitionSceneIdentity? = null): Boolean {
+        if (!isCurrent(currentIdentity)) return false
+        if (currentStage != RecognitionSceneStage.SPECIES_NAME_REVEAL) return false
+        val descriptor = glyphReadiness.descriptor ?: return false
         if (readiness.descriptor != descriptor ||
             !RecognitionGlyphReadinessContract.isRendered(
                 descriptor.identity, descriptor.speciesKey, descriptor.speciesName, readiness,
             )
-        ) return
+        ) return false
         glyphReadiness = readiness.copy(nameStable = false)
         glyphAvailable = true
         glyphRevealComplete = true
+        bumpEventSequence()
+        return true
     }
 
     private var glyphAvailable = false
@@ -699,7 +704,8 @@ class RecognitionSceneAnimationController(
                 RecognitionSceneStage.CONTOUR_C,
             )
         ) {
-            if (!maskTrusted || event.pathId != activeFishContactPathId ||
+            if (revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY ||
+                !maskTrusted || event.pathId != activeFishContactPathId ||
                 activeMaskGeometryVersion != frame.geometryVersion
             ) return reject(EnergyEventRejectionReason.EVENT_MASK_IDENTITY_MISMATCH)
             if (activeMaskContactPointNormalizedSource == null ||
@@ -991,10 +997,15 @@ class RecognitionSceneAnimationController(
         (minimum(currentStage) * stageProgress(nowMs)).toLong()
     } else 0L
 
-    /** Handoff eligibility is an exact stage-10 check plus the real model join and original Orb anchor. */
+    fun fishPathSnapshotReady(): Boolean = fishPathSnapshot != null
+
+    /** Handoff eligibility is an exact stage-10 check plus the real model join, fish path snapshot when trusted, and original Orb anchor. */
     fun resultVisualReady(nowMs: Long): Boolean = !failed && photoFirstFramePresented &&
         currentStage == RecognitionSceneStage.ORB_RETURN && classifierReady && slimSamTerminal &&
-        revealDecisionReady && orbAnchorReady && (!maskTrusted || contourValid) && stageElapsedMs(nowMs) >= 0L
+        revealDecisionReady && orbAnchorReady &&
+        (!maskTrusted || revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY ||
+            (contourValid && fishPathSnapshot != null)) &&
+        stageElapsedMs(nowMs) >= 0L
 
     fun sample(authoritativeReferenceMs: Long, nowMs: Long): Long {
         @Suppress("UNUSED_VARIABLE") val compatibilityReference = authoritativeReferenceMs.coerceAtLeast(0L)

@@ -62,7 +62,13 @@ class WaterLightEnergyTest {
         assertEquals(EnergyFeedback.ABSORB, fishPath.feedback)
         assertEquals(.125f, fishPath.level, .001f)
         assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_A), false))
-        assertEquals(EnergyFeedback.ABSORB, WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_B), true)?.feedback)
+        val contourB = WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_B), true)!!
+        assertEquals(EnergyFeedback.ABSORB, contourB.feedback)
+        assertEquals(.625f, contourB.level, .001f)
+        val contourC = WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_C), true)!!
+        assertEquals(EnergyFeedback.ABSORB, contourC.feedback)
+        assertEquals(.875f, contourC.level, .001f)
+        assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.CONTOUR_C), false))
 
         assertNull(WaterLightEnergy.at(frame(RecognitionSceneStage.ORB_RETURN, .5f), true))
         assertNull(WaterLightEnergy.at(
