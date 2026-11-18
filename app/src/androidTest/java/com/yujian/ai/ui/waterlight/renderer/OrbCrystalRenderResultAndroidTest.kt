@@ -26,6 +26,15 @@ class OrbCrystalRenderResultAndroidTest {
 
     @Test fun androidTestVariantKeepsComposeOnNotReadyAndTransfersOnlyAfterValidRetry() {
         val ownership = OrbRenderOwnershipState()
+        var glOwnsOrb = false
+        var composeVisible = true
+
+        fun applyOwner(result: OrbCrystalRenderResult) {
+            glOwnsOrb = ownership.apply(result, frame)
+            composeVisible = !glOwnsOrb
+            assertTrue("exactly one renderer owns the visible Orb", composeVisible.xor(glOwnsOrb))
+        }
+
         val incomplete = completeFixture(frame, 1L).copy(coreTextureStatus = RenderPassStatus.NOT_READY)
         val rejectedGate = GlFramePresentationGate.beforeSwap(
             execution = GlFrameExecution(RenderPassStatus.PASS, incomplete),
@@ -41,7 +50,9 @@ class OrbCrystalRenderResultAndroidTest {
             presentedSequence = null,
             failureReason = rejectedGate.rejectionReason,
         )
-        assertFalse(ownership.apply(rejected, frame))
+        applyOwner(rejected)
+        assertFalse(glOwnsOrb)
+        assertTrue(composeVisible)
 
         val retry = completeFixture(frame, 2L).withPresentation(RenderPassStatus.PASS, 2L)
         val retryGate = GlFramePresentationGate.beforeSwap(
@@ -57,7 +68,9 @@ class OrbCrystalRenderResultAndroidTest {
             swapStatus = RenderPassStatus.PASS,
             presentedSequence = 2L,
         )
-        assertTrue(ownership.apply(presented, frame))
+        applyOwner(presented)
+        assertTrue(glOwnsOrb)
+        assertFalse(composeVisible)
     }
 
     private fun completeFixture(frame: RecognitionSceneFrame, sequence: Long) = OrbCrystalRenderResult(

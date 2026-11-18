@@ -13,6 +13,8 @@
 
 Stage 2 remains Draft in PR #341 and is not merged. `DEVICE_QA_PENDING_USER` and the separate Stage 1 visual-freeze blocker remain unchanged.
 
+The exact-head evidence below records the initial Stage 3-A code run on `71d33d14720476fe38d7eb8bcec109c51653918f`. A follow-up commit adds an explicit AndroidTest assertion that Compose and GL never own the visible Orb simultaneously. Its final exact-head CI and APK evidence are recorded in the Draft delivery PR and supersede that initial run; no device QA is implied.
+
 Stage 3-A was permitted to proceed under the instruction that the automated PixelCopy contract is sufficient while device QA remains pending. This report does not upgrade device QA to PASS.
 
 ## Stage 3-A implementation status
