@@ -31,6 +31,7 @@ import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
 import com.yujian.ai.ui.waterlight.renderer.OrbCoreOpticalEffects
@@ -51,6 +52,7 @@ import com.yujian.ai.ui.waterlight.renderer.OrbR06PathDiagnostic
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02RenderTrace
 import com.yujian.ai.ui.waterlight.renderer.ORB_CRYSTAL_CONTAINER_RATIO
 import com.yujian.ai.ui.waterlight.renderer.OrbCrystalWakeGlOverlay
+import com.yujian.ai.ui.waterlight.renderer.OrbRenderOwnershipState
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
@@ -149,6 +151,7 @@ fun AIOrbCore(
     stage02LayerIsolation: OrbStage02LayerIsolation = OrbStage02LayerIsolation.R03_R06,
     onShaderRuntimeStatus: ((String, String, String) -> Unit)? = null,
     onOrbRuntimeDiagnostics: ((Map<String, Any?>) -> Unit)? = null,
+    onGlRenderDiagnostics: ((RecognitionSceneIdentity, Map<String, Any?>) -> Unit)? = null,
     onR06RenderedPaths: ((Boolean, OrbR06RenderPass, Set<String>) -> Unit)? = null,
     onR06PathDiagnostics: ((Boolean, OrbR06RenderPass, List<OrbR06PathDiagnostic>) -> Unit)? = null,
     /** Debug evidence sampling only; the production scene controller/frame is not advanced. */
@@ -613,9 +616,22 @@ private fun OrbVisual(
         !isolateCoreForTestOutput &&
         stage02LayerIsolation == OrbStage02LayerIsolation.R03_R06 &&
         orbRendererMode == OrbFilamentRendererMode.ORB_V1_CANDIDATE
+    val glRenderOwnership = remember(
+        sharedFrame.sessionId,
+        sharedFrame.attemptId,
+        sharedFrame.imageId,
+        sharedFrame.photoSha256,
+        sharedFrame.photoContentVersion,
+        sharedFrame.geometryVersion,
+        glCrystalEligible,
+    ) { OrbRenderOwnershipState() }
     var glCrystalPresented by remember(
         sharedFrame.sessionId,
         sharedFrame.attemptId,
+        sharedFrame.imageId,
+        sharedFrame.photoSha256,
+        sharedFrame.photoContentVersion,
+        sharedFrame.geometryVersion,
         glCrystalEligible,
     ) { mutableStateOf(false) }
     val hideLegacyVisualForGl = glCrystalEligible && glCrystalPresented
@@ -662,7 +678,14 @@ private fun OrbVisual(
                 showDroplets = orbShowDroplets,
                 showSunlight = orbShowSunlight,
                 showCaustics = orbShowCaustics,
-                onFirstFramePresented = { glCrystalPresented = true },
+                glOwnerAccepted = glCrystalPresented,
+                onFirstFramePresented = {},
+                onOwnerStateChanged = { result, _ ->
+                    if (result.identity == sceneFrame.identity && result.geometryVersion == sceneFrame.geometryVersion) {
+                        glCrystalPresented = glRenderOwnership.apply(result, sceneFrame)
+                    }
+                },
+                onRenderResult = { identity, payload -> onGlRenderDiagnostics?.invoke(identity, payload) },
                 modifier = Modifier.requiredSize(coreSize * ORB_CRYSTAL_CONTAINER_RATIO),
             )
         }

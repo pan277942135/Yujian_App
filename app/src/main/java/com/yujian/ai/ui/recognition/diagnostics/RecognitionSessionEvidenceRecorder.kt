@@ -507,6 +507,53 @@ class RecognitionSessionEvidenceRecorder(
         record(type, fileName, payload, RecognitionEvidencePriority.SAMPLE)
     }
 
+    /** Queues a GL host receipt into the existing bounded evidence sink; callers never write files on the GL thread. */
+    fun recordGpuRenderResult(
+        identity: RecognitionSceneIdentity,
+        payload: Map<String, Any?>,
+    ): Boolean {
+        val geometry = (payload["geometryVersion"] as? Number)?.toLong()
+        val ownerMatch = synchronized(lock) {
+            activeIdentity?.matches(identity) == true &&
+                (latestGeometryVersion < 0L || geometry == latestGeometryVersion)
+        }
+        val reason = when {
+            !ownerMatch && synchronized(lock) { activeIdentity?.matches(identity) != true } -> "SCENE_IDENTITY_NOT_ACTIVE"
+            !ownerMatch -> "GEOMETRY_VERSION_NOT_ACTIVE"
+            else -> null
+        }
+        val reasonPayload = if (reason == null) emptyMap() else mapOf(
+            "receiptAccepted" to false,
+            "receiptRejectionReason" to reason,
+            "receivedSessionIdHash" to sha256(identity.sessionId),
+            "receivedAttemptIdHash" to sha256(identity.attemptId),
+            "receivedPhotoIdentityHash" to sha256(identity.imageId),
+        )
+        val ownerAccepted = payload["ownerAccepted"] == true
+        val failureReason = payload["failureReason"]?.toString()?.takeIf(String::isNotBlank)
+        val eventType = payload["eventType"]?.toString()?.takeIf(String::isNotBlank) ?: when {
+            reason != null -> "GPU_RENDER_RECEIPT_REJECTED"
+            failureReason?.contains("CONTEXT_LOST", ignoreCase = true) == true -> "GPU_CONTEXT_LOST"
+            failureReason?.contains("SURFACE", ignoreCase = true) == true -> "SURFACE_NOT_READY"
+            ownerAccepted -> "GPU_RENDER_ACTIVE"
+            payload.values.any { it == "FAIL" } -> "GPU_RENDER_FAILED"
+            else -> "GPU_RENDER_SUPPRESSED"
+        }
+        val priority = if (
+            reason != null || failureReason != null || payload.values.any { it == "FAIL" } ||
+            eventType in setOf("FIRST_FRAME_ACCEPTED", "FIRST_FRAME_REJECTED", "FALLBACK_ACTIVE", "GPU_CONTEXT_LOST", "SURFACE_NOT_READY")
+        ) {
+            RecognitionEvidencePriority.CRITICAL
+        } else RecognitionEvidencePriority.SAMPLE
+        val queued = record(
+            type = eventType,
+            fileName = "gpu_trace.jsonl",
+            payload = payload + reasonPayload + mapOf("receiptAccepted" to (reason == null)),
+            priority = priority,
+        )
+        return queued != null
+    }
+
     fun recordHeartbeat(frame: RecognitionSceneFrame) {
         val waiting = frame.modelGates.waitingReason ?: return
         synchronized(lock) { latestWaitingReason = waiting }
