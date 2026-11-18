@@ -110,7 +110,14 @@ class RecognitionSessionEvidenceRecorderTest {
             assertTrue(sink.record(RecognitionEvidenceEvent("recognition_events.jsonl", "CRITICAL_2", emptyMap())))
             assertTrue(sink.record(RecognitionEvidenceEvent("recognition_events.jsonl", "SAMPLE_3", emptyMap(), RecognitionEvidencePriority.SAMPLE)))
             assertTrue(sink.flush(1_000L))
-            val sequences = java.io.File(root, "logs/recognition_events.jsonl").readLines()
+            val diagnostics = sink.diagnostics()
+            assertEquals("writeFailures=$diagnostics", 0L, diagnostics.writeFailures)
+            assertTrue("incompleteReasons=$diagnostics", diagnostics.incompleteReasons.isEmpty())
+            assertEquals(3L, diagnostics.eventCount)
+            val logFiles = java.io.File(root, "logs").listFiles().orEmpty().filter { it.isFile }
+            assertEquals(listOf("recognition_events.jsonl"), logFiles.map { it.name })
+            assertTrue(logFiles.single().length() > 0L)
+            val sequences = logFiles.single().readLines()
                 .map { line -> "\\\"evidenceSequence\\\":(\\d+)".toRegex().find(line)!!.groupValues[1].toLong() }
             assertEquals(listOf(1L, 2L, 3L), sequences)
         } finally {
@@ -144,9 +151,15 @@ class RecognitionSessionEvidenceRecorderTest {
                 assertTrue(sink.record(RecognitionEvidenceEvent("recognition_events.jsonl", "EVENT_$index", payload)))
             }
             assertTrue(sink.flush(5_000L))
+            val diagnostics = sink.diagnostics()
+            assertEquals("writeFailures=$diagnostics", 0L, diagnostics.writeFailures)
+            assertTrue("incompleteReasons=$diagnostics", diagnostics.incompleteReasons.isEmpty())
+            assertEquals(42L, diagnostics.eventCount)
             val logFiles = java.io.File(root, "logs").listFiles()
                 .orEmpty()
                 .filter { it.name.startsWith("recognition_events.jsonl") }
+            assertTrue(logFiles.all { it.length() > 0L })
+            assertTrue(logFiles.sumOf { it.length() } > RecognitionEvidenceEventSink.MAX_SINGLE_LOG_FILE_BYTES * 2L)
             assertTrue(logFiles.size >= 2)
             assertTrue(logFiles.any { it.name.contains(".part_") })
             assertEquals(42, logFiles.sumOf { it.readLines().size })
