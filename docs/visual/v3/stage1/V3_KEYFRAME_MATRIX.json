@@ -1,5 +1,5 @@
 {
-  "schema_version": "3.0.0-AUDIT-NOT-FROZEN",
+  "schema_version": "3.1.0-CORE-VISUAL-SPEC-FROZEN-WITH-TUNABLES",
   "source_sha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
   "source_resolution_px": [
     8677,
@@ -24,8 +24,16 @@
       ],
       "photo_rectangle_approx_px": null,
       "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
-      "source_kind": "V2_OVERVIEW_CROP",
-      "runtime_mask_proof": false
+      "source_kind": "INDEPENDENT_SOURCE_PLUS_OVERVIEW_CROP",
+      "runtime_mask_proof": false,
+      "independent_source": {
+        "file": "渔见湖光鱼获首页.png",
+        "sha256": "8bb3bb1b4a2303d006bd3f6dbd373a11a02997d97ca64a1d5130c9432847e37c",
+        "dimensions_px": [
+          941,
+          1672
+        ]
+      }
     },
     {
       "frame_id": "KF01",
@@ -43,8 +51,16 @@
       ],
       "photo_rectangle_approx_px": null,
       "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
-      "source_kind": "V2_OVERVIEW_CROP",
-      "runtime_mask_proof": false
+      "source_kind": "INDEPENDENT_SOURCE_PLUS_OVERVIEW_CROP",
+      "runtime_mask_proof": false,
+      "independent_source": {
+        "file": "03 Camera Runtime\t真实取景、操作区、变焦.png",
+        "sha256": "4d10908b2215a24b1bf3098a67576e223e6891a37705c7d95840c58332b809a9",
+        "dimensions_px": [
+          942,
+          1670
+        ]
+      }
     },
     {
       "frame_id": "KF02",
@@ -311,7 +327,14 @@
       "photo_rectangle_approx_px": null,
       "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
       "source_kind": "V2_OVERVIEW_CROP",
-      "runtime_mask_proof": false
+      "runtime_mask_proof": false,
+      "return_contract": {
+        "source_frame_id": "KF05",
+        "same_path_identity": true,
+        "preserve_path_geometry": true,
+        "direction": "REVERSE",
+        "new_asset_required": false
+      }
     },
     {
       "frame_id": "KF15",
@@ -431,7 +454,13 @@
       ],
       "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
       "source_kind": "V2_OVERVIEW_CROP",
-      "runtime_mask_proof": false
+      "runtime_mask_proof": false,
+      "embedded_subphase": {
+        "name": "12.2_GLYPH_EMERGENCE",
+        "board": "六帧黑鱼水幻变形记.png",
+        "frame_number": 5,
+        "additional_kf_row": false
+      }
     },
     {
       "frame_id": "KF20",
@@ -555,8 +584,8 @@
     },
     {
       "frame_id": "KF25",
-      "label": "FINAL_RESULT",
-      "stage": "RESULT_STABLE",
+      "label": "SAVE_AND_RETURN_HOME",
+      "stage": "POST_RESULT_NAVIGATION",
       "source_crop_bbox_px": [
         6755,
         3720,
@@ -574,8 +603,15 @@
         751
       ],
       "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
-      "source_kind": "V2_OVERVIEW_CROP",
-      "runtime_mask_proof": false
+      "source_kind": "SAVE_ACTION_REFERENCE_PLUS_KF00_HOME_TARGET",
+      "runtime_mask_proof": false,
+      "behavior_contract": {
+        "save_current_catch": true,
+        "return_home_after_success": true,
+        "home_target_frame_id": "KF00",
+        "new_success_artwork_required": false
+      }
     }
-  ]
+  ],
+  "source_mapping_doc": "V3_26KF_SOURCE_MAPPING_V2.md"
 }
