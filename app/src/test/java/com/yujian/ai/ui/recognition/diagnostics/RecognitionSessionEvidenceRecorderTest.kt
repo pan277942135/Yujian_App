@@ -119,6 +119,22 @@ class RecognitionSessionEvidenceRecorderTest {
         }
     }
 
+    @Test fun evidenceEventEncodingPreservesNestedValuesAndEscapesStringsWithoutAndroidJsonRuntime() {
+        val encoded = RecognitionEvidenceEvent(
+            fileName = "recognition_events.jsonl",
+            type = "ENCODING_TEST",
+            payload = mapOf(
+                "message" to "quote \" slash \\ line\nnext",
+                "details" to mapOf("accepted" to true, "missing" to null),
+            ),
+        ).json(sequence = 7L, timestampMs = 123L)
+
+        assertTrue(encoded.contains("\"sequence\":7"))
+        assertTrue(encoded.contains("\"evidenceSequence\":7"))
+        assertTrue(encoded.contains("\"message\":\"quote \\\" slash \\\\ line\\nnext\""))
+        assertTrue(encoded.contains("\"details\":{\"accepted\":true,\"missing\":null}"))
+    }
+
     @Test fun rotatingEvidenceLogsPreservesPriorSegmentsInsteadOfDeletingOlderFailureHistory() {
         val root = java.nio.file.Files.createTempDirectory("yujian-evidence-rotation").toFile()
         val sink = RecognitionEvidenceEventSink(root, clockMs = { 100L })

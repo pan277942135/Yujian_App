@@ -56,14 +56,63 @@ data class RecognitionEvidenceEvent(
     val payload: Map<String, Any?>,
     val priority: RecognitionEvidencePriority = RecognitionEvidencePriority.CRITICAL,
 ) {
-    fun json(sequence: Long, timestampMs: Long): String = JSONObject()
-        .put("schemaVersion", RecognitionEvidenceSchema.EVIDENCE_SCHEMA_VERSION)
-        .put("sequence", sequence)
-        .put("evidenceSequence", sequence)
-        .put("timestampUptimeMs", timestampMs)
-        .put("eventType", type)
-        .also { row -> payload.forEach { (key, value) -> row.put(key, value) } }
-        .toString()
+    fun json(sequence: Long, timestampMs: Long): String {
+        val fields = linkedMapOf<String, Any?>(
+            "schemaVersion" to RecognitionEvidenceSchema.EVIDENCE_SCHEMA_VERSION,
+            "sequence" to sequence,
+            "evidenceSequence" to sequence,
+            "timestampUptimeMs" to timestampMs,
+            "eventType" to type,
+        )
+        fields.putAll(payload)
+        return fields.entries.joinToString(prefix = "{", postfix = "}", separator = ",") { (key, value) ->
+            "${key.toJsonString()}:${value.toEvidenceJson()}"
+        }
+    }
+}
+
+private fun Any?.toEvidenceJson(): String = when {
+    this == null || this === JSONObject.NULL -> "null"
+    this is String -> toJsonString()
+    this is Boolean -> toString()
+    this is Number -> when (this) {
+        is Double -> if (isFinite()) toString() else "null"
+        is Float -> if (isFinite()) toString() else "null"
+        else -> toString()
+    }
+    this is JSONObject || this is JSONArray -> toString()
+    this is Map<*, *> -> entries.joinToString(prefix = "{", postfix = "}", separator = ",") { (key, value) ->
+        "${key.toString().toJsonString()}:${value.toEvidenceJson()}"
+    }
+    this is Iterable<*> -> joinToString(prefix = "[", postfix = "]", separator = ",") { it.toEvidenceJson() }
+    this is Array<*> -> joinToString(prefix = "[", postfix = "]", separator = ",") { it.toEvidenceJson() }
+    this is IntArray -> joinToString(prefix = "[", postfix = "]", separator = ",") { it.toString() }
+    this is LongArray -> joinToString(prefix = "[", postfix = "]", separator = ",") { it.toString() }
+    this is FloatArray -> joinToString(prefix = "[", postfix = "]", separator = ",") { it.toEvidenceJson() }
+    this is DoubleArray -> joinToString(prefix = "[", postfix = "]", separator = ",") { it.toEvidenceJson() }
+    this is BooleanArray -> joinToString(prefix = "[", postfix = "]", separator = ",") { it.toString() }
+    else -> toString().toJsonString()
+}
+
+private fun String.toJsonString(): String = buildString(length + 2) {
+    append('"')
+    for (character in this@toJsonString) {
+        when (character) {
+            '"' -> append("\\\"")
+            '\\' -> append("\\\\")
+            '\b' -> append("\\b")
+            '\u000c' -> append("\\f")
+            '\n' -> append("\\n")
+            '\r' -> append("\\r")
+            '\t' -> append("\\t")
+            else -> if (character.code < 0x20) {
+                append("\\u").append(character.code.toString(16).padStart(4, '0'))
+            } else {
+                append(character)
+            }
+        }
+    }
+    append('"')
 }
 
 data class RecognitionEvidenceQueueDiagnostics(

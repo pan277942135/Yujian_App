@@ -92,12 +92,13 @@ class RecognitionEvidenceZipExporterTest {
         val writerThread = Thread {
             var idx = 0
             while (keepWriting.get()) {
-                sink.recordRawLine("recognition_events.jsonl", """{"seq":${++idx}}""")
+                sink.record(RecognitionEvidenceEvent("recognition_events.jsonl", "CONCURRENT_WRITE", mapOf("seq" to ++idx)))
                 Thread.sleep(1L)
             }
         }.apply { start() }
         try {
             Thread.sleep(25L)
+            assertTrue(sink.flush(2_000L))
             val snapshot = sink.snapshotLogsTo(File(stagingDir, "logs"), flushTimeoutMs = 500L)
             assertTrue(snapshot.copiedFiles.contains("recognition_events.jsonl"))
             val frozenLog = File(stagingDir, "logs/recognition_events.jsonl")

@@ -5,7 +5,6 @@ import java.io.File
 import java.util.ArrayDeque
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import org.json.JSONObject
 
 /** Bounded asynchronous append-only writer with one globally ordered evidence sequence. */
 class RecognitionEvidenceEventSink internal constructor(
@@ -51,22 +50,6 @@ class RecognitionEvidenceEventSink internal constructor(
         priority = event.priority,
         encodedLine = { seq, ts -> event.json(seq, ts) },
     )
-
-    internal fun recordRawLine(
-        fileName: String,
-        encodedJsonLine: String,
-        priority: RecognitionEvidencePriority = RecognitionEvidencePriority.CRITICAL,
-    ): Boolean = enqueue(
-        fileName = fileName,
-        priority = priority,
-        encodedLine = { sequence, timestampMs ->
-            JSONObject(encodedJsonLine)
-                .put("sequence", sequence)
-                .put("evidenceSequence", sequence)
-                .put("timestampUptimeMs", timestampMs)
-                .toString()
-        },
-    ) != null
 
     private fun enqueue(
         fileName: String,
