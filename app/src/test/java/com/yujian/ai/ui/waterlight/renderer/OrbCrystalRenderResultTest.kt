@@ -136,6 +136,45 @@ class OrbCrystalRenderResultTest {
         assertEquals("SURFACE_LOST", surfaceLost.failureReason)
     }
 
+    @Test fun rejectedFirstFrameCanRetryAndFallbackNeverSharesOwnershipWithGl() {
+        val ownership = OrbRenderOwnershipState()
+        var glVisible = false
+        var composeVisible = true
+
+        fun apply(result: OrbCrystalRenderResult) {
+            glVisible = ownership.apply(result, frame)
+            composeVisible = !glVisible
+            assertTrue("exactly one renderer owns the visible Orb", composeVisible.xor(glVisible))
+        }
+
+        val rejectedFirst = successfulResult(frame, 40L)
+            .copy(compositeStatus = RenderPassStatus.FAIL)
+            .withPresentation(RenderPassStatus.FAIL, presentedSequence = null, hostFailureReason = "COMPOSITE_FAIL")
+        apply(rejectedFirst)
+        assertFalse(glVisible)
+        assertTrue(composeVisible)
+
+        val retry = successfulResult(frame, 41L).withPresentation(RenderPassStatus.PASS, 41L)
+        assertTrue(GlFramePresentationGate.beforeSwap(GlFrameExecution(RenderPassStatus.PASS, retry), frame, 41L).maySwap)
+        apply(retry)
+        assertTrue(glVisible)
+        assertFalse(composeVisible)
+
+        val contextLoss = successfulResult(frame, 42L).withPresentation(
+            RenderPassStatus.FAIL,
+            presentedSequence = null,
+            hostFailureReason = "EGL_CONTEXT_LOST",
+        )
+        apply(contextLoss)
+        assertFalse(glVisible)
+        assertTrue(composeVisible)
+
+        val retryAfterContextLoss = successfulResult(frame, 43L).withPresentation(RenderPassStatus.PASS, 43L)
+        apply(retryAfterContextLoss)
+        assertTrue(glVisible)
+        assertFalse(composeVisible)
+    }
+
     @Test fun hostFrameReceiptSequenceIsMonotonicAndIndependentOfSceneClock() {
         val sceneClockBefore = frame.sceneElapsedMs
         val first = GlRenderFrameSequence.next()
