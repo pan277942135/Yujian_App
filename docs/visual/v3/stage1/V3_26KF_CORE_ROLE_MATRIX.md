@@ -1,31 +1,34 @@
-# V3 Stage 1｜26帧核心视觉角色矩阵
+# V3 Stage 1｜26KF Core Role Matrix
 
-26帧保持统一画布与主体身份；不要求每一帧都有独立精确Shader参数。
+**Canonical sequence:** KF00–KF25. This matrix corrects the earlier numbering mismatch; KF01 is CAPTURE and KF02 is PHOTO_STABLE.
 
-| KF | 核心视觉角色 | 核心冻结 |
+| KF | Core visual role | Core freeze |
 |---|---|---|
-| KF00 | 拍照前/入口参考 | 参考，不参与Recognition计时 |
-| KF01 | PHOTO_STABLE | 照片稳定、Orb准备 |
-| KF02 | ORB_WAKE | Orb苏醒、Core持续可见 |
-| KF03 | ORB_RELEASE | Resident持续+Task独立分流 |
-| KF04 | PERIMETER_ARRIVAL | 照片边缘圆角水光首次触达 |
-| KF05 | PATH_TO_FISH | 1–2条Task Seek向真实P* |
-| KF06 | CONTOUR_A | 真实Mask轮廓开始显现 |
-| KF07 | CONTOUR_B | 同一Mask Path继续展开 |
-| KF08 | CONTOUR_C | 同一Mask Path完成主要轮廓 |
-| KF09 | FISH_GOLD_PEAK | Core/Soft/Halo金光 |
-| KF10 | ORB_RETURN | 原Path身份回到Orb |
-| KF11.1 | WATER_CORE_STRETCH | Orb横向舒展 |
-| KF11.2 | HORIZONTAL_STRETCH | 液态结构继续解体 |
-| KF11.3 | WATERLIGHT_DECONSTRUCTION | 解体为光笔势 |
-| KF12.1 | STROKE_AGGREGATION | 笔势聚合 |
-| KF12.2 | GLYPH_EMERGENCE | 中文Glyph逐渐成形 |
-| KF12.3 | SPECIES_NAME_FINAL | 真实Classifier名称定形 |
-| KF13.1 | RESULT_NAME_HOLD | 名称稳定 |
-| KF13.2 | PHOTO_REPOSITION | 照片/结果布局稳定 |
-| KF13.3 | RESULT_SCENE_HANDOFF | Processing→Result身份交接 |
-| KF13.4 | RESULT_INFO_ARRIVAL | Result信息到位 |
-| KF13.5 | RESULT_SCENE_STABLE | 最终稳定门控 |
-| KF14–KF25 | 子帧/高保真补充帧 | 核心构图与身份冻结；细节参数可后续校准 |
+| KF00 | HOME | Independent Home source; destination for KF25 return |
+| KF01 | CAPTURE | Independent Camera Runtime source; separate from PHOTO_STABLE |
+| KF02 | PHOTO_STABLE | Stable original photo + Orb ready |
+| KF03 | ORB_WAKE | Orb wakes; immutable core remains visible |
+| KF04 | RESIDENT_ACTIVE | G01/G02/A01/A02/C01 become visible Resident structure |
+| KF05 | ORB_RELEASE | Task energy branches from Orb; Resident is not reduced |
+| KF06 | PERIMETER_ARRIVAL | WaterLight first touches rounded photo perimeter |
+| KF07 | PERIMETER_COVERAGE | WaterLight propagates around real photo perimeter |
+| KF08 | TASK_ENERGY_SPLIT | Dynamic Task branch leaves perimeter toward fish |
+| KF09 | PATH_TO_FISH | Task seeks trusted Mask-derived P*; visual image is not Runtime Mask |
+| KF10 | CONTOUR_A | Trusted Attempt Mask contour begins revealing |
+| KF11 | CONTOUR_B | Same Mask Geometry continues |
+| KF12 | CONTOUR_C | Same Mask Geometry completes |
+| KF13 | GOLD_PEAK | Core / Soft / Halo on the same trusted Mask path |
+| KF14 | ORB_RETURN | Same KF05 path identity and geometry, reversed direction |
+| KF15 | 11.1 WATER_CORE_STRETCH | Orb core prepares to stretch; six-frame board Frame 1 is primary |
+| KF16 | 11.2 HORIZONTAL_STRETCH | Water core extends horizontally |
+| KF17 | 11.3 WATERLIGHT_DECONSTRUCTION | Liquid energy deconstructs into stroke gestures |
+| KF18 | 12.1 STROKE_AGGREGATION | Glyph strokes aggregate |
+| KF19 | 12.3 SPECIES_NAME_FINAL | Real classifier species Glyph stabilizes; 12.2 is six-frame board Frame 5 |
+| KF20 | 13.1 RESIDUE_SETTLE | Recognition Scene residue settles |
+| KF21 | 13.2 RESULT_TRANSITION | Processing transitions toward Result |
+| KF22 | 13.3 RESULT_HANDOFF | Result takes ownership with identity preserved |
+| KF23 | 13.4 INFO_ARRIVAL | Result metadata arrives |
+| KF24 | 13.5 RESULT_STABLE | Result stable gate |
+| KF25 | SAVE_AND_RETURN_HOME | Save succeeds, then return to KF00 Home; no separate success animation |
 
-关键规则：KF06–KF10的鱼体几何不由视觉板直接产生；运行时必须使用真实Attempt Mask。KF02–KF25统一照片身份；Result草鱼只用于UI布局。KF03的5条R06是Resident，不是Task。KF05的1–2条是主要可见寻鱼Task丝，不是整个Task系统总数。KF11–KF12不得通过固定中文字符串淡入模拟Glyph。KF13.3–KF13.5必须有真实事件生产者/消费者和稳定门控。
+Rules: 13 runtime stages remain unchanged; 26KF rows are visual mapping points. Five R06 paths are Resident, not Task. Task count is dynamic. Visual fish contours never substitute for Runtime Mask/P*.
