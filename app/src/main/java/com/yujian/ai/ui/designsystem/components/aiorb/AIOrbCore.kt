@@ -3,6 +3,7 @@ package com.yujian.ai.ui.designsystem.components.aiorb
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -48,6 +49,8 @@ import com.yujian.ai.ui.waterlight.renderer.OrbResidentTransmissionFieldV1
 import com.yujian.ai.ui.waterlight.renderer.usesProductionOptics
 import com.yujian.ai.ui.waterlight.renderer.OrbR06PathDiagnostic
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02RenderTrace
+import com.yujian.ai.ui.waterlight.renderer.ORB_CRYSTAL_CONTAINER_RATIO
+import com.yujian.ai.ui.waterlight.renderer.OrbCrystalWakeGlOverlay
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
@@ -606,6 +609,16 @@ private fun OrbVisual(
         lastDiagnosticSnapshot[0] = currentSnapshot
     }
     val isolateCoreForTestOutput = injectedShaderOutput != null
+    val glCrystalEligible = renderIsolationMode == OrbRenderIsolationMode.NORMAL &&
+        !isolateCoreForTestOutput &&
+        stage02LayerIsolation == OrbStage02LayerIsolation.R03_R06 &&
+        orbRendererMode == OrbFilamentRendererMode.ORB_V1_CANDIDATE
+    var glCrystalPresented by remember(
+        sharedFrame.sessionId,
+        sharedFrame.attemptId,
+        glCrystalEligible,
+    ) { mutableStateOf(false) }
+    val hideLegacyVisualForGl = glCrystalEligible && glCrystalPresented
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
             scaleX = (1f - .18f * settle) * breath
@@ -639,15 +652,35 @@ private fun OrbVisual(
         },
         contentAlignment = Alignment.Center,
     ) {
-        if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput && r06ExteriorVisible) {
-            OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
-                orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
-                activeEnergyEvent, releaseEnergy, returnEnergy, visualProfile = visualProfile,
-                debugExcludedPathId = debugExcludedPathId,
-                onPathMetrics = onR06RenderedPaths, onPathDiagnostics = onR06PathDiagnostics,
-                debugCaptureId = debugCaptureId)
+        if (glCrystalEligible) {
+            OrbCrystalWakeGlOverlay(
+                frame = sharedFrame,
+                ribbonOpening = ribbons,
+                settle = settle,
+                wake = wake,
+                lowPerformance = lowPerformance,
+                showDroplets = orbShowDroplets,
+                showSunlight = orbShowSunlight,
+                showCaustics = orbShowCaustics,
+                onFirstFramePresented = { glCrystalPresented = true },
+                modifier = Modifier.requiredSize(coreSize * ORB_CRYSTAL_CONTAINER_RATIO),
+            )
         }
-        val corePainter = painterResource(R.drawable.processing_water_core_v1)
+        Box(
+            modifier = Modifier.matchParentSize().graphicsLayer {
+                alpha = if (hideLegacyVisualForGl) 0f else 1f
+            },
+            contentAlignment = Alignment.Center,
+        ) {
+            if (renderIsolationMode != OrbRenderIsolationMode.RAW_CORE && !isolateCoreForTestOutput && r06ExteriorVisible) {
+                OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
+                    orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
+                    activeEnergyEvent, releaseEnergy, returnEnergy, visualProfile = visualProfile,
+                    debugExcludedPathId = debugExcludedPathId,
+                    onPathMetrics = onR06RenderedPaths, onPathDiagnostics = onR06PathDiagnostics,
+                    debugCaptureId = debugCaptureId)
+            }
+            val corePainter = painterResource(R.drawable.processing_water_core_v1)
         Box(
             modifier = Modifier.size(coreSize / .84f).graphicsLayer {
                 alpha = sourceCoreAlpha
@@ -743,6 +776,7 @@ private fun OrbVisual(
                 debugExcludedPathId = debugExcludedPathId,
                 onPathMetrics = onR06RenderedPaths, onPathDiagnostics = onR06PathDiagnostics,
                 debugCaptureId = debugCaptureId)
+        }
         }
     }
 }

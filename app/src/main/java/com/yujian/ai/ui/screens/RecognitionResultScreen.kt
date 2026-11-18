@@ -1093,6 +1093,8 @@ fun RecognitionResultScreen(
                     frame = evidenceFrame,
                     latestFrame = { latestEvidenceResultFrame.value },
                     resultSceneStable = evidenceFrame.resultSceneStable,
+                    allowPixelCopyCapture = diagnosticUiAvailable &&
+                        diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC,
                 )
             }
             val handoff = revealHandoff

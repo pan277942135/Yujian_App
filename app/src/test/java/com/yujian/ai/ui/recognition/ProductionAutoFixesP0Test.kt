@@ -2,7 +2,7 @@ package com.yujian.ai.ui.recognition
 
 import com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceCapturePolicy
 import com.yujian.ai.ui.recognition.diagnostics.RecognitionPixelCopyCapture
-import com.yujian.ai.ui.recognition.reveal.RecognitionFishPathSnapshot
+import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphBounds
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathDescriptor
@@ -149,19 +149,33 @@ class ProductionAutoFixesP0Test {
         assertEquals(1f, absorbC.level, .001f)
         assertTrue(controller.recordEnergyEventWithReason(sceneFrame, absorbC).accepted)
 
-        // Switching same Attempt to ORB_ONLY_READY explicitly rejects ABSORB without accepting fake paths
+        // Switching same Attempt to ORB_ONLY_READY immediately downgrades CONTOUR_C -> ORB_RETURN
         controller.onRevealDecision(RecognitionRevealDecisionState.ORB_ONLY_READY, 750L, identity)
         assertEquals(RecognitionRevealDecisionState.ORB_ONLY_READY, controller.currentRevealDecision())
-        val rejectedFrame = controller.currentFrame(identity, 800L, 17L).copy(stageProgress = 1f)
-        val dupAttempt = absorbC.copy(
+        assertEquals(RecognitionSceneStage.ORB_RETURN, controller.currentStage)
+        val downgradedFrame = controller.currentFrame(identity, 800L, 17L).copy(stageProgress = 1f)
+        val staleContourAttempt = absorbC.copy(
             pathId = "$expectedPathId:alt",
-            eventSequence = rejectedFrame.eventSequence,
-            monotonicTimestampMs = rejectedFrame.monotonicTimestampMs,
-            referenceMs = rejectedFrame.opticalReferenceElapsedMs,
+            eventSequence = downgradedFrame.eventSequence,
+            monotonicTimestampMs = downgradedFrame.monotonicTimestampMs,
+            referenceMs = downgradedFrame.opticalReferenceElapsedMs,
         )
-        val rejection = controller.recordEnergyEventWithReason(rejectedFrame, dupAttempt)
-        assertFalse(rejection.accepted)
-        assertEquals(EnergyEventRejectionReason.EVENT_MASK_IDENTITY_MISMATCH, rejection.rejectionReason)
+        val stageRejection = controller.recordEnergyEventWithReason(downgradedFrame, staleContourAttempt)
+        assertFalse(stageRejection.accepted)
+        assertEquals(EnergyEventRejectionReason.EVENT_STAGE_MISMATCH, stageRejection.rejectionReason)
+
+        // Even if CONTOUR_C is sampled directly under ORB_ONLY_READY, ABSORB is explicitly rejected
+        controller.beginStepPreview(RecognitionSceneStage.CONTOUR_C, 810L)
+        val forcedContourFrame = controller.currentFrame(identity, 820L, 17L).copy(stageProgress = 1f)
+        val forcedAbsorb = absorbC.copy(
+            pathId = "$expectedPathId:alt",
+            eventSequence = forcedContourFrame.eventSequence,
+            monotonicTimestampMs = forcedContourFrame.monotonicTimestampMs,
+            referenceMs = forcedContourFrame.opticalReferenceElapsedMs,
+        )
+        val maskRejection = controller.recordEnergyEventWithReason(forcedContourFrame, forcedAbsorb)
+        assertFalse(maskRejection.accepted)
+        assertEquals(EnergyEventRejectionReason.EVENT_MASK_IDENTITY_MISMATCH, maskRejection.rejectionReason)
     }
 
     @Test
@@ -202,7 +216,7 @@ class ProductionAutoFixesP0Test {
             currentIdentity = identity,
         )
         assertEquals(SceneMaskState.FAILED, controller.modelGates.slimSam)
-        assertFalse(controller.modelGates.maskTrusted)
+        assertEquals(SceneMaskState.FAILED, controller.modelGates.mask)
     }
 
     @Test
@@ -365,6 +379,9 @@ class ProductionAutoFixesP0Test {
         assertFalse(controller.fishPathSnapshotReady())
         assertFalse(controller.resultVisualReady(600L))
 
+        val orbRelease = WaterLightPathGeometryFactory.between(WaterLightPathPoint(10f, 10f), WaterLightPathPoint(50f, 50f), seed = 1)!!
+        val bridge = WaterLightPathGeometryFactory.between(WaterLightPathPoint(50f, 50f), WaterLightPathPoint(80f, 80f), seed = 2)!!
+        val fish = WaterLightPathGeometryFactory.between(WaterLightPathPoint(80f, 80f), WaterLightPathPoint(100f, 100f), seed = 3)!!
         val seg1 = WaterLightPathGeometryFactory.between(WaterLightPathPoint(100f, 100f), WaterLightPathPoint(80f, 80f), seed = 1)!!
         val seg2 = WaterLightPathGeometryFactory.between(WaterLightPathPoint(80f, 80f), WaterLightPathPoint(50f, 50f), seed = 2)!!
         val seg3 = WaterLightPathGeometryFactory.between(WaterLightPathPoint(50f, 50f), WaterLightPathPoint(10f, 10f), seed = 3)!!
@@ -372,16 +389,16 @@ class ProductionAutoFixesP0Test {
             sessionId = identity.sessionId,
             attemptId = identity.attemptId,
             imageId = identity.imageId,
-            photoSha256 = identity.photoSha256,
+            photoSha256 = identity.photoSha256!!,
             photoContentVersion = identity.photoContentVersion,
             maskSha256 = maskSha,
             maskVersion = 4L,
             geometryVersion = 21L,
             pStarNormalizedSource = pStar,
             fishPathId = expectedPathId,
-            fishPathGeometry = seg3,
-            perimeterBridge = seg2,
-            orbReleasePath = seg1,
+            fishPathGeometry = fish,
+            perimeterBridge = bridge,
+            orbReleasePath = orbRelease,
             returnPathId = expectedPathId,
             returnPathSegments = listOf(seg1, seg2, seg3),
             sourceCoordinateSpace = "RECOGNITION_VIEWPORT_PX",

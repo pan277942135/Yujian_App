@@ -443,8 +443,8 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         context.assets.open(name).bufferedReader(Charsets.UTF_8).use { it.readText() }
 
     companion object {
-        const val MODEL_VERSION = "DET_FISH_v0.1"
-        const val DATASET_VERSION = "DET_DS_v0.1"
+        const val MODEL_VERSION = "DET_FISH_v0.3"
+        const val DATASET_VERSION = "DET_DS_v0.3"
         const val MODEL_FAMILY = "YOLOX_NANO"
         const val MODEL_FILE = "fish_detector_yolox_nano_v0_1.onnx"
         const val METADATA_FILE = "detector_metadata.json"

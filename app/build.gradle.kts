@@ -1,5 +1,6 @@
 import java.security.MessageDigest
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import javax.imageio.ImageIO
 
 plugins {
@@ -42,8 +43,10 @@ android {
             .orElse(providers.environmentVariable("BUILD_SHA"))
             .orElse(providers.environmentVariable("GITHUB_SHA"))
             .orElse("LOCAL_UNVERIFIED")
+        val buildTimestampUtc = providers.environmentVariable("BUILD_TIMESTAMP_UTC")
+            .orElse(Instant.now().truncatedTo(ChronoUnit.DAYS).toString())
         buildConfigField("String", "SOURCE_REVISION", quotedBuildConfig(sourceRevision.get()))
-        buildConfigField("String", "BUILD_TIMESTAMP_UTC", quotedBuildConfig(Instant.now().toString()))
+        buildConfigField("String", "BUILD_TIMESTAMP_UTC", quotedBuildConfig(buildTimestampUtc.get()))
         minSdk = 24
         targetSdk = 35
         versionCode = 6

@@ -88,6 +88,8 @@ import com.yujian.ai.ai.FishInputAssessment
 import com.yujian.ai.R
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.ui.recognition.Stage045EnergyStreamGlOverlay
+import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.RecognitionAttemptDeadline
 import com.yujian.ai.ai.RecognitionAttemptFailureCode
@@ -1619,6 +1621,7 @@ fun RecognitionProcessingScene(
                     window = evidenceWindow,
                     frame = waterLightFrame.sceneFrame,
                     latestFrame = { latestEvidenceSceneFrame.value },
+                    allowPixelCopyCapture = stepDiagnosticActive,
                 )
             }
             .onGloballyPositioned { rootOrigin = it.boundsInWindow().topLeft },
@@ -1874,6 +1877,19 @@ fun RecognitionProcessingScene(
                     cornerRadius = CornerRadius(32.dp.toPx()), alpha = 1f - photoEntryProgress)
             }
         }
+        var stage045GlPresented by remember(sceneKey) { mutableStateOf(false) }
+        var cachedFishPath by remember(sceneIdentity.attemptId, waterLightFrame.geometryVersion) {
+            mutableStateOf<WaterLightPathGeometry?>(null)
+        }
+        val liveFishPath = energyProducerEvent?.takeIf {
+            it.feedback == EnergyFeedback.ABSORB && it.pathGeometry != null
+        }?.pathGeometry
+        LaunchedEffect(liveFishPath) {
+            if (liveFishPath != null && cachedFishPath != liveFishPath) {
+                cachedFishPath = liveFishPath
+            }
+        }
+        val activeFishPath = liveFishPath ?: cachedFishPath
         if (image != null && photoFlowPlan != null) RecognitionPhoto(
             waterLightFrame = waterLightFrame,
             waterLightEngine = waterLightEngine,
@@ -1917,6 +1933,7 @@ fun RecognitionProcessingScene(
             maskVersion = subjectBitmap?.generationId?.toLong() ?: -1L,
             maskRevealProgress = maskContourRevealProgress,
             trustedMask = trustedSubjectMask,
+            stage045GlPresented = stage045GlPresented,
             onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx, actualOrbCenter, orbCoreDiameterPx, contactPointSource, contactMaskSha256, contactMaskVersion, contactGeometryVersion ->
                 controller.onOrbAnchorAvailable(
                     actualOrbCenter.x.isFinite() && actualOrbCenter.y.isFinite() && orbCoreDiameterPx.isFinite() && orbCoreDiameterPx > 1f,
@@ -1957,6 +1974,24 @@ fun RecognitionProcessingScene(
                 }
             },
         )
+        if (image != null && photoFlowPlan != null && producerOrbGeometry != null) {
+            Stage045EnergyStreamGlOverlay(
+                waterLightFrame = waterLightFrame,
+                orbCenter = producerOrbGeometry.first,
+                orbRadiusPx = producerOrbGeometry.second,
+                photoRect = photoFlowPlan.targetTransform.photoContentRect,
+                cornerRadiusPx = with(density) { 16.dp.toPx() },
+                releasePath = energyPathLedger.releasePath(waterLightFrame),
+                arrivalPath = energyPathLedger.perimeterArrivalPath(waterLightFrame)?.geometry,
+                fishPath = activeFishPath,
+                viewportWidthPx = viewportWidthPx,
+                viewportHeightPx = viewportHeightPx,
+                globalOpacity = 1f - orbPresentationCompletion.coerceIn(0f, 1f),
+                lowPerformance = motionPolicy.lowPerformance,
+                onFirstFramePresented = { stage045GlPresented = true },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         IconButton(
             onClick = onBack,
             modifier = Modifier
@@ -1998,10 +2033,6 @@ fun RecognitionProcessingScene(
             }
             val statusWidth = if (plan.landscape) maxWidth * .34f else maxWidth
             val progressLabel = if (BuildConfig.DEBUG && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) "正在理解照片" else normalProgressLabel
-            Text(progressLabel, color = Color(0xFF123F48), fontSize = if (maxHeight < 600.dp) 14.sp else 16.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.offset { IntOffset((plan.statusCenterXPx - with(density) { statusWidth.toPx() } / 2f).roundToInt(),
-                    plan.statusPanelTopPx.roundToInt()) }.size(width = statusWidth, height = (24f * density.fontScale).dp))
             val orbHost = remember(waterLightEngine, sceneIdentity) {
                 WaterLightHostBinding(
                     WaterLightHost.ORB, WaterLightMaterialProfile.ORB_LEGACY, waterLightEngine, sceneIdentity,
@@ -2161,6 +2192,10 @@ fun RecognitionProcessingScene(
                 },
                 modifier = Modifier.offset { IntOffset(orbX.roundToInt(), orbY.roundToInt()) },
             )
+            Text(progressLabel, color = Color(0xFF123F48), fontSize = if (maxHeight < 600.dp) 14.sp else 16.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.offset { IntOffset((plan.statusCenterXPx - with(density) { statusWidth.toPx() } / 2f).roundToInt(),
+                    plan.statusPanelTopPx.roundToInt()) }.size(width = statusWidth, height = (24f * density.fontScale).dp))
 
         }
         if (diagnosticUiAvailable) {
@@ -2593,6 +2628,7 @@ private fun RecognitionPhoto(
     maskVersion: Long,
     maskRevealProgress: Float,
     trustedMask: Boolean,
+    stage045GlPresented: Boolean = false,
 ) {
     val transform = remember(photoFlowPlan, photoEntryProgress) {
         interpolateRecognitionPhotoTransform(
@@ -2762,7 +2798,7 @@ private fun RecognitionPhoto(
                 imageId = imageId,
                 photoSha256 = photoSha256,
                 phase = phase,
-                material = WaterLightMaterialProfile.PERIMETER,
+                material = if (stage045GlPresented) WaterLightMaterialProfile.PERIMETER.copy(opacity = 0.06f) else WaterLightMaterialProfile.PERIMETER,
                 energyEvent = energyEvent,
                 reduceMotion = motionPolicy.reduceMotion,
                 modifier = Modifier.semantics {
@@ -2784,6 +2820,7 @@ private fun RecognitionPhoto(
                 waterLightFrame = waterLightFrame,
             )
             if (pathReady && (energyEvent?.pathGeometry != null || energyEvent?.pathSegments?.isNotEmpty() == true) &&
+                (!stage045GlPresented || energyEvent?.feedback == EnergyFeedback.RETURN) &&
                 (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)
             ) WaterLightEnergyPathRenderer(
                 frame = waterLightFrame,
@@ -2791,7 +2828,7 @@ private fun RecognitionPhoto(
                 material = waterHosts.getValue(WaterLightHost.PATH).material,
                 modifier = Modifier.fillMaxSize(),
             )
-            if (additiveMaterialActive && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)) {
+            if (additiveMaterialActive && !stage045GlPresented && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)) {
                 Canvas(Modifier.fillMaxSize()) {
                     val rect = transform.photoContentRect
                     additiveClipPath.reset()

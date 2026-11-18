@@ -1,0 +1,28 @@
+{
+  "publish_job_id": "MP_20260929_151321_cf81456e",
+  "model_id": "MODEL_CROP_M1_v0.2",
+  "source_format": "torchscript",
+  "source_artifact": "model_torchscript.pt",
+  "target_format": "tflite",
+  "published_filename": "fish_classifier_v0_2.tflite",
+  "target_artifact_uri": "gs://yujian-model-factory-571785698442/models/MODEL_CROP_M1_v0.2/export/MODEL_CROP_M1_v0.2.tflite",
+  "input_shape": [
+    1,
+    3,
+    224,
+    224
+  ],
+  "output_shape": [
+    1,
+    15
+  ],
+  "num_classes": 15,
+  "sha256": "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18",
+  "conversion_status": "PASS",
+  "validation_status": "PASS",
+  "github_release_status": "PASS",
+  "github_release_url": "https://github.com/pan277942135/Yujian/releases/tag/mobile-model-v0.2",
+  "workflow_run_id": "36588534558",
+  "workflow_run_url": "https://github.com/pan277942135/Yujian/actions/runs/36588534558",
+  "published_at": "2026-09-29T15:17:21.532674+00:00"
+}

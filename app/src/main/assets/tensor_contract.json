@@ -1,0 +1,26 @@
+{
+  "model_id": "MODEL_CROP_M1_v0.2",
+  "inputs": [
+    {
+      "name": "images",
+      "shape": [
+        1,
+        3,
+        224,
+        224
+      ],
+      "dtype": "float32",
+      "layout": "NCHW"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "logits",
+      "shape": [
+        1,
+        15
+      ],
+      "dtype": "float32"
+    }
+  ]
+}

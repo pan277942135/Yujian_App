@@ -52,19 +52,13 @@ object RecognitionPixelCopyCapture {
             return
         }
         val decor = window.decorView
-        val width = decor.width
-        val height = decor.height
-        if (width <= 0 || height <= 0) {
+        if (!isWindowReadyForPixelCopy(decor)) {
             callback(RecognitionPixelCopyResult(null, "WINDOW_UNAVAILABLE", currentFrame()?.stage?.name.orEmpty(), false, android.os.SystemClock.uptimeMillis()))
-            return
-        }
-        val bitmap = runCatching { Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888) }.getOrNull()
-        if (bitmap == null) {
-            callback(RecognitionPixelCopyResult(null, "REQUEST_FAILED", currentFrame()?.stage?.name.orEmpty(), false, android.os.SystemClock.uptimeMillis()))
             return
         }
         val handler = Handler(Looper.getMainLooper())
         val completed = java.util.concurrent.atomic.AtomicBoolean(false)
+        val copyStarted = java.util.concurrent.atomic.AtomicBoolean(false)
         fun sameIdentityFor(latest: RecognitionSceneFrame?): Boolean =
             RecognitionEvidenceCapturePolicy.sameSceneIdentityAndGeometry(
                 requestedIdentity = frame.identity,
@@ -90,54 +84,120 @@ object RecognitionPixelCopyCapture {
             )
         }
         handler.postDelayed(timeoutRunnable, timeoutMs.coerceAtLeast(1L))
-        runCatching {
-            PixelCopy.request(window, bitmap, { copyResult ->
+
+        fun dispatchPixelCopy() {
+            if (!copyStarted.compareAndSet(false, true) || completed.get()) return
+            if (!isWindowReadyForPixelCopy(decor)) {
                 handler.removeCallbacks(timeoutRunnable)
-                if (!completed.compareAndSet(false, true)) {
+                if (completed.compareAndSet(false, true)) {
+                    callback(
+                        RecognitionPixelCopyResult(
+                            bitmap = null,
+                            status = "WINDOW_UNAVAILABLE",
+                            stageAtCompletion = currentFrame()?.stage?.name.orEmpty(),
+                            sameSceneIdentity = false,
+                            completionTimestampMs = android.os.SystemClock.uptimeMillis(),
+                        ),
+                    )
+                }
+                return
+            }
+            val bitmap = runCatching {
+                Bitmap.createBitmap(decor.width, decor.height, Bitmap.Config.ARGB_8888)
+            }.getOrNull()
+            if (bitmap == null) {
+                handler.removeCallbacks(timeoutRunnable)
+                if (completed.compareAndSet(false, true)) {
+                    callback(
+                        RecognitionPixelCopyResult(
+                            bitmap = null,
+                            status = "REQUEST_FAILED",
+                            stageAtCompletion = currentFrame()?.stage?.name.orEmpty(),
+                            sameSceneIdentity = false,
+                            completionTimestampMs = android.os.SystemClock.uptimeMillis(),
+                        ),
+                    )
+                }
+                return
+            }
+            runCatching {
+                PixelCopy.request(window, bitmap, { copyResult ->
+                    handler.removeCallbacks(timeoutRunnable)
+                    if (!completed.compareAndSet(false, true)) {
+                        runCatching { if (!bitmap.isRecycled) bitmap.recycle() }
+                        return@request
+                    }
+                    val latest = currentFrame()
+                    val completionTime = android.os.SystemClock.uptimeMillis()
+                    val sameIdentity = sameIdentityFor(latest)
+                    val status = when (copyResult) {
+                        PixelCopy.SUCCESS -> "SUCCESS"
+                        PixelCopy.ERROR_SOURCE_NO_DATA,
+                        PixelCopy.ERROR_SOURCE_INVALID,
+                        PixelCopy.ERROR_DESTINATION_INVALID,
+                        PixelCopy.ERROR_TIMEOUT,
+                        PixelCopy.ERROR_UNKNOWN -> "PIXELCOPY_ERROR"
+                        else -> "PIXELCOPY_ERROR_$copyResult"
+                    }
+                    val resolved = if (status == "SUCCESS") bitmap else {
+                        runCatching { if (!bitmap.isRecycled) bitmap.recycle() }
+                        null
+                    }
+                    callback(
+                        RecognitionPixelCopyResult(
+                            bitmap = resolved,
+                            status = status,
+                            stageAtCompletion = latest?.stage?.name ?: "NOT_RECORDED",
+                            sameSceneIdentity = sameIdentity,
+                            completionTimestampMs = maxOf(requestTime, completionTime),
+                            geometryVersionAtCompletion = latest?.geometryVersion,
+                        ),
+                    )
+                }, handler)
+            }.onFailure {
+                handler.removeCallbacks(timeoutRunnable)
+                if (completed.compareAndSet(false, true)) {
                     runCatching { if (!bitmap.isRecycled) bitmap.recycle() }
-                    return@request
+                    callback(
+                        RecognitionPixelCopyResult(
+                            bitmap = null,
+                            status = "REQUEST_FAILED",
+                            stageAtCompletion = currentFrame()?.stage?.name.orEmpty(),
+                            sameSceneIdentity = false,
+                            completionTimestampMs = android.os.SystemClock.uptimeMillis(),
+                        ),
+                    )
                 }
-                val latest = currentFrame()
-                val completionTime = android.os.SystemClock.uptimeMillis()
-                val sameIdentity = sameIdentityFor(latest)
-                val status = when (copyResult) {
-                    PixelCopy.SUCCESS -> "SUCCESS"
-                    PixelCopy.ERROR_SOURCE_NO_DATA,
-                    PixelCopy.ERROR_SOURCE_INVALID,
-                    PixelCopy.ERROR_DESTINATION_INVALID,
-                    PixelCopy.ERROR_TIMEOUT,
-                    PixelCopy.ERROR_UNKNOWN -> "PIXELCOPY_ERROR"
-                    else -> "PIXELCOPY_ERROR_$copyResult"
-                }
-                val resolved = if (status == "SUCCESS") bitmap else {
-                    runCatching { if (!bitmap.isRecycled) bitmap.recycle() }
-                    null
-                }
-                callback(
-                    RecognitionPixelCopyResult(
-                        bitmap = resolved,
-                        status = status,
-                        stageAtCompletion = latest?.stage?.name ?: "NOT_RECORDED",
-                        sameSceneIdentity = sameIdentity,
-                        completionTimestampMs = maxOf(requestTime, completionTime),
-                        geometryVersionAtCompletion = latest?.geometryVersion,
-                    ),
-                )
-            }, handler)
-        }.onFailure {
-            handler.removeCallbacks(timeoutRunnable)
-            if (completed.compareAndSet(false, true)) {
-                runCatching { if (!bitmap.isRecycled) bitmap.recycle() }
-                callback(
-                    RecognitionPixelCopyResult(
-                        bitmap = null,
-                        status = "REQUEST_FAILED",
-                        stageAtCompletion = currentFrame()?.stage?.name.orEmpty(),
-                        sameSceneIdentity = false,
-                        completionTimestampMs = android.os.SystemClock.uptimeMillis(),
-                    ),
-                )
             }
         }
+
+        // Never call PixelCopy.request synchronously inside Compose drawWithContent:
+        // defer until after RenderThread commits the current frame so we don't stall on an unsignaled buffer fence.
+        val observer = decor.viewTreeObserver
+        val registeredCommit = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && observer.isAlive) {
+            runCatching {
+                observer.registerFrameCommitCallback {
+                    handler.post { dispatchPixelCopy() }
+                }
+                true
+            }.getOrDefault(false)
+        } else {
+            false
+        }
+        if (registeredCommit) {
+            handler.postDelayed({ dispatchPixelCopy() }, POST_COMMIT_FALLBACK_DELAY_MS)
+        } else {
+            decor.post { dispatchPixelCopy() }
+        }
     }
+
+    private fun isWindowReadyForPixelCopy(decor: android.view.View): Boolean =
+        decor.isAttachedToWindow &&
+            decor.visibility == android.view.View.VISIBLE &&
+            decor.isHardwareAccelerated &&
+            decor.hasWindowFocus() &&
+            decor.width > 0 &&
+            decor.height > 0
+
+    private const val POST_COMMIT_FALLBACK_DELAY_MS = 48L
 }

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "model_id": "MODEL_CROP_M1_v0.2",
+  "dataset_id": "DS_M1_v1.1",
+  "release_tag": "mobile-model-v0.2",
+  "release_id": 36588534558,
+  "sha256": "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18",
+  "bytes": 6244908,
+  "metadata_sha256": "4f5ed860106dd213eef02081f92a8d53ef52cc4f8d63b34a2c67575b613bd01d",
+  "class_map_sha256": "dcf7ef7b85e7a88fda6669cf5681e41413755a73d4367c2c90a5d5861bc95d5e",
+  "tensor_contract_sha256": "78f74bd1deddfb4815e2a80db7ae83774abc10be4e68b822902172ed91c9fd1b",
+  "class_count": 15,
+  "class_order": [
+    "bighead_carp",
+    "black_carp",
+    "blunt_snout_bream",
+    "chinese_catfish",
+    "common_carp",
+    "crucian_carp",
+    "grass_carp",
+    "largemouth_bass",
+    "mandarin_fish",
+    "sharpbelly",
+    "silver_carp",
+    "snakehead",
+    "tilapia",
+    "topmouth_culter",
+    "yellow_catfish"
+  ],
+  "input_shape": [
+    1,
+    3,
+    224,
+    224
+  ],
+  "output_shape": [
+    1,
+    15
+  ],
+  "input_dtype": "float32",
+  "output_dtype": "float32",
+  "release_assets": [
+    {
+      "name": "fish_classifier_v0_2.tflite",
+      "release_id": 36588534558
+    },
+    {
+      "name": "fish_classifier_v0_2.metadata.json",
+      "release_id": 36588534558
+    },
+    {
+      "name": "class_map.json",
+      "release_id": 36588534558
+    },
+    {
+      "name": "tensor_contract.json",
+      "release_id": 36588534558
+    }
+  ]
+}

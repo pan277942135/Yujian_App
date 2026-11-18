@@ -67,6 +67,8 @@ class RecognitionSessionEvidenceRecorder(
     private var screenshotFailureCount = 0
     private var motionRequestCount = 0
     private var resultStableCaptureRequested = false
+    private var pixelCopyInFlight = false
+    private var pixelCopySuspendedReason: String? = null
     private var firstFrameTimestampMs: Long? = null
     private var latestSceneElapsedMs = 0L
 
@@ -93,6 +95,8 @@ class RecognitionSessionEvidenceRecorder(
             screenshotFailureCount = 0
             motionRequestCount = 0
             resultStableCaptureRequested = false
+            pixelCopyInFlight = false
+            pixelCopySuspendedReason = null
             firstFrameTimestampMs = null
             latestSceneElapsedMs = 0L
         }
@@ -355,8 +359,12 @@ class RecognitionSessionEvidenceRecorder(
         frame: RecognitionSceneFrame,
         latestFrame: () -> RecognitionSceneFrame?,
         resultSceneStable: Boolean = false,
+        allowPixelCopyCapture: Boolean = false,
     ) {
-        val isCurrentFrame = synchronized(lock) { activeIdentity?.matches(frame.identity) == true }
+        if (!allowPixelCopyCapture || window == null) return
+        val isCurrentFrame = synchronized(lock) {
+            activeIdentity?.matches(frame.identity) == true && pixelCopySuspendedReason == null
+        }
         if (!isCurrentFrame) return
         val stageName = frame.stage.name
         val enterRequest = synchronized(lock) { entryCaptureRequested.add(stageName) }
@@ -592,6 +600,11 @@ class RecognitionSessionEvidenceRecorder(
         val requestTimestamp = SystemClock.uptimeMillis()
         synchronized(lock) {
             if (generation != activeGeneration) return
+            if (pixelCopySuspendedReason != null || pixelCopyInFlight) {
+                if (captureType == "STAGE_ENTRY") entryCaptureRequested.remove(frame.stage.name)
+                if (captureType == "RESULT_SCENE_STABLE") resultStableCaptureRequested = false
+                return
+            }
             if (screenshotRequestCount >= MAX_TOTAL_SCREENSHOTS) {
                 screenshotFailureCount++
                 eventSink?.markIncomplete("CAPTURE_LIMIT_REACHED")
@@ -606,6 +619,7 @@ class RecognitionSessionEvidenceRecorder(
                 )
                 return
             }
+            pixelCopyInFlight = true
             screenshotRequestCount++
             drawFrameSequence = ++frameSequence
         }
@@ -627,6 +641,11 @@ class RecognitionSessionEvidenceRecorder(
             ),
         )
         RecognitionPixelCopyCapture.request(window, frame, latestFrame) { result ->
+            synchronized(lock) {
+                if (generation == activeGeneration) {
+                    pixelCopyInFlight = false
+                }
+            }
             if (!isActiveGeneration(generation)) {
                 result.bitmap?.recycle()
                 completeCapture()
@@ -642,6 +661,9 @@ class RecognitionSessionEvidenceRecorder(
                 result.bitmap?.recycle()
                 synchronized(lock) {
                     if (generation == activeGeneration) {
+                        if (status == "PIXELCOPY_ERROR" || status == "PIXELCOPY_TIMEOUT") {
+                            pixelCopySuspendedReason = status
+                        }
                         screenshotFailureCount++
                         eventSink?.markIncomplete(status)
                         appendCaptureRow(

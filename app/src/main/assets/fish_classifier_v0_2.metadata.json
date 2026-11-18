@@ -1,0 +1,30 @@
+{
+  "model_id": "MODEL_CROP_M1_v0.2",
+  "publish_job_id": "MP_20260929_151321_cf81456e",
+  "source_pt_uri": "gs://yujian-model-factory-571785698442/models/MODEL_CROP_M1_v0.2/model_torchscript.pt",
+  "dataset_id": "DS_M1_v1.1",
+  "input_size": 224,
+  "num_classes": 15,
+  "class_names": [
+    "bighead_carp",
+    "black_carp",
+    "blunt_snout_bream",
+    "chinese_catfish",
+    "common_carp",
+    "crucian_carp",
+    "grass_carp",
+    "largemouth_bass",
+    "mandarin_fish",
+    "sharpbelly",
+    "silver_carp",
+    "snakehead",
+    "tilapia",
+    "topmouth_culter",
+    "yellow_catfish"
+  ],
+  "git_commit": "809a5130800a0664b0e4429f629907b7d1fbcfaf",
+  "conversion_version": "litert-torch",
+  "published_filename": "fish_classifier_v0_2.tflite",
+  "sha256": "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18",
+  "created_at": "2026-09-29T15:17:08.527353+00:00"
+}
