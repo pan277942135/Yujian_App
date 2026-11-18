@@ -1,0 +1,128 @@
+{
+  "spec_id": "YUJIAN_V3_CORE_VISUAL",
+  "version": "3.0.0-core-freeze",
+  "status": "CORE_VISUAL_FREEZE_PASS",
+  "full_parameter_freeze": "PENDING",
+  "source_master": {
+    "file": "YuJian_AI_26KF_HighRes_Overview_V2.png",
+    "sha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+    "size_px": [
+      8677,
+      5626
+    ]
+  },
+  "canvas": {
+    "aspect_ratio": "9:16",
+    "identity_locked": true,
+    "photo_identity": "original black fish photo + female angler",
+    "result_grass_carp_is_layout_master_only": true
+  },
+  "timeline": {
+    "minimum_stage_ms": [
+      0,
+      350,
+      600,
+      125,
+      125,
+      450,
+      450,
+      450,
+      1000,
+      350,
+      850,
+      800,
+      450
+    ],
+    "sum_ms": 6000,
+    "wall_clock_cap_ms": 60000,
+    "model_event_gated": true
+  },
+  "orb": {
+    "core_always_visible": true,
+    "resident_filament_ids": [
+      "G01",
+      "G02",
+      "A01",
+      "A02",
+      "C01"
+    ],
+    "resident_is_not_task": true,
+    "task_count": null,
+    "s1_breath": {
+      "period_ms": 6000,
+      "amplitude_pct": 0.8
+    },
+    "s2_breath": {
+      "period_ms": 4800,
+      "amplitude_pct": 1.8
+    },
+    "wake_ms": 350,
+    "release_stage_min_ms": 600,
+    "task_energy_must_not_weaken_resident": true
+  },
+  "waterlight": {
+    "perimeter": {
+      "style": "main vein + sparse fibers + sparse droplets",
+      "geometry": "rounded photo perimeter",
+      "heavy_uniform_border": false,
+      "intrude_photo": false
+    },
+    "fish_seek": {
+      "visible_primary_strands": "1-2",
+      "target": "real trusted Mask nearest legal contour contact P*",
+      "fish_tail_anchor_forbidden": true
+    }
+  },
+  "contour": {
+    "source": "trusted SlimSAM Attempt Mask",
+    "same_geometry_across_A_B_C": true,
+    "reveal_only_changes_progress": true
+  },
+  "gold_peak": {
+    "layers": [
+      "Core",
+      "Soft",
+      "Halo"
+    ],
+    "path_source": "same trusted Mask contour"
+  },
+  "return_path": {
+    "source": "Attempt-scoped WaterLightPathLedger",
+    "reconstruct_on_return": false
+  },
+  "glyph": {
+    "sequence": [
+      "orb_expand",
+      "liquid_deconstruct",
+      "stroke_aggregate",
+      "chinese_species_glyph"
+    ],
+    "fixed_text_fade_in_forbidden": true
+  },
+  "result": {
+    "sequence": [
+      "NAME_STABLE",
+      "13.1",
+      "13.2",
+      "13.3",
+      "13.4",
+      "13.5"
+    ],
+    "stable_gate": "13.5"
+  },
+  "tunable_after_freeze": [
+    "task_bezier_subpixel_controls",
+    "task_speed_curve",
+    "task_phase_offset",
+    "droplet_count",
+    "perimeter_alpha",
+    "refraction_strength",
+    "fresnel_approximation",
+    "bloom_radius",
+    "bloom_threshold",
+    "bloom_strength",
+    "fbo_size",
+    "particle_noise",
+    "contour_easing"
+  ]
+}
