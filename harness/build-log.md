@@ -209,6 +209,16 @@
 - PR #335 Control Plane Admission run [43878634146](https://github.com/pan277942135/Yujian_App/actions/runs/43878634146) succeeded. PR #336 exact-head Android CI run [43845709918](https://github.com/pan277942135/Yujian_App/actions/runs/43845709918) succeeded; device/runtime jobs were skipped (`NOT_RUN`).
 - This local checkpoint updates only ignored branch-local Work state and this execution log; no product source has changed. Local admission is being rerun for the new integration branch. No Main merge, ADB, Emulator, or device execution has occurred.
 
+## 2026-11-18 — Stage 2 unified Runtime and diagnostics source checkpoint
+
+- Work ID: `YUJIAN_V3_STAGE2_UNIFIED_RUNTIME_DIAGNOSTICS_FOUNDATION_V1`; independent branch `feat/yujian-v3-stage2-unified-runtime-diagnostics-v1`; implementation source commit `198fdd7a7289a2332f6823f2eddce591e0279b61` is based directly on Main `1f930e4678264522d4d160c28c8d52901eb14c0d`. No Main merge occurred.
+- Reused the single `RecognitionSceneAnimationController` / SceneClock and `WaterLightPathLedger`. Resident G01/G02/A01/A02/C01 remain separate from dynamic task paths. Existing trusted Mask/P* and return-path identity checks remain authoritative.
+- Added schema-v2 evidence and runtime contract versions; atomic Session/Attempt metadata, photo dimensions/orientation, durable crash/process recovery states, synchronous crash sidecars, lifecycle flush, persistent per-attempt summaries, globally ordered bounded event queue, and retained log rotations. AUTO Debug builds now request PixelCopy from Processing and Result. Captures require matching Session/Attempt/Photo/Geometry/Event/Path identity. Result evidence is `AVAILABLE` only after a successful Result-stable PixelCopy.
+- Added ZIP entry contract and reports for build/device/source/resources/model/mask/geometry/path/GPU/GL/surface/PixelCopy/result state; missing data is explicit. Stage 1 visual fingerprint stays `NOT_FROZEN`. Compose/HWUI private EGL details are explicitly recorded as not exposed.
+- Added focused unit contracts for recovery classification, no fabricated Result evidence, event sequence monotonicity, log rotation retention, PixelCopy identity, and ZIP schema. `git diff --check` and `scripts/verify_recognition_runtime_contract.py` passed locally. JVM/Android tests and APK build remain `NOT_RUN`: the Gradle 9.3.1 wrapper download is blocked by network policy. API36 smoke remains `NOT_RUN`: `adb` is unavailable in this workspace. No real device Evidence ZIP exists yet.
+- Control-plane admission, Work-state provenance, master-state validation, and unified-contract validation passed against the source checkpoint. The Unified Contract validator reports 10 existing repository-wide reference gaps outside this Stage 2 change.
+- Current source gates: Runtime source foundation is implemented; exact-head Android CI, APK SHA, real ZIP, crash/process recovery on device, PixelCopy, and API36 smoke are still pending. Do not mark Stage 2 complete until those evidence gates pass.
+
 
 ### Combined source checkpoint — `dbc5049d72c50061bf92a94ccb9c5f36d2d29905`
 

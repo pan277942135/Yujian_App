@@ -1,0 +1,30 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_V3_STAGE2_UNIFIED_RUNTIME_DIAGNOSTICS_FOUNDATION_V1",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "feat/yujian-v3-stage2-unified-runtime-diagnostics-v1",
+  "control_plane_revision": "1f930e4678264522d4d160c28c8d52901eb14c0d",
+  "base_branch": "main",
+  "base_sha": "1f930e4678264522d4d160c28c8d52901eb14c0d",
+  "phase": "P6",
+  "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+  "stage": "Stage 2",
+  "status": "VALIDATING",
+  "source_sha": "198fdd7a7289a2332f6823f2eddce591e0279b61",
+  "checkpoint_updated_at": "2026-11-18T16:02:00+08:00",
+  "next_action": "Publish the exact-source commit as a Stage 2 PR, run Android and control-plane CI, and bind the APK artifact to the final PR HEAD.",
+  "dependencies": ["P5-02"],
+  "blockers": [],
+  "evidence": {
+    "admission_baseline": "Main source SHA 1f930e4678264522d4d160c28c8d52901eb14c0d; Stage 2 executes independently of Stage 1 visual parameters.",
+    "stage_0_reference": "PR #339 remains an open draft architecture audit and is applied as the stated architecture constraint; it is not merged into this code branch.",
+    "stage_1_reference": "PR #340 remains an open draft; visualSpecSha256 stays NOT_FROZEN until an actual Stage 1 freeze is available.",
+    "implementation_source_sha": "198fdd7a7289a2332f6823f2eddce591e0279b61",
+    "local_checks": {"git_diff_check": "PASS", "recognition_runtime_source_contract": "PASS"},
+    "local_android_build": "NOT_RUN_NETWORK_UNAVAILABLE_GRADLE_9_3_1",
+    "api36_device": "NOT_RUN_ADB_NOT_INSTALLED",
+    "gpu_gl_runtime_visibility": "CONDITIONAL_COMPOSE_HWUI_DOES_NOT_EXPOSE_PRIVATE_EGL_STATE",
+    "visual_spec_sha256": "NOT_FROZEN"
+  }
+}

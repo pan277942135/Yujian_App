@@ -1,0 +1,136 @@
+schema_version: "1.0"
+state_id: "YUJIAN_V3_STAGE2_UNIFIED_RUNTIME_DIAGNOSTICS_FOUNDATION_V1"
+project:
+  name: "YuJian AI"
+  repository: "pan277942135/Yujian_App"
+  scope: "Android recognition Runtime and diagnostic evidence foundation"
+state_control:
+  canonical_branch: "main"
+  canonical_control_plane_sha: "1f930e4678264522d4d160c28c8d52901eb14c0d"
+  current_branch: "feat/yujian-v3-stage2-unified-runtime-diagnostics-v1"
+  base_sha: "1f930e4678264522d4d160c28c8d52901eb14c0d"
+  execution_baseline_sha: "198fdd7a7289a2332f6823f2eddce591e0279b61"
+  current_pr: null
+source_of_truth:
+  canonical_registry: "CONTROL_PLANE_REGISTRY.yaml"
+  feature_matrix: "harness/FEATURE_MATRIX.yaml"
+  task_state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
+  unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+  state_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+  current_work_state: "WORK_EXECUTION_STATE.json"
+repositories:
+  android:
+    name: "pan277942135/Yujian_App"
+    branch: "feat/yujian-v3-stage2-unified-runtime-diagnostics-v1"
+    base_branch: "main"
+    base_sha: "1f930e4678264522d4d160c28c8d52901eb14c0d"
+pull_requests:
+  PR339:
+    number: 339
+    title: "Stage 0 Crystal Orb × WaterLight unified architecture and source audit"
+    branch: "docs/crystal-orb-waterlight-v3-stage0-architecture"
+    status: "DRAFT_OPEN_UNMERGED"
+    head_sha: "7b050748b55773f68e61291525517e930dd277cf"
+  PR340:
+    number: 340
+    title: "Stage 1 26KF source verification and measurements — freeze blocked"
+    branch: "docs/crystal-orb-waterlight-v3-stage1-asset-audit"
+    status: "DRAFT_OPEN_UNMERGED"
+    head_sha: "15605c7002ecedcfe735fc5706907f855b472493"
+phases:
+  P0: {status: "NOT_CONFIRMED", evidence: "No branch-local project snapshot existed on Main."}
+  P1: {status: "NOT_CONFIRMED", evidence: "No branch-local project snapshot existed on Main."}
+  P2: {status: "NOT_CONFIRMED", evidence: "No branch-local project snapshot existed on Main."}
+  P3: {status: "NOT_CONFIRMED", evidence: "Stage 1 visual freeze is tracked separately and remains open."}
+  P4: {status: "NOT_CONFIRMED", evidence: "No branch-local project snapshot existed on Main."}
+  P5: {status: "NOT_CONFIRMED", evidence: "Current Work admission is in progress."}
+  P6: {status: "IN_PROGRESS", evidence: "Stage 2 source implementation is committed at 198fdd7a7289a2332f6823f2eddce591e0279b61; exact-head CI and API36 smoke remain pending."}
+  P7: {status: "NOT_CONFIRMED", evidence: "Not part of this Stage 2 scope."}
+  P8: {status: "NOT_CONFIRMED", evidence: "No Stage 2 API36/device evidence has been collected yet."}
+  P9: {status: "NOT_CONFIRMED", evidence: "No release authorization or release APK acceptance is claimed."}
+recognition_main_journey:
+  contract_status: "FROZEN"
+  route:
+    - "J01"
+    - "J02"
+    - "J03"
+    - "J04"
+    - "J05"
+    - "J06"
+    - "J07"
+    - "J08"
+    - "J09"
+    - "J10"
+    - "J11"
+    - "J12"
+    - "J13"
+    - "J14"
+    - "J15"
+    - "J16"
+    - "J17"
+    - "J18"
+    - "J19"
+    - "J20"
+runtime_gates:
+  exact_head:
+    sha: "198fdd7a7289a2332f6823f2eddce591e0279b61"
+    status: "NOT_RUN"
+    evidence: ["Local source contract PASS", "Local Gradle unavailable: Gradle 9.3.1 download blocked by network policy"]
+  historical_runtime_run:
+    rule: "Historical results cannot promote current exact HEAD to PASS."
+    status: "HISTORICAL_ONLY"
+apk_and_evidence:
+  diagnostic_apk: {status: "PENDING_EXACT_HEAD_CI", path: null, sha256: null}
+  api36_smoke: {status: "NOT_RUN", reason: "adb is not installed in the available workspace", device: "HUAWEI CMS-AL20 / Android 16 / API36"}
+  evidence_zip: {status: "NOT_RUN", reason: "No API36 Diagnostic APK run has produced a device ZIP", path: null}
+  visual_spec_sha256: "NOT_FROZEN"
+current_work:
+  id: "YUJIAN_V3_STAGE2_UNIFIED_RUNTIME_DIAGNOSTICS_FOUNDATION_V1"
+  task_id: "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+  phase: "P6"
+  stage: "Stage 2"
+  status: "VALIDATING"
+  exact_head: "198fdd7a7289a2332f6823f2eddce591e0279b61"
+blockers:
+  - id: "STAGE2_EXACT_HEAD_CI"
+    severity: "P0"
+    area: "Build and tests"
+    condition: "Local Gradle 9.3.1 distribution is unavailable and network policy blocks download."
+    affected_gate: "G17 Exact HEAD CI; APK build"
+    unblock_condition: "Run GitHub Actions on the exact PR HEAD."
+    independent_work_may_continue: true
+  - id: "STAGE2_API36_DEVICE"
+    severity: "P0"
+    area: "Device smoke"
+    condition: "adb is not installed; no HUAWEI CMS-AL20 device channel is available in this workspace."
+    affected_gate: "G16 API36 Diagnostic APK smoke; evidence ZIP; PixelCopy and recovery runtime confirmation"
+    unblock_condition: "Use the existing API36 device workflow or make the existing phone available to the diagnostic runner."
+    independent_work_may_continue: false
+protected_invariants:
+  runtime:
+    - "Use the existing RecognitionSceneAnimationController and its single SceneClock."
+    - "Do not add a second Runtime, SceneClock, PathLedger, renderer, or evidence system."
+  visuals:
+    - "Keep Stage 1 visual parameters READ_ONLY until the visual specification is frozen."
+    - "Keep the existing 13-stage order and 6000ms contract unchanged."
+  identity:
+    - "Session/Attempt/Photo/Mask/Geometry/Path/Result identity must remain linked."
+    - "BBOX_ONLY cannot create a trusted P* or fake fish paths."
+  diagnostics:
+    - "Record failures and waiting reasons; never synthesize successful Result states."
+    - "PixelCopy, device, and human visual evidence remain separate evidence levels."
+next_actions:
+  - id: "STAGE2-ADMISSION"
+    action: "Publish this exact implementation and state checkpoint, then run Android CI and control-plane admission."
+    owner: "Work"
+    status: "READY"
+    depends_on: []
+completion_rules:
+  stage_2:
+    required: ["unified_runtime", "persistent_evidence", "crash_recovery", "pixelcopy_contract", "exact_head_ci", "diagnostic_apk"]
+    status: "BLOCKED_PENDING_CI_AND_API36_EVIDENCE"
+state_update:
+  initialized_from: "Canonical control-plane files on Main at 1f930e4678264522d4d160c28c8d52901eb14c0d"
+  policy: "Update only with exact observed source/runtime/build/device evidence."
+agent_recovery:
+  instructions: "Read AGENTS.md, CONTROL_PLANE_REGISTRY.yaml, WORK_EXECUTION_STATE.json and this state before resuming."

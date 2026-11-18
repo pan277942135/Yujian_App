@@ -52,6 +52,22 @@ internal object RecognitionEvidenceCapturePolicy {
         completedGeometryVersion: Long?,
     ): Boolean = completedIdentity == requestedIdentity && completedGeometryVersion == requestedGeometryVersion
 
+    fun sameSceneFrameIdentity(
+        requestedIdentity: RecognitionSceneIdentity,
+        completedIdentity: RecognitionSceneIdentity?,
+        requestedGeometryVersion: Long,
+        completedGeometryVersion: Long?,
+        requestedEventSequence: Long,
+        completedEventSequence: Long?,
+        requestedPathId: String,
+        completedPathId: String?,
+    ): Boolean = sameSceneIdentityAndGeometry(
+        requestedIdentity,
+        completedIdentity,
+        requestedGeometryVersion,
+        completedGeometryVersion,
+    ) && requestedEventSequence == completedEventSequence && requestedPathId == completedPathId
+
     fun shouldCaptureMotion(
         paused: Boolean,
         runState: SceneRunState,

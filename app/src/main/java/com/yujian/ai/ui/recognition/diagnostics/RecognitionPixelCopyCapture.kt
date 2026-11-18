@@ -29,6 +29,8 @@ data class RecognitionPixelCopyResult(
     val sameSceneIdentity: Boolean,
     val completionTimestampMs: Long,
     val geometryVersionAtCompletion: Long? = null,
+    val eventSequenceAtCompletion: Long? = null,
+    val pathIdAtCompletion: String? = null,
 )
 
 /** Captures the real Android Window buffer. The caller compares stage identity after completion. */
@@ -59,12 +61,17 @@ object RecognitionPixelCopyCapture {
         val handler = Handler(Looper.getMainLooper())
         val completed = java.util.concurrent.atomic.AtomicBoolean(false)
         val copyStarted = java.util.concurrent.atomic.AtomicBoolean(false)
+        fun pathId(latest: RecognitionSceneFrame?): String = latest?.energyEvent?.pathId ?: "NOT_CREATED"
         fun sameIdentityFor(latest: RecognitionSceneFrame?): Boolean =
-            RecognitionEvidenceCapturePolicy.sameSceneIdentityAndGeometry(
+            RecognitionEvidenceCapturePolicy.sameSceneFrameIdentity(
                 requestedIdentity = frame.identity,
                 completedIdentity = latest?.identity,
                 requestedGeometryVersion = frame.geometryVersion,
                 completedGeometryVersion = latest?.geometryVersion,
+                requestedEventSequence = frame.eventSequence,
+                completedEventSequence = latest?.eventSequence,
+                requestedPathId = frame.energyEvent?.pathId ?: "NOT_CREATED",
+                completedPathId = pathId(latest),
             )
         val timeoutRunnable = Runnable {
             if (!completed.compareAndSet(false, true)) return@Runnable
@@ -80,6 +87,8 @@ object RecognitionPixelCopyCapture {
                     sameSceneIdentity = sameIdentityFor(latest),
                     completionTimestampMs = maxOf(requestTime, completionTime),
                     geometryVersionAtCompletion = latest?.geometryVersion,
+                    eventSequenceAtCompletion = latest?.eventSequence,
+                    pathIdAtCompletion = pathId(latest),
                 ),
             )
         }
@@ -151,6 +160,8 @@ object RecognitionPixelCopyCapture {
                             sameSceneIdentity = sameIdentity,
                             completionTimestampMs = maxOf(requestTime, completionTime),
                             geometryVersionAtCompletion = latest?.geometryVersion,
+                            eventSequenceAtCompletion = latest?.eventSequence,
+                            pathIdAtCompletion = pathId(latest),
                         ),
                     )
                 }, handler)

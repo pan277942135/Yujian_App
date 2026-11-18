@@ -17,7 +17,15 @@ data class RecognitionEvidenceIdentity(
     val attemptId: String,
     val imageId: String,
     val photoSha256: String,
+    val photoWidthPx: Int = 0,
+    val photoHeightPx: Int = 0,
+    val orientationDegrees: Int = 0,
 ) {
+    init {
+        require(photoWidthPx >= 0 && photoHeightPx >= 0)
+        require(orientationDegrees in 0..359)
+    }
+
     fun matches(sceneIdentity: RecognitionSceneIdentity): Boolean =
         sessionId == sceneIdentity.sessionId && attemptId == sceneIdentity.attemptId &&
             imageId == sceneIdentity.imageId && photoSha256 == sceneIdentity.photoSha256
@@ -32,8 +40,9 @@ data class RecognitionEvidenceEvent(
     val priority: RecognitionEvidencePriority = RecognitionEvidencePriority.CRITICAL,
 ) {
     fun json(sequence: Long, timestampMs: Long): String = JSONObject()
-        .put("schemaVersion", 1)
+        .put("schemaVersion", RecognitionEvidenceSchema.EVIDENCE_SCHEMA_VERSION)
         .put("sequence", sequence)
+        .put("evidenceSequence", sequence)
         .put("timestampUptimeMs", timestampMs)
         .put("eventType", type)
         .also { row -> payload.forEach { (key, value) -> row.put(key, value) } }
