@@ -1,0 +1,191 @@
+{
+  "schema_version": "1.0.0",
+  "spec_id": "YUJIAN_VISUAL_V3",
+  "status": "CORE_VISUAL_SPEC_FROZEN_WITH_TUNABLES",
+  "source_authority": {
+    "contact_sheet": {
+      "file": "YuJian_AI_26KF_HighRes_Overview_V2.png",
+      "dimensions_px": [
+        8677,
+        5626
+      ],
+      "sha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac"
+    },
+    "mapping_doc": "V3_26KF_SOURCE_MAPPING_V2.md",
+    "orb_audit": "V3_ORB_SOURCE_PARAMETER_AUDIT_V1.md",
+    "supplements": [
+      {
+        "file": "渔见湖光鱼获首页.png",
+        "dimensions_px": [
+          941,
+          1672
+        ],
+        "sha256": "8bb3bb1b4a2303d006bd3f6dbd373a11a02997d97ca64a1d5130c9432847e37c",
+        "kf": "KF00"
+      },
+      {
+        "file": "03 Camera Runtime\t真实取景、操作区、变焦.png",
+        "dimensions_px": [
+          942,
+          1670
+        ],
+        "sha256": "4d10908b2215a24b1bf3098a67576e223e6891a37705c7d95840c58332b809a9",
+        "kf": "KF01"
+      }
+    ]
+  },
+  "orb": {
+    "core": {
+      "file": "透明湖水玻璃球.png",
+      "sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee",
+      "dimensions_px": [
+        1254,
+        1254
+      ],
+      "alpha_bbox_threshold_128": [
+        129,
+        124,
+        1125,
+        1118
+      ],
+      "visible_silhouette_ratio": [
+        0.7943,
+        0.7927
+      ],
+      "immutable": true
+    },
+    "runtime_core": {
+      "file": "processing_water_core_v1.webp",
+      "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+      "dimensions_px": [
+        384,
+        384
+      ],
+      "alpha_iou_threshold_16": 0.99825019,
+      "keep_byte_identical": true
+    },
+    "screen_anchor": {
+      "center_normalized_median": [
+        0.4995,
+        0.86
+      ],
+      "diameter_width_median": 0.2402,
+      "diameter_width_range": [
+        0.2253,
+        0.2423
+      ],
+      "confidence": "APPROX_RASTER_MEASUREMENT"
+    },
+    "resident": {
+      "ids": [
+        "G01",
+        "G02",
+        "A01",
+        "A02",
+        "C01"
+      ],
+      "depth": {
+        "BACK": [
+          "G01",
+          "A01"
+        ],
+        "FRONT": [
+          "G02",
+          "A02",
+          "C01"
+        ]
+      },
+      "task_count": null,
+      "role": "RESIDENT_NOT_TASK",
+      "numeric_profile": "CANDIDATE_ONLY"
+    },
+    "fluid": {
+      "visual_behavior": "layered continuous organic flow",
+      "numeric_velocity": "TUNABLE"
+    },
+    "lighting": {
+      "direction": "upper-left-to-lower-right",
+      "numeric_profile": "CANDIDATE_ONLY"
+    },
+    "refraction": {
+      "visual_layering": "FROZEN",
+      "numeric_ior_fresnel_displacement": "TUNABLE"
+    },
+    "bloom": {
+      "visual_guard": "restrained; preserve rim and fluid details",
+      "numeric_threshold_radius_strength": "TUNABLE"
+    },
+    "droplets": {
+      "visual_guard": "sparse small core-alpha-clipped",
+      "numeric_count_position_period": "CANDIDATE_ONLY"
+    },
+    "return": {
+      "kf05_to_kf14_same_path_identity": true,
+      "direction": "reverse",
+      "new_path": false
+    }
+  },
+  "timeline": {
+    "main_stage_count": 13,
+    "minimum_stage_ms": [
+      0,
+      350,
+      600,
+      125,
+      125,
+      450,
+      450,
+      450,
+      1000,
+      350,
+      850,
+      800,
+      450
+    ],
+    "minimum_total_ms": 6000,
+    "timeout_ms": 60000
+  },
+  "kf25": {
+    "behavior": "SAVE_CURRENT_CATCH_THEN_RETURN_HOME",
+    "home_target": "KF00",
+    "new_success_artwork": false
+  },
+  "mask_pstar": {
+    "visual_reference_is_runtime_mask": false,
+    "trusted_attempt_mask_required": true,
+    "bbox_only_cannot_fabricate_pstar": true
+  },
+  "candidate_values": {
+    "r06_periods_ms": {
+      "G01": 6100,
+      "G02": 5300,
+      "A01": 3700,
+      "A02": 2900,
+      "C01": 4400
+    },
+    "r06_phases": {
+      "G01": 0.07,
+      "G02": 0.34,
+      "A01": 0.59,
+      "A02": 0.81,
+      "C01": 0.23
+    },
+    "r05_flow_periods_ms": {
+      "deep_flow": 6500,
+      "surface_caustic": 4100
+    },
+    "r02_droplet_periods_ms": [
+      5200,
+      6100,
+      4800
+    ]
+  },
+  "stage3_scope": {
+    "orb_only": true,
+    "task_energy": false,
+    "mask_pstar": false,
+    "contour": false,
+    "glyph": false,
+    "result": false
+  }
+}

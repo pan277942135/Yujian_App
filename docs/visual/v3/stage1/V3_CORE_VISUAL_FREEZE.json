@@ -1,0 +1,139 @@
+{
+  "spec_id": "YUJIAN_VISUAL_V3_CORE",
+  "version": "3.1.0",
+  "status": "CORE_VISUAL_SPEC_FROZEN_WITH_TUNABLES",
+  "source_mapping": "V3_26KF_SOURCE_MAPPING_V2.md",
+  "orb_source_audit": "V3_ORB_SOURCE_PARAMETER_AUDIT_V1.md",
+  "source_master": {
+    "file": "透明湖水玻璃球.png",
+    "sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee",
+    "dimensions_px": [
+      1254,
+      1254
+    ],
+    "alpha_bbox_threshold_128": [
+      129,
+      124,
+      1125,
+      1118
+    ],
+    "preserve_full_canvas": true
+  },
+  "runtime_core": {
+    "file": "processing_water_core_v1.webp",
+    "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+    "dimensions_px": [
+      384,
+      384
+    ],
+    "keep_byte_identical": true
+  },
+  "screen_anchor": {
+    "center_normalized": [
+      0.4995,
+      0.86
+    ],
+    "visible_diameter_over_width_median": 0.2402,
+    "measured_range": [
+      0.2253,
+      0.2423
+    ],
+    "confidence": "APPROX_RASTER_MEASUREMENT_NOT_GPU_UNIFORM"
+  },
+  "resident": {
+    "ids": [
+      "G01",
+      "G02",
+      "A01",
+      "A02",
+      "C01"
+    ],
+    "role": "RESIDENT_NOT_TASK",
+    "depth": {
+      "BACK": [
+        "G01",
+        "A01"
+      ],
+      "FRONT": [
+        "G02",
+        "A02",
+        "C01"
+      ]
+    },
+    "topology": "OPEN_BEZIER",
+    "shared_clock": true,
+    "independent_period_phase": true,
+    "deterministic": true,
+    "task_count": null,
+    "numeric_profile_status": "CANDIDATE_ONLY"
+  },
+  "motion": {
+    "core_shape_unchanged_between_idle_and_active": true,
+    "fluid_behavior": "LAYERED_CONTINUOUS_LIQUID",
+    "release_return": "SAME_PATH_IDENTITY_REVERSED_DIRECTION",
+    "numeric_velocity_and_ramp": "TUNABLE"
+  },
+  "optics": {
+    "key_light_direction": "UPPER_LEFT_TO_LOWER_RIGHT",
+    "glass_and_caustic_visual_layers_frozen": true,
+    "physical_ior": "UNKNOWN",
+    "fresnel_curve": "TUNABLE",
+    "refraction_displacement": "TUNABLE",
+    "bloom_threshold_radius_strength": "TUNABLE",
+    "preserve_baked_highlights": true,
+    "no_whole_ball_flash": true
+  },
+  "timing": {
+    "main_stage_count": 13,
+    "minimum_stage_ms": [
+      0,
+      350,
+      600,
+      125,
+      125,
+      450,
+      450,
+      450,
+      1000,
+      350,
+      850,
+      800,
+      450
+    ],
+    "minimum_total_ms": 6000,
+    "abnormal_timeout_ms": 60000
+  },
+  "kf14": {
+    "source": "KF05",
+    "same_path_identity": true,
+    "direction": "REVERSE",
+    "new_asset_required": false
+  },
+  "kf25": {
+    "behavior": "SAVE_CURRENT_CATCH_THEN_RETURN_HOME",
+    "home_target": "KF00",
+    "new_artwork_required": false
+  },
+  "mask_pstar": {
+    "visual_reference_is_runtime_mask": false,
+    "trusted_attempt_mask_required": true,
+    "bbox_only_must_not_fabricate_pstar": true
+  },
+  "stage3_entry": {
+    "allowed": "ORB_ONLY_GPU",
+    "task_energy": false,
+    "photo_perimeter": false,
+    "fish_seek": false,
+    "mask_pstar": false,
+    "contour": false,
+    "glyph": false,
+    "result": false,
+    "new_runtime_or_clock": false
+  },
+  "unsupported_prior_values_removed": [
+    "S1_BREATH_PERIOD_MS",
+    "S1_BREATH_AMPLITUDE",
+    "S2_BREATH_PERIOD_MS",
+    "S2_BREATH_AMPLITUDE"
+  ]
+}

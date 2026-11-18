@@ -1,0 +1,617 @@
+{
+  "schema_version": "3.1.0-CORE-VISUAL-SPEC-FROZEN-WITH-TUNABLES",
+  "source_sha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+  "source_resolution_px": [
+    8677,
+    5626
+  ],
+  "derived_from_contact_sheet": true,
+  "not_equivalent_to_independent_master": true,
+  "frames": [
+    {
+      "frame_id": "KF00",
+      "label": "HOME",
+      "stage": "PRE_RECOGNITION",
+      "source_crop_bbox_px": [
+        6,
+        175,
+        958,
+        1857
+      ],
+      "source_crop_size_px": [
+        952,
+        1682
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "INDEPENDENT_SOURCE_PLUS_OVERVIEW_CROP",
+      "runtime_mask_proof": false,
+      "independent_source": {
+        "file": "渔见湖光鱼获首页.png",
+        "sha256": "8bb3bb1b4a2303d006bd3f6dbd373a11a02997d97ca64a1d5130c9432847e37c",
+        "dimensions_px": [
+          941,
+          1672
+        ]
+      }
+    },
+    {
+      "frame_id": "KF01",
+      "label": "CAPTURE",
+      "stage": "PRE_RECOGNITION",
+      "source_crop_bbox_px": [
+        970,
+        175,
+        1922,
+        1857
+      ],
+      "source_crop_size_px": [
+        952,
+        1682
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "INDEPENDENT_SOURCE_PLUS_OVERVIEW_CROP",
+      "runtime_mask_proof": false,
+      "independent_source": {
+        "file": "03 Camera Runtime\t真实取景、操作区、变焦.png",
+        "sha256": "4d10908b2215a24b1bf3098a67576e223e6891a37705c7d95840c58332b809a9",
+        "dimensions_px": [
+          942,
+          1670
+        ]
+      }
+    },
+    {
+      "frame_id": "KF02",
+      "label": "PHOTO_STABLE",
+      "stage": "PHOTO_STABLE",
+      "source_crop_bbox_px": [
+        1934,
+        175,
+        2886,
+        1857
+      ],
+      "source_crop_size_px": [
+        952,
+        1682
+      ],
+      "photo_rectangle_approx_px": [
+        100,
+        200,
+        835,
+        1235
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF03",
+      "label": "ORB_WAKE",
+      "stage": "ORB_WAKE",
+      "source_crop_bbox_px": [
+        2898,
+        175,
+        3850,
+        1857
+      ],
+      "source_crop_size_px": [
+        952,
+        1682
+      ],
+      "photo_rectangle_approx_px": [
+        94.9,
+        175.9,
+        852,
+        1248.9
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF04",
+      "label": "RESIDENT_ACTIVE",
+      "stage": "ORB_WAKE",
+      "source_crop_bbox_px": [
+        3862,
+        175,
+        4815,
+        1857
+      ],
+      "source_crop_size_px": [
+        953,
+        1682
+      ],
+      "photo_rectangle_approx_px": [
+        97.4,
+        175.4,
+        855.2,
+        1249.6
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF05",
+      "label": "ORB_RELEASE",
+      "stage": "ORB_RELEASE",
+      "source_crop_bbox_px": [
+        4827,
+        175,
+        5779,
+        1857
+      ],
+      "source_crop_size_px": [
+        952,
+        1682
+      ],
+      "photo_rectangle_approx_px": [
+        95,
+        179.9,
+        850.7,
+        1214.4
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF06",
+      "label": "PERIMETER_START",
+      "stage": "PERIMETER_ARRIVAL",
+      "source_crop_bbox_px": [
+        5791,
+        175,
+        6743,
+        1857
+      ],
+      "source_crop_size_px": [
+        952,
+        1682
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF07",
+      "label": "PERIMETER_LOOP",
+      "stage": "PERIMETER_ARRIVAL",
+      "source_crop_bbox_px": [
+        6755,
+        175,
+        7707,
+        1857
+      ],
+      "source_crop_size_px": [
+        952,
+        1682
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF08",
+      "label": "ENERGY_SPLIT",
+      "stage": "PATH_TO_FISH",
+      "source_crop_bbox_px": [
+        7719,
+        175,
+        8671,
+        1857
+      ],
+      "source_crop_size_px": [
+        952,
+        1682
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF09",
+      "label": "PATH_TO_FISH",
+      "stage": "PATH_TO_FISH",
+      "source_crop_bbox_px": [
+        6,
+        1885,
+        958,
+        3690
+      ],
+      "source_crop_size_px": [
+        952,
+        1805
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF10",
+      "label": "CONTOUR_A",
+      "stage": "CONTOUR_A",
+      "source_crop_bbox_px": [
+        970,
+        1885,
+        1922,
+        3690
+      ],
+      "source_crop_size_px": [
+        952,
+        1805
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF11",
+      "label": "CONTOUR_B",
+      "stage": "CONTOUR_B",
+      "source_crop_bbox_px": [
+        1934,
+        1885,
+        2886,
+        3690
+      ],
+      "source_crop_size_px": [
+        952,
+        1805
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF12",
+      "label": "CONTOUR_C",
+      "stage": "CONTOUR_C",
+      "source_crop_bbox_px": [
+        2898,
+        1885,
+        3850,
+        3690
+      ],
+      "source_crop_size_px": [
+        952,
+        1805
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF13",
+      "label": "FISH_GOLD_PEAK",
+      "stage": "FISH_GOLD_PEAK",
+      "source_crop_bbox_px": [
+        3862,
+        1885,
+        4815,
+        3690
+      ],
+      "source_crop_size_px": [
+        953,
+        1805
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF14",
+      "label": "ORB_RETURN",
+      "stage": "ORB_RETURN",
+      "source_crop_bbox_px": [
+        4827,
+        1885,
+        5779,
+        3690
+      ],
+      "source_crop_size_px": [
+        952,
+        1805
+      ],
+      "photo_rectangle_approx_px": null,
+      "photo_detection": "UNMEASURED_OR_NOT_APPLICABLE",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false,
+      "return_contract": {
+        "source_frame_id": "KF05",
+        "same_path_identity": true,
+        "preserve_path_geometry": true,
+        "direction": "REVERSE",
+        "new_asset_required": false
+      }
+    },
+    {
+      "frame_id": "KF15",
+      "label": "11.1_CORE_READY",
+      "stage": "ORB_TO_NAME",
+      "source_crop_bbox_px": [
+        5791,
+        1885,
+        6743,
+        3690
+      ],
+      "source_crop_size_px": [
+        952,
+        1805
+      ],
+      "photo_rectangle_approx_px": [
+        111,
+        258,
+        846,
+        1293
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF16",
+      "label": "11.2_CORE_EXPAND",
+      "stage": "ORB_TO_NAME",
+      "source_crop_bbox_px": [
+        6755,
+        1885,
+        7707,
+        3690
+      ],
+      "source_crop_size_px": [
+        952,
+        1805
+      ],
+      "photo_rectangle_approx_px": [
+        114,
+        258,
+        849,
+        1293
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF17",
+      "label": "11.3_LIQUID_TO_STROKES",
+      "stage": "ORB_TO_NAME",
+      "source_crop_bbox_px": [
+        7719,
+        1885,
+        8671,
+        3690
+      ],
+      "source_crop_size_px": [
+        952,
+        1805
+      ],
+      "photo_rectangle_approx_px": [
+        117,
+        258,
+        852,
+        1293
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF18",
+      "label": "12.1_GLYPH_STROKES",
+      "stage": "SPECIES_NAME_REVEAL",
+      "source_crop_bbox_px": [
+        6,
+        3720,
+        958,
+        5470
+      ],
+      "source_crop_size_px": [
+        952,
+        1750
+      ],
+      "photo_rectangle_approx_px": [
+        94,
+        191,
+        829,
+        1226
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF19",
+      "label": "12.3_NAME_STABLE",
+      "stage": "SPECIES_NAME_REVEAL",
+      "source_crop_bbox_px": [
+        970,
+        3720,
+        1922,
+        5470
+      ],
+      "source_crop_size_px": [
+        952,
+        1750
+      ],
+      "photo_rectangle_approx_px": [
+        97,
+        191,
+        832,
+        1226
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false,
+      "embedded_subphase": {
+        "name": "12.2_GLYPH_EMERGENCE",
+        "board": "六帧黑鱼水幻变形记.png",
+        "frame_number": 5,
+        "additional_kf_row": false
+      }
+    },
+    {
+      "frame_id": "KF20",
+      "label": "13.1_RESIDUE",
+      "stage": "RESIDUE_SETTLE",
+      "source_crop_bbox_px": [
+        1934,
+        3720,
+        2886,
+        5470
+      ],
+      "source_crop_size_px": [
+        952,
+        1750
+      ],
+      "photo_rectangle_approx_px": [
+        189.9,
+        202.5,
+        735.2,
+        971
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF21",
+      "label": "13.2_PHOTO_SETTLE",
+      "stage": "RESIDUE_SETTLE",
+      "source_crop_bbox_px": [
+        2898,
+        3720,
+        3850,
+        5470
+      ],
+      "source_crop_size_px": [
+        952,
+        1750
+      ],
+      "photo_rectangle_approx_px": [
+        283.8,
+        236.4,
+        648.4,
+        750.9
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF22",
+      "label": "13.3_RESULT_SCENE_HANDOFF",
+      "stage": "RESULT_HANDOFF",
+      "source_crop_bbox_px": [
+        3862,
+        3720,
+        4815,
+        5470
+      ],
+      "source_crop_size_px": [
+        953,
+        1750
+      ],
+      "photo_rectangle_approx_px": [
+        286.9,
+        236.5,
+        651.5,
+        751
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF23",
+      "label": "13.4_INFO_ARRIVAL",
+      "stage": "RESULT_HANDOFF",
+      "source_crop_bbox_px": [
+        4827,
+        3720,
+        5779,
+        5470
+      ],
+      "source_crop_size_px": [
+        952,
+        1750
+      ],
+      "photo_rectangle_approx_px": [
+        288.9,
+        236.4,
+        653.5,
+        751
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF24",
+      "label": "13.5_RESULT_SCENE_STABLE",
+      "stage": "RESULT_HANDOFF",
+      "source_crop_bbox_px": [
+        5791,
+        3720,
+        6743,
+        5470
+      ],
+      "source_crop_size_px": [
+        952,
+        1750
+      ],
+      "photo_rectangle_approx_px": [
+        291.9,
+        236.4,
+        656.4,
+        750.9
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "V2_OVERVIEW_CROP",
+      "runtime_mask_proof": false
+    },
+    {
+      "frame_id": "KF25",
+      "label": "SAVE_AND_RETURN_HOME",
+      "stage": "POST_RESULT_NAVIGATION",
+      "source_crop_bbox_px": [
+        6755,
+        3720,
+        7707,
+        5470
+      ],
+      "source_crop_size_px": [
+        952,
+        1750
+      ],
+      "photo_rectangle_approx_px": [
+        294.9,
+        236.4,
+        659.5,
+        751
+      ],
+      "photo_detection": "SIFT_RANSAC_APPROX_FROM_KF02",
+      "source_kind": "SAVE_ACTION_REFERENCE_PLUS_KF00_HOME_TARGET",
+      "runtime_mask_proof": false,
+      "behavior_contract": {
+        "save_current_catch": true,
+        "return_home_after_success": true,
+        "home_target_frame_id": "KF00",
+        "new_success_artwork_required": false
+      }
+    }
+  ],
+  "source_mapping_doc": "V3_26KF_SOURCE_MAPPING_V2.md"
+}
