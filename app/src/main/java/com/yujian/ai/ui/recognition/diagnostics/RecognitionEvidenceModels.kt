@@ -31,6 +31,23 @@ data class RecognitionEvidenceIdentity(
             imageId == sceneIdentity.imageId && photoSha256 == sceneIdentity.photoSha256
 }
 
+/** Stable, privacy-safe identity carried by every persisted Runtime and capture event. */
+data class RecognitionSceneKey(
+    val sessionIdHash: String,
+    val attemptIdHash: String,
+    val photoIdentityHash: String,
+) {
+    val value: String get() = "$sessionIdHash:$attemptIdHash:$photoIdentityHash"
+
+    companion object {
+        fun from(identity: RecognitionEvidenceIdentity) = RecognitionSceneKey(
+            sessionIdHash = sha256(identity.sessionId),
+            attemptIdHash = sha256(identity.attemptId),
+            photoIdentityHash = sha256(identity.imageId),
+        )
+    }
+}
+
 enum class RecognitionEvidencePriority { CRITICAL, SAMPLE }
 
 data class RecognitionEvidenceEvent(

@@ -16,6 +16,7 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStageEvent
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStageEventAction
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStageTraceEntry
+import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
 import org.json.JSONArray
 import org.json.JSONObject
@@ -39,6 +40,7 @@ internal data class RecognitionEvidenceExportSnapshot(
     val captureIndex: JSONArray,
     val queueDiagnostics: RecognitionEvidenceQueueDiagnostics,
     val degradedReasons: List<String>,
+    val zipExportRequestEvidenceSequence: Long?,
 )
 
 private data class RecognitionEvidenceExportTarget(
@@ -94,6 +96,11 @@ class RecognitionSessionEvidenceRecorder(
     private var pixelCopyFirstFrameTimestampMs: Long? = null
     private var resultFirstFrameTimestampMs: Long? = null
     private var latestSceneElapsedMs = 0L
+    private var latestSceneStage: RecognitionSceneStage? = null
+    private var lastManualPixelCopySuppressionStage: RecognitionSceneStage? = null
+    private var latestPlaybackMode = ScenePlaybackMode.AUTO
+    private var latestStageProgress = 0f
+    private var latestGeometryVersion = -1L
     private var lastRenderTraceTimestampMs = Long.MIN_VALUE
     private var lastRenderTraceStage: RecognitionSceneStage? = null
     private var lastSurfaceTraceStage: RecognitionSceneStage? = null
@@ -141,6 +148,11 @@ class RecognitionSessionEvidenceRecorder(
             pixelCopyFirstFrameTimestampMs = null
             resultFirstFrameTimestampMs = null
             latestSceneElapsedMs = 0L
+            latestSceneStage = null
+            lastManualPixelCopySuppressionStage = null
+            latestPlaybackMode = ScenePlaybackMode.AUTO
+            latestStageProgress = 0f
+            latestGeometryVersion = -1L
             lastRenderTraceTimestampMs = Long.MIN_VALUE
             lastRenderTraceStage = null
             lastSurfaceTraceStage = null
@@ -179,7 +191,9 @@ class RecognitionSessionEvidenceRecorder(
             mapOf(
                 "terminalState" to terminalState.name,
                 "terminalReason" to reason,
-                "resultEvidenceStatus" to if (terminalState == RecognitionAttemptTerminalState.RESULT_STABLE) "AVAILABLE" else "NOT_REACHED",
+                "resultEvidenceStatus" to if (terminalState == RecognitionAttemptTerminalState.RESULT_STABLE) {
+                    "RESULT_EVIDENCE_PENDING_PIXELCOPY"
+                } else "NOT_REACHED",
                 "sessionIdHash" to sha256(attempt.identity.sessionId),
                 "attemptIdHash" to sha256(attempt.identity.attemptId),
             ),
@@ -187,7 +201,9 @@ class RecognitionSessionEvidenceRecorder(
         val resultEvidenceAvailable = synchronized(lock) {
             captureRows.any {
                 it.optString("captureType") == "RESULT_SCENE_STABLE" &&
-                    it.optString("pixelCopyStatus") == "SUCCESS"
+                    it.optString("pixelCopyStatus") == "SUCCESS" &&
+                    it.optString("evidenceBindingStatus") == "BOUND" &&
+                    it.optString("relativePath").takeIf(String::isNotBlank)?.let(attempt::file)?.isFile == true
             }
         }
         store.finish(attempt, terminalState, reason, resultEvidenceAvailable)
@@ -201,9 +217,8 @@ class RecognitionSessionEvidenceRecorder(
             "recognition_events.jsonl",
             mapOf(
                 "state" to state,
-                "sessionIdHash" to activeIdentity?.let { sha256(it.sessionId) },
-                "attemptIdHash" to activeIdentity?.let { sha256(it.attemptId) },
                 "terminalState" to synchronized(lock) { activeTerminalState?.name ?: "RUNNING" },
+                "sourceDomain" to "SYSTEM",
             ),
         )
         record(
@@ -217,6 +232,7 @@ class RecognitionSessionEvidenceRecorder(
                 "framebufferSize" to "NOT_RECORDED",
                 "viewport" to "NOT_RECORDED",
                 "swapStatus" to "NOT_EXPOSED_BY_COMPOSE_HOST",
+                "sourceDomain" to "SYSTEM",
             ),
         )
         persistSummarySnapshot()
@@ -229,6 +245,9 @@ class RecognitionSessionEvidenceRecorder(
         if (identity.sessionId != event.sessionId || identity.attemptId != event.attemptId) return
         synchronized(lock) {
             latestSceneElapsedMs = maxOf(latestSceneElapsedMs, event.sceneElapsedMs)
+            latestSceneStage = event.stage
+            latestPlaybackMode = event.playbackMode
+            latestStageProgress = event.stageProgress
             if (event.action == RecognitionSceneStageEventAction.BLOCKED) latestWaitingReason = event.waitingReason
             else if (event.action == RecognitionSceneStageEventAction.ENTERED) latestWaitingReason = null
             val previous = stageStatuses[event.stage] ?: RecognitionEvidenceStageStatus(event.stage, "NOT_REACHED")
@@ -274,6 +293,7 @@ class RecognitionSessionEvidenceRecorder(
         event: EnergyEvent,
         accepted: Boolean,
         taskEnergyMergedBeforeEvent: Boolean = false,
+        sourceDomain: String? = null,
     ) {
         val merged = event.feedback == EnergyFeedback.RETURN && accepted && event.level >= .999f
         val taskState = RecognitionTaskFilamentState.fromEvent(
@@ -282,6 +302,7 @@ class RecognitionSessionEvidenceRecorder(
         )
         val payload = energyPayload(event) + mapOf(
             "controllerAccepted" to accepted,
+            "sourceDomain" to sourceDomain,
             "producer" to event.sourceHost,
             "consumer" to event.targetHost,
             "accepted" to accepted,
@@ -318,6 +339,7 @@ class RecognitionSessionEvidenceRecorder(
                 "pathId" to event.pathId,
                 "geometryVersion" to event.geometryVersion,
                 "eventSequence" to event.eventSequence,
+                "sourceDomain" to sourceDomain,
                 "timestampMonotonicMs" to event.monotonicTimestampMs,
                 "consumerReceipt" to if (accepted) "ACCEPTED" else "REJECTED",
             ),
@@ -379,6 +401,7 @@ class RecognitionSessionEvidenceRecorder(
                     "waitingReason" to modelGates.waitingReason,
                 ),
                 "rejectionReason" to reason.name,
+                "sourceDomain" to frame.playbackMode.name,
             ),
         )
     }
@@ -422,6 +445,7 @@ class RecognitionSessionEvidenceRecorder(
                 "consumerReceipt" to if (accepted) "ACCEPTED" else "REJECTED",
                 "rejectionReason" to reason,
                 "resultIdentity" to event.resultIdentity,
+                "playbackMode" to event.playbackMode.name,
             ),
         )
         persistSummarySnapshot()
@@ -502,7 +526,32 @@ class RecognitionSessionEvidenceRecorder(
             activeIdentity?.matches(frame.identity) == true && pixelCopySuspendedReason == null
         }
         if (!isCurrentFrame) return
+        if (frame.playbackMode != ScenePlaybackMode.AUTO) {
+            val shouldRecordSuppression = synchronized(lock) {
+                (lastManualPixelCopySuppressionStage != frame.stage).also {
+                    if (it) lastManualPixelCopySuppressionStage = frame.stage
+                }
+            }
+            if (shouldRecordSuppression) record(
+                "PIXELCOPY_SUPPRESSED_NON_AUTO_FRAME",
+                "recognition_events.jsonl",
+                mapOf(
+                    "sourceDomain" to frame.playbackMode.name,
+                    "reason" to "AUTO_PIXELCOPY_CAPTURE_REQUIRES_AUTO_FRAME",
+                    "stage" to frame.stage.name,
+                    "sceneClockMs" to frame.sceneElapsedMs,
+                    "eventSequence" to frame.eventSequence,
+                    "geometryVersion" to frame.geometryVersion,
+                ),
+            )
+            return
+        }
         val firstFrameTimestamp = synchronized(lock) {
+            latestSceneElapsedMs = maxOf(latestSceneElapsedMs, frame.sceneElapsedMs)
+            latestSceneStage = frame.stage
+            latestPlaybackMode = frame.playbackMode
+            latestStageProgress = frame.stageProgress
+            latestGeometryVersion = frame.geometryVersion
             if (frame.stage == RecognitionSceneStage.PHOTO_STABLE && firstFrameTimestampMs == null) {
                 val presented = SystemClock.uptimeMillis()
                 firstFrameTimestampMs = presented
@@ -735,6 +784,13 @@ class RecognitionSessionEvidenceRecorder(
                 }
             }
         } ?: return null
+        val degradedReasons = mutableListOf<String>()
+        val zipExportRequestEvidenceSequence = recordArchiveLifecycleEvent(
+            target = target,
+            eventType = "EVIDENCE_ZIP_EXPORT_REQUESTED",
+            payload = mapOf("exportType" to "RECOGNITION_EVIDENCE_ZIP"),
+        )
+        if (zipExportRequestEvidenceSequence == null) degradedReasons += "ZIP_EXPORT_REQUEST_EVENT_NOT_PERSISTED"
         if (target.recovered == null) {
             flush(flushTimeoutMs)
             target = synchronized(lock) {
@@ -747,7 +803,6 @@ class RecognitionSessionEvidenceRecorder(
             }
         }
 
-        val degradedReasons = mutableListOf<String>()
         val targetLogs = File(stagingDirectory, "logs").apply { mkdirs() }
         val logSnapshot = target.sink?.snapshotLogsTo(
             targetLogsDir = targetLogs,
@@ -769,22 +824,26 @@ class RecognitionSessionEvidenceRecorder(
             val persistedSummary = runCatching {
                 JSONObject(File(target.directory, "session/session_summary.json").readText(Charsets.UTF_8))
             }.getOrNull()
-            val summary = if (target.recovered == null) synchronized(lock) { summaryJson() }
-                else persistedSummary ?: JSONObject()
+            val summary = if (target.recovered == null) {
+                synchronized(lock) { summaryJson() }
+            } else {
+                (persistedSummary ?: JSONObject()
                     .put("evidenceSchemaVersion", metadata.optInt("evidenceSchemaVersion", RecognitionEvidenceSchema.EVIDENCE_SCHEMA_VERSION))
                     .put("runtimeContractVersion", metadata.optString("runtimeContractVersion", RecognitionEvidenceSchema.RUNTIME_CONTRACT_VERSION))
                     .put("diagnosticBuildVersion", metadata.optString("diagnosticBuildVersion", RecognitionEvidenceSchema.DIAGNOSTIC_BUILD_VERSION))
                     .put("sessionIdHash", metadata.optString("sessionIdHash", "NOT_RECORDED"))
                     .put("attemptIdHash", metadata.optString("attemptIdHash", "NOT_RECORDED"))
                     .put("photoSha256", metadata.optString("photoSha256", "NOT_RECORDED"))
-                    .put("terminalState", metadata.optString("terminalState", "UNKNOWN_TERMINATION"))
-                    .put("resultEvidenceStatus", "RESULT_EVIDENCE_NOT_AVAILABLE")
-                    .put("resultEvidenceMissingReason", "RESULT_NOT_REACHED")
                     .put("stageStatuses", JSONArray())
                     .put("screenshotRequestCount", 0)
                     .put("screenshotSuccessCount", 0)
                     .put("screenshotFailureCount", 0)
-                    .put("incompleteReasons", JSONArray().put("RECOVERED_SUMMARY_NOT_PERSISTED"))
+                    .put("incompleteReasons", JSONArray().put("RECOVERED_SUMMARY_NOT_PERSISTED")))
+                    .put("terminalState", metadata.optString("terminalState", "UNKNOWN_TERMINATION"))
+                    .put("recovered", true)
+                    .put("resultEvidenceStatus", "NOT_REACHED")
+                    .put("resultEvidenceMissingReason", "RECOVERED_ATTEMPT_HAS_NO_RESULT_HANDOFF")
+            }
             val captureIndex = if (target.recovered == null) captureIndexJson()
                 else captureIndexFromDisk(File(target.directory, "frames/pixelcopy_manifest.jsonl"))
             copyAttemptMetadata(target.directory, stagingDirectory)
@@ -856,8 +915,80 @@ class RecognitionSessionEvidenceRecorder(
                 captureIndex = captureIndex,
                 queueDiagnostics = finalDiagnostics,
                 degradedReasons = (degradedReasons + finalDiagnostics.incompleteReasons).distinct(),
+                zipExportRequestEvidenceSequence = zipExportRequestEvidenceSequence,
             )
         }
+    }
+
+    internal fun recordArchiveExportOutcome(
+        snapshot: RecognitionEvidenceExportSnapshot,
+        succeeded: Boolean,
+        details: Map<String, Any?>,
+    ): Long? = recordArchiveLifecycleEvent(
+        target = RecognitionEvidenceExportTarget(
+            directory = snapshot.attemptDirectory,
+            identity = snapshot.identity,
+            sink = null,
+            recovered = null,
+        ),
+        eventType = if (succeeded) "EVIDENCE_ZIP_EXPORT_COMPLETED" else "EVIDENCE_ZIP_EXPORT_FAILED",
+        payload = details,
+    )
+
+    private fun recordArchiveLifecycleEvent(
+        target: RecognitionEvidenceExportTarget,
+        eventType: String,
+        payload: Map<String, Any?>,
+    ): Long? {
+        synchronized(lock) {
+            if (activeAttempt?.directory == target.directory && activeIdentity != null) {
+                return record(
+                    eventType,
+                    "recognition_events.jsonl",
+                    payload + ("sourceDomain" to "SYSTEM"),
+                )
+            }
+        }
+
+        return runCatching {
+            val metadata = JSONObject(File(target.directory, "attempt.json").readText(Charsets.UTF_8))
+            val identity = JSONObject(File(target.directory, "session/session_identity.json").readText(Charsets.UTF_8))
+            val sessionHash = identity.optString("sessionIdHash", metadata.optString("sessionIdHash", "NOT_RECORDED"))
+            val attemptHash = identity.optString("attemptIdHash", metadata.optString("attemptIdHash", "NOT_RECORDED"))
+            val photoHash = identity.optString("imageIdHash", metadata.optString("imageIdHash", "NOT_RECORDED"))
+            val sceneKey = "${sessionHash}:${attemptHash}:$photoHash"
+            val nextSequence = lastPersistedRecognitionEvidenceSequence(target.directory)
+            val recoveredSink = RecognitionEvidenceEventSink(
+                attemptDirectory = target.directory,
+                clockMs = clockMs,
+                initialSequence = nextSequence,
+            )
+            try {
+                val sequence = recoveredSink.recordSequenced(
+                    RecognitionEvidenceEvent(
+                        fileName = "recognition_events.jsonl",
+                        type = eventType,
+                        payload = payload + mapOf(
+                            "sceneKey" to sceneKey,
+                            "sessionIdHash" to sessionHash,
+                            "attemptIdHash" to attemptHash,
+                            "photoIdentityHash" to photoHash,
+                            "photoSha256" to identity.optString("photoSha256", metadata.optString("photoSha256", "NOT_RECORDED")),
+                            "sourceDomain" to "SYSTEM",
+                            "identityMatch" to listOf(sessionHash, attemptHash, photoHash).all { it.length == 64 },
+                            "runtimeEventSequence" to JSONObject.NULL,
+                            "stage" to "NOT_RECORDED",
+                            "sceneClockMs" to JSONObject.NULL,
+                            "geometryVersion" to JSONObject.NULL,
+                        ),
+                    ),
+                )
+                check(recoveredSink.flush()) { "RECOVERED_EXPORT_EVENT_FLUSH_FAILED" }
+                requireNotNull(sequence)
+            } finally {
+                recoveredSink.dispose()
+            }
+        }.getOrNull()
     }
 
     private fun copyAttemptMetadata(sourceAttempt: File, stagingDirectory: File) {
@@ -983,6 +1114,7 @@ class RecognitionSessionEvidenceRecorder(
                     stage = row.optString("stage"),
                     captureType = row.optString("captureType"),
                     pixelCopyStatus = row.optString("pixelCopyStatus"),
+                    evidenceBindingStatus = row.optString("evidenceBindingStatus"),
                 )
             },
         )
@@ -1035,9 +1167,6 @@ class RecognitionSessionEvidenceRecorder(
             if (screenshotRequestCount >= MAX_TOTAL_SCREENSHOTS) {
                 screenshotFailureCount++
                 eventSink?.markIncomplete("CAPTURE_LIMIT_REACHED")
-                appendCaptureRow(
-                    failureRow(captureId, frame, captureType, "CAPTURE_LIMIT_REACHED", requestTimestamp, requestTimestamp, frame.stage.name),
-                )
                 record(
                     "CAPTURE_LIMIT_REACHED",
                     "recognition_events.jsonl",
@@ -1054,12 +1183,13 @@ class RecognitionSessionEvidenceRecorder(
         val sessionHash = sha256(frame.identity.sessionId)
         val attemptHash = sha256(frame.identity.attemptId)
         val imageHash = sha256(frame.identity.imageId)
-        record(
+        val requestEvidenceSequence = record(
             "PIXELCOPY_REQUESTED",
             "recognition_events.jsonl",
             mapOf(
                 "captureId" to captureId,
                 "captureType" to captureType,
+                "sourceDomain" to frame.playbackMode.name,
                 "priority" to priority,
                 "stage" to frame.stage.name,
                 "sceneClockMs" to frame.sceneElapsedMs,
@@ -1094,43 +1224,62 @@ class RecognitionSessionEvidenceRecorder(
             )
             if (status != "SUCCESS" || result.bitmap == null) {
                 result.bitmap?.recycle()
-                synchronized(lock) {
-                    if (generation == activeGeneration) {
-                        if (status == "PIXELCOPY_ERROR" || status == "PIXELCOPY_TIMEOUT") {
-                            pixelCopySuspendedReason = status
+                runCatching {
+                    pixelIo.execute {
+                        try {
+                            val completionEvidenceSequence = record(
+                                status,
+                                "recognition_events.jsonl",
+                                mapOf(
+                                    "captureId" to captureId,
+                                    "stage" to frame.stage.name,
+                                    "stageAtCompletion" to result.stageAtCompletion,
+                                    "geometryVersionAtRequest" to frame.geometryVersion,
+                                    "geometryVersionAtCompletion" to result.geometryVersionAtCompletion,
+                                    "eventSequenceAtRequest" to frame.eventSequence,
+                                    "eventSequenceAtCompletion" to result.eventSequenceAtCompletion,
+                                    "pathIdAtRequest" to (frame.energyEvent?.pathId ?: "NOT_CREATED"),
+                                    "pathIdAtCompletion" to result.pathIdAtCompletion,
+                                    "sameSceneIdentity" to result.sameSceneIdentity,
+                                    "requestTimestamp" to requestTimestamp,
+                                    "completionTimestamp" to result.completionTimestampMs,
+                                    "frameSequence" to drawFrameSequence,
+                                    "requestEvidenceSequence" to requestEvidenceSequence,
+                                ),
+                                generation = generation,
+                            )
+                            synchronized(lock) {
+                                if (generation == activeGeneration) {
+                                    if (status == "PIXELCOPY_ERROR" || status == "PIXELCOPY_TIMEOUT") {
+                                        pixelCopySuspendedReason = status
+                                    }
+                                    screenshotFailureCount++
+                                    eventSink?.markIncomplete(status)
+                                    appendCaptureRow(
+                                        failureRow(
+                                            captureId, frame, captureType, status, requestTimestamp,
+                                            result.completionTimestampMs, result.stageAtCompletion, result.geometryVersionAtCompletion,
+                                            result.eventSequenceAtCompletion, result.pathIdAtCompletion,
+                                            requestEvidenceSequence,
+                                        ).put("completionEvidenceSequence", completionEvidenceSequence ?: JSONObject.NULL)
+                                            .put("evidenceSequence", completionEvidenceSequence ?: JSONObject.NULL)
+                                            .put("evidenceBindingStatus", if (requestEvidenceSequence != null && completionEvidenceSequence != null) "BOUND" else "EVENT_NOT_QUEUED"),
+                                    )
+                                }
+                            }
+                        } finally {
+                            completeCapture()
                         }
-                        screenshotFailureCount++
-                        eventSink?.markIncomplete(status)
-                        appendCaptureRow(
-                            failureRow(
-                                captureId, frame, captureType, status, requestTimestamp,
-                                result.completionTimestampMs, result.stageAtCompletion, result.geometryVersionAtCompletion,
-                                result.eventSequenceAtCompletion, result.pathIdAtCompletion,
-                            ),
-                        )
                     }
+                }.onFailure {
+                    synchronized(lock) {
+                        if (generation == activeGeneration) {
+                            screenshotFailureCount++
+                            eventSink?.markIncomplete("PIXELCOPY_FAILURE_WRITE_QUEUE_FAILED:${it.javaClass.simpleName}")
+                        }
+                    }
+                    completeCapture()
                 }
-                record(
-                    status,
-                    "recognition_events.jsonl",
-                    mapOf(
-                        "captureId" to captureId,
-                        "stage" to frame.stage.name,
-                        "stageAtCompletion" to result.stageAtCompletion,
-                        "geometryVersionAtRequest" to frame.geometryVersion,
-                        "geometryVersionAtCompletion" to result.geometryVersionAtCompletion,
-                        "eventSequenceAtRequest" to frame.eventSequence,
-                        "eventSequenceAtCompletion" to result.eventSequenceAtCompletion,
-                        "pathIdAtRequest" to (frame.energyEvent?.pathId ?: "NOT_CREATED"),
-                        "pathIdAtCompletion" to result.pathIdAtCompletion,
-                        "sameSceneIdentity" to result.sameSceneIdentity,
-                        "requestTimestamp" to requestTimestamp,
-                        "completionTimestamp" to result.completionTimestampMs,
-                        "frameSequence" to drawFrameSequence,
-                    ),
-                    generation = generation,
-                )
-                completeCapture()
                 return@request
             }
             val bitmap = result.bitmap
@@ -1149,6 +1298,7 @@ class RecognitionSessionEvidenceRecorder(
                         drawFrameSequence = drawFrameSequence,
                         eventSequenceAtCompletion = result.eventSequenceAtCompletion,
                         pathIdAtCompletion = result.pathIdAtCompletion,
+                        requestEvidenceSequence = requestEvidenceSequence,
                         sessionHash = sessionHash,
                         attemptHash = attemptHash,
                         imageHash = imageHash,
@@ -1186,6 +1336,7 @@ class RecognitionSessionEvidenceRecorder(
         drawFrameSequence: Long,
         eventSequenceAtCompletion: Long?,
         pathIdAtCompletion: String?,
+        requestEvidenceSequence: Long?,
         sessionHash: String,
         attemptHash: String,
         imageHash: String,
@@ -1200,6 +1351,7 @@ class RecognitionSessionEvidenceRecorder(
                 val hash = file.sha256()
                 val row = JSONObject()
                     .put("captureId", captureId)
+                    .put("sceneKey", RecognitionSceneKey.from(attempt.identity).value)
                     .put("sessionIdHash", sessionHash)
                     .put("attemptIdHash", attemptHash)
                     .put("imageIdHash", imageHash)
@@ -1221,44 +1373,67 @@ class RecognitionSessionEvidenceRecorder(
                     .put("stageAtCompletion", frame.stage.name)
                     .put("pixelCopyStatus", "SUCCESS")
                     .put("captureType", captureType)
+                    .put("sourceDomain", frame.playbackMode.name)
+                    .put("requestEvidenceSequence", requestEvidenceSequence ?: JSONObject.NULL)
                     .put("priority", if (captureType == "STAGE_ENTRY" || captureType == "RESULT_SCENE_STABLE") "KEY" else "SAMPLE")
                     .put("relativePath", "frames/$directoryName/$fileName")
                     .put("sha256", hash)
                     .put("width", bitmap.width)
                     .put("height", bitmap.height)
+                val completionEvidenceSequence = record(
+                    "PIXELCOPY_SAVED",
+                    "recognition_events.jsonl",
+                    mapOf("captureId" to captureId, "relativePath" to "frames/$directoryName/$fileName", "sha256" to hash),
+                    generation = generation,
+                )
+                row.put("completionEvidenceSequence", completionEvidenceSequence ?: JSONObject.NULL)
+                    .put("evidenceSequence", completionEvidenceSequence ?: JSONObject.NULL)
+                    .put("evidenceBindingStatus", if (requestEvidenceSequence != null && completionEvidenceSequence != null) "BOUND" else "EVENT_NOT_QUEUED")
+                if (requestEvidenceSequence == null || completionEvidenceSequence == null) {
+                    eventSink?.markIncomplete("PIXELCOPY_EVIDENCE_EVENT_NOT_QUEUED")
+                }
                 val stored = synchronized(lock) {
                     if (generation != activeGeneration) false else {
-                        screenshotSuccessCount++
-                        if (pixelCopyFirstFrameTimestampMs == null) pixelCopyFirstFrameTimestampMs = completionTimestamp
-                        appendCaptureRow(row)
-                        if (captureType == "RESULT_SCENE_STABLE") store.markResultEvidenceAvailable(attempt)
+                        val manifestPersisted = appendCaptureRow(row)
+                        if (manifestPersisted) {
+                            screenshotSuccessCount++
+                            if (pixelCopyFirstFrameTimestampMs == null) pixelCopyFirstFrameTimestampMs = completionTimestamp
+                        }
+                        if (captureType == "RESULT_SCENE_STABLE" && manifestPersisted &&
+                            row.optString("evidenceBindingStatus") == "BOUND"
+                        ) store.markResultEvidenceAvailable(attempt)
                         true
                     }
                 }
                 if (!stored) file.delete()
                 stored to row
             }
-            if (accepted) {
-                record("PIXELCOPY_SAVED", "recognition_events.jsonl", digest.toMap(), generation = generation)
-            }
+            if (!accepted) eventSink?.markIncomplete("PIXELCOPY_CAPTURE_STALE_GENERATION")
         } catch (failure: Throwable) {
-            if (isActiveGeneration(generation)) synchronized(lock) {
-                screenshotFailureCount++
-                eventSink?.markIncomplete("CAPTURE_WRITE_FAILED:${failure.javaClass.simpleName}")
-                appendCaptureRow(
-                    failureRow(
-                        captureId, frame, captureType, "REQUEST_FAILED", requestTimestamp, completionTimestamp,
-                        frame.stage.name, frame.geometryVersion, eventSequenceAtCompletion, pathIdAtCompletion,
-                    ),
-                )
-            }
             if (isActiveGeneration(generation)) {
-                record(
+                val completionEvidenceSequence = record(
                     "REQUEST_FAILED",
                     "recognition_events.jsonl",
-                    mapOf("captureId" to captureId, "error" to failure.javaClass.simpleName),
+                    mapOf(
+                        "captureId" to captureId,
+                        "error" to failure.javaClass.simpleName,
+                        "requestEvidenceSequence" to requestEvidenceSequence,
+                    ),
                     generation = generation,
                 )
+                synchronized(lock) {
+                    screenshotFailureCount++
+                    eventSink?.markIncomplete("CAPTURE_WRITE_FAILED:${failure.javaClass.simpleName}")
+                    appendCaptureRow(
+                        failureRow(
+                            captureId, frame, captureType, "REQUEST_FAILED", requestTimestamp, completionTimestamp,
+                            frame.stage.name, frame.geometryVersion, eventSequenceAtCompletion, pathIdAtCompletion,
+                            requestEvidenceSequence,
+                        ).put("completionEvidenceSequence", completionEvidenceSequence ?: JSONObject.NULL)
+                            .put("evidenceSequence", completionEvidenceSequence ?: JSONObject.NULL)
+                            .put("evidenceBindingStatus", if (requestEvidenceSequence != null && completionEvidenceSequence != null) "BOUND" else "EVENT_NOT_QUEUED"),
+                    )
+                }
             }
         } finally {
             if (!bitmap.isRecycled) bitmap.recycle()
@@ -1276,8 +1451,15 @@ class RecognitionSessionEvidenceRecorder(
         geometryVersionAtCompletion: Long? = null,
         eventSequenceAtCompletion: Long? = null,
         pathIdAtCompletion: String? = null,
+        requestEvidenceSequence: Long? = null,
     ) = JSONObject()
         .put("captureId", captureId)
+        .put("sceneKey", RecognitionSceneKey.from(RecognitionEvidenceIdentity(
+            sessionId = frame.identity.sessionId,
+            attemptId = frame.identity.attemptId,
+            imageId = frame.identity.imageId,
+            photoSha256 = frame.identity.photoSha256.orEmpty(),
+        )).value)
         .put("sessionIdHash", sha256(frame.identity.sessionId))
         .put("attemptIdHash", sha256(frame.identity.attemptId))
         .put("imageIdHash", sha256(frame.identity.imageId))
@@ -1299,10 +1481,23 @@ class RecognitionSessionEvidenceRecorder(
         .put("stageAtCompletion", stageAtCompletion)
         .put("pixelCopyStatus", status)
         .put("captureType", captureType)
+        .put("sourceDomain", frame.playbackMode.name)
+        .put("requestEvidenceSequence", requestEvidenceSequence ?: JSONObject.NULL)
+        .put("evidenceSequence", JSONObject.NULL)
+        .put("evidenceBindingStatus", if (requestEvidenceSequence != null) "REQUEST_BOUND" else "REQUEST_EVENT_NOT_QUEUED")
 
-    private fun appendCaptureRow(row: JSONObject) {
-        captureRows += JSONObject(row.toString())
-        activeAttempt?.append("frames/pixelcopy_manifest.jsonl", row.toString() + "\n")
+    private fun appendCaptureRow(row: JSONObject): Boolean {
+        val persisted = runCatching {
+            requireNotNull(activeAttempt) { "ATTEMPT_NOT_ACTIVE" }
+                .append("frames/pixelcopy_manifest.jsonl", row.toString() + "\n")
+        }.isSuccess
+        if (persisted) {
+            captureRows += JSONObject(row.toString())
+        } else {
+            screenshotFailureCount++
+            eventSink?.markIncomplete("PIXELCOPY_MANIFEST_WRITE_FAILED")
+        }
+        return persisted
     }
 
     private fun record(
@@ -1311,17 +1506,51 @@ class RecognitionSessionEvidenceRecorder(
         payload: Map<String, Any?>,
         priority: RecognitionEvidencePriority = RecognitionEvidencePriority.CRITICAL,
         generation: Long? = null,
-    ) {
+    ): Long? {
         val result = synchronized(lock) {
-            if (generation != null && generation != activeGeneration) return
-            val sink = eventSink ?: return
-            sink to sink.record(RecognitionEvidenceEvent(fileName, type, payload, priority))
+            if (generation != null && generation != activeGeneration) return null
+            val sink = eventSink ?: return null
+            val identity = activeIdentity ?: return null
+            val sceneKey = RecognitionSceneKey.from(identity)
+            val runtimeSequence = payload["runtimeEventSequence"] ?: payload["eventSequence"]
+            val reportedSessionHash = payload["sessionIdHash"]?.toString()
+            val reportedAttemptHash = payload["attemptIdHash"]?.toString()
+            val reportedPhotoHash = (payload["photoIdentityHash"] ?: payload["imageIdHash"])?.toString()
+            val reportedPhotoSha = payload["photoSha256"]?.toString()
+            val identityMismatchReasons = buildList {
+                if (reportedSessionHash != null && reportedSessionHash != sceneKey.sessionIdHash) add("SESSION_ID_MISMATCH")
+                if (reportedAttemptHash != null && reportedAttemptHash != sceneKey.attemptIdHash) add("ATTEMPT_ID_MISMATCH")
+                if (reportedPhotoHash != null && reportedPhotoHash != sceneKey.photoIdentityHash) add("PHOTO_IDENTITY_MISMATCH")
+                if (reportedPhotoSha != null && reportedPhotoSha != identity.photoSha256) add("PHOTO_SHA256_MISMATCH")
+            }
+            val eventPayload = payload + mapOf(
+                "sceneKey" to sceneKey.value,
+                "sessionIdHash" to sceneKey.sessionIdHash,
+                "attemptIdHash" to sceneKey.attemptIdHash,
+                "photoIdentityHash" to sceneKey.photoIdentityHash,
+                "photoSha256" to identity.photoSha256,
+                "reportedSessionIdHash" to reportedSessionHash,
+                "reportedAttemptIdHash" to reportedAttemptHash,
+                "reportedPhotoIdentityHash" to reportedPhotoHash,
+                "reportedPhotoSha256" to reportedPhotoSha,
+                "identityMatch" to identityMismatchReasons.isEmpty(),
+                "identityMismatchReasons" to identityMismatchReasons,
+                "sceneClockMs" to (payload["sceneClockMs"] ?: payload["sceneElapsedMs"] ?: latestSceneElapsedMs),
+                "stage" to (payload["stage"] ?: latestSceneStage?.name ?: "NOT_REACHED"),
+                "stageProgress" to (payload["stageProgress"] ?: latestStageProgress),
+                "geometryVersion" to (payload["geometryVersion"] ?: latestGeometryVersion.takeIf { it >= 0L }),
+                "runtimeEventSequence" to runtimeSequence,
+                "sourceDomain" to (payload["sourceDomain"] ?: payload["playbackMode"]?.toString()
+                    ?: latestPlaybackMode.name),
+            )
+            sink to sink.recordSequenced(RecognitionEvidenceEvent(fileName, type, eventPayload, priority))
         }
-        if (!result.second) {
+        if (result.second == null) {
             result.first.markIncomplete("EVENT_QUEUE_OVERFLOW")
         } else if (priority == RecognitionEvidencePriority.CRITICAL) {
             persistSummarySnapshot()
         }
+        return result.second
     }
 
     private fun persistSummarySnapshot() {

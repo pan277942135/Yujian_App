@@ -47,6 +47,29 @@ class RecognitionSessionEvidenceRecorderTest {
         )
     }
 
+    @Test fun normalFailureAndCancellationHaveDistinctTerminalOutcomes() {
+        assertTrue(RecognitionAttemptTerminalState.RESULT_STABLE.isTerminal)
+        assertTrue(RecognitionAttemptTerminalState.RECOGNITION_FAILED.isTerminal)
+        assertTrue(RecognitionAttemptTerminalState.CANCELLED.isTerminal)
+        assertEquals("RESULT_EVIDENCE_NOT_AVAILABLE", RecognitionEvidenceRecoveryPolicy.resultEvidenceStatus(
+            RecognitionAttemptTerminalState.RESULT_STABLE,
+        ))
+        assertEquals("NOT_REACHED", RecognitionEvidenceRecoveryPolicy.resultEvidenceStatus(
+            RecognitionAttemptTerminalState.RECOGNITION_FAILED,
+        ))
+        assertEquals("NOT_REACHED", RecognitionEvidenceRecoveryPolicy.resultEvidenceStatus(
+            RecognitionAttemptTerminalState.CANCELLED,
+        ))
+    }
+
+    @Test fun sceneKeyIsStableAcrossEvidenceConsumersAndExcludesRawIdentity() {
+        val identity = RecognitionEvidenceIdentity("session-1", "attempt-1", "image-1", "photo-sha")
+        val sceneKey = RecognitionSceneKey.from(identity)
+        assertEquals("${sha256("session-1")}:${sha256("attempt-1")}:${sha256("image-1")}", sceneKey.value)
+        assertFalse(sceneKey.value.contains("session-1"))
+        assertFalse(sceneKey.value.contains("attempt-1"))
+    }
+
     @Test fun evidenceZipSchemaRequiresTraceAndIdentityFilesEvenWhenExplicitlyNotRecorded() {
         assertTrue(RecognitionEvidenceSchema.EVIDENCE_SCHEMA_VERSION >= 2)
         assertTrue(RecognitionEvidenceZipContract.requiredEntries.contains("manifest.json"))
@@ -114,6 +137,20 @@ class RecognitionSessionEvidenceRecorderTest {
         } finally {
             sink.dispose()
             root.deleteRecursively()
+        }
+    }
+
+    @Test fun eventStoreWriteFailureMakesFlushFailAndPreservesFailureReason() {
+        val root = java.nio.file.Files.createTempFile("yujian-evidence-write-failure", ".file").toFile()
+        val sink = RecognitionEvidenceEventSink(root) { 100L }
+        try {
+            assertTrue(sink.record(RecognitionEvidenceEvent("recognition_events.jsonl", "WRITE_FAILURE", emptyMap())))
+            assertFalse(sink.flush(1_000L))
+            assertEquals(1L, sink.diagnostics().writeFailures)
+            assertTrue(sink.diagnostics().incompleteReasons.any { it.startsWith("EVENT_WRITE_FAILED:") })
+        } finally {
+            sink.dispose()
+            root.delete()
         }
     }
 

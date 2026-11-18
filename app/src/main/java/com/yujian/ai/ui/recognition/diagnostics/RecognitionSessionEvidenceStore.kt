@@ -11,8 +11,22 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 /** Durable private attempt storage. Current evidence is never kept only in cache. */
-class RecognitionSessionEvidenceStore(context: Context) {
-    private val root = File(context.applicationContext.noBackupFilesDir, "recognition_evidence")
+class RecognitionSessionEvidenceStore private constructor(
+    private val root: File,
+    private val processInstanceId: () -> String,
+    private val uptimeClockMs: () -> Long,
+) {
+    constructor(context: Context) : this(
+        File(context.applicationContext.noBackupFilesDir, "recognition_evidence"),
+        { RecognitionEvidenceProcessInstance.id },
+        { SystemClock.uptimeMillis() },
+    )
+
+    internal constructor(
+        rootDirectory: File,
+        processInstanceId: String,
+        uptimeClockMs: () -> Long,
+    ) : this(rootDirectory, { processInstanceId }, uptimeClockMs)
 
     fun installCrashRecovery() = RecognitionEvidenceCrashHandler.install()
 
@@ -23,7 +37,7 @@ class RecognitionSessionEvidenceStore(context: Context) {
         listOf("session", "frames/stage_entry", "frames/motion_samples", "logs", "reports")
             .forEach { File(directory, it).mkdirs() }
         val nowWall = System.currentTimeMillis()
-        val nowUptime = SystemClock.uptimeMillis()
+        val nowUptime = uptimeClockMs()
         val schema = RecognitionEvidenceSchema
         val sessionJson = JSONObject()
             .put("evidenceSchemaVersion", schema.EVIDENCE_SCHEMA_VERSION)
@@ -39,6 +53,7 @@ class RecognitionSessionEvidenceStore(context: Context) {
             .put("sessionIdHash", sha256(identity.sessionId))
             .put("attemptIdHash", sha256(identity.attemptId))
             .put("imageIdHash", sha256(identity.imageId))
+                .put("sceneKey", RecognitionSceneKey.from(identity).value)
             .put("photoSha256", identity.photoSha256)
             .put("photoDimensions", JSONObject()
                 .put("width", identity.photoWidthPx.takeIf { it > 0 } ?: JSONObject.NULL)
@@ -46,7 +61,7 @@ class RecognitionSessionEvidenceStore(context: Context) {
             .put("orientationDegrees", identity.orientationDegrees)
             .put("startedAtEpochMs", nowWall)
             .put("startedAtUptimeMs", nowUptime)
-            .put("processInstanceId", RecognitionEvidenceProcessInstance.id)
+            .put("processInstanceId", processInstanceId())
             .put("terminalState", RecognitionAttemptTerminalState.RUNNING.name)
             .put("endedAtEpochMs", JSONObject.NULL)
             .put("resultEvidenceStatus", "NOT_REACHED")
@@ -60,6 +75,7 @@ class RecognitionSessionEvidenceStore(context: Context) {
                 .put("sessionIdHash", sha256(identity.sessionId))
                 .put("attemptIdHash", sha256(identity.attemptId))
                 .put("imageIdHash", sha256(identity.imageId))
+            .put("sceneKey", RecognitionSceneKey.from(identity).value)
                 .put("photoSha256", identity.photoSha256)
                 .put("photoWidthPx", identity.photoWidthPx.takeIf { it > 0 } ?: JSONObject.NULL)
                 .put("photoHeightPx", identity.photoHeightPx.takeIf { it > 0 } ?: JSONObject.NULL)
@@ -103,7 +119,7 @@ class RecognitionSessionEvidenceStore(context: Context) {
                     previousTerminalState = state,
                     crashSidecarPresent = crashExists,
                     previousProcessInstanceId = effectiveMetadata.optString("processInstanceId").takeIf(String::isNotBlank),
-                    currentProcessInstanceId = RecognitionEvidenceProcessInstance.id,
+                    currentProcessInstanceId = processInstanceId(),
                 )
                 val shouldRecover = state == RecognitionAttemptTerminalState.RUNNING.name || state.isBlank() ||
                     (terminal == RecognitionAttemptTerminalState.CRASHED && !effectiveMetadata.optBoolean("recovered", false))
@@ -113,14 +129,41 @@ class RecognitionSessionEvidenceStore(context: Context) {
                         .put("endedAtEpochMs", now)
                         .put("recovered", true)
                     val recovery = JSONObject()
+                        .put("evidenceSchemaVersion", RecognitionEvidenceSchema.EVIDENCE_SCHEMA_VERSION)
+                        .put("runtimeContractVersion", RecognitionEvidenceSchema.RUNTIME_CONTRACT_VERSION)
+                        .put("diagnosticBuildVersion", RecognitionEvidenceSchema.DIAGNOSTIC_BUILD_VERSION)
                         .put("recoveryStatus", "RECOVERED")
+                        .put("sourceDomain", "SYSTEM")
                         .put("terminalState", terminal.name)
                         .put("detectedAtEpochMs", now)
                         .put("sessionIdHash", effectiveMetadata.optString("sessionIdHash", "NOT_RECORDED"))
                         .put("attemptIdHash", effectiveMetadata.optString("attemptIdHash", "NOT_RECORDED"))
+                        .put("sceneKey", effectiveMetadata.optString("sceneKey", identity.optString("sceneKey", "NOT_RECORDED")))
                         .put("photoSha256", effectiveMetadata.optString("photoSha256", "NOT_RECORDED"))
+                        .put("lastPersistedEvidenceSequence", lastPersistedRecognitionEvidenceSequence(attemptDirectory))
+                        .put("previousTerminalState", state.ifBlank { "NOT_RECORDED" })
+                        .put("previousProcessInstanceId", effectiveMetadata.optString("processInstanceId", "NOT_RECORDED"))
+                        .put("currentProcessInstanceId", processInstanceId())
+                        .put("crashSidecarPresent", crashExists)
                         .put("resultEvidenceStatus", "NOT_REACHED")
-                        .put("reason", RecognitionEvidenceRecoveryPolicy.reasonFor(terminal))
+                        .put("reason", when (terminal) {
+                            RecognitionAttemptTerminalState.CRASHED -> if (crashExists) {
+                                "UNCAUGHT_EXCEPTION_SIDECAR_PRESENT"
+                            } else {
+                                "PERSISTED_CRASH_TERMINAL_MARKER"
+                            }
+                            else -> RecognitionEvidenceRecoveryPolicy.reasonFor(terminal)
+                        })
+                        .put("classificationBasis", when (terminal) {
+                            RecognitionAttemptTerminalState.CRASHED -> if (crashExists) {
+                                "UNCAUGHT_EXCEPTION_SIDECAR_PRESENT"
+                            } else {
+                                "PERSISTED_CRASH_TERMINAL_MARKER"
+                            }
+                            RecognitionAttemptTerminalState.PROCESS_DIED -> "PERSISTED_PROCESS_INSTANCE_CHANGED"
+                            RecognitionAttemptTerminalState.INTERRUPTED -> "SAME_PROCESS_INSTANCE_WITHOUT_TERMINAL_MARKER"
+                            else -> "INSUFFICIENT_TERMINAL_OR_PROCESS_METADATA"
+                        })
                     atomicWrite(File(attemptDirectory, "recovery_report.json"), recovery.toString(2))
                     atomicWrite(attemptFile, effectiveMetadata.toString(2))
                     recoveredThisLaunch = true
@@ -156,7 +199,7 @@ class RecognitionSessionEvidenceStore(context: Context) {
                 .put("terminalState", terminalState.name)
                 .put("terminalReason", reason ?: JSONObject.NULL)
                 .put("endedAtEpochMs", System.currentTimeMillis())
-                .put("endedAtUptimeMs", SystemClock.uptimeMillis())
+                .put("endedAtUptimeMs", uptimeClockMs())
                 .put(
                     "resultEvidenceStatus",
                     RecognitionEvidenceRecoveryPolicy.resultEvidenceStatus(terminalState, resultEvidenceAvailable),
@@ -234,10 +277,24 @@ class RecognitionSessionEvidenceStore(context: Context) {
     private fun androidBuildSourceSha(): String = runCatching {
         Class.forName("com.yujian.ai.BuildConfig").getField("SOURCE_REVISION").get(null) as String
     }.getOrDefault("NOT_RECORDED")
+
 }
 
+internal fun lastPersistedRecognitionEvidenceSequence(attemptDirectory: File): Long =
+    File(attemptDirectory, "logs").listFiles()?.filter { it.name.startsWith("recognition_events.jsonl") }
+        .orEmpty().maxOfOrNull { log ->
+            runCatching {
+                log.useLines(Charsets.UTF_8) { lines ->
+                    lines.mapNotNull { line ->
+                        Regex("\\\"evidenceSequence\\\"\\s*:\\s*(\\d+)")
+                            .find(line)?.groupValues?.getOrNull(1)?.toLongOrNull()
+                    }.maxOrNull() ?: 0L
+                }
+            }.getOrDefault(0L)
+        } ?: 0L
+
 /** Synchronous crash sidecar writer; never relies on the asynchronous evidence queue. */
-private object RecognitionEvidenceCrashHandler {
+internal object RecognitionEvidenceCrashHandler {
     private val installed = AtomicBoolean(false)
     private val activeAttemptDirectory = AtomicReference<File?>(null)
 
@@ -261,7 +318,14 @@ private object RecognitionEvidenceCrashHandler {
         }
     }
 
-    private fun writeCrashSidecar(directory: File, thread: Thread, failure: Throwable) {
+    internal fun writeCrashSidecarForDiagnostics(
+        directory: File,
+        thread: Thread,
+        failure: Throwable,
+        wallClockMs: () -> Long = System::currentTimeMillis,
+        uptimeClockMs: () -> Long = SystemClock::uptimeMillis,
+        processId: Int = Process.myPid(),
+    ) {
         val stack = StringWriter().also { writer -> failure.printStackTrace(PrintWriter(writer)) }
             .toString().take(MAX_CRASH_STACK_CHARS)
         val attemptFile = File(directory, "attempt.json")
@@ -274,13 +338,20 @@ private object RecognitionEvidenceCrashHandler {
         }.getOrDefault(JSONObject())
         val report = JSONObject()
             .put("crashStatus", "CRASHED")
-            .put("capturedAtEpochMs", System.currentTimeMillis())
-            .put("capturedAtUptimeMs", SystemClock.uptimeMillis())
+            .put("evidenceSchemaVersion", RecognitionEvidenceSchema.EVIDENCE_SCHEMA_VERSION)
+            .put("runtimeContractVersion", RecognitionEvidenceSchema.RUNTIME_CONTRACT_VERSION)
+            .put("diagnosticBuildVersion", RecognitionEvidenceSchema.DIAGNOSTIC_BUILD_VERSION)
+            .put("sourceDomain", "SYSTEM")
+            .put("capturedAtEpochMs", wallClockMs())
+            .put("capturedAtUptimeMs", uptimeClockMs())
+            .put("processId", processId)
             .put("threadName", thread.name)
             .put("exceptionClass", failure.javaClass.name)
             .put("message", failure.message ?: JSONObject.NULL)
             .put("sessionIdHash", metadata.optString("sessionIdHash", sessionIdentity.optString("sessionIdHash", "NOT_RECORDED")))
             .put("attemptIdHash", metadata.optString("attemptIdHash", sessionIdentity.optString("attemptIdHash", "NOT_RECORDED")))
+            .put("sceneKey", metadata.optString("sceneKey", "NOT_RECORDED"))
+            .put("lastPersistedEvidenceSequence", lastPersistedRecognitionEvidenceSequence(directory))
             .put("photoSha256", metadata.optString("photoSha256", sessionIdentity.optString("photoSha256", "NOT_RECORDED")))
             .put("lastKnownSceneClockMs", lastSummary.optLong("recognitionDurationMs", -1L))
             .put("lastKnownStageStatuses", lastSummary.optJSONArray("stageStatuses") ?: org.json.JSONArray())
@@ -291,8 +362,8 @@ private object RecognitionEvidenceCrashHandler {
         val terminalMetadata = metadata
             .put("terminalState", RecognitionAttemptTerminalState.CRASHED.name)
             .put("terminalReason", failure.javaClass.name)
-            .put("endedAtEpochMs", System.currentTimeMillis())
-            .put("endedAtUptimeMs", SystemClock.uptimeMillis())
+            .put("endedAtEpochMs", wallClockMs())
+            .put("endedAtUptimeMs", uptimeClockMs())
             .put("resultEvidenceStatus", "NOT_REACHED")
         val temporary = File(directory, "attempt.json.tmp")
         temporary.writeText(terminalMetadata.toString(2), Charsets.UTF_8)
@@ -301,6 +372,9 @@ private object RecognitionEvidenceCrashHandler {
             temporary.delete()
         }
     }
+
+    private fun writeCrashSidecar(directory: File, thread: Thread, failure: Throwable) =
+        writeCrashSidecarForDiagnostics(directory, thread, failure)
 
     private const val MAX_CRASH_STACK_CHARS = 64 * 1024
 }

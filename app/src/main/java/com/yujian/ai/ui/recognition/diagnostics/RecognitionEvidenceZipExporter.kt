@@ -23,6 +23,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import java.util.zip.ZipFile
 
 data class RecognitionEvidenceZipExportResult(
     val file: File,
@@ -164,10 +165,15 @@ object RecognitionEvidenceZipExporter {
             val sessionId = snapshot.sessionIdHash?.take(12) ?: "unknown"
             val archive = File(diagnosticDir, "YuJian_Recognition_Evidence_${sessionId}.zip")
 
-            val packaged = packageSnapshotAndVerify(stagingDir, archive) { fileHashesMap ->
+            val packaged = try {
+                packageSnapshotAndVerify(stagingDir, archive) { fileHashesMap ->
                 val fileHashes = JSONObject().apply {
                     fileHashesMap.forEach { (path, hash) -> put(path, hash) }
                 }
+                val imageIdHash = identity?.let { sha256(it.imageId) }
+                    ?: readSessionIdentity(stagingDir).optString("imageIdHash", "NOT_RECORDED")
+                val sceneKey = "${snapshot.sessionIdHash ?: "NOT_RECORDED"}:" +
+                    "${snapshot.attemptIdHash ?: "NOT_RECORDED"}:$imageIdHash"
                 val manifest = JSONObject()
                     .put("schemaVersion", RecognitionEvidenceSchema.EVIDENCE_SCHEMA_VERSION)
                     .put("evidenceSchemaVersion", RecognitionEvidenceSchema.EVIDENCE_SCHEMA_VERSION)
@@ -177,7 +183,7 @@ object RecognitionEvidenceZipExporter {
                     .put("sourceSha", BuildConfig.SOURCE_REVISION)
                     .put("gitSha", BuildConfig.SOURCE_REVISION)
                     .put("apkSha256", buildInfo.optJSONObject("installedApks")?.optJSONObject("base")?.optString("sha256") ?: "NOT_RECORDED")
-                    .put("testApkSha256", buildInfo.optJSONObject("installedApks")?.optJSONObject("base")?.optString("sha256") ?: "NOT_RECORDED")
+                    .put("testApkSha256", "NOT_RECORDED")
                     .put("apkSizeBytes", buildInfo.optJSONObject("installedApks")?.optJSONObject("base")?.optLong("sizeBytes") ?: -1L)
                     .put("installedApks", buildInfo.optJSONObject("installedApks") ?: JSONObject())
                     .put("buildType", BuildConfig.BUILD_TYPE)
@@ -191,8 +197,10 @@ object RecognitionEvidenceZipExporter {
                     .put("density", context.resources.displayMetrics.density)
                     .put("sessionIdHash", snapshot.sessionIdHash ?: "NOT_RECORDED")
                     .put("attemptIdHash", snapshot.attemptIdHash ?: "NOT_RECORDED")
-                    .put("imageIdHash", identity?.let { sha256(it.imageId) }
-                        ?: readSessionIdentity(stagingDir).optString("imageIdHash", "NOT_RECORDED"))
+                    .put("imageIdHash", imageIdHash)
+                    .put("sceneKey", sceneKey)
+                    .put("zipExportRequestEvidenceSequence", snapshot.zipExportRequestEvidenceSequence ?: JSONObject.NULL)
+                    .put("zipExportRequestStatus", if (snapshot.zipExportRequestEvidenceSequence != null) "PERSISTED" else "NOT_RECORDED")
                     .put("photoSha256", snapshot.photoSha256 ?: "NOT_RECORDED")
                     .put("photoDimensions", JSONObject()
                         .put("width", identity?.photoWidthPx ?: readSessionIdentity(stagingDir).optInt("photoWidthPx", 0))
@@ -217,6 +225,25 @@ object RecognitionEvidenceZipExporter {
                     .put("fileSha256", fileHashes)
                 manifest.toString(2).toByteArray(Charsets.UTF_8)
             }
+            } catch (failure: Throwable) {
+                recorder.recordArchiveExportOutcome(
+                    snapshot,
+                    succeeded = false,
+                    details = mapOf("failureClass" to failure.javaClass.name, "failureReason" to failure.message),
+                )
+                recorder.flush(flushTimeoutMs)
+                throw failure
+            }
+            recorder.recordArchiveExportOutcome(
+                snapshot,
+                succeeded = true,
+                details = mapOf(
+                    "archiveSha256" to packaged.sha256,
+                    "archiveSizeBytes" to packaged.sizeBytes,
+                    "integrityStatus" to integrityStatus,
+                ),
+            )
+            recorder.flush(flushTimeoutMs)
             RecognitionEvidenceZipExportResult(
                 file = packaged.archive,
                 sha256 = packaged.sha256,
@@ -280,8 +307,11 @@ object RecognitionEvidenceZipExporter {
     internal fun packageSnapshotAndVerify(
         snapshotDir: File,
         outputArchive: File,
+        afterEntryWritten: (String) -> Unit = {},
+        beforePublish: () -> Unit = {},
         writeManifest: (Map<String, String>) -> ByteArray,
     ): RecognitionEvidencePackagedArchive {
+        recoverInterruptedArchiveReplacement(outputArchive)
         val filesBeforeManifest = listFiles(snapshotDir)
             .filter { it.name != "manifest.json" }
             .sortedBy { relativePath(snapshotDir, it) }
@@ -294,26 +324,47 @@ object RecognitionEvidenceZipExporter {
 
         val archiveDir = outputArchive.parentFile?.apply { mkdirs() }
         val tempArchive = File(archiveDir, "${outputArchive.name}.tmp.${UUID.randomUUID()}")
+        val backupArchive = File(archiveDir, "${outputArchive.name}.backup")
         try {
             ZipOutputStream(tempArchive.outputStream().buffered()).use { zip ->
                 listFiles(snapshotDir)
                     .sortedBy { relativePath(snapshotDir, it) }
                     .forEach { source ->
                         val relative = relativePath(snapshotDir, source)
-                        zip.putNextEntry(ZipEntry(relative))
+                        zip.putNextEntry(ZipEntry(relative).apply { time = 0L })
                         FileInputStream(source).buffered().use { it.copyTo(zip) }
                         zip.closeEntry()
+                        afterEntryWritten(relative)
                     }
             }
             RecognitionEvidenceArchiveVerifier.verify(tempArchive, fileHashes, manifestBytes)
             val archiveHash = sha256(tempArchive)
-            if (outputArchive.exists()) outputArchive.delete()
-            if (!tempArchive.renameTo(outputArchive)) {
-                tempArchive.copyTo(outputArchive, overwrite = true)
-                tempArchive.delete()
+            check(!backupArchive.exists()) { "STALE_ARCHIVE_BACKUP_NOT_RECOVERED" }
+            if (outputArchive.exists()) {
+                check(outputArchive.renameTo(backupArchive)) { "PREVIOUS_ARCHIVE_BACKUP_FAILED" }
             }
-            File(archiveDir, outputArchive.name + ".sha256")
-                .writeText("$archiveHash  ${outputArchive.name}\n", Charsets.UTF_8)
+            try {
+                beforePublish()
+                if (!tempArchive.renameTo(outputArchive)) {
+                    tempArchive.copyTo(outputArchive, overwrite = true)
+                    tempArchive.delete()
+                }
+                check(outputArchive.isFile && sha256(outputArchive) == archiveHash) {
+                    "PUBLISHED_ARCHIVE_HASH_MISMATCH"
+                }
+                writeArchiveShaSidecar(File(archiveDir, outputArchive.name + ".sha256"), archiveHash, outputArchive.name)
+                if (backupArchive.exists()) backupArchive.delete()
+            } catch (failure: Throwable) {
+                if (backupArchive.exists()) {
+                    outputArchive.delete()
+                    if (!backupArchive.renameTo(outputArchive)) {
+                        runCatching { backupArchive.copyTo(outputArchive, overwrite = true) }
+                    }
+                } else {
+                    outputArchive.delete()
+                }
+                throw failure
+            }
             return RecognitionEvidencePackagedArchive(
                 archive = outputArchive,
                 sha256 = archiveHash,
@@ -322,6 +373,58 @@ object RecognitionEvidenceZipExporter {
             )
         } finally {
             if (tempArchive.exists()) tempArchive.delete()
+        }
+    }
+
+    /** Restores the last published archive if process death interrupted a replacement. */
+    private fun recoverInterruptedArchiveReplacement(outputArchive: File) {
+        val parent = outputArchive.parentFile ?: return
+        val backup = File(parent, "${outputArchive.name}.backup")
+        if (!backup.isFile) return
+        if (isSelfConsistentArchive(outputArchive)) {
+            backup.delete()
+        } else {
+            outputArchive.delete()
+            if (!backup.renameTo(outputArchive)) {
+                backup.copyTo(outputArchive, overwrite = true)
+            }
+        }
+        if (outputArchive.isFile) {
+            writeArchiveShaSidecar(
+                File(parent, outputArchive.name + ".sha256"),
+                sha256(outputArchive),
+                outputArchive.name,
+            )
+        }
+    }
+
+    private fun isSelfConsistentArchive(archive: File): Boolean = runCatching {
+        if (!archive.isFile) return@runCatching false
+        ZipFile(archive).use { zip ->
+            val manifestEntry = zip.getEntry("manifest.json") ?: return@use false
+            val manifestBytes = zip.getInputStream(manifestEntry).use { it.readBytes() }
+            val manifest = JSONObject(manifestBytes.toString(Charsets.UTF_8))
+            val hashObject = manifest.optJSONObject("fileSha256") ?: return@use false
+            val hashes = linkedMapOf<String, String>()
+            val keys = hashObject.keys()
+            while (keys.hasNext()) {
+                val key = keys.next()
+                hashes[key] = hashObject.optString(key)
+            }
+            RecognitionEvidenceArchiveVerifier.verify(archive, hashes, manifestBytes)
+            true
+        }
+    }.getOrDefault(false)
+
+    private fun writeArchiveShaSidecar(sidecar: File, archiveHash: String, archiveName: String) {
+        val temporary = File(sidecar.parentFile, "${sidecar.name}.tmp.${UUID.randomUUID()}")
+        try {
+            temporary.writeText("$archiveHash  $archiveName\n", Charsets.UTF_8)
+            if (!temporary.renameTo(sidecar)) {
+                temporary.copyTo(sidecar, overwrite = true)
+            }
+        } finally {
+            temporary.delete()
         }
     }
 

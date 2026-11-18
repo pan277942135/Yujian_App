@@ -1850,6 +1850,7 @@ fun RecognitionProcessingScene(
                     event = event,
                     accepted = true,
                     taskEnergyMergedBeforeEvent = waterLightFrame.sceneFrame.taskEnergyMerged,
+                    sourceDomain = waterLightFrame.sceneFrame.playbackMode.name,
                 )
             } else {
                 val reason = requireNotNull(result.rejectionReason)

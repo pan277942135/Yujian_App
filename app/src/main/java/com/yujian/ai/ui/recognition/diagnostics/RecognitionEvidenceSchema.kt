@@ -12,6 +12,7 @@ enum class RecognitionAttemptTerminalState(val isTerminal: Boolean) {
     RUNNING(false),
     RESULT_STABLE(true),
     RECOGNITION_FAILED(true),
+    CANCELLED(true),
     INTERRUPTED(true),
     CRASHED(true),
     PROCESS_DIED(true),
@@ -39,6 +40,7 @@ internal object RecognitionEvidenceRecoveryPolicy {
     fun reasonFor(terminalState: RecognitionAttemptTerminalState): String = when (terminalState) {
         RecognitionAttemptTerminalState.CRASHED -> "UNCAUGHT_EXCEPTION_REPORT_PRESENT"
         RecognitionAttemptTerminalState.INTERRUPTED -> "SAME_PROCESS_RECREATION_WITHOUT_TERMINAL_MARKER"
+        RecognitionAttemptTerminalState.CANCELLED -> "USER_OR_FLOW_CANCELLED_WITH_EXPLICIT_TERMINAL_MARKER"
         RecognitionAttemptTerminalState.UNKNOWN_TERMINATION -> "TERMINAL_OR_PROCESS_METADATA_UNAVAILABLE"
         RecognitionAttemptTerminalState.PROCESS_DIED -> "PROCESS_RESTART_WITHOUT_TERMINAL_MARKER"
         else -> "RECOVERY_CLASSIFIED:${terminalState.name}"

@@ -5,11 +5,13 @@ import java.io.File
 import java.util.ArrayDeque
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import org.json.JSONObject
 
 /** Bounded asynchronous append-only writer with one globally ordered evidence sequence. */
 class RecognitionEvidenceEventSink internal constructor(
     private val attemptDirectory: File,
     private val clockMs: () -> Long = { SystemClock.uptimeMillis() },
+    initialSequence: Long = 0L,
 ) {
     private data class Queued(
         val sequence: Long,
@@ -34,14 +36,17 @@ class RecognitionEvidenceEventSink internal constructor(
     }
     private var draining = false
     private var disposed = false
-    private var nextSequence = 0L
+    private var nextSequence = initialSequence.coerceAtLeast(0L)
     private var eventCount = 0L
     private var droppedCritical = 0L
     private var droppedSamples = 0L
     private var writeFailures = 0L
     private val incompleteReasons = linkedSetOf<String>()
 
-    fun record(event: RecognitionEvidenceEvent): Boolean = enqueue(
+    fun record(event: RecognitionEvidenceEvent): Boolean = recordSequenced(event) != null
+
+    /** Returns the persistent FIFO sequence assigned before the event is enqueued. */
+    internal fun recordSequenced(event: RecognitionEvidenceEvent): Long? = enqueue(
         fileName = event.fileName,
         priority = event.priority,
         encodedLine = { seq, ts -> event.json(seq, ts) },
@@ -54,16 +59,22 @@ class RecognitionEvidenceEventSink internal constructor(
     ): Boolean = enqueue(
         fileName = fileName,
         priority = priority,
-        encodedLine = { _, _ -> encodedJsonLine },
-    )
+        encodedLine = { sequence, timestampMs ->
+            JSONObject(encodedJsonLine)
+                .put("sequence", sequence)
+                .put("evidenceSequence", sequence)
+                .put("timestampUptimeMs", timestampMs)
+                .toString()
+        },
+    ) != null
 
     private fun enqueue(
         fileName: String,
         priority: RecognitionEvidencePriority,
         encodedLine: (sequence: Long, timestampMs: Long) -> String,
-    ): Boolean {
-        val accepted = synchronized(lock) {
-            if (disposed) return false
+    ): Long? {
+        return synchronized(lock) {
+            if (disposed) return null
             val row = Queued(++nextSequence, fileName, priority, encodedLine, clockMs())
             var enqueued = true
             if (queue.size >= MAX_TOTAL_QUEUE) {
@@ -93,9 +104,8 @@ class RecognitionEvidenceEventSink internal constructor(
                     incompleteReasons += "EVENT_EXECUTOR_REJECTED:${it.javaClass.simpleName}"
                 }
             }
-            enqueued
+            row.sequence.takeIf { enqueued }
         }
-        return accepted
     }
 
     fun markIncomplete(reason: String) {
@@ -114,9 +124,9 @@ class RecognitionEvidenceEventSink internal constructor(
 
     fun flush(timeoutMs: Long = DEFAULT_FLUSH_TIMEOUT_MS): Boolean {
         val clampedTimeoutMs = timeoutMs.coerceIn(1L, MAX_FLUSH_TIMEOUT_MS)
-        val disposedNow = synchronized(lock) { disposed }
-        if (disposedNow) return true
-        return runCatching {
+        val disposedState = synchronized(lock) { disposed to writeFailures }
+        if (disposedState.first) return disposedState.second == 0L
+        val drained = runCatching {
             executor.submit { drain() }.get(clampedTimeoutMs, TimeUnit.MILLISECONDS)
             true
         }.getOrElse { failure ->
@@ -128,6 +138,12 @@ class RecognitionEvidenceEventSink internal constructor(
             markIncomplete(reason)
             false
         }
+        val finalDiagnostics = diagnostics()
+        if (drained && finalDiagnostics.writeFailures > 0L) {
+            markIncomplete("EVENT_FLUSH_HAS_WRITE_FAILURES:${finalDiagnostics.writeFailures}")
+            return false
+        }
+        return drained
     }
 
     /**

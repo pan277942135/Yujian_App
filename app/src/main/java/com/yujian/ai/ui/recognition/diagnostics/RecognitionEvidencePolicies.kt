@@ -10,6 +10,7 @@ internal data class RecognitionEvidenceCaptureSnapshot(
     val stage: String,
     val captureType: String,
     val pixelCopyStatus: String,
+    val evidenceBindingStatus: String = "BOUND",
 )
 
 internal data class RecognitionEvidenceResultStatusSnapshot(
@@ -27,7 +28,8 @@ internal object RecognitionEvidenceResultStatusPolicy {
     fun fromCaptureSnapshots(captures: List<RecognitionEvidenceCaptureSnapshot>): RecognitionEvidenceResultStatusSnapshot =
         fromStatus(
             if (captures.any {
-                    it.captureType == "RESULT_SCENE_STABLE" && it.pixelCopyStatus == "SUCCESS"
+                    it.captureType == "RESULT_SCENE_STABLE" && it.pixelCopyStatus == "SUCCESS" &&
+                        it.evidenceBindingStatus == "BOUND"
                 }
             ) "AVAILABLE" else "RESULT_EVIDENCE_NOT_AVAILABLE",
         )

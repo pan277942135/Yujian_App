@@ -297,8 +297,8 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
 
     fun clearRecognitionSession(preserveSession: Boolean = false) {
         recognitionEvidenceRecorder.finishAttempt(
-            RecognitionAttemptTerminalState.INTERRUPTED,
-            "RECOGNITION_SESSION_CLEARED",
+            RecognitionAttemptTerminalState.CANCELLED,
+            "RECOGNITION_SESSION_CANCELLED_OR_REPLACED",
         )
         subjectAttemptRunner.cancel()
         diagnosticPlaybackController.cancelSession()

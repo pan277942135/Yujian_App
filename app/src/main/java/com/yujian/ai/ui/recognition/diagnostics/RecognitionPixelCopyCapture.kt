@@ -33,6 +33,10 @@ data class RecognitionPixelCopyResult(
     val pathIdAtCompletion: String? = null,
 )
 
+internal fun interface RecognitionPixelCopyRequestBackend {
+    fun request(window: Window, bitmap: Bitmap, handler: Handler, callback: (Int) -> Unit)
+}
+
 /** Captures the real Android Window buffer. The caller compares stage identity after completion. */
 object RecognitionPixelCopyCapture {
     const val DEFAULT_TIMEOUT_MS = 2_000L
@@ -42,6 +46,16 @@ object RecognitionPixelCopyCapture {
         frame: RecognitionSceneFrame,
         currentFrame: () -> RecognitionSceneFrame?,
         timeoutMs: Long = DEFAULT_TIMEOUT_MS,
+        callback: (RecognitionPixelCopyResult) -> Unit,
+    ) = requestWithBackend(window, frame, currentFrame, timeoutMs, ANDROID_BACKEND, callback)
+
+    /** Backend injection exists for Android instrumentation fault tests; production always uses PixelCopy. */
+    internal fun requestWithBackend(
+        window: Window?,
+        frame: RecognitionSceneFrame,
+        currentFrame: () -> RecognitionSceneFrame?,
+        timeoutMs: Long,
+        backend: RecognitionPixelCopyRequestBackend,
         callback: (RecognitionPixelCopyResult) -> Unit,
     ) {
         val requestTime = android.os.SystemClock.uptimeMillis()
@@ -130,7 +144,7 @@ object RecognitionPixelCopyCapture {
                 return
             }
             runCatching {
-                PixelCopy.request(window, bitmap, { copyResult ->
+                backend.request(window, bitmap, handler) { copyResult ->
                     handler.removeCallbacks(timeoutRunnable)
                     if (!completed.compareAndSet(false, true)) {
                         runCatching { if (!bitmap.isRecycled) bitmap.recycle() }
@@ -164,7 +178,7 @@ object RecognitionPixelCopyCapture {
                             pathIdAtCompletion = pathId(latest),
                         ),
                     )
-                }, handler)
+                }
             }.onFailure {
                 handler.removeCallbacks(timeoutRunnable)
                 if (completed.compareAndSet(false, true)) {
@@ -209,6 +223,10 @@ object RecognitionPixelCopyCapture {
             decor.hasWindowFocus() &&
             decor.width > 0 &&
             decor.height > 0
+
+    private val ANDROID_BACKEND = RecognitionPixelCopyRequestBackend { window, bitmap, handler, callback ->
+        PixelCopy.request(window, bitmap, { result -> callback(result) }, handler)
+    }
 
     private const val POST_COMMIT_FALLBACK_DELAY_MS = 48L
 }

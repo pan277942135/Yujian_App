@@ -211,6 +211,12 @@ jobs:
       - name: Verify immutable AI Orb core WebP
         run: python3 scripts/android_runtime/verify_orb_runtime_asset.py
 
+      - name: Test independent recognition evidence ZIP verifier
+        run: >-
+          python3 -m unittest
+          scripts/android_runtime/tests/test_recognition_evidence_zip.py
+          scripts/android_runtime/tests/test_recognition_auto_pixelcopy_wiring.py
+
       - name: Verify P0-2 frozen Orb wake, release and R01B resources
         run: python3 scripts/android_runtime/verify_orb_wake_breath_release_assets_v1_1.py
 
