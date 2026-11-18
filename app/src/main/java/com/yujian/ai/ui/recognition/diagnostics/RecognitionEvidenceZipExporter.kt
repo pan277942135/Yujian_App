@@ -20,6 +20,7 @@ import java.io.FileInputStream
 import java.io.InputStream
 import java.security.MessageDigest
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -804,9 +805,21 @@ object RecognitionEvidenceZipExporter {
                 isDaemon = true
                 start()
             }
-            val finished = process.waitFor(clampedTimeoutMs, TimeUnit.MILLISECONDS)
+            val processExited = CountDownLatch(1)
+            Thread({
+                try {
+                    process.waitFor()
+                } finally {
+                    processExited.countDown()
+                }
+            }, "yujian-command-waiter").apply {
+                isDaemon = true
+                start()
+            }
+            val finished = processExited.await(clampedTimeoutMs, TimeUnit.MILLISECONDS)
             if (!finished) {
-                process.destroyForcibly()
+                process.destroy()
+                processExited.await(200L, TimeUnit.MILLISECONDS)
                 readerThread.join(200L)
                 val prefix = captured.toByteArray()
                 val suffix = "\nLOGCAT_TIMEOUT:${clampedTimeoutMs}ms\n".toByteArray(Charsets.UTF_8)
