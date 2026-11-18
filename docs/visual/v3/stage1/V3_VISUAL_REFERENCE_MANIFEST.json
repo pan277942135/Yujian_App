@@ -1,36 +1,81 @@
 {
-  "schema_version": "3.0.0-AUDIT",
-  "freeze_status": "BLOCKED_NOT_FROZEN",
-  "source_location": "ChatGPT Library /YuJian_AI_26KF_HighRes_Overview_V2.png",
-  "source_file_id": "file_0000000017f882109a0128cab1800bc4",
-  "pixel_size": [
-    8677,
-    5626
-  ],
-  "byte_size": 46486538,
-  "sha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
-  "byte_identical_duplicate": "YuJian_AI_26KF_HighRes_Overview_V2(1).png",
-  "duplicate_sha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
-  "older_13_stage_overview": {
-    "library_path": "/冻结高保/AI Orb × WaterLight 13阶段冻结/YuJian_AI_Orb_WaterLight_13_Stage_Overview_4200x14480.png",
-    "dimensions": [
-      4200,
-      14480
-    ],
-    "sha256": "76901e58afcbe5983d647e2837f2e97cac7b4eae203541a82dd9111060e8df4b",
-    "timing_status": "HISTORIC_3650MS_SUPERSEDED"
-  },
+  "schema_version": "3.1.0",
+  "freeze_status": "CORE_VISUAL_SPEC_FROZEN_WITH_TUNABLES",
   "library_folder": "/冻结高保/13阶段高保真",
-  "independent_source_count": 25,
-  "dimension_distribution": {
+  "library_png_count_prior_audit": 25,
+  "library_dimension_distribution_prior_audit": {
     "941x1672": 18,
     "1672x941": 4,
     "2172x724": 1,
     "1254x1254": 2
   },
+  "primary_contact_sheet": {
+    "file": "YuJian_AI_26KF_HighRes_Overview_V2.png",
+    "file_id": "file_0000000017f882109a0128cab1800bc4",
+    "dimensions": [
+      8677,
+      5626
+    ],
+    "bytes": 46486538,
+    "sha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac"
+  },
+  "conversation_supplements": [
+    {
+      "file": "渔见湖光鱼获首页.png",
+      "dimensions": [
+        941,
+        1672
+      ],
+      "bytes": 1984137,
+      "sha256": "8bb3bb1b4a2303d006bd3f6dbd373a11a02997d97ca64a1d5130c9432847e37c",
+      "kf": "KF00"
+    },
+    {
+      "file": "03 Camera Runtime\t真实取景、操作区、变焦.png",
+      "dimensions": [
+        942,
+        1670
+      ],
+      "bytes": 1816145,
+      "sha256": "4d10908b2215a24b1bf3098a67576e223e6891a37705c7d95840c58332b809a9",
+      "kf": "KF01"
+    }
+  ],
+  "orb_sources": {
+    "transparent_master": {
+      "file": "透明湖水玻璃球.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee"
+    },
+    "runtime_webp": {
+      "file": "processing_water_core_v1.webp",
+      "dimensions": [
+        384,
+        384
+      ],
+      "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09"
+    },
+    "dark_composite": {
+      "file": "翡翠星光中的流光水晶球.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "sha256": "910d15313b39ee2afa277356c46290e2cb7739b80a60e9ab4efaa14a29d74122"
+    },
+    "duplicate_decoded_pixels": [
+      "236493.png",
+      "翡翠星光中的流光水晶球.png"
+    ]
+  },
   "orb_gap_release_zip": {
     "library_path": "/冻结高保/AI Orb/AI_Orb_Gap_Closure_V1/YuJian_AI_Orb_Gap_Closure_V1_FINAL.zip",
-    "sha256": "2431b2181a073d0e1cba575b899f915a1fe8db1066ea6c753a84ebbfd12f65d5",
+    "package_sha256": "2431b2181a073d0e1cba575b899f915a1fe8db1066ea6c753a84ebbfd12f65d5",
     "profile_review_status": "LEGACY_CANDIDATE_PENDING_PRODUCT_REVIEW"
-  }
+  },
+  "mapping": "V3_26KF_SOURCE_MAPPING_V2.md",
+  "parameter_audit": "V3_ORB_SOURCE_PARAMETER_AUDIT_V1.md"
 }
