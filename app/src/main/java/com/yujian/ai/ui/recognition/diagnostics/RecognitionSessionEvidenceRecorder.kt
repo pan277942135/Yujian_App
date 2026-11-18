@@ -812,7 +812,11 @@ class RecognitionSessionEvidenceRecorder(
             degradedReasons += "LOG_SNAPSHOT_SIZE_CAP_REACHED:${logSnapshot.truncatedFiles.joinToString(",")}"
         }
         if (target.sink == null) {
-            val copiedLogs = copyBoundedTree(File(target.directory, "logs"), targetLogs, MAX_SNAPSHOT_LOG_BYTES)
+            val copiedLogs = copyBoundedTree(
+                File(target.directory, "logs"),
+                targetLogs,
+                RecognitionEvidenceEventSink.MAX_SNAPSHOT_LOG_BYTES,
+            )
             if (copiedLogs) degradedReasons += "RECOVERED_LOG_SNAPSHOT_TRUNCATED"
         }
 
