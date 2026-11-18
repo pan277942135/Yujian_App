@@ -87,21 +87,31 @@ class RecognitionEvidenceZipExporterTest {
         val stagingDir = File(tempRoot, "staging").apply { mkdirs() }
         val outputDir = File(tempRoot, "diagnostics").apply { mkdirs() }
         var nowMs = 100L
-        val sink = RecognitionEvidenceEventSink(attemptDir) { ++nowMs }
+        val sink = RecognitionEvidenceEventSink(attemptDir, clockMs = { ++nowMs })
         val keepWriting = java.util.concurrent.atomic.AtomicBoolean(true)
         val writerThread = Thread {
             var idx = 0
             while (keepWriting.get()) {
-                sink.recordRawLine("recognition_events.jsonl", """{"seq":${++idx}}""")
+                sink.record(RecognitionEvidenceEvent("recognition_events.jsonl", "CONCURRENT_WRITE", mapOf("seq" to ++idx)))
                 Thread.sleep(1L)
             }
         }.apply { start() }
         try {
             Thread.sleep(25L)
+            assertTrue(sink.flush(2_000L))
+            val diagnostics = sink.diagnostics()
+            assertEquals("writeFailures=$diagnostics", 0L, diagnostics.writeFailures)
+            assertTrue("incompleteReasons=$diagnostics", diagnostics.incompleteReasons.isEmpty())
+            val liveLogFiles = File(attemptDir, "logs").listFiles().orEmpty().filter { it.isFile }
+            assertTrue(liveLogFiles.map { it.name }.contains("recognition_events.jsonl"))
+            assertTrue(liveLogFiles.sumOf { it.length() } > 0L)
             val snapshot = sink.snapshotLogsTo(File(stagingDir, "logs"), flushTimeoutMs = 500L)
+            assertEquals(0L, snapshot.diagnostics.writeFailures)
+            assertTrue(snapshot.diagnostics.incompleteReasons.none { it.contains("FLUSH_TIMEOUT") })
             assertTrue(snapshot.copiedFiles.contains("recognition_events.jsonl"))
             val frozenLog = File(stagingDir, "logs/recognition_events.jsonl")
             val frozenBytesBeforePack = frozenLog.readBytes()
+            assertTrue(frozenBytesBeforePack.isNotEmpty())
             Thread.sleep(25L)
             val liveBytesAfter = File(attemptDir, "logs/recognition_events.jsonl").readBytes()
             assertTrue(liveBytesAfter.size >= frozenBytesBeforePack.size)
@@ -124,11 +134,103 @@ class RecognitionEvidenceZipExporterTest {
         }
     }
 
+    @Test fun interruptedZipExportKeepsPreviousArchiveAndRemovesPartialTemporaryArchive() {
+        val tempRoot = java.nio.file.Files.createTempDirectory("yujian-zip-interrupt-test").toFile()
+        val snapshot = File(tempRoot, "snapshot").apply { mkdirs() }
+        val archive = File(tempRoot, "recognition-evidence.zip").apply { writeText("previous-valid-archive") }
+        File(snapshot, "attempt.json").writeText("{\"terminalState\":\"PROCESS_DIED\"}")
+        File(snapshot, "events.jsonl").writeText("{\"evidenceSequence\":1}\n")
+        try {
+            try {
+                RecognitionEvidenceZipExporter.packageSnapshotAndVerify(
+                    snapshotDir = snapshot,
+                    outputArchive = archive,
+                    afterEntryWritten = { throw java.io.IOException("INJECTED_ZIP_EXPORT_INTERRUPTION") },
+                ) { hashes -> "{\"fileCount\":${hashes.size}}".toByteArray() }
+                throw AssertionError("interrupted export should fail")
+            } catch (expected: java.io.IOException) {
+                assertEquals("INJECTED_ZIP_EXPORT_INTERRUPTION", expected.message)
+            }
+            assertEquals("previous-valid-archive", archive.readText())
+            assertTrue(tempRoot.listFiles().orEmpty().none { it.name.contains(".tmp.") })
+        } finally {
+            tempRoot.deleteRecursively()
+        }
+    }
+
+    @Test fun duplicateZipExportAtomicallyReplacesArchiveWithIdenticalVerifiedBytes() {
+        val tempRoot = java.nio.file.Files.createTempDirectory("yujian-zip-repeat-test").toFile()
+        val snapshot = File(tempRoot, "snapshot").apply { mkdirs() }
+        val archive = File(tempRoot, "recognition-evidence.zip")
+        File(snapshot, "attempt.json").writeText("{\"terminalState\":\"INTERRUPTED\"}")
+        File(snapshot, "recovery_report.json").writeText("{\"recoveryStatus\":\"RECOVERED\"}")
+        try {
+            val first = RecognitionEvidenceZipExporter.packageSnapshotAndVerify(snapshot, archive) { hashes ->
+                "{\"fileCount\":${hashes.size}}".toByteArray()
+            }
+            val firstBytes = archive.readBytes()
+            val second = RecognitionEvidenceZipExporter.packageSnapshotAndVerify(snapshot, archive) { hashes ->
+                "{\"fileCount\":${hashes.size}}".toByteArray()
+            }
+            assertEquals(first.sha256, second.sha256)
+            assertTrue(firstBytes.contentEquals(archive.readBytes()))
+            assertTrue(File(tempRoot, "${archive.name}.sha256").readText().startsWith(second.sha256))
+        } finally {
+            tempRoot.deleteRecursively()
+        }
+    }
+
+    @Test fun interruptedArchiveReplacementRestoresPreviousPublishedArchive() {
+        val tempRoot = java.nio.file.Files.createTempDirectory("yujian-zip-replace-interrupt-test").toFile()
+        val snapshot = File(tempRoot, "snapshot").apply { mkdirs() }
+        val archive = File(tempRoot, "recognition-evidence.zip").apply { writeText("previous-valid-archive") }
+        File(snapshot, "attempt.json").writeText("{\"terminalState\":\"PROCESS_DIED\"}")
+        try {
+            try {
+                RecognitionEvidenceZipExporter.packageSnapshotAndVerify(
+                    snapshotDir = snapshot,
+                    outputArchive = archive,
+                    beforePublish = { throw java.io.IOException("INJECTED_PUBLISH_INTERRUPTION") },
+                ) { hashes -> "{\"fileCount\":${hashes.size}}".toByteArray(Charsets.UTF_8) }
+                throw AssertionError("interrupted replacement should fail")
+            } catch (expected: java.io.IOException) {
+                assertEquals("INJECTED_PUBLISH_INTERRUPTION", expected.message)
+            }
+            assertEquals("previous-valid-archive", archive.readText())
+            assertTrue(tempRoot.listFiles().orEmpty().none { it.name.endsWith(".backup") })
+        } finally {
+            tempRoot.deleteRecursively()
+        }
+    }
+
+    @Test fun recoveryExportRepairsBackupLeftByProcessDeathThenPublishesVerifiedArchive() {
+        val tempRoot = java.nio.file.Files.createTempDirectory("yujian-zip-recovery-test").toFile()
+        val snapshot = File(tempRoot, "snapshot").apply { mkdirs() }
+        val archive = File(tempRoot, "recognition-evidence.zip")
+        File(tempRoot, "${archive.name}.backup").writeText("previous-valid-archive")
+        File(snapshot, "attempt.json").writeText("{\"terminalState\":\"PROCESS_DIED\"}")
+        try {
+            val packaged = RecognitionEvidenceZipExporter.packageSnapshotAndVerify(snapshot, archive) { hashes ->
+                "{\"fileCount\":${hashes.size}}".toByteArray(Charsets.UTF_8)
+            }
+            RecognitionEvidenceArchiveVerifier.verify(
+                packaged.archive,
+                packaged.fileHashes,
+                File(snapshot, "manifest.json").readBytes(),
+            )
+            assertEquals(packaged.sha256, sha256(archive.readBytes()))
+            assertTrue(File(tempRoot, "${archive.name}.sha256").readText().startsWith(packaged.sha256))
+            assertTrue(!File(tempRoot, "${archive.name}.backup").exists())
+        } finally {
+            tempRoot.deleteRecursively()
+        }
+    }
+
     @Test fun logSnapshotEnforcesByteCapAndMarksIncompleteReason() {
         val tempRoot = java.nio.file.Files.createTempDirectory("yujian-p0-cap-test").toFile()
         val attemptDir = File(tempRoot, "attempt").apply { mkdirs() }
         val logsDir = File(attemptDir, "logs").apply { mkdirs() }
-        val sink = RecognitionEvidenceEventSink(attemptDir) { 1_000L }
+        val sink = RecognitionEvidenceEventSink(attemptDir, clockMs = { 1_000L })
         try {
             val payload = (1..200).joinToString("\n") { """{"line":$it,"msg":"abcdefghij"}""" } + "\n"
             File(logsDir, "waterlight_paths.jsonl").writeText(payload, Charsets.UTF_8)

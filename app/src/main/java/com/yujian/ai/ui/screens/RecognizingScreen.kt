@@ -1621,7 +1621,7 @@ fun RecognitionProcessingScene(
                     window = evidenceWindow,
                     frame = waterLightFrame.sceneFrame,
                     latestFrame = { latestEvidenceSceneFrame.value },
-                    allowPixelCopyCapture = stepDiagnosticActive,
+                    allowPixelCopyCapture = BuildConfig.DEBUG && recognitionEvidenceRecorder != null,
                 )
             }
             .onGloballyPositioned { rootOrigin = it.boundsInWindow().topLeft },
@@ -1850,6 +1850,7 @@ fun RecognitionProcessingScene(
                     event = event,
                     accepted = true,
                     taskEnergyMergedBeforeEvent = waterLightFrame.sceneFrame.taskEnergyMerged,
+                    sourceDomain = waterLightFrame.sceneFrame.playbackMode.name,
                 )
             } else {
                 val reason = requireNotNull(result.rejectionReason)

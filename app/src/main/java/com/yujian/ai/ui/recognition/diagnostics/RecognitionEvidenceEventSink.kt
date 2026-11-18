@@ -6,10 +6,11 @@ import java.util.ArrayDeque
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-/** Bounded asynchronous append-only writer. Critical and sampling traffic have separate budgets. */
+/** Bounded asynchronous append-only writer with one globally ordered evidence sequence. */
 class RecognitionEvidenceEventSink internal constructor(
     private val attemptDirectory: File,
     private val clockMs: () -> Long = { SystemClock.uptimeMillis() },
+    initialSequence: Long = 0L,
 ) {
     private data class Queued(
         val sequence: Long,
@@ -28,60 +29,57 @@ class RecognitionEvidenceEventSink internal constructor(
 
     private val lock = Any()
     private val logFileLock = Any()
-    private val criticalQueue = ArrayDeque<Queued>()
-    private val sampleQueue = ArrayDeque<Queued>()
+    private val queue = ArrayDeque<Queued>()
     private val executor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "yujian-recognition-evidence").apply { isDaemon = true }
     }
     private var draining = false
     private var disposed = false
-    private var nextSequence = 0L
+    private var nextSequence = initialSequence.coerceAtLeast(0L)
     private var eventCount = 0L
     private var droppedCritical = 0L
     private var droppedSamples = 0L
     private var writeFailures = 0L
     private val incompleteReasons = linkedSetOf<String>()
 
-    fun record(event: RecognitionEvidenceEvent): Boolean = enqueue(
+    fun record(event: RecognitionEvidenceEvent): Boolean = recordSequenced(event) != null
+
+    /** Returns the persistent FIFO sequence assigned before the event is enqueued. */
+    internal fun recordSequenced(event: RecognitionEvidenceEvent): Long? = enqueue(
         fileName = event.fileName,
         priority = event.priority,
         encodedLine = { seq, ts -> event.json(seq, ts) },
-    )
-
-    internal fun recordRawLine(
-        fileName: String,
-        encodedJsonLine: String,
-        priority: RecognitionEvidencePriority = RecognitionEvidencePriority.CRITICAL,
-    ): Boolean = enqueue(
-        fileName = fileName,
-        priority = priority,
-        encodedLine = { _, _ -> encodedJsonLine },
     )
 
     private fun enqueue(
         fileName: String,
         priority: RecognitionEvidencePriority,
         encodedLine: (sequence: Long, timestampMs: Long) -> String,
-    ): Boolean {
-        val accepted = synchronized(lock) {
-            if (disposed) return false
+    ): Long? {
+        return synchronized(lock) {
+            if (disposed) return null
             val row = Queued(++nextSequence, fileName, priority, encodedLine, clockMs())
-            val queue = if (priority == RecognitionEvidencePriority.CRITICAL) criticalQueue else sampleQueue
-            val capacity = if (priority == RecognitionEvidencePriority.CRITICAL) MAX_CRITICAL else MAX_SAMPLES
-            val enqueued = if (queue.size >= capacity) {
+            var enqueued = true
+            if (queue.size >= MAX_TOTAL_QUEUE) {
                 if (priority == RecognitionEvidencePriority.CRITICAL) {
-                    droppedCritical++
-                    incompleteReasons += "CRITICAL_EVENT_QUEUE_OVERFLOW"
+                    val oldestSample = queue.firstOrNull { it.priority == RecognitionEvidencePriority.SAMPLE }
+                    if (oldestSample != null) {
+                        queue.remove(oldestSample)
+                        droppedSamples++
+                        incompleteReasons += "SAMPLE_EVENT_EVICTED_FOR_CRITICAL"
+                    } else {
+                        droppedCritical++
+                        incompleteReasons += "CRITICAL_EVENT_QUEUE_OVERFLOW"
+                        enqueued = false
+                    }
                 } else {
                     droppedSamples++
                     incompleteReasons += "SAMPLE_EVENT_QUEUE_OVERFLOW"
+                    enqueued = false
                 }
-                false
-            } else {
-                queue.addLast(row)
-                true
             }
-            if (!draining && (criticalQueue.isNotEmpty() || sampleQueue.isNotEmpty())) {
+            if (enqueued) queue.addLast(row)
+            if (!draining && queue.isNotEmpty()) {
                 draining = true
                 runCatching { executor.execute(::drain) }.onFailure {
                     draining = false
@@ -89,9 +87,8 @@ class RecognitionEvidenceEventSink internal constructor(
                     incompleteReasons += "EVENT_EXECUTOR_REJECTED:${it.javaClass.simpleName}"
                 }
             }
-            enqueued
+            row.sequence.takeIf { enqueued }
         }
-        return accepted
     }
 
     fun markIncomplete(reason: String) {
@@ -110,9 +107,9 @@ class RecognitionEvidenceEventSink internal constructor(
 
     fun flush(timeoutMs: Long = DEFAULT_FLUSH_TIMEOUT_MS): Boolean {
         val clampedTimeoutMs = timeoutMs.coerceIn(1L, MAX_FLUSH_TIMEOUT_MS)
-        val disposedNow = synchronized(lock) { disposed }
-        if (disposedNow) return true
-        return runCatching {
+        val disposedState = synchronized(lock) { disposed to writeFailures }
+        if (disposedState.first) return disposedState.second == 0L
+        val drained = runCatching {
             executor.submit { drain() }.get(clampedTimeoutMs, TimeUnit.MILLISECONDS)
             true
         }.getOrElse { failure ->
@@ -124,6 +121,12 @@ class RecognitionEvidenceEventSink internal constructor(
             markIncomplete(reason)
             false
         }
+        val finalDiagnostics = diagnostics()
+        if (drained && finalDiagnostics.writeFailures > 0L) {
+            markIncomplete("EVENT_FLUSH_HAS_WRITE_FAILURES:${finalDiagnostics.writeFailures}")
+            return false
+        }
+        return drained
     }
 
     /**
@@ -187,8 +190,7 @@ class RecognitionEvidenceEventSink internal constructor(
         while (true) {
             val queued = synchronized(lock) {
                 when {
-                    criticalQueue.isNotEmpty() -> criticalQueue.removeFirst()
-                    sampleQueue.isNotEmpty() -> sampleQueue.removeFirst()
+                    queue.isNotEmpty() -> queue.removeFirst()
                     else -> {
                         draining = false
                         null
@@ -201,9 +203,16 @@ class RecognitionEvidenceEventSink internal constructor(
                 synchronized(logFileLock) {
                     target.parentFile?.mkdirs()
                     if (target.isFile && target.length() >= MAX_SINGLE_LOG_FILE_BYTES) {
-                        val rotated = File(target.parentFile, "${queued.fileName}.1")
-                        if (rotated.exists()) rotated.delete()
-                        target.renameTo(rotated)
+                        var rotation = 1
+                        var rotated = File(target.parentFile, "${queued.fileName}.part_${rotation.toString().padStart(4, '0')}")
+                        while (rotated.exists()) {
+                            rotation++
+                            rotated = File(
+                                target.parentFile,
+                                "${queued.fileName}.part_${rotation.toString().padStart(4, '0')}",
+                            )
+                        }
+                        check(target.renameTo(rotated)) { "LOG_ROTATION_FAILED:${queued.fileName}" }
                     }
                     target.appendText(line, Charsets.UTF_8)
                 }
@@ -248,8 +257,7 @@ class RecognitionEvidenceEventSink internal constructor(
     }
 
     internal companion object {
-        const val MAX_CRITICAL = 2_048
-        const val MAX_SAMPLES = 2_048
+        const val MAX_TOTAL_QUEUE = 4_096
         const val DEFAULT_FLUSH_TIMEOUT_MS = 2_000L
         const val MAX_FLUSH_TIMEOUT_MS = 5_000L
         const val MAX_SINGLE_LOG_FILE_BYTES = 2L * 1024L * 1024L

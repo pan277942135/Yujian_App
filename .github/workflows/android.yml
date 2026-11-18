@@ -211,8 +211,23 @@ jobs:
       - name: Verify immutable AI Orb core WebP
         run: python3 scripts/android_runtime/verify_orb_runtime_asset.py
 
+      - name: Test independent recognition evidence ZIP verifier
+        run: >-
+          python3 -m unittest
+          scripts/android_runtime/tests/test_recognition_evidence_zip.py
+          scripts/android_runtime/tests/test_recognition_auto_pixelcopy_wiring.py
+
       - name: Verify P0-2 frozen Orb wake, release and R01B resources
         run: python3 scripts/android_runtime/verify_orb_wake_breath_release_assets_v1_1.py
+
+      - name: Targeted Stage 2 evidence regression tests
+        run: >-
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2"
+          :app:testDebugUnitTest
+          --tests com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest.concurrentWritesDoNotCorruptImmutableSnapshotPackagingOrHashes
+          --tests com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorderTest.oneEvidenceSequenceStaysMonotonicAcrossCriticalAndSampleEvents
+          --tests com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorderTest.rotatingEvidenceLogsPreservesPriorSegmentsInsteadOfDeletingOlderFailureHistory
+          --stacktrace --no-daemon --max-workers=2
 
       - name: Unit tests
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:testDebugUnitTest --stacktrace --no-daemon --max-workers=2
