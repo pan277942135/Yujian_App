@@ -87,7 +87,7 @@ class RecognitionEvidenceZipExporterTest {
         val stagingDir = File(tempRoot, "staging").apply { mkdirs() }
         val outputDir = File(tempRoot, "diagnostics").apply { mkdirs() }
         var nowMs = 100L
-        val sink = RecognitionEvidenceEventSink(attemptDir) { ++nowMs }
+        val sink = RecognitionEvidenceEventSink(attemptDir, clockMs = { ++nowMs })
         val keepWriting = java.util.concurrent.atomic.AtomicBoolean(true)
         val writerThread = Thread {
             var idx = 0
@@ -220,7 +220,7 @@ class RecognitionEvidenceZipExporterTest {
         val tempRoot = java.nio.file.Files.createTempDirectory("yujian-p0-cap-test").toFile()
         val attemptDir = File(tempRoot, "attempt").apply { mkdirs() }
         val logsDir = File(attemptDir, "logs").apply { mkdirs() }
-        val sink = RecognitionEvidenceEventSink(attemptDir) { 1_000L }
+        val sink = RecognitionEvidenceEventSink(attemptDir, clockMs = { 1_000L })
         try {
             val payload = (1..200).joinToString("\n") { """{"line":$it,"msg":"abcdefghij"}""" } + "\n"
             File(logsDir, "waterlight_paths.jsonl").writeText(payload, Charsets.UTF_8)
