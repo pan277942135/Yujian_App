@@ -1,23 +1,90 @@
 {
-  "spec_id": "YUJIAN_V3_CORE_VISUAL",
-  "version": "3.0.0-core-freeze",
-  "status": "CORE_VISUAL_FREEZE_PASS",
-  "full_parameter_freeze": "PENDING",
+  "spec_id": "YUJIAN_VISUAL_V3_CORE",
+  "version": "3.1.0",
+  "status": "CORE_VISUAL_SPEC_FROZEN_WITH_TUNABLES",
+  "source_mapping": "V3_26KF_SOURCE_MAPPING_V2.md",
+  "orb_source_audit": "V3_ORB_SOURCE_PARAMETER_AUDIT_V1.md",
   "source_master": {
-    "file": "YuJian_AI_26KF_HighRes_Overview_V2.png",
-    "sha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
-    "size_px": [
-      8677,
-      5626
-    ]
+    "file": "透明湖水玻璃球.png",
+    "sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee",
+    "dimensions_px": [
+      1254,
+      1254
+    ],
+    "alpha_bbox_threshold_128": [
+      129,
+      124,
+      1125,
+      1118
+    ],
+    "preserve_full_canvas": true
   },
-  "canvas": {
-    "aspect_ratio": "9:16",
-    "identity_locked": true,
-    "photo_identity": "original black fish photo + female angler",
-    "result_grass_carp_is_layout_master_only": true
+  "runtime_core": {
+    "file": "processing_water_core_v1.webp",
+    "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+    "dimensions_px": [
+      384,
+      384
+    ],
+    "keep_byte_identical": true
   },
-  "timeline": {
+  "screen_anchor": {
+    "center_normalized": [
+      0.4995,
+      0.86
+    ],
+    "visible_diameter_over_width_median": 0.2402,
+    "measured_range": [
+      0.2253,
+      0.2423
+    ],
+    "confidence": "APPROX_RASTER_MEASUREMENT_NOT_GPU_UNIFORM"
+  },
+  "resident": {
+    "ids": [
+      "G01",
+      "G02",
+      "A01",
+      "A02",
+      "C01"
+    ],
+    "role": "RESIDENT_NOT_TASK",
+    "depth": {
+      "BACK": [
+        "G01",
+        "A01"
+      ],
+      "FRONT": [
+        "G02",
+        "A02",
+        "C01"
+      ]
+    },
+    "topology": "OPEN_BEZIER",
+    "shared_clock": true,
+    "independent_period_phase": true,
+    "deterministic": true,
+    "task_count": null,
+    "numeric_profile_status": "CANDIDATE_ONLY"
+  },
+  "motion": {
+    "core_shape_unchanged_between_idle_and_active": true,
+    "fluid_behavior": "LAYERED_CONTINUOUS_LIQUID",
+    "release_return": "SAME_PATH_IDENTITY_REVERSED_DIRECTION",
+    "numeric_velocity_and_ramp": "TUNABLE"
+  },
+  "optics": {
+    "key_light_direction": "UPPER_LEFT_TO_LOWER_RIGHT",
+    "glass_and_caustic_visual_layers_frozen": true,
+    "physical_ior": "UNKNOWN",
+    "fresnel_curve": "TUNABLE",
+    "refraction_displacement": "TUNABLE",
+    "bloom_threshold_radius_strength": "TUNABLE",
+    "preserve_baked_highlights": true,
+    "no_whole_ball_flash": true
+  },
+  "timing": {
+    "main_stage_count": 13,
     "minimum_stage_ms": [
       0,
       350,
@@ -33,96 +100,40 @@
       800,
       450
     ],
-    "sum_ms": 6000,
-    "wall_clock_cap_ms": 60000,
-    "model_event_gated": true
+    "minimum_total_ms": 6000,
+    "abnormal_timeout_ms": 60000
   },
-  "orb": {
-    "core_always_visible": true,
-    "resident_filament_ids": [
-      "G01",
-      "G02",
-      "A01",
-      "A02",
-      "C01"
-    ],
-    "resident_is_not_task": true,
-    "task_count": null,
-    "s1_breath": {
-      "period_ms": 6000,
-      "amplitude_pct": 0.8
-    },
-    "s2_breath": {
-      "period_ms": 4800,
-      "amplitude_pct": 1.8
-    },
-    "wake_ms": 350,
-    "release_stage_min_ms": 600,
-    "task_energy_must_not_weaken_resident": true
+  "kf14": {
+    "source": "KF05",
+    "same_path_identity": true,
+    "direction": "REVERSE",
+    "new_asset_required": false
   },
-  "waterlight": {
-    "perimeter": {
-      "style": "main vein + sparse fibers + sparse droplets",
-      "geometry": "rounded photo perimeter",
-      "heavy_uniform_border": false,
-      "intrude_photo": false
-    },
-    "fish_seek": {
-      "visible_primary_strands": "1-2",
-      "target": "real trusted Mask nearest legal contour contact P*",
-      "fish_tail_anchor_forbidden": true
-    }
+  "kf25": {
+    "behavior": "SAVE_CURRENT_CATCH_THEN_RETURN_HOME",
+    "home_target": "KF00",
+    "new_artwork_required": false
   },
-  "contour": {
-    "source": "trusted SlimSAM Attempt Mask",
-    "same_geometry_across_A_B_C": true,
-    "reveal_only_changes_progress": true
+  "mask_pstar": {
+    "visual_reference_is_runtime_mask": false,
+    "trusted_attempt_mask_required": true,
+    "bbox_only_must_not_fabricate_pstar": true
   },
-  "gold_peak": {
-    "layers": [
-      "Core",
-      "Soft",
-      "Halo"
-    ],
-    "path_source": "same trusted Mask contour"
+  "stage3_entry": {
+    "allowed": "ORB_ONLY_GPU",
+    "task_energy": false,
+    "photo_perimeter": false,
+    "fish_seek": false,
+    "mask_pstar": false,
+    "contour": false,
+    "glyph": false,
+    "result": false,
+    "new_runtime_or_clock": false
   },
-  "return_path": {
-    "source": "Attempt-scoped WaterLightPathLedger",
-    "reconstruct_on_return": false
-  },
-  "glyph": {
-    "sequence": [
-      "orb_expand",
-      "liquid_deconstruct",
-      "stroke_aggregate",
-      "chinese_species_glyph"
-    ],
-    "fixed_text_fade_in_forbidden": true
-  },
-  "result": {
-    "sequence": [
-      "NAME_STABLE",
-      "13.1",
-      "13.2",
-      "13.3",
-      "13.4",
-      "13.5"
-    ],
-    "stable_gate": "13.5"
-  },
-  "tunable_after_freeze": [
-    "task_bezier_subpixel_controls",
-    "task_speed_curve",
-    "task_phase_offset",
-    "droplet_count",
-    "perimeter_alpha",
-    "refraction_strength",
-    "fresnel_approximation",
-    "bloom_radius",
-    "bloom_threshold",
-    "bloom_strength",
-    "fbo_size",
-    "particle_noise",
-    "contour_easing"
+  "unsupported_prior_values_removed": [
+    "S1_BREATH_PERIOD_MS",
+    "S1_BREATH_AMPLITUDE",
+    "S2_BREATH_PERIOD_MS",
+    "S2_BREATH_AMPLITUDE"
   ]
 }
