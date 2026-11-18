@@ -1,0 +1,47 @@
+{
+  "spec_id": "YUJIAN_VISUAL_V3",
+  "version": "3.0.0-AUDIT",
+  "freeze_gate": "BLOCKED_NOT_FROZEN",
+  "source_master_sha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+  "authority": "26_KF_V2_CONTACT_SHEET_AND_6000MS_MAIN_CONTROLLER",
+  "scene_stage_minimum_duration_ms": [
+    0,
+    350,
+    600,
+    125,
+    125,
+    450,
+    450,
+    450,
+    1000,
+    350,
+    850,
+    800,
+    450
+  ],
+  "minimum_duration_sum_ms": 6000,
+  "resident_filament_path_ids": [
+    "G01",
+    "G02",
+    "A01",
+    "A02",
+    "C01"
+  ],
+  "resident_filaments_are_not_tasks": true,
+  "task_filament_count": null,
+  "orb_circle_raster_only": {
+    "hough_successful_frames": 11,
+    "radius_median_px": 105.4,
+    "center_x_norm_median": 0.4886,
+    "center_y_norm_median": 0.9048,
+    "confidence": "MEASURED_APPROX_COMPOSITED_SRGB_NOT_GPU_UNIFORMS"
+  },
+  "orb_angular_velocity": null,
+  "fluid_field_flow_speed": null,
+  "task_bezier_paths": null,
+  "task_emission_count": null,
+  "photo_refraction_amount": null,
+  "bloom_strength": null,
+  "true_mask_provenance": null,
+  "all_missing_numeric_values_are_null_not_guessed": true
+}
