@@ -1,93 +1,69 @@
-# YuJian V3｜Stage 1 核心视觉规格冻结（允许后续细化）
+# YuJian V3｜Stage 1 核心视觉规格冻结
 
-**状态：CORE_VISUAL_FREEZE_PASS**
-**完整参数状态：FULL_PARAMETER_FREEZE_PENDING**
+**Status:** CORE_VISUAL_SPEC_FROZEN_WITH_TUNABLES  
+**Freeze scope:** 26KF source mapping + core visual invariants + Orb geometry and Resident topology.  
+**Numeric shader tuning:** deferred to Stage 3 device calibration; no unsupported numeric value is declared frozen.
 
-本次不要求把26帧所有像素、每条曲线、每个 Bloom uniform 都反解出来。冻结的是用户一眼能感知、且会决定实现方向的视觉不变量；二级光学/运动参数允许在真机证据后校准，但不得改变核心视觉语义。
+## 1. Authority and source mapping
 
-## 1. 核心视觉不变量
-1. 26帧统一视觉画布与同一照片身份；KF02–KF25持续使用原黑鱼照片+女性钓友；Result中的草鱼图只作为Result UI布局母版。
-2. 13主阶段保持唯一顺序；6000ms是13阶段最短展示预算合计，不是固定墙钟截断。模型未完成时继续等待，最多60s异常超时。
-3. Orb是唯一能量主体。Orb Core在识别任务中持续可见、持续运动；Task Energy只能独立增发，不能把Resident Orb/R06变弱、替换或隐藏。
-4. R06的G01/G02/A01/A02/C01是5条Resident常驻光丝，不是5条Task Filament；Task数量不预设。
-5. Orb→Photo释放、Photo Perimeter、Photo→Fish Seek是同一能量系统的连续过程。
-6. Perimeter是轻量水光：主脉+少量纤维/水草+少量水滴/粒子，沿照片真实圆角几何传播；禁止厚重、均匀、固定矩形描边，禁止侵入照片主体。
-7. Fish Seek主要可见分流为1–2条细任务光丝；最终触达真实Mask外轮廓最近有效点P*。这不是整个Task系统的固定总数。
-8. KF06–KF08的鱼体轮廓来自同一个真实Mask Geometry，A/B/C只改变revealProgress。
-9. KF09 Gold Peak是同一真实Mask Path上的Core / Soft / Halo三层金色高光。
-10. KF10 Return使用本次Attempt保存的原始Path ID/segments反向回收。
-11. KF11–KF12表现为Orb横向舒展→液态解体→笔势聚合→真实中文鱼种Glyph成形；禁止固定中文文字直接淡入。
-12. KF13.1–13.5是真实Result Handoff；13.5前不得认为Result Stable。
+- 26KF master contact sheet: YuJian_AI_26KF_HighRes_Overview_V2.png (8677×5626; SHA-256 173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac).
+- Independent KF00 Home and KF01 Capture supplements are recorded in V3_26KF_SOURCE_MAPPING_V2.md.
+- The 26KF mapping is 26 visual process points, not 26 runtime stages. 13 main runtime stages remain unchanged.
+- KF14 uses the KF05 path in reverse with the same Path ID and geometry.
+- KF25 is save-success → return to KF00 Home. No separate save-success artwork or animation is required.
+- 12.2 GLYPH_EMERGENCE is Frame 5 of the six-frame Glyph board; it is an embedded subphase, not a 27th KF.
 
-## 2. 13阶段最短展示合同
+## 2. Inherited timing contract
 
-| Stage | 视觉阶段 | 最短展示 |
-|---|---|---:|
-| 01 | PHOTO_STABLE | 0ms |
-| 02 | ORB_WAKE | 350ms |
-| 03 | ORB_RELEASE | 600ms |
-| 04 | PERIMETER_ARRIVAL | 125ms |
-| 05 | PATH_TO_FISH | 125ms |
-| 06 | CONTOUR_A | 450ms |
-| 07 | CONTOUR_B | 450ms |
-| 08 | CONTOUR_C | 450ms |
-| 09 | FISH_GOLD_PEAK | 1000ms |
-| 10 | ORB_RETURN | 350ms |
-| 11 | ORB_TO_NAME | 850ms |
-| 12 | SPECIES_NAME_REVEAL | 800ms |
-| 13 | RESIDUE_SETTLE | 450ms |
-| **合计** | | **6000ms** |
+The 13-stage minimum visibility budget remains [0,350,600,125,125,450,450,450,1000,350,850,800,450]ms, sum 6000ms, with a 60,000ms abnormal timeout. Model/Mask events remain reveal gates. This document does not change the controller timing contract.
 
-真实模型/Mask事件是推进门；模型慢不能跳过阶段，模型快也不能低于视觉最短预算。
+## 3. Orb core — frozen
 
-## 3. Orb核心
-- S1/Idle呼吸：6000ms，±0.8%。
-- S2/Wake/Active呼吸：4800ms，±1.8%。
-- Wake最短展示：350ms。
-- Orb在Wake/Release/Seek/Contour/Gold/Return中不得突然消失。
-- Release/Return通过能量方向、局部亮度和路径运动表达，不以Orb消失作为释放动画。
-- Task Energy不得削弱Resident的数量、相位和基本可见强度。
+1. Use the existing transparent master 透明湖水玻璃球.png and keep the full 1254×1254 transparent canvas.
+2. Keep the existing Runtime core WebP byte-identical: processing_water_core_v1.webp, 384×384 RGBA, SHA-256 daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09.
+3. The core sphere silhouette does not morph between idle and active. Wake/active changes are carried by overlays and Resident filaments.
+4. The visible sphere occupies about 79.4%×79.3% of the source texture canvas. Source alpha bbox at threshold 128 is [129,124,1125,1118].
+5. Reference screen anchor from KF02/KF03/KF05 images is approximately (0.499W,0.860H) with visible diameter around 23.5% W; the observed diameter range is 22.53–24.23% W. These are raster-derived composition measurements, not shader uniforms.
 
-## 4. Release / WaterLight
-- Stage03最短600ms。
-- R06五条仍属于Orb Resident。
-- Task Energy独立从Orb分流，数量由实际任务决定。
-- Perimeter：主脉+少量纤维/水草+少量水滴，沿真实照片圆角几何传播，不侵入照片主体。
-- Fish Seek：1–2条主要可见细任务丝；终点为真实可信Mask外轮廓最近合法接触点P*；禁止鱼尾锚点。
-- Mask不可信时不伪造P*，不把BBox当Mask。
+## 4. Orb material and optical appearance — frozen visual invariants
 
-## 5. Contour / Gold
-- KF06–KF08：一个真实Mask、一个Geometry Version、一条连续外轮廓；A/B/C只改变revealProgress。
-- KF09：Core→Soft→Halo三层结构；Gold高光沿真实Mask Path运行。
-- 羽化半径、Alpha、Bloom radius、粒子数量允许后续通过设备Golden校准。
+- Transparent glass shell and visible rim separation.
+- Dark teal inner water with layered cyan/blue and emerald-green liquid.
+- Warm gold key highlight from upper-left; bright cyan caustic response in the lower core.
+- Existing baked green band is preserved; it is not an animated plant rig.
+- Droplets are sparse, small, and clipped to the actual core alpha.
+- Refraction/caustic overlays must respect the core alpha and must not introduce rectangular masks, black matte, or double-exposed baked highlights.
+- Bloom is restrained: preserve glass edge, inner liquid structure, and filament detail; no whole-ball flash or washout.
 
-## 6. Return / Glyph / Result
-- Return：Fish Contact→原Fish Path→原Perimeter/Release Path→Orb；禁止重新生成近似回程线。
-- Glyph：Orb横向舒展→液态解体→光笔势聚合→中文鱼种Glyph。
-- Result：NAME_STABLE→13.1→13.2→13.3→13.4→13.5；13.5前不允许Result Stable。
+## 5. Resident filaments — frozen topology
 
-## 7. Mask/P*与视觉参考边界
+- Resident IDs: G01, G02, A01, A02, C01.
+- BACK: G01, A01; FRONT: G02, A02, C01.
+- These five paths are always Orb Resident structure, not five Task filaments.
+- Resident paths use open Bezier trajectories, independent phase/period values, deterministic motion, and one shared motion clock.
+- BACK draws behind the immutable core; FRONT draws above it with a center-safety fade.
+- Task energy count is null / dynamic and must not be inferred from Resident count.
+- Exact R06 Bezier control points, periods, phases, width, alpha, and deformation are preserved as candidate values only until visual/device review.
 
-| 内容 | 来源 | 用途 |
-|---|---|---|
-| 26帧照片/Orb/水光构图 | 视觉参考 | 定义视觉构图 |
-| Result草鱼图 | UI Layout Master | 仅定义布局 |
-| KF06–KF08鱼轮廓 | 真实SlimSAM Attempt Mask | Runtime真实几何 |
-| P* | 真实Mask外轮廓最近合法接触点 | Runtime路径终点 |
-| Detector BBox | Detector | 不得冒充真实轮廓 |
-| 离线示意Mask | 视觉参考 | 不得冒充Runtime Mask |
+## 6. Motion — frozen behavior, tunable numerics
 
-## 8. 允许后续细化
-- Task Bezier亚像素控制点、速度曲线、phase offset。
-- 水滴数量/半径/生命周期。
-- Perimeter Core/Soft/Glow精确Alpha。
-- 折射强度、Fresnel、IOR近似、采样半径。
-- Bloom radius/threshold/strength和Composite比例。
-- GPU FBO尺寸、粒子噪声、A/B/C easing。
+- Internal fluid must look like continuous layered liquid motion, not a simple alpha pulse or flat rotating texture.
+- Resident paths must continuously coil around the core with different phase/speed; no per-frame random jitter.
+- Release and Return are direction changes on the same path identity. Return reverses the existing path; it does not create a new path.
+- Exact angular velocity, fluid advection, phase offsets, speed curve, and transition ramp remain tunable.
 
-这些参数可以细化，但不能改变核心视觉不变量。
+## 7. Mask / P* boundary
 
-## 9. 阶段门禁
-CORE_VISUAL_FREEZE_PASS = 已经足以指导后续GPU架构与实现方向。
-FULL_PARAMETER_FREEZE_PENDING = 不把无法从当前素材可靠反解的二级参数伪装成精确冻结值。
-因此Stage 2诊断基础可以启动；Stage 3 GPU实施必须遵守本核心视觉合同，二级参数调整必须记录在校准证据中。
+Visual contours and Task path sketches are reference-only. Runtime contour, Geometry Version, Path ID, and P* must be derived from the trusted Mask of the current Attempt. BBOX_ONLY cannot be promoted to a pixel mask and cannot fabricate P*.
+
+## 8. Explicit tunables
+
+The following are intentionally not frozen from composite PNGs: physical IOR, numeric Fresnel curve, refraction displacement, Bloom threshold/radius/intensity, fluid velocity field, shader noise amplitude, FBO resolution, droplet timing/positions, Resident numeric periods/phases/width/alpha, and device performance tier. Stage 3 must record each candidate value and every calibration change in Stage 2 evidence.
+
+## 9. Stage 3 entry gate
+
+**Allowed:** Orb-only GPU implementation using the frozen core asset, visual invariants, Resident identity/depth topology, and the candidate profiles as explicitly labeled starting values.
+
+**Forbidden in Stage 3:** Task energy to photo, perimeter, fish seeking, Mask/P*, fish contour, Gold Peak, Glyph, Result, or any new Runtime/Clock. These belong to later stages.
+
+Stage 1 passes for the core visual specification. This is not a claim that Android GPU rendering or device visual acceptance has passed.
