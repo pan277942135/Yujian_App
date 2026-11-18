@@ -104,7 +104,7 @@ class RecognitionSessionEvidenceRecorderTest {
 
     @Test fun oneEvidenceSequenceStaysMonotonicAcrossCriticalAndSampleEvents() {
         val root = java.nio.file.Files.createTempDirectory("yujian-evidence-sequence").toFile()
-        val sink = RecognitionEvidenceEventSink(root) { 100L }
+        val sink = RecognitionEvidenceEventSink(root, clockMs = { 100L })
         try {
             assertTrue(sink.record(RecognitionEvidenceEvent("recognition_events.jsonl", "SAMPLE_1", emptyMap(), RecognitionEvidencePriority.SAMPLE)))
             assertTrue(sink.record(RecognitionEvidenceEvent("recognition_events.jsonl", "CRITICAL_2", emptyMap())))
@@ -121,7 +121,7 @@ class RecognitionSessionEvidenceRecorderTest {
 
     @Test fun rotatingEvidenceLogsPreservesPriorSegmentsInsteadOfDeletingOlderFailureHistory() {
         val root = java.nio.file.Files.createTempDirectory("yujian-evidence-rotation").toFile()
-        val sink = RecognitionEvidenceEventSink(root) { 100L }
+        val sink = RecognitionEvidenceEventSink(root, clockMs = { 100L })
         try {
             val payload = mapOf("diagnosticPayload" to "x".repeat(110_000))
             repeat(42) { index ->
@@ -142,7 +142,7 @@ class RecognitionSessionEvidenceRecorderTest {
 
     @Test fun eventStoreWriteFailureMakesFlushFailAndPreservesFailureReason() {
         val root = java.nio.file.Files.createTempFile("yujian-evidence-write-failure", ".file").toFile()
-        val sink = RecognitionEvidenceEventSink(root) { 100L }
+        val sink = RecognitionEvidenceEventSink(root, clockMs = { 100L })
         try {
             assertTrue(sink.record(RecognitionEvidenceEvent("recognition_events.jsonl", "WRITE_FAILURE", emptyMap())))
             assertFalse(sink.flush(1_000L))
