@@ -225,7 +225,11 @@ object RecognitionPixelCopyCapture {
             decor.height > 0
 
     private val ANDROID_BACKEND = RecognitionPixelCopyRequestBackend { window, bitmap, handler, callback ->
-        PixelCopy.request(window, bitmap, { result -> callback(result) }, handler)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            PixelCopy.request(window, bitmap, { result -> callback(result) }, handler)
+        } else {
+            callback(PixelCopy.ERROR_UNKNOWN)
+        }
     }
 
     private const val POST_COMMIT_FALLBACK_DELAY_MS = 48L
