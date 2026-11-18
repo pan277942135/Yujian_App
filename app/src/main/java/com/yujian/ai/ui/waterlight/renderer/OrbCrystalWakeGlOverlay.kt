@@ -1,9 +1,11 @@
 package com.yujian.ai.ui.waterlight.renderer
 
 import android.opengl.GLES20
+import android.os.SystemClock
 import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -12,6 +14,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import java.nio.FloatBuffer
 import kotlin.math.PI
@@ -24,6 +28,7 @@ import kotlin.math.sqrt
 internal const val ORB_CRYSTAL_CONTAINER_RATIO = 2.5f
 
 internal data class OrbCrystalGlFrame(
+    val sceneFrame: RecognitionSceneFrame,
     val elapsedMs: Long,
     val stage: RecognitionSceneStage,
     val stageProgress: Float,
@@ -57,10 +62,16 @@ internal fun OrbCrystalWakeGlOverlay(
     showSunlight: Boolean,
     showCaustics: Boolean,
     onFirstFramePresented: () -> Unit,
+    glOwnerAccepted: Boolean = false,
+    onOwnerStateChanged: (OrbCrystalRenderResult, Boolean) -> Unit = { _, _ -> },
+    onRenderResult: (RecognitionSceneIdentity, Map<String, Any?>) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val latestFirstFramePresented = rememberUpdatedState(onFirstFramePresented)
+    val latestOwnerStateChanged = rememberUpdatedState(onOwnerStateChanged)
+    val latestRenderResult = rememberUpdatedState(onRenderResult)
     val renderer = remember { OrbCrystalGlRenderer() }
     val textureView = remember(context) {
         TransparentGlTextureView(
@@ -68,7 +79,16 @@ internal fun OrbCrystalWakeGlOverlay(
             threadName = "OrbCrystalGlThread",
             tag = "OrbCrystalGl",
             renderer = renderer,
-            onFirstFramePresented = onFirstFramePresented,
+            onFirstFramePresented = { latestFirstFramePresented.value() },
+            onRenderResult = { result, eventType ->
+                latestRenderResult.value(
+                    result.identity,
+                    result.diagnosticFields() + ("eventType" to eventType),
+                )
+            },
+            onOwnerStateChanged = { result, accepted ->
+                result?.let { latestOwnerStateChanged.value(it, accepted) }
+            },
         )
     }
 
@@ -86,6 +106,7 @@ internal fun OrbCrystalWakeGlOverlay(
     }
 
     val glFrame = OrbCrystalGlFrame(
+        sceneFrame = scene,
         elapsedMs = if (frame.reducedMotion) 0L else frame.elapsedMs.coerceAtLeast(0L),
         stage = scene.stage,
         stageProgress = scene.stageProgress.coerceIn(0f, 1f),
@@ -106,6 +127,7 @@ internal fun OrbCrystalWakeGlOverlay(
         modifier = modifier,
         update = { view ->
             view.visibility = View.VISIBLE
+            view.alpha = if (glOwnerAccepted) 1f else 0f
             view.submit(glFrame)
         },
     )
@@ -129,6 +151,7 @@ internal fun OrbCrystalWakeGlOverlay(
 }
 
 private class OrbCrystalGlRenderer : GlSceneRenderer<OrbCrystalGlFrame> {
+    override val requiresRenderResult: Boolean = true
     private val bloom = GlBloomPipeline()
     private var backFbo: GlFramebuffer? = null
     private var quadVbo = 0
@@ -148,6 +171,11 @@ private class OrbCrystalGlRenderer : GlSceneRenderer<OrbCrystalGlFrame> {
     private var sphereProg = 0
     private var dropletProg = 0
     private var starProg = 0
+    private var lastBufferStatus = RenderPassStatus.NOT_RUN
+    private var lastBloomExecution: GlBloomExecution? = null
+    private var lastDrawFailureReason: String? = null
+
+    override fun sceneFrameForResult(frame: OrbCrystalGlFrame): RecognitionSceneFrame = frame.sceneFrame
 
     // Uniform locations
     private var envTimeLoc = -1
@@ -230,14 +258,26 @@ private class OrbCrystalGlRenderer : GlSceneRenderer<OrbCrystalGlFrame> {
     }
 
     override fun onDrawFrame(frame: OrbCrystalGlFrame): Boolean {
-        if (sphereProg == 0 || ribbonProg == 0 || grassProg == 0) return false
+        lastBufferStatus = RenderPassStatus.NOT_RUN
+        lastBloomExecution = null
+        lastDrawFailureReason = null
+        clearGlErrors()
+        if (sphereProg == 0 || ribbonProg == 0 || grassProg == 0 || envProg == 0) {
+            lastDrawFailureReason = "REQUIRED_PROCEDURAL_SHADER_MISSING"
+            return false
+        }
 
         // Cap FBO internal size cleanly so both high-DPI phones & emulators stay blazing fast
         val maxDim = if (frame.lowPerformance) 300 else 440
         val scale = minOf(1f, maxDim.toFloat() / maxOf(surfaceW, surfaceH).toFloat())
         val targetW = (surfaceW * scale).toInt().coerceAtLeast(64)
         val targetH = (surfaceH * scale).toInt().coerceAtLeast(64)
-        if (!ensureBuffers(targetW, targetH)) return false
+        if (!ensureBuffers(targetW, targetH)) {
+            lastBufferStatus = RenderPassStatus.FAIL
+            lastDrawFailureReason = "BACK_OR_SCENE_FBO_INCOMPLETE"
+            return false
+        }
+        lastBufferStatus = RenderPassStatus.PASS
 
         val timeSec = frame.elapsedMs / 1000f
         val sphereRadiusNdc = 1f / ORB_CONTAINER_RATIO // 1 / 2.5 = 0.40 in [-1, 1] NDC space
@@ -275,6 +315,7 @@ private class OrbCrystalGlRenderer : GlSceneRenderer<OrbCrystalGlFrame> {
 
         drawStripBatch(grassProg, grsTimeLoc, grsWakeLoc, grsFrontLoc, backGrassVerts, timeSec, wakeWater, 0f)
         drawStripBatch(ribbonProg, ribTimeLoc, ribWakeLoc, ribFrontLoc, backRibbonVerts, timeSec, wakeOptics, 0f)
+        lastDrawFailureReason = checkGlError("PROCEDURAL_BACK_PASS") ?: lastDrawFailureReason
 
         // =========================================================================
         // PASS 2: Render Refracting 3D Crystal Sphere + Front Grass + Front Ribbons + Droplets + Starbursts -> sceneFbo
@@ -315,21 +356,114 @@ private class OrbCrystalGlRenderer : GlSceneRenderer<OrbCrystalGlFrame> {
             val stars = buildStarburstSprites(timeSec, sphereRadiusNdc * openScale, frame.showSunlight)
             drawSpriteBatch(starProg, strTimeLoc, strWakeLoc, stars, timeSec, wakeOptics)
         }
+        lastDrawFailureReason = checkGlError("PROCEDURAL_SCENE_PASS") ?: lastDrawFailureReason
 
         // =========================================================================
         // PASS 3 & 4: 1/4-Res Bloom Blur + Final Premultiplied Composite to TextureView
         // =========================================================================
-        bloom.renderBloomAndComposite(
+        lastBloomExecution = bloom.renderBloomAndComposite(
             quadVbo = quadVbo,
             threshold = 0.56f,
             bloomIntensity = 0.62f * (0.65f + 0.35f * wakeOptics),
             globalOpacity = 1f,
             skipBlur = frame.lowPerformance,
         )
+        lastDrawFailureReason = lastBloomExecution?.failureReason ?: lastDrawFailureReason
 
         // Restore full viewport cleanly
         GLES20.glViewport(0, 0, surfaceW, surfaceH)
         return true
+    }
+
+    override fun onDrawFrameWithResult(frame: OrbCrystalGlFrame, frameSequence: Long): GlFrameExecution {
+        val drawSucceeded = try {
+            onDrawFrame(frame)
+        } catch (error: Throwable) {
+            lastDrawFailureReason = "DRAW_EXCEPTION:${error.javaClass.simpleName}"
+            false
+        }
+        val scene = frame.sceneFrame
+        val bloomResult = lastBloomExecution
+        val programsReady = quadVbo != 0 && envProg != 0 && ribbonProg != 0 && grassProg != 0 &&
+            sphereProg != 0 && dropletProg != 0 && starProg != 0 && bloom.shaderProgramsReady
+        val result = OrbCrystalRenderResult(
+            identity = scene.identity,
+            sceneClockMs = scene.sceneElapsedMs,
+            frameSequence = frameSequence,
+            stage = scene.stage,
+            stageProgress = scene.stageProgress,
+            eventSequence = scene.eventSequence,
+            geometryVersion = scene.geometryVersion,
+            timestampMs = SystemClock.uptimeMillis(),
+            // Stage 3-B binds the frozen, alpha-preserving Core texture. The procedural sphere is not a substitute.
+            coreTextureStatus = RenderPassStatus.NOT_READY,
+            coreAlphaStatus = RenderPassStatus.NOT_READY,
+            shaderCompileLinkStatus = if (programsReady) RenderPassStatus.PASS else RenderPassStatus.FAIL,
+            backFboStatus = lastBufferStatus,
+            // Stage 3-D supplies the frozen five Resident paths and their real BACK/FRONT passes.
+            residentBackStatus = RenderPassStatus.NOT_READY,
+            // Stage 3-B/3-C/3-E/3-F/3-G own these passes; current procedural output is not counted as their PASS.
+            coreFluidStatus = RenderPassStatus.NOT_READY,
+            refractionStatus = RenderPassStatus.NOT_READY,
+            r01bMaskStatus = RenderPassStatus.NOT_READY,
+            r02DropletStatus = RenderPassStatus.NOT_READY,
+            r03LightStatus = RenderPassStatus.NOT_READY,
+            r05CausticsStatus = RenderPassStatus.NOT_READY,
+            residentFrontStatus = RenderPassStatus.NOT_READY,
+            bloomExtractStatus = bloomResult?.extract ?: RenderPassStatus.NOT_RUN,
+            bloomBlurHStatus = bloomResult?.blurHorizontal ?: RenderPassStatus.NOT_RUN,
+            bloomBlurVStatus = bloomResult?.blurVertical ?: RenderPassStatus.NOT_RUN,
+            compositeStatus = bloomResult?.composite ?: RenderPassStatus.NOT_RUN,
+            failureReason = lastDrawFailureReason,
+        )
+        return GlFrameExecution(
+            drawStatus = if (drawSucceeded) RenderPassStatus.PASS else RenderPassStatus.FAIL,
+            renderResult = result,
+            failureReason = lastDrawFailureReason,
+        )
+    }
+
+    override fun onHostFailure(
+        frame: OrbCrystalGlFrame,
+        frameSequence: Long,
+        reason: String,
+    ): OrbCrystalRenderResult = OrbCrystalRenderResult(
+        identity = frame.sceneFrame.identity,
+        sceneClockMs = frame.sceneFrame.sceneElapsedMs,
+        frameSequence = frameSequence,
+        stage = frame.sceneFrame.stage,
+        stageProgress = frame.sceneFrame.stageProgress,
+        eventSequence = frame.sceneFrame.eventSequence,
+        geometryVersion = frame.sceneFrame.geometryVersion,
+        timestampMs = SystemClock.uptimeMillis(),
+        coreTextureStatus = RenderPassStatus.NOT_READY,
+        coreAlphaStatus = RenderPassStatus.NOT_READY,
+        shaderCompileLinkStatus = RenderPassStatus.NOT_RUN,
+        backFboStatus = RenderPassStatus.NOT_RUN,
+        residentBackStatus = RenderPassStatus.NOT_READY,
+        coreFluidStatus = RenderPassStatus.NOT_READY,
+        refractionStatus = RenderPassStatus.NOT_READY,
+        r01bMaskStatus = RenderPassStatus.NOT_READY,
+        r02DropletStatus = RenderPassStatus.NOT_READY,
+        r03LightStatus = RenderPassStatus.NOT_READY,
+        r05CausticsStatus = RenderPassStatus.NOT_READY,
+        residentFrontStatus = RenderPassStatus.NOT_READY,
+        bloomExtractStatus = RenderPassStatus.NOT_RUN,
+        bloomBlurHStatus = RenderPassStatus.NOT_RUN,
+        bloomBlurVStatus = RenderPassStatus.NOT_RUN,
+        compositeStatus = RenderPassStatus.NOT_RUN,
+        failureReason = reason,
+    )
+
+    private fun clearGlErrors() {
+        while (GLES20.glGetError() != GLES20.GL_NO_ERROR) Unit
+    }
+
+    private fun checkGlError(pass: String): String? {
+        val error = GLES20.glGetError()
+        if (error == GLES20.GL_NO_ERROR) return null
+        while (GLES20.glGetError() != GLES20.GL_NO_ERROR) Unit
+        return "${pass}_GL_ERROR_0x${error.toString(16)}"
     }
 
     private fun ensureBuffers(w: Int, h: Int): Boolean {

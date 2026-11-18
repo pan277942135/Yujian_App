@@ -2122,6 +2122,9 @@ fun RecognitionProcessingScene(
                         ),
                     )
                 },
+                onGlRenderDiagnostics = { identity, payload ->
+                    recognitionEvidenceRecorder?.recordGpuRenderResult(identity, payload)
+                },
                 onR06RenderedPaths = { front, renderPass, pathIds ->
                     if (BuildConfig.DEBUG && waterLightFrame.sceneFrame.stage == RecognitionSceneStage.ORB_WAKE) {
                         val actual = pathIds.toSet()
