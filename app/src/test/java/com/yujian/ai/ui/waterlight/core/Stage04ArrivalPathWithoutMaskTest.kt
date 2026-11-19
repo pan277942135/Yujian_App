@@ -17,6 +17,36 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class Stage04ArrivalPathWithoutMaskTest {
+    @Test fun arrivalCoincidentWithPhotoEdgeTravelsAlongBoundaryWithoutEnteringPhoto() {
+        val transform = RecognitionImageTransform(
+            sourceWidthPx = 1_000, sourceHeightPx = 800,
+            viewportWidthPx = 500f, viewportHeightPx = 600f,
+            contentScaleMode = RecognitionContentScaleMode.FIT,
+            scale = .5f, translationX = 0f, translationY = 100f,
+            drawnWidth = 500f, drawnHeight = 400f,
+            visibleSourceRect = NormalizedSourceRect(0f, 0f, 1f, 1f),
+        )
+        val photo = transform.photoContentRect
+        val release = WaterLightPathPoint(250f, photo.bottom)
+        for (box in listOf(
+            NormalizedFishBox(.3f, .2f, .7f, .8f),
+            NormalizedFishBox(.9f, .9f, 1f, 1f),
+            NormalizedFishBox(0f, 0f, .1f, .1f),
+        )) {
+            val path = requireNotNull(RecognitionRevealPathGeometry.perimeterArrival(transform, box, release, 12))
+            assertTrue(path.isValid())
+            val onBoundary = { point: WaterLightPathPoint ->
+                kotlin.math.abs(point.x - photo.left) < .01f ||
+                    kotlin.math.abs(point.x - photo.right) < .01f ||
+                    kotlin.math.abs(point.y - photo.top) < .01f ||
+                    kotlin.math.abs(point.y - photo.bottom) < .01f
+            }
+            assertTrue(onBoundary(path.end))
+            assertFalse(path.end.x > photo.left && path.end.x < photo.right &&
+                path.end.y > photo.top && path.end.y < photo.bottom)
+        }
+    }
+
     @Test fun stage04ArrivalPathAndEventCompleteWhileSlimSamIsPendingThenOrbOnlySkipsContours() {
         val fixture = stage04ReadyFixture()
         assertEquals(RecognitionSceneStage.PATH_TO_FISH, fixture.controller.currentStage)
@@ -231,8 +261,8 @@ class Stage04ArrivalPathWithoutMaskTest {
 
         val releaseFrame = controllerFrame(controller, identity, geometryVersion, 1_950L)
         val releasePath = WaterLightPathGeometryFactory.between(
-            WaterLightPathPoint(120f, 80f),
-            WaterLightPathPoint(250f, 100f),
+            WaterLightPathPoint(250f, 550f),
+            WaterLightPathPoint(250f, 500f),
             seed = 11,
         )!!
         assertTrue(ledger.recordRelease(releaseFrame, releasePath))
