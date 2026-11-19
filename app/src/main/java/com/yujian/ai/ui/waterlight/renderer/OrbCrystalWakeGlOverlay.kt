@@ -4,6 +4,7 @@ import android.opengl.GLES20
 import android.opengl.GLUtils
 import android.graphics.BitmapFactory
 import android.content.Context
+import android.annotation.SuppressLint
 import com.yujian.ai.R
 import android.os.SystemClock
 import android.view.View
@@ -516,6 +517,7 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
         while (GLES20.glGetError() != GLES20.GL_NO_ERROR) Unit
     }
 
+    @SuppressLint("ResourceType") // openRawResource accepts drawable IDs; raw bytes are needed for the frozen WebP SHA.
     private fun loadFrozenCore(): RenderPassStatus {
         val digest = MessageDigest.getInstance("SHA-256")
         context.resources.openRawResource(R.drawable.processing_water_core_v1).use { input ->
