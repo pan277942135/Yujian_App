@@ -569,6 +569,8 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                     Log.e("RecognitionRevealHandoff", "RESULT_NAVIGATION_FAILED attempt=$attemptId", it)
                 }
         } else {
+            productionResult = result
+            recognitionTechnicalFailure = result.failureCode != null
             runCatching { nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } } }
                 .onFailure { Log.e("RecognitionRevealHandoff", "RECOGNITION_ISSUE_NAVIGATION_FAILED attempt=$attemptId", it) }
         }

@@ -85,6 +85,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
         }
         onDiagnostic("DETECTOR_END", "DETECTOR", "PASS", mapOf("duration_ms" to (android.os.SystemClock.uptimeMillis() - detectorStart),
             "detections" to detectorRun.detections.size, "selected_attempt" to detectorRun.selectedAttempt,
+            "actual_model_id" to detectorRun.modelVersion, "actual_model_sha256" to detectorRun.onnxSha256,
             "attempts" to detectorRun.attemptTrace.map { it.toString() }), null)
         val assessment = FishDetectionQualityGate.assess(detectorRun.detections)
         onDiagnostic("QUALITY_GATE_END", "QUALITY_GATE", assessment.status.name,

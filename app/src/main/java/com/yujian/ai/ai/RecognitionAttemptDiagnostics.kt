@@ -44,10 +44,10 @@ class RecognitionAttemptDiagnostics(context: Context) {
                 .put("duration_ms", now - startedMs)
                 .put("recognition_session_id", session).put("recognition_attempt_id", id)
                 .put("image_id", image?.imageId).put("photo_sha256", image?.photoSha256)
-                .put("detector_model_id", "DET_FISH_v0.3")
-                .put("detector_sha256", "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1")
-                .put("classifier_model_id", "MODEL_CROP_M1_v0.2")
-                .put("classifier_sha256", "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18")
+                .put("expected_detector_model_id", "DET_FISH_v0.3")
+                .put("expected_detector_sha256", "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1")
+                .put("expected_classifier_model_id", "MODEL_CROP_M1_v0.2")
+                .put("expected_classifier_sha256", "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18")
                 .put("details", JSONObject(details))
             if (error != null) {
                 val trace = StringWriter().also { error.printStackTrace(PrintWriter(it)) }.toString()
@@ -70,16 +70,26 @@ class RecognitionAttemptDiagnostics(context: Context) {
         val output = File(cacheDir, "diagnostics/recognition_${attemptId}.zip")
         output.parentFile?.mkdirs()
         val lines = read(attemptId)
+        val events = lines.lineSequence().mapNotNull { runCatching { JSONObject(it) }.getOrNull() }.toList()
+        fun stage(name: String): String {
+            val rows = events.filter { it.optString("stage").startsWith(name) }
+            return if (rows.isEmpty()) "{\"status\":\"NOT_AVAILABLE\"}"
+                else org.json.JSONArray(rows).toString()
+        }
         ZipOutputStream(output.outputStream()).use { zip ->
             val contents = mapOf(
                 "manifest.json" to JSONObject().put("schema_version", 1).put("attempt_id", attemptId).toString(),
                 "pipeline_events.jsonl" to lines,
-                "attempt_summary.json" to (lines.lineSequence().lastOrNull { it.isNotBlank() } ?: "NOT_AVAILABLE"),
-                "model_identity.json" to JSONObject().put("detector", "DET_FISH_v0.3").put("classifier", "MODEL_CROP_M1_v0.2").toString(),
-                "detector_trace.json" to "NOT_AVAILABLE: see pipeline_events.jsonl",
-                "crop_trace.json" to "NOT_AVAILABLE: see pipeline_events.jsonl",
-                "classifier_trace.json" to "NOT_AVAILABLE: see pipeline_events.jsonl",
-                "failure.json" to (lines.lineSequence().lastOrNull { it.contains("\"status\":\"FAIL\"") } ?: "NOT_AVAILABLE"),
+                "attempt_summary.json" to (events.lastOrNull()?.toString() ?: "{\"status\":\"NOT_AVAILABLE\"}"),
+                "model_identity.json" to JSONObject().put("detector", "DET_FISH_v0.3")
+                    .put("detector_sha256", "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1")
+                    .put("classifier", "MODEL_CROP_M1_v0.2")
+                    .put("classifier_sha256", "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18").toString(),
+                "detector_trace.json" to stage("DETECTOR"),
+                "crop_trace.json" to stage("CROP"),
+                "classifier_trace.json" to stage("CLASSIFIER"),
+                "failure.json" to (events.lastOrNull { it.optString("status") == "FAIL" }?.toString()
+                    ?: "{\"status\":\"NOT_AVAILABLE\"}"),
                 "environment.json" to JSONObject().put("android_api", android.os.Build.VERSION.SDK_INT).toString(),
             )
             contents.forEach { (name, body) ->
