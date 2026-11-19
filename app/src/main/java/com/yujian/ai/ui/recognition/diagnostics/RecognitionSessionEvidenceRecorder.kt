@@ -344,6 +344,37 @@ class RecognitionSessionEvidenceRecorder(
         )
     }
 
+    /** Preserve the exact decoded SlimSAM PNG and its alpha distribution for postmortem QA. */
+    fun recordMaskArtifact(source: File, bitmap: Bitmap, expectedSha256: String): Boolean {
+        if (!source.isFile || bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0) return false
+        val bytes = source.readBytes()
+        val actualSha = MessageDigest.getInstance("SHA-256").digest(bytes)
+            .joinToString("") { "%02x".format(it) }
+        if (!actualSha.equals(expectedSha256, ignoreCase = true)) return false
+        val pixels = IntArray(bitmap.width * bitmap.height)
+        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        val histogram = IntArray(256)
+        pixels.forEach { histogram[it ushr 24]++ }
+        val attempt = synchronized(lock) { activeAttempt } ?: return false
+        synchronized(pixelFileLock) {
+            val folder = File(attempt.directory, "mask").apply { mkdirs() }
+            File(folder, "original_mask.png").writeBytes(bytes)
+            File(folder, "alpha_statistics.json").writeText(
+                JSONObject().put("maskSha256", actualSha)
+                    .put("width", bitmap.width).put("height", bitmap.height)
+                    .put("alphaMin", histogram.indexOfFirst { it > 0 })
+                    .put("alphaMax", histogram.indexOfLast { it > 0 })
+                    .put("alphaNonZeroCount", pixels.size - histogram[0])
+                    .put("alphaAbove36Count", histogram.slice(37..255).sum())
+                    .put("alphaAbove128Count", histogram.slice(129..255).sum())
+                    .put("alphaAt255Count", histogram[255])
+                    .put("histogram", JSONArray(histogram.toList()))
+                    .toString(2), Charsets.UTF_8,
+            )
+        }
+        return true
+    }
+
     fun recordOrbRuntime(fileName: String, type: String, payload: Map<String, Any?>) {
         record(type, fileName, payload, RecognitionEvidencePriority.SAMPLE)
     }
@@ -496,6 +527,12 @@ class RecognitionSessionEvidenceRecorder(
             if (frameCapHit) {
                 sink?.markIncomplete("FRAME_SNAPSHOT_SIZE_CAP_REACHED")
                 degradedReasons += "FRAME_SNAPSHOT_SIZE_CAP_REACHED"
+            }
+            val maskSource = File(attempt.directory, "mask")
+            maskSource.listFiles()?.filter(File::isFile)?.forEach { sourceMask ->
+                val destMask = File(stagingDirectory, "mask/${sourceMask.name}")
+                destMask.parentFile?.mkdirs()
+                sourceMask.copyTo(destMask, overwrite = true)
             }
             val finalDiagnostics = diagnostics()
             val refreshedSummary = synchronized(lock) { summaryJson() }

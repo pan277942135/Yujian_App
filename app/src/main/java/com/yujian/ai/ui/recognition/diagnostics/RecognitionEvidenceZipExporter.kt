@@ -90,6 +90,10 @@ object RecognitionEvidenceZipExporter {
             logcatOutcome.degradedReason?.let { degradedReasons += it }
 
             val successfulFrames = captureIndex.filesFrom(stagingDir).filter(File::isFile)
+            if (!File(stagingDir, "mask/original_mask.png").isFile ||
+                !File(stagingDir, "mask/alpha_statistics.json").isFile) {
+                degradedReasons += "MASK_PIXEL_EVIDENCE_MISSING"
+            }
             runCatching {
                 RecognitionEvidenceContactSheet.create(
                     successfulFrames,
