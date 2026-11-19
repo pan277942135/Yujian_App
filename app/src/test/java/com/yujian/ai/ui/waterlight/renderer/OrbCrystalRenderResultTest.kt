@@ -10,6 +10,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OrbCrystalRenderResultTest {
+    @Test fun fiveResidentIdentitiesRemainStableAndUnique() {
+        assertEquals(listOf("G01", "G02", "A01", "A02", "C01"), OrbResidentTopology.ids)
+        assertEquals(5, OrbResidentTopology.ids.toSet().size)
+    }
     private val identity = RecognitionSceneIdentity("session", "attempt", "image", "photo-sha", 3L)
     private val frame = RecognitionSceneCoordinator.frameForStage(
         identity = identity,
@@ -21,6 +25,23 @@ class OrbCrystalRenderResultTest {
         stageProgress = .25f,
         eventSequence = 4L,
     )
+
+    @Test fun completedCoreAloneCannotReleaseProductionFallback() {
+        val coreOnly = successfulResult(frame, sequence = 40L).copy(
+            residentBackStatus = RenderPassStatus.NOT_READY,
+            r01bMaskStatus = RenderPassStatus.NOT_READY,
+            r02DropletStatus = RenderPassStatus.NOT_READY,
+            r03LightStatus = RenderPassStatus.NOT_READY,
+            r05CausticsStatus = RenderPassStatus.NOT_READY,
+            residentFrontStatus = RenderPassStatus.NOT_READY,
+        )
+        val decision = GlFramePresentationGate.beforeSwap(
+            GlFrameExecution(RenderPassStatus.PASS, coreOnly), frame, 40L,
+        )
+        assertFalse(decision.maySwap)
+        assertTrue(decision.rejectionReason!!.contains("residentBackStatus"))
+        assertFalse(coreOnly.withPresentation(RenderPassStatus.NOT_RUN, null).ownerAccepted)
+    }
 
     @Test fun completeRenderAndRealPresentAcceptsGlOwner() {
         val result = successfulResult(frame, sequence = 8L).withPresentation(
