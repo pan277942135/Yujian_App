@@ -10,6 +10,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OrbCrystalRenderResultTest {
+    @Test fun fiveResidentIdentitiesRemainStableAndUnique() {
+        assertEquals(listOf("G01", "G02", "A01", "A02", "C01"), OrbResidentTopology.ids)
+        assertEquals(5, OrbResidentTopology.ids.toSet().size)
+    }
     private val identity = RecognitionSceneIdentity("session", "attempt", "image", "photo-sha", 3L)
     private val frame = RecognitionSceneCoordinator.frameForStage(
         identity = identity,
