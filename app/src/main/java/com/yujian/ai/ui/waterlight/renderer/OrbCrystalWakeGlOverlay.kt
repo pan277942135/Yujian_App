@@ -31,6 +31,9 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 internal const val ORB_CRYSTAL_CONTAINER_RATIO = 2.5f
+internal object OrbResidentTopology {
+    val ids = listOf("G01", "G02", "A01", "A02", "C01")
+}
 
 internal data class OrbCrystalGlFrame(
     val sceneFrame: RecognitionSceneFrame,
@@ -412,6 +415,8 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
             bloomIntensity = 0.62f * (0.65f + 0.35f * wakeOptics),
             globalOpacity = 1f,
             skipBlur = false,
+            outputWidth = surfaceW,
+            outputHeight = surfaceH,
         )
         lastDrawFailureReason = lastBloomExecution?.failureReason ?: lastDrawFailureReason
 
@@ -690,6 +695,7 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
             // C01: mid Emerald-Cyan energy stream
             OrbitSpec(1.28f * radius, 0.72f * radius, -0.82f, 0.96f, 0.41f, 5.2f, 0.032f * radius, 0.35f),
         )
+        check(orbits.size == OrbResidentTopology.ids.size)
 
         val steps = 72
         val out = ArrayList<Float>(orbits.size * (steps + 4) * 16)
@@ -699,6 +705,8 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
 
         for (oIdx in orbits.indices) {
             val o = orbits[oIdx]
+            val stableIdentity = OrbResidentTopology.ids[oIdx]
+            check(stableIdentity.isNotBlank())
             val cosTz = cos(o.tiltZ + sin(timeSec * 0.35f + oIdx) * 0.05f)
             val sinTz = sin(o.tiltZ + sin(timeSec * 0.35f + oIdx) * 0.05f)
             val cosTx = cos(o.tiltX)
