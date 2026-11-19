@@ -22,6 +22,23 @@ class OrbCrystalRenderResultTest {
         eventSequence = 4L,
     )
 
+    @Test fun completedCoreAloneCannotReleaseProductionFallback() {
+        val coreOnly = successfulResult(frame, sequence = 40L).copy(
+            residentBackStatus = RenderPassStatus.NOT_READY,
+            r01bMaskStatus = RenderPassStatus.NOT_READY,
+            r02DropletStatus = RenderPassStatus.NOT_READY,
+            r03LightStatus = RenderPassStatus.NOT_READY,
+            r05CausticsStatus = RenderPassStatus.NOT_READY,
+            residentFrontStatus = RenderPassStatus.NOT_READY,
+        )
+        val decision = GlFramePresentationGate.beforeSwap(
+            GlFrameExecution(RenderPassStatus.PASS, coreOnly), frame, 40L,
+        )
+        assertFalse(decision.maySwap)
+        assertTrue(decision.rejectionReason!!.contains("residentBackStatus"))
+        assertFalse(coreOnly.withPresentation(RenderPassStatus.NOT_RUN, null).ownerAccepted)
+    }
+
     @Test fun completeRenderAndRealPresentAcceptsGlOwner() {
         val result = successfulResult(frame, sequence = 8L).withPresentation(
             RenderPassStatus.PASS,
