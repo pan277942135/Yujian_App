@@ -576,6 +576,8 @@ internal class GlBloomPipeline {
         bloomIntensity: Float,
         globalOpacity: Float,
         skipBlur: Boolean,
+        outputWidth: Int = width,
+        outputHeight: Int = height,
     ): GlBloomExecution {
         val s = sceneFbo ?: return GlBloomExecution(
             RenderPassStatus.NOT_READY, RenderPassStatus.NOT_READY, RenderPassStatus.NOT_READY,
@@ -650,7 +652,7 @@ internal class GlBloomPipeline {
         // 3. Final composite to default framebuffer (TextureView surface)
         clearGlErrors()
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
-        GLES20.glViewport(0, 0, width, height)
+        GLES20.glViewport(0, 0, outputWidth.coerceAtLeast(1), outputHeight.coerceAtLeast(1))
         GLES20.glClearColor(0f, 0f, 0f, 0f)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glUseProgram(compositeProg)
