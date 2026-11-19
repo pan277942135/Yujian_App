@@ -6,6 +6,17 @@ import org.junit.Test
 import kotlin.math.roundToInt
 
 class RecognitionMaskContourExtractorTest {
+    @Test fun defaultThresholdMatchesSlimSamHalfConfidenceAlphaEncoding() {
+        val width = 12
+        val height = 12
+        val alpha = ByteArray(width * height) { 36.toByte() }
+        for (y in 3..8) for (x in 3..8) alpha[y * width + x] = 128.toByte()
+        val contour = RecognitionMaskContourExtractor.extract(width, height, alpha)
+        assertEquals(1, contour.count { it.beginsContour })
+        assertEquals(1, contour.count { it.closesContour })
+        assertTrue(contour.all { it.startX in .2f..8.5f / width && it.startY in .2f..8.5f / height })
+    }
+
     @Test fun marchingSquaresEmitsClosedContourWithSubpixelThresholdCrossings() {
         val width = 6
         val height = 5

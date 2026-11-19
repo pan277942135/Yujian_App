@@ -7,7 +7,9 @@ import kotlin.math.roundToInt
 
 /** Marching Squares contour extraction from the actual SlimSAM alpha mask. */
 internal object RecognitionMaskContourExtractor {
-    private const val DEFAULT_THRESHOLD = 36
+    // SlimSAM writes round(confidence * 255) into PNG alpha. The quality gate
+    // accepts confidence >= 0.5, which maps to alpha >= 128.
+    private const val DEFAULT_THRESHOLD = 128
     private const val KEY_SCALE = 1024f
 
     private data class Point(val x: Float, val y: Float)
