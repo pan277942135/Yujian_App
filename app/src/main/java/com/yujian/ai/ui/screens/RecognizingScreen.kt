@@ -756,7 +756,7 @@ fun RecognitionProcessingScene(
             }
             maskFileSha256 = actualMaskSha256
             val maskArtifactRecorded = if (actualMaskSha256 != null) withContext(Dispatchers.IO) {
-                recorder.recordMaskArtifact(java.io.File(requireNotNull(result.bitmapPath)), loaded, actualMaskSha256)
+                recorder.recordMaskArtifact(java.io.File(requireNotNull(result.bitmapPath)), loaded, actualMaskSha256, sceneIdentity)
             } else false
             Log.i(LOG_TAG, "MASK_ARTIFACT_RECORDED=$maskArtifactRecorded sha256=${actualMaskSha256 ?: "NOT_AVAILABLE"}")
             val maskShaValid = RecognitionMaskIntegrity.matches(

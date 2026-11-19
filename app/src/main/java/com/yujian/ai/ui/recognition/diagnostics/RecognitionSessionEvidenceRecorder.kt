@@ -345,7 +345,10 @@ class RecognitionSessionEvidenceRecorder(
     }
 
     /** Preserve the exact decoded SlimSAM PNG and its alpha distribution for postmortem QA. */
-    fun recordMaskArtifact(source: File, bitmap: Bitmap, expectedSha256: String): Boolean {
+    fun recordMaskArtifact(
+        source: File, bitmap: Bitmap, expectedSha256: String,
+        sceneIdentity: RecognitionSceneIdentity,
+    ): Boolean {
         if (!source.isFile || bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0) return false
         val bytes = source.readBytes()
         val actualSha = MessageDigest.getInstance("SHA-256").digest(bytes)
@@ -355,8 +358,10 @@ class RecognitionSessionEvidenceRecorder(
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
         val histogram = IntArray(256)
         pixels.forEach { histogram[it ushr 24]++ }
-        val attempt = synchronized(lock) { activeAttempt } ?: return false
         synchronized(pixelFileLock) {
+            val attempt = synchronized(lock) {
+                if (activeIdentity?.matches(sceneIdentity) == true) activeAttempt else null
+            } ?: return false
             val folder = File(attempt.directory, "mask").apply { mkdirs() }
             File(folder, "original_mask.png").writeBytes(bytes)
             File(folder, "alpha_statistics.json").writeText(
