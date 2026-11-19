@@ -33,6 +33,15 @@ def main() -> int:
 
     try:
         with zipfile.ZipFile(args.apk) as archive:
+            names = archive.namelist()
+            required = (f"assets/{name}" for name in (
+                ANDROID_MODEL_FILE, ANDROID_METADATA_FILE, ANDROID_CLASS_MAP_FILE,
+                ANDROID_TENSOR_CONTRACT_FILE, ANDROID_SNAPSHOT_FILE,
+                "fish_detector_yolox_nano_v0_1.onnx", "detector_metadata.json",
+                "recognition_pipeline_v1.json",
+            ))
+            if any(names.count(name) != 1 for name in required):
+                raise ModelContractError("missing or duplicate packaged model contract asset")
             model = archive.read(f"assets/{ANDROID_MODEL_FILE}")
             metadata = archive.read(f"assets/{ANDROID_METADATA_FILE}")
             class_map = archive.read(f"assets/{ANDROID_CLASS_MAP_FILE}")
@@ -44,6 +53,11 @@ def main() -> int:
             slim_sam_encoder = archive.read("assets/slimsam/vision_encoder_quantized.onnx")
             slim_sam_decoder = archive.read("assets/slimsam/prompt_encoder_mask_decoder_quantized.onnx")
         snapshot = json.loads(snapshot_bytes.decode("utf-8"))
+        for key in ("schema_version", "source", "model_id", "dataset_id", "sha256", "bytes",
+                    "class_count", "class_order", "input_shape", "input_dtype", "output_shape",
+                    "output_dtype", "class_map_sha256", "tensor_contract_sha256", "metadata_sha256"):
+            if key not in snapshot or snapshot[key] in (None, ""):
+                raise ModelContractError(f"APK model snapshot missing required runtime field: {key}")
         detector_metadata = json.loads(detector_metadata_bytes.decode("utf-8"))
         detector_contract = json.loads(detector_contract_bytes.decode("utf-8"))
         verified = verify_model_snapshot(

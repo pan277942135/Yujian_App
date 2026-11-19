@@ -352,7 +352,8 @@ def build_local_model_snapshot(assets, build_sha=None):
         "model_id": metadata["model_id"], "dataset_id": metadata["dataset_id"],
         "release_tag": RELEASE_TAG, "sha256": digest, "bytes": len(model),
         "class_count": 15, "class_order": order, "input_shape": inp["shape"],
-        "output_shape": out["shape"], "class_map_sha256": sha256_bytes(data[ANDROID_CLASS_MAP_FILE]),
+        "input_dtype": inp["dtype"], "output_shape": out["shape"],
+        "output_dtype": out["dtype"], "class_map_sha256": sha256_bytes(data[ANDROID_CLASS_MAP_FILE]),
         "tensor_contract_sha256": sha256_bytes(data[ANDROID_TENSOR_CONTRACT_FILE]),
         "metadata_sha256": sha256_bytes(data[ANDROID_METADATA_FILE]),
     }

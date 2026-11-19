@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bootstrap_android_recognition_assets as bootstrap
-from production_model_contract import ModelContractError, build_local_model_snapshot
+from production_model_contract import ModelContractError, build_local_model_snapshot, verify_local_model_snapshot
 
 
 class MainAssetBootstrapTest(unittest.TestCase):
@@ -43,6 +43,22 @@ class MainAssetBootstrapTest(unittest.TestCase):
         self.assertEqual(snapshot["input_shape"], [1, 3, 224, 224])
         self.assertEqual(snapshot["output_shape"], [1, 15])
         self.assertEqual(len(snapshot["class_order"]), 15)
+        contract = json.loads((bootstrap.MAIN_ASSETS / "tensor_contract.json").read_text())
+        self.assertEqual(snapshot["input_dtype"], contract["inputs"][0]["dtype"])
+        self.assertEqual(snapshot["output_dtype"], contract["outputs"][0]["dtype"])
+        payloads = [(bootstrap.MAIN_ASSETS / name).read_bytes() for name in (
+            "fish_classifier.tflite", "fish_classifier_v0_2.metadata.json", "class_map.json", "tensor_contract.json"
+        )]
+        for key in ("input_dtype", "output_dtype"):
+            for value in (None, "float16", 42):
+                broken = snapshot.copy()
+                if value is None:
+                    del broken[key]
+                else:
+                    broken[key] = value
+                with self.subTest(key=key, value=value), self.assertRaises(ModelContractError):
+                    verify_local_model_snapshot(model=payloads[0], metadata_bytes=payloads[1],
+                        class_map_bytes=payloads[2], tensor_contract_bytes=payloads[3], snapshot=broken)
 
 
 if __name__ == "__main__":

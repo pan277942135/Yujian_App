@@ -81,6 +81,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val classMap = JSONObject(classMapBytes.toString(Charsets.UTF_8))
         val tensorContractBytes = assetBytes(MODEL_TENSOR_CONTRACT_FILE)
         val tensorContract = JSONObject(tensorContractBytes.toString(Charsets.UTF_8))
+        ModelSnapshotDtypeContract.validate(snapshot, tensorContract)
 
         val modelId = snapshot.getString("model_id")
         val datasetId = snapshot.getString("dataset_id")
