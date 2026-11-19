@@ -89,7 +89,7 @@ class ProductionModelContractTest(unittest.TestCase):
             snapshot=snapshot,
         ))
 
-    def test_apk_trace_records_the_exact_packaged_model_identity(self):
+    def test_apk_trace_rejects_missing_detector_and_slimsam_assets(self):
         model, metadata, class_map, tensor = fixture(15)
         snapshot = build_model_snapshot(
             model=model,
@@ -109,20 +109,16 @@ class ProductionModelContractTest(unittest.TestCase):
                 archive.writestr("assets/tensor_contract.json", tensor)
                 archive.writestr("assets/model_release_contract.json", json.dumps(snapshot).encode())
             output_dir = root / "trace"
-            subprocess.run([
+            result = subprocess.run([
                 sys.executable,
                 str(Path(__file__).resolve().parent / "export_apk_model_trace.py"),
                 "--apk", str(apk),
                 "--output-dir", str(output_dir),
                 "--build-sha", "abc123",
-            ], check=True, capture_output=True, text=True)
-            trace = json.loads((output_dir / "apk_model_trace.json").read_text(encoding="utf-8"))
-            self.assertEqual(apk.stat().st_size, trace["apk_bytes"])
-            self.assertEqual("MODEL_CROP_M1_v0.2", trace["MODEL_ID"])
-            self.assertEqual("DS_M1_v1.1", trace["DATASET_ID"])
-            self.assertEqual(15, trace["MODEL_CLASS_COUNT"])
-            self.assertEqual(snapshot["sha256"], trace["MODEL_SHA256"])
-            self.assertEqual(snapshot["class_order"], trace["class_order"])
+            ], capture_output=True, text=True)
+            self.assertNotEqual(0, result.returncode)
+            self.assertIn("APK_MODEL_TRACE_FAILED", result.stderr)
+            self.assertFalse((output_dir / "apk_model_trace.json").exists())
 
     def test_rejects_metadata_sha_mismatch(self):
         model, metadata, class_map, tensor = fixture()

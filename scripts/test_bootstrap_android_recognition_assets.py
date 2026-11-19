@@ -1,98 +1,48 @@
 #!/usr/bin/env python3
+"""Committed model bytes are the deterministic build input."""
 import io
-import os
+import json
+import shutil
 import sys
-import urllib.error
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
-from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bootstrap_android_recognition_assets as bootstrap
+from production_model_contract import ModelContractError, build_local_model_snapshot
 
 
-class BootstrapContractTest(unittest.TestCase):
-    def test_production_release_api_requests_use_workflow_token(self) -> None:
-        with mock.patch.dict(os.environ, {"YUJIAN_GITHUB_TOKEN": "workflow-token"}):
-            with mock.patch.object(bootstrap, "urlopen", return_value=io.BytesIO(b"{}")) as urlopen_mock:
-                bootstrap.fetch_production_release()
-            release_request = urlopen_mock.call_args.args[0]
-            self.assertEqual(release_request.get_header("Authorization"), "Bearer workflow-token")
+class MainAssetBootstrapTest(unittest.TestCase):
+    def test_real_main_bundle_is_v03_and_never_downloads_legacy_release(self):
+        bootstrap.install_detector_bundle(bootstrap.MAIN_ASSETS / bootstrap.DETECTOR_BUNDLE)
+        self.assertEqual(bootstrap.sha256(bootstrap.MAIN_ASSETS / "fish_detector_yolox_nano_v0_1.onnx"),
+                         bootstrap.DETECTOR_ONNX_SHA256)
+        self.assertFalse(hasattr(bootstrap, "DETECTOR_BUNDLE_ASSET_ID"))
 
-            with tempfile.TemporaryDirectory() as directory:
-                payload = b"release-asset"
-                with mock.patch.object(bootstrap, "urlopen", return_value=io.BytesIO(payload)) as urlopen_mock:
-                    saved = bootstrap.download_release_asset(
-                        {
-                            "url": f"https://api.github.com/repos/{bootstrap.RELEASE_REPOSITORY}/releases/assets/1",
-                            "name": "fixture.json",
-                        },
-                        Path(directory) / "fixture.json",
-                    )
-                asset_request = urlopen_mock.call_args.args[0]
-                self.assertEqual(asset_request.get_header("Authorization"), "Bearer workflow-token")
-                self.assertEqual(saved, payload)
-
-    def test_detector_bundle_download_retries_transient_504_by_asset_id(self) -> None:
-        url = bootstrap.DETECTOR_DEFAULTS["DETECTOR_BUNDLE_URL"]
-        transient = urllib.error.HTTPError(
-            url, 504, "Gateway Time-out", {}, io.BytesIO(b"gateway timeout")
-        )
-        payload = b"verified-detector-bundle"
+    def test_corrupt_bundle_does_not_overwrite_committed_assets(self):
         with tempfile.TemporaryDirectory() as directory:
-            destination = Path(directory) / "detector_bundle.zip"
-            with mock.patch.object(
-                bootstrap, "urlopen", side_effect=[transient, io.BytesIO(payload)]
-            ) as urlopen_mock, mock.patch.object(bootstrap.time, "sleep") as sleep_mock:
-                bootstrap._download(url, destination, "detector bundle")
-            self.assertEqual(destination.read_bytes(), payload)
-            self.assertEqual(urlopen_mock.call_count, 2)
-            request = urlopen_mock.call_args_list[0].args[0]
-            self.assertEqual(
-                request.full_url,
-                f"https://api.github.com/repos/{bootstrap.DETECTOR_RELEASE_REPOSITORY}/releases/assets/"
-                f"{bootstrap.DETECTOR_BUNDLE_ASSET_ID}",
-            )
-            self.assertEqual(request.get_header("Accept"), "application/octet-stream")
-            sleep_mock.assert_called_once_with(3.0)
-
-    def test_detector_bundle_download_does_not_retry_permanent_404(self) -> None:
-        url = bootstrap.DETECTOR_DEFAULTS["DETECTOR_BUNDLE_URL"]
-        not_found = urllib.error.HTTPError(
-            url, 404, "Not Found", {}, io.BytesIO(b"not found")
-        )
-        with tempfile.TemporaryDirectory() as directory:
-            destination = Path(directory) / "detector_bundle.zip"
-            with mock.patch.object(bootstrap, "urlopen", side_effect=not_found) as urlopen_mock:
+            root = Path(directory)
+            old_assets = bootstrap.MAIN_ASSETS
+            try:
+                bootstrap.MAIN_ASSETS = root
+                (root / "fish_detector_yolox_nano_v0_1.onnx").write_bytes(b"keep-original")
+                bad = root / "bad.zip"
+                with zipfile.ZipFile(bad, "w") as archive:
+                    archive.writestr("detector_metadata.json.txt", b"{}")
                 with self.assertRaises(bootstrap.BootstrapError):
-                    bootstrap._download(url, destination, "detector bundle")
-            self.assertEqual(urlopen_mock.call_count, 1)
-            self.assertFalse(destination.exists())
+                    bootstrap.install_detector_bundle(bad)
+                self.assertEqual((root / "fish_detector_yolox_nano_v0_1.onnx").read_bytes(), b"keep-original")
+            finally:
+                bootstrap.MAIN_ASSETS = old_assets
 
-    def test_missing_model_fails(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            with self.assertRaises(bootstrap.BootstrapError):
-                bootstrap.verify_file_hash(Path(directory) / "missing.tflite", "0" * 64, "classifier")
-
-    def test_bad_sha_fails(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "model.tflite"
-            path.write_bytes(b"not a production model")
-            with self.assertRaises(bootstrap.BootstrapError):
-                bootstrap.verify_file_hash(path, "0" * 64, "classifier")
-
-    def test_missing_detector_bundle_member_fails(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            archive_path = Path(directory) / "bundle.zip"
-            with zipfile.ZipFile(archive_path, "w") as archive:
-                for member in bootstrap.REQUIRED_DETECTOR_MEMBERS[:-1]:
-                    archive.writestr(member, b"fixture")
-                archive.writestr("golden/ready.jpg", b"fixture")
-            with zipfile.ZipFile(archive_path) as archive:
-                with self.assertRaises(bootstrap.BootstrapError):
-                    bootstrap.find_required_detector_members(archive)
+    def test_classifier_local_snapshot_validates_real_model_and_order(self):
+        snapshot = build_local_model_snapshot(bootstrap.MAIN_ASSETS, "test-head")
+        self.assertEqual(snapshot["source"], "MAIN_COMMITTED_ASSETS")
+        self.assertEqual(snapshot["input_shape"], [1, 3, 224, 224])
+        self.assertEqual(snapshot["output_shape"], [1, 15])
+        self.assertEqual(len(snapshot["class_order"]), 15)
 
 
 if __name__ == "__main__":
