@@ -5,6 +5,10 @@ import java.security.MessageDigest
 
 /** Verifies that the decoded Mask bytes, model result and Mask geometry share one SHA identity. */
 object RecognitionMaskIntegrity {
+    /** Stable version across independent BitmapFactory decodes of the same verified PNG. */
+    fun versionFromSha256(sha256: String): Long =
+        if (sha256.matches(Regex("(?i)^[a-f0-9]{64}$"))) sha256.take(15).toLong(16) else -1L
+
     fun sha256File(file: File): String? = runCatching {
         val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().buffered().use { input ->

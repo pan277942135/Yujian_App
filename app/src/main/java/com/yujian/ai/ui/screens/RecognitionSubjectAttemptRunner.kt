@@ -159,7 +159,7 @@ class RecognitionSubjectAttemptRunner(
                 contour = contour, contourSourceSpace = "CANONICAL_PHOTO_NORMALIZED",
                 quality = result.quality, maskSize = result.maskSize,
                 expectedMaskSize = result.expectedMaskSize,
-                maskVersion = bitmap.generationId.toLong(),
+                maskVersion = RecognitionMaskIntegrity.versionFromSha256(actualMaskSha256),
                 maskSha256 = result.maskSha256,
             )
             return geometry.takeIf {

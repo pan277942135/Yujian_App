@@ -435,7 +435,7 @@ fun RecognitionProcessingScene(
     val processingContact = processingPhotoSnapshotForReveal?.contactPointNormalizedSource
     val processingContactIdentityMatches = trustedSubjectMask && processingContact != null &&
         processingPhotoSnapshotForReveal?.contactPointMaskSha256 == subjectResult.maskSha256 &&
-        processingPhotoSnapshotForReveal?.contactPointMaskVersion == subjectBitmap?.generationId?.toLong() &&
+        processingPhotoSnapshotForReveal?.contactPointMaskVersion == subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) } &&
         processingPhotoSnapshotForReveal?.contactPointGeometryVersion == photoGeometryVersion &&
         photoGeometryVersion != 0L
     val pStarPathCandidateReady = processingContactIdentityMatches && processingPhotoSnapshotForReveal?.let { photo ->
@@ -500,7 +500,7 @@ fun RecognitionProcessingScene(
             slimSamFailed = subjectResult.status == SubjectStatus.FAILED,
             currentIdentity = sceneIdentity,
             maskSha256 = subjectResult.maskSha256.orEmpty(),
-            maskVersion = subjectBitmap?.generationId?.toLong() ?: -1L,
+            maskVersion = subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) } ?: -1L,
         )
         val glyphReady = classifierReady && !finishedResult?.prediction?.top1?.speciesName.isNullOrBlank()
         controller.onGlyphAvailable(glyphReady, sceneIdentity)
@@ -806,7 +806,7 @@ fun RecognitionProcessingScene(
                 quality = result.quality,
                 maskSize = result.maskSize,
                 expectedMaskSize = result.expectedMaskSize,
-                maskVersion = loaded.generationId.toLong(),
+                maskVersion = RecognitionMaskIntegrity.versionFromSha256(result.maskSha256),
                 maskSha256 = result.maskSha256,
             ) else null
             val trustState = RecognitionRevealPolicy.geometryTrust(
@@ -1360,7 +1360,7 @@ fun RecognitionProcessingScene(
                 "top1" to (prediction?.top1?.speciesName ?: "NOT_RECORDED"),
                 "confidence" to prediction?.top1?.confidence,
                 "slimSamModelSha256" to (geometry?.modelSha256 ?: "NOT_RECORDED"),
-                "maskVersion" to subjectBitmap?.generationId?.toLong(),
+                "maskVersion" to subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) },
                 "maskGeometryVersion" to diagnosticSceneFrame.geometryVersion,
                 "maskFallbackReason" to if (trustedSubjectMask) "NONE" else (subjectResult.errorCode ?: "MASK_UNTRUSTED"),
                 "contourPointCount" to contour.size,
@@ -1392,7 +1392,7 @@ fun RecognitionProcessingScene(
             status = subjectResult.status.name,
             trusted = trustedSubjectMask,
             maskSha256 = subjectResult.maskSha256.takeIf(String::isNotBlank),
-            maskVersion = subjectBitmap?.generationId?.toLong(),
+            maskVersion = subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) },
             geometryVersion = diagnosticSceneFrame.geometryVersion,
             fallbackReason = if (trustedSubjectMask) null else subjectResult.errorCode ?: "MASK_UNTRUSTED",
             extra = mapOf(
@@ -1703,7 +1703,7 @@ fun RecognitionProcessingScene(
         } else null
         val energyProducerSnapshot = if (image != null && photoFlowPlan != null && producerOrbGeometry != null) {
             val maskSha = subjectResult.maskSha256.orEmpty()
-            val maskVersion = subjectBitmap?.generationId?.toLong() ?: -1L
+            val maskVersion = subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) } ?: -1L
             val pStarCandidate = if (trustedSubjectMask && subjectBitmap != null) {
                 recognitionMaskContactPointSource(
                     subjectBox, contour, producerOrbGeometry.third, producerOrbGeometry.first,
@@ -1936,7 +1936,7 @@ fun RecognitionProcessingScene(
             photoSha256 = image.photoSha256,
             photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),
             maskSha256 = subjectResult?.maskSha256.orEmpty(),
-            maskVersion = subjectBitmap?.generationId?.toLong() ?: -1L,
+            maskVersion = subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) } ?: -1L,
             maskRevealProgress = maskContourRevealProgress,
             trustedMask = trustedSubjectMask,
             stage045GlPresented = stage045GlPresented,
