@@ -1,28 +1,16 @@
 #!/usr/bin/env python3
-"""Fetch and verify the current production model Release for an Android build.
-
-The classifier is a mutable production Release pointer. Each invocation reads
-the current Release metadata, downloads its four linked assets by asset ID,
-validates one coherent model contract and writes an exact APK snapshot. Detector
-asset handling remains on its existing separate pinned contract.
-"""
+"""Verify Main-committed v0.3 Detector and v0.2 Classifier for an Android build."""
 
 from __future__ import annotations
 
 import hashlib
 import json
 import os
-import shutil
 import subprocess
 import sys
-import tempfile
 import time
-import urllib.error
-import urllib.request
 import zipfile
-from dataclasses import dataclass
 from pathlib import Path
-from urllib.request import Request, urlopen
 
 from production_model_contract import (
     ANDROID_CLASS_MAP_FILE,
@@ -30,65 +18,23 @@ from production_model_contract import (
     ANDROID_MODEL_FILE,
     ANDROID_SNAPSHOT_FILE,
     ANDROID_TENSOR_CONTRACT_FILE,
-    RELEASE_REPOSITORY,
-    RELEASE_TAG,
-    REQUIRED_ASSETS,
     ModelContractError,
-    build_model_snapshot,
     snapshot_summary,
 )
 
 
 ROOT = Path(__file__).resolve().parents[1]
 MAIN_ASSETS = ROOT / "app" / "src" / "main" / "assets"
-TEST_DETECTOR_ASSETS = ROOT / "app" / "src" / "androidTest" / "assets" / "detector"
-
-PRODUCTION_RELEASE_API_URL = (
-    f"https://api.github.com/repos/{RELEASE_REPOSITORY}/releases/tags/{RELEASE_TAG}"
-)
-DETECTOR_RELEASE_REPOSITORY = "pan277942135/Yujian"
-DETECTOR_BUNDLE_ASSET_ID = 537791631
-DETECTOR_DEFAULTS = {
-    "DETECTOR_BUNDLE_URL": (
-        f"https://api.github.com/repos/{DETECTOR_RELEASE_REPOSITORY}/releases/assets/{DETECTOR_BUNDLE_ASSET_ID}"
-    ),
-    "DETECTOR_BUNDLE_SHA256": "246ddacaf89ca7ecc9c64a47d3e12c5ee9088d92c763a38626778505ae8c15ee",
+DETECTOR_BUNDLE = "det-fish-v03.zip"
+DETECTOR_ONNX_SHA256 = "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1"
+DETECTOR_MEMBER_MAP = {
+    "fish_detector_yolox_nano_v0_1.onnx": "models_DET_FISH_v0.3_fish_detector_yolox_nano_v0_1.onnx",
+    "detector_metadata.json": "detector_metadata.json.txt",
+    "recognition_pipeline_v1.json": "recognition_pipeline_v1.json.txt",
 }
-
-REQUIRED_DETECTOR_MEMBERS = (
-    "fish_detector_yolox_nano_v0_1.onnx",
-    "detector_metadata.json",
-    "recognition_pipeline_v1.json",
-    "golden_cases.json",
-)
-REQUIRED_GOLDEN_CASES = ("ready", "no_fish", "incomplete_fish", "fish_too_small", "multiple_fish")
-
-DOWNLOAD_RETRY_ATTEMPTS = 5
-DOWNLOAD_TIMEOUT_SECONDS = 180
-RETRYABLE_HTTP_STATUS_CODES = frozenset({408, 425, 429, 500, 502, 503, 504})
-
 
 class BootstrapError(RuntimeError):
     pass
-
-
-def _github_api_authorization() -> dict[str, str]:
-    token = os.environ.get("YUJIAN_GITHUB_TOKEN", "").strip()
-    return {"Authorization": f"Bearer {token}"} if token else {}
-
-
-@dataclass(frozen=True)
-class DetectorContract:
-    detector_bundle_url: str
-    detector_bundle_sha256: str
-
-    @classmethod
-    def from_environment(cls) -> "DetectorContract":
-        values = {key: os.environ.get(key, value) for key, value in DETECTOR_DEFAULTS.items()}
-        return cls(
-            values["DETECTOR_BUNDLE_URL"],
-            values["DETECTOR_BUNDLE_SHA256"],
-        )
 
 
 def sha256(path: Path) -> str:
@@ -99,219 +45,46 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def fetch_production_release() -> dict:
-    request = Request(
-        PRODUCTION_RELEASE_API_URL,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "YuJian-Android-Model-Bootstrap/1",
-            **_github_api_authorization(),
-        },
-    )
-    with urlopen(request, timeout=30) as response:
-        release = json.loads(response.read().decode("utf-8"))
-    if not isinstance(release, dict):
-        raise BootstrapError("production model release API did not return an object")
-    return release
-
-
-def _release_fingerprint(release: dict) -> tuple:
-    assets = release.get("assets")
-    if not isinstance(assets, list):
-        raise BootstrapError("production model release has no asset list")
-    indexed = {asset.get("name"): asset for asset in assets if isinstance(asset, dict)}
-    missing = [name for name in REQUIRED_ASSETS if name not in indexed]
-    if missing:
-        raise BootstrapError(f"production model release missing required assets: {missing}")
-    return (
-        release.get("id"),
-        release.get("tag_name"),
-        tuple(
-            (
-                name,
-                indexed[name].get("id"),
-                indexed[name].get("size"),
-                indexed[name].get("digest"),
-                indexed[name].get("updated_at"),
-                indexed[name].get("state"),
-            )
-            for name in REQUIRED_ASSETS
-        ),
-    )
-
-
-def _is_retryable_download_error(error: Exception) -> bool:
-    if isinstance(error, urllib.error.HTTPError):
-        return error.code in RETRYABLE_HTTP_STATUS_CODES
-    if isinstance(error, urllib.error.URLError):
-        return True
-    return isinstance(error, (TimeoutError, ConnectionError, OSError))
-
-
-def _download_retry_delay_seconds(error: Exception, attempt: int) -> float:
-    headers = getattr(error, "headers", None)
-    retry_after = headers.get("Retry-After") if headers is not None else None
-    if retry_after:
-        try:
-            return min(max(float(retry_after), 0.0), 30.0)
-        except (TypeError, ValueError):
-            pass
-    return min(3.0 * (2 ** attempt), 30.0)
-
-
-def _download_to_path(request: Request, destination: Path, label: str) -> bytes:
-    """Download atomically with bounded retries for transient GitHub/CDN failures."""
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    last_error: Exception | None = None
-    for attempt in range(DOWNLOAD_RETRY_ATTEMPTS):
-        temporary = destination.with_name(
-            f".{destination.name}.download-{os.getpid()}-{time.time_ns()}"
-        )
-        try:
-            with urlopen(request, timeout=DOWNLOAD_TIMEOUT_SECONDS) as response, temporary.open("wb") as output:
-                shutil.copyfileobj(response, output)
-            if not temporary.is_file() or temporary.stat().st_size == 0:
-                raise OSError(f"{label}: downloaded file is empty")
-            payload = temporary.read_bytes()
-            os.replace(temporary, destination)
-            return payload
-        except Exception as error:
-            temporary.unlink(missing_ok=True)
-            last_error = error
-            if not _is_retryable_download_error(error) or attempt + 1 >= DOWNLOAD_RETRY_ATTEMPTS:
-                raise BootstrapError(
-                    f"{label}: download failed after {attempt + 1}/{DOWNLOAD_RETRY_ATTEMPTS} attempts: {error}"
-                ) from error
-            delay = _download_retry_delay_seconds(error, attempt)
-            print(
-                f"{label}: transient download failure on attempt {attempt + 1}/"
-                f"{DOWNLOAD_RETRY_ATTEMPTS}: {error}; retrying in {delay:g}s",
-                file=sys.stderr,
-            )
-            time.sleep(delay)
-    raise BootstrapError(f"{label}: download failed: {last_error}")
-
-
-def download_release_asset(asset: dict, destination: Path) -> bytes:
-    """Download by Release asset id so mutable tag URLs cannot mix versions."""
-    url = asset.get("url")
-    if not isinstance(url, str) or not url.startswith(
-        f"https://api.github.com/repos/{RELEASE_REPOSITORY}/releases/assets/"
-    ):
-        raise BootstrapError(f"invalid GitHub API asset URL for {asset.get('name')}")
-    request = Request(
-        url,
-        headers={
-            "Accept": "application/octet-stream",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "YuJian-Android-Model-Bootstrap/1",
-            **_github_api_authorization(),
-        },
-    )
-    return _download_to_path(request, destination, f"production Release asset {asset.get('name')}")
-
-
-def verify_file_hash(path: Path, expected: str, label: str) -> None:
-    if not path.is_file():
-        raise BootstrapError(f"{label}: missing file {path}")
-    actual = sha256(path)
-    if actual != expected:
-        raise BootstrapError(f"{label}: SHA-256 mismatch; expected {expected}, got {actual}")
-
-
-def _download(url: str, destination: Path, label: str) -> None:
-    headers = {"User-Agent": "YuJian-recognition-bootstrap/1"}
-    if url.startswith(
-        f"https://api.github.com/repos/{DETECTOR_RELEASE_REPOSITORY}/releases/assets/"
-    ):
-        headers.update(
-            {
-                "Accept": "application/octet-stream",
-                "X-GitHub-Api-Version": "2022-11-28",
-            }
-        )
-    request = Request(url, headers=headers)
-    _download_to_path(request, destination, label)
-
-
 def _member_candidates(archive: zipfile.ZipFile, basename: str) -> list[str]:
     return [name for name in archive.namelist() if name == basename or name.endswith(f"/{basename}")]
 
 
-def find_required_detector_members(archive: zipfile.ZipFile) -> dict[str, str]:
-    members: dict[str, str] = {}
-    for basename in REQUIRED_DETECTOR_MEMBERS:
-        candidates = _member_candidates(archive, basename)
-        if len(candidates) != 1:
-            raise BootstrapError(
-                f"detector bundle: expected exactly one member named {basename}, found {candidates}"
-            )
-        members[basename] = candidates[0]
-
-    golden = [name for name in archive.namelist() if "/golden/" in f"/{name}" and not name.endswith("/")]
-    if not golden:
-        raise BootstrapError("detector bundle: missing golden/ fixtures")
-    expected_golden = {f"golden/{case}.jpg" for case in REQUIRED_GOLDEN_CASES}
-    expected_golden |= {f"golden/{case}.jpeg" for case in REQUIRED_GOLDEN_CASES}
-    expected_golden |= {f"golden/{case}.png" for case in REQUIRED_GOLDEN_CASES}
-    expected_stems = {Path(name).stem for name in golden}
-    if not all(case in expected_stems for case in REQUIRED_GOLDEN_CASES):
-        raise BootstrapError(f"detector bundle: golden/ is missing one or more required cases; found {golden}")
-    return members
-
-
-def _safe_extract_member(archive: zipfile.ZipFile, member: str, destination: Path) -> None:
-    target = destination.resolve()
-    target.parent.mkdir(parents=True, exist_ok=True)
-    with archive.open(member) as source, target.with_name(f".{target.name}.install-{time.time_ns()}").open("wb") as output:
-        shutil.copyfileobj(source, output)
-    temporary = next(target.parent.glob(f".{target.name}.install-*"))
-    os.replace(temporary, target)
-
-
 def install_detector_bundle(bundle: Path) -> None:
+    """Validate the committed v0.3 bundle and destination before any replacement."""
     if not bundle.is_file():
-        raise BootstrapError(f"detector bundle: missing archive {bundle}")
+        raise BootstrapError(f"detector bundle: missing committed archive {bundle}")
     with zipfile.ZipFile(bundle) as archive:
-        members = find_required_detector_members(archive)
-        with tempfile.TemporaryDirectory(prefix="yujian-detector-") as temporary_name:
-            temporary = Path(temporary_name)
-            main = temporary / "main"
-            tests = temporary / "tests"
-            for basename in REQUIRED_DETECTOR_MEMBERS[:3]:
-                _safe_extract_member(archive, members[basename], main / basename)
-
-            golden_manifest = members["golden_cases.json"]
-            _safe_extract_member(archive, golden_manifest, tests / "golden_cases.json")
-            golden_target = tests / "golden"
-            golden_target.mkdir(parents=True, exist_ok=True)
-            for name in archive.namelist():
-                if "/golden/" not in f"/{name}" or name.endswith("/"):
-                    continue
-                relative_name = name.split("/golden/", 1)[1] if "/golden/" in name else name.split("golden/", 1)[1]
-                relative = Path(relative_name)
-                if relative.is_absolute() or ".." in relative.parts:
-                    raise BootstrapError(f"detector bundle: unsafe golden member {name}")
-                _safe_extract_member(archive, name, golden_target / relative)
-
-            for basename in REQUIRED_DETECTOR_MEMBERS[:3]:
-                destination = MAIN_ASSETS / basename
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(main / basename, destination)
-            TEST_DETECTOR_ASSETS.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(tests / "golden_cases.json", TEST_DETECTOR_ASSETS / "golden_cases.json")
-            golden_destination = TEST_DETECTOR_ASSETS / "golden"
-            if golden_destination.exists():
-                shutil.rmtree(golden_destination)
-            shutil.copytree(golden_target, golden_destination)
-
-    for basename in REQUIRED_DETECTOR_MEMBERS[:3]:
-        if not (MAIN_ASSETS / basename).is_file():
-            raise BootstrapError(f"detector bundle: failed to install {basename}")
-    if not (TEST_DETECTOR_ASSETS / "golden_cases.json").is_file() or not (TEST_DETECTOR_ASSETS / "golden").is_dir():
-        raise BootstrapError("detector bundle: failed to install golden fixtures")
-    print("detector bundle: members installed and verified")
+        candidates = {
+            target: _member_candidates(archive, source)
+            for target, source in DETECTOR_MEMBER_MAP.items()
+        }
+        if any(len(names) != 1 for names in candidates.values()):
+            raise BootstrapError(f"detector bundle: missing or duplicate v0.3 members: {candidates}")
+        payloads = {target: archive.read(names[0]) for target, names in candidates.items()}
+    model = payloads["fish_detector_yolox_nano_v0_1.onnx"]
+    metadata = json.loads(payloads["detector_metadata.json"])
+    contract = json.loads(payloads["recognition_pipeline_v1.json"])
+    actual = hashlib.sha256(model).hexdigest()
+    if actual != DETECTOR_ONNX_SHA256 or metadata.get("onnx_sha256") != actual:
+        raise BootstrapError(f"detector bundle: frozen ONNX SHA mismatch: {actual}")
+    if metadata.get("model_version") != "DET_FISH_v0.3" or metadata.get("dataset_version") != "DET_DS_v0.3":
+        raise BootstrapError("detector bundle: model/dataset version mismatch")
+    if metadata.get("onnx_bytes") != len(model) or metadata.get("model_family") != "YOLOX_NANO":
+        raise BootstrapError("detector bundle: model size/family mismatch")
+    if (metadata.get("onnx") or {}).get("input_shape") != [1, 3, 416, 416] or (metadata.get("onnx") or {}).get("output_shape") != [1, 3549, 6]:
+        raise BootstrapError("detector bundle: tensor shape mismatch")
+    if contract.get("contract_version") != "RECOGNITION_PIPELINE_v1" or (contract.get("detector") or {}).get("nms_iou") != 0.45:
+        raise BootstrapError("detector bundle: pipeline contract mismatch")
+    # Main already contains the production files. Fail closed on drift instead of overwriting it.
+    for target, payload in payloads.items():
+        destination = MAIN_ASSETS / target
+        if destination.is_file() and destination.read_bytes() != payload:
+            raise BootstrapError(f"detector bundle: committed asset differs from ZIP: {destination}")
+    for target, payload in payloads.items():
+        destination = MAIN_ASSETS / target
+        if not destination.is_file():
+            _write_asset(destination, payload)
+    print(f"DETECTOR_MAIN_BUNDLE_PASS zip_sha256={sha256(bundle)} onnx_sha256={actual}")
 
 
 def run_verifier(script: str) -> None:
@@ -330,76 +103,24 @@ def _write_asset(path: Path, payload: bytes) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def bootstrap(contract: DetectorContract | None = None, root: Path = ROOT, cache: Path | None = None) -> None:
-    global MAIN_ASSETS, TEST_DETECTOR_ASSETS
+def bootstrap(root: Path = ROOT) -> None:
+    global MAIN_ASSETS
     original_main_assets = MAIN_ASSETS
-    original_test_assets = TEST_DETECTOR_ASSETS
     try:
         MAIN_ASSETS = root / "app" / "src" / "main" / "assets"
-        TEST_DETECTOR_ASSETS = root / "app" / "src" / "androidTest" / "assets" / "detector"
-        contract = contract or DetectorContract.from_environment()
-        cache = cache or Path(os.environ.get("YUJIAN_RECOGNITION_ASSET_CACHE", root / "build" / "recognition-assets-cache"))
-        cache.mkdir(parents=True, exist_ok=True)
-        MAIN_ASSETS.mkdir(parents=True, exist_ok=True)
-
-        # Resolve the mutable production pointer once, download by the exact
-        # Release asset IDs, then confirm the pointer did not move mid-build.
-        release = fetch_production_release()
-        release_assets = {
-            asset.get("name"): asset
-            for asset in release.get("assets", [])
-            if isinstance(asset, dict) and asset.get("name") in REQUIRED_ASSETS
-        }
-        _release_fingerprint(release)
-        with tempfile.TemporaryDirectory(prefix="yujian-production-model-") as temporary_name:
-            temporary = Path(temporary_name)
-            downloaded = {
-                name: download_release_asset(release_assets[name], temporary / name)
-                for name in REQUIRED_ASSETS
-            }
-            latest_release = fetch_production_release()
-            if _release_fingerprint(release) != _release_fingerprint(latest_release):
-                raise BootstrapError("production Release assets changed while this build snapshot was downloading")
-
-            snapshot = build_model_snapshot(
-                model=downloaded[REQUIRED_ASSETS[0]],
-                metadata_bytes=downloaded[REQUIRED_ASSETS[1]],
-                class_map_bytes=downloaded[REQUIRED_ASSETS[2]],
-                tensor_contract_bytes=downloaded[REQUIRED_ASSETS[3]],
-                release=release,
-                build_sha=os.environ.get("BUILD_SHA") or os.environ.get("GITHUB_SHA"),
-            )
-            package_files = {
-                ANDROID_MODEL_FILE: downloaded[REQUIRED_ASSETS[0]],
-                ANDROID_METADATA_FILE: downloaded[REQUIRED_ASSETS[1]],
-                ANDROID_CLASS_MAP_FILE: downloaded[REQUIRED_ASSETS[2]],
-                ANDROID_TENSOR_CONTRACT_FILE: downloaded[REQUIRED_ASSETS[3]],
-                ANDROID_SNAPSHOT_FILE: json.dumps(
-                    snapshot, ensure_ascii=False, indent=2, sort_keys=True
-                ).encode("utf-8") + b"\n",
-            }
-            for filename, payload in package_files.items():
-                _write_asset(MAIN_ASSETS / filename, payload)
-
-        bundle_cache = cache / "detector_bundle.zip"
-        if bundle_cache.is_file():
-            try:
-                verify_file_hash(bundle_cache, contract.detector_bundle_sha256, "detector bundle")
-            except BootstrapError:
-                bundle_cache.unlink(missing_ok=True)
-        if not bundle_cache.is_file():
-            _download(contract.detector_bundle_url, bundle_cache, "detector bundle")
-        verify_file_hash(bundle_cache, contract.detector_bundle_sha256, "detector bundle")
-        install_detector_bundle(bundle_cache)
-
-        # These are hard gates, not informational checks.
+        install_detector_bundle(MAIN_ASSETS / DETECTOR_BUNDLE)
+        # The committed classifier files are the deterministic source. The verifier
+        # writes only a build-scoped provenance snapshot after validating all bytes.
+        from production_model_contract import build_local_model_snapshot
+        snapshot = build_local_model_snapshot(MAIN_ASSETS, os.environ.get("BUILD_SHA") or os.environ.get("GITHUB_SHA"))
+        _write_asset(MAIN_ASSETS / ANDROID_SNAPSHOT_FILE,
+                     (json.dumps(snapshot, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode())
         run_verifier("verify_production_model.py")
         run_verifier("verify_production_detector.py")
         print("BOOTSTRAP_ANDROID_RECOGNITION_ASSETS_PASS")
         print("MODEL_RELEASE_SNAPSHOT=" + json.dumps(snapshot_summary(snapshot), ensure_ascii=False, sort_keys=True))
     finally:
         MAIN_ASSETS = original_main_assets
-        TEST_DETECTOR_ASSETS = original_test_assets
 
 
 def main() -> int:

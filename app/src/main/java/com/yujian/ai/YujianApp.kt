@@ -5,6 +5,10 @@ import android.content.Intent
 import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
+import android.content.ClipData
+import android.content.ClipboardManager
+import androidx.core.content.FileProvider
+import com.yujian.ai.ai.RecognitionAttemptDiagnostics
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -206,6 +210,7 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
     var sessionImage by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.image) }
     var productionResult by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.productionResult) }
     var recognitionTechnicalFailure by remember { mutableStateOf(false) }
+    val recognitionDiagnostics = remember(activityContext) { RecognitionAttemptDiagnostics(activityContext) }
     var subjectResult by remember(revealSessionStore) {
         mutableStateOf(revealSessionStore.snapshot?.subjectResult ?: FishSubjectResult(SubjectStatus.IDLE))
     }
@@ -338,6 +343,7 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
         recognitionSessionId = UUID.randomUUID().toString()
         sessionImage = selected
         activeRecognitionAttemptId = UUID.randomUUID().toString()
+        recognitionDiagnostics.begin(requireNotNull(recognitionSessionId), requireNotNull(activeRecognitionAttemptId), selected)
         recognitionEvidenceRecorder.beginAttempt(
             RecognitionEvidenceIdentity(
                 sessionId = requireNotNull(recognitionSessionId),
@@ -538,6 +544,10 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
 
     fun deliverRecognitionAttempt(result: ProductionRecognitionResult, attemptId: String) {
         if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return
+        recognitionDiagnostics.event("PIPELINE_TERMINAL", "PIPELINE", if (result.ready) "PASS" else "FAIL",
+            mapOf("failure_code" to result.failureCode?.name, "status" to result.status.name,
+                "bbox" to result.assessment.primary?.box.toString(), "crop_pixels" to result.cropPixels?.toList(),
+                "top1" to result.prediction?.top1?.toString()), result.failureCause)
         if (result.ready) {
             val handoff = completeRecognitionAttempt(result, attemptId)
             if (handoff == null || !RecognitionRevealDecisionGate.isNavigable(
@@ -559,6 +569,8 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                     Log.e("RecognitionRevealHandoff", "RESULT_NAVIGATION_FAILED attempt=$attemptId", it)
                 }
         } else {
+            productionResult = result
+            recognitionTechnicalFailure = result.failureCode != null
             runCatching { nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } } }
                 .onFailure { Log.e("RecognitionRevealHandoff", "RECOGNITION_ISSUE_NAVIGATION_FAILED attempt=$attemptId", it) }
         }
@@ -945,6 +957,9 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                         throw CancellationException("recognition progress belongs to a stale PhotoSession")
                                     }
                                     onProgress(progress)
+                                    recognitionDiagnostics.event("PHASE_${progress.phase.name}", progress.phase.name, "STARTED",
+                                        mapOf("quality" to progress.assessment?.qualityLevel?.name,
+                                            "reason" to progress.assessment?.qualityReason))
                                 },
                                 modelIdentity = com.yujian.ai.ai.RecognitionModelIdentity(
                                     sessionId = requireNotNull(recognitionSessionId),
@@ -952,6 +967,9 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                     imageId = selected.imageId,
                                     photoSha256 = selected.photoSha256,
                                 ),
+                                onDiagnostic = { name, stage, status, details, error ->
+                                    recognitionDiagnostics.event(name, stage, status, details, error)
+                                },
                             )
                             if (activeRecognitionAttemptId != attemptId) {
                                 throw CancellationException("recognition attempt was superseded")
@@ -1084,8 +1102,11 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                 )
                             } == true
                         },
-                        onFailure = {
+                        onFailure = { error ->
                             if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
+                                recognitionDiagnostics.event("PIPELINE_TERMINAL", "PIPELINE", "FAIL",
+                                    mapOf("failure_code" to (error as? com.yujian.ai.ai.RecognitionStageFailureException)?.failureCode?.name,
+                                        "failure_stage" to if (error.message?.contains("CLASSIFIER") == true) "CLASSIFIER_MODEL_LOAD" else "MODEL_PIPELINE"), error)
                                 productionResult = null
                                 recognitionTechnicalFailure = true
                                 nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
@@ -1108,6 +1129,21 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                             image = sessionImage,
                             result = current,
                             technicalFailure = recognitionTechnicalFailure,
+                            diagnostics = recognitionDiagnostics.read(activeRecognitionAttemptId),
+                            onCopyDiagnostics = {
+                                (activityContext.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                                    .setPrimaryClip(ClipData.newPlainText("识别诊断", recognitionDiagnostics.read(activeRecognitionAttemptId)))
+                            },
+                            onExportDiagnostics = {
+                                runCatching {
+                                    val file = recognitionDiagnostics.export(activeRecognitionAttemptId, activityContext.cacheDir)
+                                    val uri = FileProvider.getUriForFile(activityContext, "${activityContext.packageName}.fileprovider", file)
+                                    activityContext.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                                        type = "application/zip"; putExtra(Intent.EXTRA_STREAM, uri)
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }, "导出识别诊断").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                }.onFailure { Log.e("RecognitionDiagnostics", "EXPORT_FAILED", it) }
+                            },
                             onBack = { startCapture(preserveSession = true) },
                             onChooseAnother = { startCapture(preserveSession = true) },
                             onChooseGallery = { startCapture(openGallery = true, preserveSession = true) },

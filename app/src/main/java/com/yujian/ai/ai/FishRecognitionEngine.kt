@@ -81,13 +81,21 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val classMap = JSONObject(classMapBytes.toString(Charsets.UTF_8))
         val tensorContractBytes = assetBytes(MODEL_TENSOR_CONTRACT_FILE)
         val tensorContract = JSONObject(tensorContractBytes.toString(Charsets.UTF_8))
+        ModelSnapshotDtypeContract.validate(snapshot, tensorContract)
 
         val modelId = snapshot.getString("model_id")
         val datasetId = snapshot.getString("dataset_id")
         val releaseTag = snapshot.getString("release_tag")
-        val releaseId = snapshot.getLong("release_id")
-        require(snapshot.getInt("schema_version") == 1) { "不支持的正式模型快照版本" }
-        require(modelId.isNotBlank() && datasetId.isNotBlank() && releaseId > 0L)
+        val schema = snapshot.getInt("schema_version")
+        require(schema == 1 || schema == 2) { "不支持的正式模型快照版本" }
+        val releaseId = if (schema == 1) snapshot.getLong("release_id") else 0L
+        require(modelId.isNotBlank() && datasetId.isNotBlank())
+        if (schema == 1) require(releaseId > 0L)
+        if (schema == 2) {
+            require(snapshot.getString("source") == "MAIN_COMMITTED_ASSETS") { "模型来源不是 Main 已提交资产" }
+            require(modelId == "MODEL_CROP_M1_v0.2" && datasetId == "DS_M1_v1.1")
+            require(snapshot.getString("sha256") == FROZEN_CLASSIFIER_SHA256) { "冻结分类模型 SHA 不匹配" }
+        }
         require(releaseTag == PRODUCTION_RELEASE_TAG) { "正式模型 Release tag 不匹配" }
         require(metadata.getString("model_id") == modelId) { "模型 metadata/model_id 不匹配" }
         require(metadata.getString("dataset_id") == datasetId) { "模型 metadata/dataset_id 不匹配" }
@@ -160,8 +168,9 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         }
         require(snapshot.getString("input_dtype") == inputDtype && snapshot.getString("output_dtype") == outputDtype)
 
-        val assets = snapshot.getJSONArray("release_assets")
-        val requiredAssetNames = setOf(
+        if (schema == 1) {
+          val assets = snapshot.getJSONArray("release_assets")
+          val requiredAssetNames = setOf(
             PRODUCTION_RELEASE_MODEL_FILE,
             MODEL_METADATA_FILE,
             MODEL_CLASS_MAP_FILE,
@@ -175,6 +184,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         }
         require(assetNames.toSet() == requiredAssetNames && assetNames.distinct().size == assetNames.size) {
             "正式模型快照 asset 集合不完整或重复"
+        }
         }
 
         return ProductionModelInfo(
@@ -399,6 +409,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         MessageDigest.getInstance("SHA-256").digest(this).joinToString("") { "%02x".format(it) }
 
     companion object {
+        private const val FROZEN_CLASSIFIER_SHA256 = "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18"
         const val MODEL_FILE = "fish_classifier.tflite"
         const val MODEL_METADATA_FILE = "fish_classifier_v0_2.metadata.json"
         const val MODEL_CLASS_MAP_FILE = "class_map.json"

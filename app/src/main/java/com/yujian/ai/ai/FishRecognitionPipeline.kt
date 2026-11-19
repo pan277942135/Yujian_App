@@ -28,6 +28,7 @@ data class ProductionRecognitionResult(
     val prediction: RecognitionPrediction?,
     val cropPixels: IntArray?,
     val failureCode: RecognitionFailureCode? = null,
+    val failureCause: Throwable? = null,
 ) {
     val ready: Boolean get() = assessment.isClassifierEligible && prediction != null
     val totalLatencyMs: Long get() = detectorRun.latencyMs + (prediction?.latencyMs ?: 0L)
@@ -49,6 +50,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
         bitmap: Bitmap,
         onProgress: (RecognitionProgress) -> Unit,
         modelIdentity: RecognitionModelIdentity?,
+        onDiagnostic: (String, String, String, Map<String, Any?>, Throwable?) -> Unit = { _, _, _, _, _ -> },
     ): ProductionRecognitionResult {
         if (bitmap.width <= 0 || bitmap.height <= 0) {
             throw RecognitionStageFailureException(
@@ -64,6 +66,8 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
 
         advance(RecognitionEvent.CaptureReady)
         advance(RecognitionEvent.DetectionStarted)
+        val detectorStart = android.os.SystemClock.uptimeMillis()
+        onDiagnostic("DETECTOR_START", "DETECTOR", "STARTED", mapOf("input_shape" to "[1,3,416,416]", "input_dtype" to "float32"), null)
 
         val detectorRun = try {
             RecognitionModelWatchdog.execute(
@@ -73,11 +77,20 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: RecognitionStageFailureException) {
+            onDiagnostic("DETECTOR_FAIL", "DETECTOR", "FAIL", mapOf("failure_code" to failure.failureCode.name), failure)
             throw failure
         } catch (error: Throwable) {
+            onDiagnostic("DETECTOR_FAIL", "DETECTOR", "FAIL", emptyMap(), error)
             throw RecognitionStageFailureException(RecognitionFailureCode.MODEL_INFERENCE_FAILED, error)
         }
+        onDiagnostic("DETECTOR_END", "DETECTOR", "PASS", mapOf("duration_ms" to (android.os.SystemClock.uptimeMillis() - detectorStart),
+            "detections" to detectorRun.detections.size, "selected_attempt" to detectorRun.selectedAttempt,
+            "actual_model_id" to detectorRun.modelVersion, "actual_model_sha256" to detectorRun.onnxSha256,
+            "attempts" to detectorRun.attemptTrace.map { it.toString() }), null)
         val assessment = FishDetectionQualityGate.assess(detectorRun.detections)
+        onDiagnostic("QUALITY_GATE_END", "QUALITY_GATE", assessment.status.name,
+            mapOf("quality" to assessment.qualityLevel.name, "reason" to assessment.qualityReason,
+                "bbox_area_ratio" to assessment.bboxAreaRatio, "bbox" to assessment.primary?.box.toString()), null)
         InferenceTrace.detectorOutcome(detectorRun, assessment.primary?.box)
 
         if (!assessment.isClassifierEligible) {
@@ -102,6 +115,8 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
 
         advance(RecognitionEvent.DetectionFinished(DetectionRoute.OUTLINE), assessment)
         val cropBox = requireNotNull(assessment.cropBox)
+        val cropStart = android.os.SystemClock.uptimeMillis()
+        onDiagnostic("CROP_START", "CROP", "STARTED", mapOf("bbox" to cropBox.toString(), "expand_ratio" to FishDetectionQualityGate.CROP_EXPAND_RATIO), null)
         val pixels: IntArray
         val crop: Bitmap
         try {
@@ -114,6 +129,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 pixels[3] - pixels[1],
             )
         } catch (error: IllegalArgumentException) {
+            onDiagnostic("CROP_FAIL", "CROP", "FAIL", emptyMap(), error)
             stateMachine.dispatch(RecognitionEvent.Failed(RecognitionFailureCode.INVALID_CROP))
             return ProductionRecognitionResult(
                 status = assessment.status,
@@ -124,6 +140,8 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 failureCode = RecognitionFailureCode.INVALID_CROP,
             )
         }
+        onDiagnostic("CROP_SUCCESS", "CROP", "PASS", mapOf("pixels" to pixels.toList(), "width" to crop.width,
+            "height" to crop.height, "duration_ms" to (android.os.SystemClock.uptimeMillis() - cropStart)), null)
         val primary = requireNotNull(assessment.primary)
         val box = primary.box.normalized()
         val traceContext = InferenceTrace.PipelineContext(
@@ -147,6 +165,8 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
         )
 
         advance(RecognitionEvent.ClassificationStarted, assessment)
+        val classifierStart = android.os.SystemClock.uptimeMillis()
+        onDiagnostic("CLASSIFIER_START", "CLASSIFIER", "STARTED", mapOf("input_shape" to "[1,3,224,224]", "input_dtype" to "float32"), null)
         return try {
             val prediction = try {
                 RecognitionModelWatchdog.execute(
@@ -168,6 +188,9 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 else -> ClassificationRoute.SUCCESS
             }
             advance(RecognitionEvent.ClassificationFinished(route), assessment)
+            onDiagnostic("CLASSIFIER_END", "CLASSIFIER", "PASS", mapOf("duration_ms" to (android.os.SystemClock.uptimeMillis() - classifierStart),
+                "top1" to prediction.top1.toString(), "top3" to prediction.candidates.take(3).map { it.toString() },
+                "route" to route.name), null)
             val ready = ProductionRecognitionResult(
                 status = assessment.status,
                 detectorRun = detectorRun,
@@ -179,6 +202,8 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (failure: RecognitionStageFailureException) {
+            onDiagnostic("CLASSIFIER_FAIL", if (failure.failureCode == RecognitionFailureCode.MODEL_LOAD_FAILED) "CLASSIFIER_MODEL_LOAD" else "CLASSIFIER",
+                "FAIL", mapOf("failure_code" to failure.failureCode.name), failure)
             stateMachine.dispatch(RecognitionEvent.Failed(failure.failureCode))
             ProductionRecognitionResult(
                 status = assessment.status,
@@ -187,8 +212,10 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 prediction = null,
                 cropPixels = pixels,
                 failureCode = failure.failureCode,
+                failureCause = failure,
             )
         } catch (error: Exception) {
+            onDiagnostic("CLASSIFIER_FAIL", "CLASSIFIER", "FAIL", mapOf("failure_code" to RecognitionFailureCode.MODEL_INFERENCE_FAILED.name), error)
             stateMachine.dispatch(RecognitionEvent.Failed(RecognitionFailureCode.MODEL_INFERENCE_FAILED))
             ProductionRecognitionResult(
                 status = assessment.status,
@@ -197,6 +224,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 prediction = null,
                 cropPixels = pixels,
                 failureCode = RecognitionFailureCode.MODEL_INFERENCE_FAILED,
+                failureCause = error,
             )
         } finally {
             if (crop !== bitmap && !crop.isRecycled) crop.recycle()
