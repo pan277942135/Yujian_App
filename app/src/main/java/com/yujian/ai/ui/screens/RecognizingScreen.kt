@@ -1627,7 +1627,7 @@ fun RecognitionProcessingScene(
                     window = evidenceWindow,
                     frame = waterLightFrame.sceneFrame,
                     latestFrame = { latestEvidenceSceneFrame.value },
-                    allowPixelCopyCapture = stepDiagnosticActive,
+                    allowPixelCopyCapture = BuildConfig.DEBUG,
                 )
             }
             .onGloballyPositioned { rootOrigin = it.boundsInWindow().topLeft },
