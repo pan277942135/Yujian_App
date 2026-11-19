@@ -1030,7 +1030,8 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                 selected, box, confidence, sessionId, activeAttempt,
                                 requireNotNull(recognitionAttemptDeadline),
                             ) { resolved, geometry ->
-                                if (activeRecognitionAttemptId == activeAttempt && sessionImage?.imageId == selected.imageId &&
+                                if (resolved.status != SubjectStatus.READY &&
+                                    activeRecognitionAttemptId == activeAttempt && sessionImage?.imageId == selected.imageId &&
                                     sessionImage?.photoSha256 == selected.photoSha256) {
                                     subjectResult = resolved
                                     revealSessionStore.updateSubject(RecognitionRevealKey(sessionId, activeAttempt), resolved, geometry)

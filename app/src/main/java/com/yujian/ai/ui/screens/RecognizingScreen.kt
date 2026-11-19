@@ -700,16 +700,16 @@ fun RecognitionProcessingScene(
                 "status=${result?.status ?: SubjectStatus.FAILED} quality=${result?.quality} " +
                 "mask_area_ratio=${result?.maskAreaRatio} iou=${result?.maskIouScore?.toString() ?: "NOT_AVAILABLE"}",
         )
-        subjectResult = result ?: FishSubjectResult(SubjectStatus.FAILED, errorCode = "SUBJECT_GENERATION_NULL")
+        // Model READY is not Mask acceptance. Keep the visual join pending until
+        // the PNG bytes, geometry and contour have all been checked below.
+        val generatedSubject = result ?: FishSubjectResult(SubjectStatus.FAILED, errorCode = "SUBJECT_GENERATION_NULL")
         maskFileGenerated = !result?.bitmapPath.isNullOrBlank()
         maskFileExists = result?.bitmapPath?.let { path -> java.io.File(path).isFile } == true
         maskRoiDimensions = (result?.roiWidth ?: 0) to (result?.roiHeight ?: 0)
         if (result?.status != SubjectStatus.READY || result.bitmapPath.isNullOrBlank()) {
             val rejectCode = result?.errorCode ?: "MASK_FILE_NOT_GENERATED"
             maskRuntimeRejectReason = rejectCode
-            if (result?.status == SubjectStatus.READY) {
-                subjectResult = subjectResult.copy(status = SubjectStatus.FAILED, errorCode = rejectCode)
-            }
+            subjectResult = generatedSubject.copy(status = SubjectStatus.FAILED, errorCode = rejectCode)
             onSubjectGeometry(subjectResult, null)
             controller.onMaskTerminal(
                 trusted = false, contourValid = false, contourClosed = false,
@@ -733,7 +733,7 @@ fun RecognitionProcessingScene(
         if (loaded == null) {
             maskBitmapDecodeStatus = "MASK_BITMAP_DECODE_FAILED"
             maskRuntimeRejectReason = "MASK_BITMAP_DECODE_FAILED"
-            subjectResult = subjectResult.copy(status = SubjectStatus.FAILED, errorCode = "MASK_BITMAP_DECODE_FAILED")
+            subjectResult = generatedSubject.copy(status = SubjectStatus.FAILED, errorCode = "MASK_BITMAP_DECODE_FAILED")
             onSubjectGeometry(subjectResult, null)
             controller.onMaskTerminal(
                 trusted = false, contourValid = false, contourClosed = false,
@@ -775,6 +775,20 @@ fun RecognitionProcessingScene(
                 recognitionSessionId.orEmpty(), recognitionAttemptId.orEmpty(),
                 selected.imageId, selected.photoSha256, selected.bitmap.width, selected.bitmap.height,
             ) == true
+            Log.i(
+                LOG_TAG,
+                "MASK_IDENTITY_CHECK session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                    "image=${selected.imageId} photoSha=${selected.photoSha256} " +
+                    "metadataPresent=${metadata != null} metadataSession=${metadata?.sessionId.orEmpty()} " +
+                    "metadataAttempt=${metadata?.attemptId.orEmpty()} metadataImage=${metadata?.imageId.orEmpty()} " +
+                    "metadataPhotoSha=${metadata?.photoSha256.orEmpty()} " +
+                    "metadataSource=${metadata?.canonicalWidth}x${metadata?.canonicalHeight} " +
+                    "selectedSource=${selected.bitmap.width}x${selected.bitmap.height} " +
+                    "declaredMaskSha=${result.maskSha256} metadataMaskSha=${metadata?.maskSha256.orEmpty()} " +
+                    "actualMaskSha=${actualMaskSha256.orEmpty()} roi=${metadata?.roiPx} " +
+                    "decoded=${loaded.width}x${loaded.height} shaMatch=$maskShaValid " +
+                    "photoMatch=$photoIdentityMatches geometryMatch=$geometryMatchesPhoto",
+            )
             maskPhotoIdentityMatches = photoIdentityMatches
             maskGeometryMatches = geometryMatchesPhoto
             val roiBox = metadata?.takeIf { geometryMatchesPhoto }?.normalizedRoi()
@@ -856,7 +870,6 @@ fun RecognitionProcessingScene(
                     )
                 }
             }
-            onSubjectGeometry(subjectResult, geometry.takeIf { trustedForReveal })
             if (trustedForReveal) {
                 Log.i(
                     LOG_TAG,
@@ -880,10 +893,14 @@ fun RecognitionProcessingScene(
                 else -> "NONE"
             }
             maskRuntimeRejectReason = maskRejectReason
+            subjectResult = if (trustedForReveal) generatedSubject else generatedSubject.copy(
+                status = SubjectStatus.FAILED, errorCode = maskRejectReason,
+            )
+            onSubjectGeometry(subjectResult, geometry.takeIf { trustedForReveal })
             if (!trustedForReveal) {
                 controller.onMaskTerminal(
                     trusted = false, contourValid = false, contourClosed = false,
-                    failedTerminal = result.quality != FishSubjectQuality.GOOD && result.quality != FishSubjectQuality.WARNING,
+                    failedTerminal = true,
                     currentIdentity = sceneIdentity,
                 )
                 Log.i(
