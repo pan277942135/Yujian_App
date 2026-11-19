@@ -255,6 +255,14 @@ class Stage04ArrivalPathWithoutMaskTest {
         assertTrue(ledger.recordPerimeterArrivalPath(arrivalFrame, arrivalGeometry))
         val arrival = requireNotNull(ledger.perimeterArrivalPath(arrivalFrame))
         assertTrue(arrival.isValid())
+        val photo = transform.photoContentRect
+        assertTrue(
+            "Arrival must terminate at the photo boundary, not inside the detector box",
+            kotlin.math.abs(arrival.geometry.end.x - photo.left) < .01f ||
+                kotlin.math.abs(arrival.geometry.end.x - photo.right) < .01f ||
+                kotlin.math.abs(arrival.geometry.end.y - photo.top) < .01f ||
+                kotlin.math.abs(arrival.geometry.end.y - photo.bottom) < .01f,
+        )
         assertTrue(controller.onPerimeterArrivalPathAvailable(
             pathId = arrival.pathId,
             pathGeometry = arrival.geometry,

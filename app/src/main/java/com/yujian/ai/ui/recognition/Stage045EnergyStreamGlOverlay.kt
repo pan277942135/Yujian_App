@@ -120,7 +120,7 @@ internal fun Stage045EnergyStreamGlOverlay(
     }
 
     val fishSeekProgress = when {
-        fishPath == null && arrivalPath == null -> 0f
+        fishPath == null -> 0f
         reduce -> 1f
         stage == RecognitionSceneStage.PERIMETER_ARRIVAL -> 0.12f * smoothstep((p - 0.45f) / 0.55f)
         stage == RecognitionSceneStage.PATH_TO_FISH -> 0.12f + 0.58f * smoothstep(p)
@@ -312,10 +312,7 @@ private class Stage045GlRenderer : GlSceneRenderer<Stage045GlFrame> {
         val vpW = frame.viewportWidthPx.coerceAtLeast(1f)
         val vpH = frame.viewportHeightPx.coerceAtLeast(1f)
         val contactPt = frame.releasePath?.end ?: WaterLightPathPoint(frame.orbCenter.x, frame.photoRect.bottom)
-        val fishTargetPt = frame.fishPath?.end ?: frame.arrivalPath?.end ?: WaterLightPathPoint(
-            frame.photoRect.center.x,
-            frame.photoRect.center.y,
-        )
+        val fishTargetPt = frame.fishPath?.end ?: contactPt
 
         // =========================================================================
         // PASS 1: Render into sceneFbo (Upward Plume + Overflowing Liquid Perimeter + Twin Ribbons + Starbursts + Droplets)
@@ -426,7 +423,7 @@ private class Stage045GlRenderer : GlSceneRenderer<Stage045GlFrame> {
         }
 
         // 2) Seeking Bifurcation Stream: Perimeter -> Fish Contact P* (KF03 -> KF04)
-        val seekGeo = frame.fishPath ?: frame.arrivalPath
+        val seekGeo = frame.fishPath
         if (seekGeo != null && frame.fishSeekProgress > 0.01f) {
             emitBraidedRibbons(
                 out = out,
@@ -634,7 +631,7 @@ private class Stage045GlRenderer : GlSceneRenderer<Stage045GlFrame> {
         }
 
         // 3. KF03 Leading Head & KF04 Fish Arrival Starburst at P*
-        val seekGeo = frame.fishPath ?: frame.arrivalPath
+        val seekGeo = frame.fishPath
         if (seekGeo != null && frame.fishSeekProgress > 0.05f) {
             val headPt = cubicAt(seekGeo, frame.fishSeekProgress.coerceIn(0f, 1f))
             val headSize = (18f + 12f * frame.fishArrivalPulse) * d

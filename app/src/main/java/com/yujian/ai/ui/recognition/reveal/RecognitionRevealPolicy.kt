@@ -126,15 +126,9 @@ object RecognitionRevealPathGeometry {
         if (!rect.isValid()) return null
         val detectorCenter = transform.mapBox(detectorBox)
         val entry = nearestPerimeterAnchor(rect, detectorCenter) ?: return null
-        // Advance a short measured distance into the photo toward the real Detector box.
-        val target = DisplayPoint(
-            entry.x + (detectorCenter.x - entry.x) * .25f,
-            entry.y + (detectorCenter.y - entry.y) * .25f,
-        )
-        if (!target.isInside(rect)) return null
         return WaterLightPathGeometryFactory.between(
             start = releaseEndpoint,
-            end = WaterLightPathPoint(target.x, target.y),
+            end = WaterLightPathPoint(entry.x, entry.y),
             seed = seed,
         )?.takeIf(WaterLightPathGeometry::isValid)
     }
