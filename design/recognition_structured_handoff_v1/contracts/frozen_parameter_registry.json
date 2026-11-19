@@ -1,0 +1,230 @@
+{
+  "entries": [
+    {
+      "parameter": "S1_CORE",
+      "value": "唯一 Asset01；Core alpha 源保持",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "S1_BREATH",
+      "value": "±0.8% / 6000ms",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "S1_R06",
+      "value": "hidden",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "S1_S2_WAKE",
+      "value": "0–350ms internal water/caustics/drops/grass",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "R06_ALPHA",
+      "value": "0–450ms",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "S2_BREATH",
+      "value": "±1.8% / 4800ms",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "R06_EXTEND",
+      "value": "350–450ms",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "R06_LOCAL_RETURN",
+      "value": "690–950ms / 260ms C1",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "R06_PATH_IDS",
+      "value": "G01,G02,A01,A02,C01",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "R01B",
+      "value": "six source-derived masks + JSON + SVG; scheme B",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "R06_RENDER_ORDER",
+      "value": "G01/A01 BACK → Core → G02/A02/C01 FRONT",
+      "status": "FROZEN",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": ""
+    },
+    {
+      "parameter": "ORB_TO_FISH_CAUSALITY",
+      "value": "AI WaterLight starts at Orb",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "PERIMETER_SCOPE",
+      "value": "photo edge only, no whole-photo gold",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "SEEK",
+      "value": "1–2 broken gold filaments + varied translucent drops",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "CONTOUR",
+      "value": "real trusted Mask, blue/gold alternation",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "FISH_GOLD",
+      "value": "Core/Soft/Halo three layers",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "NOMINAL_PROCESSING_REFERENCE",
+      "value": "2800ms; not hard deadline",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "RR09_REFERENCE",
+      "value": "R0 2800, R0.5 2900, R1 3000, R2 3180, R3 3350, R4 3480, R5 3650ms; not hard deadline",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "CLOCK_ORIGIN",
+      "value": "first actual stable photo frame",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "DEBUG_STEP",
+      "value": "MANUAL default, 3000ms per stage then pause; AUTO gated",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "WATCHDOG",
+      "value": "60s model timeout",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "MODEL_JOIN",
+      "value": "Classifier true name + SlimSAM terminal; trusted Mask FULL else ORB_ONLY",
+      "status": "FROZEN",
+      "source": "User-approved recognition lifecycle contract; app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+      "notes": ""
+    },
+    {
+      "parameter": "SUBFRAME_11_13_TIMING",
+      "value": "11:3,12:3,13:5 internal design substates inside existing 13 enum",
+      "status": "PENDING_PRODUCT_REVIEW",
+      "source": "V3/V3.1 issues and KF06–KF10 composition reference",
+      "notes": "No executable precision has been frozen"
+    },
+    {
+      "parameter": "GLYPH_MORPH_GEOMETRY",
+      "value": "same Orb water to live Classifier name path",
+      "status": "PENDING_PRODUCT_REVIEW",
+      "source": "V3/V3.1 issues and KF06–KF10 composition reference",
+      "notes": "No executable precision has been frozen"
+    },
+    {
+      "parameter": "PHOTO_CARD_RESULT_GEOMETRY",
+      "value": "KF06–KF10 composition, same confirmed photo",
+      "status": "PENDING_PRODUCT_REVIEW",
+      "source": "V3/V3.1 issues and KF06–KF10 composition reference",
+      "notes": "No executable precision has been frozen"
+    },
+    {
+      "parameter": "MASK_TRUST_THRESHOLD",
+      "value": "must validate real fish boundary and same-attempt transform",
+      "status": "PENDING_PRODUCT_REVIEW",
+      "source": "V3/V3.1 issues and KF06–KF10 composition reference",
+      "notes": "No executable precision has been frozen"
+    },
+    {
+      "parameter": "RESULT_INFO_ENTRANCE_ALPHA",
+      "value": "progressive alpha and translation",
+      "status": "RUNTIME_TUNABLE",
+      "source": "design handoff candidate",
+      "notes": "May tune only without modifying frozen identity or geometry"
+    },
+    {
+      "parameter": "AMBIENT_CAUSTIC_STRENGTH",
+      "value": "within V1.1 optical caps and tested device performance",
+      "status": "RUNTIME_TUNABLE",
+      "source": "design handoff candidate",
+      "notes": "May tune only without modifying frozen identity or geometry"
+    },
+    {
+      "parameter": "R06_CURRENT_MAIN_BINARY_IDENTITY",
+      "value": "repository R06 JSON/Profile/SVG differ from V1.1 hashes",
+      "status": "PENDING_PRODUCT_REVIEW",
+      "source": "Library libfile_a47a721a52588191a0df9f8d8a46a3bf / ORB_WAKE_BREATH_RELEASE_VISUAL_CONTRACT_FROZEN_V1_1.json",
+      "notes": "Must reconcile by exact source file/approved version before calling current files frozen"
+    }
+  ],
+  "sourceConflicts": [
+    {
+      "id": "R06_GEOMETRY",
+      "path": "design/system/components/ai_orb_core/assets/paths/R06_orb_filament_path_geometry.json",
+      "v11ExpectedSha256": "a37d947d32cdf6902cabe87be03458ab6d0dd236c4d033564a98f8a5a1a601a5",
+      "currentMainSha256": "1dfc85e651440d88c18d80daf51bbaa081e058fa60061bed6c8801aededf4cdc",
+      "match": false
+    },
+    {
+      "id": "R06_PROFILE",
+      "path": "design/system/components/ai_orb_core/profiles/R06_orb_filament_profile.json",
+      "v11ExpectedSha256": "075e8390aa08638ba3baca5a12f9b92b73718dc87ec1175fe3325e4cc7cad864",
+      "currentMainSha256": "8c7f998b043ddca8363054b75a93dbe6fab72cbdf31424b4fb71c4b502f21c10",
+      "match": false
+    },
+    {
+      "id": "R06_SVG",
+      "path": "design/system/components/ai_orb_core/assets/paths/R06_orb_filament_paths.svg",
+      "v11ExpectedSha256": "66966e0b9aaf1fe6cbb3930ae99d382a1d3a9d292ef8c3911a9e2ef45c4db52b",
+      "currentMainSha256": "d321c2bdd709145fadf73f52fc3f5d81a93c7e4e9d1074dc9adf783810287389",
+      "match": false
+    }
+  ]
+}
