@@ -83,6 +83,9 @@ internal fun Stage045EnergyStreamGlOverlay(
     if (!scene.isIdentityValid || globalOpacity <= 0.001f || viewportWidthPx <= 1f || viewportHeightPx <= 1f) return
     val stage = scene.stage
     if (stage == RecognitionSceneStage.PHOTO_STABLE || stage == RecognitionSceneStage.ORB_WAKE) return
+    // A missing measured Orb-to-photo path is a real gate failure, not a cue to
+    // synthesize an unbound contact point in this renderer.
+    if (releasePath == null || !releasePath.isValid()) return
 
     val context = LocalContext.current
     val density = LocalDensity.current.density
@@ -148,19 +151,6 @@ internal fun Stage045EnergyStreamGlOverlay(
     val effectiveOpacity = (globalOpacity * stageFade).coerceIn(0f, 1f)
     if (effectiveOpacity <= 0.001f) return
 
-    val fallbackRelease = remember(orbCenter, orbRadiusPx, photoRect) {
-        val targetX = orbCenter.x.coerceIn(photoRect.left + cornerRadiusPx, photoRect.right - cornerRadiusPx)
-        val end = WaterLightPathPoint(targetX, photoRect.bottom)
-        val start = WaterLightPathPoint(orbCenter.x, orbCenter.y - orbRadiusPx * 0.85f)
-        val dy = end.y - start.y
-        WaterLightPathGeometry(
-            start = start,
-            control1 = WaterLightPathPoint(start.x - 18f * density, start.y + dy * 0.35f),
-            control2 = WaterLightPathPoint(end.x + 14f * density, start.y + dy * 0.68f),
-            end = end,
-        )
-    }
-
     val glFrame = Stage045GlFrame(
         viewportWidthPx = viewportWidthPx,
         viewportHeightPx = viewportHeightPx,
@@ -172,7 +162,7 @@ internal fun Stage045EnergyStreamGlOverlay(
         orbRadiusPx = orbRadiusPx,
         photoRect = photoRect,
         cornerRadiusPx = cornerRadiusPx,
-        releasePath = releasePath ?: fallbackRelease,
+        releasePath = releasePath,
         arrivalPath = arrivalPath,
         fishPath = fishPath,
         releaseProgress = releaseProgress,

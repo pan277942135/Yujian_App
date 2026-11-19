@@ -1029,6 +1029,7 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                             subjectAttemptRunner.request(
                                 selected, box, confidence, sessionId, activeAttempt,
                                 requireNotNull(recognitionAttemptDeadline),
+                                acceptanceInScreen = true,
                             ) { resolved, geometry ->
                                 if (resolved.status != SubjectStatus.READY &&
                                     activeRecognitionAttemptId == activeAttempt && sessionImage?.imageId == selected.imageId &&

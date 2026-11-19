@@ -293,6 +293,35 @@ class RecognitionSessionEvidenceRecorder(
         )
     }
 
+    fun recordResultGeometryDiagnostic(
+        identity: RecognitionSceneIdentity,
+        failureReason: String?,
+        geometryReady: Boolean,
+        geometryVersion: Long,
+        pathId: String?,
+        maskSha256: String?,
+        maskVersion: Long,
+        resultIdentity: String?,
+    ) {
+        record(
+            "RESULT_GEOMETRY_RESOLVED",
+            "result_geometry_diagnostics.jsonl",
+            mapOf(
+                "sessionIdHash" to sha256(identity.sessionId),
+                "attemptIdHash" to sha256(identity.attemptId),
+                "imageIdHash" to sha256(identity.imageId),
+                "photoSha256" to identity.photoSha256,
+                "failureReason" to failureReason,
+                "geometryReady" to geometryReady,
+                "geometryVersion" to geometryVersion,
+                "pathId" to pathId,
+                "maskSha256" to maskSha256,
+                "maskVersion" to maskVersion,
+                "resultIdentity" to resultIdentity,
+            ),
+        )
+    }
+
     fun recordModelState(
         stage: RecognitionSceneStage,
         sceneElapsedMs: Long,
@@ -959,11 +988,13 @@ class RecognitionSessionEvidenceRecorder(
         const val MAX_MOTION_SAMPLES = 32
         const val MOTION_INTERVAL_MS = 250L
         const val WAIT_HEARTBEAT_INTERVAL_MS = 1_000L
-        const val DEFAULT_FLUSH_TIMEOUT_MS = 2_500L
-        const val MAX_FLUSH_TIMEOUT_MS = 5_000L
-        const val MAX_PIXELCOPY_FLUSH_WAIT_MS = 1_500L
-        const val MAX_PIXEL_WRITE_FLUSH_WAIT_MS = 1_500L
+        const val DEFAULT_FLUSH_TIMEOUT_MS = 7_500L
+        const val MAX_FLUSH_TIMEOUT_MS = 10_000L
+        const val MAX_PIXELCOPY_FLUSH_WAIT_MS = 5_000L
+        const val MAX_PIXEL_WRITE_FLUSH_WAIT_MS = 5_000L
         const val DEFAULT_TAIL_FLUSH_WAIT_MS = 400L
-        const val MAX_EXPORT_FRAMES_BYTES = 24L * 1024L * 1024L
+        // The 26 actual full-resolution PixelCopy PNGs are copied on disk, not
+        // retained as Bitmaps. The former 24 MiB cap dropped valid captures.
+        const val MAX_EXPORT_FRAMES_BYTES = 128L * 1024L * 1024L
     }
 }

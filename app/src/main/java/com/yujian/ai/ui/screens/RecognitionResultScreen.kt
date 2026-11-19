@@ -315,6 +315,9 @@ fun RecognitionResultScreen(
         configuration.screenHeightDp.dp,
     )
     val geometry = RecognitionResultGeometryResolver.resolve(adaptiveProfile, visualState)
+    val resultPageScrollable = RecognitionResultGeometryResolver.usesScrollableResultPage(
+        geometry.compactHeightPolicy, adaptiveProfile.accessibilityFontScale,
+    )
     val compactResultActions = geometry.heroWidthDp <= 340
     val candidateFontScale = LocalDensity.current.fontScale
     val candidates = remember(prediction) { prediction.candidates.distinctBy { it.speciesKey }.take(3) }
@@ -684,6 +687,25 @@ fun RecognitionResultScreen(
     // 350ms is an advisory threshold only. Keep the shared scene clock held while
     // Compose measures; only an explicit geometry rejection enters static fallback.
     val geometryInvalid = !resultGeometryReady && geometryResolutionReason != null && !geometryStillMeasuring
+    LaunchedEffect(revealHandoff?.key, geometryResolutionReason, resultGeometryReady, resultGeometryVersion) {
+        if (revealHandoff != null && !geometryStillMeasuring) {
+            Log.i(
+                "RecognitionResultGeometry",
+                "reason=${geometryResolutionReason ?: "NONE"} stage=${resultSceneStage.name} " +
+                    "session=${resultSceneIdentity.sessionId} attempt=${resultSceneIdentity.attemptId} " +
+                    "image=${resultSceneIdentity.imageId} photoSha=${resultSceneIdentity.photoSha256} " +
+                    "maskSha=${visualHandoff?.maskSha256} maskVersion=${visualHandoff?.maskVersion} " +
+                    "path=${visualHandoff?.fishPathSnapshot?.returnPathId} geometry=$resultGeometryVersion " +
+                    "result=${prediction.top1.speciesKey} ready=$resultGeometryReady",
+            )
+            recognitionEvidenceRecorder?.recordResultGeometryDiagnostic(
+                resultSceneIdentity, geometryResolutionReason, resultGeometryReady,
+                resultGeometryVersion, visualHandoff?.fishPathSnapshot?.returnPathId,
+                visualHandoff?.maskSha256, visualHandoff?.maskVersion ?: -1L,
+                prediction.top1.speciesKey,
+            )
+        }
+    }
     val resultHandoffMotionActive = !revealMotionPolicy.reduceMotion && !revealAlreadyPlayed &&
         uiState == RecognitionUiState.RESULT_HIGH &&
         visualHandoff?.eligibility in setOf(
@@ -1163,10 +1185,7 @@ fun RecognitionResultScreen(
                     .fillMaxWidth()
                     .align(Alignment.CenterHorizontally)
                     .padding(start = safeInsets.start, end = safeInsets.end)
-                    // Result content is allowed to exceed a short viewport and is
-                    // reached by natural scrolling. Compose does not draw an
-                    // always-visible scrollbar for this scroll container.
-                    .verticalScroll(rememberScrollState())
+                    .then(if (resultPageScrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                     .padding(bottom = 20.dp + safeInsets.bottom),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -1249,19 +1268,6 @@ fun RecognitionResultScreen(
                             },
                             onChange = { openSpeciesSelector() },
                         )
-                        if (geometryInvalid || (geometryWaitExpired && !resultGeometryReady)) {
-                            Text(
-                                text = if (geometryInvalid) {
-                                    "Result 几何不可用 · 当前显示静态结果"
-                                } else {
-                                    "正在等待 Result 几何 · 就绪后继续水光揭晓"
-                                },
-                                color = Color(0xFF7C6A4B),
-                                fontSize = 11.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin, vertical = 2.dp),
-                            )
-                        }
                         Spacer(Modifier.height(8.dp))
                         ResultMetadataStrip(
                             length = lengthText,

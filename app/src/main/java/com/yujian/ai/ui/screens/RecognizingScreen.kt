@@ -799,13 +799,25 @@ fun RecognitionProcessingScene(
             val maskShapeValid = result.quality == FishSubjectQuality.GOOD &&
                 result.maskSize > 0 && result.maskSize == result.expectedMaskSize &&
                 maskShaValid && cropDimensionsMatch && geometryMatchesPhoto && roi != null
+            val contourStartedAtMs = recognitionMonotonicNowMs()
             val extractedContour = if (maskShapeValid) {
-                withContext(Dispatchers.Default) {
-                    WaterLightMaskAdapter.toPhotoSpace(requireNotNull(metadata), extractContour(loaded))
+                try {
+                    withContext(Dispatchers.Default) {
+                        WaterLightMaskAdapter.toPhotoSpace(requireNotNull(metadata), extractContour(loaded))
+                    }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Throwable) {
+                    Log.e(LOG_TAG, "MASK_CONTOUR_EXTRACTION_FAILED maskSha=${result.maskSha256}", error)
+                    emptyList()
                 }
             } else {
                 emptyList()
             }
+            Log.i(LOG_TAG, "MASK_CONTOUR_EXTRACTION maskSha=${result.maskSha256} " +
+                "input=${loaded.width}x${loaded.height} attempted=$maskShapeValid " +
+                "segments=${extractedContour.size} closed=${extractedContour.lastOrNull()?.closesContour == true} " +
+                "durationMs=${recognitionMonotonicNowMs() - contourStartedAtMs}")
             currentCoroutineContext().ensureActive()
             val geometry = if (maskShapeValid && extractedContour.isNotEmpty()) RecognitionSubjectGeometrySnapshot(
                 imageId = selected.imageId,
@@ -2513,7 +2525,7 @@ fun RecognitionProcessingScene(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(
+                if (diagnosticUiAvailable) Text(
                     "${debugStage.ordinal + 1}/13 ${debugStage.name} · wait=$debugWaiting · " +
                         "Classifier=$debugClassifier SlimSAM=$debugSlimSam Mask=$debugMaskTrust · " +
                         "Reveal=$revealDecision · reject=$debugRejectedEvent",

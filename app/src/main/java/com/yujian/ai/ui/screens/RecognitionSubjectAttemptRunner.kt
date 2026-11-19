@@ -53,9 +53,12 @@ class RecognitionSubjectAttemptRunner(
         sessionId: String,
         attemptId: String,
         deadline: RecognitionAttemptDeadline,
+        // Processing owns the single authoritative PNG/contour acceptance.
+        // Result-only retries still validate here when Processing is absent.
+        acceptanceInScreen: Boolean = false,
         onResolved: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit,
     ): Deferred<FishSubjectResult> {
-        val key = "$sessionId|$attemptId|${selected.imageId}|${selected.photoSha256}|$box"
+        val key = "$sessionId|$attemptId|${selected.imageId}|${selected.photoSha256}|$box|$acceptanceInScreen"
         if (identity == key) pending?.takeIf { it.isActive }?.let { return it }
         cancel()
         identity = key
@@ -91,7 +94,7 @@ class RecognitionSubjectAttemptRunner(
             if (deadline.isExpired(SystemClock.uptimeMillis())) {
                 result = FishSubjectResult(SubjectStatus.FAILED, errorCode = RecognitionAttemptFailureCode.SLIMSAM_TIMEOUT)
             }
-            val geometry = if (result.status == SubjectStatus.READY) {
+            val geometry = if (result.status == SubjectStatus.READY && !acceptanceInScreen) {
                 val remainingMs = deadline.remainingMs(SystemClock.uptimeMillis())
                 if (remainingMs == 0L) {
                     result = FishSubjectResult(SubjectStatus.FAILED, errorCode = RecognitionAttemptFailureCode.SLIMSAM_TIMEOUT)
@@ -108,7 +111,7 @@ class RecognitionSubjectAttemptRunner(
                 }
             } else null
             currentCoroutineContext().ensureActive()
-            if (result.status == SubjectStatus.READY && geometry == null) {
+            if (result.status == SubjectStatus.READY && geometry == null && !acceptanceInScreen) {
                 result = result.copy(errorCode = RecognitionAttemptFailureCode.MASK_UNTRUSTED)
             } else if (result.status == SubjectStatus.FAILED && result.errorCode.isNullOrBlank()) {
                 result = result.copy(errorCode = RecognitionAttemptFailureCode.MODEL_INFERENCE_FAILED)
