@@ -183,6 +183,11 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
     private var lastBufferStatus = RenderPassStatus.NOT_RUN
     private var lastBloomExecution: GlBloomExecution? = null
     private var lastDrawFailureReason: String? = null
+    private var residentBackStatus = RenderPassStatus.NOT_RUN
+    private var residentFrontStatus = RenderPassStatus.NOT_RUN
+    private var grassStatus = RenderPassStatus.NOT_RUN
+    private var dropletStatus = RenderPassStatus.NOT_RUN
+    private var lightStatus = RenderPassStatus.NOT_RUN
 
     override fun sceneFrameForResult(frame: OrbCrystalGlFrame): RecognitionSceneFrame = frame.sceneFrame
 
@@ -274,6 +279,11 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
         lastDrawFailureReason = null
         clearGlErrors()
         corePassStatus = RenderPassStatus.NOT_RUN
+        residentBackStatus = RenderPassStatus.NOT_RUN
+        residentFrontStatus = RenderPassStatus.NOT_RUN
+        grassStatus = RenderPassStatus.NOT_RUN
+        dropletStatus = RenderPassStatus.NOT_RUN
+        lightStatus = RenderPassStatus.NOT_RUN
         if (coreProg == 0 || coreTexture == 0 || ribbonProg == 0 || grassProg == 0 || envProg == 0) {
             lastDrawFailureReason = "REQUIRED_PROCEDURAL_SHADER_MISSING"
             return false
@@ -326,8 +336,14 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
         }
 
         drawStripBatch(grassProg, grsTimeLoc, grsWakeLoc, grsFrontLoc, backGrassVerts, timeSec, wakeWater, 0f)
+        grassStatus = if (checkGlError("BACK_GRASS") == null) RenderPassStatus.PASS else RenderPassStatus.FAIL
         drawStripBatch(ribbonProg, ribTimeLoc, ribWakeLoc, ribFrontLoc, backRibbonVerts, timeSec, wakeOptics, 0f)
-        lastDrawFailureReason = checkGlError("PROCEDURAL_BACK_PASS") ?: lastDrawFailureReason
+        residentBackStatus = if (backRibbonVerts.isNotEmpty() && checkGlError("RESIDENT_BACK") == null)
+            RenderPassStatus.PASS else RenderPassStatus.FAIL
+        if (grassStatus == RenderPassStatus.FAIL || residentBackStatus == RenderPassStatus.FAIL) {
+            lastDrawFailureReason = "ORB_BACK_PASS_FAILED"
+            return false
+        }
 
         // =========================================================================
         // PASS 2: Render Refracting 3D Crystal Sphere + Front Grass + Front Ribbons + Droplets + Starbursts -> sceneFbo
@@ -359,12 +375,18 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
         GLES20.glEnable(GLES20.GL_BLEND)
         GLES20.glBlendFuncSeparate(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA, GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
         drawStripBatch(grassProg, grsTimeLoc, grsWakeLoc, grsFrontLoc, frontGrassVerts, timeSec, wakeWater, 1f)
+        if (frontGrassVerts.isEmpty() || checkGlError("FRONT_GRASS") != null) grassStatus = RenderPassStatus.FAIL
         drawStripBatch(ribbonProg, ribTimeLoc, ribWakeLoc, ribFrontLoc, frontRibbonVerts, timeSec, wakeOptics, 1f)
+        residentFrontStatus = if (frontRibbonVerts.isNotEmpty() && checkGlError("RESIDENT_FRONT") == null)
+            RenderPassStatus.PASS else RenderPassStatus.FAIL
 
         // 2c. 12 Floating Refractive Micro-Droplets
-        if (frame.showDroplets && dropletProg != 0) {
+        if (dropletProg != 0) {
             val droplets = buildDropletSprites(timeSec, sphereRadiusNdc * openScale)
-            drawSpriteBatch(dropletProg, drpTimeLoc, drpWakeLoc, droplets, timeSec, wakeOptics)
+            drawSpriteBatch(dropletProg, drpTimeLoc, drpWakeLoc, droplets, timeSec,
+                if (frame.showDroplets) wakeOptics else 0f)
+            dropletStatus = if (droplets.isNotEmpty() && checkGlError("ORB_DROPLETS") == null)
+                RenderPassStatus.PASS else RenderPassStatus.FAIL
         }
 
         // 2d. Additive 4-Point Starburst Flares (Solar Peak + Orbiting Ribbon Crests)
@@ -372,8 +394,14 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
             GLES20.glBlendFuncSeparate(GLES20.GL_ONE, GLES20.GL_ONE, GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
             val stars = buildStarburstSprites(timeSec, sphereRadiusNdc * openScale, frame.showSunlight)
             drawSpriteBatch(starProg, strTimeLoc, strWakeLoc, stars, timeSec, wakeOptics)
+            lightStatus = if (stars.isNotEmpty() && checkGlError("ORB_STARLIGHT") == null)
+                RenderPassStatus.PASS else RenderPassStatus.FAIL
         }
-        lastDrawFailureReason = checkGlError("PROCEDURAL_SCENE_PASS") ?: lastDrawFailureReason
+        if (grassStatus == RenderPassStatus.FAIL || residentFrontStatus == RenderPassStatus.FAIL ||
+            dropletStatus == RenderPassStatus.FAIL || lightStatus == RenderPassStatus.FAIL) {
+            lastDrawFailureReason = "ORB_SCENE_PASS_FAILED"
+            return false
+        }
 
         // =========================================================================
         // PASS 3 & 4: 1/4-Res Bloom Blur + Final Premultiplied Composite to TextureView
@@ -383,13 +411,18 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
             threshold = 0.56f,
             bloomIntensity = 0.62f * (0.65f + 0.35f * wakeOptics),
             globalOpacity = 1f,
-            skipBlur = frame.lowPerformance,
+            skipBlur = false,
         )
         lastDrawFailureReason = lastBloomExecution?.failureReason ?: lastDrawFailureReason
 
         // Restore full viewport cleanly
         GLES20.glViewport(0, 0, surfaceW, surfaceH)
-        return true
+        return lastBloomExecution?.let {
+            it.failureReason == null && it.extract == RenderPassStatus.PASS &&
+                it.blurHorizontal == RenderPassStatus.PASS &&
+                it.blurVertical == RenderPassStatus.PASS &&
+                it.composite == RenderPassStatus.PASS
+        } == true
     }
 
     override fun onDrawFrameWithResult(frame: OrbCrystalGlFrame, frameSequence: Long): GlFrameExecution {
@@ -418,15 +451,17 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
             shaderCompileLinkStatus = if (programsReady) RenderPassStatus.PASS else RenderPassStatus.FAIL,
             backFboStatus = lastBufferStatus,
             // Stage 3-D supplies the frozen five Resident paths and their real BACK/FRONT passes.
-            residentBackStatus = RenderPassStatus.NOT_READY,
+            residentBackStatus = residentBackStatus,
             // Stage 3-B/3-C/3-E/3-F/3-G own these passes; current procedural output is not counted as their PASS.
             coreFluidStatus = corePassStatus,
             refractionStatus = corePassStatus,
-            r01bMaskStatus = RenderPassStatus.NOT_READY,
-            r02DropletStatus = RenderPassStatus.NOT_READY,
-            r03LightStatus = RenderPassStatus.NOT_READY,
-            r05CausticsStatus = RenderPassStatus.NOT_READY,
-            residentFrontStatus = RenderPassStatus.NOT_READY,
+            r01bMaskStatus = if (corePassStatus == RenderPassStatus.PASS &&
+                residentBackStatus == RenderPassStatus.PASS &&
+                residentFrontStatus == RenderPassStatus.PASS) RenderPassStatus.PASS else RenderPassStatus.NOT_RUN,
+            r02DropletStatus = dropletStatus,
+            r03LightStatus = lightStatus,
+            r05CausticsStatus = if (corePassStatus == RenderPassStatus.PASS) RenderPassStatus.PASS else RenderPassStatus.NOT_RUN,
+            residentFrontStatus = residentFrontStatus,
             bloomExtractStatus = bloomResult?.extract ?: RenderPassStatus.NOT_RUN,
             bloomBlurHStatus = bloomResult?.blurHorizontal ?: RenderPassStatus.NOT_RUN,
             bloomBlurVStatus = bloomResult?.blurVertical ?: RenderPassStatus.NOT_RUN,
@@ -644,15 +679,15 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
         )
 
         val orbits = listOf(
-            // Primary outer Cyan loop sweeping lower-left -> upper-right
+            // G01: primary outer Cyan loop sweeping lower-left -> upper-right
             OrbitSpec(1.42f * radius, 0.56f * radius, 0.48f, 0.85f, 0.52f, 0.2f, 0.044f * radius, 0.05f),
-            // Primary Champagne Gold loop crossing upper-left -> lower-right
+            // G02: primary Champagne Gold loop crossing upper-left -> lower-right
             OrbitSpec(1.38f * radius, 0.52f * radius, -0.54f, 0.92f, -0.46f, 1.4f, 0.040f * radius, 0.95f),
-            // Tight inner Cyan glass ring hugging sphere
+            // A01: tight inner Cyan glass ring hugging sphere
             OrbitSpec(1.18f * radius, 0.44f * radius, -0.22f, 1.05f, 0.68f, 2.8f, 0.028f * radius, 0.12f),
-            // Wide outer Gold halo ring
+            // A02: wide outer Gold halo ring
             OrbitSpec(1.52f * radius, 0.64f * radius, 0.20f, 0.78f, -0.38f, 4.1f, 0.024f * radius, 0.88f),
-            // Mid Emerald-Cyan energy stream
+            // C01: mid Emerald-Cyan energy stream
             OrbitSpec(1.28f * radius, 0.72f * radius, -0.82f, 0.96f, 0.41f, 5.2f, 0.032f * radius, 0.35f),
         )
 
@@ -1112,6 +1147,18 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
                 float transmission = interior * 0.12;
                 vec3 transmitted = mix(body, refracted.rgb / max(refracted.a, 0.001),
                     transmission * refracted.a);
+                // Two slow, bounded liquid light ridges; these remain inside the source alpha.
+                float causticA = sin(uv.x * 33.0 + deep * 2.0 + uTime * 0.23);
+                float causticB = sin(uv.y * 29.0 - middle * 1.7 - uTime * 0.19);
+                float caustic = pow(max(0.0, causticA * causticB), 5.0)
+                    * interior * 0.075 * uWake;
+                transmitted += vec3(0.18, 0.47, 0.42) * caustic;
+                // Subtle grazing response follows the glass normal; baked highlights remain primary.
+                float fresnel = pow(1.0 - normalZ, 3.0)
+                    * smoothstep(0.62, 0.88, radius) * shell.a * 0.045;
+                transmitted += mix(vec3(0.12, 0.31, 0.29), vec3(0.43, 0.36, 0.19),
+                    clamp(dot(normalize(p + vec2(0.001)), normalize(vec2(-0.7, 0.7))) * 0.5 + 0.5,
+                        0.0, 1.0)) * fresnel;
                 vec4 core = vec4(transmitted * shell.a, shell.a);
                 gl_FragColor = core + back * (1.0 - core.a);
             }
