@@ -85,3 +85,16 @@ The current Main HEAD advanced from the product tree snapshot only through contr
 - Full per-file Markdown: `AI_STUDIO_ZIP_FULL_RESTORE_INVENTORY.md`
 - Result conflict and owner decision: `AI_STUDIO_HIGH_RESULT_RESTORE_COMPARISON.md`
 - Owner decisions: `AI_STUDIO_RESTORE_DECISION_REGISTER.md`
+
+
+## Latest ZIP comparison — 2026-11-01
+
+The latest attached archive is `remix-remix-渔见-1011.zip` (SHA-256 `01295638560875dcf65addd6e5c31216df733976ede0be4fe2ea8cfb680218fb`) and was compared with Main `419f22a13be13fde87ca31e48e4a00da751bd8f8`.
+
+- 1,614 entries: 1,229 files, 385 directories, no symlinks.
+- 1,104 files identical; 72 ZIP-only; 52 non-sensitive files differ; one changed `.env` excluded without reading contents or hashes; 702 Main paths absent from ZIP.
+- ZIP Manifest has 19 rows; 15 match actual differences; 109 non-sensitive differences are omitted.
+- Keep Main W5 geometry and event-driven Y-only bobber motion; keep P01→P02→P03 and Camera Preview Ready gate; leave eight guide images unapproved.
+- Capture button design conflict is recorded as D04. `RecognitionResultScreen.kt` has no ZIP difference.
+- The versioned file inventory is `AI_STUDIO_1011_ZIP_FULL_RESTORE_INVENTORY.json` with a companion Markdown summary; review details are in `AI_STUDIO_1011_DIFF_REVIEW.md`.
+- API 28 Runtime acceptance was not run.

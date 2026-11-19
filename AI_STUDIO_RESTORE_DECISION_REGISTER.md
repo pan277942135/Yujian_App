@@ -49,3 +49,15 @@ All code and source-backed changes that do not depend on these decisions continu
 - **Question:** Keep the existing light Frozen HIGH visual, or approve a new dark authority?
 - **Evidence state:** source diff reviewed; Frozen preview is available. ZIP candidate render and current Main actual render are NOT_RUN, so no screenshot-level parity claim is made.
 - **Status:** BLOCKED pending D03.
+
+
+## D04 — Capture button visual and transition
+
+- **Page:** Shared Primary Capture Button; Empty Home → Capture handoff.
+- **ZIP behavior:** Responsive diameter changes from 88–96dp to 102–108dp (token 94dp → 104dp); idle breathing changes from 5000ms with max scale 1.015 to a 4500ms cycle with max scale 1.06; default frozen art changes from `capture_button_main_v1` to `AIOrbCaptureVisualAssets.HOME_IDLE`; handoff adds a 1.22 peak scale and layered water-light effects.
+- **Current Main contract:** Primary Capture Button V1.1 is FROZEN. Canonical art SHA-256 is `501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327`; the visual is a solid white core, fine gold rim, and deep blue-grey camera icon. Motion contract is 5000ms, max scale 1.015, first rim sweep at 3000ms, 1400ms duration, 9000ms repeat interval. Main capture geometry uses 94dp and responsive 88–96dp; activation token is 750ms.
+- **Options:** (A) retain Main V1.1 and exclude the conflicting capture-button group; (B) adopt the AI Studio visual/motion/handoff as a new versioned authority, update its contracts and replace the frozen component after product approval.
+- **Impact:** B changes the shared button on Home and Capture, its visual footprint, and its navigation choreography. It does not change recognition/model behavior.
+- **Work recommendation:** A until the new shared component authority is explicitly approved.
+- **Question:** Should the AI Studio capture-button design replace the current FROZEN V1.1 component and contracts?
+- **Status:** BLOCKED pending owner decision; Main remains unchanged.
