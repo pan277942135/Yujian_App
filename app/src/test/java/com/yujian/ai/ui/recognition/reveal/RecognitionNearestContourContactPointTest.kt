@@ -18,6 +18,27 @@ class RecognitionNearestContourContactPointTest {
     }
 
     @Test
+    fun orbOutsidePhotoStillChoosesARealContourContact() {
+        val contour = square(.2f, .2f, .8f, .8f)
+        val above = resolve(contour, DisplayPoint(.5f, 1.35f))
+        assertNotNull(above)
+        assertEquals(.5f, above!!.x, .02f)
+        assertEquals(.8f, above.y, .01f)
+
+        val left = resolve(contour, DisplayPoint(-.4f, .5f))
+        assertNotNull(left)
+        assertEquals(.2f, left!!.x, .01f)
+        assertEquals(.5f, left.y, .02f)
+    }
+
+    @Test
+    fun invalidOrbCoordinateCannotCreateAContact() {
+        val contour = square(.2f, .2f, .8f, .8f)
+        assertEquals(null, resolve(contour, DisplayPoint(Float.NaN, 1.3f)))
+        assertEquals(null, resolve(contour, DisplayPoint(.5f, Float.POSITIVE_INFINITY)))
+    }
+
+    @Test
     fun excludesInternalHoleBoundariesFromContactCandidates() {
         val contour = square(.1f, .1f, .9f, .9f) + square(.45f, .45f, .55f, .55f)
         val result = resolve(contour, DisplayPoint(.5f, .5f))

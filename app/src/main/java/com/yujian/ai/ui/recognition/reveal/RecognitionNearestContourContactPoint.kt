@@ -30,7 +30,10 @@ internal object RecognitionNearestContourContactPoint {
         orbSourceNormalized: DisplayPoint,
     ): DisplayPoint? {
         if (contour.isEmpty() || sourceWidthPx <= 0 || sourceHeightPx <= 0) return null
-        if (!isValidPoint(orbSourceNormalized) || !isValidRect(subjectRoiInSource)) return null
+        // The Orb lives outside the photo during Fish Seek. Its position is
+        // expressed in the photo coordinate system but is not a photo pixel.
+        if (!orbSourceNormalized.x.isFinite() || !orbSourceNormalized.y.isFinite() ||
+            !isValidRect(subjectRoiInSource)) return null
         if (contour.any { !isValidSegment(it) }) return null
 
         val rings = splitRings(contour).mapNotNull { segments ->
@@ -141,9 +144,6 @@ internal object RecognitionNearestContourContactPoint {
         }
         return inside
     }
-
-    private fun isValidPoint(point: DisplayPoint) =
-        point.x.isFinite() && point.y.isFinite() && point.x in 0f..1f && point.y in 0f..1f
 
     private fun isValidRect(rect: NormalizedSourceRect) =
         listOf(rect.left, rect.top, rect.right, rect.bottom).all(Float::isFinite) &&

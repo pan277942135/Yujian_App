@@ -1764,6 +1764,43 @@ fun RecognitionProcessingScene(
             )
         } else null
         val energyProducerEvent = energyProducerSnapshot?.event
+        var lastPStarDiagnosticKey by remember(sceneKey) { mutableStateOf<String?>(null) }
+        LaunchedEffect(
+            sceneIdentity, subjectResult.maskSha256, trustedSubjectMask,
+            contour.size, photoGeometryVersion, energyProducerSnapshot?.contactPointNormalizedSource,
+        ) {
+            if (!trustedSubjectMask || contour.isEmpty() || photoGeometryVersion == 0L) return@LaunchedEffect
+            val key = "${sceneIdentity.attemptId}:${subjectResult.maskSha256}:$photoGeometryVersion:" +
+                "${energyProducerSnapshot?.contactPointNormalizedSource}"
+            if (key == lastPStarDiagnosticKey) return@LaunchedEffect
+            lastPStarDiagnosticKey = key
+            val transform = producerOrbGeometry?.third
+            val center = producerOrbGeometry?.first
+            recognitionEvidenceRecorder?.recordOrbRuntime(
+                fileName = "waterlight_paths.jsonl",
+                type = "PSTAR_CANDIDATE_DIAGNOSTIC",
+                payload = mapOf(
+                    "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.attemptId),
+                    "maskSha256" to subjectResult.maskSha256,
+                    "maskVersion" to subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) },
+                    "geometryVersion" to photoGeometryVersion,
+                    "contourSegments" to contour.size,
+                    "contourClosed" to (contour.lastOrNull()?.closesContour == true),
+                    "roi" to subjectBox?.let { listOf(it.x1, it.y1, it.x2, it.y2) },
+                    "orbNormalizedSource" to if (transform != null && center != null &&
+                        transform.drawnWidth > 1f && transform.drawnHeight > 1f) listOf(
+                        (center.x - transform.translationX) / transform.drawnWidth,
+                        (center.y - transform.translationY) / transform.drawnHeight,
+                    ) else null,
+                    "contactNormalizedSource" to energyProducerSnapshot?.contactPointNormalizedSource?.let {
+                        listOf(it.x, it.y)
+                    },
+                    "producerDecision" to energyProducerSnapshot?.decision?.name,
+                    "fishPathPresent" to (energyProducerEvent?.feedback == EnergyFeedback.ABSORB &&
+                        energyProducerEvent.pathGeometry != null),
+                ),
+            )
+        }
         var lastRecordedOrbOnlyPathNotApplicableKey by remember(sceneKey) { mutableStateOf<String?>(null) }
         LaunchedEffect(
             sceneIdentity,
@@ -1786,7 +1823,6 @@ fun RecognitionProcessingScene(
         ) {
             val producer = energyProducerSnapshot ?: return@LaunchedEffect
             val nowMs = recognitionMonotonicNowMs()
-            controller.onRevealDecision(producer.decision, nowMs, sceneIdentity)
             if (producer.pathApplicability == "NOT_APPLICABLE_ORB_ONLY") {
                 val traceKey = "${sceneIdentity.attemptId}:${waterLightFrame.geometryVersion}:${RecognitionSceneStage.PATH_TO_FISH.name}"
                 if (lastRecordedOrbOnlyPathNotApplicableKey != traceKey) {
@@ -1805,7 +1841,11 @@ fun RecognitionProcessingScene(
                     )
                 }
             }
-            val event = producer.event ?: return@LaunchedEffect
+            val event = producer.event
+            if (event == null) {
+                controller.onRevealDecision(producer.decision, nowMs, sceneIdentity)
+                return@LaunchedEffect
+            }
             pStarPathId = event.takeIf {
                 it.feedback == EnergyFeedback.ABSORB &&
                     producer.decision == RecognitionRevealDecisionState.FISH_FOCUS_READY
@@ -1881,6 +1921,10 @@ fun RecognitionProcessingScene(
                     fishPathSnapshotCallback.value.invoke(snapshot)
                 }
             }
+            // A valid Fish Path must be bound before the reveal decision can
+            // become terminal. Otherwise a late Mask may be rejected as an
+            // ORB_ONLY route even though its actual P* was just produced.
+            controller.onRevealDecision(producer.decision, nowMs, sceneIdentity)
             val result = controller.recordEnergyEventWithReason(waterLightFrame.sceneFrame, event)
             if (result.accepted) {
                 recognitionEvidenceRecorder?.recordEnergyEvent(
