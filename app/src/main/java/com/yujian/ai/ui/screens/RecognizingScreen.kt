@@ -447,7 +447,7 @@ fun RecognitionProcessingScene(
     } == true
     val pStarPathTerminalUnavailable = subjectResult.status == SubjectStatus.READY && trustedSubjectMask &&
         contourClosed && photoGeometryVersion != 0L && processingPhotoSnapshotForReveal != null &&
-        !pStarPathCandidateReady
+        !pStarPathCandidateReady && attemptDeadline.isExpired(visualNowMs)
     val revealDecision = RecognitionRevealDecisionGate.decide(
         classifier = when {
             pipelineError != null || realPhase == RecognitionPhase.FAILURE -> RecognitionClassifierTaskState.FAILED
@@ -520,12 +520,14 @@ fun RecognitionProcessingScene(
     LaunchedEffect(
         sceneKey, trustedSubjectMask, contourClosed, photoGeometryVersion,
         processingPhotoSnapshotForReveal, pStarPathCandidateReady, subjectResult.status,
+        pStarPathTerminalUnavailable,
     ) {
         when {
             trustedSubjectMask && contour.isNotEmpty() && !contourClosed ->
                 maskRuntimeRejectReason = "CONTOUR_NOT_CLOSED"
             trustedSubjectMask && contourClosed && photoGeometryVersion != 0L &&
-                processingPhotoSnapshotForReveal != null && !pStarPathCandidateReady ->
+                processingPhotoSnapshotForReveal != null && !pStarPathCandidateReady &&
+                attemptDeadline.isExpired(visualNowMs) ->
                 maskRuntimeRejectReason = "PSTAR_PATH_UNAVAILABLE"
         }
     }
@@ -1761,6 +1763,7 @@ fun RecognitionProcessingScene(
                 maskSha256 = maskSha,
                 maskVersion = maskVersion,
                 highConfidenceResult = successfulRevealAllowed,
+                pStarDeadlineExpired = attemptDeadline.isExpired(visualNowMs),
             )
         } else null
         val energyProducerEvent = energyProducerSnapshot?.event
@@ -1925,6 +1928,9 @@ fun RecognitionProcessingScene(
             // become terminal. Otherwise a late Mask may be rejected as an
             // ORB_ONLY route even though its actual P* was just produced.
             controller.onRevealDecision(producer.decision, nowMs, sceneIdentity)
+            // Binding can happen during the stage, but its completion event must
+            // only be submitted on a frame that has actually reached the gate.
+            if (waterLightFrame.sceneFrame.stageProgress < .999f) return@LaunchedEffect
             val result = controller.recordEnergyEventWithReason(waterLightFrame.sceneFrame, event)
             if (result.accepted) {
                 recognitionEvidenceRecorder?.recordEnergyEvent(
@@ -2867,7 +2873,11 @@ private fun RecognitionPhoto(
                     )
                 }
             }
-            if (perimeterReady && (!BuildConfig.DEBUG || layerMode != RecognitionLayerMode.PHOTO_ONLY)) RecognitionPerimeterShaderOverlay(
+            // Stage045 owns the perimeter once its GL surface has presented a frame.
+            // Drawing the photo-sized legacy TextureView as well creates a second
+            // independently positioned perimeter, visible as a detached light box.
+            if (perimeterReady && !stage045GlPresented &&
+                (!BuildConfig.DEBUG || layerMode != RecognitionLayerMode.PHOTO_ONLY)) RecognitionPerimeterShaderOverlay(
                 waterLightFrame = waterLightFrame,
                 bitmap = bitmap,
                 photoTransform = transform,
@@ -2879,7 +2889,7 @@ private fun RecognitionPhoto(
                 imageId = imageId,
                 photoSha256 = photoSha256,
                 phase = phase,
-                material = if (stage045GlPresented) WaterLightMaterialProfile.PERIMETER.copy(opacity = 0.06f) else WaterLightMaterialProfile.PERIMETER,
+                material = WaterLightMaterialProfile.PERIMETER,
                 energyEvent = energyEvent,
                 reduceMotion = motionPolicy.reduceMotion,
                 modifier = Modifier.semantics {
@@ -3075,6 +3085,7 @@ private fun createRecognitionEnergyProducerSnapshot(
     maskSha256: String,
     maskVersion: Long,
     highConfidenceResult: Boolean,
+    pStarDeadlineExpired: Boolean,
 ): RecognitionEnergyProducerSnapshot {
     val validContour = maskTrusted && maskVersion >= 0L && subjectBox != null && contour.isNotEmpty()
     val contourClosed = validContour && contour.lastOrNull()?.closesContour == true
@@ -3094,7 +3105,7 @@ private fun createRecognitionEnergyProducerSnapshot(
     }
     val scene = frame.sceneFrame
     val pStarUnavailable = subjectStatus == SubjectStatus.READY && maskTrusted && contourClosed &&
-        frame.geometryVersion != 0L && proposedFishPath == null
+        frame.geometryVersion != 0L && proposedFishPath == null && pStarDeadlineExpired
     var decision = RecognitionRevealDecisionGate.decide(
         classifier = classifier,
         subject = subjectStatus,

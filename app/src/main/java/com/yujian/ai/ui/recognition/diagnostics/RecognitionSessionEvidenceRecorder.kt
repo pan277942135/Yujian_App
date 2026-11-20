@@ -302,6 +302,7 @@ class RecognitionSessionEvidenceRecorder(
         maskSha256: String?,
         maskVersion: Long,
         resultIdentity: String?,
+        gates: Map<String, Any?> = emptyMap(),
     ) {
         record(
             "RESULT_GEOMETRY_RESOLVED",
@@ -318,6 +319,7 @@ class RecognitionSessionEvidenceRecorder(
                 "maskSha256" to maskSha256,
                 "maskVersion" to maskVersion,
                 "resultIdentity" to resultIdentity,
+                "gates" to gates,
             ),
         )
     }
@@ -401,6 +403,8 @@ class RecognitionSessionEvidenceRecorder(
                     .put("alphaNonZeroCount", pixels.size - histogram[0])
                     .put("alphaAbove36Count", histogram.slice(37..255).sum())
                     .put("alphaAbove128Count", histogram.slice(129..255).sum())
+                    .put("alphaAt128Count", histogram[128])
+                    .put("alphaAtLeast128Count", histogram.slice(128..255).sum())
                     .put("alphaAt255Count", histogram[255])
                     .put("histogram", JSONArray(histogram.toList()))
                     .toString(2), Charsets.UTF_8,
@@ -426,7 +430,7 @@ class RecognitionSessionEvidenceRecorder(
         resultSceneStable: Boolean = false,
         allowPixelCopyCapture: Boolean = false,
     ) {
-        if (!allowPixelCopyCapture || window == null) return
+        if (!allowPixelCopyCapture || window == null || frame.geometryVersion <= 0L) return
         val isCurrentFrame = synchronized(lock) {
             activeIdentity?.matches(frame.identity) == true && pixelCopySuspendedReason == null
         }
@@ -439,7 +443,7 @@ class RecognitionSessionEvidenceRecorder(
         }
         // Motion screenshots are reserved for visible AUTO progress. Model waits are
         // represented by the one-second heartbeat and must not trigger high-frequency capture.
-        val visibleMotion = RecognitionEvidenceCapturePolicy.shouldCaptureMotion(
+        val visibleMotion = !enterRequest && RecognitionEvidenceCapturePolicy.shouldCaptureMotion(
             paused = frame.paused,
             runState = frame.modelGates.runState,
             waitingReason = frame.modelGates.waitingReason,
@@ -478,7 +482,7 @@ class RecognitionSessionEvidenceRecorder(
     fun flush(timeoutMs: Long = DEFAULT_FLUSH_TIMEOUT_MS): Boolean {
         val clampedTimeoutMs = timeoutMs.coerceIn(1L, MAX_FLUSH_TIMEOUT_MS)
         val deadline = clockMs() + clampedTimeoutMs
-        val pixelCopyDeadline = clockMs() + minOf(clampedTimeoutMs, MAX_PIXELCOPY_FLUSH_WAIT_MS)
+        val pixelCopyDeadline = deadline
         val pixelCopyDrained = captureLock.withLock {
             var remaining = pixelCopyDeadline - clockMs()
             while (pendingCaptures > 0 && remaining > 0L) {
@@ -491,7 +495,6 @@ class RecognitionSessionEvidenceRecorder(
             eventSink?.markIncomplete("PIXELCOPY_FLUSH_TIMEOUT")
         }
         val pixelIoWaitMs = (deadline - clockMs()).coerceAtLeast(DEFAULT_TAIL_FLUSH_WAIT_MS)
-            .coerceAtMost(MAX_PIXEL_WRITE_FLUSH_WAIT_MS)
         val pixelWritesDrained = runCatching {
             pixelIo.submit {}.get(pixelIoWaitMs, TimeUnit.MILLISECONDS)
             true
@@ -988,10 +991,8 @@ class RecognitionSessionEvidenceRecorder(
         const val MAX_MOTION_SAMPLES = 32
         const val MOTION_INTERVAL_MS = 250L
         const val WAIT_HEARTBEAT_INTERVAL_MS = 1_000L
-        const val DEFAULT_FLUSH_TIMEOUT_MS = 7_500L
-        const val MAX_FLUSH_TIMEOUT_MS = 10_000L
-        const val MAX_PIXELCOPY_FLUSH_WAIT_MS = 5_000L
-        const val MAX_PIXEL_WRITE_FLUSH_WAIT_MS = 5_000L
+        const val DEFAULT_FLUSH_TIMEOUT_MS = 20_000L
+        const val MAX_FLUSH_TIMEOUT_MS = 30_000L
         const val DEFAULT_TAIL_FLUSH_WAIT_MS = 400L
         // The 26 actual full-resolution PixelCopy PNGs are copied on disk, not
         // retained as Bitmaps. The former 24 MiB cap dropped valid captures.

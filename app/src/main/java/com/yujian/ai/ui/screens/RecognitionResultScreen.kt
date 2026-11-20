@@ -680,15 +680,25 @@ fun RecognitionResultScreen(
             geometryWaitExpired = true
         }
     }
-    val geometryResolutionReason = revealGeometryResolution?.failureReason
+    val geometryResolutionReason = revealGeometryResolution?.failureReason ?: when {
+        !revealPhotoIdentityMatches && revealHandoff != null && image != null -> "PHOTO_IDENTITY_MISMATCH"
+        !revealPhotoIdentityMatches -> "PHOTO_IDENTITY_PENDING"
+        photoTransitionGeometry == null -> "PHOTO_TRANSITION_GEOMETRY_PENDING"
+        heroSnapshot?.renderReady != true -> "RESULT_HERO_PENDING"
+        revealTitleBounds?.isValid() != true -> "RESULT_TITLE_BOUNDS_PENDING"
+        revealGeometry == null -> "REVEAL_GEOMETRY_PENDING"
+        else -> null
+    }
     val geometryStillMeasuring = geometryResolutionReason in setOf(
         "LAYOUT_ROOT_PENDING", "LAYOUT_HERO_PENDING", "LAYOUT_TITLE_PENDING",
+        "PHOTO_IDENTITY_PENDING", "PHOTO_TRANSITION_GEOMETRY_PENDING",
+        "RESULT_HERO_PENDING", "RESULT_TITLE_BOUNDS_PENDING", "REVEAL_GEOMETRY_PENDING",
     )
     // 350ms is an advisory threshold only. Keep the shared scene clock held while
     // Compose measures; only an explicit geometry rejection enters static fallback.
     val geometryInvalid = !resultGeometryReady && geometryResolutionReason != null && !geometryStillMeasuring
     LaunchedEffect(revealHandoff?.key, geometryResolutionReason, resultGeometryReady, resultGeometryVersion) {
-        if (revealHandoff != null && !geometryStillMeasuring) {
+        if (revealHandoff != null) {
             Log.i(
                 "RecognitionResultGeometry",
                 "reason=${geometryResolutionReason ?: "NONE"} stage=${resultSceneStage.name} " +
@@ -696,13 +706,24 @@ fun RecognitionResultScreen(
                     "image=${resultSceneIdentity.imageId} photoSha=${resultSceneIdentity.photoSha256} " +
                     "maskSha=${visualHandoff?.maskSha256} maskVersion=${visualHandoff?.maskVersion} " +
                     "path=${visualHandoff?.fishPathSnapshot?.returnPathId} geometry=$resultGeometryVersion " +
-                    "result=${prediction.top1.speciesKey} ready=$resultGeometryReady",
+                    "result=${prediction.top1.speciesKey} ready=$resultGeometryReady " +
+                    "photoIdentity=$revealPhotoIdentityMatches transition=${photoTransitionGeometry != null} " +
+                    "hero=${heroSnapshot?.renderReady == true} title=${revealTitleBounds?.isValid() == true} " +
+                    "reveal=${revealGeometry != null}",
             )
             recognitionEvidenceRecorder?.recordResultGeometryDiagnostic(
                 resultSceneIdentity, geometryResolutionReason, resultGeometryReady,
                 resultGeometryVersion, visualHandoff?.fishPathSnapshot?.returnPathId,
                 visualHandoff?.maskSha256, visualHandoff?.maskVersion ?: -1L,
                 prediction.top1.speciesKey,
+                mapOf(
+                    "photoIdentityMatches" to revealPhotoIdentityMatches,
+                    "transitionGeometryReady" to (photoTransitionGeometry != null),
+                    "heroRenderReady" to (heroSnapshot?.renderReady == true),
+                    "titleBoundsReady" to (revealTitleBounds?.isValid() == true),
+                    "revealGeometryReady" to (revealGeometry != null),
+                    "stage" to resultSceneStage.name,
+                ),
             )
         }
     }
@@ -1115,8 +1136,7 @@ fun RecognitionResultScreen(
                     frame = evidenceFrame,
                     latestFrame = { latestEvidenceResultFrame.value },
                     resultSceneStable = evidenceFrame.resultSceneStable,
-                    allowPixelCopyCapture = diagnosticUiAvailable &&
-                        diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC,
+                    allowPixelCopyCapture = BuildConfig.DEBUG,
                 )
             }
             val handoff = revealHandoff
@@ -1623,7 +1643,9 @@ fun RecognitionResultScreen(
                     "start=${event.pathGeometry?.start} end=${event.pathGeometry?.end} geometry=${event.geometryVersion}",
             )
         }
-        if (hostBounds != null && resultHost.accepts(resultFrame, WaterLightHostGeometry(
+        // The Hero owns the photo while shared geometry is still measuring. Only
+        // present the shared optical photo after the Hero can yield ownership.
+        if (revealPresentationReady && hostBounds != null && resultHost.accepts(resultFrame, WaterLightHostGeometry(
                 hostType, resultFrame.geometryVersion,
                 hostBounds.left, hostBounds.top, hostBounds.right, hostBounds.bottom,
             ))) RecognitionRevealOpticalOverlay(
