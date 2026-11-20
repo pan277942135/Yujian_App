@@ -735,6 +735,10 @@ class RecognitionSessionEvidenceRecorder(
                 result.bitmap?.recycle()
                 synchronized(lock) {
                     if (generation == activeGeneration) {
+                        if (status == "STAGE_IDENTITY_UNVERIFIED") {
+                            if (captureType == "STAGE_ENTRY") entryCaptureRequested.remove(frame.stage.name)
+                            if (captureType == "RESULT_SCENE_STABLE") resultStableCaptureRequested = false
+                        }
                         if (status == "PIXELCOPY_ERROR" || status == "PIXELCOPY_TIMEOUT") {
                             pixelCopySuspendedReason = status
                         }
