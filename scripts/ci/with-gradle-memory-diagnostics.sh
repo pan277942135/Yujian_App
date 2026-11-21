@@ -15,6 +15,21 @@ time_log="$diag/time-${label}.txt"
 samples="$diag/memory-${label}.log"
 histogram="$diag/class-histogram-${label}.txt"
 
+# Gradle daemons run with their cwd under GRADLE_USER_HOME/daemon/<version>,
+# so relative HeapDumpPath and GC log paths resolve there rather than at the
+# repository root. Create the matching directory before the daemon starts, then
+# copy those files into the artifact directory after the command completes.
+gradle_user_home="${GRADLE_USER_HOME:-${HOME:-$root}/.gradle}"
+gradle_bin="$1"
+daemon_diagnostics=""
+if command -v "$gradle_bin" >/dev/null 2>&1; then
+  gradle_version="$("$gradle_bin" --version 2>/dev/null | awk '/^Gradle / { print $2; exit }')"
+  if [[ -n "$gradle_version" ]]; then
+    daemon_diagnostics="$gradle_user_home/daemon/$gradle_version/build/diagnostics"
+    mkdir -p "$daemon_diagnostics"
+  fi
+fi
+
 capture_snapshot() {
   local phase="$1"
   {
@@ -38,7 +53,12 @@ printf 'label=%s\ncommand=' "$label" | tee "$diag/command-${label}.txt"
 printf '%q ' "$@" | tee -a "$diag/command-${label}.txt"
 printf '\n' | tee -a "$diag/command-${label}.txt"
 
-/usr/bin/time -v -o "$time_log" "$@" >"$log" 2>&1 &
+if [[ -x /usr/bin/time ]]; then
+  /usr/bin/time -v -o "$time_log" "$@" >"$log" 2>&1 &
+else
+  printf '/usr/bin/time unavailable; wall-clock/resource summary omitted.\n' > "$time_log"
+  "$@" >"$log" 2>&1 &
+fi
 command_pid=$!
 histogram_saved=0
 last_heap_snapshot=0
@@ -102,6 +122,9 @@ capture_snapshot after
 if [[ -d "${HOME:-}/.gradle/daemon" ]]; then
   mkdir -p "$diag/daemon-logs"
   find "${HOME}/.gradle/daemon" -type f -name 'daemon-*.out.log' -mmin -180 -exec cp --parents {} "$diag/daemon-logs" \; 2>/dev/null || true
+fi
+if [[ -n "$daemon_diagnostics" && -d "$daemon_diagnostics" ]]; then
+  find "$daemon_diagnostics" -maxdepth 1 -type f \( -name '*.hprof' -o -name 'gc-*.log' \) -mmin -180 -exec cp -p {} "$diag/" \; 2>/dev/null || true
 fi
 
 # A raw heap dump can exceed artifact limits. Keep a compressed dump only when useful;
