@@ -16,7 +16,7 @@ import kotlin.math.floor
  * Forms the actual classifier-provided Chinese glyph from deterministic water-gold ink samples.
  * The name is never replaced by a bitmap or a fixed species string.
  */
-internal class SpeciesNameReveal {
+class SpeciesNameReveal {
     private data class InkPoint(val x: Float, val y: Float, val rank: Int)
 
     private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }

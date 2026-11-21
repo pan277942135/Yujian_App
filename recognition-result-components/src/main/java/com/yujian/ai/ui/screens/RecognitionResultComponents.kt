@@ -47,6 +47,8 @@ import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -103,6 +105,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathInspector
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadinessContract
+import com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultInfoRenderReceipt
 import com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorder
 import com.yujian.ai.model.RecognitionCandidate
@@ -907,7 +910,7 @@ private fun SpeciesIdentityRow(
         speciesDisplayName, compactTitle, widthDp, glyphSceneIdentity, glyphSpeciesKey,
     ) { AtomicBoolean(false) }
     val glyphReveal = remember(glyphSceneIdentity, glyphSpeciesKey, speciesDisplayName) {
-        com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal()
+        SpeciesNameReveal()
     }
     val glyphReceiptHandler = remember { Handler(Looper.getMainLooper()) }
     val latestOnGlyphRevealRendered = rememberUpdatedState(onGlyphRevealRendered)
