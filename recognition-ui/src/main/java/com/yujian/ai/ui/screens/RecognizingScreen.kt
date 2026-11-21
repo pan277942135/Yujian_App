@@ -1907,13 +1907,15 @@ fun RecognitionProcessingScene(
                         "path=${arrival.pathId} geometry=${arrival.geometryVersion}",
                 )
             }
+            val eventMaskSha256 = event.pathMaskSha256
+            val eventMaskVersion = event.pathMaskVersion
             if (event.feedback == EnergyFeedback.ABSORB && producer.contactPointNormalizedSource != null &&
-                event.pathMaskSha256 != null && event.pathMaskVersion != null
+                eventMaskSha256 != null && eventMaskVersion != null
             ) {
                 val registered = controller.onFishContactPathAvailable(
                     pathId = event.pathId,
-                    maskSha256 = event.pathMaskSha256,
-                    maskVersion = event.pathMaskVersion,
+                    maskSha256 = eventMaskSha256,
+                    maskVersion = eventMaskVersion,
                     geometryVersion = event.pathGeometryVersion ?: event.geometryVersion,
                     contactPointNormalizedSource = producer.contactPointNormalizedSource,
                     currentIdentity = sceneIdentity,
@@ -1926,8 +1928,8 @@ fun RecognitionProcessingScene(
                         "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(event.attemptId),
                         "imageIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(event.imageId),
                         "photoSha256" to event.photoSha256,
-                        "maskSha256" to event.pathMaskSha256,
-                        "maskVersion" to event.pathMaskVersion,
+                        "maskSha256" to eventMaskSha256,
+                        "maskVersion" to eventMaskVersion,
                         "geometryVersion" to event.pathGeometryVersion,
                         "pathId" to event.pathId,
                         "pStarNormalizedSource" to producer.contactPointNormalizedSource.let { listOf(it.x, it.y) },
@@ -1946,7 +1948,7 @@ fun RecognitionProcessingScene(
                     Log.w(
                         "WaterLightEnergy",
                         "${pStarBindRejectionReason} session=${event.sessionId} attempt=${event.attemptId} " +
-                            "mask_sha256=${event.pathMaskSha256.take(16)} path=${event.pathId}",
+                            "mask_sha256=${eventMaskSha256.take(16)} path=${event.pathId}",
                     )
                 } else {
                     pStarBindRejectionReason = null
@@ -2076,6 +2078,7 @@ fun RecognitionProcessingScene(
             photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),
             maskSha256 = subjectResult?.maskSha256.orEmpty(),
             maskVersion = subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) } ?: -1L,
+            activeFishPathId = pStarPathId,
             maskRevealProgress = maskContourRevealProgress,
             trustedMask = trustedSubjectMask,
             stage045GlPresented = stage045GlPresented,
@@ -2776,6 +2779,7 @@ private fun RecognitionPhoto(
     photoContentVersion: Long,
     maskSha256: String,
     maskVersion: Long,
+    activeFishPathId: String?,
     maskRevealProgress: Float,
     trustedMask: Boolean,
     stage045GlPresented: Boolean = false,
@@ -3042,7 +3046,7 @@ private fun RecognitionPhoto(
                 lowPerformance = motionPolicy.lowPerformance,
                 trustedMask = trustedMask,
                 maskVersion = subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(maskSha256) } ?: -1L,
-                fishPathId = pStarPathId,
+                fishPathId = activeFishPathId,
                 onGoldRenderComplete = onGoldRenderComplete,
                 onContourRenderComplete = onContourRenderComplete,
                 waterLightFrame = waterLightFrame,
