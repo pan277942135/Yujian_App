@@ -95,11 +95,13 @@ class Stage04ArrivalPathWithoutMaskTest {
             maskSha256 = maskSha,
             maskVersion = maskVersion,
         )
+        val taskSplitPoint = requireNotNull(fixture.ledger.perimeterArrivalPath(fixture.arrivalFrame)).geometry.end
         val fishGeometry = requireNotNull(
             RecognitionRevealPathGeometry.fishContact(
                 fixture.transform,
                 contact,
                 seed = fixture.identity.sessionId.hashCode() xor fixture.identity.imageId.hashCode(),
+                taskSplitPoint = taskSplitPoint,
             ),
         )
         val pathFrame = controllerFrame(fixture.controller, fixture.identity, fixture.geometryVersion, 2_200L)
@@ -153,10 +155,44 @@ class Stage04ArrivalPathWithoutMaskTest {
         assertTrue(pathSnapshot.isValid())
         assertTrue(fixture.controller.onFishPathSnapshot(pathSnapshot, fixture.identity))
 
+        assertEquals(RecognitionSceneStage.CONTOUR_A, fixture.controller.currentSceneStage(2_200L))
+        assertFalse(fixture.controller.onContourRenderComplete(
+            contourReceipt(fixture, maskSha, maskVersion, fishPathId, RecognitionSceneStage.CONTOUR_B, 2_650L, 1f / 3f, 1L),
+            fixture.identity,
+        ))
+        assertTrue(fixture.controller.onContourRenderComplete(
+            contourReceipt(fixture, maskSha, maskVersion, fishPathId, RecognitionSceneStage.CONTOUR_A, 2_650L, 1f / 3f, 2L),
+            fixture.identity,
+        ))
         assertEquals(RecognitionSceneStage.CONTOUR_B, fixture.controller.currentSceneStage(2_650L))
+        assertTrue(fixture.controller.onContourRenderComplete(
+            contourReceipt(fixture, maskSha, maskVersion, fishPathId, RecognitionSceneStage.CONTOUR_B, 3_100L, 2f / 3f, 3L),
+            fixture.identity,
+        ))
         assertEquals(RecognitionSceneStage.CONTOUR_C, fixture.controller.currentSceneStage(3_100L))
+        assertTrue(fixture.controller.onContourRenderComplete(
+            contourReceipt(fixture, maskSha, maskVersion, fishPathId, RecognitionSceneStage.CONTOUR_C, 3_550L, 1f, 4L),
+            fixture.identity,
+        ))
         assertEquals(RecognitionSceneStage.FISH_GOLD_PEAK, fixture.controller.currentSceneStage(3_550L))
-        fixture.controller.onFishGoldComplete(true, fixture.identity)
+        assertTrue(fixture.controller.onFishGoldRenderComplete(
+            RecognitionFishGoldRenderReceipt(
+                identity = fixture.identity,
+                stage = RecognitionSceneStage.FISH_GOLD_PEAK,
+                maskSha256 = maskSha,
+                maskVersion = maskVersion,
+                geometryVersion = fixture.geometryVersion,
+                fishPathId = fishPathId,
+                renderedProgress = 1f,
+                contourDrawn = true,
+                goldCoreDrawn = true,
+                softGlowDrawn = true,
+                outerHaloDrawn = true,
+                glintDrawn = true,
+                drawPassSequence = 5L,
+            ),
+            fixture.identity,
+        ))
         val glyphDescriptor = RecognitionGlyphPathDescriptor(
             identity = fixture.identity,
             speciesKey = "yellow_catfish",
@@ -233,7 +269,7 @@ class Stage04ArrivalPathWithoutMaskTest {
             photoSha256 = "b".repeat(64),
             photoContentVersion = 4L,
         )
-        val geometryVersion = -37L
+        val geometryVersion = 37L
         val ledger = WaterLightPathLedger()
         val transform = RecognitionImageTransform(
             sourceWidthPx = 1_000,
@@ -348,4 +384,28 @@ class Stage04ArrivalPathWithoutMaskTest {
             sceneFrameOverride = scene,
         )
     }
+
+    private fun contourReceipt(
+        fixture: Fixture,
+        maskSha: String,
+        maskVersion: Long,
+        fishPathId: String,
+        stage: RecognitionSceneStage,
+        nowMs: Long,
+        renderedProgress: Float,
+        drawPassSequence: Long,
+    ) = RecognitionContourRenderReceipt(
+        identity = fixture.identity,
+        stage = stage,
+        maskSha256 = maskSha,
+        maskVersion = maskVersion,
+        geometryVersion = fixture.geometryVersion,
+        fishPathId = fishPathId,
+        stageProgress = controllerFrame(
+            fixture.controller, fixture.identity, fixture.geometryVersion, nowMs,
+        ).sceneFrame.stageProgress,
+        renderedContourProgress = renderedProgress,
+        contourStrokeDrawn = true,
+        drawPassSequence = drawPassSequence,
+    )
 }

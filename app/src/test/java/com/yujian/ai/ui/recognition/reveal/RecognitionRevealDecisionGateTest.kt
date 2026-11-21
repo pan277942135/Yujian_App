@@ -5,6 +5,42 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class RecognitionRevealDecisionGateTest {
+    @Test fun pStarStateDistinguishesPendingReadyAndTerminalUnavailable() {
+        assertEquals(
+            RecognitionPStarPathState.PSTAR_PENDING,
+            RecognitionRevealDecisionGate.pStarState(hasBoundPath = false, terminalUnavailable = false),
+        )
+        assertEquals(
+            RecognitionPStarPathState.PSTAR_READY,
+            RecognitionRevealDecisionGate.pStarState(hasBoundPath = true, terminalUnavailable = false),
+        )
+        assertEquals(
+            RecognitionPStarPathState.PSTAR_TERMINAL_UNAVAILABLE,
+            RecognitionRevealDecisionGate.pStarState(hasBoundPath = false, terminalUnavailable = true),
+        )
+        assertEquals(
+            RecognitionPStarPathState.PSTAR_READY,
+            RecognitionRevealDecisionGate.pStarState(hasBoundPath = true, terminalUnavailable = true),
+        )
+    }
+
+    @Test fun readySubjectWithoutItsGeometrySnapshotStaysPendingInsteadOfDowngrading() {
+        assertEquals(
+            SubjectStatus.PROCESSING,
+            RecognitionRevealDecisionGate.effectiveSubjectStatus(
+                SubjectStatus.READY,
+                hasAuthoritativeGeometry = false,
+            ),
+        )
+        assertEquals(
+            SubjectStatus.READY,
+            RecognitionRevealDecisionGate.effectiveSubjectStatus(
+                SubjectStatus.READY,
+                hasAuthoritativeGeometry = true,
+            ),
+        )
+    }
+
     @Test fun classifierFirstWaitsForTrustedSlimSamThenChoosesFishFocus() {
         assertDecision(
             RecognitionClassifierTaskState.READY,

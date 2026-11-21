@@ -47,6 +47,7 @@ internal data class Stage045GlFrame(
     val arrivalPath: WaterLightPathGeometry?,
     val fishPath: WaterLightPathGeometry?,
     val releaseProgress: Float,
+    val arrivalProgress: Float,
     val perimeterCoverage: Float,
     val fishSeekProgress: Float,
     val fishArrivalPulse: Float,
@@ -122,6 +123,18 @@ internal fun Stage045EnergyStreamGlOverlay(
         else -> 0f
     }
 
+    // The Stage-04 route continues from RELEASE's endpoint to the measured
+    // perimeter split. Keep it on the same PathLedger geometry; this is not a
+    // synthesized bridge and it becomes the exact start of the fish search.
+    val arrivalProgress = when {
+        reduce -> if (arrivalPath != null) 1f else 0f
+        arrivalPath == null -> 0f
+        stage == RecognitionSceneStage.PERIMETER_ARRIVAL -> smoothstep(p)
+        stage.ordinal in RecognitionSceneStage.PATH_TO_FISH.ordinal..RecognitionSceneStage.FISH_GOLD_PEAK.ordinal -> 1f
+        stage == RecognitionSceneStage.ORB_RETURN -> 1f - smoothstep(p)
+        else -> 0f
+    }
+
     val fishSeekProgress = when {
         fishPath == null -> 0f
         reduce -> 1f
@@ -166,6 +179,7 @@ internal fun Stage045EnergyStreamGlOverlay(
         arrivalPath = arrivalPath,
         fishPath = fishPath,
         releaseProgress = releaseProgress,
+        arrivalProgress = arrivalProgress,
         perimeterCoverage = perimeterCoverage,
         fishSeekProgress = fishSeekProgress,
         fishArrivalPulse = fishArrivalPulse,
@@ -408,6 +422,26 @@ private class Stage045GlRenderer : GlSceneRenderer<Stage045GlFrame> {
                     vpW = vpW,
                     vpH = vpH,
                     phaseSeed = 0.4f,
+                )
+            }
+        }
+
+        // The first and last points are the RELEASE endpoint and measured
+        // Task split, respectively. Drawing the actual segment preserves
+        // release.end == arrival.start == fishPath.start across stage changes.
+        frame.arrivalPath?.let { arrival ->
+            if (frame.arrivalProgress > 0.01f) {
+                emitBraidedRibbons(
+                    out = out,
+                    geometry = arrival,
+                    progress = frame.arrivalProgress,
+                    fadeAlpha = if (frame.stage == RecognitionSceneStage.PERIMETER_ARRIVAL) 0.98f else 0.82f,
+                    baseHalfWidthPx = 8.5f * d,
+                    braidAmpPx = 9.0f * d,
+                    timeSec = timeSec,
+                    vpW = vpW,
+                    vpH = vpH,
+                    phaseSeed = 1.15f,
                 )
             }
         }

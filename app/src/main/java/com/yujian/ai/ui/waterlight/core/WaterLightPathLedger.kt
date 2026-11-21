@@ -8,7 +8,7 @@ data class WaterLightPathMaskIdentity(
     val contactPointNormalizedSource: WaterLightPathPoint,
 ) {
     fun isValid(): Boolean = maskSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) &&
-        maskVersion >= 0L && geometryVersion != 0L &&
+        maskVersion >= 0L && geometryVersion > 0L &&
         contactPointNormalizedSource.isValid() &&
         contactPointNormalizedSource.x in 0f..1f &&
         contactPointNormalizedSource.y in 0f..1f
@@ -22,7 +22,7 @@ data class WaterLightPathRoute(
     val geometryVersion: Long,
     val contactPointNormalizedSource: WaterLightPathPoint? = null,
 ) {
-    fun isValid(): Boolean = id.isNotBlank() && geometryVersion != 0L && segments.isNotEmpty() &&
+    fun isValid(): Boolean = id.isNotBlank() && geometryVersion > 0L && segments.isNotEmpty() &&
         segments.all(WaterLightPathGeometry::isValid) &&
         (maskSha256 == null || (
             maskSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) &&
@@ -46,7 +46,8 @@ data class RecognitionFishPathSnapshot(
     val pStarNormalizedSource: WaterLightPathPoint,
     val fishPathId: String,
     val fishPathGeometry: WaterLightPathGeometry,
-    val perimeterBridge: WaterLightPathGeometry,
+    /** Exact photo-perimeter arrival path; its endpoint is the Task split and Fish Path start. */
+    val perimeterBranch: WaterLightPathGeometry,
     val orbReleasePath: WaterLightPathGeometry,
     val returnPathId: String,
     val returnPathSegments: List<WaterLightPathGeometry>,
@@ -56,15 +57,19 @@ data class RecognitionFishPathSnapshot(
 ) {
     fun isValid(): Boolean = sessionId.isNotBlank() && attemptId.isNotBlank() && imageId.isNotBlank() &&
         photoSha256.isNotBlank() && photoContentVersion >= 0L &&
-        maskSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) && maskVersion >= 0L && geometryVersion != 0L &&
+        maskSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) && maskVersion >= 0L && geometryVersion > 0L &&
         pStarNormalizedSource.isValid() && pStarNormalizedSource.x in 0f..1f && pStarNormalizedSource.y in 0f..1f &&
         fishPathId.isNotBlank() && returnPathId == fishPathId &&
         sourceCoordinateSpace == fishPathGeometry.coordinateSpace &&
-        fishPathGeometry.isValid() && perimeterBridge.isValid() && orbReleasePath.isValid() &&
+        fishPathGeometry.isValid() && perimeterBranch.isValid() && orbReleasePath.isValid() &&
         returnPathSegments.size == 3 && returnPathSegments.all(WaterLightPathGeometry::isValid) &&
         returnPathSegments.all { it.coordinateSpace == sourceCoordinateSpace } &&
         returnPathSegments.zipWithNext().all { (a, b) -> a.end == b.start } &&
         returnPathSegments.first().start == fishPathGeometry.end &&
+        fishPathGeometry.start == perimeterBranch.end &&
+        returnPathSegments[1].start == perimeterBranch.end &&
+        returnPathSegments[1].end == perimeterBranch.start &&
+        returnPathSegments[2].start == orbReleasePath.end &&
         returnPathSegments.last().end == orbReleasePath.start &&
         creationTimestampMonotonicMs >= 0L && creationEventSequence >= 0L
 
@@ -99,7 +104,7 @@ data class WaterLightPerimeterArrivalSnapshot(
     val geometry: WaterLightPathGeometry,
     val geometryVersion: Long,
 ) {
-    fun isValid(): Boolean = pathId.isNotBlank() && geometryVersion != 0L && geometry.isValid()
+    fun isValid(): Boolean = pathId.isNotBlank() && geometryVersion > 0L && geometry.isValid()
 }
 
 /**
@@ -112,7 +117,7 @@ class WaterLightPathLedger {
     private var orbToPerimeter: WaterLightPathGeometry? = null
     private var perimeterArrival: WaterLightPerimeterArrivalSnapshot? = null
     private var maskBinding: WaterLightPathMaskBinding? = null
-    private var perimeterBridge: WaterLightPathGeometry? = null
+    private var perimeterBranch: WaterLightPathGeometry? = null
 
     fun bind(frame: WaterLightFrame): Boolean {
         val next = frame.identityOrNull() ?: return false
@@ -122,14 +127,14 @@ class WaterLightPathLedger {
             orbToPerimeter = null
             perimeterArrival = null
             maskBinding = null
-            perimeterBridge = null
+            perimeterBranch = null
         } else if (current.geometryVersion != next.geometryVersion) {
             // Keep the authored Stage-03 endpoint for Stage-04, but rebuild routes whose
             // geometry and P* are bound to the photo's current measured transform.
             identity = next
             perimeterArrival = null
             maskBinding = null
-            perimeterBridge = null
+            perimeterBranch = null
         }
         return true
     }
@@ -181,6 +186,10 @@ class WaterLightPathLedger {
             contactPointNormalizedSource = contactPointNormalizedSource,
         )
         if (!maskIdentity.isValid()) return false
+        val arrival = perimeterArrival?.takeIf { it.geometryVersion == frame.geometryVersion } ?: return false
+        // The Task split lives at the end of the measured photo-perimeter arrival. Fish search
+        // begins at that exact point, so no straight cross-photo bridge is inserted.
+        if (geometry.start != arrival.geometry.end) return false
         val existing = maskBinding
         if (existing != null) {
             val sameMaskGeometry = existing.maskIdentity.maskSha256 == maskIdentity.maskSha256 &&
@@ -196,13 +205,13 @@ class WaterLightPathLedger {
             // A new Mask SHA/version or geometry invalidates only the fish segment.
             // The release route remains valid for the same photo attempt.
             maskBinding = null
-            perimeterBridge = null
+            perimeterBranch = null
         }
         val current = maskBinding
         if (current == null) {
-            val release = orbToPerimeter ?: return false
-            val bridge = bridge(release.end, geometry.start) ?: return false
-            perimeterBridge = bridge
+            val branch = arrival.geometry
+            if (branch.start != (orbToPerimeter ?: return false).end) return false
+            perimeterBranch = branch
             val sceneFrame = frame.sceneFrame
             maskBinding = WaterLightPathMaskBinding(
                 maskIdentity = maskIdentity,
@@ -265,9 +274,9 @@ class WaterLightPathLedger {
                     contactPointNormalizedSource ?: return null,
                 ) ?: return null
                 val fish = maskBinding?.takeIf { it.maskIdentity == expected }?.geometry ?: return null
-                val bridge = perimeterBridge ?: return null
+                val branch = perimeterBranch ?: return null
                 add(fish.reversed())
-                add(bridge.reversed())
+                add(branch.reversed())
             }
             add(release.reversed())
         }
@@ -302,7 +311,7 @@ class WaterLightPathLedger {
             binding.maskIdentity.contactPointNormalizedSource != contactPointNormalizedSource
         ) return null
         val fish = fishPath(frame, maskSha256, maskVersion, contactPointNormalizedSource) ?: return null
-        val bridge = perimeterBridge ?: return null
+        val branch = perimeterBranch ?: return null
         val release = releasePath(frame) ?: return null
         val route = returnRoute(frame, trustedMask = true, maskSha256, maskVersion, contactPointNormalizedSource)
             ?.takeIf(WaterLightPathRoute::isValid) ?: return null
@@ -319,7 +328,7 @@ class WaterLightPathLedger {
             pStarNormalizedSource = binding.maskIdentity.contactPointNormalizedSource,
             fishPathId = pathId,
             fishPathGeometry = fish,
-            perimeterBridge = bridge,
+            perimeterBranch = branch,
             orbReleasePath = release,
             returnPathId = route.id,
             returnPathSegments = route.segments.toList(),
@@ -367,7 +376,7 @@ class WaterLightPathLedger {
         orbToPerimeter = null
         perimeterArrival = null
         maskBinding = null
-        perimeterBridge = null
+        perimeterBranch = null
     }
 
     private fun expectedMaskIdentity(
@@ -387,7 +396,7 @@ class WaterLightPathLedger {
 
     private fun WaterLightFrame.identityOrNull(): WaterLightPathIdentity? {
         if (sessionId.isBlank() || attemptId.isBlank() || imageId.isBlank() ||
-            photoSha256.isNullOrBlank() || photoContentVersion < 0L || geometryVersion == 0L
+            photoSha256.isNullOrBlank() || photoContentVersion < 0L || geometryVersion <= 0L
         ) return null
         return WaterLightPathIdentity(
             sessionId = sessionId,

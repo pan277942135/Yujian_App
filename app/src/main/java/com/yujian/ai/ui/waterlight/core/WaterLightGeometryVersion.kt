@@ -14,9 +14,12 @@ object WaterLightGeometryVersion {
         for (value in values) hash = 31L * hash + value.toRawBits()
         hash = 31L * hash + transform.sourceWidthPx
         hash = 31L * hash + transform.sourceHeightPx
-        return hash
+        return hash.toPositiveGeometryVersion()
     }
 
     fun withHostBounds(base: Long, left: Float, top: Float, right: Float, bottom: Float): Long =
         listOf(left, top, right, bottom).fold(base) { hash, value -> 31L * hash + value.toRawBits() }
+            .toPositiveGeometryVersion()
+
+    private fun Long.toPositiveGeometryVersion(): Long = (this and Long.MAX_VALUE).coerceAtLeast(1L)
 }

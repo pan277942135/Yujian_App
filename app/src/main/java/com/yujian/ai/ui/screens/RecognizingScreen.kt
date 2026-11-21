@@ -131,6 +131,7 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionFishPathBindingStatus
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneTimelineProjection
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
@@ -437,7 +438,7 @@ fun RecognitionProcessingScene(
         processingPhotoSnapshotForReveal?.contactPointMaskSha256 == subjectResult.maskSha256 &&
         processingPhotoSnapshotForReveal?.contactPointMaskVersion == subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) } &&
         processingPhotoSnapshotForReveal?.contactPointGeometryVersion == photoGeometryVersion &&
-        photoGeometryVersion != 0L
+        photoGeometryVersion > 0L
     val pStarPathCandidateReady = processingContactIdentityMatches && processingPhotoSnapshotForReveal?.let { photo ->
         RecognitionRevealPathGeometry.fishContact(
             transform = photo.sourceToViewport,
@@ -446,7 +447,7 @@ fun RecognitionProcessingScene(
         ) != null
     } == true
     val pStarPathTerminalUnavailable = subjectResult.status == SubjectStatus.READY && trustedSubjectMask &&
-        contourClosed && photoGeometryVersion != 0L && processingPhotoSnapshotForReveal != null &&
+        contourClosed && photoGeometryVersion > 0L && processingPhotoSnapshotForReveal != null &&
         !pStarPathCandidateReady && attemptDeadline.isExpired(visualNowMs)
     val revealDecision = RecognitionRevealDecisionGate.decide(
         classifier = when {
@@ -488,7 +489,7 @@ fun RecognitionProcessingScene(
         val contourValid = trustedSubjectMask && contour.isNotEmpty()
         controller.onDetectorTargetAvailable(detectorReady, sceneIdentity)
         controller.onPhotoTransformAvailable(
-            photoGeometryVersion != 0L, sceneIdentity, geometryVersion = photoGeometryVersion,
+            photoGeometryVersion > 0L, sceneIdentity, geometryVersion = photoGeometryVersion,
         )
         controller.updateModelJoin(
             detectorReady = detectorReady,
@@ -525,7 +526,7 @@ fun RecognitionProcessingScene(
         when {
             trustedSubjectMask && contour.isNotEmpty() && !contourClosed ->
                 maskRuntimeRejectReason = "CONTOUR_NOT_CLOSED"
-            trustedSubjectMask && contourClosed && photoGeometryVersion != 0L &&
+            trustedSubjectMask && contourClosed && photoGeometryVersion > 0L &&
                 processingPhotoSnapshotForReveal != null && !pStarPathCandidateReady &&
                 attemptDeadline.isExpired(visualNowMs) ->
                 maskRuntimeRejectReason = "PSTAR_PATH_UNAVAILABLE"
@@ -1407,7 +1408,7 @@ fun RecognitionProcessingScene(
                 "maskQuality" to subjectResult.quality?.name,
                 "maskRoiDimensions" to listOf(maskRoiDimensions.first, maskRoiDimensions.second),
                 "photoIdentityMatch" to maskPhotoIdentityMatches,
-                "geometryMatch" to (maskGeometryMatches && diagnosticSceneFrame.geometryVersion != 0L),
+                "geometryMatch" to (maskGeometryMatches && diagnosticSceneFrame.geometryVersion > 0L),
                 "contourClosed" to (contour.lastOrNull()?.closesContour == true),
                 "maskTrusted" to trustedSubjectMask,
                 "revealDecision" to revealDecision.name,
@@ -1562,11 +1563,6 @@ fun RecognitionProcessingScene(
     val successfulRevealAllowed = finishedResult?.let { result ->
         result.ready && resolveRecognitionUiState(result) == RecognitionUiState.RESULT_HIGH
     } == true
-    LaunchedEffect(sceneKey, diagnosticSceneFrame.stage, diagnosticSceneFrame.stageProgress, trustedSubjectMask, successfulRevealAllowed) {
-        if (diagnosticSceneFrame.stage == RecognitionSceneStage.FISH_GOLD_PEAK &&
-            diagnosticSceneFrame.stageProgress >= .999f && trustedSubjectMask && successfulRevealAllowed
-        ) controller.onFishGoldComplete(true, sceneIdentity)
-    }
     LaunchedEffect(sceneKey, diagnosticSceneFrame.stage, playbackRevision, photoPresentedAtMs, playbackController.previewCompleted) {
         if (diagnosticUiAvailable && photoPresentedAtMs != null) Log.i(
             LOG_TAG,
@@ -1772,7 +1768,7 @@ fun RecognitionProcessingScene(
             sceneIdentity, subjectResult.maskSha256, trustedSubjectMask,
             contour.size, photoGeometryVersion, energyProducerSnapshot?.contactPointNormalizedSource,
         ) {
-            if (!trustedSubjectMask || contour.isEmpty() || photoGeometryVersion == 0L) return@LaunchedEffect
+            if (!trustedSubjectMask || contour.isEmpty() || photoGeometryVersion <= 0L) return@LaunchedEffect
             val key = "${sceneIdentity.attemptId}:${subjectResult.maskSha256}:$photoGeometryVersion:" +
                 "${energyProducerSnapshot?.contactPointNormalizedSource}"
             if (key == lastPStarDiagnosticKey) return@LaunchedEffect
@@ -1799,15 +1795,35 @@ fun RecognitionProcessingScene(
                         listOf(it.x, it.y)
                     },
                     "producerDecision" to energyProducerSnapshot?.decision?.name,
+                    "pathBindingStatus" to energyProducerSnapshot?.pathBindingStatus?.name,
                     "fishPathPresent" to (energyProducerEvent?.feedback == EnergyFeedback.ABSORB &&
                         energyProducerEvent.pathGeometry != null),
                 ),
             )
+            energyProducerSnapshot?.contactPointNormalizedSource?.let { contact ->
+                recognitionEvidenceRecorder?.recordOrbRuntime(
+                    fileName = "waterlight_paths.jsonl",
+                    type = "PSTAR_RESOLUTION",
+                    payload = mapOf(
+                        "sessionIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.sessionId),
+                        "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.attemptId),
+                        "imageIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.imageId),
+                        "photoSha256" to sceneIdentity.photoSha256,
+                        "maskSha256" to subjectResult.maskSha256,
+                        "maskVersion" to subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) },
+                        "geometryVersion" to photoGeometryVersion,
+                        "pStarNormalizedSource" to listOf(contact.x, contact.y),
+                        "contourClosed" to (contour.lastOrNull()?.closesContour == true),
+                    ),
+                )
+            }
         }
+        var lastPathBindingEvidenceKey by remember(sceneKey) { mutableStateOf<String?>(null) }
         var lastRecordedOrbOnlyPathNotApplicableKey by remember(sceneKey) { mutableStateOf<String?>(null) }
         LaunchedEffect(
             sceneIdentity,
             energyProducerSnapshot?.decision,
+            energyProducerSnapshot?.pathBindingStatus,
             energyProducerSnapshot?.pathApplicability,
             energyProducerEvent?.stage,
             energyProducerEvent?.feedback,
@@ -1826,6 +1842,30 @@ fun RecognitionProcessingScene(
         ) {
             val producer = energyProducerSnapshot ?: return@LaunchedEffect
             val nowMs = recognitionMonotonicNowMs()
+            controller.onFishPathBindingStatus(producer.pathBindingStatus, sceneIdentity)
+            val bindingEvidenceKey = "${sceneIdentity.attemptId}:${waterLightFrame.geometryVersion}:" +
+                "${producer.pathBindingStatus.name}:${producer.contactPointNormalizedSource}"
+            if (bindingEvidenceKey != lastPathBindingEvidenceKey) {
+                lastPathBindingEvidenceKey = bindingEvidenceKey
+                recognitionEvidenceRecorder?.recordOrbRuntime(
+                    fileName = "waterlight_paths.jsonl",
+                    type = "FISH_PATH_BINDING_STATE",
+                    payload = mapOf(
+                        "sessionIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.sessionId),
+                        "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.attemptId),
+                        "imageIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(sceneIdentity.imageId),
+                        "photoSha256" to sceneIdentity.photoSha256,
+                        "maskSha256" to subjectResult.maskSha256.takeIf(String::isNotBlank),
+                        "maskVersion" to subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) },
+                        "geometryVersion" to waterLightFrame.geometryVersion,
+                        "pStarNormalizedSource" to producer.contactPointNormalizedSource?.let { listOf(it.x, it.y) },
+                        "pathId" to producer.event?.pathId,
+                        "status" to producer.pathBindingStatus.name,
+                        "decision" to producer.decision.name,
+                        "deadlineExpired" to attemptDeadline.isExpired(nowMs),
+                    ),
+                )
+            }
             if (producer.pathApplicability == "NOT_APPLICABLE_ORB_ONLY") {
                 val traceKey = "${sceneIdentity.attemptId}:${waterLightFrame.geometryVersion}:${RecognitionSceneStage.PATH_TO_FISH.name}"
                 if (lastRecordedOrbOnlyPathNotApplicableKey != traceKey) {
@@ -1877,6 +1917,23 @@ fun RecognitionProcessingScene(
                     contactPointNormalizedSource = producer.contactPointNormalizedSource,
                     currentIdentity = sceneIdentity,
                 )
+                recognitionEvidenceRecorder?.recordOrbRuntime(
+                    fileName = "waterlight_paths.jsonl",
+                    type = if (registered) "PATH_BIND_ACCEPTED" else "PATH_BIND_REJECTED",
+                    payload = mapOf(
+                        "sessionIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(event.sessionId),
+                        "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(event.attemptId),
+                        "imageIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(event.imageId),
+                        "photoSha256" to event.photoSha256,
+                        "maskSha256" to event.pathMaskSha256,
+                        "maskVersion" to event.pathMaskVersion,
+                        "geometryVersion" to event.pathGeometryVersion,
+                        "pathId" to event.pathId,
+                        "pStarNormalizedSource" to producer.contactPointNormalizedSource.let { listOf(it.x, it.y) },
+                        "eventSequence" to event.eventSequence,
+                        "result" to if (registered) "ACCEPTED" else "REJECTED",
+                    ),
+                )
                 if (!registered) {
                     val terminal = controller.currentRevealDecision() in setOf(
                         RecognitionRevealDecisionState.ORB_ONLY_READY,
@@ -1912,7 +1969,7 @@ fun RecognitionProcessingScene(
                                 snapshot.pStarNormalizedSource.x, snapshot.pStarNormalizedSource.y,
                             ),
                             "fishPathGeometry" to evidenceGeometry(snapshot.fishPathGeometry),
-                            "perimeterBridge" to evidenceGeometry(snapshot.perimeterBridge),
+                            "perimeterBranch" to evidenceGeometry(snapshot.perimeterBranch),
                             "orbReleasePath" to evidenceGeometry(snapshot.orbReleasePath),
                             "returnPathSegments" to snapshot.returnPathSegments.map(::evidenceGeometry),
                             "sourceCoordinateSpace" to snapshot.sourceCoordinateSpace,
@@ -2976,6 +3033,14 @@ private fun RecognitionPhoto(
                 reduceMotion = motionPolicy.reduceMotion,
                 lowPerformance = motionPolicy.lowPerformance,
                 trustedMask = trustedMask,
+                maskVersion = subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(maskSha256) } ?: -1L,
+                fishPathId = pStarPathId,
+                onGoldRenderComplete = { receipt ->
+                    controller.onFishGoldRenderComplete(receipt, sceneIdentity)
+                },
+                onContourRenderComplete = { receipt ->
+                    controller.onContourRenderComplete(receipt, sceneIdentity)
+                },
                 waterLightFrame = waterLightFrame,
                 energyEvent = energyEvent,
                 material = waterHosts.getValue(WaterLightHost.CONTOUR).material,
@@ -3065,6 +3130,7 @@ private data class RecognitionEnergyProducerSnapshot(
     val contactPointNormalizedSource: WaterLightPathPoint?,
     val fishPathSnapshot: RecognitionFishPathSnapshot?,
     val perimeterArrivalPath: WaterLightPerimeterArrivalSnapshot?,
+    val pathBindingStatus: RecognitionFishPathBindingStatus,
     val pathApplicability: String = "APPLICABLE",
 )
 
@@ -3090,22 +3156,49 @@ private fun createRecognitionEnergyProducerSnapshot(
     val validContour = maskTrusted && maskVersion >= 0L && subjectBox != null && contour.isNotEmpty()
     val contourClosed = validContour && contour.lastOrNull()?.closesContour == true
     val proposedContact = pStarCandidate?.takeIf {
-        validContour && maskSha256.isNotBlank() && frame.geometryVersion != 0L &&
+        validContour && maskSha256.isNotBlank() && frame.geometryVersion > 0L &&
             it.isValid() && it.x in 0f..1f && it.y in 0f..1f
     }
     val stableContact = if (maskTrusted && maskSha256.isNotBlank() && maskVersion >= 0L) {
         ledger.contactPointNormalizedSource(frame, maskSha256, maskVersion) ?: proposedContact
     } else null
+    val arrivalSnapshot = ledger.perimeterArrivalPath(frame)
     val proposedFishPath = stableContact?.let {
         RecognitionRevealPathGeometry.fishContact(
             transform = transform,
             contactPointNormalizedSource = it,
             seed = frame.sessionId.hashCode() xor frame.imageId.hashCode(),
+            taskSplitPoint = arrivalSnapshot?.geometry?.end,
         )
     }
     val scene = frame.sceneFrame
+    val fishPathRegistrationAttempted = subjectStatus == SubjectStatus.READY && maskTrusted && contourClosed &&
+        stableContact != null && proposedFishPath != null && maskSha256.isNotBlank() && maskVersion >= 0L &&
+        arrivalSnapshot != null && frame.geometryVersion > 0L &&
+        scene.stage.ordinal >= RecognitionSceneStage.PATH_TO_FISH.ordinal
+    val fishPathRegistered = if (fishPathRegistrationAttempted) {
+        ledger.recordFishPath(
+            frame = frame,
+            geometry = proposedFishPath,
+            trustedMask = true,
+            maskSha256 = maskSha256,
+            maskVersion = maskVersion,
+            contactPointNormalizedSource = stableContact,
+        ) && ledger.fishPath(frame, maskSha256, maskVersion, stableContact) != null
+    } else false
     val pStarUnavailable = subjectStatus == SubjectStatus.READY && maskTrusted && contourClosed &&
-        frame.geometryVersion != 0L && proposedFishPath == null && pStarDeadlineExpired
+        frame.geometryVersion > 0L && pStarDeadlineExpired && !fishPathRegistered
+    val pathBindingStatus = when {
+        scene.stage.ordinal < RecognitionSceneStage.PATH_TO_FISH.ordinal -> RecognitionFishPathBindingStatus.NOT_APPLICABLE
+        frame.geometryVersion <= 0L || !transform.photoContentRect.isValid() ->
+            RecognitionFishPathBindingStatus.WAITING_FOR_PHOTO_GEOMETRY
+        subjectStatus != SubjectStatus.READY || !maskTrusted || !contourClosed || maskSha256.isBlank() || maskVersion < 0L ->
+            RecognitionFishPathBindingStatus.WAITING_FOR_MASK_BINDING
+        fishPathRegistered -> RecognitionFishPathBindingStatus.PATH_BOUND
+        pStarUnavailable -> RecognitionFishPathBindingStatus.PATH_TERMINAL_UNAVAILABLE
+        fishPathRegistrationAttempted && arrivalSnapshot != null -> RecognitionFishPathBindingStatus.PATH_IDENTITY_MISMATCH
+        else -> RecognitionFishPathBindingStatus.WAITING_FOR_PATH_REGISTRATION
+    }
     var decision = RecognitionRevealDecisionGate.decide(
         classifier = classifier,
         subject = subjectStatus,
@@ -3113,11 +3206,11 @@ private fun createRecognitionEnergyProducerSnapshot(
         contourValid = validContour,
         identityCurrent = scene.isIdentityValid,
         contourClosed = contourClosed,
-        pStarPathReady = proposedFishPath?.isValid() == true,
+        pStarPathReady = fishPathRegistered,
         pStarPathTerminalUnavailable = pStarUnavailable,
         highConfidenceResult = highConfidenceResult,
     )
-    val fishEnergyAllowed = decision == RecognitionRevealDecisionState.FISH_FOCUS_READY && maskTrusted
+    val fishEnergyAllowed = decision == RecognitionRevealDecisionState.FISH_FOCUS_READY && maskTrusted && fishPathRegistered
     val orbOnlyAllowed = decision == RecognitionRevealDecisionState.ORB_ONLY_READY
     val pathApplicability = if (orbOnlyAllowed && scene.stage == RecognitionSceneStage.PATH_TO_FISH) {
         "NOT_APPLICABLE_ORB_ONLY"
@@ -3173,17 +3266,9 @@ private fun createRecognitionEnergyProducerSnapshot(
             if (fishEnergyAllowed && stableContact != null && proposedFishPath != null &&
                 maskSha256.isNotBlank() && maskVersion >= 0L
             ) {
-                val recorded = ledger.recordFishPath(
-                    frame = frame,
-                    geometry = proposedFishPath,
-                    trustedMask = true,
-                    maskSha256 = maskSha256,
-                    maskVersion = maskVersion,
-                    contactPointNormalizedSource = stableContact,
-                )
                 val fishPath = ledger.fishPath(frame, maskSha256, maskVersion, stableContact)
                 val fishPathId = ledger.pathId(frame, maskSha256, maskVersion, stableContact)
-                if (recorded && fishPath != null && !fishPathId.isNullOrBlank()) {
+                if (fishPathRegistered && fishPath != null && !fishPathId.isNullOrBlank()) {
                     pathGeometry = fishPath
                     pathId = fishPathId
                     eventMaskSha = maskSha256
@@ -3191,11 +3276,14 @@ private fun createRecognitionEnergyProducerSnapshot(
                     eventPathGeometryVersion = frame.geometryVersion
                     eventContact = stableContact
                 } else {
-                    // A real trusted Mask with no bindable P* route cannot remain in FULL_REVEAL.
-                    decision = RecognitionRevealDecisionState.ORB_ONLY_READY
+                    // Ledger registration can lag the callback that supplies measured Photo
+                    // geometry. Keep waiting until the real Attempt deadline or explicit error.
+                    decision = if (pStarDeadlineExpired) RecognitionRevealDecisionState.ORB_ONLY_READY
+                    else RecognitionRevealDecisionState.WAITING_PSTAR_PATH
                 }
             } else if (decision == RecognitionRevealDecisionState.FISH_FOCUS_READY) {
-                decision = RecognitionRevealDecisionState.ORB_ONLY_READY
+                decision = if (pStarDeadlineExpired) RecognitionRevealDecisionState.ORB_ONLY_READY
+                else RecognitionRevealDecisionState.WAITING_PSTAR_PATH
             }
         }
         EnergyFeedback.RETURN -> {
@@ -3217,11 +3305,11 @@ private fun createRecognitionEnergyProducerSnapshot(
                     decision = RecognitionRevealDecisionState.ORB_ONLY_READY
                 }
             } else if (fishEnergyAllowed) {
-                // The real Mask/P* join became terminal, but the exact return route is no
-                // longer available. Downgrade the route explicitly instead of waiting forever.
-                decision = RecognitionRevealDecisionState.ORB_ONLY_READY
+                decision = if (pStarDeadlineExpired) RecognitionRevealDecisionState.ORB_ONLY_READY
+                else RecognitionRevealDecisionState.WAITING_PSTAR_PATH
             }
             if (decision == RecognitionRevealDecisionState.ORB_ONLY_READY || fullRoute == null) {
+            if (decision == RecognitionRevealDecisionState.ORB_ONLY_READY) {
                 val perimeterRoute = ledger.returnRoute(frame, trustedMask = false)
                 pathSegments = perimeterRoute?.segments.orEmpty()
                 pathId = perimeterRoute?.id ?: pathId
@@ -3253,7 +3341,8 @@ private fun createRecognitionEnergyProducerSnapshot(
         event = event,
         contactPointNormalizedSource = stableContact,
         fishPathSnapshot = fishPathSnapshot,
-        perimeterArrivalPath = arrivalPath,
+        perimeterArrivalPath = arrivalPath ?: arrivalSnapshot,
+        pathBindingStatus = pathBindingStatus,
         pathApplicability = pathApplicability,
     )
 }

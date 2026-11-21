@@ -153,6 +153,7 @@ object RecognitionRevealPathGeometry {
         transform: RecognitionImageTransform,
         contactPointNormalizedSource: WaterLightPathPoint,
         seed: Int,
+        taskSplitPoint: WaterLightPathPoint? = null,
     ): WaterLightPathGeometry? {
         if (!contactPointNormalizedSource.isValid() ||
             contactPointNormalizedSource.x !in 0f..1f || contactPointNormalizedSource.y !in 0f..1f
@@ -161,7 +162,15 @@ object RecognitionRevealPathGeometry {
         if (!rect.isValid()) return null
         val contact = transform.mapNormalized(contactPointNormalizedSource.x, contactPointNormalizedSource.y)
         if (!contact.isInside(rect)) return null
-        val perimeter = nearestPerimeterAnchor(rect, contact) ?: return null
+        val perimeter = taskSplitPoint?.let { DisplayPoint(it.x, it.y) }
+            ?: nearestPerimeterAnchor(rect, contact)
+            ?: return null
+        val onPerimeter =
+            (kotlin.math.abs(perimeter.x - rect.left) <= .5f || kotlin.math.abs(perimeter.x - rect.right) <= .5f) &&
+                perimeter.y in rect.top - .5f..rect.bottom + .5f ||
+                (kotlin.math.abs(perimeter.y - rect.top) <= .5f || kotlin.math.abs(perimeter.y - rect.bottom) <= .5f) &&
+                perimeter.x in rect.left - .5f..rect.right + .5f
+        if (!onPerimeter) return null
         return WaterLightPathGeometryFactory.between(
             start = WaterLightPathPoint(perimeter.x, perimeter.y),
             end = WaterLightPathPoint(contact.x, contact.y),

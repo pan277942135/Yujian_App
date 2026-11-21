@@ -131,6 +131,10 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadinessContract
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffContract
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultInfoRenderReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultInfoRenderContract
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultStableRenderReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultStableRenderContract
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
@@ -231,6 +235,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
+
+private const val RESULT_INFO_ENTRANCE_DURATION_MS = 450f
 
 enum class RecognitionSaveDestination { HOME, MEMORY }
 
@@ -285,6 +293,18 @@ fun RecognitionResultScreen(
     var heroSnapshot by remember(image?.imageId) { mutableStateOf<RecognitionRevealHeroSnapshot?>(null) }
     var revealTitleBounds by remember(image?.imageId) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
     var resultInfoLayoutReady by remember(revealHandoff?.key) { mutableStateOf(false) }
+    var resultInfoEntranceStartedAtUptimeMs by remember(revealHandoff?.key) { mutableStateOf<Long?>(null) }
+    var resultInfoRenderReceipt by remember(revealHandoff?.key) {
+        mutableStateOf<RecognitionResultInfoRenderReceipt?>(null)
+    }
+    var resultStableRenderReceipt by remember(revealHandoff?.key) {
+        mutableStateOf<RecognitionResultStableRenderReceipt?>(null)
+    }
+    val resultInfoDrawPassSequence = remember(revealHandoff?.key) { AtomicLong(0L) }
+    val resultInfoProgressBucket = remember(revealHandoff?.key) { AtomicInteger(-1) }
+    val resultInfoReceiptInFlight = remember(revealHandoff?.key) { AtomicBoolean(false) }
+    val resultStableDrawPassSequence = remember(revealHandoff?.key) { AtomicLong(0L) }
+    val resultStableReceiptInFlight = remember(revealHandoff?.key) { AtomicBoolean(false) }
     var diagnosticUserPaused by remember(revealHandoff?.key) { mutableStateOf(false) }
     val resultFirstPresentedAtMs = remember(image?.imageId) { mutableStateOf<Long?>(null) }
     val revealStartAllowed = remember(image?.imageId) { mutableStateOf(false) }
@@ -483,13 +503,7 @@ fun RecognitionResultScreen(
             revealGeometryResolutionObserver?.invoke(revealGeometryResolution)
         }
     }
-    val visualHandoff = when {
-        decisionHandoff != null &&
-            decisionHandoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL &&
-            revealGeometry?.sourceContourPath?.isEmpty() != false ->
-            decisionHandoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY)
-        else -> decisionHandoff
-    }
+    val visualHandoff = decisionHandoff
     val revealPhotoIdentityMatches = revealHandoff != null && image != null &&
         image.imageId == revealHandoff.imageId &&
         image.bitmap.width == revealHandoff.normalizedSourceWidth &&
@@ -558,6 +572,8 @@ fun RecognitionResultScreen(
         substage: ResultHandoffSubstage,
         frame: RecognitionSceneFrame,
         progress: Float,
+        infoRenderReceipt: RecognitionResultInfoRenderReceipt? = null,
+        stableRenderReceipt: RecognitionResultStableRenderReceipt? = null,
     ): RecognitionResultHandoffReceipt {
         val handoff = visualHandoff ?: return RecognitionResultHandoffReceipt(false, "HANDOFF_MISSING")
         val path = handoff.fishPathSnapshot
@@ -595,6 +611,8 @@ fun RecognitionResultScreen(
             renderStatus = "READY",
             resultIdentity = resultSnapshot?.glyphSpeciesKey ?: prediction.top1.speciesKey,
             glyphReadiness = eventGlyphReadiness,
+            resultInfoRenderReceipt = infoRenderReceipt,
+            resultStableRenderReceipt = stableRenderReceipt,
         )
         resultHandoffEventTimestampMs = eventTimestampMs
         if (resultGeometryReady) {
@@ -609,6 +627,19 @@ fun RecognitionResultScreen(
         if (receipt.accepted) {
             resultHandoffEventSequence = eventSequence
             if (substage == ResultHandoffSubstage.NAME_STABLE) glyphReadinessState = eventGlyphReadiness
+            if (substage == ResultHandoffSubstage.RESULT_INFO_ARRIVAL) {
+                recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
+                    checkpoint = "RESULT_INFO_ARRIVAL_ACCEPTED",
+                    identity = resultSceneIdentity,
+                    resultIdentity = event.resultIdentity,
+                    stage = frame.stage,
+                    stageProgress = frame.stageProgress,
+                    entranceProgress = infoRenderReceipt?.renderedProgress ?: progress,
+                    geometryVersion = event.geometryVersion,
+                    drawPassSequence = infoRenderReceipt?.drawPassSequence,
+                    renderStatus = "ACCEPTED",
+                )
+            }
             Log.i(
                 "RecognitionResultHandoff",
                 "accepted=true substage=${substage.name} session=${event.identity.sessionId} attempt=${event.identity.attemptId} " +
@@ -728,13 +759,13 @@ fun RecognitionResultScreen(
         }
     }
     val resultHandoffMotionActive = !revealMotionPolicy.reduceMotion && !revealAlreadyPlayed &&
+        !geometryInvalid &&
         uiState == RecognitionUiState.RESULT_HIGH &&
         visualHandoff?.eligibility in setOf(
             RecognitionRevealEligibility.FULL_REVEAL,
             RecognitionRevealEligibility.TITLE_FADE_ONLY,
         ) && !geometryInvalid
     val resultSceneHandoffAccepted = resultSnapshot?.handoffState?.has(ResultHandoffSubstage.RESULT_SCENE_HANDOFF) == true
-    val resultInfoArrivalAccepted = resultSnapshot?.handoffState?.has(ResultHandoffSubstage.RESULT_INFO_ARRIVAL) == true
     val resultInteractionsEnabled = !resultHandoffMotionActive || resultSnapshot?.resultSceneStable == true
     // Keep the photo and classifier Glyph in the same visible Result host during stages 10–12.
     // Detail controls remain gated by the accepted 13.4 event.
@@ -746,10 +777,11 @@ fun RecognitionResultScreen(
     val resultInfoEntranceProgress = when {
         !resultInfoArrivalPermitted -> 0f
         !resultHandoffMotionActive -> 1f
-        !resultSceneHandoffAccepted || !resultInfoArrivalAccepted -> 0f
-        diagnosticFrame?.stage != RecognitionSceneStage.RESIDUE_SETTLE -> 1f
+        !resultSceneHandoffAccepted || !resultInfoLayoutReady || resultInfoEntranceStartedAtUptimeMs == null -> 0f
+        diagnosticFrame?.stage != RecognitionSceneStage.RESIDUE_SETTLE -> 0f
         else -> {
-            val t = ((diagnosticFrame?.stageElapsedMs ?: 0L) - 350L).coerceAtLeast(0L).toFloat() / 100f
+            val start = requireNotNull(resultInfoEntranceStartedAtUptimeMs)
+            val t = (diagnosticNowMs - start).coerceAtLeast(0L).toFloat() / RESULT_INFO_ENTRANCE_DURATION_MS
             val clamped = t.coerceIn(0f, 1f)
             clamped * clamped * (3f - 2f * clamped)
         }
@@ -813,13 +845,12 @@ fun RecognitionResultScreen(
         playbackMode = ScenePlaybackMode.AUTO,
         reducedMotion = revealMotionPolicy.reduceMotion,
     )
-    val revealFrameState = remember(presentedHandoff, frameMotionPolicy, activeRevealSceneFrame, revealAlreadyPlayed) {
+    val revealFrameState = remember(presentedHandoff, frameMotionPolicy, activeRevealSceneFrame) {
         derivedStateOf {
             RecognitionRevealClock.evaluate(
                 scene = activeRevealSceneFrame,
                 handoff = presentedHandoff,
                 policy = frameMotionPolicy,
-                alreadyPlayed = revealAlreadyPlayed,
             )
         }
     }
@@ -934,21 +965,54 @@ fun RecognitionResultScreen(
     LaunchedEffect(
         revealHandoff?.key,
         diagnosticFrame?.stage,
+        diagnosticFrame?.stageElapsedMs,
         resultInfoLayoutReady,
-        resultSnapshot?.resultDataReady,
-        resultSnapshot?.glyphSpeciesName,
-        prediction.top1.speciesName,
-        selectedName,
+        resultSceneHandoffAccepted,
         resultSnapshot?.handoffState?.completedSubstages,
     ) {
         val frame = diagnosticFrame ?: return@LaunchedEffect
-        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && resultInfoLayoutReady &&
-            resultSnapshot != null && resultSnapshot.key == revealHandoff?.key && resultSnapshot.resultDataReady && selectedName.isNotBlank() &&
-            ResultHandoffSubstage.RESULT_SCENE_HANDOFF in resultSnapshot.handoffState.completedSubstages &&
-            ResultHandoffSubstage.RESULT_INFO_ARRIVAL !in resultSnapshot.handoffState.completedSubstages &&
-            resultSnapshot.glyphSpeciesName == prediction.top1.speciesName
+        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && resultInfoLayoutReady && resultSceneHandoffAccepted &&
+            resultSnapshot != null && resultSnapshot.key == revealHandoff?.key && resultSnapshot.resultDataReady &&
+            resultSnapshot.glyphSpeciesName == prediction.top1.speciesName && resultInfoEntranceStartedAtUptimeMs == null
         ) {
-            emitResultHandoffMilestone(ResultHandoffSubstage.RESULT_INFO_ARRIVAL, frame, 1f)
+            resultInfoEntranceStartedAtUptimeMs = SystemClock.uptimeMillis()
+            recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
+                checkpoint = "INFO_ENTRANCE_STARTED",
+                identity = resultSceneIdentity,
+                resultIdentity = prediction.top1.speciesKey,
+                stage = frame.stage,
+                stageProgress = frame.stageProgress,
+                entranceProgress = 0f,
+                geometryVersion = resultGeometryVersion,
+                renderStatus = "STARTED_AFTER_RESULT_SCENE_HANDOFF_ACCEPTED",
+            )
+        }
+    }
+    LaunchedEffect(
+        revealHandoff?.key,
+        diagnosticFrame?.stage,
+        resultInfoRenderReceipt,
+        resultHandoffEventSequence,
+        resultSnapshot?.handoffState?.completedSubstages,
+    ) {
+        val frame = diagnosticFrame ?: return@LaunchedEffect
+        val receipt = resultInfoRenderReceipt ?: return@LaunchedEffect
+        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+            ResultHandoffSubstage.RESULT_SCENE_HANDOFF in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet()) &&
+            ResultHandoffSubstage.RESULT_INFO_ARRIVAL !in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet()) &&
+            RecognitionResultInfoRenderContract.isComplete(
+                expectedIdentity = resultSceneIdentity,
+                expectedResultIdentity = prediction.top1.speciesKey,
+                expectedGeometryVersion = resultGeometryVersion,
+                receipt = receipt,
+            )
+        ) {
+            emitResultHandoffMilestone(
+                ResultHandoffSubstage.RESULT_INFO_ARRIVAL,
+                frame,
+                receipt.renderedProgress,
+                infoRenderReceipt = receipt,
+            )
         }
     }
     val opticalResidueStatus = diagnosticFrame?.let { frame ->
@@ -976,16 +1040,29 @@ fun RecognitionResultScreen(
     LaunchedEffect(
         revealHandoff?.key,
         diagnosticFrame?.stage,
-        opticalResidueStatus?.complete,
-        resultSceneStableStatus?.ready,
+        resultStableRenderReceipt,
         resultHandoffEventSequence,
         diagnosticPlaybackController?.resultSceneStable,
         resultSnapshot?.resultSceneStable,
         resultSnapshot?.handoffState?.completedSubstages,
     ) {
         val frame = diagnosticFrame ?: return@LaunchedEffect
-        if (resultSceneStableStatus?.ready == true) {
-            emitResultHandoffMilestone(ResultHandoffSubstage.RESULT_SCENE_STABLE, frame, 1f)
+        val receipt = resultStableRenderReceipt ?: return@LaunchedEffect
+        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+            ResultHandoffSubstage.RESULT_SCENE_STABLE !in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet()) &&
+            RecognitionResultStableRenderContract.isComplete(
+                expectedIdentity = resultSceneIdentity,
+                expectedResultIdentity = prediction.top1.speciesKey,
+                expectedGeometryVersion = resultGeometryVersion,
+                receipt = receipt,
+            )
+        ) {
+            emitResultHandoffMilestone(
+                ResultHandoffSubstage.RESULT_SCENE_STABLE,
+                frame,
+                1f,
+                stableRenderReceipt = receipt,
+            )
         }
     }
     LaunchedEffect(
@@ -1129,6 +1206,49 @@ fun RecognitionResultScreen(
     Box(
         Modifier.fillMaxSize().drawWithContent {
             drawContent()
+            if (resultSceneStableStatus?.ready == true && resultGeometryVersion > 0L &&
+                resultStableRenderReceipt?.geometryVersion != resultGeometryVersion &&
+                resultStableReceiptInFlight.compareAndSet(false, true)
+            ) {
+                val frame = latestEvidenceResultFrame.value
+                val receipt = RecognitionResultStableRenderReceipt(
+                    identity = resultSceneIdentity,
+                    resultIdentity = prediction.top1.speciesKey,
+                    geometryVersion = resultGeometryVersion,
+                    completedPrerequisites = resultSnapshot?.handoffState?.completedSubstages.orEmpty(),
+                    photoProgress = revealFrameState.value.photoProgress,
+                    resultInfoProgress = resultInfoEntranceProgress,
+                    opticalResidueComplete = opticalResidueStatus?.complete == true,
+                    layoutWidthPx = size.width.toInt(),
+                    layoutHeightPx = size.height.toInt(),
+                    contentDrawn = true,
+                    drawPassSequence = resultStableDrawPassSequence.incrementAndGet(),
+                )
+                resultFrameHandler.post {
+                    if (frame?.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+                        RecognitionResultStableRenderContract.isComplete(
+                            expectedIdentity = resultSceneIdentity,
+                            expectedResultIdentity = prediction.top1.speciesKey,
+                            expectedGeometryVersion = resultGeometryVersion,
+                            receipt = receipt,
+                        )
+                    ) {
+                        resultStableRenderReceipt = receipt
+                        recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
+                            checkpoint = "RESULT_SCENE_STABLE_RENDER_COMPLETED",
+                            identity = receipt.identity,
+                            resultIdentity = receipt.resultIdentity,
+                            stage = frame.stage,
+                            stageProgress = frame.stageProgress,
+                            entranceProgress = receipt.resultInfoProgress,
+                            geometryVersion = receipt.geometryVersion,
+                            drawPassSequence = receipt.drawPassSequence,
+                            renderStatus = "DRAW_RECEIPT_READY",
+                        )
+                    }
+                    resultStableReceiptInFlight.set(false)
+                }
+            }
             val evidenceFrame = latestEvidenceResultFrame.value
             if (evidenceFrame != null) {
                 recognitionEvidenceRecorder?.onFramePresented(
@@ -1289,13 +1409,74 @@ fun RecognitionResultScreen(
                             onChange = { openSpeciesSelector() },
                         )
                         Spacer(Modifier.height(8.dp))
+                        Column(
+                            Modifier.fillMaxWidth()
+                                .graphicsLayer {
+                                    alpha = resultInfoAlpha
+                                    translationY = resultInfoTranslationY.toPx()
+                                }
+                                .drawWithContent {
+                                    drawContent()
+                                    val infoDrawSequence = resultInfoDrawPassSequence.incrementAndGet()
+                                    val frame = diagnosticFrame
+                                    if (frame?.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+                                        resultSceneHandoffAccepted && resultGeometryReady && resultInfoLayoutReady
+                                    ) {
+                                        val progress = resultInfoEntranceProgress.coerceIn(0f, 1f)
+                                        val bucket = (progress * 10f).toInt().coerceIn(0, 10)
+                                        val lastBucket = resultInfoProgressBucket.get()
+                                        if (bucket > lastBucket && resultInfoProgressBucket.compareAndSet(lastBucket, bucket)) {
+                                            recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
+                                                checkpoint = "INFO_ENTRANCE_PROGRESS",
+                                                identity = resultSceneIdentity,
+                                                resultIdentity = prediction.top1.speciesKey,
+                                                stage = frame.stage,
+                                                stageProgress = frame.stageProgress,
+                                                entranceProgress = progress,
+                                                geometryVersion = resultGeometryVersion,
+                                                drawPassSequence = infoDrawSequence,
+                                                renderStatus = "CONTENT_DRAW_SUBMITTED",
+                                            )
+                                        }
+                                        if (progress >= .999f &&
+                                            resultInfoRenderReceipt?.geometryVersion != resultGeometryVersion &&
+                                            resultInfoReceiptInFlight.compareAndSet(false, true)
+                                        ) {
+                                            val receipt = RecognitionResultInfoRenderReceipt(
+                                                identity = resultSceneIdentity,
+                                                resultIdentity = prediction.top1.speciesKey,
+                                                geometryVersion = resultGeometryVersion,
+                                                renderedProgress = progress,
+                                                layoutWidthPx = size.width.toInt(),
+                                                layoutHeightPx = size.height.toInt(),
+                                                contentDrawn = true,
+                                                drawPassSequence = infoDrawSequence,
+                                            )
+                                            resultFrameHandler.post {
+                                                resultInfoRenderReceipt = receipt
+                                                recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
+                                                    checkpoint = "INFO_RENDER_COMPLETED",
+                                                    identity = receipt.identity,
+                                                    resultIdentity = receipt.resultIdentity,
+                                                    stage = frame.stage,
+                                                    stageProgress = frame.stageProgress,
+                                                    entranceProgress = receipt.renderedProgress,
+                                                    geometryVersion = receipt.geometryVersion,
+                                                    drawPassSequence = receipt.drawPassSequence,
+                                                    renderStatus = "DRAW_RECEIPT_READY",
+                                                )
+                                                resultInfoReceiptInFlight.set(false)
+                                            }
+                                        }
+                                    }
+                                },
+                        ) {
                         ResultMetadataStrip(
                             length = lengthText,
                             weight = weightText,
                             location = locationText,
                             resolvingLocation = resolvingLocation,
                             modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin)
-                                .graphicsLayer { alpha = resultInfoAlpha; translationY = resultInfoTranslationY.toPx() }
                                 .onGloballyPositioned { coordinates ->
                                     resultInfoLayoutReady = coordinates.size.width > 0 && coordinates.size.height > 0
                                 },
@@ -1307,8 +1488,7 @@ fun RecognitionResultScreen(
                         ResultMemoryNote(
                             value = storyText,
                             onValueChange = { storyText = it.takeUnicodeCodePoints(300) },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin)
-                                .graphicsLayer { alpha = resultInfoAlpha; translationY = resultInfoTranslationY.toPx() },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
                             enabled = !saveBusy && resultInteractionsEnabled,
                             accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
                         )
@@ -1319,7 +1499,7 @@ fun RecognitionResultScreen(
                             actionLabel = inlineErrorActionLabel,
                             onAction = inlineErrorAction,
                             enabled = !saveBusy && resultInteractionsEnabled,
-                            modifier = Modifier.graphicsLayer { alpha = resultInfoAlpha; translationY = resultInfoTranslationY.toPx() },
+                            modifier = Modifier,
                         )
                         ResultDualActions(
                             useResultSurfaceActions = true,
@@ -1329,10 +1509,11 @@ fun RecognitionResultScreen(
                             compactLayout = compactResultActions,
                             sideMargin = if (compactResultActions) 16.dp else 24.dp,
                             interactiveEnabled = resultInteractionsEnabled,
-                            modifier = Modifier.graphicsLayer { alpha = resultInfoAlpha; translationY = resultInfoTranslationY.toPx() },
+                            modifier = Modifier,
                             onContinue = { save(RecognitionSaveDestination.MEMORY) },
                             onSave = { save(RecognitionSaveDestination.HOME) },
                         )
+                        }
                     }
                     RecognitionUiState.RESULT_MEDIUM -> {
                         ResultInformationGlass(
@@ -1663,6 +1844,11 @@ fun RecognitionResultScreen(
             onOrbCoreDissolveRendered = { receipt ->
                 if (receipt.identity == resultSceneIdentity) {
                     diagnosticPlaybackController?.onOrbCoreDissolveRendered(receipt) ?: true
+                } else false
+            },
+            onResidueRenderComplete = { receipt ->
+                if (receipt.identity == resultSceneIdentity) {
+                    diagnosticPlaybackController?.onResidueRenderComplete(receipt, resultSceneIdentity) ?: true
                 } else false
             },
         )

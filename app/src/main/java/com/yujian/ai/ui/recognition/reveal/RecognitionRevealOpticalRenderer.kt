@@ -23,8 +23,10 @@ import androidx.compose.ui.draw.drawWithContent
 import android.os.Handler
 import android.os.Looper
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import com.yujian.ai.ui.recognition.reveal.RecognitionOrbCoreDissolveReceipt
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionResidueRenderReceipt
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalDensity
@@ -60,6 +62,7 @@ internal fun RecognitionRevealOpticalOverlay(
     waterLightFrame: WaterLightFrame? = null,
     sceneIdentity: RecognitionSceneIdentity? = null,
     onOrbCoreDissolveRendered: ((RecognitionOrbCoreDissolveReceipt) -> Boolean)? = null,
+    onResidueRenderComplete: ((RecognitionResidueRenderReceipt) -> Boolean)? = null,
 ) {
     val frame = frameState.value
     val sourceBitmap = bitmap ?: return
@@ -81,7 +84,7 @@ internal fun RecognitionRevealOpticalOverlay(
     )
 
     val orbReturnMeasure = remember(activeRevealGeometry) {
-        activeRevealGeometry?.orbReturnPathLocal?.let { PathMeasure(it.toPath(), false) }
+        activeRevealGeometry?.fullReturnPathLocal?.let { PathMeasure(it, false) }
     }
     val orbToGlyphMeasure = remember(activeRevealGeometry) {
         activeRevealGeometry?.orbToGlyphPathLocal?.let { PathMeasure(it.toPath(), false) }
@@ -195,9 +198,18 @@ internal fun RecognitionRevealOpticalOverlay(
     val particlePaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val dotPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val waterGrassRenderer = remember { WaterGrassRenderer() }
+    val opticalDrawPassSequence = remember(handoff.key, sceneIdentity) { AtomicLong(0L) }
+    val residueReceiptAccepted = remember(handoff.key, sceneIdentity) { AtomicBoolean(false) }
+    val residueReceiptInFlight = remember(handoff.key, sceneIdentity) { AtomicBoolean(false) }
+    val residueReceiptHandler = remember { Handler(Looper.getMainLooper()) }
+    val latestOnResidueRenderComplete = androidx.compose.runtime.rememberUpdatedState(onResidueRenderComplete)
+    androidx.compose.runtime.DisposableEffect(residueReceiptHandler, handoff.key, sceneIdentity) {
+        onDispose { residueReceiptHandler.removeCallbacksAndMessages(null) }
+    }
 
     Box(canvasModifier) {
     Canvas(Modifier.fillMaxSize()) {
+        val drawPassSequence = opticalDrawPassSequence.incrementAndGet()
         drawIntoCanvas { composeCanvas ->
             val canvas = composeCanvas.nativeCanvas
             val gold = material.primaryColor.toInt()
@@ -455,10 +467,34 @@ internal fun RecognitionRevealOpticalOverlay(
                 waterGrassRenderer.draw(canvas, residueFrame, rightField, grassSeed xor 0x5A17L, material, grassAlpha, energyEvent)
             }
 
+            if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+                frame.stageProgress >= .999f && frame.afterglowAlpha <= .001f &&
+                sceneIdentity != null && !residueReceiptAccepted.get() &&
+                residueReceiptInFlight.compareAndSet(false, true)
+            ) {
+                val receipt = RecognitionResidueRenderReceipt(
+                    identity = sceneIdentity,
+                    stage = frame.stage,
+                    stageProgress = frame.stageProgress,
+                    afterglowAlpha = frame.afterglowAlpha,
+                    residueCanvasSubmitted = true,
+                    drawPassSequence = drawPassSequence,
+                )
+                residueReceiptHandler.post {
+                    val accepted = try {
+                        latestOnResidueRenderComplete.value?.invoke(receipt) == true
+                    } finally {
+                        residueReceiptInFlight.set(false)
+                    }
+                    if (accepted) residueReceiptAccepted.set(true)
+                }
+            }
+
         }
     }
     val orbCoreDissolveAccepted = remember(handoff.key, sceneIdentity) { AtomicBoolean(false) }
     val orbCoreDissolveInFlight = remember(handoff.key, sceneIdentity) { AtomicBoolean(false) }
+    val orbCoreDissolveDrawPassSequence = remember(handoff.key, sceneIdentity) { AtomicLong(0L) }
     val orbCoreDissolveHandler = remember { Handler(Looper.getMainLooper()) }
     val latestOnOrbCoreDissolveRendered = androidx.compose.runtime.rememberUpdatedState(onOrbCoreDissolveRendered)
     androidx.compose.runtime.DisposableEffect(orbCoreDissolveHandler, handoff.key, sceneIdentity) {
@@ -496,7 +532,7 @@ internal fun RecognitionRevealOpticalOverlay(
                         stage = frame.stage,
                         horizontalStretchProgress = morph,
                         coreAlpha = orbCoreAlpha,
-                        drawPassSequence = 1L,
+                        drawPassSequence = orbCoreDissolveDrawPassSequence.incrementAndGet(),
                     )
                     orbCoreDissolveHandler.post {
                         val accepted = try {

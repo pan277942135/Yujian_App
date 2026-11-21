@@ -58,14 +58,25 @@ class WaterLightPathLedgerTest {
         maskVersion: Long = 42L,
         contact: WaterLightPathPoint = contactA,
         trusted: Boolean = true,
-    ) = ledger.recordFishPath(
-        frame = frame,
-        geometry = geometry,
-        trustedMask = trusted,
-        maskSha256 = maskSha,
-        maskVersion = maskVersion,
-        contactPointNormalizedSource = contact,
-    )
+    ): Boolean {
+        if (ledger.perimeterArrivalPath(frame) == null) {
+            val releasePath = ledger.releasePath(frame) ?: return false
+            val arrival = WaterLightPathGeometryFactory.between(
+                releasePath.end,
+                geometry.start,
+                seed = 73,
+            ) ?: return false
+            if (!ledger.recordPerimeterArrivalPath(frame, arrival)) return false
+        }
+        return ledger.recordFishPath(
+            frame = frame,
+            geometry = geometry,
+            trustedMask = trusted,
+            maskSha256 = maskSha,
+            maskVersion = maskVersion,
+            contactPointNormalizedSource = contact,
+        )
+    }
 
     @Test fun returnRouteReversesFishThenPerimeterThenOriginalOrb() {
         val current = frame()
@@ -147,7 +158,7 @@ class WaterLightPathLedgerTest {
     }
 
     @Test fun processingSnapshotPreservesOriginalPathMaskPStarGeometryAndReturnSegments() {
-        val current = frame(geometryVersion = -11L)
+        val current = frame(geometryVersion = 11L)
         val release = release()
         val fish = fish()
         val ledger = WaterLightPathLedger()
@@ -170,7 +181,7 @@ class WaterLightPathLedgerTest {
         assertEquals(current.photoContentVersion, snapshot.photoContentVersion)
         assertEquals(maskShaA, snapshot.maskSha256)
         assertEquals(42L, snapshot.maskVersion)
-        assertEquals(-11L, snapshot.geometryVersion)
+        assertEquals(11L, snapshot.geometryVersion)
         assertEquals(contactA, snapshot.pStarNormalizedSource)
         assertEquals(originalPathId, snapshot.fishPathId)
         assertEquals(originalPathId, snapshot.returnPathId)
@@ -202,7 +213,7 @@ class WaterLightPathLedgerTest {
     }
 
     @Test fun stage04ArrivalIsPhotoAndDetectorBoundWithoutMaskOrPStarIdentity() {
-        val current = frame(geometryVersion = -11L)
+        val current = frame(geometryVersion = 11L)
         val release = release()
         val ledger = WaterLightPathLedger()
         assertTrue(ledger.recordRelease(current, release))
@@ -238,18 +249,19 @@ class WaterLightPathLedgerTest {
         assertNull(ledger.pathId(current, maskShaA, 42L, contactA))
     }
 
-    @Test fun signedGeometryFingerprintIsAcceptedButZeroRemainsTheUnmeasuredSentinel() {
-        val signedFrame = frame(geometryVersion = -7L)
+    @Test fun geometryVersionMustBePositiveAndZeroOrNegativeRemainUnmeasured() {
+        val measuredFrame = frame(geometryVersion = 7L)
         val ledger = WaterLightPathLedger()
-        assertTrue(ledger.recordRelease(signedFrame, release()))
-        assertTrue(recordFish(ledger, signedFrame, fish()))
-        val route = ledger.returnRoute(signedFrame, true, maskShaA, 42L, contactA)
+        assertTrue(ledger.recordRelease(measuredFrame, release()))
+        assertTrue(recordFish(ledger, measuredFrame, fish()))
+        val route = ledger.returnRoute(measuredFrame, true, maskShaA, 42L, contactA)
         assertNotNull(route)
-        assertEquals(-7L, requireNotNull(route).geometryVersion)
+        assertEquals(7L, requireNotNull(route).geometryVersion)
         assertTrue(requireNotNull(route).isValid())
 
         val zeroGeometryLedger = WaterLightPathLedger()
         assertFalse(zeroGeometryLedger.recordRelease(frame(geometryVersion = 0L), release()))
+        assertFalse(WaterLightPathLedger().recordRelease(frame(geometryVersion = -7L), release()))
     }
 
 }

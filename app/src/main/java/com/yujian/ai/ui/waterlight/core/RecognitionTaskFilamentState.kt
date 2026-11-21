@@ -64,7 +64,7 @@ data class RecognitionTaskFilamentState(
             val pathId = event.pathId?.takeIf { it.isNotBlank() && it !in RESIDENT_PATH_IDS } ?: return null
             if (event.feedback !in TASK_FEEDBACKS || !event.level.isFinite() || event.level !in 0f..1f ||
                 event.sessionId.isBlank() || event.attemptId.isBlank() || event.imageId.isBlank() ||
-                event.photoSha256.isBlank() || event.geometryVersion == 0L || event.eventSequence < 0L
+                event.photoSha256.isBlank() || event.geometryVersion <= 0L || event.eventSequence < 0L
             ) return null
 
             val phase = if (taskEnergyMerged) RecognitionTaskFilamentPhase.MERGED else when (event.stage) {

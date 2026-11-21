@@ -56,7 +56,69 @@ object RecognitionResultHandoffContract {
     fun mayExposeResultInfo(
         resultHandoffMotionActive: Boolean,
         completed: Set<ResultHandoffSubstage>,
-    ): Boolean = !resultHandoffMotionActive || ResultHandoffSubstage.RESULT_INFO_ARRIVAL in completed
+    ): Boolean = !resultHandoffMotionActive || ResultHandoffSubstage.RESULT_SCENE_HANDOFF in completed
+}
+
+data class RecognitionResultInfoRenderReceipt(
+    val identity: RecognitionSceneIdentity,
+    val resultIdentity: String,
+    val geometryVersion: Long,
+    val renderedProgress: Float,
+    val layoutWidthPx: Int,
+    val layoutHeightPx: Int,
+    val contentDrawn: Boolean,
+    val drawPassSequence: Long,
+)
+
+object RecognitionResultInfoRenderContract {
+    fun isComplete(
+        expectedIdentity: RecognitionSceneIdentity,
+        expectedResultIdentity: String,
+        expectedGeometryVersion: Long,
+        receipt: RecognitionResultInfoRenderReceipt?,
+    ): Boolean = receipt != null && receipt.identity == expectedIdentity &&
+        receipt.resultIdentity == expectedResultIdentity && expectedResultIdentity.isNotBlank() &&
+        receipt.geometryVersion == expectedGeometryVersion && expectedGeometryVersion > 0L &&
+        receipt.renderedProgress.isFinite() && receipt.renderedProgress >= .999f &&
+        receipt.layoutWidthPx > 0 && receipt.layoutHeightPx > 0 && receipt.contentDrawn &&
+        receipt.drawPassSequence > 0L
+}
+
+data class RecognitionResultStableRenderReceipt(
+    val identity: RecognitionSceneIdentity,
+    val resultIdentity: String,
+    val geometryVersion: Long,
+    val completedPrerequisites: Set<ResultHandoffSubstage>,
+    val photoProgress: Float,
+    val resultInfoProgress: Float,
+    val opticalResidueComplete: Boolean,
+    val layoutWidthPx: Int,
+    val layoutHeightPx: Int,
+    val contentDrawn: Boolean,
+    val drawPassSequence: Long,
+)
+
+object RecognitionResultStableRenderContract {
+    private val REQUIRED = setOf(
+        ResultHandoffSubstage.NAME_STABLE,
+        ResultHandoffSubstage.PHOTO_SETTLE,
+        ResultHandoffSubstage.RESULT_SCENE_HANDOFF,
+        ResultHandoffSubstage.RESULT_INFO_ARRIVAL,
+    )
+
+    fun isComplete(
+        expectedIdentity: RecognitionSceneIdentity,
+        expectedResultIdentity: String,
+        expectedGeometryVersion: Long,
+        receipt: RecognitionResultStableRenderReceipt?,
+    ): Boolean = receipt != null && receipt.identity == expectedIdentity &&
+        receipt.resultIdentity == expectedResultIdentity && expectedResultIdentity.isNotBlank() &&
+        receipt.geometryVersion == expectedGeometryVersion && expectedGeometryVersion > 0L &&
+        receipt.completedPrerequisites.containsAll(REQUIRED) &&
+        receipt.photoProgress.isFinite() && receipt.photoProgress >= .999f &&
+        receipt.resultInfoProgress.isFinite() && receipt.resultInfoProgress >= .999f &&
+        receipt.opticalResidueComplete && receipt.layoutWidthPx > 0 && receipt.layoutHeightPx > 0 &&
+        receipt.contentDrawn && receipt.drawPassSequence > 0L
 }
 
 enum class RecognitionHandoffTransactionStatus {
@@ -108,7 +170,7 @@ data class RecognitionGlyphPathDescriptor(
     fun matches(identity: RecognitionSceneIdentity, speciesKey: String, speciesName: String): Boolean =
         this.identity == identity && this.speciesKey == speciesKey && this.speciesName == speciesName &&
             speciesKey.isNotBlank() && speciesName.isNotBlank() && pathId.isNotBlank() &&
-            geometryVersion != 0L && expectedCharacterCount > 0 &&
+            geometryVersion > 0L && expectedCharacterCount > 0 &&
             builtCharacterCount == expectedCharacterCount && contourCount > 0 &&
             totalPathLengthPx.isFinite() && totalPathLengthPx > 1f && bounds.isValid
 }
@@ -292,6 +354,8 @@ data class RecognitionResultHandoffEvent(
     val renderStatus: String,
     val resultIdentity: String,
     val glyphReadiness: RecognitionGlyphReadiness? = null,
+    val resultInfoRenderReceipt: RecognitionResultInfoRenderReceipt? = null,
+    val resultStableRenderReceipt: RecognitionResultStableRenderReceipt? = null,
 )
 
 data class RecognitionResultHandoffReceipt(

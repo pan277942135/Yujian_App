@@ -13,6 +13,7 @@ import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightPathLedger
+import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometryFactory
 import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
@@ -342,14 +343,14 @@ class RecognitionVisualStateControllerTest {
         ))
     }
 
-    @Test fun fishContactPathIsBoundToExactMaskPStarAndSignedGeometryVersion() {
+    @Test fun fishContactPathIsBoundToExactMaskPStarAndPositiveGeometryVersion() {
         val controller = SceneMotionCoordinator()
         controller.beginNewSession(identity, debugBuild = true, nowMs = 0L)
         controller.markPhotoFirstFramePresented(identity, 100L)
 
         val maskSha = "a".repeat(64)
         val nextMaskSha = "b".repeat(64)
-        val geometryVersion = -7L
+        val geometryVersion = 7L
         val contact = WaterLightPathPoint(.42f, .61f)
         val pathId = "waterlight:${identity.sessionId}:${identity.attemptId}:${identity.imageId}:" +
             "${identity.photoContentVersion}:$geometryVersion:mask:${maskSha.take(16)}:42:0.420000:0.610000"
@@ -458,7 +459,7 @@ class RecognitionVisualStateControllerTest {
         val photoSha = "c".repeat(64)
         val maskSha = "a".repeat(64)
         val contact = WaterLightPathPoint(.42f, .61f)
-        val pathGeometryVersion = -7L
+        val pathGeometryVersion = 7L
         val resultGeometryVersion = 200L
         val runtimeIdentity = RecognitionSceneIdentity("session-1", "attempt-1", "image-1", photoSha, 3L)
         val controller = SceneMotionCoordinator()
@@ -506,6 +507,10 @@ class RecognitionVisualStateControllerTest {
         )
         val ledger = WaterLightPathLedger()
         assertTrue(ledger.recordRelease(processingFrame, releasePath))
+        val perimeterArrival = requireNotNull(
+            WaterLightPathGeometryFactory.between(releasePath.end, fishPath.start, seed = 19),
+        )
+        assertTrue(ledger.recordPerimeterArrivalPath(processingFrame, perimeterArrival))
         assertTrue(ledger.recordFishPath(processingFrame, fishPath, true, maskSha, 42L, contact))
         val fishPathId = requireNotNull(ledger.pathId(processingFrame, maskSha, 42L, contact))
         assertTrue(controller.onFishContactPathAvailable(

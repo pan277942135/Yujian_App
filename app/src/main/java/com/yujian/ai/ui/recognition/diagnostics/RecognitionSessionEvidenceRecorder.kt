@@ -293,6 +293,35 @@ class RecognitionSessionEvidenceRecorder(
         )
     }
 
+    fun recordResultInfoEntranceCheckpoint(
+        checkpoint: String,
+        identity: RecognitionSceneIdentity,
+        resultIdentity: String,
+        stage: RecognitionSceneStage,
+        stageProgress: Float,
+        entranceProgress: Float,
+        geometryVersion: Long,
+        drawPassSequence: Long? = null,
+        renderStatus: String,
+    ) {
+        record(
+            type = checkpoint,
+            fileName = "result_handoff.jsonl",
+            payload = mapOf(
+                "sessionIdHash" to sha256(identity.sessionId),
+                "attemptIdHash" to sha256(identity.attemptId),
+                "imageIdHash" to sha256(identity.imageId),
+                "resultIdentity" to resultIdentity,
+                "stage" to stage.name,
+                "stageProgress" to stageProgress,
+                "infoEntranceProgress" to entranceProgress,
+                "geometryVersion" to geometryVersion,
+                "drawPassSequence" to drawPassSequence,
+                "renderStatus" to renderStatus,
+            ),
+        )
+    }
+
     fun recordResultGeometryDiagnostic(
         identity: RecognitionSceneIdentity,
         failureReason: String?,

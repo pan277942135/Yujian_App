@@ -123,6 +123,7 @@ data class RecognitionRevealHandoff(
     val fishPathSnapshot: RecognitionFishPathSnapshot? = null,
     val captureTimestampEpochMs: Long = 0L,
     val captureTimestampSource: String = "UNKNOWN",
+    val photoContentVersion: Long = 0L,
 )
 
 object RecognitionRevealHandoffFactory {
@@ -138,6 +139,7 @@ object RecognitionRevealHandoffFactory {
         subjectStatus: SubjectStatus = if (subject == null) SubjectStatus.FAILED else SubjectStatus.READY,
         fishPathSnapshot: RecognitionFishPathSnapshot? = null,
         pStarPathTerminalUnavailable: Boolean = false,
+        frozenRevealDecision: RecognitionRevealDecisionState? = null,
     ): RecognitionRevealHandoff {
         val key = RecognitionRevealKey(recognitionSessionId, recognitionAttemptId)
         val primary = result.assessment.primary
@@ -176,7 +178,7 @@ object RecognitionRevealHandoffFactory {
                     point.x in 0f..1f && point.y in 0f..1f &&
                     photo.contactPointMaskSha256 == trustedSubject.maskSha256 &&
                     photo.contactPointMaskVersion == trustedSubject.maskVersion &&
-                    photo.contactPointGeometryVersion != 0L
+                photo.contactPointGeometryVersion > 0L
             }
         } else {
             null
@@ -205,19 +207,19 @@ object RecognitionRevealHandoffFactory {
                 snapshot.imageId == image.imageId && snapshot.photoSha256 == image.photoSha256 &&
                 snapshot.photoContentVersion == image.bitmap.generationId.toLong().coerceAtLeast(0L) &&
                 snapshot.maskSha256 == subject?.maskSha256 && snapshot.maskVersion == subject?.maskVersion &&
-                snapshot.geometryVersion == photo?.contactPointGeometryVersion &&
+                snapshot.geometryVersion > 0L && snapshot.geometryVersion == photo?.contactPointGeometryVersion &&
+                snapshot.fishPathGeometry.end == photo?.sourceToViewport?.mapNormalized(
+                    snapshot.pStarNormalizedSource.x,
+                    snapshot.pStarNormalizedSource.y,
+                )?.let {
+                    com.yujian.ai.ui.waterlight.core.WaterLightPathPoint(it.x, it.y)
+                } &&
                 snapshot.pStarNormalizedSource == photo?.contactPointNormalizedSource?.let {
                     com.yujian.ai.ui.waterlight.core.WaterLightPathPoint(it.x, it.y)
                 }
         }
         val contourClosed = maskTrusted && subject?.contour?.lastOrNull()?.closesContour == true
-        val pStarCandidateValid = maskTrusted && photo != null && anchorSource != null &&
-            RecognitionRevealPathGeometry.fishContact(
-                transform = photo.sourceToViewport,
-                contactPointNormalizedSource = WaterLightPathPoint(anchorSource.x, anchorSource.y),
-                seed = recognitionSessionId.hashCode() xor image.imageId.hashCode(),
-            ) != null
-        val decision = RecognitionRevealDecisionGate.decide(
+        val computedDecision = RecognitionRevealDecisionGate.decide(
             classifier = if (result.ready) RecognitionClassifierTaskState.READY else RecognitionClassifierTaskState.FAILED,
             subject = subjectStatus,
             maskTrusted = maskTrusted,
@@ -225,11 +227,13 @@ object RecognitionRevealHandoffFactory {
             identityCurrent = recognitionSessionId.isNotBlank() && recognitionAttemptId.isNotBlank() &&
                 image.imageId.isNotBlank() && image.photoSha256.isNotBlank(),
             contourClosed = contourClosed,
-            pStarPathReady = pStarCandidateValid,
-            pStarPathTerminalUnavailable = pStarPathTerminalUnavailable ||
-                (maskTrusted && contourClosed && photo != null && !pStarCandidateValid),
+            pStarPathReady = validFishPathSnapshot != null,
+            pStarPathTerminalUnavailable = pStarPathTerminalUnavailable,
             highConfidenceResult = highConfidenceResult,
         )
+        val decision = if (frozenRevealDecision == RecognitionRevealDecisionState.FISH_FOCUS_READY &&
+            validFishPathSnapshot == null
+        ) RecognitionRevealDecisionState.WAITING_PSTAR_PATH else frozenRevealDecision ?: computedDecision
         val eligibility = RecognitionRevealPolicy.eligibility(
             resultReady = result.ready,
             identityValid = identityValid,
@@ -238,7 +242,7 @@ object RecognitionRevealHandoffFactory {
             processingPhotoValid = photo != null,
             anchorValid = anchor != null && orbAnchor != null,
             contourClosed = contourClosed,
-            pStarPathValid = pStarCandidateValid && validFishPathSnapshot != null,
+            pStarPathValid = validFishPathSnapshot != null,
         )
 
         return RecognitionRevealHandoff(
@@ -273,6 +277,7 @@ object RecognitionRevealHandoffFactory {
             fishPathSnapshot = validFishPathSnapshot,
             captureTimestampEpochMs = image.captureTimestampEpochMs,
             captureTimestampSource = image.captureTimestampSource,
+            photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),
         )
     }
 

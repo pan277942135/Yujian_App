@@ -7,6 +7,9 @@ import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransformForSourceRect
+import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
+import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
+import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import kotlin.math.abs
 
 private fun RecognitionRevealWindowRect.localTo(origin: DisplayPoint) = copy(
@@ -107,6 +110,9 @@ data class RecognitionRevealGeometry(
     val orbToGlyphPath: RecognitionRevealCubicPath? = null,
     val glyphResiduePath: RecognitionRevealCubicPath? = null,
     val maskVersion: Long = 0L,
+    /** Projected from the original Processing PathLedger snapshot into Result-root coordinates. */
+    val returnPathSegments: List<RecognitionRevealCubicPath> = emptyList(),
+    val returnPathId: String? = null,
 ) {
     val processingPhotoClipLocal: RecognitionRevealWindowRect
         get() = processingPhotoClip.localTo(rootWindowOrigin)
@@ -122,6 +128,21 @@ data class RecognitionRevealGeometry(
         get() = orbToGlyphPath?.localTo(rootWindowOrigin)
     val glyphResiduePathLocal: RecognitionRevealCubicPath?
         get() = glyphResiduePath?.localTo(rootWindowOrigin)
+    /** One continuous measured path made from the three original Processing RETURN segments. */
+    val fullReturnPathLocal: Path?
+        get() = returnPathSegments.takeIf { it.size == 3 }?.let { segments ->
+            Path().apply {
+                val first = segments.first()
+                moveTo(first.start.x, first.start.y)
+                segments.forEach { segment ->
+                    cubicTo(
+                        segment.control1.x, segment.control1.y,
+                        segment.control2.x, segment.control2.y,
+                        segment.end.x, segment.end.y,
+                    )
+                }
+            }
+        }
 
     fun photoMatrix(progress: Float): RecognitionRevealSourceMatrix {
         val p = progress.coerceIn(0f, 1f)
@@ -150,6 +171,63 @@ data class RecognitionRevealGeometry(
         right = lerp(a.right, b.right, progress),
         bottom = lerp(a.bottom, b.bottom, progress),
     )
+}
+
+data class RecognitionReturnPathProjection(
+    val pathId: String,
+    val fishPathId: String,
+    val maskSha256: String,
+    val maskVersion: Long,
+    val geometryVersion: Long,
+    val pStarNormalizedSource: WaterLightPathPoint,
+    val segments: List<RecognitionRevealCubicPath>,
+)
+
+/** Keeps the source PathLedger identity while translating its measured Processing viewport to Result root. */
+object RecognitionRevealReturnPathProjector {
+    fun project(
+        handoff: RecognitionRevealHandoff,
+        snapshot: RecognitionFishPathSnapshot,
+        resultRootBoundsInWindow: RecognitionRevealWindowRect,
+    ): RecognitionReturnPathProjection? {
+        val processingViewport = handoff.processingPhotoViewportBounds ?: return null
+        val transform = handoff.processingPhotoTransform ?: return null
+        val anchor = handoff.subjectAnchorNormalizedSource ?: return null
+        if (!snapshot.isValid() || handoff.eligibility != RecognitionRevealEligibility.FULL_REVEAL ||
+            snapshot.sessionId != handoff.key.recognitionSessionId ||
+            snapshot.attemptId != handoff.key.recognitionAttemptId ||
+            snapshot.imageId != handoff.imageId || snapshot.photoSha256 != handoff.photoSourceIdentity.substringAfter("sha256=") ||
+            snapshot.photoContentVersion != handoff.photoContentVersion ||
+            snapshot.maskSha256 != handoff.maskSha256 || snapshot.maskVersion != handoff.maskVersion ||
+            snapshot.geometryVersion <= 0L || snapshot.geometryVersion != handoff.contactPointGeometryVersion ||
+            snapshot.pStarNormalizedSource != WaterLightPathPoint(anchor.x, anchor.y) ||
+            handoff.processingPhotoTransform.sourceWidthPx != handoff.normalizedSourceWidth ||
+            handoff.processingPhotoTransform.sourceHeightPx != handoff.normalizedSourceHeight ||
+            !processingViewport.isValid() || !resultRootBoundsInWindow.isValid() ||
+            transform.viewportWidthPx <= 0f || transform.viewportHeightPx <= 0f
+        ) return null
+        val dx = processingViewport.left - resultRootBoundsInWindow.left
+        val dy = processingViewport.top - resultRootBoundsInWindow.top
+        fun WaterLightPathPoint.project() = DisplayPoint(x + dx, y + dy)
+        val projected = snapshot.returnPathSegments.map { segment ->
+            RecognitionRevealCubicPath(
+                start = segment.start.project(),
+                control1 = segment.control1.project(),
+                control2 = segment.control2.project(),
+                end = segment.end.project(),
+            )
+        }
+        if (projected.size != 3 || projected.zipWithNext().any { (a, b) -> a.end != b.start }) return null
+        return RecognitionReturnPathProjection(
+            pathId = snapshot.returnPathId,
+            fishPathId = snapshot.fishPathId,
+            maskSha256 = snapshot.maskSha256,
+            maskVersion = snapshot.maskVersion,
+            geometryVersion = snapshot.geometryVersion,
+            pStarNormalizedSource = snapshot.pStarNormalizedSource,
+            segments = projected,
+        )
+    }
 }
 
 /** Result of resolving the live Result layout into source-space reveal geometry. */
@@ -248,6 +326,14 @@ object RecognitionRevealGeometryResolver {
             }
         ) return rejected("CONTOUR_COORDINATES_INVALID")
 
+        val fishPathSnapshot = handoff.fishPathSnapshot
+            ?: return rejected("RETURN_PATH_SNAPSHOT_MISSING")
+        val returnProjection = RecognitionRevealReturnPathProjector.project(
+            handoff = handoff,
+            snapshot = fishPathSnapshot,
+            resultRootBoundsInWindow = rootBoundsInWindow,
+        ) ?: return rejected("RETURN_PATH_IDENTITY_OR_PROJECTION_INVALID")
+
         val processingMatrix = photoGeometry.processingStartMatrix
         val sourceAnchorX = anchor.x * handoff.normalizedSourceWidth
         val sourceAnchorY = anchor.y * handoff.normalizedSourceHeight
@@ -274,8 +360,9 @@ object RecognitionRevealGeometryResolver {
         val originalOrb = handoff.processingOrbCenterInWindow
             ?.takeIf { it.x.isFinite() && it.y.isFinite() }
             ?: return rejected("ORIGINAL_ORB_ANCHOR_MISSING")
-        val orbReturnPath = opticalCurve(targetAnchorWindow, originalOrb)
-            ?: return rejected("FISH_TO_ORB_PATH_INVALID")
+        // FULL_REVEAL consumes the Processing-owned route after measured viewport projection.
+        // It must never synthesize a replacement curve from P* to the Orb.
+        val orbReturnPath = returnProjection.segments.first()
         val orbToGlyphPath = opticalCurve(originalOrb, targetTitle)
             ?: return rejected("ORB_TO_GLYPH_PATH_INVALID")
         val residueAnchor = DisplayPoint(
@@ -304,6 +391,8 @@ object RecognitionRevealGeometryResolver {
                 orbToGlyphPath = orbToGlyphPath,
                 glyphResiduePath = glyphResiduePath,
                 maskVersion = handoff.maskVersion,
+                returnPathSegments = returnProjection.segments,
+                returnPathId = returnProjection.pathId,
             ),
             failureReason = null,
         )

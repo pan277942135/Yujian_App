@@ -62,8 +62,14 @@ class RecognitionRevealPolicyTest {
         assertEquals(0f, resultNameHold.photoProgress, 0f)
         assertTrue(residue.drawOpticalLayer)
         val settled = frame(RecognitionSceneStage.RESIDUE_SETTLE, 1f, handoff, policy, stageEventComplete = true)
-        assertEquals(RecognitionRevealPhase.COMPLETE, settled.phase)
-        assertFalse(settled.drawOpticalLayer)
+        assertEquals(RecognitionRevealPhase.RESIDUE_SETTLE, settled.phase)
+        assertTrue("Optical residue alone must not complete the Result flow", settled.drawOpticalLayer)
+        val resultStable = frame(
+            RecognitionSceneStage.RESIDUE_SETTLE, 1f, handoff, policy,
+            stageEventComplete = true, resultSceneStable = true,
+        )
+        assertEquals(RecognitionRevealPhase.COMPLETE, resultStable.phase)
+        assertFalse(resultStable.drawOpticalLayer)
     }
 
     @Test
@@ -83,7 +89,7 @@ class RecognitionRevealPolicyTest {
         val settled = frame(RecognitionSceneStage.RESIDUE_SETTLE, 1f, titleOnly,
             RecognitionRevealMotionPolicy(), stageEventComplete = true)
         assertEquals(0f, settled.afterglowAlpha, 0f)
-        assertFalse(settled.drawOpticalLayer)
+        assertTrue("Orb-only residue also waits for Result scene stability", settled.drawOpticalLayer)
 
         val nonHigh = handoff(RecognitionRevealEligibility.PHOTO_ONLY)
         val nonHighFrame = frame(RecognitionSceneStage.ORB_RETURN, .5f, nonHigh, RecognitionRevealMotionPolicy())
@@ -324,6 +330,7 @@ class RecognitionRevealPolicyTest {
         policy: RecognitionRevealMotionPolicy,
         stageEventComplete: Boolean = false,
         resultHandoffSubstage: ResultHandoffSubstage? = null,
+        resultSceneStable: Boolean = false,
     ): RecognitionRevealFrame {
         val frame = RecognitionSceneFrame(
             identity = RecognitionSceneIdentity("session-a", "attempt-a", "image-a", "hash", 1L),
@@ -338,6 +345,7 @@ class RecognitionRevealPolicyTest {
             geometryVersion = 1L,
             stageEventComplete = stageEventComplete,
             resultHandoffSubstage = resultHandoffSubstage,
+            resultSceneStable = resultSceneStable,
         )
         return RecognitionRevealClock.evaluate(frame, handoff, policy)
     }

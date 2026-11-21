@@ -62,7 +62,6 @@ object RecognitionRevealClock {
         scene: RecognitionSceneFrame,
         handoff: RecognitionRevealHandoff?,
         policy: RecognitionRevealMotionPolicy,
-        alreadyPlayed: Boolean = false,
     ): RecognitionRevealFrame {
         val stage = scene.stage
         val progress = scene.stageProgress.coerceIn(0f, 1f)
@@ -70,8 +69,9 @@ object RecognitionRevealClock {
         val fullReveal = eligibility == RecognitionRevealEligibility.FULL_REVEAL
         val fallback = eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY
         val revealEligible = fullReveal || fallback
-        val isFinalStage = stage == RecognitionSceneStage.RESIDUE_SETTLE
-        val complete = alreadyPlayed || (isFinalStage && scene.stageEventComplete)
+        // Optical residue completion is only one milestone. COMPLETE is reserved for the
+        // accepted five-event Result handoff and stable Result scene.
+        val complete = scene.resultSceneStable
         val nameHoldAccepted = scene.resultHandoffSubstage?.ordinal?.let {
             it >= ResultHandoffSubstage.NAME_STABLE.ordinal
         } == true
@@ -80,7 +80,7 @@ object RecognitionRevealClock {
         if (!revealEligible || policy.reduceMotion || complete) {
             return frame(
                 scene = scene,
-                phase = if (revealEligible && !complete && !policy.reduceMotion) phaseFor(stage) else RecognitionRevealPhase.COMPLETE,
+                phase = if (complete) RecognitionRevealPhase.COMPLETE else phaseFor(stage),
                 photoProgress = if (complete || !revealEligible || policy.reduceMotion) 1f else progress,
                 fishHaloAlpha = 0f,
                 transferProgress = 0f,

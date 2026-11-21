@@ -36,6 +36,11 @@ import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.RecognitionFishGoldRenderReceipt
+import com.yujian.ai.ui.waterlight.core.RecognitionContourRenderReceipt
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.ConcurrentHashMap
 
 internal fun recognitionMaskContourEnabled(
     phase: RecognitionPhase,
@@ -326,6 +331,10 @@ fun RecognitionFishFocus(
     energyEvent: EnergyEvent? = null,
     material: WaterLightMaterialProfile = WaterLightMaterialProfile.CONTOUR,
     contourPhotoSpace: Boolean = false,
+    maskVersion: Long = -1L,
+    fishPathId: String? = null,
+    onGoldRenderComplete: ((RecognitionFishGoldRenderReceipt) -> Boolean)? = null,
+    onContourRenderComplete: ((RecognitionContourRenderReceipt) -> Boolean)? = null,
 ) {
     if (waterLightFrame != null && !waterLightFrame.sceneFrame.isIdentityValid) return
     if (!recognitionMaskContourEnabled(phase, trustedMask) || focusBox == null) return
@@ -355,6 +364,13 @@ fun RecognitionFishFocus(
     val contourPathCache = remember(cachedContourPath) {
         cachedContourPath?.let(::RecognitionContourPathCache)
     }
+    val goldDrawSequence = remember(contourCacheIdentity) { AtomicLong(0L) }
+    val goldReceiptAccepted = remember(contourCacheIdentity) { AtomicBoolean(false) }
+    val contourReceiptStagesAccepted = remember(contourCacheIdentity) {
+        ConcurrentHashMap.newKeySet<RecognitionSceneStage>()
+    }
+    val latestOnGoldRenderComplete = androidx.compose.runtime.rememberUpdatedState(onGoldRenderComplete)
+    val latestOnContourRenderComplete = androidx.compose.runtime.rememberUpdatedState(onContourRenderComplete)
     val contourBlurPaints = remember { RecognitionBlurPaintCache() }
     val subjectImage = remember(subjectBitmap) { subjectBitmap.asImageBitmap() }
     val warmGoldMaskFilter = remember {
@@ -375,6 +391,7 @@ fun RecognitionFishFocus(
             .fillMaxSize()
             .testTag(if (lowPerformance) "recognition-fish-focus-trusted-mask-low-performance" else "recognition-fish-focus-trusted-mask"),
     ) {
+        val drawPassSequence = goldDrawSequence.incrementAndGet()
         // The contour path already reveals spatially through maskRevealProgress.
         // Multiplying the optical intensity by that progress a second time made
         // the trusted mask nearly invisible during the reveal.
@@ -429,10 +446,14 @@ fun RecognitionFishFocus(
                 )
             }
 
+            var outerHaloDrawn = false
+            var softGlowDrawn = false
+            var goldCoreDrawn = false
+            var glintDrawn = false
             if (pathToDraw != null) {
                 // Gold Halo, width scales with the real Mask contour bounds.
                 if (outerHaloAlpha > 0.005f) {
-                    drawLocalContourBlur(
+                    outerHaloDrawn = drawLocalContourBlur(
                         pathToDraw,
                         Color(material.highlightColor).copy(alpha = outerHaloAlpha),
                         widthPx = haloWidth,
@@ -443,7 +464,7 @@ fun RecognitionFishFocus(
 
                 // Gold Soft Glow.
                 if (softGlowAlpha > 0.005f) {
-                    drawLocalContourBlur(
+                    softGlowDrawn = drawLocalContourBlur(
                         pathToDraw,
                         Color(material.secondaryColor).copy(alpha = softGlowAlpha),
                         widthPx = softWidth,
@@ -498,6 +519,7 @@ fun RecognitionFishFocus(
                             join = StrokeJoin.Round,
                         ),
                     )
+                    goldCoreDrawn = true
 
                     // A narrow sunlit glint moves deterministically from the shared
                     // scene reference time; it does not start an independent animator.
@@ -511,24 +533,78 @@ fun RecognitionFishFocus(
                         glintProgress,
                         RecognitionContourMaterialCandidate.GOLD_GLINT_ARC_RATIO,
                     )
-                    if (!glintPath.isEmpty) drawPath(
-                        glintPath,
-                        Brush.linearGradient(
-                            colors = listOf(.1f, .9f, 1f, .9f, .1f).map { alpha ->
-                                Color(RecognitionContourMaterialCandidate.GOLD_GLINT_COLOR).copy(
-                                    alpha = alpha * coreAlpha * RecognitionContourMaterialCandidate.GOLD_GLINT_INTENSITY,
-                                )
-                            },
-                            start = gradientStart,
-                            end = gradientEnd,
-                        ),
-                        style = Stroke(
-                            width = maxOf(1.4f.dp.toPx(), coreWidth * .95f),
-                            cap = StrokeCap.Round,
-                            join = StrokeJoin.Round,
-                        ),
-                    )
+                    if (!glintPath.isEmpty) {
+                        drawPath(
+                            glintPath,
+                            Brush.linearGradient(
+                                colors = listOf(.1f, .9f, 1f, .9f, .1f).map { alpha ->
+                                    Color(RecognitionContourMaterialCandidate.GOLD_GLINT_COLOR).copy(
+                                        alpha = alpha * coreAlpha * RecognitionContourMaterialCandidate.GOLD_GLINT_INTENSITY,
+                                    )
+                                },
+                                start = gradientStart,
+                                end = gradientEnd,
+                            ),
+                            style = Stroke(
+                                width = maxOf(1.4f.dp.toPx(), coreWidth * .95f),
+                                cap = StrokeCap.Round,
+                                join = StrokeJoin.Round,
+                            ),
+                        )
+                        glintDrawn = true
+                    }
                 }
+            }
+            val activeScene = sceneFrame
+            val contourTargetProgress = when (activeScene?.stage) {
+                RecognitionSceneStage.CONTOUR_A -> 1f / 3f
+                RecognitionSceneStage.CONTOUR_B -> 2f / 3f
+                RecognitionSceneStage.CONTOUR_C -> 1f
+                else -> null
+            }
+            if (activeScene != null && contourTargetProgress != null &&
+                activeScene.stageProgress >= .999f && growthProgress + .0001f >= contourTargetProgress &&
+                pathToDraw != null && goldCoreDrawn && maskSha256.isNotBlank() && maskVersion >= 0L &&
+                !fishPathId.isNullOrBlank() && contourReceiptStagesAccepted.add(activeScene.stage)
+            ) {
+                val receipt = RecognitionContourRenderReceipt(
+                    identity = activeScene.identity,
+                    stage = activeScene.stage,
+                    maskSha256 = maskSha256,
+                    maskVersion = maskVersion,
+                    geometryVersion = activeScene.geometryVersion,
+                    fishPathId = fishPathId,
+                    stageProgress = activeScene.stageProgress,
+                    renderedContourProgress = growthProgress,
+                    contourStrokeDrawn = true,
+                    drawPassSequence = drawPassSequence,
+                )
+                if (latestOnContourRenderComplete.value?.invoke(receipt) != true) {
+                    contourReceiptStagesAccepted.remove(activeScene.stage)
+                }
+            }
+            if (activeScene?.stage == RecognitionSceneStage.FISH_GOLD_PEAK &&
+                activeScene.stageProgress >= .999f && growthProgress >= .999f && pathToDraw != null &&
+                goldCoreDrawn && softGlowDrawn && outerHaloDrawn && glintDrawn &&
+                maskSha256.isNotBlank() && maskVersion >= 0L && !fishPathId.isNullOrBlank() &&
+                !goldReceiptAccepted.get()
+            ) {
+                val receipt = RecognitionFishGoldRenderReceipt(
+                    identity = activeScene.identity,
+                    stage = activeScene.stage,
+                    maskSha256 = maskSha256,
+                    maskVersion = maskVersion,
+                    geometryVersion = activeScene.geometryVersion,
+                    fishPathId = fishPathId,
+                    renderedProgress = activeScene.stageProgress,
+                    contourDrawn = true,
+                    goldCoreDrawn = goldCoreDrawn,
+                    softGlowDrawn = softGlowDrawn,
+                    outerHaloDrawn = outerHaloDrawn,
+                    glintDrawn = glintDrawn,
+                    drawPassSequence = drawPassSequence,
+                )
+                if (latestOnGoldRenderComplete.value?.invoke(receipt) == true) goldReceiptAccepted.set(true)
             }
     }
 }
@@ -550,9 +626,10 @@ private fun DrawScope.drawLocalContourBlur(
     widthPx: Float,
     blurRadiusPx: Float,
     blurPaints: RecognitionBlurPaintCache,
-) {
-    val paint = blurPaints.obtain(color, widthPx, blurRadiusPx) ?: return
+): Boolean {
+    val paint = blurPaints.obtain(color, widthPx, blurRadiusPx) ?: return false
     drawIntoCanvas { canvas ->
         canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
     }
+    return true
 }

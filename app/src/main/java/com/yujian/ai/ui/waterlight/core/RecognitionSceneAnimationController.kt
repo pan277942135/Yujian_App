@@ -101,6 +101,11 @@ class RecognitionSceneAnimationController(
     fun firstFramePresentedTimestampMs(): Long? = firstFramePresentedTimestampMs
     fun resultGeometryVersionsSnapshot(): Set<Long> = resultGeometryVersions.toSet()
     fun resultGeometryIsReady(): Boolean = resultGeometryState == SceneGeometryState.READY
+    fun sceneComplete(): Boolean = RecognitionSceneCompletionContract.isComplete(
+        opticalResidueComplete = residueSettleComplete,
+        completedResultHandoffEvents = completedResultHandoffSubstages,
+        resultSceneStable = resultSceneStable,
+    )
 
     private var detectorReady = false
     private var classifierReady = false
@@ -127,6 +132,9 @@ class RecognitionSceneAnimationController(
     private var fishPathSnapshot: RecognitionFishPathSnapshot? = null
     private var revealDecisionState = RecognitionRevealDecisionState.WAITING_BOTH
     private var fishContactPathReady = false
+    private var fishPathBindingStatus = RecognitionFishPathBindingStatus.WAITING_FOR_PHOTO_GEOMETRY
+    private val contourRenderReceipts = mutableMapOf<RecognitionSceneStage, RecognitionContourRenderReceipt>()
+    private var lastContourDrawPassSequence = 0L
     private var fishGoldComplete = false
     private var orbReturnComplete = false
     private var orbToGlyphComplete = false
@@ -135,6 +143,7 @@ class RecognitionSceneAnimationController(
     private var glyphReadiness = RecognitionGlyphReadiness()
     private var residueSettleComplete = false
     private var resultGeometryState = SceneGeometryState.PENDING
+    private var residueRenderReceipt: RecognitionResidueRenderReceipt? = null
     private var failed = false
     var lastRejectedEnergyEvent: EnergyEventRejectionDiagnostic? = null
         private set
@@ -163,6 +172,7 @@ class RecognitionSceneAnimationController(
             geometry = resultGeometryState,
             runState = when {
                 failed -> SceneRunState.FAILED
+                sceneComplete() -> SceneRunState.COMPLETE
                 paused -> SceneRunState.PAUSED
                 geometryGateStartedAtMs != null -> SceneRunState.WAITING
                 !photoFirstFramePresented -> SceneRunState.WAITING
@@ -297,8 +307,8 @@ class RecognitionSceneAnimationController(
         geometryVersion: Long? = null,
     ) {
         if (!isCurrent(currentIdentity)) return
-        // GeometryVersion is a signed 64-bit fingerprint. Zero alone means "not measured yet".
-        val acceptedVersion = geometryVersion?.takeIf { it != 0L }
+        // Geometry versions use the positive fingerprint namespace; zero is unmeasured.
+        val acceptedVersion = geometryVersion?.takeIf { it > 0L }
         val nextReady = ready && (geometryVersion == null || acceptedVersion != null)
         if (!nextReady) {
             photoTransformReady = false
@@ -343,7 +353,7 @@ class RecognitionSceneAnimationController(
         geometryVersion: Long,
         currentIdentity: RecognitionSceneIdentity? = null,
     ): Boolean {
-        if (!isCurrent(currentIdentity) || !photoTransformReady || geometryVersion == 0L ||
+        if (!isCurrent(currentIdentity) || !photoTransformReady || geometryVersion <= 0L ||
             geometryVersion != activePhotoGeometryVersion || pathId.isNullOrBlank() ||
             pathGeometry?.isValid() != true
         ) return false
@@ -434,10 +444,57 @@ class RecognitionSceneAnimationController(
         }
     }
 
+    fun onFishPathBindingStatus(
+        status: RecognitionFishPathBindingStatus,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ) {
+        if (isCurrent(currentIdentity)) fishPathBindingStatus = status
+    }
+
     private var revealDecisionReady = false
 
-    fun onFishGoldComplete(ready: Boolean, currentIdentity: RecognitionSceneIdentity? = null) {
-        if (isCurrent(currentIdentity)) fishGoldComplete = ready
+    fun onFishGoldRenderComplete(
+        receipt: RecognitionFishGoldRenderReceipt,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!isCurrent(currentIdentity) || currentStage != RecognitionSceneStage.FISH_GOLD_PEAK) return false
+        val activeIdentity = identity ?: return false
+        val maskSha256 = activeMaskSha256 ?: return false
+        val maskVersion = activeMaskVersion ?: return false
+        val geometryVersion = activeMaskGeometryVersion ?: return false
+        val pathId = activeFishContactPathId ?: return false
+        if (!RecognitionFishGoldRenderContract.isComplete(
+                identity = activeIdentity,
+                maskSha256 = maskSha256,
+                maskVersion = maskVersion,
+                geometryVersion = geometryVersion,
+                fishPathId = pathId,
+                receipt = receipt,
+            )
+        ) return false
+        fishGoldComplete = true
+        return true
+    }
+
+    fun onContourRenderComplete(
+        receipt: RecognitionContourRenderReceipt,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!isCurrent(currentIdentity) || currentStage != receipt.stage ||
+            receipt.identity != identity || !RecognitionContourRenderContract.isComplete(receipt)
+        ) return false
+        val activeMaskSha = activeMaskSha256 ?: return false
+        val activeMaskVersion = activeMaskVersion ?: return false
+        val activeGeometryVersion = activeMaskGeometryVersion ?: return false
+        val activePathId = activeFishContactPathId ?: return false
+        if (!maskTrusted || !contourValid || !contourClosed || receipt.maskSha256 != activeMaskSha ||
+            receipt.maskVersion != activeMaskVersion || receipt.geometryVersion != activeGeometryVersion ||
+            receipt.fishPathId != activePathId || receipt.drawPassSequence <= lastContourDrawPassSequence
+        ) return false
+        contourRenderReceipts[receipt.stage] = receipt
+        lastContourDrawPassSequence = receipt.drawPassSequence
+        bumpEventSequence()
+        return true
     }
 
     fun onGlyphAvailable(ready: Boolean, currentIdentity: RecognitionSceneIdentity? = null) {
@@ -505,29 +562,44 @@ class RecognitionSceneAnimationController(
         when (stage) {
             RecognitionSceneStage.ORB_TO_NAME -> Unit
             RecognitionSceneStage.SPECIES_NAME_REVEAL -> Unit
-            RecognitionSceneStage.RESIDUE_SETTLE -> residueSettleComplete = true
+            RecognitionSceneStage.RESIDUE_SETTLE -> Unit
             else -> Unit
         }
     }
 
-    /** Result milestones are accepted only against this Attempt's measured geometry and path. */
-    fun acceptResultHandoffEvent(event: RecognitionResultHandoffEvent): RecognitionResultHandoffReceipt {
-        val active = identity ?: return RecognitionResultHandoffReceipt(false, "SCENE_IDENTITY_MISSING")
-        if (event.identity != active) return RecognitionResultHandoffReceipt(false, "STALE_OR_MISMATCHED_ATTEMPT")
+    fun onResidueRenderComplete(
+        receipt: RecognitionResidueRenderReceipt,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!isCurrent(currentIdentity) || currentStage != RecognitionSceneStage.RESIDUE_SETTLE ||
+            receipt.identity != identity || !RecognitionResidueRenderContract.isComplete(receipt)
+        ) return false
+        val existing = residueRenderReceipt
+        if (existing != null && receipt.drawPassSequence <= existing.drawPassSequence) return false
+        residueRenderReceipt = receipt
+        residueSettleComplete = true
+        bumpEventSequence()
+        return true
+    }
+
+    /** Non-mutating preflight used by the Attempt-level SessionStore/Controller transaction. */
+    fun canAcceptResultHandoffEvent(event: RecognitionResultHandoffEvent): String? {
+        val active = identity ?: return "SCENE_IDENTITY_MISSING"
+        if (event.identity != active) return "STALE_OR_MISMATCHED_ATTEMPT"
         if (!RecognitionResultHandoffContract.isNextEventSequence(event.eventSequence, lastResultHandoffEventSequence)) {
-            return RecognitionResultHandoffReceipt(false, "EVENT_SEQUENCE_NOT_CONTIGUOUS", resultSceneStable)
+            return "EVENT_SEQUENCE_NOT_CONTIGUOUS"
         }
         if (!RecognitionResultHandoffContract.hasStrictlyLaterTimestamp(event.monotonicTimestampMs, lastResultHandoffTimestampMs) ||
-            event.geometryVersion == 0L ||
+            event.geometryVersion <= 0L ||
             event.geometryVersion !in resultGeometryVersions || resultGeometryState != SceneGeometryState.READY
-        ) return RecognitionResultHandoffReceipt(false, "RESULT_GEOMETRY_NOT_CURRENT")
+        ) return "RESULT_GEOMETRY_NOT_CURRENT"
         if (event.stage != currentStage || event.renderStatus != "READY" || event.progress < .999f ||
             !event.progress.isFinite() || event.eventProducer.isBlank() ||
             event.eventConsumer != RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER ||
             event.source.isBlank() || event.target.isBlank() || event.feedback.isBlank() || event.resultIdentity.isBlank()
-        ) return RecognitionResultHandoffReceipt(false, "EVENT_NOT_COMPLETE_OR_STAGE_MISMATCH")
+        ) return "EVENT_NOT_COMPLETE_OR_STAGE_MISMATCH"
         if (event.identity.photoSha256.isNullOrBlank() || event.identity.photoContentVersion < 0L) {
-            return RecognitionResultHandoffReceipt(false, "PHOTO_IDENTITY_INVALID")
+            return "PHOTO_IDENTITY_INVALID"
         }
         val originalPath = fishPathSnapshot
         if (originalPath != null && (event.pathId != originalPath.returnPathId ||
@@ -535,17 +607,17 @@ class RecognitionSceneAnimationController(
                 event.pathGeometryVersion != originalPath.geometryVersion ||
                 event.pStarNormalizedSource != originalPath.pStarNormalizedSource ||
                 event.pathSegments != originalPath.returnPathSegments)
-        ) return RecognitionResultHandoffReceipt(false, "PROCESSING_PATH_IDENTITY_MISMATCH")
+        ) return "PROCESSING_PATH_IDENTITY_MISMATCH"
         if (originalPath == null && (event.pathId != null || event.maskSha256 != null || event.maskVersion != null ||
                 event.pathGeometryVersion != null || event.pStarNormalizedSource != null || event.pathSegments.isNotEmpty())
         ) {
-            return RecognitionResultHandoffReceipt(false, "UNTRUSTED_PATH_MUST_NOT_BE_PROMOTED")
+            return "UNTRUSTED_PATH_MUST_NOT_BE_PROMOTED"
         }
         if (!RecognitionResultHandoffContract.isNext(event.substage, completedResultHandoffSubstages)) {
-            return RecognitionResultHandoffReceipt(false, "RESULT_SUBSTAGE_OUT_OF_ORDER", resultSceneStable)
+            return "RESULT_SUBSTAGE_OUT_OF_ORDER"
         }
         val descriptor = glyphReadiness.descriptor
-            ?: return RecognitionResultHandoffReceipt(false, "GLYPH_PATH_NOT_READY", resultSceneStable)
+            ?: return "GLYPH_PATH_NOT_READY"
         val expectedReadiness = glyphReadiness.copy(
             nameStable = event.substage == ResultHandoffSubstage.NAME_STABLE || glyphReadiness.nameStable,
         )
@@ -554,14 +626,14 @@ class RecognitionSceneAnimationController(
             !RecognitionGlyphReadinessContract.isRendered(
                 active, descriptor.speciesKey, descriptor.speciesName, expectedReadiness,
             )
-        ) return RecognitionResultHandoffReceipt(false, "GLYPH_PATH_OR_RENDER_IDENTITY_MISMATCH", resultSceneStable)
+        ) return "GLYPH_PATH_OR_RENDER_IDENTITY_MISMATCH"
         if (event.substage == ResultHandoffSubstage.NAME_STABLE &&
             !RecognitionGlyphReadinessContract.isNameStableClaim(
                 active, descriptor.speciesKey, descriptor.speciesName, expectedReadiness,
             )
-        ) return RecognitionResultHandoffReceipt(false, "GLYPH_NOT_RENDERED", resultSceneStable)
+        ) return "GLYPH_NOT_RENDERED"
         if (event.substage != ResultHandoffSubstage.NAME_STABLE && !glyphReadiness.nameStable) {
-            return RecognitionResultHandoffReceipt(false, "NAME_STABLE_NOT_ACCEPTED", resultSceneStable)
+            return "NAME_STABLE_NOT_ACCEPTED"
         }
         val prerequisites = when (event.substage) {
             ResultHandoffSubstage.NAME_STABLE -> currentStage == RecognitionSceneStage.SPECIES_NAME_REVEAL &&
@@ -574,19 +646,35 @@ class RecognitionSceneAnimationController(
                 ResultHandoffSubstage.PHOTO_SETTLE in completedResultHandoffSubstages
             ResultHandoffSubstage.RESULT_INFO_ARRIVAL ->
                 currentStage == RecognitionSceneStage.RESIDUE_SETTLE && event.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
-                    ResultHandoffSubstage.RESULT_SCENE_HANDOFF in completedResultHandoffSubstages
+                    ResultHandoffSubstage.RESULT_SCENE_HANDOFF in completedResultHandoffSubstages &&
+                    RecognitionResultInfoRenderContract.isComplete(
+                        active, event.resultIdentity, event.geometryVersion, event.resultInfoRenderReceipt,
+                    )
             ResultHandoffSubstage.RESULT_SCENE_STABLE -> {
                 val settleAccepted = acceptedEnergyEventTrace.any {
                     it.feedback == EnergyFeedback.SETTLE && it.stage == RecognitionSceneStage.RESIDUE_SETTLE
                 }
                 currentStage == RecognitionSceneStage.RESIDUE_SETTLE && event.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
                     event.progress >= .999f && residueSettleComplete && settleAccepted &&
+                    RecognitionResultStableRenderContract.isComplete(
+                        active, event.resultIdentity, event.geometryVersion, event.resultStableRenderReceipt,
+                    ) &&
                     completedResultHandoffSubstages.containsAll(
                         ResultHandoffSubstage.entries.dropLast(1).toSet(),
                     )
             }
         }
-        if (!prerequisites) return RecognitionResultHandoffReceipt(false, "SUBSTAGE_PREREQUISITES_MISSING")
+        if (!prerequisites) return "SUBSTAGE_PREREQUISITES_MISSING"
+        return null
+    }
+
+    /** Result milestones are accepted only against this Attempt's measured geometry and path. */
+    fun acceptResultHandoffEvent(event: RecognitionResultHandoffEvent): RecognitionResultHandoffReceipt {
+        val rejection = canAcceptResultHandoffEvent(event)
+        if (rejection != null) return RecognitionResultHandoffReceipt(false, rejection, resultSceneStable)
+        val expectedReadiness = glyphReadiness.copy(
+            nameStable = event.substage == ResultHandoffSubstage.NAME_STABLE || glyphReadiness.nameStable,
+        )
         completedResultHandoffSubstages += event.substage
         if (event.substage == ResultHandoffSubstage.NAME_STABLE) glyphReadiness = expectedReadiness
         acceptedResultHandoffEvents += event
@@ -758,8 +846,7 @@ class RecognitionSceneAnimationController(
                 event.target == EnergyAnchor.ORB_CORE && event.source in setOf(EnergyAnchor.FISH_CONTOUR, EnergyAnchor.PHOTO_PERIMETER)
             EnergyFeedback.TRANSLATE -> Unit
             EnergyFeedback.REVEAL -> Unit
-            EnergyFeedback.SETTLE -> residueSettleComplete = event.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
-                event.target == EnergyAnchor.RESIDUE
+            EnergyFeedback.SETTLE -> Unit // Optical completion requires a Canvas render receipt.
         }
         bumpEventSequence()
         return EnergyEventAcceptanceResult(true)
@@ -824,7 +911,7 @@ class RecognitionSceneAnimationController(
             it.matches(Regex("(?i)^[a-f0-9]{64}$"))
         }?.lowercase() ?: return false
         if (!maskTrusted || activeMaskSha256 != normalizedMaskSha || activeMaskVersion != maskVersion ||
-            maskVersion < 0L || geometryVersion == 0L || !photoTransformReady ||
+            maskVersion < 0L || geometryVersion <= 0L || !photoTransformReady ||
             activePhotoGeometryVersion != geometryVersion ||
             !contactPointNormalizedSource.isValid() ||
             contactPointNormalizedSource.x !in 0f..1f ||
@@ -1209,8 +1296,9 @@ class RecognitionSceneAnimationController(
             revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY && revealDecisionReady
         }
         RecognitionSceneStage.CONTOUR_A,
-        RecognitionSceneStage.CONTOUR_B -> maskTrusted && fishContactPathReady && contourValid && contourClosed
-        RecognitionSceneStage.CONTOUR_C -> maskTrusted && fishContactPathReady && contourValid && contourClosed
+        RecognitionSceneStage.CONTOUR_B,
+        RecognitionSceneStage.CONTOUR_C -> maskTrusted && fishContactPathReady && contourValid && contourClosed &&
+            contourRenderReceipts[stage]?.let(RecognitionContourRenderContract::isComplete) == true
         RecognitionSceneStage.FISH_GOLD_PEAK -> fishContactPathReady && fishGoldComplete
         RecognitionSceneStage.ORB_RETURN -> orbReturnComplete
         RecognitionSceneStage.ORB_TO_NAME -> orbToGlyphComplete
@@ -1266,7 +1354,7 @@ class RecognitionSceneAnimationController(
                 !photoTransformReady -> "WAITING_FOR_PHOTO_TRANSFORM"
                 !classifierReady -> "WAITING_FOR_CLASSIFIER"
                 !slimSamTerminal -> "WAITING_FOR_SLIMSAM_TERMINAL"
-                revealDecisionState == RecognitionRevealDecisionState.WAITING_PSTAR_PATH -> "WAITING_FOR_PSTAR_PATH"
+                revealDecisionState == RecognitionRevealDecisionState.WAITING_PSTAR_PATH -> fishPathBindingStatus.name
                 revealDecisionState == RecognitionRevealDecisionState.STATIC_RESULT -> "WAITING_FOR_STATIC_RESULT_NAVIGATION"
                 !revealDecisionReady -> "WAITING_FOR_REVEAL_BRANCH_DECISION"
                 revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY && !fishContactPathReady ->
@@ -1382,6 +1470,9 @@ class RecognitionSceneAnimationController(
         fishContactPathId = null
         fishPathSnapshot = null
         fishContactPathReady = false
+        fishPathBindingStatus = RecognitionFishPathBindingStatus.WAITING_FOR_PHOTO_GEOMETRY
+        contourRenderReceipts.clear()
+        lastContourDrawPassSequence = 0L
         fishGoldComplete = false
         orbReturnComplete = false
         orbToGlyphComplete = false
@@ -1390,6 +1481,7 @@ class RecognitionSceneAnimationController(
         glyphReadiness = RecognitionGlyphReadiness()
         glyphAvailable = false
         residueSettleComplete = false
+        residueRenderReceipt = null
         if (routeWasActive) onRevealDecision(RecognitionRevealDecisionState.ORB_ONLY_READY, lastNowMs, identity)
     }
 
@@ -1451,6 +1543,8 @@ class RecognitionSceneAnimationController(
         fishContactPathId = null
         fishPathSnapshot = null
         revealDecisionState = RecognitionRevealDecisionState.WAITING_BOTH
+        contourRenderReceipts.clear()
+        lastContourDrawPassSequence = 0L
         revealDecisionReady = false
         lastRejectedEnergyEvent = null
         fishContactPathReady = false
@@ -1463,6 +1557,7 @@ class RecognitionSceneAnimationController(
         glyphAvailable = false
         revealDecisionReady = false
         resultGeometryState = SceneGeometryState.PENDING
+        residueRenderReceipt = null
         failed = false
         lastNowMs = nowMs
     }

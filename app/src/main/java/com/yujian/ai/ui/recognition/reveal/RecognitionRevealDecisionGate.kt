@@ -4,6 +4,9 @@ import com.yujian.ai.ai.subject.SubjectStatus
 
 enum class RecognitionClassifierTaskState { WAITING, READY, FAILED, CANCELLED }
 
+/** P* join semantics exposed by the existing Reveal decision, not a second state machine. */
+enum class RecognitionPStarPathState { PSTAR_PENDING, PSTAR_READY, PSTAR_TERMINAL_UNAVAILABLE }
+
 enum class RecognitionRevealDecisionState {
     WAITING_CLASSIFIER,
     WAITING_SLIMSAM,
@@ -18,6 +21,23 @@ enum class RecognitionRevealDecisionState {
 
 /** The sole production join point for real Classifier and SlimSAM completion events. */
 object RecognitionRevealDecisionGate {
+    fun pStarState(
+        hasBoundPath: Boolean,
+        terminalUnavailable: Boolean,
+    ): RecognitionPStarPathState = when {
+        hasBoundPath -> RecognitionPStarPathState.PSTAR_READY
+        terminalUnavailable -> RecognitionPStarPathState.PSTAR_TERMINAL_UNAVAILABLE
+        else -> RecognitionPStarPathState.PSTAR_PENDING
+    }
+
+    /** READY can precede delivery of its immutable geometry callback on the same main-loop turn. */
+    fun effectiveSubjectStatus(
+        status: SubjectStatus,
+        hasAuthoritativeGeometry: Boolean,
+    ): SubjectStatus = if (status == SubjectStatus.READY && !hasAuthoritativeGeometry) {
+        SubjectStatus.PROCESSING
+    } else status
+
     fun decide(
         classifier: RecognitionClassifierTaskState,
         subject: SubjectStatus,
