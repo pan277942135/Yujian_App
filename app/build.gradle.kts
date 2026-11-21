@@ -92,9 +92,12 @@ secrets {
 }
 
 dependencies {
+    implementation(project(":application-core"))
     implementation(project(":recognition-domain"))
     implementation(project(":recognition-runtime"))
     implementation(project(":waterlight-renderer"))
+    implementation(project(":recognition-ui"))
+    implementation(project(":recognition-result-ui"))
     val composeBom = platform("androidx.compose:compose-bom:2025.01.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)

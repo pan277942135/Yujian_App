@@ -41,6 +41,9 @@ on:
       - "recognition-domain/**"
       - "recognition-runtime/**"
       - "waterlight-renderer/**"
+      - "application-core/**"
+      - "recognition-ui/**"
+      - "recognition-result-ui/**"
       - "scripts/ci/**"
       - "gradle/**"
       - "gradlew"
@@ -207,6 +210,9 @@ jobs:
       - name: Verify generated AI Orb runtime profile parity
         run: python3 scripts/android_runtime/generate_orb_runtime_profile.py --check
 
+      - name: Verify Android module boundaries
+        run: python3 scripts/ci/verify_android_module_boundaries.py
+
       - name: Verify immutable AI Orb core WebP
         run: python3 scripts/android_runtime/verify_orb_runtime_asset.py
 
@@ -218,7 +224,10 @@ jobs:
           bash scripts/ci/with-gradle-memory-diagnostics.sh unit-tests
           gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2"
           :recognition-domain:test :recognition-runtime:test
-          :waterlight-renderer:testDebugUnitTest :app:testDebugUnitTest
+          :application-core:testDebugUnitTest
+          :waterlight-renderer:testDebugUnitTest
+          :recognition-ui:testDebugUnitTest :recognition-result-ui:testDebugUnitTest
+          :app:testDebugUnitTest
           --console=plain --stacktrace --info --profile --no-daemon --max-workers=1
 
       - name: Camera runtime harness contract tests
@@ -247,7 +256,11 @@ jobs:
       - name: Compile Android runtime test APK
         run: >-
           bash scripts/ci/with-gradle-memory-diagnostics.sh assemble-androidtest
-          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebugAndroidTest
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2"
+          :application-core:assembleDebugAndroidTest
+          :waterlight-renderer:assembleDebugAndroidTest
+          :recognition-ui:assembleDebugAndroidTest
+          :app:assembleDebugAndroidTest
           --console=plain --stacktrace --info --profile --no-daemon --max-workers=1
 
       - name: Verify packaged launcher icon in APK

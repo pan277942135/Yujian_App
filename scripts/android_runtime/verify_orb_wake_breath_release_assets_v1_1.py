@@ -83,13 +83,13 @@ def main() -> None:
     check(mapping["verification"]["runtimeFromMasterBilinearAlphaCorrelationForRuntimeAlphaGT4"] > 0.99,
           "Runtime WebP full-square alpha is aligned to the frozen master")
 
-    runtime = ROOT / "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp"
+    runtime = ROOT / "recognition-ui/src/main/res/drawable-nodpi/processing_water_core_v1.webp"
     check(hashlib.sha256(runtime.read_bytes()).hexdigest() ==
           "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09" and
           Image.open(runtime).size == (384, 384), "immutable Android Core WebP remains 384x384 with pinned SHA")
 
-    core = (ROOT / "app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text()
-    host = (ROOT / "app/src/main/java/com/yujian/ai/ui/recognition/ProcessingWaterOrb.kt").read_text()
+    core = (ROOT / "recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text()
+    host = (ROOT / "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/ProcessingWaterOrb.kt").read_text()
     renderer = (ROOT / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt").read_text()
     timeline = (ROOT / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbWakeBreathReleaseV11.kt").read_text()
     shader = (ASSETS / "orb_grass_warp_v1_1.agsl").read_text()
@@ -107,7 +107,7 @@ def main() -> None:
     task_ledger = (ROOT / "recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/WaterLightPathLedger.kt").read_text()
     task_renderer = (ROOT / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/WaterLightEnergyPathRenderer.kt").read_text()
     task_state = (ROOT / "recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionTaskFilamentState.kt").read_text()
-    recognizing_screen = (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt").read_text()
+    recognizing_screen = (ROOT / "recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt").read_text()
     check("OrbResidentFilamentMotionV1.role(spec.id) != OrbFilamentRole.RESIDENT_AMBIENT" in renderer and
           "OrbResidentFilamentMotionV1.transformLut(spec, lut, sceneMs, frame.reducedMotion)" in renderer and
           "Task EnergyEvent is deliberately excluded from resident path movement." in renderer and

@@ -14,4 +14,12 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Yujian"
-include(":recognition-domain", ":recognition-runtime", ":waterlight-renderer", ":app")
+include(
+    ":recognition-domain",
+    ":recognition-runtime",
+    ":waterlight-renderer",
+    ":application-core",
+    ":recognition-ui",
+    ":recognition-result-ui",
+    ":app",
+)

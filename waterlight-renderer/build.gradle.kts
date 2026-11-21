@@ -8,6 +8,7 @@ android {
     compileSdk = 35
     defaultConfig {
         minSdk = 24
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val sourceRevision = providers.environmentVariable("SOURCE_SHA")
             .orElse(providers.environmentVariable("BUILD_SHA"))
             .orElse(providers.environmentVariable("GITHUB_SHA"))
