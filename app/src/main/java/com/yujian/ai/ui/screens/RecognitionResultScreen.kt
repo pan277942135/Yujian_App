@@ -971,9 +971,11 @@ fun RecognitionResultScreen(
         resultSnapshot?.handoffState?.completedSubstages,
     ) {
         val frame = diagnosticFrame ?: return@LaunchedEffect
+        val result = resultSnapshot ?: return@LaunchedEffect
+        val handoffKey = revealHandoff?.key ?: return@LaunchedEffect
         if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && resultInfoLayoutReady && resultSceneHandoffAccepted &&
-            resultSnapshot != null && resultSnapshot.key == revealHandoff?.key && resultSnapshot.resultDataReady &&
-            resultSnapshot.glyphSpeciesName == prediction.top1.speciesName && resultInfoEntranceStartedAtUptimeMs == null
+            result.key == handoffKey && result.resultDataReady &&
+            result.glyphSpeciesName == prediction.top1.speciesName && resultInfoEntranceStartedAtUptimeMs == null
         ) {
             resultInfoEntranceStartedAtUptimeMs = SystemClock.uptimeMillis()
             recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
