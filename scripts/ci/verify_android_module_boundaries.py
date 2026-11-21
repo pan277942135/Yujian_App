@@ -232,4 +232,9 @@ failure_test_owner = ROOT / "recognition-ui/src/test/java/com/yujian/ai/ui/scree
 require(failure_test_owner.is_file() and not failure_test_app.exists(),
         "RecognitionFailurePresentationTest must stay with the :recognition-ui implementation")
 
+multi_contour_test_app = ROOT / "app/src/androidTest/java/com/yujian/ai/ui/recognition/MultiContourRevealTest.kt"
+multi_contour_test_owner = ROOT / "recognition-ui/src/androidTest/java/com/yujian/ai/ui/recognition/MultiContourRevealTest.kt"
+require(multi_contour_test_owner.is_file() and not multi_contour_test_app.exists(),
+        "MultiContourRevealTest must stay with the :recognition-ui implementation")
+
 print(f"PASS: module graph is acyclic; {len(MODULES)} module boundaries, {len(MOVED_RESOURCES)} unchanged resources, {len(fqns)} production types verified")
