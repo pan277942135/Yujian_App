@@ -66,7 +66,7 @@ class OrbFluidOpticalIntegrationV1Test {
         val root = moduleFile("")
         val fluidShader = File(root, "app/src/main/assets/orb_fluid_v1/orb_fluid_refraction_v1.agsl").readText()
         val grassShader = File(root, "app/src/main/assets/orb_r01b_v1_2/orb_grass_warp_v1_2.agsl").readText()
-        val program = File(root, "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFluidRefractionProgramV1.kt").readText()
+        val program = File(root, "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFluidRefractionProgramV1.kt").readText()
         assertTrue(fluidShader.contains("return half4(half3(clamp(outputStraight, 0.0, 1.0) * baseAlpha), half(baseAlpha))"))
         assertTrue(fluidShader.contains("leafCoverage(refractedCoord)"))
         assertTrue(fluidShader.contains("float2 rotatedCoord ="))
@@ -81,7 +81,7 @@ class OrbFluidOpticalIntegrationV1Test {
         assertFalse(program.contains("Handler("))
         assertFalse(program.contains("postDelayed("))
 
-        val sunlight = File(root, "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbCausticsAdapter.kt").readText()
+        val sunlight = File(root, "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbCausticsAdapter.kt").readText()
         assertTrue(sunlight.contains("OrbRuntimeProfileV1.R03_SUN_SOURCE_U"))
         assertTrue(sunlight.contains("OrbRuntimeProfileV1.R03_SUN_SOURCE_V"))
         assertTrue(sunlight.contains("SUNLIGHT_MIX_MAX * wakeAlpha"))
@@ -91,7 +91,7 @@ class OrbFluidOpticalIntegrationV1Test {
     @Test fun debugEvidenceRequiresACommittedFrameAndLabelsInferenceSeparatelyFromPixels() {
         val root = moduleFile("")
         val export = File(root, "app/src/main/java/com/yujian/ai/ui/recognition/OrbStage02VisualEvidenceExport.kt").readText()
-        val trace = File(root, "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02RenderTrace.kt").readText()
+        val trace = File(root, "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02RenderTrace.kt").readText()
         assertTrue(export.contains("registerFrameCommitCallback"))
         assertTrue(export.contains("CAPTURE_FRAME_UNVERIFIED"))
         assertTrue(export.contains("captureState(capture.captureId)"))
@@ -128,8 +128,8 @@ class OrbFluidOpticalIntegrationV1Test {
 
     @Test fun backGlassAppliesOneTransmissionFactorAndRateLimitsRecurringDiagnostics() {
         val root = moduleFile("")
-        val renderer = File(root, "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt").readText()
-        val trace = File(root, "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02RenderTrace.kt").readText()
+        val renderer = File(root, "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt").readText()
+        val trace = File(root, "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02RenderTrace.kt").readText()
         assertTrue(renderer.contains("r06GlassTransmissionBodyAlpha(layerAlpha, runMaximumRawCoreAlpha)"))
         assertFalse(renderer.contains("radialMask * radialMask"))
         assertTrue(renderer.contains("OrbInteriorOpticalField.interiorWeight(stop * radiusD)"))

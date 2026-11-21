@@ -681,6 +681,7 @@ private fun OrbVisual(
                 showSunlight = orbShowSunlight,
                 showCaustics = orbShowCaustics,
                 glOwnerAccepted = glCrystalPresented,
+                coreTextureResourceId = R.drawable.processing_water_core_v1,
                 onFirstFramePresented = {},
                 onOwnerStateChanged = { result, _ ->
                     if (result.identity == sceneFrame.identity && result.geometryVersion == sceneFrame.geometryVersion) {
@@ -703,7 +704,8 @@ private fun OrbVisual(
                     activeEnergyEvent, releaseEnergy, returnEnergy, visualProfile = visualProfile,
                     debugExcludedPathId = debugExcludedPathId,
                     onPathMetrics = onR06RenderedPaths, onPathDiagnostics = onR06PathDiagnostics,
-                    debugCaptureId = debugCaptureId)
+                    debugCaptureId = debugCaptureId,
+                    coreTextureResourceId = R.drawable.processing_water_core_v1)
             }
             val corePainter = painterResource(R.drawable.processing_water_core_v1)
         Box(
@@ -766,6 +768,7 @@ private fun OrbVisual(
             onPathMetrics = onR06RenderedPaths,
             onPathDiagnostics = onR06PathDiagnostics,
             debugCaptureId = debugCaptureId,
+            coreTextureResourceId = R.drawable.processing_water_core_v1,
         )
         if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && !isolateCoreForTestOutput && r03Visible) OrbCoreOpticalEffects(
             coreSize = coreSize,
@@ -780,6 +783,7 @@ private fun OrbVisual(
             showSunlight = orbShowSunlight,
             showCaustics = orbShowCaustics,
             visualProfile = visualProfile,
+            coreTextureResourceId = R.drawable.processing_water_core_v1,
         )
         if (renderIsolationMode == OrbRenderIsolationMode.NORMAL && !isolateCoreForTestOutput &&
             fromCamera && frame.cameraHeroAlpha > 0f) {
@@ -800,7 +804,8 @@ private fun OrbVisual(
                 activeEnergyEvent, releaseEnergy, returnEnergy, visualProfile = visualProfile,
                 debugExcludedPathId = debugExcludedPathId,
                 onPathMetrics = onR06RenderedPaths, onPathDiagnostics = onR06PathDiagnostics,
-                debugCaptureId = debugCaptureId)
+                debugCaptureId = debugCaptureId,
+                coreTextureResourceId = R.drawable.processing_water_core_v1)
         }
         }
     }

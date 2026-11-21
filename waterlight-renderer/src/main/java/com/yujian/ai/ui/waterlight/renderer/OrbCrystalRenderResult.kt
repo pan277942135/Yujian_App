@@ -4,12 +4,12 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 
-internal enum class RenderPassStatus { NOT_READY, NOT_RUN, PASS, FAIL }
+enum class RenderPassStatus { NOT_READY, NOT_RUN, PASS, FAIL }
 
-internal enum class OrbRenderFallbackStatus { ACTIVE, RELEASED }
+enum class OrbRenderFallbackStatus { ACTIVE, RELEASED }
 
 /** Immutable record of the actual GL work and the host's presentation decision for one SceneFrame. */
-internal data class OrbCrystalRenderResult(
+data class OrbCrystalRenderResult(
     val identity: RecognitionSceneIdentity,
     val sceneClockMs: Long,
     val frameSequence: Long,
@@ -220,7 +220,7 @@ internal object OrbRenderOwnershipPolicy {
 }
 
 /** UI ownership reducer. It never advances SceneClock and ignores stale or cross-scene receipts. */
-internal class OrbRenderOwnershipState {
+class OrbRenderOwnershipState {
     private var lastAppliedFrameSequence = 0L
     private var accepted = false
 

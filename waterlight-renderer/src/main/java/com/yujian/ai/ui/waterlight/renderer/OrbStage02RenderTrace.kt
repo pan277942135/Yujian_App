@@ -1,6 +1,6 @@
 package com.yujian.ai.ui.waterlight.renderer
 
-import com.yujian.ai.BuildConfig
+import com.yujian.ai.waterlight.BuildConfig
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
 import kotlinx.coroutines.CompletableDeferred
 import org.json.JSONArray
@@ -80,7 +80,7 @@ internal fun manualPausedOrbFrameFingerprint(
 }
 
 /** Bounded, privacy-safe Debug trace for the Orb render pipeline. */
-internal object OrbStage02RenderTrace {
+object OrbStage02RenderTrace {
     private const val SCHEMA_VERSION = 1
     private const val MAX_EVENTS = 4_096
     private const val MAX_STAGE02_EVENTS = 4_096

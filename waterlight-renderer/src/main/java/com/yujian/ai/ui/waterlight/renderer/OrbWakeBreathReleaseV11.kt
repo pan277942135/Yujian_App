@@ -6,7 +6,7 @@ import kotlin.math.sqrt
 import kotlin.math.sin
 
 /** Pure projections from the shared scene frame and its semantic stage-local progress. */
-internal object OrbWakeBreathReleaseV11 {
+object OrbWakeBreathReleaseV11 {
     private const val S2_TRANSITION_LOCAL_MS = 450f
     private const val RELEASE_RETURN_PROGRESS = 34f / 60f
     private const val R06_WAKE_ACTIVE_NORMALIZATION = .45f
@@ -26,7 +26,7 @@ internal object OrbWakeBreathReleaseV11 {
     }
 
     /** A deterministic readability envelope tied only to the shared stage-local progress. */
-    internal fun r06WakeReadabilityEnvelope(
+    fun r06WakeReadabilityEnvelope(
         stage: RecognitionSceneStage,
         stageProgress: Float,
     ): Float {
@@ -45,7 +45,7 @@ internal object OrbWakeBreathReleaseV11 {
     }
 
     /** Adds a bounded amount to the two frozen body materials while preserving natural fades. */
-    internal fun r06WakeBodyAlpha(
+    fun r06WakeBodyAlpha(
         stage: RecognitionSceneStage,
         stageProgress: Float,
         originalLayerAlpha: Float,
@@ -75,7 +75,7 @@ internal object OrbWakeBreathReleaseV11 {
     }
 
     /** MAX-only body contribution; Stage03 shares the existing 80 ms release envelope. */
-    internal fun r06MaxBodyAlpha(
+    fun r06MaxBodyAlpha(
         stage: RecognitionSceneStage,
         stageProgress: Float,
         originalAlpha: Float,

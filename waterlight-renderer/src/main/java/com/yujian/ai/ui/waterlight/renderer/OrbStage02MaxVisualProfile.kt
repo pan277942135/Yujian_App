@@ -19,11 +19,11 @@ enum class OrbStage02VisualProfile {
     }
 }
 
-internal fun OrbStage02VisualProfile.usesProductionOptics(): Boolean =
+fun OrbStage02VisualProfile.usesProductionOptics(): Boolean =
     this == OrbStage02VisualProfile.MAX || this == OrbStage02VisualProfile.PRODUCTION_V1
 
 /** Stage02 MAX candidate values. These are runtime parameters; source assets remain frozen. */
-internal object OrbStage02MaxVisualProfile {
+object OrbStage02MaxVisualProfile {
     const val BASELINE_SHADER_OVERLAY_ALPHA = 0.25f
     const val FLUID_DISPLACEMENT_MAX_D = 0.018f
     const val FLUID_INTERIOR_MIX_MAX = 0.92f
@@ -45,14 +45,14 @@ internal object OrbStage02MaxVisualProfile {
 }
 
 /** Body alpha before the single per-pixel radial edge mask attached to the glass Paint. */
-internal fun r06GlassTransmissionBodyAlpha(
+fun r06GlassTransmissionBodyAlpha(
     originalBodyAlpha: Float,
     rawCoreAlpha: Float,
 ): Float = (originalBodyAlpha.coerceIn(0f, 1f) *
     OrbStage02MaxVisualProfile.GLASS_BACK_TRANSMISSION_MAX *
     rawCoreAlpha.coerceIn(0f, 1f)).coerceIn(0f, 1f)
 
-internal fun r06MaximumRawCoreAlphaInRuns(
+fun r06MaximumRawCoreAlphaInRuns(
     rawCoreAlphaBySample: FloatArray,
     drawableRuns: List<IntRange>,
 ): Float {
@@ -70,7 +70,7 @@ internal fun r06MaximumRawCoreAlphaInRuns(
 }
 
 /** Stateless shared Stage02 field used by the fluid shader and the R06 glass pass. */
-internal object OrbInteriorOpticalField {
+object OrbInteriorOpticalField {
     data class Frame(
         val wakeStrength: Float,
         val maxDisplacementD: Float,

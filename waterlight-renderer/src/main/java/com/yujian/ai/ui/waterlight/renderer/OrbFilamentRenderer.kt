@@ -8,7 +8,7 @@ import android.graphics.Paint as NativePaint
 import android.graphics.Path as NativePath
 import android.graphics.Shader
 import android.util.Log
-import com.yujian.ai.BuildConfig
+import com.yujian.ai.waterlight.BuildConfig
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -21,7 +21,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.yujian.ai.R
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
@@ -87,6 +86,7 @@ fun OrbWaterLightRibbons(
     onPathMetrics: ((Boolean, OrbR06RenderPass, Set<String>) -> Unit)? = null,
     onPathDiagnostics: ((Boolean, OrbR06RenderPass, List<OrbR06PathDiagnostic>) -> Unit)? = null,
     debugCaptureId: String? = null,
+    coreTextureResourceId: Int,
 ) {
     if (mode == OrbFilamentRendererMode.LEGACY) {
         if (renderPass == OrbR06RenderPass.BASELINE) {
@@ -105,8 +105,8 @@ fun OrbWaterLightRibbons(
     }
     val context = LocalContext.current
     val coreMaskBitmap = if (renderPass == OrbR06RenderPass.GLASS_TRANSMISSION) {
-        remember(context, renderPass) {
-            BitmapFactory.decodeResource(context.resources, R.drawable.processing_water_core_v1)
+        remember(context, renderPass, coreTextureResourceId) {
+            BitmapFactory.decodeResource(context.resources, coreTextureResourceId)
         }
     } else null
     val lastDiagnosticCheckpoint = remember(front, renderPass, visualProfile) { arrayOfNulls<String>(1) }
@@ -211,7 +211,7 @@ fun OrbWaterLightRibbons(
 }
 
 /** Cached arc-length LUTs, paths and paints for one depth plane. */
-internal class OrbFilamentPathRenderer(
+class OrbFilamentPathRenderer(
     private val front: Boolean,
     private val density: Float,
     private val pathIdFilter: String? = null,

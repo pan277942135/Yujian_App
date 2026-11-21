@@ -6,15 +6,6 @@ import android.util.Log
 import com.yujian.ai.model.RecognitionPrediction
 import kotlinx.coroutines.CancellationException
 
-enum class RecognitionPhase {
-    CAPTURED,
-    DETECTING,
-    OUTLINE,
-    CLASSIFYING,
-    RESULT,
-    FAILURE,
-}
-
 data class RecognitionProgress(
     val phase: RecognitionPhase,
     val assessment: FishInputAssessment? = null,

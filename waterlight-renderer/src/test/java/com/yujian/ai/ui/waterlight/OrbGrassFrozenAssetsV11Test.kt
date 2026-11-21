@@ -22,7 +22,7 @@ class OrbGrassFrozenAssetsV11Test {
     )
 
     @Test fun allSixMasksAndTheSourceDerivedPathFilesMatchTheFrozenHashes() {
-        val root = moduleFile("src/main/assets/orb_r01b_v1_1")
+        val root = moduleFile("app/src/main/assets/orb_r01b_v1_1")
         expected.forEach { (name, hash) ->
             val file = File(root, name)
             assertTrue("missing frozen resource $name", file.isFile)
@@ -34,7 +34,7 @@ class OrbGrassFrozenAssetsV11Test {
     }
 
     @Test fun masksAreComplete1254GrayscaleSourceDerivedFiles() {
-        val root = moduleFile("src/main/assets/orb_r01b_v1_1")
+        val root = moduleFile("app/src/main/assets/orb_r01b_v1_1")
         val maskNames = expected.keys.filter { it.endsWith(".png") }
         assertEquals(6, maskNames.size)
         maskNames.forEach { name ->
@@ -50,13 +50,13 @@ class OrbGrassFrozenAssetsV11Test {
     }
 
     @Test fun sourceAndAndroidRuntimeCoreArePinnedAndShaderUsesASafeTwoLayerCoreComposite() {
-        val runtime = moduleFile("src/main/res/drawable-nodpi/processing_water_core_v1.webp")
+        val runtime = moduleFile("app/src/main/res/drawable-nodpi/processing_water_core_v1.webp")
         assertEquals("daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09", sha256(runtime))
-        val mapping = File(moduleFile("src/main/assets/orb_r01b_v1_1"), "orb_grass_runtime_mapping_v1_1.json").readText()
+        val mapping = File(moduleFile("app/src/main/assets/orb_r01b_v1_1"), "orb_grass_runtime_mapping_v1_1.json").readText()
         assertTrue(mapping.contains("2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee"))
         assertTrue(mapping.contains("daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09"))
 
-        val core = moduleFile("src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").readText()
+        val core = moduleFile("app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").readText()
         assertEquals(1, Regex("painterResource\\(R\\.drawable\\.processing_water_core_v1\\)").findAll(core).count())
         assertFalse("The old synthetic grass sheet would duplicate baked leaves", core.contains("WaterGrassField"))
         assertTrue(core.contains("val corePainter = painterResource(R.drawable.processing_water_core_v1)"))
@@ -67,7 +67,7 @@ class OrbGrassFrozenAssetsV11Test {
             1, Regex("alpha = sourceCoreAlpha").findAll(core).count())
         assertTrue(core.contains("modifier = Modifier.size(coreSize / .84f).graphicsLayer {"))
         assertTrue(core.contains("compositingStrategy = CompositingStrategy.Offscreen"))
-        val maxProfile = moduleFile("src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02MaxVisualProfile.kt").readText()
+        val maxProfile = moduleFile("waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02MaxVisualProfile.kt").readText()
         assertTrue(maxProfile.contains("const val BASELINE_SHADER_OVERLAY_ALPHA = 0.25f"))
         assertTrue(maxProfile.contains("fun shaderOverlayAlpha("))
         assertTrue(core.contains("val shaderOverlayAlpha = OrbInteriorOpticalField.shaderOverlayAlpha("))
@@ -96,7 +96,7 @@ class OrbGrassFrozenAssetsV11Test {
         assertTrue(core.contains("fun aiOrbShaderOverlayVisible("))
         assertTrue(core.contains("fun aiOrbRawCoreVisible("))
         assertTrue(core.contains("hostRejectReason = hostRejectReason"))
-        val effects = moduleFile("src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFluidRefractionProgramV1.kt").readText()
+        val effects = moduleFile("waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFluidRefractionProgramV1.kt").readText()
         assertTrue(effects.contains("createChainEffect("))
         val grassInput = effects.indexOf("createdGrass.androidRenderEffect,")
         val fluidInput = effects.indexOf("createdFluid.androidRenderEffect,")
@@ -106,7 +106,7 @@ class OrbGrassFrozenAssetsV11Test {
         assertTrue(effects.contains("FLUID_GRASS_V1_2_CANDIDATE"))
         assertTrue(effects.contains("GRASS_V1_1_LEGACY"))
         assertTrue(effects.contains("OrbShaderRoute.UNAVAILABLE"))
-        val shader = File(moduleFile("src/main/assets/orb_r01b_v1_1"), "orb_grass_warp_v1_1.agsl").readText()
+        val shader = File(moduleFile("app/src/main/assets/orb_r01b_v1_1"), "orb_grass_warp_v1_1.agsl").readText()
         assertTrue(shader.contains("inputImage.eval(coord)"))
         assertTrue(shader.contains("inputImage.eval(displacedCoord)"))
         assertTrue(shader.contains("pow(smoothstep(0.10, 1.0, s), 1.6)"))
@@ -129,8 +129,8 @@ class OrbGrassFrozenAssetsV11Test {
     }
 
     @Test fun debugAndReleaseResolveTheSameCandidateRenderer() {
-        val core = moduleFile("src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").readText()
-        val host = moduleFile("src/main/java/com/yujian/ai/ui/recognition/ProcessingWaterOrb.kt").readText()
+        val core = moduleFile("app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").readText()
+        val host = moduleFile("app/src/main/java/com/yujian/ai/ui/recognition/ProcessingWaterOrb.kt").readText()
         assertTrue(core.contains("orbRendererMode: OrbFilamentRendererMode = OrbFilamentRendererMode.ORB_V1_CANDIDATE"))
         assertTrue(host.contains("rendererMode ?: OrbFilamentRendererMode.ORB_V1_CANDIDATE"))
         assertFalse(core.contains("BuildConfig.DEBUG"))
@@ -138,9 +138,12 @@ class OrbGrassFrozenAssetsV11Test {
     }
 
     private fun moduleFile(relative: String): File {
-        val candidate = listOf(File(relative), File("app/$relative"), File("../$relative"), File("../app/$relative"))
-            .firstOrNull(File::exists)
-        return requireNotNull(candidate) { "Could not resolve repository file $relative from ${System.getProperty("user.dir")}" }
+        val repoRoot = listOf(File("."), File(".."), File("../.."), File("../../.."))
+            .firstOrNull { File(it, "app/src/main").exists() }
+        val candidate = repoRoot?.let { File(it, relative) }
+        return requireNotNull(candidate?.takeIf(File::exists)) {
+            "Could not resolve repository file $relative from ${System.getProperty("user.dir")}"
+        }
     }
 
     private fun sha256(file: File): String = MessageDigest.getInstance("SHA-256").digest(file.readBytes())

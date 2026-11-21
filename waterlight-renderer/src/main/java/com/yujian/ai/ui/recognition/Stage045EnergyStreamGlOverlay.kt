@@ -64,7 +64,7 @@ internal data class Stage045GlFrame(
  * - KF04: Arrival flare & contact ripple at fish body P* while Orb & Perimeter remain continuously active
  */
 @Composable
-internal fun Stage045EnergyStreamGlOverlay(
+fun Stage045EnergyStreamGlOverlay(
     waterLightFrame: WaterLightFrame,
     orbCenter: Offset,
     orbRadiusPx: Float,

@@ -3,8 +3,6 @@ package com.yujian.ai.ai.subject
 import android.graphics.Matrix
 import android.graphics.Rect
 
-enum class SubjectStatus { IDLE, PROCESSING, READY, FAILED }
-
 enum class FishSubjectQuality { GOOD, WARNING, INVALID }
 
 data class FishSubjectResult(

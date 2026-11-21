@@ -28,7 +28,6 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.yujian.ai.R
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -278,7 +277,7 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
 
 /** Internal sunlight, droplets and caustics are all intersected with the real WebP alpha. */
 @Composable
-internal fun OrbCoreOpticalEffects(
+fun OrbCoreOpticalEffects(
     coreSize: Dp,
     frame: WaterLightFrame,
     coreAlpha: Float,
@@ -291,6 +290,7 @@ internal fun OrbCoreOpticalEffects(
     showSunlight: Boolean = true,
     showCaustics: Boolean = true,
     visualProfile: OrbStage02VisualProfile = OrbStage02VisualProfile.BASELINE,
+    coreTextureResourceId: Int,
 ) {
     if (!candidate) return
     val scope = rememberCoroutineScope()
@@ -312,7 +312,7 @@ internal fun OrbCoreOpticalEffects(
     val effectBounds = remember { RectF() }
     val droplets = remember { OrbDropletRenderer() }
     val sunlight = remember { OrbSunlightRenderer() }
-    val mask = ImageBitmap.imageResource(R.drawable.processing_water_core_v1)
+    val mask = ImageBitmap.imageResource(coreTextureResourceId)
     LaunchedEffect(caustics, frame, sizeDp, densityValue, low, showCaustics, visualProfile) {
         if (showCaustics) caustics.request(frame, sizeDp, densityValue, low, visualProfile) { revision++ }
     }

@@ -187,14 +187,14 @@ internal class OrbFluidGrassOpticalStackV1 private constructor(
 }
 
 /** Candidate stack with the frozen V1.1 grass shader as an all-or-nothing fallback. */
-internal enum class OrbShaderRoute {
+enum class OrbShaderRoute {
     FLUID_GRASS_V1_2_CANDIDATE,
     GRASS_V1_1_LEGACY,
     UNAVAILABLE,
 }
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-internal class OrbCoreImageOpticalEffect private constructor(
+class OrbCoreImageOpticalEffect private constructor(
     val renderEffect: RenderEffect?,
     val route: OrbShaderRoute,
     private val candidate: OrbFluidGrassOpticalStackV1?,

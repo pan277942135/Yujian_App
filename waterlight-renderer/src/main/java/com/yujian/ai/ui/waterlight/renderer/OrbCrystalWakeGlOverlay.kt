@@ -5,7 +5,6 @@ import android.opengl.GLUtils
 import android.graphics.BitmapFactory
 import android.content.Context
 import android.annotation.SuppressLint
-import com.yujian.ai.R
 import android.os.SystemClock
 import android.view.View
 import androidx.compose.runtime.Composable
@@ -31,7 +30,7 @@ import kotlin.math.max
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-internal const val ORB_CRYSTAL_CONTAINER_RATIO = 2.5f
+const val ORB_CRYSTAL_CONTAINER_RATIO = 2.5f
 internal object OrbResidentTopology {
     val ids = listOf("G01", "G02", "A01", "A02", "C01")
 }
@@ -61,7 +60,7 @@ internal data class OrbCrystalGlFrame(
  * - Bloom Composite: 1/4-res Gaussian bloom + valid premultiplied alpha output
  */
 @Composable
-internal fun OrbCrystalWakeGlOverlay(
+fun OrbCrystalWakeGlOverlay(
     frame: WaterLightFrame,
     ribbonOpening: Float,
     settle: Float,
@@ -75,13 +74,14 @@ internal fun OrbCrystalWakeGlOverlay(
     onOwnerStateChanged: (OrbCrystalRenderResult, Boolean) -> Unit = { _, _ -> },
     onRenderResult: (RecognitionSceneIdentity, Map<String, Any?>) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
+    coreTextureResourceId: Int,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val latestFirstFramePresented = rememberUpdatedState(onFirstFramePresented)
     val latestOwnerStateChanged = rememberUpdatedState(onOwnerStateChanged)
     val latestRenderResult = rememberUpdatedState(onRenderResult)
-    val renderer = remember(context) { OrbCrystalGlRenderer(context.applicationContext) }
+    val renderer = remember(context, coreTextureResourceId) { OrbCrystalGlRenderer(context.applicationContext, coreTextureResourceId) }
     val textureView = remember(context) {
         TransparentGlTextureView(
             context = context,
@@ -159,7 +159,7 @@ internal fun OrbCrystalWakeGlOverlay(
     }
 }
 
-private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRenderer<OrbCrystalGlFrame> {
+private class OrbCrystalGlRenderer(private val context: Context, private val coreTextureResourceId: Int) : GlSceneRenderer<OrbCrystalGlFrame> {
     override val requiresRenderResult: Boolean = true
     private val bloom = GlBloomPipeline()
     private var backFbo: GlFramebuffer? = null
@@ -520,7 +520,7 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
     @SuppressLint("ResourceType") // openRawResource accepts drawable IDs; raw bytes are needed for the frozen WebP SHA.
     private fun loadFrozenCore(): RenderPassStatus {
         val digest = MessageDigest.getInstance("SHA-256")
-        context.resources.openRawResource(R.drawable.processing_water_core_v1).use { input ->
+        context.resources.openRawResource(coreTextureResourceId).use { input ->
             val bytes = ByteArray(8192)
             while (true) {
                 val n = input.read(bytes)
@@ -533,7 +533,7 @@ private class OrbCrystalGlRenderer(private val context: Context) : GlSceneRender
             return RenderPassStatus.FAIL
         }
         val bitmap = BitmapFactory.decodeResource(
-            context.resources, R.drawable.processing_water_core_v1,
+            context.resources, coreTextureResourceId,
             BitmapFactory.Options().apply { inScaled = false },
         ) ?: return RenderPassStatus.FAIL
         try {
