@@ -101,6 +101,10 @@ for owner, retired in REQUIRED_OWNERS.items():
 
 require(not (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt").exists(),
         "RecognitionIssueScreen must remain owned by :recognition-result-ui")
+app_asset_contract_test = ROOT / "app/src/test/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassRuntimeContractTest.kt"
+module_asset_contract_test = ROOT / "recognition-ui/src/test/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassRuntimeContractTest.kt"
+require(app_asset_contract_test.is_file() and not module_asset_contract_test.exists(),
+        "LakeGlass app asset contract test must stay in :app because it verifies App-owned assets")
 
 for original, (destination, expected_sha256) in MOVED_RESOURCES.items():
     current = ROOT / destination
