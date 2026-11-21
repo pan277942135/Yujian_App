@@ -71,6 +71,7 @@ class RecognitionSessionEvidenceRecorder(
     private var pixelCopySuspendedReason: String? = null
     private var firstFrameTimestampMs: Long? = null
     private var latestSceneElapsedMs = 0L
+    private var latestGeometryVersion = -1L
 
     fun beginAttempt(identity: RecognitionEvidenceIdentity) {
         synchronized(lock) {
@@ -99,6 +100,7 @@ class RecognitionSessionEvidenceRecorder(
             pixelCopySuspendedReason = null
             firstFrameTimestampMs = null
             latestSceneElapsedMs = 0L
+            latestGeometryVersion = -1L
         }
         record(
             type = "SESSION_ATTEMPT_STARTED",
@@ -119,6 +121,7 @@ class RecognitionSessionEvidenceRecorder(
         if (identity.sessionId != event.sessionId || identity.attemptId != event.attemptId) return
         synchronized(lock) {
             latestSceneElapsedMs = maxOf(latestSceneElapsedMs, event.sceneElapsedMs)
+            latestGeometryVersion = event.geometryVersion
             if (event.stage == RecognitionSceneStage.PHOTO_STABLE &&
                 event.action == RecognitionSceneStageEventAction.ENTERED && firstFrameTimestampMs == null
             ) firstFrameTimestampMs = SystemClock.uptimeMillis()
@@ -446,6 +449,50 @@ class RecognitionSessionEvidenceRecorder(
         record(type, fileName, payload, RecognitionEvidencePriority.SAMPLE)
     }
 
+    /** Stores the GPU host receipt in the existing bounded evidence stream. */
+    fun recordGpuRenderResult(
+        identity: RecognitionSceneIdentity,
+        payload: Map<String, Any?>,
+    ): Boolean {
+        val geometry = (payload["geometryVersion"] as? Number)?.toLong()
+        val (identityMatches, expectedGeometry) = synchronized(lock) {
+            (activeIdentity?.matches(identity) == true) to latestGeometryVersion
+        }
+        val reason = when {
+            !identityMatches -> "SCENE_IDENTITY_NOT_ACTIVE"
+            expectedGeometry >= 0L && geometry != expectedGeometry -> "GEOMETRY_VERSION_NOT_ACTIVE"
+            else -> null
+        }
+        val reasonPayload = if (reason == null) emptyMap() else mapOf(
+            "receiptAccepted" to false,
+            "receiptRejectionReason" to reason,
+            "receivedSessionIdHash" to sha256(identity.sessionId),
+            "receivedAttemptIdHash" to sha256(identity.attemptId),
+            "receivedPhotoIdentityHash" to sha256(identity.imageId),
+        )
+        val ownerAccepted = payload["ownerAccepted"] == true
+        val failureReason = payload["failureReason"]?.toString()?.takeIf(String::isNotBlank)
+        val eventType = payload["eventType"]?.toString()?.takeIf(String::isNotBlank) ?: when {
+            reason != null -> "GPU_RENDER_RECEIPT_REJECTED"
+            failureReason?.contains("CONTEXT_LOST", ignoreCase = true) == true -> "GPU_CONTEXT_LOST"
+            failureReason?.contains("SURFACE", ignoreCase = true) == true -> "SURFACE_NOT_READY"
+            ownerAccepted -> "GPU_RENDER_ACTIVE"
+            payload.values.any { it == "FAIL" } -> "GPU_RENDER_FAILED"
+            else -> "GPU_RENDER_SUPPRESSED"
+        }
+        val priority = if (
+            reason != null || failureReason != null || payload.values.any { it == "FAIL" } ||
+            eventType in setOf("FIRST_FRAME_ACCEPTED", "FIRST_FRAME_REJECTED", "FALLBACK_ACTIVE", "GPU_CONTEXT_LOST", "SURFACE_NOT_READY")
+        ) RecognitionEvidencePriority.CRITICAL else RecognitionEvidencePriority.SAMPLE
+        val queued = record(
+            type = eventType,
+            fileName = "gpu_trace.jsonl",
+            payload = payload + reasonPayload + mapOf("receiptAccepted" to (reason == null)),
+            priority = priority,
+        )
+        return queued != null
+    }
+
     fun recordHeartbeat(frame: RecognitionSceneFrame) {
         val waiting = frame.modelGates.waitingReason ?: return
         heartbeat(frame.stage, frame.sceneElapsedMs, waiting)
@@ -464,6 +511,10 @@ class RecognitionSessionEvidenceRecorder(
             activeIdentity?.matches(frame.identity) == true && pixelCopySuspendedReason == null
         }
         if (!isCurrentFrame) return
+        synchronized(lock) {
+            latestGeometryVersion = frame.geometryVersion
+            latestSceneElapsedMs = maxOf(latestSceneElapsedMs, frame.sceneElapsedMs)
+        }
         val stageName = frame.stage.name
         val enterRequest = synchronized(lock) { entryCaptureRequested.add(stageName) }
         if (enterRequest) requestCapture(window, frame, latestFrame, "STAGE_ENTRY", "stage_entry", priority = "KEY")
@@ -494,6 +545,7 @@ class RecognitionSessionEvidenceRecorder(
     }
 
     fun recordResultFirstPresented(sceneElapsedMs: Long, geometryVersion: Long, resultIdentity: String?) {
+        synchronized(lock) { latestGeometryVersion = geometryVersion }
         record(
             "RESULT_FIRST_PRESENTED",
             "result_handoff.jsonl",
