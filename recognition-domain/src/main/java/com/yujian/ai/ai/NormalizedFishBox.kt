@@ -6,6 +6,11 @@ data class NormalizedFishBox(
     val x2: Float,
     val y2: Float,
 ) {
+    fun isValidNormalized(): Boolean =
+        listOf(x1, y1, x2, y2).all(Float::isFinite) &&
+            x1 >= 0f && y1 >= 0f && x2 <= 1f && y2 <= 1f &&
+            x1 < x2 && y1 < y2
+
     fun normalized(): NormalizedFishBox {
         val left = minOf(x1, x2).coerceIn(0f, 1f)
         val top = minOf(y1, y2).coerceIn(0f, 1f)

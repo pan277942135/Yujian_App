@@ -16,7 +16,7 @@ object RecognitionRevealPathGeometry {
         releaseEndpoint: WaterLightPathPoint,
         seed: Int,
     ): WaterLightPathGeometry? {
-        if (!releaseEndpoint.isValid() || !RecognitionRevealPolicy.isValidBox(detectorBox)) return null
+        if (!releaseEndpoint.isValid() || !detectorBox.isValidNormalized()) return null
         val rect = transform.photoContentRect
         if (!rect.isValid()) return null
         val detectorCenter = transform.mapBox(detectorBox)

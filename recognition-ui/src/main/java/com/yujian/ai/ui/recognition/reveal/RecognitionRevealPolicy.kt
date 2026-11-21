@@ -89,10 +89,7 @@ object RecognitionRevealPolicy {
         else -> RecognitionRevealEligibility.TITLE_FADE_ONLY
     }
 
-    fun isValidBox(box: NormalizedFishBox): Boolean =
-        listOf(box.x1, box.y1, box.x2, box.y2).all(Float::isFinite) &&
-            box.x1 >= 0f && box.y1 >= 0f && box.x2 <= 1f && box.y2 <= 1f &&
-            box.x1 < box.x2 && box.y1 < box.y2
+    fun isValidBox(box: NormalizedFishBox): Boolean = box.isValidNormalized()
 
     private fun isValidRect(rect: NormalizedSourceRect): Boolean =
         listOf(rect.left, rect.top, rect.right, rect.bottom).all(Float::isFinite) &&
