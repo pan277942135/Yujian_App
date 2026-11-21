@@ -1109,118 +1109,133 @@ fun RecognitionResultScreen(
             rootBounds = RecognitionRevealWindowRect(bounds.left, bounds.top, bounds.right, bounds.bottom)
         },
     ) {
-        BgContentSurface()
-        Column(Modifier.fillMaxSize()) {
-            YuJianBackCenterTitleTopBar(
+        RecognitionResultScreenContent(
+            model = RecognitionResultScreenContentModel(
                 title = if (resultHandoffMotionActive && !resultSceneHandoffAccepted) "识别中" else "识别结果",
-                onBack = { requestExit(PendingExitAction.BACK) },
                 backEnabled = !saving && !saveRequested,
-            )
-            Column(
-                Modifier.weight(1f)
-                    .graphicsLayer(alpha = resultContentAlpha)
-                    .widthIn(max = RecognitionResultGeometryResolver.MAX_CONTENT_WIDTH_DP.dp)
-                    .fillMaxWidth()
-                    .align(Alignment.CenterHorizontally)
-                    .padding(start = safeInsets.start, end = safeInsets.end)
-                    .then(if (resultPageScrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
-                    .padding(bottom = 20.dp + safeInsets.bottom),
-                verticalArrangement = Arrangement.spacedBy(0.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Spacer(Modifier.height(8.dp))
-                image?.let {
-                    ResultHeroViewport(
-                        bitmap = it.bitmap.asImageBitmap(),
-                        bbox = bbox,
-                        primaryAmbiguous = primaryFishAmbiguous,
-                        widthDp = geometry.heroWidthDp,
-                        heightDp = geometry.heroHeightDp,
-                        evidenceFirst = uiState == RecognitionUiState.ERROR_NO_FISH ||
-                            uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
-                        revealFrameState = revealFrameState,
-                        sharedPhotoGeometryReady = photoTransitionGeometry != null && revealPresentationReady,
-                        holdPhotoUntilReady = heroSnapshot?.renderReady == false,
-                        onHeroSnapshot = { bounds, cropRect, ready ->
-                            heroSnapshot = RecognitionRevealHeroSnapshot(bounds, cropRect, ready)
-                        },
-                    )
-                }
-                Spacer(Modifier.height(12.dp))
-                RecognitionResultDecisionContent(
-                    model = RecognitionResultDecisionContentModel(
-                        uiState = uiState,
-                        geometry = geometry,
-                        adaptiveProfile = adaptiveProfile,
-                        candidateFontScale = candidateFontScale,
-                        revealFrameState = revealFrameState,
-                        resultInteractionsEnabled = resultInteractionsEnabled,
-                        revealAlreadyPlayed = revealAlreadyPlayed,
-                        revealHandoff = revealHandoff,
-                        resultSceneIdentity = resultSceneIdentity,
-                        prediction = prediction,
-                        resultSnapshot = resultSnapshot,
-                        glyphReadinessState = glyphReadinessState,
-                        diagnosticPlaybackController = diagnosticPlaybackController,
-                        selectedKey = selectedKey,
-                        selectedName = selectedName,
-                        selectedScientificName = selectedScientificName,
-                        resultInfoAlpha = resultInfoAlpha,
-                        resultInfoTranslationY = resultInfoTranslationY,
-                        resultInfoDrawPassSequence = resultInfoDrawPassSequence,
-                        diagnosticFrame = diagnosticFrame,
-                        resultSceneHandoffAccepted = resultSceneHandoffAccepted,
-                        resultGeometryReady = resultGeometryReady,
-                        resultInfoLayoutReady = resultInfoLayoutReady,
-                        resultInfoEntranceProgress = resultInfoEntranceProgress,
-                        resultInfoProgressBucket = resultInfoProgressBucket,
-                        resultInfoRenderReceipt = resultInfoRenderReceipt,
-                        resultGeometryVersion = resultGeometryVersion,
-                        resultInfoReceiptInFlight = resultInfoReceiptInFlight,
-                        resultFrameHandler = resultFrameHandler,
-                        recognitionEvidenceRecorder = recognitionEvidenceRecorder,
-                        lengthText = lengthText,
-                        weightText = weightText,
-                        locationText = locationText,
-                        resolvingLocation = resolvingLocation,
-                        storyText = storyText,
-                        safeInlineErrorMessage = safeInlineErrorMessage,
-                        inlineErrorActionLabel = inlineErrorActionLabel,
-                        inlineErrorAction = inlineErrorAction,
-                        saveBusy = saveBusy,
-                        activeLoadingDestination = activeLoadingDestination,
-                        compactResultActions = compactResultActions,
-                        candidates = candidates,
-                        speciesImages = speciesImages,
-                    ),
-                    actions = RecognitionResultDecisionContentActions(
-                        onTitleBounds = { revealTitleBounds = it },
-                        onGlyphReadinessChanged = { glyphReadinessState = it },
-                        onSelectCandidate = { candidate ->
-                            selectedKey = candidate.speciesKey
-                            selectedName = candidate.speciesName
-                        },
-                        onStoryTextChange = { storyText = it.takeUnicodeCodePoints(300) },
-                        onFieldChange = { editField = it },
-                        onInfoLayoutReady = { resultInfoLayoutReady = it },
-                        onInfoRenderReceipt = { resultInfoRenderReceipt = it },
-                        openSpeciesSelector = ::openSpeciesSelector,
-                        save = ::save,
-                        requestExit = ::requestExit,
-                    ),
-                )
-                if (BuildConfig.DEBUG && recognitionEvidenceRecorder != null) TextButton(
-                    enabled = evidenceExportStatus != "EXPORTING",
-                    onClick = {
-                        if (evidenceExportStatus == "EXPORTING") return@TextButton
+                safeInsets = safeInsets,
+                resultPageScrollable = resultPageScrollable,
+                resultContentAlpha = resultContentAlpha,
+                heroBitmap = image?.bitmap?.asImageBitmap(),
+                heroBoundingBox = bbox,
+                heroPrimaryAmbiguous = primaryFishAmbiguous,
+                heroWidthDp = geometry.heroWidthDp,
+                heroHeightDp = geometry.heroHeightDp,
+                heroEvidenceFirst = uiState == RecognitionUiState.ERROR_NO_FISH ||
+                    uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
+                revealFrameState = revealFrameState,
+                sharedPhotoGeometryReady = photoTransitionGeometry != null && revealPresentationReady,
+                holdPhotoUntilReady = heroSnapshot?.renderReady == false,
+                decisionContent = RecognitionResultDecisionContentModel(
+                    uiState = uiState,
+                    geometry = geometry,
+                    adaptiveProfile = adaptiveProfile,
+                    candidateFontScale = candidateFontScale,
+                    revealFrameState = revealFrameState,
+                    resultInteractionsEnabled = resultInteractionsEnabled,
+                    revealAlreadyPlayed = revealAlreadyPlayed,
+                    revealHandoff = revealHandoff,
+                    resultSceneIdentity = resultSceneIdentity,
+                    prediction = prediction,
+                    resultSnapshot = resultSnapshot,
+                    glyphReadinessState = glyphReadinessState,
+                    diagnosticPlaybackController = diagnosticPlaybackController,
+                    selectedKey = selectedKey,
+                    selectedName = selectedName,
+                    selectedScientificName = selectedScientificName,
+                    resultInfoAlpha = resultInfoAlpha,
+                    resultInfoTranslationY = resultInfoTranslationY,
+                    resultInfoDrawPassSequence = resultInfoDrawPassSequence,
+                    diagnosticFrame = diagnosticFrame,
+                    resultSceneHandoffAccepted = resultSceneHandoffAccepted,
+                    resultGeometryReady = resultGeometryReady,
+                    resultInfoLayoutReady = resultInfoLayoutReady,
+                    resultInfoEntranceProgress = resultInfoEntranceProgress,
+                    resultInfoProgressBucket = resultInfoProgressBucket,
+                    resultInfoRenderReceipt = resultInfoRenderReceipt,
+                    resultGeometryVersion = resultGeometryVersion,
+                    resultInfoReceiptInFlight = resultInfoReceiptInFlight,
+                    resultFrameHandler = resultFrameHandler,
+                    recognitionEvidenceRecorder = recognitionEvidenceRecorder,
+                    lengthText = lengthText,
+                    weightText = weightText,
+                    locationText = locationText,
+                    resolvingLocation = resolvingLocation,
+                    storyText = storyText,
+                    safeInlineErrorMessage = safeInlineErrorMessage,
+                    inlineErrorActionLabel = inlineErrorActionLabel,
+                    inlineErrorAction = inlineErrorAction,
+                    saveBusy = saveBusy,
+                    activeLoadingDestination = activeLoadingDestination,
+                    compactResultActions = compactResultActions,
+                    candidates = candidates,
+                    speciesImages = speciesImages,
+                ),
+                opticalLayer = RecognitionResultOpticalLayerModel(
+                    image = image,
+                    diagnosticFrame = diagnosticFrame,
+                    sceneFrameOverrideForTest = sceneFrameOverrideForTest,
+                    photoTransitionGeometry = photoTransitionGeometry,
+                    presentedHandoff = presentedHandoff,
+                    revealFrameState = revealFrameState,
+                    revealMotionPolicy = revealMotionPolicy,
+                    resultSceneIdentity = resultSceneIdentity,
+                    revealGeometry = revealGeometry,
+                    diagnosticPlaybackController = diagnosticPlaybackController,
+                    recognitionEvidenceRecorder = recognitionEvidenceRecorder,
+                    revealPresentationReady = revealPresentationReady,
+                    heroRenderReady = heroSnapshot?.renderReady == true,
+                    diagnosticUiAvailable = diagnosticUiAvailable,
+                    diagnosticStage = diagnosticStage,
+                    diagnosticReferenceMs = diagnosticReferenceMs,
+                    diagnosticPreviewElapsedMs = diagnosticPreviewElapsedMs,
+                    diagnosticPreviewCompleted = diagnosticPreviewCompleted,
+                    diagnosticPaused = diagnosticPaused,
+                    revealStartReady = revealStartReady,
+                    diagnosticDisplayMode = diagnosticDisplayMode,
+                    visualHandoff = visualHandoff,
+                    productionResult = productionResult,
+                    revealHandoff = revealHandoff,
+                    subjectResult = subjectResult,
+                ),
+                evidenceExportEnabled = BuildConfig.DEBUG && recognitionEvidenceRecorder != null,
+                evidenceExportStatus = evidenceExportStatus,
+                evidenceExportError = evidenceExportError,
+            ),
+            actions = RecognitionResultScreenContentActions(
+                onBack = { requestExit(PendingExitAction.BACK) },
+                onHeroSnapshot = { bounds, cropRect, ready ->
+                    heroSnapshot = RecognitionRevealHeroSnapshot(bounds, cropRect, ready)
+                },
+                decisionContent = RecognitionResultDecisionContentActions(
+                    onTitleBounds = { revealTitleBounds = it },
+                    onGlyphReadinessChanged = { glyphReadinessState = it },
+                    onSelectCandidate = { candidate ->
+                        selectedKey = candidate.speciesKey
+                        selectedName = candidate.speciesName
+                    },
+                    onStoryTextChange = { storyText = it.takeUnicodeCodePoints(300) },
+                    onFieldChange = { editField = it },
+                    onInfoLayoutReady = { resultInfoLayoutReady = it },
+                    onInfoRenderReceipt = { resultInfoRenderReceipt = it },
+                    openSpeciesSelector = ::openSpeciesSelector,
+                    save = ::save,
+                    requestExit = ::requestExit,
+                ),
+                opticalLayer = RecognitionResultOpticalLayerActions(
+                    setDiagnosticUserPaused = { diagnosticUserPaused = it },
+                    setDiagnosticNowMs = { diagnosticNowMs = it },
+                    onReturnToProcessing = onDiagnosticReturnToProcessing,
+                    onDiagnosticDisplayModeChange = onDiagnosticDisplayModeChange,
+                ),
+                onExportDiagnostics = {
+                    if (evidenceExportStatus != "EXPORTING") {
                         evidenceExportStatus = "EXPORTING"
                         evidenceExportError = null
                         scope.launch {
                             try {
-                                val exported = RecognitionEvidenceZipExporter.export(
-                                    context,
-                                    recognitionEvidenceRecorder,
-                                )
+                                val recorder = requireNotNull(recognitionEvidenceRecorder)
+                                val exported = RecognitionEvidenceZipExporter.export(context, recorder)
                                 val shareOutcome = RecognitionEvidenceZipExporter.share(context, exported)
                                 val kb = (exported.sizeBytes / 1024L).coerceAtLeast(1L)
                                 evidenceExportStatus = if (shareOutcome.chooserLaunched) {
@@ -1241,69 +1256,8 @@ fun RecognitionResultScreen(
                                 Log.e("RecognitionEvidenceExport", "status=FAILED", failure)
                             }
                         }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .defaultMinSize(minHeight = 48.dp)
-                        .testTag("result_export_diagnostics_button"),
-                ) {
-                    Text(
-                        if (evidenceExportStatus == "EXPORTING") "正在导出本次识鱼诊断包…"
-                        else "导出本次识鱼诊断包",
-                    )
-                }
-                if (BuildConfig.DEBUG && recognitionEvidenceRecorder != null) {
-                    Text(
-                        text = when {
-                            evidenceExportError != null -> "诊断包导出失败：$evidenceExportError（可点击重试）"
-                            evidenceExportStatus == "READY" -> "诊断包状态：待导出"
-                            evidenceExportStatus == "EXPORTING" -> "诊断包状态：正在冻结快照并打包导出…"
-                            else -> "诊断包状态：$evidenceExportStatus"
-                        },
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .testTag("result_export_diagnostics_status"),
-                        color = MutedInk,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-                Spacer(Modifier.height(20.dp))
-            }
-        }
-        RecognitionResultOpticalLayer(
-            model = RecognitionResultOpticalLayerModel(
-                image = image,
-                diagnosticFrame = diagnosticFrame,
-                sceneFrameOverrideForTest = sceneFrameOverrideForTest,
-                photoTransitionGeometry = photoTransitionGeometry,
-                presentedHandoff = presentedHandoff,
-                revealFrameState = revealFrameState,
-                revealMotionPolicy = revealMotionPolicy,
-                resultSceneIdentity = resultSceneIdentity,
-                revealGeometry = revealGeometry,
-                diagnosticPlaybackController = diagnosticPlaybackController,
-                recognitionEvidenceRecorder = recognitionEvidenceRecorder,
-                revealPresentationReady = revealPresentationReady,
-                heroRenderReady = heroSnapshot?.renderReady == true,
-                diagnosticUiAvailable = diagnosticUiAvailable,
-                diagnosticStage = diagnosticStage,
-                diagnosticReferenceMs = diagnosticReferenceMs,
-                diagnosticPreviewElapsedMs = diagnosticPreviewElapsedMs,
-                diagnosticPreviewCompleted = diagnosticPreviewCompleted,
-                diagnosticPaused = diagnosticPaused,
-                revealStartReady = revealStartReady,
-                diagnosticDisplayMode = diagnosticDisplayMode,
-                visualHandoff = visualHandoff,
-                productionResult = productionResult,
-                revealHandoff = revealHandoff,
-                subjectResult = subjectResult,
-            ),
-            actions = RecognitionResultOpticalLayerActions(
-                setDiagnosticUserPaused = { diagnosticUserPaused = it },
-                setDiagnosticNowMs = { diagnosticNowMs = it },
-                onReturnToProcessing = onDiagnosticReturnToProcessing,
-                onDiagnosticDisplayModeChange = onDiagnosticDisplayModeChange,
+                    }
+                },
             ),
         )
     }
