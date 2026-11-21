@@ -36,6 +36,8 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -207,6 +209,9 @@ fun RecognitionResultScreen(
     var diagnosticUserPaused by remember(revealHandoff?.key) { mutableStateOf(false) }
     val resultFirstPresentedAtMs = remember(image?.imageId) { mutableStateOf<Long?>(null) }
     val revealStartAllowed = remember(image?.imageId) { mutableStateOf(false) }
+    val latestImageId = rememberUpdatedState(image?.imageId)
+    val latestRevealKey = rememberUpdatedState(revealHandoff?.key)
+    val latestRevealFinished = rememberUpdatedState(onRevealFinished)
     var diagnosticNowMs by remember(revealHandoff?.key) { mutableLongStateOf(SystemClock.uptimeMillis()) }
     val resultFirstFrameCallbackPosted = remember(image?.imageId) { AtomicBoolean(false) }
     val resultFrameHandler = remember { Handler(Looper.getMainLooper()) }
