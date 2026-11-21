@@ -19,7 +19,7 @@ data class RecognitionGuideReferenceMapping(
 }
 
 /** Maps frozen-page coordinates to a runtime viewport without independent X/Y scaling. */
-fun mapRecognitionGuideReferenceSpace(
+internal fun mapRecognitionGuideReferenceSpace(
     page: RecognitionFirstCaptureGuidePage,
     runtimeWidthPx: Int,
     runtimeHeightPx: Int,

@@ -45,7 +45,7 @@ data class RecognitionRevealSessionSnapshot(
         )
 }
 
-internal fun RecognitionRevealSessionSnapshot.matches(key: RecognitionRevealKey): Boolean =
+fun RecognitionRevealSessionSnapshot.matches(key: RecognitionRevealKey): Boolean =
     recognitionSessionId == key.recognitionSessionId && recognitionAttemptId == key.recognitionAttemptId
 
 internal enum class RecognitionFishPathSnapshotBindOutcome {

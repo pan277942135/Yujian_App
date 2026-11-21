@@ -187,4 +187,20 @@ for consumer in MODULES:
                 require(owner_module in visible_modules,
                         f"cross-module import without Gradle dependency {imported}: :{consumer} -> :{owner_module}")
 
+# Compile-time API checks for cross-module calls that use extension/member syntax.
+# These are easy to miss when auditing only explicit imports, but Kotlin enforces
+# their visibility at the consuming module boundary.
+session_store = (ROOT / "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealSessionStore.kt").read_text(encoding="utf-8")
+require(re.search(r"^fun RecognitionRevealSessionSnapshot\.matches\(", session_store, re.MULTILINE) is not None,
+        "RecognitionRevealSessionSnapshot.matches must be public for :app")
+remote_image = (ROOT / "recognition-ui/src/main/java/com/yujian/ai/ui/components/RemoteImage.kt").read_text(encoding="utf-8")
+require(re.search(r"^\s*fun recordLoadStatus\(", remote_image, re.MULTILINE) is not None,
+        "RemoteImageRuntimeProbe.recordLoadStatus must be public for :app")
+guide_reference = (ROOT / "app/src/main/java/com/yujian/ai/ui/identify/RecognitionFirstCaptureGuideReferenceSpace.kt").read_text(encoding="utf-8")
+guide_policy = (ROOT / "app/src/main/java/com/yujian/ai/ui/identify/RecognitionFirstCaptureGuidePolicy.kt").read_text(encoding="utf-8")
+mapping_is_internal = re.search(r"^internal fun mapRecognitionGuideReferenceSpace\(", guide_reference, re.MULTILINE) is not None
+guide_page_is_public = re.search(r"^public enum class RecognitionFirstCaptureGuidePage\b", guide_policy, re.MULTILINE) is not None
+require(mapping_is_internal or guide_page_is_public,
+        "public guide mapping must not expose internal RecognitionFirstCaptureGuidePage")
+
 print(f"PASS: module graph is acyclic; {len(MODULES)} module boundaries, {len(MOVED_RESOURCES)} unchanged resources, {len(fqns)} production types verified")

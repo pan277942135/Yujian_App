@@ -80,7 +80,7 @@ object RemoteImageRuntimeProbe {
 
     fun snapshot(identity: String): Snapshot? = states[identity]
 
-    internal fun recordLoadStatus(identity: String?, status: String) {
+    fun recordLoadStatus(identity: String?, status: String) {
         if (!captureEnabled || identity.isNullOrBlank()) return
         synchronized(states) {
             val previous = states[identity]
