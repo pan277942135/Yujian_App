@@ -134,6 +134,9 @@ jobs:
           python3 scripts/test_bootstrap_android_recognition_assets.py
           python3 -m unittest discover -s scripts -p 'test_runtime_evidence_source_closure.py'
 
+      - name: Verify 26KF runtime trace matrix
+        run: python3 -m unittest discover -s scripts/android_runtime/tests -p 'test_26kf_runtime_trace_matrix_v2.py' -v
+
       - name: Materialize the verified design resource package
         run: >-
           python3 scripts/materialize_yujian_resource_package.py
