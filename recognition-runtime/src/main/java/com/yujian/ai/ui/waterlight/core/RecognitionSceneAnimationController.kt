@@ -8,6 +8,8 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionOrbCoreDissolveReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffContract
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultInfoRenderContract
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultStableRenderContract
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER
 import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
