@@ -1248,292 +1248,68 @@ fun RecognitionResultScreen(
                     )
                 }
                 Spacer(Modifier.height(12.dp))
-                val sideMargin = geometry.horizontalMarginDp.dp
-                when (uiState) {
-                    RecognitionUiState.RESULT_HIGH -> {
-                        SpeciesIdentityRow(
-                            speciesName = selectedName,
-                            scientificName = selectedScientificName,
-                            sideMargin = sideMargin,
-                            widthDp = geometry.heroWidthDp,
-                            enabled = !saveBusy && resultInteractionsEnabled,
-                            revealFrameState = revealFrameState,
-                            holdNameUntilHandoff = !revealAlreadyPlayed &&
-                                (revealHandoff == null || revealHandoff.revealDecision !in setOf(
-                                    RecognitionRevealDecisionState.FISH_FOCUS_READY,
-                                    RecognitionRevealDecisionState.ORB_ONLY_READY,
-                                )),
-                            onTitleBounds = { revealTitleBounds = it },
-                            glyphSceneIdentity = resultSceneIdentity,
-                            glyphSpeciesKey = prediction.top1.speciesKey,
-                            onGlyphPathReady = { descriptor ->
-                                val expectedName = resultSpeciesDisplayName(prediction.top1.speciesName)
-                                val speciesResultReady = resultSnapshot != null && resultSnapshot.key == revealHandoff?.key &&
-                                    resultSnapshot.resultDataReady &&
-                                    resultSnapshot.glyphSpeciesKey == prediction.top1.speciesKey &&
-                                    resultSnapshot.glyphSpeciesName == prediction.top1.speciesName
-                                val pathReady = speciesResultReady && descriptor?.matches(
-                                    resultSceneIdentity, prediction.top1.speciesKey, expectedName,
-                                ) == true
-                                val readiness = RecognitionGlyphReadiness(
-                                    speciesResultReady = speciesResultReady,
-                                    glyphPathReady = pathReady,
-                                    descriptor = descriptor.takeIf { pathReady },
-                                )
-                                glyphReadinessState = readiness
-                                diagnosticPlaybackController?.onGlyphPathReady(readiness, resultSceneIdentity)
-                            },
-                            onGlyphRevealRendered = { receipt ->
-                                val descriptor = glyphReadinessState.descriptor
-                                if (descriptor != null && receipt.identity == resultSceneIdentity &&
-                                    receipt.pathId == descriptor.pathId &&
-                                    receipt.geometryVersion == descriptor.geometryVersion
-                                ) {
-                                    val readiness = glyphReadinessState.copy(
-                                        glyphRevealRendered = true,
-                                        nameStable = false,
-                                        renderReceipt = receipt,
-                                    )
-                                    if (RecognitionGlyphReadinessContract.isRendered(
-                                            resultSceneIdentity, descriptor.speciesKey, descriptor.speciesName, readiness,
-                                        )
-                                    ) {
-                                        val accepted = diagnosticPlaybackController?.onGlyphRevealRendered(readiness, resultSceneIdentity)
-                                            ?: true
-                                        if (accepted) glyphReadinessState = readiness
-                                        accepted
-                                    } else false
-                                } else false
-                            },
-                            onChange = { openSpeciesSelector() },
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Column(
-                            Modifier.fillMaxWidth()
-                                .graphicsLayer {
-                                    alpha = resultInfoAlpha
-                                    translationY = resultInfoTranslationY.toPx()
-                                }
-                                .drawWithContent {
-                                    drawContent()
-                                    val infoDrawSequence = resultInfoDrawPassSequence.incrementAndGet()
-                                    val frame = diagnosticFrame
-                                    if (frame?.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
-                                        resultSceneHandoffAccepted && resultGeometryReady && resultInfoLayoutReady
-                                    ) {
-                                        val progress = resultInfoEntranceProgress.coerceIn(0f, 1f)
-                                        val bucket = (progress * 10f).toInt().coerceIn(0, 10)
-                                        val lastBucket = resultInfoProgressBucket.get()
-                                        if (bucket > lastBucket && resultInfoProgressBucket.compareAndSet(lastBucket, bucket)) {
-                                            recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
-                                                checkpoint = "INFO_ENTRANCE_PROGRESS",
-                                                identity = resultSceneIdentity,
-                                                resultIdentity = prediction.top1.speciesKey,
-                                                stage = frame.stage,
-                                                stageProgress = frame.stageProgress,
-                                                entranceProgress = progress,
-                                                geometryVersion = resultGeometryVersion,
-                                                drawPassSequence = infoDrawSequence,
-                                                renderStatus = "CONTENT_DRAW_SUBMITTED",
-                                            )
-                                        }
-                                        if (progress >= .999f &&
-                                            resultInfoRenderReceipt?.geometryVersion != resultGeometryVersion &&
-                                            resultInfoReceiptInFlight.compareAndSet(false, true)
-                                        ) {
-                                            val receipt = RecognitionResultInfoRenderReceipt(
-                                                identity = resultSceneIdentity,
-                                                resultIdentity = prediction.top1.speciesKey,
-                                                geometryVersion = resultGeometryVersion,
-                                                renderedProgress = progress,
-                                                layoutWidthPx = size.width.toInt(),
-                                                layoutHeightPx = size.height.toInt(),
-                                                contentDrawn = true,
-                                                drawPassSequence = infoDrawSequence,
-                                            )
-                                            resultFrameHandler.post {
-                                                resultInfoRenderReceipt = receipt
-                                                recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
-                                                    checkpoint = "INFO_RENDER_COMPLETED",
-                                                    identity = receipt.identity,
-                                                    resultIdentity = receipt.resultIdentity,
-                                                    stage = frame.stage,
-                                                    stageProgress = frame.stageProgress,
-                                                    entranceProgress = receipt.renderedProgress,
-                                                    geometryVersion = receipt.geometryVersion,
-                                                    drawPassSequence = receipt.drawPassSequence,
-                                                    renderStatus = "DRAW_RECEIPT_READY",
-                                                )
-                                                resultInfoReceiptInFlight.set(false)
-                                            }
-                                        }
-                                    }
-                                },
-                        ) {
-                        ResultMetadataStrip(
-                            length = lengthText,
-                            weight = weightText,
-                            location = locationText,
-                            resolvingLocation = resolvingLocation,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin)
-                                .onGloballyPositioned { coordinates ->
-                                    resultInfoLayoutReady = coordinates.size.width > 0 && coordinates.size.height > 0
-                                },
-                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                            enabled = !saveBusy && resultInteractionsEnabled,
-                            onField = { editField = it },
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        ResultMemoryNote(
-                            value = storyText,
-                            onValueChange = { storyText = it.takeUnicodeCodePoints(300) },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
-                            enabled = !saveBusy && resultInteractionsEnabled,
-                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        ResultInlineError(
-                            safeInlineErrorMessage,
-                            sideMargin,
-                            actionLabel = inlineErrorActionLabel,
-                            onAction = inlineErrorAction,
-                            enabled = !saveBusy && resultInteractionsEnabled,
-                            modifier = Modifier,
-                        )
-                        ResultDualActions(
-                            useResultSurfaceActions = true,
-                            saving = saveBusy,
-                            loadingDestination = activeLoadingDestination,
-                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                            compactLayout = compactResultActions,
-                            sideMargin = if (compactResultActions) 16.dp else 24.dp,
-                            interactiveEnabled = resultInteractionsEnabled,
-                            modifier = Modifier,
-                            onContinue = { save(RecognitionSaveDestination.MEMORY) },
-                            onSave = { save(RecognitionSaveDestination.HOME) },
-                        )
-                        }
-                    }
-                    RecognitionUiState.RESULT_MEDIUM -> {
-                        ResultInformationGlass(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
-                        ) {
-                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text(
-                                    "帮我确认一下，这条鱼更像哪一种？",
-                                    color = DeepInk,
-                                    fontSize = 20.sp,
-                                    lineHeight = 28.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    maxLines = if (adaptiveProfile.accessibilityFontScale || geometry.heroWidthDp <= 320) 2 else 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                CandidateRow(
-                                    candidates = candidates,
-                                    selectedKey = selectedKey,
-                                    widthDp = geometry.heroWidthDp,
-                                    accessibilityFontScale = candidateFontScale,
-                                    saving = saveBusy,
-                                    speciesImages = speciesImages,
-                                    onSelect = { candidate -> selectedKey = candidate.speciesKey; selectedName = candidate.speciesName },
-                                )
-                                YuJianTextAction(
-                                    text = "都不是？选择其他鱼种",
-                                    onClick = { openSpeciesSelector() },
-                                    role = YuJianTextActionRole.MUTED,
-                                    enabled = !saveBusy,
-                                    showChevron = true,
-                                )
-                            }
-                        }
-                        if (selectedKey.isNotBlank()) {
-                            Spacer(Modifier.height(12.dp))
-                            SpeciesIdentityRow(
-                                speciesName = selectedName,
-                                sideMargin = sideMargin,
-                                widthDp = geometry.heroWidthDp,
-                                scientificName = selectedScientificName,
-                                enabled = !saveBusy,
-                                onChange = { openSpeciesSelector() },
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth().padding(horizontal = sideMargin), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
-                            Spacer(Modifier.height(12.dp))
-                            ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth().padding(horizontal = sideMargin), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
-                            Spacer(Modifier.height(16.dp))
-                            ResultInlineError(
-                                safeInlineErrorMessage,
-                                sideMargin,
-                                actionLabel = inlineErrorActionLabel,
-                                onAction = inlineErrorAction,
-                                enabled = !saveBusy,
-                            )
-                            ResultDualActions(
-                                saving = saveBusy,
-                                loadingDestination = activeLoadingDestination,
-                                accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                                compactLayout = compactResultActions,
-                                sideMargin = if (compactResultActions) 16.dp else 24.dp,
-                                onContinue = { save(RecognitionSaveDestination.MEMORY) },
-                                onSave = { save(RecognitionSaveDestination.HOME) },
-                            )
-                        }
-                    }
-                    RecognitionUiState.RESULT_LOW -> {
-                        Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Text("无法确认是什么鱼", color = DeepInk, fontSize = 26.sp, lineHeight = 34.sp, fontWeight = FontWeight.SemiBold)
-                            if (selectedKey.isBlank()) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(if (compactResultActions) 8.dp else 12.dp)) {
-                                    YuJianPrimaryButton(
-                                        text = "手动选择鱼种", onClick = { openSpeciesSelector() },
-                                        modifier = Modifier.weight(1f),
-                                        enabled = !saveBusy,
-                                        variant = YuJianActionButtonVariant.RESULT_SAVE,
-                                        leadingIcon = { Icon(Icons.Rounded.SetMeal, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
-                                        contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
-                                        leadingIconSpacing = 4.dp,
-                                    )
-                                    YuJianPrimaryButton(
-                                        text = "重新拍摄", onClick = { requestExit(PendingExitAction.RETAKE) },
-                                        modifier = Modifier.weight(1f),
-                                        enabled = !saveBusy,
-                                        variant = YuJianActionButtonVariant.RESULT_CONTINUE,
-                                        leadingIcon = { Icon(Icons.Rounded.PhotoCamera, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
-                                        contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
-                                        leadingIconSpacing = 4.dp,
-                                    )
-                                }
-                            } else {
-                                SpeciesIdentityRow(
-                                    speciesName = selectedName,
-                                    sideMargin = sideMargin,
-                                    widthDp = geometry.heroWidthDp,
-                                    scientificName = selectedScientificName,
-                                    enabled = !saveBusy,
-                                    onChange = { openSpeciesSelector() },
-                                )
-                                ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
-                                ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth(), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
-                                ResultInlineError(
-                                    safeInlineErrorMessage,
-                                    0.dp,
-                                    actionLabel = inlineErrorActionLabel,
-                                    onAction = inlineErrorAction,
-                                    enabled = !saveBusy,
-                                )
-                                ResultDualActions(
-                                    saving = saveBusy, sideMargin = 0.dp,
-                                    loadingDestination = activeLoadingDestination,
-                                    accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                                    compactLayout = compactResultActions,
-                                    onContinue = { save(RecognitionSaveDestination.MEMORY) },
-                                    onSave = { save(RecognitionSaveDestination.HOME) },
-                                )
-                            }
-                        }
-                    }
-                    else -> Unit
-                }
+                RecognitionResultDecisionContent(
+                    model = RecognitionResultDecisionContentModel(
+                        uiState = uiState,
+                        geometry = geometry,
+                        adaptiveProfile = adaptiveProfile,
+                        candidateFontScale = candidateFontScale,
+                        revealFrameState = revealFrameState,
+                        resultInteractionsEnabled = resultInteractionsEnabled,
+                        revealAlreadyPlayed = revealAlreadyPlayed,
+                        revealHandoff = revealHandoff,
+                        resultSceneIdentity = resultSceneIdentity,
+                        prediction = prediction,
+                        resultSnapshot = resultSnapshot,
+                        glyphReadinessState = glyphReadinessState,
+                        diagnosticPlaybackController = diagnosticPlaybackController,
+                        selectedKey = selectedKey,
+                        selectedName = selectedName,
+                        selectedScientificName = selectedScientificName,
+                        resultInfoAlpha = resultInfoAlpha,
+                        resultInfoTranslationY = resultInfoTranslationY,
+                        resultInfoDrawPassSequence = resultInfoDrawPassSequence,
+                        diagnosticFrame = diagnosticFrame,
+                        resultSceneHandoffAccepted = resultSceneHandoffAccepted,
+                        resultGeometryReady = resultGeometryReady,
+                        resultInfoLayoutReady = resultInfoLayoutReady,
+                        resultInfoEntranceProgress = resultInfoEntranceProgress,
+                        resultInfoProgressBucket = resultInfoProgressBucket,
+                        resultInfoRenderReceipt = resultInfoRenderReceipt,
+                        resultGeometryVersion = resultGeometryVersion,
+                        resultInfoReceiptInFlight = resultInfoReceiptInFlight,
+                        resultFrameHandler = resultFrameHandler,
+                        recognitionEvidenceRecorder = recognitionEvidenceRecorder,
+                        lengthText = lengthText,
+                        weightText = weightText,
+                        locationText = locationText,
+                        resolvingLocation = resolvingLocation,
+                        storyText = storyText,
+                        safeInlineErrorMessage = safeInlineErrorMessage,
+                        inlineErrorActionLabel = inlineErrorActionLabel,
+                        inlineErrorAction = inlineErrorAction,
+                        saveBusy = saveBusy,
+                        activeLoadingDestination = activeLoadingDestination,
+                        compactResultActions = compactResultActions,
+                        candidates = candidates,
+                        speciesImages = speciesImages,
+                    ),
+                    actions = RecognitionResultDecisionContentActions(
+                        onTitleBounds = { revealTitleBounds = it },
+                        onGlyphReadinessChanged = { glyphReadinessState = it },
+                        onSelectCandidate = { candidate ->
+                            selectedKey = candidate.speciesKey
+                            selectedName = candidate.speciesName
+                        },
+                        onStoryTextChange = { storyText = it.takeUnicodeCodePoints(300) },
+                        onFieldChange = { editField = it },
+                        onInfoLayoutReady = { resultInfoLayoutReady = it },
+                        onInfoRenderReceipt = { resultInfoRenderReceipt = it },
+                        openSpeciesSelector = ::openSpeciesSelector,
+                        save = ::save,
+                        requestExit = ::requestExit,
+                    ),
+                )
                 if (BuildConfig.DEBUG && recognitionEvidenceRecorder != null) TextButton(
                     enabled = evidenceExportStatus != "EXPORTING",
                     onClick = {
@@ -1595,6 +1371,188 @@ fun RecognitionResultScreen(
                 }
                 Spacer(Modifier.height(20.dp))
             }
+        }
+        RecognitionResultOpticalLayer(
+            model = RecognitionResultOpticalLayerModel(
+                image = image,
+                diagnosticFrame = diagnosticFrame,
+                sceneFrameOverrideForTest = sceneFrameOverrideForTest,
+                photoTransitionGeometry = photoTransitionGeometry,
+                presentedHandoff = presentedHandoff,
+                revealFrameState = revealFrameState,
+                revealMotionPolicy = revealMotionPolicy,
+                resultSceneIdentity = resultSceneIdentity,
+                revealGeometry = revealGeometry,
+                diagnosticPlaybackController = diagnosticPlaybackController,
+                recognitionEvidenceRecorder = recognitionEvidenceRecorder,
+                revealPresentationReady = revealPresentationReady,
+                heroRenderReady = heroSnapshot?.renderReady == true,
+                diagnosticUiAvailable = diagnosticUiAvailable,
+                diagnosticStage = diagnosticStage,
+                diagnosticReferenceMs = diagnosticReferenceMs,
+                diagnosticPreviewElapsedMs = diagnosticPreviewElapsedMs,
+                diagnosticPreviewCompleted = diagnosticPreviewCompleted,
+                diagnosticPaused = diagnosticPaused,
+                revealStartReady = revealStartReady,
+                diagnosticDisplayMode = diagnosticDisplayMode,
+                visualHandoff = visualHandoff,
+                productionResult = productionResult,
+                revealHandoff = revealHandoff,
+                subjectResult = subjectResult,
+            ),
+            actions = RecognitionResultOpticalLayerActions(
+                setDiagnosticUserPaused = { diagnosticUserPaused = it },
+                setDiagnosticNowMs = { diagnosticNowMs = it },
+                onReturnToProcessing = onDiagnosticReturnToProcessing,
+                onDiagnosticDisplayModeChange = onDiagnosticDisplayModeChange,
+            ),
+        )
+    }
+
+    if (selectorVisible) {
+        RecognitionSpeciesSelectorScreen(
+            species = selectorSpecies,
+            resolveCoverUrl = speciesCoverUrlFor,
+            selectedSpeciesId = selectedKey,
+            entryContext = selectorEntryContext,
+            onBack = {
+                pendingSaveDestination = null
+                selectorVisible = false
+            },
+            onSelect = { selected ->
+                selectedKey = selected.id
+                selectedName = selected.nameCn
+                selectorVisible = false
+            },
+            onUnconfirmed = { selectorVisible = false },
+        )
+    }
+    editField?.let { field ->
+        when (field) {
+            ResultEditableField.LENGTH -> ResultFieldEditorSheet(
+                title = "鱼获长度", label = "长度", unit = "cm", value = lengthText,
+                keyboardType = KeyboardType.Decimal, validation = { RecognitionResultInputValidation.length(it) },
+                onDismiss = { editField = null }, onSave = { lengthText = it; editField = null },
+            )
+            ResultEditableField.WEIGHT -> ResultFieldEditorSheet(
+                title = "鱼获重量", label = "重量", unit = "kg", value = weightText,
+                keyboardType = KeyboardType.Decimal, validation = { RecognitionResultInputValidation.weight(it) },
+                onDismiss = { editField = null }, onSave = { weightText = it; editField = null },
+            )
+            ResultEditableField.LOCATION -> ResultLocationPickerSheet(
+                value = locationText,
+                resolving = resolvingLocation,
+                currentLocationError = locationError,
+                onDismiss = { editField = null },
+                onUseCurrentLocation = { requestCurrentLocation() },
+                onSelectPlace = { place ->
+                    locationText = place.name.takeUnicodeCodePoints(40)
+                    locationError = null
+                    editField = null
+                },
+                onClearLocation = { locationText = ""; locationError = null; editField = null },
+                onClearCurrentLocationError = { locationError = null },
+            )
+        }
+    }
+    if (purposeVisible) {
+        AlertDialog(
+            onDismissRequest = { purposeVisible = false },
+            title = { Text("使用当前位置") },
+            text = { Text("只有当你主动选择“使用当前位置”时，渔见才会获取你的位置，用于为当前鱼获添加地点。拒绝不会影响识鱼和保存鱼获。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    purposeVisible = false
+                    locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION))
+                }) { Text("继续", color = WaterTeal) }
+            },
+            dismissButton = { TextButton(onClick = { purposeVisible = false }) { Text("暂不使用") } },
+        )
+    }
+
+    if (discardConfirmationVisible) {
+        val exitingByRetake = pendingExitAction == PendingExitAction.RETAKE
+        AlertDialog(
+            modifier = Modifier.testTag("recognition-discard-confirmation"),
+            onDismissRequest = {
+                discardConfirmationVisible = false
+                pendingExitAction = null
+            },
+            title = { Text("放弃本次修改？") },
+            text = { Text("尚未保存的鱼种与鱼获信息会被清除。") },
+            confirmButton = {
+                TextButton(
+                    modifier = Modifier.testTag("recognition-discard-confirm"),
+                    onClick = {
+                        val action = pendingExitAction
+                        discardConfirmationVisible = false
+                        pendingExitAction = null
+                        if (action == PendingExitAction.RETAKE) onRetry() else onBack()
+                    },
+                ) { Text(if (exitingByRetake) "放弃并重新拍摄" else "放弃并返回拍摄") }
+            },
+            dismissButton = {
+                TextButton(
+                    modifier = Modifier.testTag("recognition-discard-continue-editing"),
+                    onClick = {
+                        discardConfirmationVisible = false
+                        pendingExitAction = null
+                    },
+                ) { Text("继续编辑") }
+            },
+        )
+    }
+
+
+}
+
+
+
+private data class RecognitionResultOpticalLayerModel(
+    val image: SelectedImage?,
+    val diagnosticFrame: RecognitionSceneFrame?,
+    val sceneFrameOverrideForTest: RecognitionSceneFrame?,
+    val photoTransitionGeometry: RecognitionRevealPhotoGeometry?,
+    val presentedHandoff: RecognitionRevealHandoff?,
+    val revealFrameState: State<RecognitionRevealFrame>,
+    val revealMotionPolicy: RecognitionRevealMotionPolicy,
+    val resultSceneIdentity: RecognitionSceneIdentity,
+    val revealGeometry: RecognitionRevealGeometry?,
+    val diagnosticPlaybackController: SceneMotionCoordinator?,
+    val recognitionEvidenceRecorder: RecognitionSessionEvidenceRecorder?,
+    val revealPresentationReady: Boolean,
+    val heroRenderReady: Boolean,
+    val diagnosticUiAvailable: Boolean,
+    val diagnosticStage: RecognitionSceneStage,
+    val diagnosticReferenceMs: Long?,
+    val diagnosticPreviewElapsedMs: Long,
+    val diagnosticPreviewCompleted: Boolean,
+    val diagnosticPaused: Boolean,
+    val revealStartReady: Boolean,
+    val diagnosticDisplayMode: RecognitionProgressDisplayMode,
+    val visualHandoff: RecognitionRevealHandoff?,
+    val productionResult: ProductionRecognitionResult?,
+    val revealHandoff: RecognitionRevealHandoff?,
+    val subjectResult: FishSubjectResult,
+)
+
+private data class RecognitionResultOpticalLayerActions(
+    val setDiagnosticUserPaused: (Boolean) -> Unit,
+    val setDiagnosticNowMs: (Long) -> Unit,
+    val onReturnToProcessing: () -> Unit,
+    val onDiagnosticDisplayModeChange: (RecognitionProgressDisplayMode) -> Unit,
+)
+
+@Composable
+private fun RecognitionResultOpticalLayer(
+    model: RecognitionResultOpticalLayerModel,
+    actions: RecognitionResultOpticalLayerActions,
+) {
+    with(model) {
+        fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
+            if (mode == diagnosticDisplayMode) return
+            // Switching display modes must not seek or restart the shared scene clock.
+            actions.onDiagnosticDisplayModeChange(mode)
         }
         val resultPhoto = image?.bitmap
         val sharedResultSceneFrame = diagnosticFrame ?: sceneFrameOverrideForTest
@@ -1735,7 +1693,7 @@ fun RecognitionResultScreen(
             photoGeometry = photoTransitionGeometry,
             geometry = revealGeometry,
             frameState = revealFrameState,
-            holdPhotoUntilHeroReady = heroSnapshot?.renderReady == false,
+            holdPhotoUntilHeroReady = !heroRenderReady,
             material = resultHost.material,
             energyEvent = resultEnergyEvent,
             waterLightFrame = resultFrame,
@@ -1802,9 +1760,9 @@ fun RecognitionResultScreen(
                         val target = RecognitionSceneStage.entries[(stage.ordinal - 1).coerceAtLeast(0)]
                         playback.beginStepPreview(target, now)
                     }
-                    diagnosticUserPaused = false
-                    diagnosticNowMs = now
-                    if (stage == RecognitionSceneStage.ORB_RETURN) onDiagnosticReturnToProcessing()
+                    actions.setDiagnosticUserPaused(false)
+                    actions.setDiagnosticNowMs(now)
+                    if (stage == RecognitionSceneStage.ORB_RETURN) actions.onReturnToProcessing()
                 },
                 onNext = {
                     val now = SystemClock.uptimeMillis()
@@ -1812,132 +1770,390 @@ fun RecognitionResultScreen(
                     else {
                         val targetIndex = (stage.ordinal + 1).coerceAtMost(RecognitionSceneStage.entries.lastIndex)
                         playback.beginStepPreview(RecognitionSceneStage.entries[targetIndex], now)
-                        onDiagnosticDisplayModeChange(RecognitionProgressDisplayMode.STEP_DIAGNOSTIC)
+                        actions.onDiagnosticDisplayModeChange(RecognitionProgressDisplayMode.STEP_DIAGNOSTIC)
                     }
-                    diagnosticUserPaused = false
-                    diagnosticNowMs = now
+                    actions.setDiagnosticUserPaused(false)
+                    actions.setDiagnosticNowMs(now)
                 },
                 onPauseResume = {
                     val now = SystemClock.uptimeMillis()
                     if (playback.paused) {
-                        diagnosticUserPaused = false
+                        actions.setDiagnosticUserPaused(false)
                         playback.resume(reference, now)
                     } else {
-                        diagnosticUserPaused = true
+                        actions.setDiagnosticUserPaused(true)
                         playback.pause(reference, now)
                     }
-                    diagnosticNowMs = now
+                    actions.setDiagnosticNowMs(now)
                 },
                 onReplay = {
                     val now = SystemClock.uptimeMillis()
-                    diagnosticUserPaused = false
+                    actions.setDiagnosticUserPaused(false)
                     playback.restartCurrentStage(now)
-                    diagnosticNowMs = now
+                    actions.setDiagnosticNowMs(now)
                 },
                 onAutoPlay = {
                     val now = SystemClock.uptimeMillis()
                     playback.playDiagnosticAuto(reference, now)
-                    diagnosticNowMs = now
+                    actions.setDiagnosticNowMs(now)
                 },
             )
         }
     }
+}
 
-    if (selectorVisible) {
-        RecognitionSpeciesSelectorScreen(
-            species = selectorSpecies,
-            resolveCoverUrl = speciesCoverUrlFor,
-            selectedSpeciesId = selectedKey,
-            entryContext = selectorEntryContext,
-            onBack = {
-                pendingSaveDestination = null
-                selectorVisible = false
-            },
-            onSelect = { selected ->
-                selectedKey = selected.id
-                selectedName = selected.nameCn
-                selectorVisible = false
-            },
-            onUnconfirmed = { selectorVisible = false },
-        )
-    }
-    editField?.let { field ->
-        when (field) {
-            ResultEditableField.LENGTH -> ResultFieldEditorSheet(
-                title = "鱼获长度", label = "长度", unit = "cm", value = lengthText,
-                keyboardType = KeyboardType.Decimal, validation = { RecognitionResultInputValidation.length(it) },
-                onDismiss = { editField = null }, onSave = { lengthText = it; editField = null },
-            )
-            ResultEditableField.WEIGHT -> ResultFieldEditorSheet(
-                title = "鱼获重量", label = "重量", unit = "kg", value = weightText,
-                keyboardType = KeyboardType.Decimal, validation = { RecognitionResultInputValidation.weight(it) },
-                onDismiss = { editField = null }, onSave = { weightText = it; editField = null },
-            )
-            ResultEditableField.LOCATION -> ResultLocationPickerSheet(
-                value = locationText,
-                resolving = resolvingLocation,
-                currentLocationError = locationError,
-                onDismiss = { editField = null },
-                onUseCurrentLocation = { requestCurrentLocation() },
-                onSelectPlace = { place ->
-                    locationText = place.name.takeUnicodeCodePoints(40)
-                    locationError = null
-                    editField = null
-                },
-                onClearLocation = { locationText = ""; locationError = null; editField = null },
-                onClearCurrentLocationError = { locationError = null },
-            )
-        }
-    }
-    if (purposeVisible) {
-        AlertDialog(
-            onDismissRequest = { purposeVisible = false },
-            title = { Text("使用当前位置") },
-            text = { Text("只有当你主动选择“使用当前位置”时，渔见才会获取你的位置，用于为当前鱼获添加地点。拒绝不会影响识鱼和保存鱼获。") },
-            confirmButton = {
-                TextButton(onClick = {
-                    purposeVisible = false
-                    locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION))
-                }) { Text("继续", color = WaterTeal) }
-            },
-            dismissButton = { TextButton(onClick = { purposeVisible = false }) { Text("暂不使用") } },
-        )
-    }
+private data class RecognitionResultDecisionContentModel(
+    val uiState: RecognitionUiState,
+    val geometry: com.yujian.ai.ui.recognition.result.RecognitionResultGeometry,
+    val adaptiveProfile: com.yujian.ai.ui.adaptive.AdaptiveLayoutProfile,
+    val candidateFontScale: Float,
+    val revealFrameState: State<RecognitionRevealFrame>,
+    val resultInteractionsEnabled: Boolean,
+    val revealAlreadyPlayed: Boolean,
+    val revealHandoff: RecognitionRevealHandoff?,
+    val resultSceneIdentity: RecognitionSceneIdentity,
+    val prediction: RecognitionPrediction,
+    val resultSnapshot: RecognitionResultSnapshot?,
+    val glyphReadinessState: RecognitionGlyphReadiness,
+    val diagnosticPlaybackController: SceneMotionCoordinator?,
+    val selectedKey: String,
+    val selectedName: String,
+    val selectedScientificName: String?,
+    val resultInfoAlpha: Float,
+    val resultInfoTranslationY: Dp,
+    val resultInfoDrawPassSequence: AtomicLong,
+    val diagnosticFrame: RecognitionSceneFrame?,
+    val resultSceneHandoffAccepted: Boolean,
+    val resultGeometryReady: Boolean,
+    val resultInfoLayoutReady: Boolean,
+    val resultInfoEntranceProgress: Float,
+    val resultInfoProgressBucket: AtomicInteger,
+    val resultInfoRenderReceipt: RecognitionResultInfoRenderReceipt?,
+    val resultGeometryVersion: Long,
+    val resultInfoReceiptInFlight: AtomicBoolean,
+    val resultFrameHandler: Handler,
+    val recognitionEvidenceRecorder: RecognitionSessionEvidenceRecorder?,
+    val lengthText: String,
+    val weightText: String,
+    val locationText: String,
+    val resolvingLocation: Boolean,
+    val storyText: String,
+    val safeInlineErrorMessage: String?,
+    val inlineErrorActionLabel: String?,
+    val inlineErrorAction: (() -> Unit)?,
+    val saveBusy: Boolean,
+    val activeLoadingDestination: RecognitionSaveDestination?,
+    val compactResultActions: Boolean,
+    val candidates: List<RecognitionCandidate>,
+    val speciesImages: Map<String, String?>,
+)
 
-    if (discardConfirmationVisible) {
-        val exitingByRetake = pendingExitAction == PendingExitAction.RETAKE
-        AlertDialog(
-            modifier = Modifier.testTag("recognition-discard-confirmation"),
-            onDismissRequest = {
-                discardConfirmationVisible = false
-                pendingExitAction = null
-            },
-            title = { Text("放弃本次修改？") },
-            text = { Text("尚未保存的鱼种与鱼获信息会被清除。") },
-            confirmButton = {
-                TextButton(
-                    modifier = Modifier.testTag("recognition-discard-confirm"),
-                    onClick = {
-                        val action = pendingExitAction
-                        discardConfirmationVisible = false
-                        pendingExitAction = null
-                        if (action == PendingExitAction.RETAKE) onRetry() else onBack()
-                    },
-                ) { Text(if (exitingByRetake) "放弃并重新拍摄" else "放弃并返回拍摄") }
-            },
-            dismissButton = {
-                TextButton(
-                    modifier = Modifier.testTag("recognition-discard-continue-editing"),
-                    onClick = {
-                        discardConfirmationVisible = false
-                        pendingExitAction = null
-                    },
-                ) { Text("继续编辑") }
-            },
-        )
+private data class RecognitionResultDecisionContentActions(
+    val onTitleBounds: (RecognitionRevealWindowRect?) -> Unit,
+    val onGlyphReadinessChanged: (RecognitionGlyphReadiness) -> Unit,
+    val onSelectCandidate: (RecognitionCandidate) -> Unit,
+    val onStoryTextChange: (String) -> Unit,
+    val onFieldChange: (ResultEditableField) -> Unit,
+    val onInfoLayoutReady: (Boolean) -> Unit,
+    val onInfoRenderReceipt: (RecognitionResultInfoRenderReceipt) -> Unit,
+    val openSpeciesSelector: () -> Unit,
+    val save: (RecognitionSaveDestination) -> Unit,
+    val requestExit: (PendingExitAction) -> Unit,
+)
+
+@Composable
+private fun RecognitionResultDecisionContent(
+    model: RecognitionResultDecisionContentModel,
+    actions: RecognitionResultDecisionContentActions,
+) {
+    val sideMargin = model.geometry.horizontalMarginDp.dp
+    with(model) {
+                when (uiState) {
+                    RecognitionUiState.RESULT_HIGH -> {
+                        SpeciesIdentityRow(
+                            speciesName = selectedName,
+                            scientificName = selectedScientificName,
+                            sideMargin = sideMargin,
+                            widthDp = geometry.heroWidthDp,
+                            enabled = !saveBusy && resultInteractionsEnabled,
+                            revealFrameState = revealFrameState,
+                            holdNameUntilHandoff = !revealAlreadyPlayed &&
+                                (revealHandoff == null || revealHandoff.revealDecision !in setOf(
+                                    RecognitionRevealDecisionState.FISH_FOCUS_READY,
+                                    RecognitionRevealDecisionState.ORB_ONLY_READY,
+                                )),
+                            onTitleBounds = actions.onTitleBounds,
+                            glyphSceneIdentity = resultSceneIdentity,
+                            glyphSpeciesKey = prediction.top1.speciesKey,
+                            onGlyphPathReady = { descriptor ->
+                                val expectedName = resultSpeciesDisplayName(prediction.top1.speciesName)
+                                val speciesResultReady = resultSnapshot != null && resultSnapshot.key == revealHandoff?.key &&
+                                    resultSnapshot.resultDataReady &&
+                                    resultSnapshot.glyphSpeciesKey == prediction.top1.speciesKey &&
+                                    resultSnapshot.glyphSpeciesName == prediction.top1.speciesName
+                                val pathReady = speciesResultReady && descriptor?.matches(
+                                    resultSceneIdentity, prediction.top1.speciesKey, expectedName,
+                                ) == true
+                                val readiness = RecognitionGlyphReadiness(
+                                    speciesResultReady = speciesResultReady,
+                                    glyphPathReady = pathReady,
+                                    descriptor = descriptor.takeIf { pathReady },
+                                )
+                                actions.onGlyphReadinessChanged(readiness)
+                                diagnosticPlaybackController?.onGlyphPathReady(readiness, resultSceneIdentity)
+                            },
+                            onGlyphRevealRendered = { receipt ->
+                                val descriptor = glyphReadinessState.descriptor
+                                if (descriptor != null && receipt.identity == resultSceneIdentity &&
+                                    receipt.pathId == descriptor.pathId &&
+                                    receipt.geometryVersion == descriptor.geometryVersion
+                                ) {
+                                    val readiness = glyphReadinessState.copy(
+                                        glyphRevealRendered = true,
+                                        nameStable = false,
+                                        renderReceipt = receipt,
+                                    )
+                                    if (RecognitionGlyphReadinessContract.isRendered(
+                                            resultSceneIdentity, descriptor.speciesKey, descriptor.speciesName, readiness,
+                                        )
+                                    ) {
+                                        val accepted = diagnosticPlaybackController?.onGlyphRevealRendered(readiness, resultSceneIdentity)
+                                            ?: true
+                                        if (accepted) actions.onGlyphReadinessChanged(readiness)
+                                        accepted
+                                    } else false
+                                } else false
+                            },
+                            onChange = { actions.openSpeciesSelector() },
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Column(
+                            Modifier.fillMaxWidth()
+                                .graphicsLayer {
+                                    alpha = resultInfoAlpha
+                                    translationY = resultInfoTranslationY.toPx()
+                                }
+                                .drawWithContent {
+                                    drawContent()
+                                    val infoDrawSequence = resultInfoDrawPassSequence.incrementAndGet()
+                                    val frame = diagnosticFrame
+                                    if (frame?.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
+                                        resultSceneHandoffAccepted && resultGeometryReady && resultInfoLayoutReady
+                                    ) {
+                                        val progress = resultInfoEntranceProgress.coerceIn(0f, 1f)
+                                        val bucket = (progress * 10f).toInt().coerceIn(0, 10)
+                                        val lastBucket = resultInfoProgressBucket.get()
+                                        if (bucket > lastBucket && resultInfoProgressBucket.compareAndSet(lastBucket, bucket)) {
+                                            recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
+                                                checkpoint = "INFO_ENTRANCE_PROGRESS",
+                                                identity = resultSceneIdentity,
+                                                resultIdentity = prediction.top1.speciesKey,
+                                                stage = frame.stage,
+                                                stageProgress = frame.stageProgress,
+                                                entranceProgress = progress,
+                                                geometryVersion = resultGeometryVersion,
+                                                drawPassSequence = infoDrawSequence,
+                                                renderStatus = "CONTENT_DRAW_SUBMITTED",
+                                            )
+                                        }
+                                        if (progress >= .999f &&
+                                            resultInfoRenderReceipt?.geometryVersion != resultGeometryVersion &&
+                                            resultInfoReceiptInFlight.compareAndSet(false, true)
+                                        ) {
+                                            val receipt = RecognitionResultInfoRenderReceipt(
+                                                identity = resultSceneIdentity,
+                                                resultIdentity = prediction.top1.speciesKey,
+                                                geometryVersion = resultGeometryVersion,
+                                                renderedProgress = progress,
+                                                layoutWidthPx = size.width.toInt(),
+                                                layoutHeightPx = size.height.toInt(),
+                                                contentDrawn = true,
+                                                drawPassSequence = infoDrawSequence,
+                                            )
+                                            resultFrameHandler.post {
+                                                actions.onInfoRenderReceipt(receipt)
+                                                recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
+                                                    checkpoint = "INFO_RENDER_COMPLETED",
+                                                    identity = receipt.identity,
+                                                    resultIdentity = receipt.resultIdentity,
+                                                    stage = frame.stage,
+                                                    stageProgress = frame.stageProgress,
+                                                    entranceProgress = receipt.renderedProgress,
+                                                    geometryVersion = receipt.geometryVersion,
+                                                    drawPassSequence = receipt.drawPassSequence,
+                                                    renderStatus = "DRAW_RECEIPT_READY",
+                                                )
+                                                resultInfoReceiptInFlight.set(false)
+                                            }
+                                        }
+                                    }
+                                },
+                        ) {
+                        ResultMetadataStrip(
+                            length = lengthText,
+                            weight = weightText,
+                            location = locationText,
+                            resolvingLocation = resolvingLocation,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin)
+                                .onGloballyPositioned { coordinates ->
+                                    actions.onInfoLayoutReady(coordinates.size.width > 0 && coordinates.size.height > 0)
+                                },
+                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                            enabled = !saveBusy && resultInteractionsEnabled,
+                            onField = actions.onFieldChange,
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        ResultMemoryNote(
+                            value = storyText,
+                            onValueChange = actions.onStoryTextChange,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+                            enabled = !saveBusy && resultInteractionsEnabled,
+                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        ResultInlineError(
+                            safeInlineErrorMessage,
+                            sideMargin,
+                            actionLabel = inlineErrorActionLabel,
+                            onAction = inlineErrorAction,
+                            enabled = !saveBusy && resultInteractionsEnabled,
+                            modifier = Modifier,
+                        )
+                        ResultDualActions(
+                            useResultSurfaceActions = true,
+                            saving = saveBusy,
+                            loadingDestination = activeLoadingDestination,
+                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                            compactLayout = compactResultActions,
+                            sideMargin = if (compactResultActions) 16.dp else 24.dp,
+                            interactiveEnabled = resultInteractionsEnabled,
+                            modifier = Modifier,
+                            onContinue = { actions.save(RecognitionSaveDestination.MEMORY) },
+                            onSave = { actions.save(RecognitionSaveDestination.HOME) },
+                        )
+                        }
+                    }
+                    RecognitionUiState.RESULT_MEDIUM -> {
+                        ResultInformationGlass(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+                        ) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(
+                                    "帮我确认一下，这条鱼更像哪一种？",
+                                    color = DeepInk,
+                                    fontSize = 20.sp,
+                                    lineHeight = 28.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = if (adaptiveProfile.accessibilityFontScale || geometry.heroWidthDp <= 320) 2 else 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                CandidateRow(
+                                    candidates = candidates,
+                                    selectedKey = selectedKey,
+                                    widthDp = geometry.heroWidthDp,
+                                    accessibilityFontScale = candidateFontScale,
+                                    saving = saveBusy,
+                                    speciesImages = speciesImages,
+                                    onSelect = actions.onSelectCandidate,
+                                )
+                                YuJianTextAction(
+                                    text = "都不是？选择其他鱼种",
+                                    onClick = { actions.openSpeciesSelector() },
+                                    role = YuJianTextActionRole.MUTED,
+                                    enabled = !saveBusy,
+                                    showChevron = true,
+                                )
+                            }
+                        }
+                        if (selectedKey.isNotBlank()) {
+                            Spacer(Modifier.height(12.dp))
+                            SpeciesIdentityRow(
+                                speciesName = selectedName,
+                                sideMargin = sideMargin,
+                                widthDp = geometry.heroWidthDp,
+                                scientificName = selectedScientificName,
+                                enabled = !saveBusy,
+                                onChange = { actions.openSpeciesSelector() },
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth().padding(horizontal = sideMargin), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { actions.onFieldChange(it) }
+                            Spacer(Modifier.height(12.dp))
+                            ResultMemoryNote(storyText, actions.onStoryTextChange, Modifier.fillMaxWidth().padding(horizontal = sideMargin), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
+                            Spacer(Modifier.height(16.dp))
+                            ResultInlineError(
+                                safeInlineErrorMessage,
+                                sideMargin,
+                                actionLabel = inlineErrorActionLabel,
+                                onAction = inlineErrorAction,
+                                enabled = !saveBusy,
+                            )
+                            ResultDualActions(
+                                saving = saveBusy,
+                                loadingDestination = activeLoadingDestination,
+                                accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                                compactLayout = compactResultActions,
+                                sideMargin = if (compactResultActions) 16.dp else 24.dp,
+                                onContinue = { actions.save(RecognitionSaveDestination.MEMORY) },
+                                onSave = { actions.save(RecognitionSaveDestination.HOME) },
+                            )
+                        }
+                    }
+                    RecognitionUiState.RESULT_LOW -> {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Text("无法确认是什么鱼", color = DeepInk, fontSize = 26.sp, lineHeight = 34.sp, fontWeight = FontWeight.SemiBold)
+                            if (selectedKey.isBlank()) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(if (compactResultActions) 8.dp else 12.dp)) {
+                                    YuJianPrimaryButton(
+                                        text = "手动选择鱼种", onClick = { actions.openSpeciesSelector() },
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !saveBusy,
+                                        variant = YuJianActionButtonVariant.RESULT_SAVE,
+                                        leadingIcon = { Icon(Icons.Rounded.SetMeal, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
+                                        contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
+                                        leadingIconSpacing = 4.dp,
+                                    )
+                                    YuJianPrimaryButton(
+                                        text = "重新拍摄", onClick = { actions.requestExit(PendingExitAction.RETAKE) },
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !saveBusy,
+                                        variant = YuJianActionButtonVariant.RESULT_CONTINUE,
+                                        leadingIcon = { Icon(Icons.Rounded.PhotoCamera, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
+                                        contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
+                                        leadingIconSpacing = 4.dp,
+                                    )
+                                }
+                            } else {
+                                SpeciesIdentityRow(
+                                    speciesName = selectedName,
+                                    sideMargin = sideMargin,
+                                    widthDp = geometry.heroWidthDp,
+                                    scientificName = selectedScientificName,
+                                    enabled = !saveBusy,
+                                    onChange = { actions.openSpeciesSelector() },
+                                )
+                                ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { actions.onFieldChange(it) }
+                                ResultMemoryNote(storyText, actions.onStoryTextChange, Modifier.fillMaxWidth(), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
+                                ResultInlineError(
+                                    safeInlineErrorMessage,
+                                    0.dp,
+                                    actionLabel = inlineErrorActionLabel,
+                                    onAction = inlineErrorAction,
+                                    enabled = !saveBusy,
+                                )
+                                ResultDualActions(
+                                    saving = saveBusy, sideMargin = 0.dp,
+                                    loadingDestination = activeLoadingDestination,
+                                    accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                                    compactLayout = compactResultActions,
+                                    onContinue = { actions.save(RecognitionSaveDestination.MEMORY) },
+                                    onSave = { actions.save(RecognitionSaveDestination.HOME) },
+                                )
+                            }
+                        }
+                    }
+                    else -> Unit
+                }
     }
-
-
 }
 
 private enum class ResultEditableField { LENGTH, WEIGHT, LOCATION }
