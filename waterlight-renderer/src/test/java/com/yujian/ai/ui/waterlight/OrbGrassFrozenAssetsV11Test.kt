@@ -50,13 +50,13 @@ class OrbGrassFrozenAssetsV11Test {
     }
 
     @Test fun sourceAndAndroidRuntimeCoreArePinnedAndShaderUsesASafeTwoLayerCoreComposite() {
-        val runtime = moduleFile("app/src/main/res/drawable-nodpi/processing_water_core_v1.webp")
+        val runtime = moduleFile("recognition-ui/src/main/res/drawable-nodpi/processing_water_core_v1.webp")
         assertEquals("daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09", sha256(runtime))
         val mapping = File(moduleFile("app/src/main/assets/orb_r01b_v1_1"), "orb_grass_runtime_mapping_v1_1.json").readText()
         assertTrue(mapping.contains("2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee"))
         assertTrue(mapping.contains("daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09"))
 
-        val core = moduleFile("app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").readText()
+        val core = moduleFile("recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").readText()
         assertEquals(1, Regex("painterResource\\(R\\.drawable\\.processing_water_core_v1\\)").findAll(core).count())
         assertFalse("The old synthetic grass sheet would duplicate baked leaves", core.contains("WaterGrassField"))
         assertTrue(core.contains("val corePainter = painterResource(R.drawable.processing_water_core_v1)"))
@@ -129,8 +129,8 @@ class OrbGrassFrozenAssetsV11Test {
     }
 
     @Test fun debugAndReleaseResolveTheSameCandidateRenderer() {
-        val core = moduleFile("app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").readText()
-        val host = moduleFile("app/src/main/java/com/yujian/ai/ui/recognition/ProcessingWaterOrb.kt").readText()
+        val core = moduleFile("recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").readText()
+        val host = moduleFile("recognition-ui/src/main/java/com/yujian/ai/ui/recognition/ProcessingWaterOrb.kt").readText()
         assertTrue(core.contains("orbRendererMode: OrbFilamentRendererMode = OrbFilamentRendererMode.ORB_V1_CANDIDATE"))
         assertTrue(host.contains("rendererMode ?: OrbFilamentRendererMode.ORB_V1_CANDIDATE"))
         assertFalse(core.contains("BuildConfig.DEBUG"))

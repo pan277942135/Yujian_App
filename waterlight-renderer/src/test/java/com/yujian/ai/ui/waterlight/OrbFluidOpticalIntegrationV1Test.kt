@@ -90,7 +90,7 @@ class OrbFluidOpticalIntegrationV1Test {
 
     @Test fun debugEvidenceRequiresACommittedFrameAndLabelsInferenceSeparatelyFromPixels() {
         val root = moduleFile("")
-        val export = File(root, "app/src/main/java/com/yujian/ai/ui/recognition/OrbStage02VisualEvidenceExport.kt").readText()
+        val export = File(root, "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/OrbStage02VisualEvidenceExport.kt").readText()
         val trace = File(root, "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbStage02RenderTrace.kt").readText()
         assertTrue(export.contains("registerFrameCommitCallback"))
         assertTrue(export.contains("CAPTURE_FRAME_UNVERIFIED"))
