@@ -62,6 +62,7 @@ data class RecognitionFishPathSnapshot(
         fishPathId.isNotBlank() && returnPathId == fishPathId &&
         sourceCoordinateSpace == fishPathGeometry.coordinateSpace &&
         fishPathGeometry.isValid() && perimeterBranch.isValid() && orbReleasePath.isValid() &&
+        orbReleasePath.end == perimeterBranch.start &&
         returnPathSegments.size == 3 && returnPathSegments.all(WaterLightPathGeometry::isValid) &&
         returnPathSegments.all { it.coordinateSpace == sourceCoordinateSpace } &&
         returnPathSegments.zipWithNext().all { (a, b) -> a.end == b.start } &&

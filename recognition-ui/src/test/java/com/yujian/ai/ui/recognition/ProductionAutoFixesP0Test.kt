@@ -380,7 +380,7 @@ class ProductionAutoFixesP0Test {
         assertFalse(controller.resultVisualReady(600L))
 
         val orbRelease = WaterLightPathGeometryFactory.between(WaterLightPathPoint(10f, 10f), WaterLightPathPoint(50f, 50f), seed = 1)!!
-        val bridge = WaterLightPathGeometryFactory.between(WaterLightPathPoint(50f, 50f), WaterLightPathPoint(80f, 80f), seed = 2)!!
+        val perimeterBranch = WaterLightPathGeometryFactory.between(WaterLightPathPoint(50f, 50f), WaterLightPathPoint(80f, 80f), seed = 2)!!
         val fish = WaterLightPathGeometryFactory.between(WaterLightPathPoint(80f, 80f), WaterLightPathPoint(100f, 100f), seed = 3)!!
         val seg1 = WaterLightPathGeometryFactory.between(WaterLightPathPoint(100f, 100f), WaterLightPathPoint(80f, 80f), seed = 1)!!
         val seg2 = WaterLightPathGeometryFactory.between(WaterLightPathPoint(80f, 80f), WaterLightPathPoint(50f, 50f), seed = 2)!!
@@ -397,7 +397,7 @@ class ProductionAutoFixesP0Test {
             pStarNormalizedSource = pStar,
             fishPathId = expectedPathId,
             fishPathGeometry = fish,
-            perimeterBridge = bridge,
+            perimeterBranch = perimeterBranch,
             orbReleasePath = orbRelease,
             returnPathId = expectedPathId,
             returnPathSegments = listOf(seg1, seg2, seg3),
@@ -405,6 +405,17 @@ class ProductionAutoFixesP0Test {
             creationTimestampMonotonicMs = 600L,
             creationEventSequence = contourFrame.eventSequence,
         )
+        assertTrue(snapshot.isValid())
+        assertFalse(snapshot.copy(
+            perimeterBranch = WaterLightPathGeometryFactory.between(
+                WaterLightPathPoint(49f, 49f), WaterLightPathPoint(80f, 80f), seed = 4,
+            )!!,
+            returnPathSegments = listOf(
+                seg1,
+                WaterLightPathGeometryFactory.between(WaterLightPathPoint(80f, 80f), WaterLightPathPoint(49f, 49f), seed = 5)!!,
+                WaterLightPathGeometryFactory.between(WaterLightPathPoint(49f, 49f), WaterLightPathPoint(10f, 10f), seed = 6)!!,
+            ),
+        ).isValid())
         assertTrue(controller.onFishPathSnapshot(snapshot, identity))
         assertTrue(controller.fishPathSnapshotReady())
         assertTrue(controller.resultVisualReady(600L))
