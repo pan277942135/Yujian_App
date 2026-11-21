@@ -30,15 +30,15 @@ capture_motion = load("design/system/components/primary_capture_button/motion_co
 capture_haptic = load("design/system/components/primary_capture_button/haptic_contract.json")
 backgrounds = load("design/system/backgrounds/morning_lake_v1/treatment_contract.json")
 
-spacing_source = read("app/src/main/java/com/yujian/ai/ui/designsystem/spacing/YuJianSpacing.kt")
-button_source = read("app/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianPrimaryButton.kt")
-icon_source = read("app/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianIconAction.kt")
-text_source = read("app/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianTextAction.kt")
-capture_source = read("app/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianCaptureButton.kt")
-glass_source = read("app/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianGlassCard.kt")
-motion_source = read("app/src/main/java/com/yujian/ai/ui/designsystem/motion/YuJianMotion.kt")
-background_source = read("app/src/main/java/com/yujian/ai/ui/designsystem/background/YuJianMorningLakeBackground.kt")
-result_source = read("app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt")
+spacing_source = read("recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/spacing/YuJianSpacing.kt")
+button_source = read("recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianPrimaryButton.kt")
+icon_source = read("recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianIconAction.kt")
+text_source = read("recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianTextAction.kt")
+capture_source = read("recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianCaptureButton.kt")
+glass_source = read("recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianGlassCard.kt")
+motion_source = read("recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/motion/YuJianMotion.kt")
+background_source = read("recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/background/YuJianMorningLakeBackground.kt")
+result_source = read("recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt")
 guide_source = read("app/src/main/java/com/yujian/ai/ui/fishguide/FishGuideBackground.kt")
 my_catches_source = read("app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt")
 runtime_test = read("app/src/androidTest/java/com/yujian/ai/ui/designsystem/DesignSystemComponentPreviewTest.kt")
@@ -75,8 +75,9 @@ require(backgrounds["variants"]["BG_CONTENT"]["mist_white_veil_alpha"] == 0.15,
         "BG_CONTENT frozen veil")
 require(backgrounds["variants"]["BG_DATA"]["mist_white_veil_alpha"] == 0.3,
         "BG_DATA frozen veil")
-require("BgContentColorMatrix" in background_source and "BgDataColorMatrix" in background_source,
-        "both frozen background matrices share one implementation")
+require("LakeGlassBackgroundHost(" in background_source and
+        "YuJianMorningLakeBackground(" in background_source,
+        "content/data page backgrounds share the LakeGlass host")
 require("ColorMatrix" not in result_source and "ColorMatrix" not in guide_source and "ColorMatrix" not in my_catches_source,
         "page backgrounds no longer duplicate color matrices")
 require("Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE)" in motion_source,

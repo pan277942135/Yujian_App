@@ -1,8 +1,8 @@
 package com.yujian.ai.ui.identify
 
-internal data class RecognitionGuideReferencePoint(val x: Float, val y: Float)
+data class RecognitionGuideReferencePoint(val x: Float, val y: Float)
 
-internal data class RecognitionGuideReferenceMapping(
+data class RecognitionGuideReferenceMapping(
     val referenceWidthPx: Int,
     val referenceHeightPx: Int,
     val runtimeWidthPx: Int,
@@ -19,7 +19,7 @@ internal data class RecognitionGuideReferenceMapping(
 }
 
 /** Maps frozen-page coordinates to a runtime viewport without independent X/Y scaling. */
-internal fun mapRecognitionGuideReferenceSpace(
+fun mapRecognitionGuideReferenceSpace(
     page: RecognitionFirstCaptureGuidePage,
     runtimeWidthPx: Int,
     runtimeHeightPx: Int,

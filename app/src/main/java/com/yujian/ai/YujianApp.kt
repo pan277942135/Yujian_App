@@ -111,6 +111,7 @@ import com.yujian.ai.ui.identify.resolveRecognitionResultState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealSessionStore
+import com.yujian.ai.ui.recognition.reveal.matches
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGate
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffConsumer
@@ -136,6 +137,7 @@ import com.yujian.ai.ui.theme.WarmBackground
 import com.yujian.ai.ui.theme.WaterTeal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -542,6 +544,42 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
         )
     }
 
+    /** Re-run the frozen Reveal Decision after any late Subject, Photo, or Path join callback. */
+    fun retryReadyRecognitionHandoff(attemptId: String): Boolean {
+        if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return false
+        val sessionId = recognitionSessionId ?: return false
+        val key = RecognitionRevealKey(sessionId, attemptId)
+        val saved = revealSessionStore.snapshot?.takeIf { it.matches(key) } ?: return false
+        val result = saved.productionResult?.takeIf { it.ready } ?: return false
+        val handoff = completeRecognitionAttempt(result, attemptId) ?: return false
+        if (!RecognitionRevealDecisionGate.isNavigable(
+                handoff.revealDecision ?: RecognitionRevealDecisionState.WAITING_BOTH,
+            )
+        ) return false
+        if (!revealSessionStore.requestResultNavigation(key, SystemClock.uptimeMillis())) return false
+        runCatching { nav.navigate("result") { popUpTo("recognizing") { inclusive = true } } }
+            .onFailure {
+                revealSessionStore.markNavigationFailed(key, SystemClock.uptimeMillis())
+                Log.e("RecognitionRevealHandoff", "RESULT_NAVIGATION_FAILED attempt=$attemptId", it)
+                return false
+            }
+        return true
+    }
+
+    fun schedulePStarDeadlineRetry(attemptId: String) {
+        val sessionId = recognitionSessionId ?: return
+        val key = RecognitionRevealKey(sessionId, attemptId)
+        val initial = revealSessionStore.snapshot?.takeIf { it.matches(key) } ?: return
+        val remainingMs = (RecognitionAttemptDeadline.DEFAULT_TIMEOUT_MS -
+            (SystemClock.uptimeMillis() - initial.attemptStartedUptimeMs)).coerceAtLeast(0L)
+        scope.launch {
+            if (remainingMs > 0L) delay(remainingMs)
+            if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return@launch
+            revealSessionStore.expirePendingPathBinding(key, SystemClock.uptimeMillis())
+            retryReadyRecognitionHandoff(attemptId)
+        }
+    }
+
     fun deliverRecognitionAttempt(result: ProductionRecognitionResult, attemptId: String) {
         if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return
         recognitionDiagnostics.event("PIPELINE_TERMINAL", "PIPELINE", if (result.ready) "PASS" else "FAIL",
@@ -559,6 +597,9 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                     "NAVIGATION_BLOCKED session=$recognitionSessionId attempt=$attemptId " +
                         "decision=${revealSessionStore.snapshot?.revealDecision}",
                 )
+                if (revealSessionStore.snapshot?.revealDecision == RecognitionRevealDecisionState.WAITING_PSTAR_PATH) {
+                    schedulePStarDeadlineRetry(attemptId)
+                }
                 return
             }
             val key = handoff.key
@@ -1029,11 +1070,14 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                             subjectAttemptRunner.request(
                                 selected, box, confidence, sessionId, activeAttempt,
                                 requireNotNull(recognitionAttemptDeadline),
+                                acceptanceInScreen = true,
                             ) { resolved, geometry ->
-                                if (activeRecognitionAttemptId == activeAttempt && sessionImage?.imageId == selected.imageId &&
+                                if (resolved.status != SubjectStatus.READY &&
+                                    activeRecognitionAttemptId == activeAttempt && sessionImage?.imageId == selected.imageId &&
                                     sessionImage?.photoSha256 == selected.photoSha256) {
                                     subjectResult = resolved
                                     revealSessionStore.updateSubject(RecognitionRevealKey(sessionId, activeAttempt), resolved, geometry)
+                                    scope.launch { retryReadyRecognitionHandoff(activeAttempt) }
                                 }
                             }.await()
                         },
@@ -1050,12 +1094,14 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                     resolvedSubject,
                                     geometry,
                                 )
+                                scope.launch { retryReadyRecognitionHandoff(attemptId) }
                             }
                         },
                         onProcessingPhotoSnapshot = { photo ->
                             val sessionId = recognitionSessionId
                             if (sessionId != null && attemptId != null && activeRecognitionAttemptId == attemptId) {
                                 revealSessionStore.updateProcessingPhoto(RecognitionRevealKey(sessionId, attemptId), photo)
+                                scope.launch { retryReadyRecognitionHandoff(attemptId) }
                             }
                         },
                         onFishPathSnapshot = { pathSnapshot ->
@@ -1074,6 +1120,7 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                         "mask=${pathSnapshot.maskSha256.take(16)} mask_version=${pathSnapshot.maskVersion} " +
                                         "geometry_version=${pathSnapshot.geometryVersion} accepted=$accepted",
                                 )
+                                scope.launch { retryReadyRecognitionHandoff(attemptId) }
                             }
                         },
                         recognitionSessionId = recognitionSessionId,

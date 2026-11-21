@@ -56,10 +56,10 @@ def main() -> None:
     avatar_contract = json.loads(avatar_contract_path.read_text(encoding="utf-8"))
     gemini_contract_path = ROOT / "design/pages/home/normal_home/engineering/Gemini_Native_Implementation_Contract_V3.md"
     gemini_contract = gemini_contract_path.read_text(encoding="utf-8")
-    remote_image = (ROOT / "app/src/main/java/com/yujian/ai/ui/components/RemoteImage.kt").read_text(encoding="utf-8")
+    remote_image = (ROOT / "recognition-ui/src/main/java/com/yujian/ai/ui/components/RemoteImage.kt").read_text(encoding="utf-8")
     camera_button = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeCameraButton.kt").read_text(encoding="utf-8")
     policy_text = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text(encoding="utf-8")
-    orb_core = (ROOT / "app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text(encoding="utf-8")
+    orb_core = (ROOT / "recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text(encoding="utf-8")
     gemini_loader = runtime.split("private fun loadGeminiNormalHomeRuntimeAssets", 1)[-1].split("\n@Composable", 1)[0]
 
     checks: list[tuple[str, bool, str]] = []

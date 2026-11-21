@@ -10,8 +10,8 @@ import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCaptureVisualAssets
 /** Runs against the exact installed APK, so a valid filename cannot mask corrupt bytes. */
 class CapturePresentationAssetRuntimeTest {
     @Test fun homeIdleAndHandoffBindTheGlassWaterRing() {
-        assertEquals(R.drawable.ai_orb_camera_activated_v1, AIOrbCaptureVisualAssets.HOME_IDLE)
-        assertNotEquals(R.drawable.capture_button_main_v1, AIOrbCaptureVisualAssets.HOME_IDLE)
+        assertEquals(RecognitionUiR.drawable.ai_orb_camera_activated_v1, AIOrbCaptureVisualAssets.HOME_IDLE)
+        assertNotEquals(RecognitionUiR.drawable.capture_button_main_v1, AIOrbCaptureVisualAssets.HOME_IDLE)
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val bitmap = BitmapFactory.decodeResource(context.resources, AIOrbCaptureVisualAssets.HOME_IDLE)
         requireNotNull(bitmap)
@@ -21,19 +21,19 @@ class CapturePresentationAssetRuntimeTest {
 
     @Test fun androidDecodesCaptureAndProcessingResourcesFromInstalledApk() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val canonical = BitmapFactory.decodeResource(context.resources, R.drawable.capture_button_main_v1)
+        val canonical = BitmapFactory.decodeResource(context.resources, RecognitionUiR.drawable.capture_button_main_v1)
         requireNotNull(canonical)
         assertEquals(208, canonical.width)
         assertEquals(208, canonical.height)
-        val activated = BitmapFactory.decodeResource(context.resources, R.drawable.ai_orb_camera_activated_v1)
+        val activated = BitmapFactory.decodeResource(context.resources, RecognitionUiR.drawable.ai_orb_camera_activated_v1)
         requireNotNull(activated)
         assertEquals(384, activated.width)
         assertEquals(384, activated.height)
         val assets = listOf(
-            Triple(R.drawable.capture_button_main_v1, true, 192),
-            Triple(R.drawable.ai_orb_camera_activated_v1, true, 256),
+            Triple(RecognitionUiR.drawable.capture_button_main_v1, true, 192),
+            Triple(RecognitionUiR.drawable.ai_orb_camera_activated_v1, true, 256),
             Triple(R.drawable.camera_mint_background_v2, false, 256),
-            Triple(R.drawable.processing_water_core_v1, true, 256),
+            Triple(RecognitionUiR.drawable.processing_water_core_v1, true, 256),
             Triple(R.drawable.processing_mint_background_v1, false, 256),
         )
         for ((id, alpha, minDimension) in assets) {

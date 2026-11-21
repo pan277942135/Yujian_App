@@ -13,7 +13,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 DESIGN = ROOT / "design/system/components/ai_orb_core"
-OUTPUT = ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbRuntimeProfileV1.kt"
+OUTPUT = ROOT / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbRuntimeProfileV1.kt"
 TEMPLATE = (ROOT / "scripts/android_runtime/OrbRuntimeProfileV1.kt.in").read_text(encoding="utf-8")
 
 
@@ -103,7 +103,7 @@ def generate() -> str:
     r05, sha05 = read_json("profiles/R05_orb_caustics_profile.json")
     r06, sha06 = read_json("profiles/R06_orb_filament_profile.json")
     geometry, sha_geometry = read_json("assets/paths/R06_orb_filament_path_geometry.json")
-    core_path = ROOT / "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp"
+    core_path = ROOT / "recognition-ui/src/main/res/drawable-nodpi/processing_water_core_v1.webp"
     core_sha = hashlib.sha256(core_path.read_bytes()).hexdigest()
 
     if r04.get("life_states") != ["S1_IDLE", "S2_ACTIVE"]:

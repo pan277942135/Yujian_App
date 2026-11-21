@@ -1,0 +1,286 @@
+package com.yujian.ai.ui.recognition.reveal
+
+import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.ai.ProductionRecognitionResult
+import com.yujian.ai.ai.subject.FishSubjectQuality
+import com.yujian.ai.ai.subject.SubjectStatus
+import com.yujian.ai.model.SelectedImage
+import com.yujian.ai.ui.identify.DisplayPoint
+import com.yujian.ai.ui.identify.NormalizedSourceRect
+import com.yujian.ai.ui.identify.RecognitionImageTransform
+import com.yujian.ai.ui.recognition.RecognitionContourSegment
+import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
+import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
+
+data class RecognitionRevealKey(
+    val recognitionSessionId: String,
+    val recognitionAttemptId: String,
+)
+
+data class RecognitionRevealWindowRect(
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float,
+) {
+    val width: Float get() = right - left
+    val height: Float get() = bottom - top
+    val center: DisplayPoint get() = DisplayPoint((left + right) / 2f, (top + bottom) / 2f)
+
+    fun isValid(): Boolean = listOf(left, top, right, bottom).all(Float::isFinite) &&
+        width > 1f && height > 1f
+}
+
+enum class RecognitionGeometryTrustState {
+    TRUSTED_MASK,
+    TRUSTED_BBOX_ONLY,
+    UNTRUSTED,
+    MISSING,
+}
+
+enum class RecognitionRevealEligibility {
+    FULL_REVEAL,
+    TITLE_FADE_ONLY,
+    PHOTO_ONLY,
+    STATIC_RESULT,
+}
+
+/**
+ * Geometry copied from the Processing attempt. The contour is normalized to
+ * the segmentation ROI; subjectBox maps that ROI back to the EXIF-normalized
+ * source bitmap. No Bitmap is carried in this handoff object.
+ */
+data class RecognitionSubjectGeometrySnapshot(
+    val imageId: String,
+    val recognitionSessionId: String = "",
+    val recognitionAttemptId: String = "",
+    val photoSha256: String = "",
+    val sourceWidthPx: Int,
+    val sourceHeightPx: Int,
+    val detectorBox: NormalizedFishBox,
+    val detectorConfidence: Float,
+    val subjectBox: NormalizedSourceRect,
+    val contour: List<RecognitionContourSegment>,
+    val quality: FishSubjectQuality?,
+    val maskSize: Int,
+    val expectedMaskSize: Int,
+    val contourSourceSpace: String = "SEGMENTATION_ROI_NORMALIZED",
+    /** SlimSAM bitmap generation identity retained with the normalized contour. */
+    val maskVersion: Long = 0L,
+    /** SHA-256 of the exact cleaned transparent PNG from which this contour was derived. */
+    val maskSha256: String = "",
+)
+
+data class RecognitionProcessingPhotoSnapshot(
+    val imageId: String,
+    val viewportBoundsInWindow: RecognitionRevealWindowRect,
+    val sourceToViewport: RecognitionImageTransform,
+    val photoBoundsInWindow: RecognitionRevealWindowRect? = null,
+    val cornerRadiusPx: Float = 0f,
+    /** Original Processing Orb center in window coordinates; retained for shared-stage energy return. */
+    val processingOrbCenterInWindow: DisplayPoint? = null,
+    /** Core diameter measured from the same Processing Orb instance, in physical pixels. */
+    val processingOrbCoreDiameterPx: Float = 0f,
+    /** Frozen P-star from the same trusted Mask used by Stage 05-10. */
+    val contactPointNormalizedSource: DisplayPoint? = null,
+    val contactPointMaskSha256: String = "",
+    val contactPointMaskVersion: Long = -1L,
+    val contactPointGeometryVersion: Long = 0L,
+)
+
+data class RecognitionRevealHandoff(
+    val key: RecognitionRevealKey,
+    val imageId: String,
+    val photoSourceIdentity: String,
+    val normalizedSourceWidth: Int,
+    val normalizedSourceHeight: Int,
+    /** Rotation already applied by RecognitionImageStore; detector coordinates use this bitmap. */
+    val sourceOrientationDegreesApplied: Int,
+    val trustedDetectorBBox: NormalizedSourceRect?,
+    val detectorConfidence: Float?,
+    val subjectMaskOrContour: List<RecognitionContourSegment>,
+    val subjectRoiInSource: NormalizedSourceRect?,
+    val subjectAnchorNormalizedSource: DisplayPoint?,
+    val contourSourceSpace: String,
+    /** Present only when the trusted contour is bound to an emitted SlimSAM mask file. */
+    val maskSha256: String = "",
+    val geometryTrustState: RecognitionGeometryTrustState,
+    val processingPhotoViewportBounds: RecognitionRevealWindowRect?,
+    val processingPhotoTransform: RecognitionImageTransform?,
+    val processingSubjectAnchor: DisplayPoint?,
+    val resultIdentity: String?,
+    val eligibility: RecognitionRevealEligibility,
+    val handoffTimestampUptimeMs: Long,
+    val processingPhotoClipBoundsInWindow: RecognitionRevealWindowRect? = null,
+    val processingPhotoCornerRadiusPx: Float = 0f,
+    val processingOrbCenterInWindow: DisplayPoint? = null,
+    val processingOrbCoreDiameterPx: Float = 0f,
+    /** Final Classifier × SlimSAM decision captured before production Result navigation. */
+    val revealDecision: RecognitionRevealDecisionState? = null,
+    val maskVersion: Long = 0L,
+    val contactPointGeometryVersion: Long = 0L,
+    /** Exact path ledger snapshot emitted by Processing; Result must consume it unchanged. */
+    val fishPathSnapshot: RecognitionFishPathSnapshot? = null,
+    val captureTimestampEpochMs: Long = 0L,
+    val captureTimestampSource: String = "UNKNOWN",
+    val photoContentVersion: Long = 0L,
+)
+
+object RecognitionRevealHandoffFactory {
+    fun create(
+        recognitionSessionId: String,
+        recognitionAttemptId: String,
+        image: SelectedImage,
+        result: ProductionRecognitionResult,
+        subject: RecognitionSubjectGeometrySnapshot?,
+        processingPhoto: RecognitionProcessingPhotoSnapshot?,
+        highConfidenceResult: Boolean,
+        handoffTimestampUptimeMs: Long,
+        subjectStatus: SubjectStatus = if (subject == null) SubjectStatus.FAILED else SubjectStatus.READY,
+        fishPathSnapshot: RecognitionFishPathSnapshot? = null,
+        pStarPathTerminalUnavailable: Boolean = false,
+        frozenRevealDecision: RecognitionRevealDecisionState? = null,
+    ): RecognitionRevealHandoff {
+        val key = RecognitionRevealKey(recognitionSessionId, recognitionAttemptId)
+        val primary = result.assessment.primary
+        val rawBox = primary?.box?.takeIf(RecognitionRevealPolicy::isValidBox)
+        val bbox = rawBox?.toNormalizedRect()
+        val confidence = primary?.confidence?.takeIf { it.isFinite() && it in 0f..1f }
+        val geometryTrust = RecognitionRevealPolicy.geometryTrust(
+            detectorBox = primary?.box,
+            subject = subject,
+            imageId = image.imageId,
+            sourceWidthPx = image.bitmap.width,
+            sourceHeightPx = image.bitmap.height,
+            detectorConfidence = confidence,
+            recognitionSessionId = recognitionSessionId,
+            recognitionAttemptId = recognitionAttemptId,
+            photoSha256 = image.photoSha256,
+        )
+        val maskTrusted = geometryTrust == RecognitionGeometryTrustState.TRUSTED_MASK
+        val photo = processingPhoto?.takeIf {
+            it.imageId == image.imageId &&
+                it.viewportBoundsInWindow.isValid() &&
+                it.sourceToViewport.sourceWidthPx == image.bitmap.width &&
+                it.sourceToViewport.sourceHeightPx == image.bitmap.height
+        }
+        val photoClip = photo?.photoBoundsInWindow?.takeIf(RecognitionRevealWindowRect::isValid)
+        val photoCornerRadius = photo?.cornerRadiusPx?.takeIf { it.isFinite() && it >= 0f } ?: 0f
+        val orbAnchor = photo?.processingOrbCenterInWindow?.takeIf { point ->
+            point.x.isFinite() && point.y.isFinite() &&
+                point.x in photo.viewportBoundsInWindow.left..photo.viewportBoundsInWindow.right &&
+                point.y in photo.viewportBoundsInWindow.top..photo.viewportBoundsInWindow.bottom
+        }
+        val anchorSource = if (maskTrusted && photo != null) {
+            val trustedSubject = requireNotNull(subject)
+            photo.contactPointNormalizedSource?.takeIf { point ->
+                point.x.isFinite() && point.y.isFinite() &&
+                    point.x in 0f..1f && point.y in 0f..1f &&
+                    photo.contactPointMaskSha256 == trustedSubject.maskSha256 &&
+                    photo.contactPointMaskVersion == trustedSubject.maskVersion &&
+                photo.contactPointGeometryVersion > 0L
+            }
+        } else {
+            null
+        }
+        val anchor = if (photo != null && anchorSource != null) {
+            val mapped = photo.sourceToViewport.mapNormalized(anchorSource.x, anchorSource.y)
+            DisplayPoint(
+                x = photo.viewportBoundsInWindow.left + mapped.x,
+                y = photo.viewportBoundsInWindow.top + mapped.y,
+            ).takeIf { point ->
+                point.x.isFinite() && point.y.isFinite() &&
+                    point.x in photo.viewportBoundsInWindow.left..photo.viewportBoundsInWindow.right &&
+                    point.y in photo.viewportBoundsInWindow.top..photo.viewportBoundsInWindow.bottom
+            }
+        } else {
+            null
+        }
+        val resultIdentity = result.prediction?.top1?.speciesKey?.takeIf(String::isNotBlank)
+        val identityValid = resultIdentity != null &&
+            result.prediction?.top1?.speciesName?.isNotBlank() == true
+        val contour = if (maskTrusted) subject?.contour?.toList().orEmpty() else emptyList()
+        val subjectBox = if (maskTrusted) subject?.subjectBox else null
+        val validFishPathSnapshot = fishPathSnapshot?.takeIf { snapshot ->
+            maskTrusted && snapshot.isValid() &&
+                snapshot.sessionId == recognitionSessionId && snapshot.attemptId == recognitionAttemptId &&
+                snapshot.imageId == image.imageId && snapshot.photoSha256 == image.photoSha256 &&
+                snapshot.photoContentVersion == image.bitmap.generationId.toLong().coerceAtLeast(0L) &&
+                snapshot.maskSha256 == subject?.maskSha256 && snapshot.maskVersion == subject?.maskVersion &&
+                snapshot.geometryVersion > 0L && snapshot.geometryVersion == photo?.contactPointGeometryVersion &&
+                snapshot.fishPathGeometry.end == photo?.sourceToViewport?.mapNormalized(
+                    snapshot.pStarNormalizedSource.x,
+                    snapshot.pStarNormalizedSource.y,
+                )?.let {
+                    com.yujian.ai.ui.waterlight.core.WaterLightPathPoint(it.x, it.y)
+                } &&
+                snapshot.pStarNormalizedSource == photo?.contactPointNormalizedSource?.let {
+                    com.yujian.ai.ui.waterlight.core.WaterLightPathPoint(it.x, it.y)
+                }
+        }
+        val contourClosed = maskTrusted && subject?.contour?.lastOrNull()?.closesContour == true
+        val computedDecision = RecognitionRevealDecisionGate.decide(
+            classifier = if (result.ready) RecognitionClassifierTaskState.READY else RecognitionClassifierTaskState.FAILED,
+            subject = subjectStatus,
+            maskTrusted = maskTrusted,
+            contourValid = subject?.contour?.isNotEmpty() == true,
+            identityCurrent = recognitionSessionId.isNotBlank() && recognitionAttemptId.isNotBlank() &&
+                image.imageId.isNotBlank() && image.photoSha256.isNotBlank(),
+            contourClosed = contourClosed,
+            pStarPathReady = validFishPathSnapshot != null,
+            pStarPathTerminalUnavailable = pStarPathTerminalUnavailable,
+            highConfidenceResult = highConfidenceResult,
+        )
+        val decision = if (frozenRevealDecision == RecognitionRevealDecisionState.FISH_FOCUS_READY &&
+            validFishPathSnapshot == null
+        ) RecognitionRevealDecisionState.WAITING_PSTAR_PATH else frozenRevealDecision ?: computedDecision
+        val eligibility = RecognitionRevealPolicy.eligibility(
+            resultReady = result.ready,
+            identityValid = identityValid,
+            highConfidenceResult = highConfidenceResult,
+            geometryTrust = geometryTrust,
+            processingPhotoValid = photo != null,
+            anchorValid = anchor != null && orbAnchor != null,
+            contourClosed = contourClosed,
+            pStarPathValid = validFishPathSnapshot != null,
+        )
+
+        return RecognitionRevealHandoff(
+            key = key,
+            imageId = image.imageId,
+            photoSourceIdentity = "${image.imageId}|${image.source}|${image.bitmap.width}x${image.bitmap.height}|sha256=${image.photoSha256}",
+            normalizedSourceWidth = image.bitmap.width,
+            normalizedSourceHeight = image.bitmap.height,
+            sourceOrientationDegreesApplied = image.sourceOrientationDegrees,
+            trustedDetectorBBox = bbox,
+            detectorConfidence = confidence,
+            subjectMaskOrContour = contour,
+            subjectRoiInSource = subjectBox,
+            subjectAnchorNormalizedSource = anchorSource,
+            contourSourceSpace = if (maskTrusted) requireNotNull(subject).contourSourceSpace else "UNAVAILABLE",
+            geometryTrustState = geometryTrust,
+            processingPhotoViewportBounds = photo?.viewportBoundsInWindow,
+            processingPhotoTransform = photo?.sourceToViewport,
+            processingSubjectAnchor = anchor,
+            resultIdentity = resultIdentity,
+            eligibility = eligibility,
+            handoffTimestampUptimeMs = handoffTimestampUptimeMs,
+            processingPhotoClipBoundsInWindow = photoClip,
+            processingPhotoCornerRadiusPx = photoCornerRadius,
+            processingOrbCenterInWindow = orbAnchor,
+            processingOrbCoreDiameterPx = photo?.processingOrbCoreDiameterPx
+                ?.takeIf { it.isFinite() && it > 1f } ?: 0f,
+            revealDecision = decision,
+            maskVersion = if (maskTrusted) subject?.maskVersion ?: 0L else 0L,
+            maskSha256 = if (maskTrusted) subject?.maskSha256.orEmpty() else "",
+            contactPointGeometryVersion = photo?.contactPointGeometryVersion ?: 0L,
+            fishPathSnapshot = validFishPathSnapshot,
+            captureTimestampEpochMs = image.captureTimestampEpochMs,
+            captureTimestampSource = image.captureTimestampSource,
+            photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),
+        )
+    }
+
+    private fun NormalizedFishBox.toNormalizedRect() = NormalizedSourceRect(x1, y1, x2, y2)
+
+}
