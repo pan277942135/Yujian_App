@@ -62,7 +62,7 @@ import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ResultLocationPickerSheet(
+fun ResultLocationPickerSheet(
     value: String,
     resolving: Boolean,
     currentLocationError: String?,

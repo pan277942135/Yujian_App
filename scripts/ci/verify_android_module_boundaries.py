@@ -42,7 +42,10 @@ REQUIRED_OWNERS = {
     "recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt": "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
     "recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultComponents.kt": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultComponents.kt",
     "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
-    "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt": "recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt",
+    "recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt": "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt",
+    "recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionLocationPicker.kt": "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionLocationPicker.kt",
+    "recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionSpeciesSelectorScreen.kt": "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionSpeciesSelectorScreen.kt",
+    "recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultHandoffMilestoneEffects.kt": "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionResultHandoffMilestoneEffects.kt",
     "recognition-ui/src/main/java/com/yujian/ai/ui/screens/BgContentSurface.kt": "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/BgContentSurface.kt",
 }
 
@@ -102,7 +105,7 @@ for owner, retired in REQUIRED_OWNERS.items():
     require(not (ROOT / retired).exists(), f"moved production source remains in App: {retired}")
 
 require(not (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt").exists(),
-        "RecognitionIssueScreen must remain owned by :recognition-result-ui")
+        "result auxiliary screens and milestone effects must remain owned by :recognition-result-components")
 app_asset_contract_test = ROOT / "app/src/test/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassRuntimeContractTest.kt"
 module_asset_contract_test = ROOT / "recognition-ui/src/test/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassRuntimeContractTest.kt"
 require(app_asset_contract_test.is_file() and not module_asset_contract_test.exists(),

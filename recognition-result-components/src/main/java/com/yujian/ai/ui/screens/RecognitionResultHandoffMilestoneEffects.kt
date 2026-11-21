@@ -18,7 +18,7 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 
-internal data class RecognitionResultHandoffMilestoneState(
+data class RecognitionResultHandoffMilestoneState(
     val handoffKey: RecognitionRevealKey?,
     val frame: RecognitionSceneFrame?,
     val resultSnapshot: RecognitionResultSnapshot?,
@@ -46,7 +46,7 @@ internal data class RecognitionResultHandoffMilestoneState(
 }
 
 @Composable
-internal fun RecognitionResultHandoffMilestoneEffects(
+fun RecognitionResultHandoffMilestoneEffects(
     state: RecognitionResultHandoffMilestoneState,
     diagnosticPlaybackController: SceneMotionCoordinator?,
     evidenceRecorder: RecognitionSessionEvidenceRecorder?,
