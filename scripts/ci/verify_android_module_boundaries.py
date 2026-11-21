@@ -203,4 +203,9 @@ guide_page_is_public = re.search(r"^public enum class RecognitionFirstCaptureGui
 require(mapping_is_internal or guide_page_is_public,
         "public guide mapping must not expose internal RecognitionFirstCaptureGuidePage")
 
+failure_test_app = ROOT / "app/src/test/java/com/yujian/ai/ui/screens/RecognitionFailurePresentationTest.kt"
+failure_test_owner = ROOT / "recognition-ui/src/test/java/com/yujian/ai/ui/screens/RecognitionFailurePresentationTest.kt"
+require(failure_test_owner.is_file() and not failure_test_app.exists(),
+        "RecognitionFailurePresentationTest must stay with the :recognition-ui implementation")
+
 print(f"PASS: module graph is acyclic; {len(MODULES)} module boundaries, {len(MOVED_RESOURCES)} unchanged resources, {len(fqns)} production types verified")
