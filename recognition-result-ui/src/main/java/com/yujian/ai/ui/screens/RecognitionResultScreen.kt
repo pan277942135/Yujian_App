@@ -63,6 +63,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawWithContent
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.FishInputStatus
+import com.yujian.ai.ai.recognitionRequiresDiscardConfirmation
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectModelState
 import com.yujian.ai.ai.subject.SubjectStatus
