@@ -21,6 +21,7 @@ dependencies {
     api(project(":recognition-domain"))
     api(project(":recognition-runtime"))
     api(project(":recognition-ui"))
+    api(project(":recognition-result-components"))
 
     val composeBom = platform("androidx.compose:compose-bom:2025.01.00")
     implementation(composeBom)

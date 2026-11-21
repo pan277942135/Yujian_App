@@ -19,6 +19,7 @@ module_tasks=(
   "application-core|:application-core:testDebugUnitTest"
   "waterlight-renderer|:waterlight-renderer:testDebugUnitTest"
   "recognition-ui|:recognition-ui:testDebugUnitTest"
+  "recognition-result-components|:recognition-result-components:testDebugUnitTest"
   "recognition-result-ui|:recognition-result-ui:testDebugUnitTest"
   "app|:app:testDebugUnitTest"
 )

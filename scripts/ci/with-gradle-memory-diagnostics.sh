@@ -188,7 +188,7 @@ wait "$command_pid"
 status=$?
 capture_snapshot after
 
-grep -E '^> Task :(recognition-domain|recognition-runtime|application-core|waterlight-renderer|recognition-ui|recognition-result-ui|app):(compile[^ ]*|test[^ ]*|assemble[^ ]*)' "$log" \
+grep -E '^> Task :(recognition-domain|recognition-runtime|application-core|waterlight-renderer|recognition-ui|recognition-result-components|recognition-result-ui|app):(compile[^ ]*|test[^ ]*|assemble[^ ]*)' "$log" \
   | sort -u > "$module_tasks" || true
 
 # Retain fresh daemon logs so Kotlin/Gradle teardown and OOM messages remain inspectable.

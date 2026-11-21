@@ -14,7 +14,8 @@ MODULES = {
     "waterlight-renderer": {"recognition-domain", "recognition-runtime"},
     "application-core": {"recognition-domain"},
     "recognition-ui": {"application-core", "recognition-domain", "recognition-runtime", "waterlight-renderer"},
-    "recognition-result-ui": {"application-core", "recognition-domain", "recognition-runtime", "recognition-ui"},
+    "recognition-result-components": {"application-core", "recognition-domain", "recognition-runtime", "recognition-ui"},
+    "recognition-result-ui": {"application-core", "recognition-domain", "recognition-runtime", "recognition-ui", "recognition-result-components"},
     "app": {"application-core", "recognition-domain", "recognition-runtime", "waterlight-renderer", "recognition-ui", "recognition-result-ui"},
 }
 BASELINE_TEST_SOURCE_COUNT = 144
@@ -39,6 +40,7 @@ MOVED_RESOURCES = {
 REQUIRED_OWNERS = {
     "application-core/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt": "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
     "recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt": "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+    "recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultComponents.kt": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultComponents.kt",
     "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
     "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt": "recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt",
     "recognition-ui/src/main/java/com/yujian/ai/ui/screens/BgContentSurface.kt": "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/BgContentSurface.kt",
@@ -113,14 +115,14 @@ for original, (destination, expected_sha256) in MOVED_RESOURCES.items():
     require(hashlib.sha256(current.read_bytes()).hexdigest() == expected_sha256,
             f"resource bytes changed while moving {original}")
 
-for module in ("application-core", "recognition-ui", "recognition-result-ui"):
+for module in ("application-core", "recognition-ui", "recognition-result-components", "recognition-result-ui"):
     source_root = ROOT / module / "src/main/java"
     for path in source_root.rglob("*.kt"):
         text = path.read_text(encoding="utf-8")
         if module == "application-core":
             require("androidx.compose" not in text, f"Compose dependency leaked into :application-core: {path.relative_to(ROOT)}")
             require("com.yujian.ai.R" not in text, f"App R reference leaked into :application-core: {path.relative_to(ROOT)}")
-        if module in ("recognition-ui", "recognition-result-ui"):
+        if module in ("recognition-ui", "recognition-result-components", "recognition-result-ui"):
             require("import com.yujian.ai.R" not in text, f"App R reference leaked into :{module}: {path.relative_to(ROOT)}")
             require("import com.yujian.ai.BuildConfig" not in text, f"App BuildConfig reference leaked into :{module}: {path.relative_to(ROOT)}")
 
