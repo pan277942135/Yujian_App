@@ -813,8 +813,9 @@ fun RecognitionResultScreen(
             onUnconfirmed = { selectorVisible = false },
         )
     }
-    editField?.let { field ->
-        when (field) {
+    val activeEditField = editField
+    if (activeEditField != null) {
+        when (activeEditField) {
             ResultEditableField.LENGTH -> ResultFieldEditorSheet(
                 title = "鱼获长度", label = "长度", unit = "cm", value = lengthText,
                 keyboardType = KeyboardType.Decimal, validation = { RecognitionResultInputValidation.length(it) },
