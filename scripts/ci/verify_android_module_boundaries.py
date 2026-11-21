@@ -40,6 +40,7 @@ REQUIRED_OWNERS = {
     "application-core/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt": "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
     "recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt": "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
     "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+    "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt": "recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt",
     "recognition-ui/src/main/java/com/yujian/ai/ui/screens/BgContentSurface.kt": "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/BgContentSurface.kt",
 }
 
@@ -97,6 +98,9 @@ require(len(current_test_paths) >= BASELINE_TEST_SOURCE_COUNT,
 for owner, retired in REQUIRED_OWNERS.items():
     require((ROOT / owner).is_file(), f"required production source is missing: {owner}")
     require(not (ROOT / retired).exists(), f"moved production source remains in App: {retired}")
+
+require(not (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt").exists(),
+        "RecognitionIssueScreen must remain owned by :recognition-result-ui")
 
 for original, (destination, expected_sha256) in MOVED_RESOURCES.items():
     current = ROOT / destination

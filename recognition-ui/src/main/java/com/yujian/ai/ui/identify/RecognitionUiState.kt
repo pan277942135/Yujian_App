@@ -27,10 +27,11 @@ fun resolveRecognitionResultState(prediction: RecognitionPrediction): Recognitio
 fun resolveRecognitionUiState(result: ProductionRecognitionResult): RecognitionUiState {
     result.failureCode?.let { return RecognitionUiState.TECHNICAL_FAILURE }
     if (result.status == FishInputStatus.NO_FISH) return RecognitionUiState.ERROR_NO_FISH
-    if (!result.assessment.isClassifierEligible || result.prediction == null) {
+    val prediction = result.prediction
+    if (!result.assessment.isClassifierEligible || prediction == null) {
         return RecognitionUiState.ERROR_IMAGE_QUALITY
     }
-    return resolveRecognitionResultState(result.prediction)
+    return resolveRecognitionResultState(prediction)
 }
 
 fun recognitionFeedbackType(predictedSpeciesKey: String, selectedSpeciesKey: String): String =
