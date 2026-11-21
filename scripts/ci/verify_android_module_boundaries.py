@@ -136,10 +136,15 @@ declaration = re.compile(
 fqns: dict[str, Path] = {}
 internal_fqns: dict[str, str] = {}
 module_sources: dict[str, list[Path]] = {}
-internal_declaration = re.compile(
-    r"^internal\s+(?:(?:data|value|sealed|enum|annotation|fun)\s+)*(?:class|object|interface|fun|val|var|typealias)\s+([A-Za-z_][A-Za-z0-9_]*)",
+internal_type_declaration = re.compile(
+    r"^\s*internal\s+(?:(?:data|value|sealed|enum|annotation)\s+)*(?:class|object|interface|typealias)\s+([A-Za-z_][A-Za-z0-9_]*)",
     re.MULTILINE,
 )
+internal_callable_declaration = re.compile(
+    r"^\s*internal\s+(?:(?:suspend|inline|operator|infix|tailrec|external|const|lateinit)\s+)*(?:fun\s+(?:<[^>]+>\s*)?(?:[A-Za-z_][A-Za-z0-9_.<>?]*\.)?([A-Za-z_][A-Za-z0-9_]*)\s*\(|(?:val|var)\s+([A-Za-z_][A-Za-z0-9_]*))",
+    re.MULTILINE,
+)
+
 for module in MODULES:
     source_root = ROOT / module / "src/main/java"
     if not source_root.exists():
@@ -147,6 +152,14 @@ for module in MODULES:
     module_sources[module] = []
     for path in source_root.rglob("*.kt"):
         source = path.read_text(encoding="utf-8")
+        package_match = re.search(r"^package\s+([A-Za-z0-9_.]+)", source, re.MULTILINE)
+        if package_match:
+            consumer_package = package_match.group(1)
+            for internal_fqn, owner in internal_fqns.items():
+                internal_package, symbol = internal_fqn.rsplit(".", 1)
+                if owner != consumer and internal_package == consumer_package:
+                    if re.search(rf"\b{re.escape(symbol)}\b", source):
+                        fail(f"cross-module same-package internal API reference {internal_fqn}: :{consumer} -> :{owner}")
         module_sources[module].append(path)
         package_match = re.search(r"^package\s+([A-Za-z0-9_.]+)", source, re.MULTILINE)
         if not package_match:
@@ -157,7 +170,10 @@ for module in MODULES:
             if fqn in fqns:
                 fail(f"duplicate production type {fqn}: {fqns[fqn].relative_to(ROOT)} and {path.relative_to(ROOT)}")
             fqns[fqn] = path
-        for name in internal_declaration.findall(source):
+        internal_names = internal_type_declaration.findall(source)
+        for function_name, property_name in internal_callable_declaration.findall(source):
+            internal_names.append(function_name or property_name)
+        for name in internal_names:
             internal_fqns[f"{package}.{name}"] = module
 
 for consumer in MODULES:

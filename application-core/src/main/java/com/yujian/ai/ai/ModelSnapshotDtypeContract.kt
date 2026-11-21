@@ -3,7 +3,7 @@ package com.yujian.ai.ai
 import org.json.JSONObject
 
 /** Shared by production model loading and the cross-language contract regression. */
-internal object ModelSnapshotDtypeContract {
+object ModelSnapshotDtypeContract {
     fun validate(snapshot: JSONObject, tensorContract: JSONObject): Pair<String, String> {
         require(snapshot.getInt("schema_version") == 1 || snapshot.getInt("schema_version") == 2)
         val input = tensorContract.getJSONArray("inputs").getJSONObject(0).getString("dtype")
