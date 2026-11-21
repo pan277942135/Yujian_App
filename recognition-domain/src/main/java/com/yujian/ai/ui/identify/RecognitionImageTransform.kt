@@ -17,6 +17,10 @@ data class DisplayRect(
     val width: Float get() = (right - left).coerceAtLeast(0f)
     val height: Float get() = (bottom - top).coerceAtLeast(0f)
     val center: DisplayPoint get() = DisplayPoint((left + right) / 2f, (top + bottom) / 2f)
+
+    fun hasValidArea(): Boolean =
+        left.isFinite() && top.isFinite() && right.isFinite() && bottom.isFinite() &&
+            right > left && bottom > top
 }
 
 data class NormalizedSourceRect(

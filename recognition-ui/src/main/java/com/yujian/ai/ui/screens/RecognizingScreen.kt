@@ -3192,7 +3192,7 @@ private fun createRecognitionEnergyProducerSnapshot(
         frame.geometryVersion > 0L && pStarDeadlineExpired && !fishPathRegistered
     val pathBindingStatus = when {
         scene.stage.ordinal < RecognitionSceneStage.PATH_TO_FISH.ordinal -> RecognitionFishPathBindingStatus.NOT_APPLICABLE
-        frame.geometryVersion <= 0L || !transform.photoContentRect.isValid() ->
+        frame.geometryVersion <= 0L || !transform.photoContentRect.hasValidArea() ->
             RecognitionFishPathBindingStatus.WAITING_FOR_PHOTO_GEOMETRY
         subjectStatus != SubjectStatus.READY || !maskTrusted || !contourClosed || maskSha256.isBlank() || maskVersion < 0L ->
             RecognitionFishPathBindingStatus.WAITING_FOR_MASK_BINDING
