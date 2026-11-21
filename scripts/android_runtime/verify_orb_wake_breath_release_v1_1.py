@@ -115,10 +115,10 @@ def main() -> None:
                     f"{size_dp:g}dp tip displacement stays within 0.03D")
 
     core_source = (repo / "app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text()
-    motion_source = (repo / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbWakeBreathReleaseV11.kt").read_text()
-    renderer_source = (repo / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt").read_text()
-    path_math_source = (repo / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentPathMathV1.kt").read_text()
-    grass_profile_source = (repo / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbGrassMotionProfileV11.kt").read_text()
+    motion_source = (repo / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbWakeBreathReleaseV11.kt").read_text()
+    renderer_source = (repo / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt").read_text()
+    path_math_source = (repo / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentPathMathV1.kt").read_text()
+    grass_profile_source = (repo / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbGrassMotionProfileV11.kt").read_text()
     require("WaterGrassField" not in core_source and core_source.count("painterResource(R.drawable.processing_water_core_v1)") == 1,
             "Orb renders one immutable Core texture without a duplicate grass overlay")
     require("R01_grass_back.svg" not in str(runtime_assets) and "R01_grass_front.svg" not in str(runtime_assets),

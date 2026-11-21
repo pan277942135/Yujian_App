@@ -50,7 +50,7 @@ def main() -> None:
     mask_names = [leaf["maskFile"] for leaf in definition["leaves"].values()]
     mask_names += [group["maskFile"] for group in definition["groups"].values()]
     check(len(mask_names) == 6, "four single-leaf and two combined masks are declared")
-    grass_profile = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbGrassMotionProfileV11.kt").read_text()
+    grass_profile = (ROOT / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbGrassMotionProfileV11.kt").read_text()
     for name in mask_names:
         image = Image.open(ASSETS / name)
         check(image.size == (1254, 1254) and image.mode == "L", f"complete grayscale mask: {name}")
@@ -90,8 +90,8 @@ def main() -> None:
 
     core = (ROOT / "app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text()
     host = (ROOT / "app/src/main/java/com/yujian/ai/ui/recognition/ProcessingWaterOrb.kt").read_text()
-    renderer = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt").read_text()
-    timeline = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbWakeBreathReleaseV11.kt").read_text()
+    renderer = (ROOT / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt").read_text()
+    timeline = (ROOT / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbWakeBreathReleaseV11.kt").read_text()
     shader = (ASSETS / "orb_grass_warp_v1_1.agsl").read_text()
     check(core.count("painterResource(R.drawable.processing_water_core_v1)") == 1 and "WaterGrassField" not in core,
           "one Core texture is sampled; there is no duplicate grass overlay")
@@ -103,10 +103,10 @@ def main() -> None:
           "pow(smoothstep(0.10, 1.0, s), 1.6)" in shader and
           "normalize(bezierTangent" in shader and "clamp(coord - displacement * surfaceSize" in shader,
           "local normal bending clamps the single original Core sample to its source bounds")
-    path_math = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentPathMathV1.kt").read_text()
-    task_ledger = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/core/WaterLightPathLedger.kt").read_text()
-    task_renderer = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/WaterLightEnergyPathRenderer.kt").read_text()
-    task_state = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionTaskFilamentState.kt").read_text()
+    path_math = (ROOT / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentPathMathV1.kt").read_text()
+    task_ledger = (ROOT / "recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/WaterLightPathLedger.kt").read_text()
+    task_renderer = (ROOT / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/WaterLightEnergyPathRenderer.kt").read_text()
+    task_state = (ROOT / "recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionTaskFilamentState.kt").read_text()
     recognizing_screen = (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt").read_text()
     check("OrbResidentFilamentMotionV1.role(spec.id) != OrbFilamentRole.RESIDENT_AMBIENT" in renderer and
           "OrbResidentFilamentMotionV1.transformLut(spec, lut, sceneMs, frame.reducedMotion)" in renderer and
@@ -124,7 +124,7 @@ def main() -> None:
                       "R06_MOVING_HIGHLIGHT_GAIN = 1.15f", "R06_RELEASE_HEAD_BRIGHTNESS_GAIN = 1.18f",
                       "R06_MAX_EXTENSION_DP = 14f"):
         check(parameter in timeline, f"frozen R06 parameter: {parameter}")
-    scene_frame = (ROOT / "app/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt").read_text()
+    scene_frame = (ROOT / "recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt").read_text()
     wake_match = re.search(r"\bORB_WAKE\((\d+)L", scene_frame)
     release_match = re.search(r"\bORB_RELEASE\((\d+)L", scene_frame)
     return_match = re.search(r"RELEASE_RETURN_PROGRESS = ([0-9.]+)f / ([0-9.]+)f", timeline)
