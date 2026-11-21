@@ -137,7 +137,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
-private const val RESULT_INFO_ENTRANCE_DURATION_MS = 450f
 
 internal fun lowPendingSaveDestination(
     selectedSpeciesKey: String,
@@ -196,6 +195,9 @@ fun RecognitionResultScreen(
     }
     var resultStableRenderReceipt by remember(revealHandoff?.key) {
         mutableStateOf<RecognitionResultStableRenderReceipt?>(null)
+    }
+    var glyphReadinessState by remember(revealHandoff?.key) {
+        mutableStateOf(resultSnapshot?.handoffState?.glyphReadiness ?: RecognitionGlyphReadiness())
     }
     val resultInfoDrawPassSequence = remember(revealHandoff?.key) { AtomicLong(0L) }
     val resultInfoProgressBucket = remember(revealHandoff?.key) { AtomicInteger(-1) }
@@ -331,552 +333,95 @@ fun RecognitionResultScreen(
             requestedSaveDestination = null
         }
     }
-    val resultAssessment = productionResult?.assessment
-    val bbox = resultAssessment?.primary?.let { detection ->
-        FishPhotoBoundingBox(
-            box = detection.box,
-            confidence = detection.confidence,
-            coordinateSpace = FishBoxCoordinateSpace.DISPLAY_ORIENTED,
-            version = "${productionResult?.detectorRun?.modelVersion.orEmpty()}-${resultAssessment.status.wireName}",
-        )
-    }
-    val primaryFishAmbiguous = resultAssessment?.let {
-        it.status == FishInputStatus.MULTIPLE_FISH || it.strongDetections.size > 1
-    } == true
-
     // Production handoffs carry the one completed Classifier × SlimSAM decision.
     // Older isolated Result previews without that field keep their existing preview behavior.
-    val decisionHandoff = when (revealHandoff?.revealDecision) {
-        RecognitionRevealDecisionState.FISH_FOCUS_READY -> revealHandoff
-        RecognitionRevealDecisionState.ORB_ONLY_READY -> revealHandoff?.let { handoff ->
-            if (handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL) {
-                handoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY)
-            } else handoff
-        }
-        null -> revealHandoff
-        else -> null
-    }
-
-    val photoTransitionGeometry = remember(decisionHandoff, heroSnapshot, rootBounds) {
-        if (decisionHandoff == null || heroSnapshot == null || rootBounds == null) null
-        else RecognitionRevealGeometryResolver.resolvePhoto(
-            handoff = decisionHandoff,
-            hero = requireNotNull(heroSnapshot),
-            rootBoundsInWindow = requireNotNull(rootBounds),
-        )
-    }
-    val revealGeometryResolution = remember(decisionHandoff, heroSnapshot, revealTitleBounds, rootBounds) {
-        if (decisionHandoff == null) null
-        else when {
-            rootBounds == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_ROOT_PENDING")
-            heroSnapshot == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_HERO_PENDING")
-            revealTitleBounds == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_TITLE_PENDING")
-            else -> {
-                val root = requireNotNull(rootBounds)
-                val hero = requireNotNull(heroSnapshot)
-                val title = requireNotNull(revealTitleBounds)
-                val primary = RecognitionRevealGeometryResolver.resolveDetailed(decisionHandoff, hero, title, root)
-                val hasTrustedContour = primary.geometry?.sourceContourPath?.isEmpty() == false
-                if (decisionHandoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL && !hasTrustedContour) {
-                    val degraded = RecognitionRevealGeometryResolver.resolveDetailed(
-                        handoff = decisionHandoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY),
-                        hero = hero,
-                        titleBoundsInWindow = title,
-                        rootBoundsInWindow = root,
-                    )
-                    if (degraded.geometry != null) degraded.copy(
-                        failureReason = "FULL_REVEAL_DEGRADED:${primary.failureReason ?: "TRUSTED_CONTOUR_EMPTY"}",
-                    ) else primary.copy(
-                        failureReason = "FULL_REVEAL_DEGRADED:${primary.failureReason ?: "TRUSTED_CONTOUR_EMPTY"};" +
-                            "TITLE_ONLY:${degraded.failureReason}",
-                    )
-                } else primary
-            }
-        }
-    }
-    val revealGeometry = revealGeometryResolution?.geometry
-    SideEffect {
-        if (revealHandoff != null) {
-            revealGeometryResolutionObserver?.invoke(revealGeometryResolution)
-        }
-    }
-    val visualHandoff = decisionHandoff
-    val revealPhotoIdentityMatches = revealHandoff != null && image != null &&
-        image.imageId == revealHandoff.imageId &&
-        image.bitmap.width == revealHandoff.normalizedSourceWidth &&
-        image.bitmap.height == revealHandoff.normalizedSourceHeight &&
-        image.photoSha256.isNotBlank() &&
-        revealHandoff.photoSourceIdentity.endsWith("|sha256=${image.photoSha256}") &&
-        prediction.top1.speciesKey == revealHandoff.resultIdentity
-    val revealStartReady = RecognitionRevealPolicy.canStartOnFirstResultFrame(
-        eligibility = visualHandoff?.eligibility ?: RecognitionRevealEligibility.STATIC_RESULT,
-        photoIdentityMatches = revealPhotoIdentityMatches,
-        photoGeometryReady = photoTransitionGeometry != null,
-        heroReady = heroSnapshot?.renderReady == true,
-        titleBoundsReady = revealTitleBounds?.isValid() == true,
-        revealGeometryReady = revealGeometry != null,
-        reduceMotion = revealMotionPolicy.reduceMotion,
-    )
-    val resultGeometryReady = revealPhotoIdentityMatches && photoTransitionGeometry != null &&
-        heroSnapshot?.renderReady == true && revealTitleBounds?.isValid() == true && revealGeometry != null
-    val diagnosticUiAvailable = false
-    val diagnosticManualActive = diagnosticUiAvailable &&
-        diagnosticPlaybackController?.mode == ScenePlaybackMode.MANUAL
-    val resultSceneIdentity = remember(visualHandoff?.key, image?.imageId, image?.bitmap?.generationId) {
-        RecognitionSceneIdentity(
-            sessionId = visualHandoff?.key?.recognitionSessionId.orEmpty(),
-            attemptId = visualHandoff?.key?.recognitionAttemptId.orEmpty(),
-            imageId = image?.imageId.orEmpty(),
-            photoSha256 = image?.photoSha256,
-            photoContentVersion = image?.bitmap?.generationId?.toLong()?.coerceAtLeast(0L) ?: 0L,
-        )
-    }
-    val resultSceneStage = sceneFrameOverrideForTest?.stage
-        ?: diagnosticPlaybackController?.currentStage
-        ?: RecognitionSceneStage.PHOTO_STABLE
-    val resultHostBounds = if (resultSceneStage == RecognitionSceneStage.RESIDUE_SETTLE) {
-        photoTransitionGeometry?.heroPhotoClip
-    } else photoTransitionGeometry?.processingPhotoClip
-    val resultGeometryVersion = photoTransitionGeometry?.heroSourceTransform?.let { transform ->
-        val base = WaterLightGeometryVersion.of(transform)
-        resultHostBounds?.let { WaterLightGeometryVersion.withHostBounds(base, it.left, it.top, it.right, it.bottom) } ?: base
-    } ?: 0L
-    val resultGeometryVersions = remember(photoTransitionGeometry) {
-        val photoGeometry = photoTransitionGeometry
-        val base = photoGeometry?.heroSourceTransform?.let(WaterLightGeometryVersion::of)
-        if (photoGeometry == null || base == null) emptySet() else buildSet {
-            photoGeometry.processingPhotoClip.let { bounds ->
-                add(WaterLightGeometryVersion.withHostBounds(base, bounds.left, bounds.top, bounds.right, bounds.bottom))
-            }
-            photoGeometry.heroPhotoClip.let { bounds ->
-                add(WaterLightGeometryVersion.withHostBounds(base, bounds.left, bounds.top, bounds.right, bounds.bottom))
-            }
-        }
-    }
-    var resultHandoffEventSequence by remember(revealHandoff?.key) {
-        mutableLongStateOf(initialResultHandoffEventSequence)
-    }
-    var resultHandoffEventTimestampMs by remember(revealHandoff?.key) {
-        mutableLongStateOf(initialResultHandoffEventTimestampMs)
-    }
-    var glyphReadinessState by remember(revealHandoff?.key) {
-        mutableStateOf(resultSnapshot?.handoffState?.glyphReadiness ?: RecognitionGlyphReadiness())
-    }
-    val latestResultHandoffEvent = rememberUpdatedState(onResultHandoffEvent)
-    val latestResultHandoffFinished = rememberUpdatedState(onRevealFinished)
-    val latestPlaybackProgress = rememberUpdatedState(onPlaybackProgress)
-    fun emitResultHandoffMilestone(
-        substage: ResultHandoffSubstage,
-        frame: RecognitionSceneFrame,
-        progress: Float,
-        infoRenderReceipt: RecognitionResultInfoRenderReceipt? = null,
-        stableRenderReceipt: RecognitionResultStableRenderReceipt? = null,
-    ): RecognitionResultHandoffReceipt {
-        val handoff = visualHandoff ?: return RecognitionResultHandoffReceipt(false, "HANDOFF_MISSING")
-        val path = handoff.fishPathSnapshot
-        val eventSequence = resultHandoffEventSequence + 1L
-        val eventTimestampMs = maxOf(SystemClock.uptimeMillis(), resultHandoffEventTimestampMs + 1L)
-        val sourceTargetFeedback = when (substage) {
-            ResultHandoffSubstage.NAME_STABLE -> Triple("GLYPH", "RESULT_NAME", "NAME_STABLE")
-            ResultHandoffSubstage.PHOTO_SETTLE -> Triple("PROCESSING_PHOTO", "RESULT_HERO", "PHOTO_SETTLE")
-            ResultHandoffSubstage.RESULT_SCENE_HANDOFF -> Triple("PHOTO_SETTLED_RESULT", "RESULT_SCENE", "RESULT_CONTENT_COMMITTED")
-            ResultHandoffSubstage.RESULT_INFO_ARRIVAL -> Triple("RESULT_SNAPSHOT", "RESULT_INFO_LAYOUT", "INFO_ARRIVAL")
-            ResultHandoffSubstage.RESULT_SCENE_STABLE -> Triple("RESULT_HOST", "RESULT_SCENE", "SCENE_STABLE")
-        }
-        val eventGlyphReadiness = if (substage == ResultHandoffSubstage.NAME_STABLE) {
-            glyphReadinessState.copy(nameStable = true)
-        } else glyphReadinessState
-        val event = RecognitionResultHandoffEvent(
-            identity = resultSceneIdentity,
-            maskSha256 = path?.maskSha256,
-            maskVersion = path?.maskVersion,
-            geometryVersion = frame.geometryVersion,
-            pathId = path?.returnPathId,
-            pathGeometryVersion = path?.geometryVersion,
-            pStarNormalizedSource = path?.pStarNormalizedSource,
-            pathSegments = path?.returnPathSegments.orEmpty(),
-            stage = frame.stage,
-            substage = substage,
-            eventSequence = eventSequence,
-            monotonicTimestampMs = eventTimestampMs,
-            eventProducer = RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER,
-            eventConsumer = RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER,
-            source = sourceTargetFeedback.first,
-            target = sourceTargetFeedback.second,
-            feedback = sourceTargetFeedback.third,
-            progress = progress.coerceIn(0f, 1f),
-            renderStatus = "READY",
-            resultIdentity = resultSnapshot?.glyphSpeciesKey ?: prediction.top1.speciesKey,
-            glyphReadiness = eventGlyphReadiness,
-            resultInfoRenderReceipt = infoRenderReceipt,
-            resultStableRenderReceipt = stableRenderReceipt,
-        )
-        resultHandoffEventTimestampMs = eventTimestampMs
-        if (resultGeometryReady) {
-            diagnosticPlaybackController?.setResultGeometryState(
-                SceneGeometryState.READY,
-                event.monotonicTimestampMs,
-                event.identity,
-                resultGeometryVersions,
-            )
-        }
-        val receipt = latestResultHandoffEvent.value(event)
-        if (receipt.accepted) {
-            resultHandoffEventSequence = eventSequence
-            if (substage == ResultHandoffSubstage.NAME_STABLE) glyphReadinessState = eventGlyphReadiness
-            if (substage == ResultHandoffSubstage.RESULT_INFO_ARRIVAL) {
-                recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
-                    checkpoint = "RESULT_INFO_ARRIVAL_ACCEPTED",
-                    identity = resultSceneIdentity,
-                    resultIdentity = event.resultIdentity,
-                    stage = frame.stage,
-                    stageProgress = frame.stageProgress,
-                    entranceProgress = infoRenderReceipt?.renderedProgress ?: progress,
-                    geometryVersion = event.geometryVersion,
-                    drawPassSequence = infoRenderReceipt?.drawPassSequence,
-                    renderStatus = "ACCEPTED",
-                )
-            }
-            Log.i(
-                "RecognitionResultHandoff",
-                "accepted=true substage=${substage.name} session=${event.identity.sessionId} attempt=${event.identity.attemptId} " +
-                    "image=${event.identity.imageId} mask=${event.maskSha256} maskVersion=${event.maskVersion} " +
-                    "path=${event.pathId} pathGeometry=${event.pathGeometryVersion} pStar=${event.pStarNormalizedSource} " +
-                    "geometry=${event.geometryVersion} sequence=${event.eventSequence} " +
-                    "timestamp=${event.monotonicTimestampMs}",
-            )
-            if (receipt.resultSceneStable) latestResultHandoffFinished.value(handoff.key)
-        } else {
-            Log.i(
-                "RecognitionResultHandoff",
-                "accepted=false substage=${substage.name} reason=${receipt.rejectionReason} " +
-                    "sequence=${event.eventSequence} attempt=${event.identity.attemptId}",
-            )
-        }
-        return receipt
-    }
-    val diagnosticReferenceMs = diagnosticPlaybackController?.opticalReferenceElapsedMs(diagnosticNowMs)
-    val diagnosticPreviewElapsedMs = diagnosticPlaybackController?.previewElapsedMs(diagnosticNowMs) ?: 0L
-    val diagnosticPreviewCompleted = diagnosticPlaybackController?.previewCompleted == true
-    val diagnosticPaused = diagnosticPlaybackController?.paused == true
-    LaunchedEffect(diagnosticPlaybackController, revealHandoff?.key, uiState) {
-        val playback = diagnosticPlaybackController ?: return@LaunchedEffect
-        if (revealHandoff == null) return@LaunchedEffect
-        while (isActive) {
-            withFrameNanos { it }
-            val now = SystemClock.uptimeMillis()
-            playback.currentSceneStage(
-                nowMs = now,
-                trustedMask = revealHandoff.geometryTrustState == RecognitionGeometryTrustState.TRUSTED_MASK,
-                subjectTerminal = revealHandoff.geometryTrustState != RecognitionGeometryTrustState.MISSING,
-                successfulRevealAllowed = uiState == RecognitionUiState.RESULT_HIGH,
-            )
-            diagnosticNowMs = now
-        }
-    }
-    val diagnosticFrame = if (diagnosticPlaybackController != null && revealHandoff != null && image != null) {
-        diagnosticPlaybackController.currentFrame(resultSceneIdentity, diagnosticNowMs, resultGeometryVersion, revealMotionPolicy.reduceMotion)
-    } else null
-    val latestEvidenceResultFrame = rememberUpdatedState(diagnosticFrame ?: sceneFrameOverrideForTest)
-    val diagnosticStage = diagnosticFrame?.stage ?: diagnosticPlaybackController?.currentStage ?: RecognitionSceneStage.ORB_RETURN
-    LaunchedEffect(revealHandoff?.key, diagnosticStage, diagnosticDisplayMode, diagnosticPreviewCompleted, diagnosticUiAvailable) {
-        if (diagnosticUiAvailable && diagnosticFrame != null) {
-            Log.i(
-                "RecognitionReveal",
-                "DIAGNOSTIC_PRESENT session=${revealHandoff?.key?.recognitionSessionId.orEmpty()} " +
-                    "attempt=${revealHandoff?.key?.recognitionAttemptId.orEmpty()} image=${image?.imageId.orEmpty()} " +
-                    "sha256=${image?.photoSha256.orEmpty()} stage=${diagnosticStage.ordinal + 1}/13 name=${diagnosticStage.name} " +
-                    "reference_ms=${diagnosticFrame.opticalReferenceElapsedMs} preview_ms=$diagnosticPreviewElapsedMs " +
-                    "remaining_ms=${DIAGNOSTIC_STEP_DURATION_MS - diagnosticPreviewElapsedMs} " +
-                    "completed=$diagnosticPreviewCompleted paused=$diagnosticPaused " +
-                    "geometry_ready=$revealStartReady eligibility=${revealHandoff?.eligibility} " +
-                    "mask=${revealHandoff?.geometryTrustState} result=${prediction.top1.speciesKey}",
-            )
-        }
-    }
-    fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
-        if (mode == diagnosticDisplayMode) return
-        // Switching the two display modes must not seek or restart the shared scene clock.
-        onDiagnosticDisplayModeChange(mode)
-    }
-    var geometryWaitExpired by remember(revealHandoff?.key) { mutableStateOf(false) }
-    LaunchedEffect(revealHandoff?.key, resultGeometryReady, visualHandoff?.eligibility) {
-        if (visualHandoff?.eligibility in setOf(RecognitionRevealEligibility.FULL_REVEAL, RecognitionRevealEligibility.TITLE_FADE_ONLY) &&
-            !resultGeometryReady
-        ) {
-            delay(350L)
-            geometryWaitExpired = true
-        }
-    }
-    val geometryResolutionReason = revealGeometryResolution?.failureReason ?: when {
-        !revealPhotoIdentityMatches && revealHandoff != null && image != null -> "PHOTO_IDENTITY_MISMATCH"
-        !revealPhotoIdentityMatches -> "PHOTO_IDENTITY_PENDING"
-        photoTransitionGeometry == null -> "PHOTO_TRANSITION_GEOMETRY_PENDING"
-        heroSnapshot?.renderReady != true -> "RESULT_HERO_PENDING"
-        revealTitleBounds?.isValid() != true -> "RESULT_TITLE_BOUNDS_PENDING"
-        revealGeometry == null -> "REVEAL_GEOMETRY_PENDING"
-        else -> null
-    }
-    val geometryStillMeasuring = geometryResolutionReason in setOf(
-        "LAYOUT_ROOT_PENDING", "LAYOUT_HERO_PENDING", "LAYOUT_TITLE_PENDING",
-        "PHOTO_IDENTITY_PENDING", "PHOTO_TRANSITION_GEOMETRY_PENDING",
-        "RESULT_HERO_PENDING", "RESULT_TITLE_BOUNDS_PENDING", "REVEAL_GEOMETRY_PENDING",
-    )
-    // 350ms is an advisory threshold only. Keep the shared scene clock held while
-    // Compose measures; only an explicit geometry rejection enters static fallback.
-    val geometryInvalid = !resultGeometryReady && geometryResolutionReason != null && !geometryStillMeasuring
-    LaunchedEffect(revealHandoff?.key, geometryResolutionReason, resultGeometryReady, resultGeometryVersion) {
-        if (revealHandoff != null) {
-            Log.i(
-                "RecognitionResultGeometry",
-                "reason=${geometryResolutionReason ?: "NONE"} stage=${resultSceneStage.name} " +
-                    "session=${resultSceneIdentity.sessionId} attempt=${resultSceneIdentity.attemptId} " +
-                    "image=${resultSceneIdentity.imageId} photoSha=${resultSceneIdentity.photoSha256} " +
-                    "maskSha=${visualHandoff?.maskSha256} maskVersion=${visualHandoff?.maskVersion} " +
-                    "path=${visualHandoff?.fishPathSnapshot?.returnPathId} geometry=$resultGeometryVersion " +
-                    "result=${prediction.top1.speciesKey} ready=$resultGeometryReady " +
-                    "photoIdentity=$revealPhotoIdentityMatches transition=${photoTransitionGeometry != null} " +
-                    "hero=${heroSnapshot?.renderReady == true} title=${revealTitleBounds?.isValid() == true} " +
-                    "reveal=${revealGeometry != null}",
-            )
-            recognitionEvidenceRecorder?.recordResultGeometryDiagnostic(
-                resultSceneIdentity, geometryResolutionReason, resultGeometryReady,
-                resultGeometryVersion, visualHandoff?.fishPathSnapshot?.returnPathId,
-                visualHandoff?.maskSha256, visualHandoff?.maskVersion ?: -1L,
-                prediction.top1.speciesKey,
-                mapOf(
-                    "photoIdentityMatches" to revealPhotoIdentityMatches,
-                    "transitionGeometryReady" to (photoTransitionGeometry != null),
-                    "heroRenderReady" to (heroSnapshot?.renderReady == true),
-                    "titleBoundsReady" to (revealTitleBounds?.isValid() == true),
-                    "revealGeometryReady" to (revealGeometry != null),
-                    "stage" to resultSceneStage.name,
-                ),
-            )
-        }
-    }
-    val resultHandoffMotionActive = !revealMotionPolicy.reduceMotion && !revealAlreadyPlayed &&
-        !geometryInvalid &&
-        uiState == RecognitionUiState.RESULT_HIGH &&
-        visualHandoff?.eligibility in setOf(
-            RecognitionRevealEligibility.FULL_REVEAL,
-            RecognitionRevealEligibility.TITLE_FADE_ONLY,
-        ) && !geometryInvalid
-    val resultSceneHandoffAccepted = resultSnapshot?.handoffState?.has(ResultHandoffSubstage.RESULT_SCENE_HANDOFF) == true
-    val resultInteractionsEnabled = !resultHandoffMotionActive || resultSnapshot?.resultSceneStable == true
-    // Keep the photo and classifier Glyph in the same visible Result host during stages 10–12.
-    // Detail controls remain gated by the accepted 13.4 event.
-    val resultContentAlpha = 1f
-    val resultInfoArrivalPermitted = RecognitionResultHandoffContract.mayExposeResultInfo(
-        resultHandoffMotionActive,
-        resultSnapshot?.handoffState?.completedSubstages.orEmpty(),
-    )
-    val resultInfoEntranceProgress = when {
-        !resultInfoArrivalPermitted -> 0f
-        !resultHandoffMotionActive -> 1f
-        !resultSceneHandoffAccepted || !resultInfoLayoutReady || resultInfoEntranceStartedAtUptimeMs == null -> 0f
-        diagnosticFrame?.stage != RecognitionSceneStage.RESIDUE_SETTLE -> 0f
-        else -> {
-            val start = requireNotNull(resultInfoEntranceStartedAtUptimeMs)
-            val t = (diagnosticNowMs - start).coerceAtLeast(0L).toFloat() / RESULT_INFO_ENTRANCE_DURATION_MS
-            val clamped = t.coerceIn(0f, 1f)
-            clamped * clamped * (3f - 2f * clamped)
-        }
-    }
-    val resultInfoAlpha = if (resultHandoffMotionActive) resultInfoEntranceProgress else 1f
-    val resultInfoTranslationY = if (resultHandoffMotionActive) 8.dp * (1f - resultInfoEntranceProgress) else 0.dp
-    LaunchedEffect(revealHandoff?.key, resultGeometryReady, geometryInvalid, resultGeometryVersions) {
-        val playback = diagnosticPlaybackController ?: return@LaunchedEffect
-        if (revealHandoff == null) return@LaunchedEffect
-        val state = when {
-            resultGeometryReady -> SceneGeometryState.READY
-            geometryInvalid -> SceneGeometryState.INVALID
-            else -> SceneGeometryState.PENDING
-        }
-        playback.setResultGeometryState(
-            state,
-            SystemClock.uptimeMillis(),
-            resultSceneIdentity,
-            geometryVersions = resultGeometryVersions.takeIf { state == SceneGeometryState.READY }.orEmpty(),
-        )
-        diagnosticNowMs = SystemClock.uptimeMillis()
-    }
-    DisposableEffect(diagnosticPlaybackController, revealHandoff?.key, resultSceneIdentity) {
-        onDispose {
-            diagnosticPlaybackController?.setResultGeometryState(
-                SceneGeometryState.PENDING,
-                SystemClock.uptimeMillis(),
-                resultSceneIdentity,
-            )
-        }
-    }
-    val latestRevealKey = rememberUpdatedState(revealHandoff?.key)
-    val latestImageId = rememberUpdatedState(image?.imageId)
-    val latestRevealFinished = rememberUpdatedState(onRevealFinished)
-    var revealClaimResolved by remember(revealHandoff?.key) { mutableStateOf(revealAlreadyPlayed) }
-    LaunchedEffect(revealHandoff?.key, resultFirstPresentedAtMs.value, revealStartReady, revealAlreadyPlayed) {
-        val key = revealHandoff?.key ?: return@LaunchedEffect
-        if (resultFirstPresentedAtMs.value != null && revealStartReady && !revealAlreadyPlayed && !revealStartAllowed.value &&
-            latestRevealKey.value == key
-        ) {
-            revealStartAllowed.value = onClaimReveal(key) && onPlaybackStart(key)
-            revealClaimResolved = true
-        }
-    }
-    val revealPresentationReady = resultFirstPresentedAtMs.value != null && resultGeometryReady &&
-        (revealMotionPolicy.reduceMotion || revealStartAllowed.value || revealAlreadyPlayed)
-    val revealPending = visualHandoff?.eligibility in setOf(RecognitionRevealEligibility.FULL_REVEAL, RecognitionRevealEligibility.TITLE_FADE_ONLY) &&
-        uiState == RecognitionUiState.RESULT_HIGH && !revealAlreadyPlayed && !geometryInvalid &&
-        !(resultFirstPresentedAtMs.value != null && resultGeometryReady &&
-            (revealMotionPolicy.reduceMotion || revealClaimResolved))
-    val presentedHandoff = visualHandoff.takeIf { revealPresentationReady || revealPending }
-    val frameMotionPolicy = if (revealPending && !revealPresentationReady) revealMotionPolicy.copy(reduceMotion = false) else revealMotionPolicy
-    val activeRevealSceneFrame = diagnosticFrame ?: sceneFrameOverrideForTest ?: RecognitionSceneCoordinator.frameForStage(
-        identity = resultSceneIdentity,
-        sceneElapsedMs = 0L,
-        opticalReferenceElapsedMs = 0L,
-        geometryVersion = resultGeometryVersion,
-        stage = RecognitionSceneStage.PHOTO_STABLE,
-        stageElapsedMs = 0L,
-        stageProgress = 0f,
-        playbackMode = ScenePlaybackMode.AUTO,
-        reducedMotion = revealMotionPolicy.reduceMotion,
-    )
-    val revealFrameState = remember(presentedHandoff, frameMotionPolicy, activeRevealSceneFrame) {
-        derivedStateOf {
-            RecognitionRevealClock.evaluate(
-                scene = activeRevealSceneFrame,
-                handoff = presentedHandoff,
-                policy = frameMotionPolicy,
-            )
-        }
-    }
-
-    val photoTransformAtTarget = remember(photoTransitionGeometry, revealFrameState.value.photoProgress) {
-        val photo = photoTransitionGeometry
-        val progress = revealFrameState.value.photoProgress
-        val current = photo?.photoMatrix(progress)
-        val target = photo?.photoMatrix(1f)
-        val clip = photo?.photoClip(progress)
-        val expectedClip = photo?.let {
-            RecognitionRevealWindowRect(
-                it.heroPhotoClip.left - it.rootWindowOrigin.x,
-                it.heroPhotoClip.top - it.rootWindowOrigin.y,
-                it.heroPhotoClip.right - it.rootWindowOrigin.x,
-                it.heroPhotoClip.bottom - it.rootWindowOrigin.y,
-            )
-        }
-        current != null && target != null && clip != null && expectedClip != null &&
-            kotlin.math.abs(current.scale - target.scale) < 1f &&
-            kotlin.math.abs(current.translationX - target.translationX) < 1f &&
-            kotlin.math.abs(current.translationY - target.translationY) < 1f &&
-            kotlin.math.abs(clip.left - expectedClip.left) < 1f &&
-            kotlin.math.abs(clip.top - expectedClip.top) < 1f &&
-            kotlin.math.abs(clip.right - expectedClip.right) < 1f &&
-            kotlin.math.abs(clip.bottom - expectedClip.bottom) < 1f
-    }
-    RecognitionResultHandoffMilestoneEffects(
-        state = RecognitionResultHandoffMilestoneState(
-            handoffKey = revealHandoff?.key,
-            frame = diagnosticFrame,
+    val revealRuntime = RecognitionResultRevealCoordinator(
+        RecognitionResultRevealCoordinatorInput(
+            image = image,
+            prediction = prediction,
+            productionResult = productionResult,
+            uiState = uiState,
+            revealHandoff = revealHandoff,
             resultSnapshot = resultSnapshot,
-            resultFirstPresentedAtMs = resultFirstPresentedAtMs.value,
-            resultGeometryReady = resultGeometryReady,
-            photoProgress = revealFrameState.value.photoProgress,
-            photoTransformAtTarget = photoTransformAtTarget,
-            heroRenderReady = heroSnapshot?.renderReady,
-            revealTitleReady = revealTitleBounds?.isValid() == true,
+            initialResultHandoffEventSequence = initialResultHandoffEventSequence,
+            initialResultHandoffEventTimestampMs = initialResultHandoffEventTimestampMs,
+            onResultHandoffEvent = onResultHandoffEvent,
+            evidenceRecorder = recognitionEvidenceRecorder,
+            sceneFrameOverrideForTest = sceneFrameOverrideForTest,
+            revealAlreadyPlayed = revealAlreadyPlayed,
+            onClaimReveal = onClaimReveal,
+            onRevealFinished = onRevealFinished,
+            diagnosticPlaybackController = diagnosticPlaybackController,
+            diagnosticDisplayMode = diagnosticDisplayMode,
+            onDiagnosticDisplayModeChange = onDiagnosticDisplayModeChange,
+            revealMotionPolicy = revealMotionPolicy,
+            revealGeometryResolutionObserver = revealGeometryResolutionObserver,
+            onPlaybackStart = onPlaybackStart,
+            onPlaybackProgress = onPlaybackProgress,
+            onPlaybackInterrupted = onPlaybackInterrupted,
+            rootBounds = rootBounds,
+            heroSnapshot = heroSnapshot,
+            revealTitleBounds = revealTitleBounds,
             resultInfoLayoutReady = resultInfoLayoutReady,
-            resultSceneHandoffAccepted = resultSceneHandoffAccepted,
             resultInfoEntranceStartedAtUptimeMs = resultInfoEntranceStartedAtUptimeMs,
             resultInfoRenderReceipt = resultInfoRenderReceipt,
-            eventSequence = resultHandoffEventSequence,
-            sceneIdentity = resultSceneIdentity,
-            geometryVersion = resultGeometryVersion,
-            expectedSpeciesKey = prediction.top1.speciesKey,
-            expectedSpeciesName = prediction.top1.speciesName,
+            resultStableRenderReceipt = resultStableRenderReceipt,
+            resultFirstPresentedAtMs = resultFirstPresentedAtMs.value,
+            revealStartAllowed = revealStartAllowed.value,
+            onRevealStartAllowed = { revealStartAllowed.value = it },
+            diagnosticNowMs = diagnosticNowMs,
+            glyphReadinessState = glyphReadinessState,
             selectedSpeciesKey = selectedKey,
             selectedSpeciesName = selectedName,
-            glyphReadiness = glyphReadinessState,
+            onGlyphReadinessChanged = { glyphReadinessState = it },
+            onDiagnosticNowMs = { diagnosticNowMs = it },
+            onResultInfoEntranceStarted = { resultInfoEntranceStartedAtUptimeMs = it },
         ),
-        diagnosticPlaybackController = diagnosticPlaybackController,
-        evidenceRecorder = recognitionEvidenceRecorder,
-        onResultInfoEntranceStarted = { startedAtMs ->
-            resultInfoEntranceStartedAtUptimeMs = startedAtMs
-        },
-        onEmitMilestone = { substage, frame, progress, infoReceipt ->
-            emitResultHandoffMilestone(
-                substage = substage,
-                frame = frame,
-                progress = progress,
-                infoRenderReceipt = infoReceipt,
-            )
-        },
     )
-    val opticalResidueStatus = diagnosticFrame?.let { frame ->
-        ResultStableReadiness.evaluateOpticalResidue(
-            stage = frame.stage,
-            stageEventComplete = frame.stageEventComplete,
-            stageProgress = frame.stageProgress,
-            afterglowAlpha = revealFrameState.value.afterglowAlpha,
-        )
-    }
-    val resultSceneStableStatus = if (opticalResidueStatus != null) {
-        ResultStableReadiness.evaluateResultSceneStable(
-            opticalResidue = opticalResidueStatus,
-            resultInfoLayoutReady = resultInfoLayoutReady,
-            resultGeometryReady = resultGeometryReady,
-            photoTransformAtTarget = photoTransformAtTarget,
-            heroRenderReady = heroSnapshot?.renderReady == true,
-            photoProgress = revealFrameState.value.photoProgress,
-            resultInfoEntranceProgress = resultInfoEntranceProgress,
-            eventSequenceSynced = resultHandoffEventSequence == (resultSnapshot?.handoffState?.lastEventSequence ?: -1L),
-            completedSubstages = resultSnapshot?.handoffState?.completedSubstages ?: emptySet(),
-            alreadyStable = resultSnapshot?.resultSceneStable == true,
-        )
-    } else null
-    LaunchedEffect(
-        revealHandoff?.key,
-        diagnosticFrame?.stage,
-        resultStableRenderReceipt,
-        resultHandoffEventSequence,
-        diagnosticPlaybackController?.resultSceneStable,
-        resultSnapshot?.resultSceneStable,
-        resultSnapshot?.handoffState?.completedSubstages,
-    ) {
-        val frame = diagnosticFrame ?: return@LaunchedEffect
-        val receipt = resultStableRenderReceipt ?: return@LaunchedEffect
-        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
-            ResultHandoffSubstage.RESULT_SCENE_STABLE !in (resultSnapshot?.handoffState?.completedSubstages ?: emptySet()) &&
-            RecognitionResultStableRenderContract.isComplete(
-                expectedIdentity = resultSceneIdentity,
-                expectedResultIdentity = prediction.top1.speciesKey,
-                expectedGeometryVersion = resultGeometryVersion,
-                receipt = receipt,
-            )
-        ) {
-            emitResultHandoffMilestone(
-                ResultHandoffSubstage.RESULT_SCENE_STABLE,
-                frame,
-                1f,
-                stableRenderReceipt = receipt,
-            )
-        }
-    }
-    LaunchedEffect(
-        revealHandoff?.key,
-        revealStartAllowed.value,
-        diagnosticFrame?.stage,
-        diagnosticFrame?.stageProgress?.let { (it * 10f).toInt() },
-    ) {
-        val key = revealHandoff?.key ?: return@LaunchedEffect
-        val frame = diagnosticFrame ?: return@LaunchedEffect
-        if (revealStartAllowed.value) latestPlaybackProgress.value(key, frame.stage, frame.stageProgress)
-    }
-    DisposableEffect(revealHandoff?.key) {
-        val key = revealHandoff?.key
-        onDispose { if (key != null) onPlaybackInterrupted(key) }
-    }
+    val bbox = revealRuntime.bbox
+    val primaryFishAmbiguous = revealRuntime.primaryFishAmbiguous
+    val decisionHandoff = revealRuntime.decisionHandoff
+    val photoTransitionGeometry = revealRuntime.photoTransitionGeometry
+    val revealGeometryResolution = revealRuntime.revealGeometryResolution
+    val revealGeometry = revealRuntime.revealGeometry
+    val visualHandoff = revealRuntime.visualHandoff
+    val revealPhotoIdentityMatches = revealRuntime.revealPhotoIdentityMatches
+    val revealStartReady = revealRuntime.revealStartReady
+    val resultGeometryReady = revealRuntime.resultGeometryReady
+    val diagnosticUiAvailable = revealRuntime.diagnosticUiAvailable
+    val diagnosticManualActive = revealRuntime.diagnosticManualActive
+    val resultSceneIdentity = revealRuntime.resultSceneIdentity
+    val resultSceneStage = revealRuntime.resultSceneStage
+    val resultHostBounds = revealRuntime.resultHostBounds
+    val resultGeometryVersion = revealRuntime.resultGeometryVersion
+    val resultGeometryVersions = revealRuntime.resultGeometryVersions
+    val resultHandoffEventSequence = revealRuntime.resultHandoffEventSequence
+    val diagnosticReferenceMs = revealRuntime.diagnosticReferenceMs
+    val diagnosticPreviewElapsedMs = revealRuntime.diagnosticPreviewElapsedMs
+    val diagnosticPreviewCompleted = revealRuntime.diagnosticPreviewCompleted
+    val diagnosticPaused = revealRuntime.diagnosticPaused
+    val diagnosticFrame = revealRuntime.diagnosticFrame
+    val latestEvidenceResultFrame = revealRuntime.latestEvidenceResultFrame
+    val diagnosticStage = revealRuntime.diagnosticStage
+    val geometryResolutionReason = revealRuntime.geometryResolutionReason
+    val geometryInvalid = revealRuntime.geometryInvalid
+    val resultHandoffMotionActive = revealRuntime.resultHandoffMotionActive
+    val resultSceneHandoffAccepted = revealRuntime.resultSceneHandoffAccepted
+    val resultInteractionsEnabled = revealRuntime.resultInteractionsEnabled
+    val resultContentAlpha = revealRuntime.resultContentAlpha
+    val resultInfoArrivalPermitted = revealRuntime.resultInfoArrivalPermitted
+    val resultInfoEntranceProgress = revealRuntime.resultInfoEntranceProgress
+    val resultInfoAlpha = revealRuntime.resultInfoAlpha
+    val resultInfoTranslationY = revealRuntime.resultInfoTranslationY
+    val revealPresentationReady = revealRuntime.revealPresentationReady
+    val revealPending = revealRuntime.revealPending
+    val presentedHandoff = revealRuntime.presentedHandoff
+    val frameMotionPolicy = revealRuntime.frameMotionPolicy
+    val activeRevealSceneFrame = revealRuntime.activeRevealSceneFrame
+    val revealFrameState = revealRuntime.revealFrameState
+    val photoTransformAtTarget = revealRuntime.photoTransformAtTarget
+    val opticalResidueStatus = revealRuntime.opticalResidueStatus
+    val resultSceneStableStatus = revealRuntime.resultSceneStableStatus
 
     fun save(destination: RecognitionSaveDestination) {
         if (saving || saveRequested) return
