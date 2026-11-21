@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -18,11 +17,24 @@ MODULES = {
     "recognition-result-ui": {"application-core", "recognition-domain", "recognition-runtime", "recognition-ui"},
     "app": {"application-core", "recognition-domain", "recognition-runtime", "waterlight-renderer", "recognition-ui", "recognition-result-ui"},
 }
+BASELINE_TEST_SOURCE_COUNT = 144
 MOVED_RESOURCES = {
-    "app/src/main/res/drawable/image_error_v12.xml": "recognition-ui/src/main/res/drawable/image_error_v12.xml",
-    "app/src/main/res/drawable-nodpi/ai_orb_camera_activated_v1.webp": "recognition-ui/src/main/res/drawable-nodpi/ai_orb_camera_activated_v1.webp",
-    "app/src/main/res/drawable-nodpi/capture_button_main_v1.png": "recognition-ui/src/main/res/drawable-nodpi/capture_button_main_v1.png",
-    "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp": "recognition-ui/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
+    "app/src/main/res/drawable/image_error_v12.xml": (
+        "recognition-ui/src/main/res/drawable/image_error_v12.xml",
+        "fb86a7df2aef5c48e31289e9b30f5a5bfe254feddd66fb50423834f174ff0fd6",
+    ),
+    "app/src/main/res/drawable-nodpi/ai_orb_camera_activated_v1.webp": (
+        "recognition-ui/src/main/res/drawable-nodpi/ai_orb_camera_activated_v1.webp",
+        "f8114d5d6d1b2211ce3527e849b07ed9434d8d102f88b247bac28aa2eaea870a",
+    ),
+    "app/src/main/res/drawable-nodpi/capture_button_main_v1.png": (
+        "recognition-ui/src/main/res/drawable-nodpi/capture_button_main_v1.png",
+        "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+    ),
+    "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp": (
+        "recognition-ui/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
+        "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+    ),
 }
 REQUIRED_OWNERS = {
     "application-core/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt": "app/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
@@ -74,44 +86,23 @@ def visit(module: str) -> None:
 for name in graph:
     visit(name)
 
-baseline_test_paths: set[str] = set()
-for revision in ("HEAD", "HEAD^"):
-    result = subprocess.run(
-        ["git", "ls-tree", "-r", "--name-only", revision], cwd=ROOT,
-        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, check=False,
-    )
-    if result.returncode == 0:
-        baseline_test_paths.update(
-            path for path in result.stdout.splitlines()
-            if path.endswith(".kt") and ("/src/test/" in path or "/src/androidTest/" in path)
-        )
 current_test_paths = {
     path.as_posix() for module in MODULES
     for source_set in ("src/test", "src/androidTest")
     for path in (ROOT / module / source_set).rglob("*.kt")
 }
-require(len(current_test_paths) >= len(baseline_test_paths),
-        f"Kotlin test sources were lost during module migration: baseline={len(baseline_test_paths)}, current={len(current_test_paths)}")
+require(len(current_test_paths) >= BASELINE_TEST_SOURCE_COUNT,
+        f"Kotlin test sources were lost during module migration: baseline={BASELINE_TEST_SOURCE_COUNT}, current={len(current_test_paths)}")
 
 for owner, retired in REQUIRED_OWNERS.items():
     require((ROOT / owner).is_file(), f"required production source is missing: {owner}")
     require(not (ROOT / retired).exists(), f"moved production source remains in App: {retired}")
 
-for original, destination in MOVED_RESOURCES.items():
+for original, (destination, expected_sha256) in MOVED_RESOURCES.items():
     current = ROOT / destination
     require(current.is_file(), f"moved resource is missing: {destination}")
     require(not (ROOT / original).exists(), f"resource still exists in the App module: {original}")
-    previous_bytes = None
-    for revision in ("HEAD", "HEAD^"):
-        result = subprocess.run(
-            ["git", "show", f"{revision}:{original}"], cwd=ROOT,
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False,
-        )
-        if result.returncode == 0:
-            previous_bytes = result.stdout
-            break
-    require(previous_bytes is not None, f"cannot find original resource bytes for {original} in HEAD or HEAD^")
-    require(hashlib.sha256(previous_bytes).digest() == hashlib.sha256(current.read_bytes()).digest(),
+    require(hashlib.sha256(current.read_bytes()).hexdigest() == expected_sha256,
             f"resource bytes changed while moving {original}")
 
 for module in ("application-core", "recognition-ui", "recognition-result-ui"):
