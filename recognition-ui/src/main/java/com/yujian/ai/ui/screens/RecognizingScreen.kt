@@ -3310,7 +3310,6 @@ private fun createRecognitionEnergyProducerSnapshot(
                 decision = if (pStarDeadlineExpired) RecognitionRevealDecisionState.ORB_ONLY_READY
                 else RecognitionRevealDecisionState.WAITING_PSTAR_PATH
             }
-            if (decision == RecognitionRevealDecisionState.ORB_ONLY_READY || fullRoute == null) {
             if (decision == RecognitionRevealDecisionState.ORB_ONLY_READY) {
                 val perimeterRoute = ledger.returnRoute(frame, trustedMask = false)
                 pathSegments = perimeterRoute?.segments.orEmpty()
