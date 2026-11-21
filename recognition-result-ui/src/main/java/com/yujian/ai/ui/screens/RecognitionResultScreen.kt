@@ -380,21 +380,16 @@ fun RecognitionResultScreen(
     )
     val bbox = revealRuntime.bbox
     val primaryFishAmbiguous = revealRuntime.primaryFishAmbiguous
-    val decisionHandoff = revealRuntime.decisionHandoff
     val photoTransitionGeometry = revealRuntime.photoTransitionGeometry
-    val revealGeometryResolution = revealRuntime.revealGeometryResolution
     val revealGeometry = revealRuntime.revealGeometry
     val visualHandoff = revealRuntime.visualHandoff
     val revealPhotoIdentityMatches = revealRuntime.revealPhotoIdentityMatches
     val revealStartReady = revealRuntime.revealStartReady
     val resultGeometryReady = revealRuntime.resultGeometryReady
     val diagnosticUiAvailable = revealRuntime.diagnosticUiAvailable
-    val diagnosticManualActive = revealRuntime.diagnosticManualActive
     val resultSceneIdentity = revealRuntime.resultSceneIdentity
     val resultSceneStage = revealRuntime.resultSceneStage
-    val resultHostBounds = revealRuntime.resultHostBounds
     val resultGeometryVersion = revealRuntime.resultGeometryVersion
-    val resultGeometryVersions = revealRuntime.resultGeometryVersions
     val resultHandoffEventSequence = revealRuntime.resultHandoffEventSequence
     val diagnosticReferenceMs = revealRuntime.diagnosticReferenceMs
     val diagnosticPreviewElapsedMs = revealRuntime.diagnosticPreviewElapsedMs
@@ -403,23 +398,16 @@ fun RecognitionResultScreen(
     val diagnosticFrame = revealRuntime.diagnosticFrame
     val latestEvidenceResultFrame = revealRuntime.latestEvidenceResultFrame
     val diagnosticStage = revealRuntime.diagnosticStage
-    val geometryResolutionReason = revealRuntime.geometryResolutionReason
-    val geometryInvalid = revealRuntime.geometryInvalid
     val resultHandoffMotionActive = revealRuntime.resultHandoffMotionActive
     val resultSceneHandoffAccepted = revealRuntime.resultSceneHandoffAccepted
     val resultInteractionsEnabled = revealRuntime.resultInteractionsEnabled
     val resultContentAlpha = revealRuntime.resultContentAlpha
-    val resultInfoArrivalPermitted = revealRuntime.resultInfoArrivalPermitted
     val resultInfoEntranceProgress = revealRuntime.resultInfoEntranceProgress
     val resultInfoAlpha = revealRuntime.resultInfoAlpha
     val resultInfoTranslationY = revealRuntime.resultInfoTranslationY
     val revealPresentationReady = revealRuntime.revealPresentationReady
-    val revealPending = revealRuntime.revealPending
     val presentedHandoff = revealRuntime.presentedHandoff
-    val frameMotionPolicy = revealRuntime.frameMotionPolicy
-    val activeRevealSceneFrame = revealRuntime.activeRevealSceneFrame
     val revealFrameState = revealRuntime.revealFrameState
-    val photoTransformAtTarget = revealRuntime.photoTransformAtTarget
     val opticalResidueStatus = revealRuntime.opticalResidueStatus
     val resultSceneStableStatus = revealRuntime.resultSceneStableStatus
 
