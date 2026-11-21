@@ -130,6 +130,8 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionFishGoldRenderReceipt
+import com.yujian.ai.ui.waterlight.core.RecognitionContourRenderReceipt
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathBindingStatus
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneTimelineProjection
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
@@ -2077,6 +2079,8 @@ fun RecognitionProcessingScene(
             maskRevealProgress = maskContourRevealProgress,
             trustedMask = trustedSubjectMask,
             stage045GlPresented = stage045GlPresented,
+            onGoldRenderComplete = { receipt -> controller.onFishGoldRenderComplete(receipt, sceneIdentity) },
+            onContourRenderComplete = { receipt -> controller.onContourRenderComplete(receipt, sceneIdentity) },
             onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx, actualOrbCenter, orbCoreDiameterPx, contactPointSource, contactMaskSha256, contactMaskVersion, contactGeometryVersion ->
                 controller.onOrbAnchorAvailable(
                     actualOrbCenter.x.isFinite() && actualOrbCenter.y.isFinite() && orbCoreDiameterPx.isFinite() && orbCoreDiameterPx > 1f,
@@ -2775,6 +2779,8 @@ private fun RecognitionPhoto(
     maskRevealProgress: Float,
     trustedMask: Boolean,
     stage045GlPresented: Boolean = false,
+    onGoldRenderComplete: ((RecognitionFishGoldRenderReceipt) -> Boolean)? = null,
+    onContourRenderComplete: ((RecognitionContourRenderReceipt) -> Boolean)? = null,
 ) {
     val transform = remember(photoFlowPlan, photoEntryProgress) {
         interpolateRecognitionPhotoTransform(
@@ -3037,12 +3043,8 @@ private fun RecognitionPhoto(
                 trustedMask = trustedMask,
                 maskVersion = subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(maskSha256) } ?: -1L,
                 fishPathId = pStarPathId,
-                onGoldRenderComplete = { receipt ->
-                    controller.onFishGoldRenderComplete(receipt, sceneIdentity)
-                },
-                onContourRenderComplete = { receipt ->
-                    controller.onContourRenderComplete(receipt, sceneIdentity)
-                },
+                onGoldRenderComplete = onGoldRenderComplete,
+                onContourRenderComplete = onContourRenderComplete,
                 waterLightFrame = waterLightFrame,
                 energyEvent = energyEvent,
                 material = waterHosts.getValue(WaterLightHost.CONTOUR).material,
