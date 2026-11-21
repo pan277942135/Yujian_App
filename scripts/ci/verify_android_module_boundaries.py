@@ -148,6 +148,15 @@ for module in MODULES:
             internal_fqns[f"{package}.{name}"] = module
 
 for consumer in MODULES:
+    visible_modules = {consumer}
+    pending_modules = list(graph[consumer])
+    while pending_modules:
+        dependency = pending_modules.pop()
+        if dependency in visible_modules:
+            continue
+        visible_modules.add(dependency)
+        pending_modules.extend(graph[dependency])
+
     sources = [
         path
         for source_set in ("src/main/java", "src/test/java", "src/androidTest/java", "src/debug/java")
@@ -159,5 +168,10 @@ for consumer in MODULES:
             owner = internal_fqns.get(imported)
             require(owner is None or owner == consumer,
                     f"cross-module internal API import {imported}: :{consumer} -> :{owner}")
+            owner_path = fqns.get(imported)
+            if owner_path is not None:
+                owner_module = owner_path.relative_to(ROOT).parts[0]
+                require(owner_module in visible_modules,
+                        f"cross-module import without Gradle dependency {imported}: :{consumer} -> :{owner_module}")
 
 print(f"PASS: module graph is acyclic; {len(MODULES)} module boundaries, {len(MOVED_RESOURCES)} unchanged resources, {len(fqns)} production types verified")
