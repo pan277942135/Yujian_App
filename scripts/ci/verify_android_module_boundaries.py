@@ -152,14 +152,6 @@ for module in MODULES:
     module_sources[module] = []
     for path in source_root.rglob("*.kt"):
         source = path.read_text(encoding="utf-8")
-        package_match = re.search(r"^package\s+([A-Za-z0-9_.]+)", source, re.MULTILINE)
-        if package_match:
-            consumer_package = package_match.group(1)
-            for internal_fqn, owner in internal_fqns.items():
-                internal_package, symbol = internal_fqn.rsplit(".", 1)
-                if owner != consumer and internal_package == consumer_package:
-                    if re.search(rf"\b{re.escape(symbol)}\b", source):
-                        fail(f"cross-module same-package internal API reference {internal_fqn}: :{consumer} -> :{owner}")
         module_sources[module].append(path)
         package_match = re.search(r"^package\s+([A-Za-z0-9_.]+)", source, re.MULTILINE)
         if not package_match:
@@ -193,6 +185,14 @@ for consumer in MODULES:
     ]
     for path in sources:
         source = path.read_text(encoding="utf-8")
+        package_match = re.search(r"^package\s+([A-Za-z0-9_.]+)", source, re.MULTILINE)
+        if package_match:
+            consumer_package = package_match.group(1)
+            for internal_fqn, owner in internal_fqns.items():
+                internal_package, symbol = internal_fqn.rsplit(".", 1)
+                if owner != consumer and internal_package == consumer_package:
+                    if re.search(rf"\b{re.escape(symbol)}\b", source):
+                        fail(f"cross-module same-package internal API reference {internal_fqn}: :{consumer} -> :{owner}")
         for imported in re.findall(r"^import\s+([A-Za-z0-9_.]+)\s*$", source, re.MULTILINE):
             owner = internal_fqns.get(imported)
             require(owner is None or owner == consumer,
