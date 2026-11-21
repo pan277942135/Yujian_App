@@ -43,6 +43,11 @@ class RuntimeTraceMatrixV2Test(unittest.TestCase):
             self.assertEqual("SOURCE_IMPLEMENTED", row["Source Status"], row["KF_ID"])
         capture_keys = [row["Evidence Capture Key"] for row in self.checkpoints]
         self.assertEqual(len(capture_keys), len(set(capture_keys)))
+        for row in self.checkpoints:
+            self.assertTrue(
+                row["Evidence Capture Key"].startswith(f"{row['KF_ID']}_"),
+                f"{row['KF_ID']} evidence key is attributed to the wrong checkpoint",
+            )
 
     def test_visual_checkpoints_do_not_create_a_second_stage_machine(self):
         self.assertIn("outside recognition animation", self.by_id["KF00"]["Runtime Stage"])
