@@ -855,85 +855,6 @@ fun RecognitionResultScreen(
         }
     }
 
-    // Snapshot nullable Compose values before the result milestone effects. This keeps event
-    // guards identical while avoiding a FIR flow-analysis crash in this large composable.
-    val handoffMilestoneKey = revealHandoff?.key
-    val handoffMilestoneFrame = diagnosticFrame
-    val handoffMilestoneStage = handoffMilestoneFrame?.stage
-    val handoffMilestoneStageElapsedMs = handoffMilestoneFrame?.stageElapsedMs
-    val handoffMilestoneStageComplete = handoffMilestoneFrame?.stageEventComplete
-    val handoffMilestoneResult = resultSnapshot
-    val handoffMilestoneCompletedSubstages =
-        handoffMilestoneResult?.handoffState?.completedSubstages.orEmpty()
-    val handoffMilestoneHeroReady = heroSnapshot?.renderReady
-
-    LaunchedEffect(handoffMilestoneKey, handoffMilestoneStage, handoffMilestoneStageComplete) {
-        val frame = handoffMilestoneFrame ?: return@LaunchedEffect
-        if (frame.stageEventComplete) {
-            diagnosticPlaybackController?.onSceneTransitionComplete(frame.stage, resultSceneIdentity)
-        }
-    }
-    LaunchedEffect(
-        handoffMilestoneKey,
-        resultFirstPresentedAtMs.value,
-        resultGeometryReady,
-        handoffMilestoneStage,
-        revealFrameState.value.photoProgress >= .999f,
-        handoffMilestoneResult?.resultDataReady,
-        handoffMilestoneCompletedSubstages,
-    ) {
-        val key = handoffMilestoneKey ?: return@LaunchedEffect
-        val frame = handoffMilestoneFrame ?: return@LaunchedEffect
-        val result = handoffMilestoneResult ?: return@LaunchedEffect
-        if (resultFirstPresentedAtMs.value != null && resultGeometryReady &&
-            result.key == key && result.resultDataReady &&
-            ResultHandoffSubstage.PHOTO_SETTLE in handoffMilestoneCompletedSubstages &&
-            ResultHandoffSubstage.RESULT_SCENE_HANDOFF !in handoffMilestoneCompletedSubstages &&
-            frame.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
-            revealFrameState.value.photoProgress >= .999f
-        ) {
-            emitResultHandoffMilestone(ResultHandoffSubstage.RESULT_SCENE_HANDOFF, frame, 1f)
-        }
-    }
-    LaunchedEffect(
-        handoffMilestoneKey,
-        handoffMilestoneStage,
-        resultGeometryReady,
-        revealTitleBounds,
-        prediction.top1.speciesKey,
-        prediction.top1.speciesName,
-        handoffMilestoneResult?.resultDataReady,
-        handoffMilestoneResult?.glyphSpeciesKey,
-        handoffMilestoneResult?.glyphSpeciesName,
-        selectedKey,
-        selectedName,
-        glyphReadinessState,
-        handoffMilestoneCompletedSubstages,
-    ) {
-        val frame = handoffMilestoneFrame ?: return@LaunchedEffect
-        val result = handoffMilestoneResult ?: return@LaunchedEffect
-        val expectedName = resultSpeciesDisplayName(prediction.top1.speciesName)
-        val actuallyRendered = RecognitionGlyphReadinessContract.isRendered(
-            resultSceneIdentity,
-            prediction.top1.speciesKey,
-            expectedName,
-            glyphReadinessState,
-        )
-        if (frame.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL && actuallyRendered &&
-            resultGeometryReady && revealTitleBounds?.isValid() == true &&
-            result.key == handoffMilestoneKey && result.resultDataReady &&
-            ResultHandoffSubstage.NAME_STABLE !in handoffMilestoneCompletedSubstages &&
-            result.glyphSpeciesKey == prediction.top1.speciesKey &&
-            result.glyphSpeciesName == prediction.top1.speciesName &&
-            selectedKey == prediction.top1.speciesKey && resultSpeciesDisplayName(selectedName) == expectedName
-        ) {
-            emitResultHandoffMilestone(
-                ResultHandoffSubstage.NAME_STABLE,
-                frame,
-                glyphReadinessState.renderReceipt?.renderedProgress ?: 0f,
-            )
-        }
-    }
     val photoTransformAtTarget = remember(photoTransitionGeometry, revealFrameState.value.photoProgress) {
         val photo = photoTransitionGeometry
         val progress = revealFrameState.value.photoProgress
@@ -957,80 +878,44 @@ fun RecognitionResultScreen(
             kotlin.math.abs(clip.right - expectedClip.right) < 1f &&
             kotlin.math.abs(clip.bottom - expectedClip.bottom) < 1f
     }
-    LaunchedEffect(
-        handoffMilestoneKey,
-        handoffMilestoneStage,
-        handoffMilestoneStageComplete,
-        resultGeometryReady,
-        revealFrameState.value.photoProgress >= .999f,
-        photoTransformAtTarget,
-        handoffMilestoneHeroReady,
-        handoffMilestoneCompletedSubstages,
-    ) {
-        val frame = handoffMilestoneFrame ?: return@LaunchedEffect
-        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && resultGeometryReady &&
-            revealFrameState.value.photoProgress >= .999f && photoTransformAtTarget && handoffMilestoneHeroReady == true &&
-            ResultHandoffSubstage.NAME_STABLE in handoffMilestoneCompletedSubstages &&
-            ResultHandoffSubstage.PHOTO_SETTLE !in handoffMilestoneCompletedSubstages
-        ) {
-            emitResultHandoffMilestone(ResultHandoffSubstage.PHOTO_SETTLE, frame, revealFrameState.value.photoProgress)
-        }
-    }
-    LaunchedEffect(
-        handoffMilestoneKey,
-        handoffMilestoneStage,
-        handoffMilestoneStageElapsedMs,
-        resultInfoLayoutReady,
-        resultSceneHandoffAccepted,
-        handoffMilestoneCompletedSubstages,
-    ) {
-        val frame = handoffMilestoneFrame ?: return@LaunchedEffect
-        val result = handoffMilestoneResult ?: return@LaunchedEffect
-        val handoffKey = handoffMilestoneKey ?: return@LaunchedEffect
-        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE && resultInfoLayoutReady && resultSceneHandoffAccepted &&
-            result.key == handoffKey && result.resultDataReady &&
-            result.glyphSpeciesName == prediction.top1.speciesName && resultInfoEntranceStartedAtUptimeMs == null
-        ) {
-            resultInfoEntranceStartedAtUptimeMs = SystemClock.uptimeMillis()
-            recognitionEvidenceRecorder?.recordResultInfoEntranceCheckpoint(
-                checkpoint = "INFO_ENTRANCE_STARTED",
-                identity = resultSceneIdentity,
-                resultIdentity = prediction.top1.speciesKey,
-                stage = frame.stage,
-                stageProgress = frame.stageProgress,
-                entranceProgress = 0f,
-                geometryVersion = resultGeometryVersion,
-                renderStatus = "STARTED_AFTER_RESULT_SCENE_HANDOFF_ACCEPTED",
-            )
-        }
-    }
-    LaunchedEffect(
-        handoffMilestoneKey,
-        handoffMilestoneStage,
-        resultInfoRenderReceipt,
-        resultHandoffEventSequence,
-        handoffMilestoneCompletedSubstages,
-    ) {
-        val frame = handoffMilestoneFrame ?: return@LaunchedEffect
-        val receipt = resultInfoRenderReceipt ?: return@LaunchedEffect
-        if (frame.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
-            ResultHandoffSubstage.RESULT_SCENE_HANDOFF in handoffMilestoneCompletedSubstages &&
-            ResultHandoffSubstage.RESULT_INFO_ARRIVAL !in handoffMilestoneCompletedSubstages &&
-            RecognitionResultInfoRenderContract.isComplete(
-                expectedIdentity = resultSceneIdentity,
-                expectedResultIdentity = prediction.top1.speciesKey,
-                expectedGeometryVersion = resultGeometryVersion,
-                receipt = receipt,
-            )
-        ) {
+    RecognitionResultHandoffMilestoneEffects(
+        state = RecognitionResultHandoffMilestoneState(
+            handoffKey = revealHandoff?.key,
+            frame = diagnosticFrame,
+            resultSnapshot = resultSnapshot,
+            resultFirstPresentedAtMs = resultFirstPresentedAtMs.value,
+            resultGeometryReady = resultGeometryReady,
+            photoProgress = revealFrameState.value.photoProgress,
+            photoTransformAtTarget = photoTransformAtTarget,
+            heroRenderReady = heroSnapshot?.renderReady,
+            revealTitleReady = revealTitleBounds?.isValid() == true,
+            resultInfoLayoutReady = resultInfoLayoutReady,
+            resultSceneHandoffAccepted = resultSceneHandoffAccepted,
+            resultInfoEntranceStartedAtUptimeMs = resultInfoEntranceStartedAtUptimeMs,
+            resultInfoRenderReceipt = resultInfoRenderReceipt,
+            eventSequence = resultHandoffEventSequence,
+            sceneIdentity = resultSceneIdentity,
+            geometryVersion = resultGeometryVersion,
+            expectedSpeciesKey = prediction.top1.speciesKey,
+            expectedSpeciesName = prediction.top1.speciesName,
+            selectedSpeciesKey = selectedKey,
+            selectedSpeciesName = selectedName,
+            glyphReadiness = glyphReadinessState,
+        ),
+        diagnosticPlaybackController = diagnosticPlaybackController,
+        evidenceRecorder = recognitionEvidenceRecorder,
+        onResultInfoEntranceStarted = { startedAtMs ->
+            resultInfoEntranceStartedAtUptimeMs = startedAtMs
+        },
+        onEmitMilestone = { substage, frame, progress, infoReceipt ->
             emitResultHandoffMilestone(
-                ResultHandoffSubstage.RESULT_INFO_ARRIVAL,
-                frame,
-                receipt.renderedProgress,
-                infoRenderReceipt = receipt,
+                substage = substage,
+                frame = frame,
+                progress = progress,
+                infoRenderReceipt = infoReceipt,
             )
-        }
-    }
+        },
+    )
     val opticalResidueStatus = diagnosticFrame?.let { frame ->
         ResultStableReadiness.evaluateOpticalResidue(
             stage = frame.stage,
