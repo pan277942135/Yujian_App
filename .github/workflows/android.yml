@@ -219,15 +219,7 @@ jobs:
         run: python3 scripts/android_runtime/verify_orb_wake_breath_release_assets_v1_1.py
 
       - name: Unit tests (all source modules)
-        run: >-
-          bash scripts/ci/with-gradle-memory-diagnostics.sh unit-tests
-          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2"
-          :recognition-domain:test :recognition-runtime:test
-          :application-core:testDebugUnitTest
-          :waterlight-renderer:testDebugUnitTest
-          :recognition-ui:testDebugUnitTest :recognition-result-ui:testDebugUnitTest
-          :app:testDebugUnitTest
-          --console=plain --stacktrace --info --profile --no-daemon --max-workers=1
+        run: bash scripts/ci/run_android_module_unit_tests.sh "$YUJIAN_AAPT2"
 
       - name: Camera runtime harness contract tests
         run: bash scripts/android_runtime/tests/test_contract.sh
