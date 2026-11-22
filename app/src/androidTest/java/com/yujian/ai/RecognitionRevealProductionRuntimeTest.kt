@@ -251,10 +251,11 @@ class RecognitionRevealProductionRuntimeTest {
                         )
                     } else {
                         val completed = resultState.value
-                        if (completed?.prediction != null) {
+                        val prediction = completed?.prediction
+                        if (completed != null && prediction != null) {
                             RecognitionResultScreen(
                                 image = selectedImage,
-                                prediction = completed.prediction,
+                                prediction = prediction,
                                 productionResult = completed,
                                 subjectResult = actualSubject.get() ?: FishSubjectResult(SubjectStatus.IDLE),
                                 availableSpecies = catalog,

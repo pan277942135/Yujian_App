@@ -6,6 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.*
 import org.junit.Test
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCaptureVisualAssets
+import com.yujian.ai.recognition.ui.R as RecognitionUiR
 
 /** Runs against the exact installed APK, so a valid filename cannot mask corrupt bytes. */
 class CapturePresentationAssetRuntimeTest {
