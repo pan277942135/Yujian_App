@@ -16,6 +16,7 @@ import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
+import java.security.MessageDigest
 
 data class RecognitionRevealSessionSnapshot(
     val recognitionSessionId: String,
@@ -30,6 +31,9 @@ data class RecognitionRevealSessionSnapshot(
     val fishPathSnapshot: RecognitionFishPathSnapshot? = null,
     /** Path callback retained until Subject and measured Photo identities arrive. */
     val pendingFishPathSnapshot: RecognitionFishPathSnapshot? = null,
+    val fishPathSnapshotBindingState: RecognitionFishPathSnapshotBindingState =
+        RecognitionFishPathSnapshotBindingState.NOT_RECEIVED,
+    val fishPathSnapshotBindingDiagnostic: Map<String, String> = emptyMap(),
     val pStarPathTerminalUnavailable: Boolean = false,
     val pStarPathFailureReason: String? = null,
     val attemptStartedUptimeMs: Long = 0L,
@@ -52,10 +56,24 @@ internal enum class RecognitionFishPathSnapshotBindOutcome {
     WAITING_FOR_INPUTS,
     ACCEPTED,
     IDENTITY_MISMATCH,
+    MASK_MISMATCH,
+    GEOMETRY_MISMATCH,
+}
+
+enum class RecognitionFishPathSnapshotBindingState {
+    NOT_RECEIVED,
+    RECEIVED_PENDING,
+    BOUND,
+    REJECTED_IDENTITY,
+    REJECTED_MASK,
+    REJECTED_GEOMETRY,
+    REJECTED_FROZEN_HANDOFF,
 }
 
 /** Pure identity join used by SessionStore when Path, Photo, and Subject callbacks race. */
 internal object RecognitionFishPathSnapshotBinding {
+    const val P_STAR_VIEWPORT_TOLERANCE_PX = 1f
+
     fun evaluate(
         path: RecognitionFishPathSnapshot?,
         subjectStatus: SubjectStatus,
@@ -70,26 +88,91 @@ internal object RecognitionFishPathSnapshotBinding {
         if (path == null || subject == null || photo == null || subjectStatus != SubjectStatus.READY) {
             return RecognitionFishPathSnapshotBindOutcome.WAITING_FOR_INPUTS
         }
+        val identityMatches = path.sessionId == sessionId && path.attemptId == attemptId &&
+            path.imageId == imageId && path.photoSha256 == photoSha256 &&
+            path.photoContentVersion == photoContentVersion && photo.imageId == imageId &&
+            subject.imageId == imageId && subject.photoSha256 == photoSha256 &&
+            subject.recognitionSessionId == sessionId && subject.recognitionAttemptId == attemptId
+        if (!identityMatches) return RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH
+
+        val maskMatches = path.maskSha256 == subject.maskSha256 && path.maskVersion == subject.maskVersion &&
+            path.maskSha256 == photo.contactPointMaskSha256 &&
+            path.maskVersion == photo.contactPointMaskVersion
+        if (!maskMatches) return RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH
+
         val photoContact = photo.contactPointNormalizedSource?.let { WaterLightPathPoint(it.x, it.y) }
         val expectedContactInViewport = photo.contactPointNormalizedSource?.let {
             photo.sourceToViewport.mapNormalized(it.x, it.y)
         }?.let { WaterLightPathPoint(it.x, it.y) }
-        val accepted = path.isValid() && path.sessionId == sessionId && path.attemptId == attemptId &&
-            path.imageId == imageId && path.photoSha256 == photoSha256 &&
-            path.photoContentVersion == photoContentVersion && path.geometryVersion > 0L &&
-            photo.imageId == imageId && photo.sourceToViewport.sourceWidthPx == subject.sourceWidthPx &&
-            photo.sourceToViewport.sourceHeightPx == subject.sourceHeightPx &&
-            subject.imageId == imageId && subject.photoSha256 == photoSha256 &&
-            subject.recognitionSessionId == sessionId && subject.recognitionAttemptId == attemptId &&
-            path.maskSha256 == subject.maskSha256 && path.maskVersion == subject.maskVersion &&
-            path.pStarNormalizedSource == photoContact &&
-            path.fishPathGeometry.end == expectedContactInViewport &&
-            path.maskSha256 == photo.contactPointMaskSha256 &&
-            path.maskVersion == photo.contactPointMaskVersion &&
+        val endpointMatches = path.fishPathGeometry.end.isWithinViewportToleranceOf(
+            expectedContactInViewport,
+            P_STAR_VIEWPORT_TOLERANCE_PX,
+        )
+        val geometryMatches = path.isValid() && path.geometryVersion > 0L &&
             path.geometryVersion == photo.contactPointGeometryVersion &&
-            path.geometryVersion > 0L
-        return if (accepted) RecognitionFishPathSnapshotBindOutcome.ACCEPTED
-        else RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH
+            photo.sourceToViewport.sourceWidthPx == subject.sourceWidthPx &&
+            photo.sourceToViewport.sourceHeightPx == subject.sourceHeightPx &&
+            path.pStarNormalizedSource == photoContact && endpointMatches
+        return if (geometryMatches) RecognitionFishPathSnapshotBindOutcome.ACCEPTED
+        else RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH
+    }
+
+    fun diagnostic(
+        path: RecognitionFishPathSnapshot?,
+        subject: RecognitionSubjectGeometrySnapshot?,
+        photo: RecognitionProcessingPhotoSnapshot?,
+        sessionId: String,
+        attemptId: String,
+        imageId: String,
+        photoSha256: String,
+        photoContentVersion: Long,
+        state: RecognitionFishPathSnapshotBindingState,
+        subjectStatus: SubjectStatus,
+        handoffFrozen: Boolean,
+    ): Map<String, String> {
+        val expectedPStar = photo?.contactPointNormalizedSource?.let { WaterLightPathPoint(it.x, it.y) }
+        val expectedViewport = photo?.contactPointNormalizedSource?.let {
+            photo.sourceToViewport.mapNormalized(it.x, it.y)
+        }?.let { WaterLightPathPoint(it.x, it.y) }
+        val pendingInputs = buildList {
+            if (path == null) add("PATH")
+            if (subject == null) add("SUBJECT_GEOMETRY")
+            if (subjectStatus != SubjectStatus.READY) add("SUBJECT_READY")
+            if (photo == null) add("PROCESSING_PHOTO")
+        }.joinToString(",")
+        fun identityDigest(session: String, attempt: String, image: String, sha: String, version: Long): String =
+            MessageDigest.getInstance("SHA-256")
+                .digest("$session|$attempt|$image|$sha|$version".toByteArray(Charsets.UTF_8))
+                .joinToString("") { "%02x".format(it) }
+                .take(16)
+        return linkedMapOf(
+            "state" to state.name,
+            "expectedIdentityHash" to identityDigest(sessionId, attemptId, imageId, photoSha256, photoContentVersion),
+            "actualIdentityHash" to path?.let {
+                identityDigest(it.sessionId, it.attemptId, it.imageId, it.photoSha256, it.photoContentVersion)
+            }.orEmpty(),
+            "expectedMaskSha256" to subject?.maskSha256?.take(16).orEmpty(),
+            "actualMaskSha256" to path?.maskSha256?.take(16).orEmpty(),
+            "expectedMaskVersion" to subject?.maskVersion?.toString().orEmpty(),
+            "actualMaskVersion" to path?.maskVersion?.toString().orEmpty(),
+            "processingGeometryVersion" to photo?.contactPointGeometryVersion?.toString().orEmpty(),
+            "pathGeometryVersion" to path?.geometryVersion?.toString().orEmpty(),
+            "pStarSourceExpected" to expectedPStar?.let { "${it.x},${it.y}" }.orEmpty(),
+            "pStarSourceActual" to path?.pStarNormalizedSource?.let { "${it.x},${it.y}" }.orEmpty(),
+            "pStarViewportExpected" to expectedViewport?.let { "${it.x},${it.y}" }.orEmpty(),
+            "fishPathEndpoint" to path?.fishPathGeometry?.end?.let { "${it.x},${it.y}" }.orEmpty(),
+            "pathId" to path?.fishPathId.orEmpty(),
+            "pendingInputs" to pendingInputs,
+            "handoffFrozen" to handoffFrozen.toString(),
+        )
+    }
+
+    private fun WaterLightPathPoint.isWithinViewportToleranceOf(
+        expected: WaterLightPathPoint?,
+        tolerancePx: Float,
+    ): Boolean {
+        if (expected == null || !isValid() || !expected.isValid()) return false
+        return kotlin.math.hypot((x - expected.x).toDouble(), (y - expected.y).toDouble()) <= tolerancePx
     }
 }
 
@@ -168,25 +251,84 @@ class RecognitionRevealSessionStore : ViewModel() {
     ): Boolean {
         val current = snapshot ?: return false
         val image = current.image ?: return false
-        if (!current.matches(key) || !pathSnapshot.isValid() ||
-            pathSnapshot.sessionId != key.recognitionSessionId || pathSnapshot.attemptId != key.recognitionAttemptId ||
-            pathSnapshot.imageId != image.imageId || pathSnapshot.photoSha256 != image.photoSha256 ||
-            pathSnapshot.photoContentVersion != image.bitmap.generationId.toLong().coerceAtLeast(0L) ||
-            pathSnapshot.geometryVersion <= 0L
-        ) return false
+        if (!current.matches(key)) return false
+
+        val contentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L)
+        val rejection = when {
+            pathSnapshot.sessionId != key.recognitionSessionId ||
+                pathSnapshot.attemptId != key.recognitionAttemptId ||
+                pathSnapshot.imageId != image.imageId || pathSnapshot.photoSha256 != image.photoSha256 ||
+                pathSnapshot.photoContentVersion != contentVersion ->
+                RecognitionFishPathSnapshotBindingState.REJECTED_IDENTITY
+            !pathSnapshot.isValid() || pathSnapshot.geometryVersion <= 0L ->
+                RecognitionFishPathSnapshotBindingState.REJECTED_GEOMETRY
+            else -> null
+        }
+        if (rejection != null) {
+            snapshot = current.withPathBindingState(
+                state = rejection,
+                path = pathSnapshot,
+                reason = rejection.name,
+                handoffFrozen = current.handoff != null,
+            )
+            return false
+        }
         val existing = current.fishPathSnapshot
-        if (existing != null && existing != pathSnapshot) return false
-        if (existing == pathSnapshot) return true
+        if (existing == pathSnapshot) {
+            snapshot = current.withPathBindingState(
+                state = RecognitionFishPathSnapshotBindingState.BOUND,
+                path = pathSnapshot,
+                reason = null,
+                handoffFrozen = current.handoff != null,
+            )
+            return true
+        }
+        if (existing != null || (current.pendingFishPathSnapshot != null && current.pendingFishPathSnapshot != pathSnapshot)) {
+            snapshot = current.withPathBindingState(
+                state = if (current.handoff != null) {
+                    RecognitionFishPathSnapshotBindingState.REJECTED_FROZEN_HANDOFF
+                } else RecognitionFishPathSnapshotBindingState.REJECTED_IDENTITY,
+                path = pathSnapshot,
+                reason = if (current.handoff != null) "HANDOFF_FROZEN" else "PATH_SNAPSHOT_ALREADY_RECEIVED",
+                handoffFrozen = current.handoff != null,
+            )
+            return false
+        }
         // A completed handoff freezes the decision and all path identity. A late callback
         // cannot replace an Orb-only terminal route or mutate a FULL_REVEAL transaction.
-        if (current.handoff != null) return false
-        val staged = current.copy(pendingFishPathSnapshot = pathSnapshot, pStarPathFailureReason = null)
+        if (current.handoff != null) {
+            snapshot = current.withPathBindingState(
+                state = RecognitionFishPathSnapshotBindingState.REJECTED_FROZEN_HANDOFF,
+                path = pathSnapshot,
+                reason = "HANDOFF_FROZEN",
+                handoffFrozen = true,
+            )
+            return false
+        }
+        val staged = current.copy(
+            pendingFishPathSnapshot = pathSnapshot,
+            fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+            fishPathSnapshotBindingDiagnostic = RecognitionFishPathSnapshotBinding.diagnostic(
+                path = pathSnapshot,
+                subject = current.subjectGeometry,
+                photo = current.processingPhoto,
+                sessionId = current.recognitionSessionId,
+                attemptId = current.recognitionAttemptId.orEmpty(),
+                imageId = image.imageId,
+                photoSha256 = image.photoSha256,
+                photoContentVersion = contentVersion,
+                state = RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+                subjectStatus = current.subjectResult.status,
+                handoffFrozen = false,
+            ),
+            pStarPathFailureReason = null,
+        )
         val candidate = acceptPendingFishPathIfReady(staged)
         snapshot = candidate.copy(
             handoff = rebuildHandoff(candidate),
             revealDecision = decisionFor(candidate),
         )
-        return true
+        return candidate.pendingFishPathSnapshot == pathSnapshot || candidate.fishPathSnapshot == pathSnapshot
     }
 
     /** Called with the monotonic Attempt clock; only the real 60s deadline may end P* waiting. */
@@ -211,6 +353,21 @@ class RecognitionRevealSessionStore : ViewModel() {
     ): RecognitionRevealSessionSnapshot {
         val path = candidate.pendingFishPathSnapshot ?: return candidate
         val image = candidate.image ?: return candidate
+        val contentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L)
+        fun diagnostic(state: RecognitionFishPathSnapshotBindingState) =
+            RecognitionFishPathSnapshotBinding.diagnostic(
+                path = path,
+                subject = candidate.subjectGeometry,
+                photo = candidate.processingPhoto,
+                sessionId = candidate.recognitionSessionId,
+                attemptId = candidate.recognitionAttemptId.orEmpty(),
+                imageId = image.imageId,
+                photoSha256 = image.photoSha256,
+                photoContentVersion = contentVersion,
+                state = state,
+                subjectStatus = candidate.subjectResult.status,
+                handoffFrozen = candidate.handoff != null,
+            )
         return when (RecognitionFishPathSnapshotBinding.evaluate(
             path = path,
             subjectStatus = candidate.subjectResult.status,
@@ -220,19 +377,71 @@ class RecognitionRevealSessionStore : ViewModel() {
             attemptId = candidate.recognitionAttemptId.orEmpty(),
             imageId = image.imageId,
             photoSha256 = image.photoSha256,
-            photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),
+            photoContentVersion = contentVersion,
         )) {
-            RecognitionFishPathSnapshotBindOutcome.WAITING_FOR_INPUTS -> candidate
+            RecognitionFishPathSnapshotBindOutcome.WAITING_FOR_INPUTS -> candidate.copy(
+                fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+                fishPathSnapshotBindingDiagnostic = diagnostic(
+                    RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+                ),
+            )
             RecognitionFishPathSnapshotBindOutcome.ACCEPTED -> candidate.copy(
                 fishPathSnapshot = path,
                 pendingFishPathSnapshot = null,
+                fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.BOUND,
+                fishPathSnapshotBindingDiagnostic = diagnostic(RecognitionFishPathSnapshotBindingState.BOUND),
                 pStarPathFailureReason = null,
             )
             RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH -> candidate.copy(
                 pendingFishPathSnapshot = null,
+                fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.REJECTED_IDENTITY,
+                fishPathSnapshotBindingDiagnostic = diagnostic(
+                    RecognitionFishPathSnapshotBindingState.REJECTED_IDENTITY,
+                ),
                 pStarPathFailureReason = "PATH_IDENTITY_MISMATCH",
             )
+            RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH -> candidate.copy(
+                pendingFishPathSnapshot = null,
+                fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.REJECTED_MASK,
+                fishPathSnapshotBindingDiagnostic = diagnostic(
+                    RecognitionFishPathSnapshotBindingState.REJECTED_MASK,
+                ),
+                pStarPathFailureReason = "PATH_MASK_MISMATCH",
+            )
+            RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH -> candidate.copy(
+                pendingFishPathSnapshot = null,
+                fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.REJECTED_GEOMETRY,
+                fishPathSnapshotBindingDiagnostic = diagnostic(
+                    RecognitionFishPathSnapshotBindingState.REJECTED_GEOMETRY,
+                ),
+                pStarPathFailureReason = "PATH_GEOMETRY_MISMATCH",
+            )
         }
+    }
+
+    private fun RecognitionRevealSessionSnapshot.withPathBindingState(
+        state: RecognitionFishPathSnapshotBindingState,
+        path: RecognitionFishPathSnapshot,
+        reason: String?,
+        handoffFrozen: Boolean,
+    ): RecognitionRevealSessionSnapshot {
+        val activeImage = this.image
+        return copy(
+            fishPathSnapshotBindingState = state,
+            fishPathSnapshotBindingDiagnostic = RecognitionFishPathSnapshotBinding.diagnostic(
+                path = path,
+                subject = subjectGeometry,
+                photo = processingPhoto,
+                sessionId = recognitionSessionId,
+                attemptId = recognitionAttemptId.orEmpty(),
+                imageId = activeImage?.imageId.orEmpty(),
+                photoSha256 = activeImage?.photoSha256.orEmpty(),
+                photoContentVersion = activeImage?.bitmap?.generationId?.toLong()?.coerceAtLeast(0L) ?: 0L,
+                state = state,
+                subjectStatus = subjectResult.status,
+                handoffFrozen = handoffFrozen,
+            ) + mapOf("reason" to reason.orEmpty()),
+        )
     }
 
     fun fishPathSnapshot(key: RecognitionRevealKey): RecognitionFishPathSnapshot? =

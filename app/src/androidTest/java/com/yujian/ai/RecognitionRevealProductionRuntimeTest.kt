@@ -7,6 +7,7 @@ import android.os.Looper
 import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.test.ext.junit.rules.ActivityScenarioRule
@@ -55,7 +56,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffConsumer
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealSessionStore
+import com.yujian.ai.ui.recognition.reveal.RecognitionFishPathSnapshotBindingState
+import com.yujian.ai.ui.recognition.reveal.RecognitionHandoffTransactionStatus
+import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 import kotlinx.coroutines.runBlocking
 
 /** Runtime proof using the registered night-catch photo, production detector/classifier and ML Kit mask. */
@@ -96,6 +101,8 @@ class RecognitionRevealProductionRuntimeTest {
         val resultSceneFrame = mutableStateOf<com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame?>(null)
         val geometryResolution = AtomicReference<RecognitionRevealGeometryResolution?>()
         val resultEntries = AtomicInteger(0)
+        val navigationRequests = AtomicInteger(0)
+        val navigationRequestElapsedMs = AtomicReference<Long?>()
         val automaticHandoff = AtomicReference<RecognitionRevealHandoff?>()
         val handoffFailure = AtomicReference<String?>()
         val processingCaptureFailure = AtomicReference<String?>()
@@ -136,6 +143,15 @@ class RecognitionRevealProductionRuntimeTest {
             beginNewSession(sceneIdentity, debugBuild = false, nowMs = SystemClock.uptimeMillis())
         }
         val flowStartElapsedRealtimeMs = SystemClock.elapsedRealtime()
+        val navigationPrerequisitesReadyElapsedRealtimeMs = AtomicReference<Long?>()
+        fun markNavigationPrerequisitesReady() {
+            val state = revealSessionStore.snapshot ?: return
+            if (state.productionResult?.ready == true && state.fishPathSnapshot != null &&
+                state.revealDecision == com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState.FISH_FOCUS_READY
+            ) {
+                navigationPrerequisitesReadyElapsedRealtimeMs.compareAndSet(null, SystemClock.elapsedRealtime())
+            }
+        }
         val realTimeStages = Collections.synchronizedSet(EnumSet.of(sceneController.currentStage))
         val realTimeStageTimeline = Collections.synchronizedList(mutableListOf<JSONObject>())
         val lastObservedStage = AtomicReference<RecognitionSceneStage?>(null)
@@ -189,6 +205,7 @@ class RecognitionRevealProductionRuntimeTest {
                                             highConfidenceResult = result.prediction?.lowConfidence == false,
                                         )
                                         checkNotNull(decision) { "production classifier result lost its Session/Attempt/PhotoSession identity" }
+                                        markNavigationPrerequisitesReady()
                                     }
                                 } finally {
                                     pipeline.close()
@@ -210,6 +227,45 @@ class RecognitionRevealProductionRuntimeTest {
                                 if (handoff == null) {
                                     handoffFailure.set("production onFinished reached without a ready SessionStore classifier × SlimSAM gate")
                                 } else {
+                                    assertEquals(RecognitionSceneStage.ORB_RETURN, sceneController.currentStage)
+                                    val stage10Gate = sceneController.gateSnapshot(SystemClock.uptimeMillis())
+                                    val blockedBeforeResultMount = stage10Gate["unmetConditions"] as? List<*>
+                                    assertTrue(
+                                        "Stage10 must navigate while Result-only gates are pending: $stage10Gate",
+                                        blockedBeforeResultMount.orEmpty().containsAll(listOf(
+                                            "orbReturnRenderReceiptReady",
+                                            "orbReturnComplete",
+                                            "glyphAvailable",
+                                            "resultGeometryReady",
+                                        )),
+                                    )
+                                    assertTrue(!sceneController.resultGeometryIsReady())
+                                    assertTrue(!sceneController.orbReturnRenderReceiptReady())
+                                    assertTrue(!sceneController.orbReturnComplete())
+                                    assertEquals(
+                                        RecognitionFishPathSnapshotBindingState.BOUND,
+                                        revealSessionStore.snapshot?.fishPathSnapshotBindingState,
+                                    )
+                                    markNavigationPrerequisitesReady()
+                                    val prerequisitesReadyAt = requireNotNull(
+                                        navigationPrerequisitesReadyElapsedRealtimeMs.get(),
+                                    )
+                                    val navigationNowElapsed = SystemClock.elapsedRealtime()
+                                    val navigationNowUptime = SystemClock.uptimeMillis()
+                                    val stage10EntryElapsed = navigationNowElapsed -
+                                        sceneController.stageElapsedMs(navigationNowUptime)
+                                    val navigationReadyAt = maxOf(prerequisitesReadyAt, stage10EntryElapsed)
+                                    val navigationLatency = navigationNowElapsed - navigationReadyAt
+                                    assertTrue(
+                                        "Stage10 waited beyond the effective navigation cycle: ${navigationLatency}ms",
+                                        navigationLatency < 2_000L,
+                                    )
+                                    assertTrue(revealSessionStore.requestResultNavigation(
+                                        revealKey,
+                                        SystemClock.uptimeMillis(),
+                                    ))
+                                    navigationRequests.incrementAndGet()
+                                    navigationRequestElapsedMs.set(SystemClock.elapsedRealtime() - flowStartElapsedRealtimeMs)
                                     handoffState.value = handoff
                                     automaticHandoff.set(handoff)
                                     resultEntries.incrementAndGet()
@@ -226,6 +282,7 @@ class RecognitionRevealProductionRuntimeTest {
                                 subjectGeometry.set(geometry)
                                 subjectCallbackComplete.incrementAndGet()
                                 revealSessionStore.updateSubject(revealKey, subject, geometry)
+                                markNavigationPrerequisitesReady()
                                 if (subject.status == SubjectStatus.READY && geometry?.contour?.isNotEmpty() == true &&
                                     processingCaptureStarted.compareAndSet(false, true)
                                 ) {
@@ -239,9 +296,11 @@ class RecognitionRevealProductionRuntimeTest {
                             onProcessingPhotoSnapshot = { photo ->
                                 processingPhoto.set(photo)
                                 revealSessionStore.updateProcessingPhoto(revealKey, photo)
+                                markNavigationPrerequisitesReady()
                             },
                             onFishPathSnapshot = { pathSnapshot ->
                                 val accepted = revealSessionStore.updateFishPathSnapshot(revealKey, pathSnapshot)
+                                markNavigationPrerequisitesReady()
                                 if (!accepted) {
                                     handoffFailure.set(
                                         "production Processing PathLedger snapshot was rejected by SessionStore",
@@ -252,7 +311,14 @@ class RecognitionRevealProductionRuntimeTest {
                     } else {
                         val completed = resultState.value
                         val prediction = completed?.prediction
-                        if (completed != null && prediction != null) {
+                        val resultSnapshot = revealSessionStore.resultSnapshot(revealKey)
+                        if (completed != null && prediction != null && resultSnapshot != null) {
+                            LaunchedEffect(resultSnapshot.key) {
+                                check(revealSessionStore.markResultAttached(
+                                    resultSnapshot.key,
+                                    SystemClock.uptimeMillis(),
+                                )) { "Result route attachment was rejected after Stage10 navigation" }
+                            }
                             RecognitionResultScreen(
                                 image = selectedImage,
                                 prediction = prediction,
@@ -260,6 +326,17 @@ class RecognitionRevealProductionRuntimeTest {
                                 subjectResult = actualSubject.get() ?: FishSubjectResult(SubjectStatus.IDLE),
                                 availableSpecies = catalog,
                                 revealHandoff = handoffState.value,
+                                resultSnapshot = resultSnapshot,
+                                initialResultHandoffEventSequence = resultSnapshot.handoffState.lastEventSequence,
+                                initialResultHandoffEventTimestampMs = resultSnapshot.handoffState.lastEventTimestampMs,
+                                onResultHandoffEvent = { event ->
+                                    RecognitionResultHandoffConsumer.consume(
+                                        key = revealKey,
+                                        event = event,
+                                        store = revealSessionStore,
+                                        controller = sceneController,
+                                    )
+                                },
                                 sceneFrameOverrideForTest = resultSceneFrame.value,
                                 diagnosticPlaybackController = sceneController,
                                 revealAlreadyPlayed = false,
@@ -298,14 +375,29 @@ class RecognitionRevealProductionRuntimeTest {
             val handoff = requireNotNull(automaticHandoff.get())
             val resultEntryElapsedRealtimeMs = SystemClock.elapsedRealtime()
             assertEquals("production onFinished must enter Result exactly once", 1, resultEntries.get())
+            assertEquals("Stage10 must issue exactly one Result navigation request", 1, navigationRequests.get())
+            val navigationElapsed = requireNotNull(navigationRequestElapsedMs.get())
             assertTrue("result screen was not entered by the production callback", waitUntil(20_000L) { showResult.value })
-            assertTrue("Result geometry did not resolve from the Processing snapshot", waitUntil(20_000L) {
+            assertEquals(
+                RecognitionHandoffTransactionStatus.RESULT_ATTACHED,
+                revealSessionStore.snapshot?.resultHandoffState?.transactionStatus,
+            )
+            assertTrue("measured Result geometry did not open its controller gate", waitUntil(20_000L) {
                 val value = geometryResolution.get()
-                value != null && (value.geometry != null || value.failureReason?.endsWith("_PENDING") == false)
+                value?.geometry != null && sceneController.resultGeometryIsReady()
             })
             assertTrue(
                 "production AUTO playback did not visit all 13 stages; observed=${synchronized(realTimeStages) { realTimeStages.map { it.name } }}",
                 waitUntil(15_000L) { synchronized(realTimeStages) { realTimeStages.containsAll(RecognitionSceneStage.entries) } },
+            )
+            assertTrue(
+                "Stage 11–13.5 did not complete its measured render and handoff receipts; " +
+                    "stage=${sceneController.currentStage} events=${sceneController.completedResultHandoffSubstagesSnapshot()}",
+                waitUntil(45_000L) { sceneController.sceneComplete() },
+            )
+            assertEquals(
+                ResultHandoffSubstage.entries.toSet(),
+                sceneController.completedResultHandoffSubstagesSnapshot(),
             )
             saveScreenshot(evidence.resolve("Recognition_Result_Automatic_Handoff.png"))
             assertEquals(selectedImage.imageId, handoff.imageId)
@@ -315,6 +407,26 @@ class RecognitionRevealProductionRuntimeTest {
             assertEquals("Processing photo identity must cross the handoff unchanged", processingPhotoSnapshot.imageId, handoff.imageId)
             val trustedGeometry = requireNotNull(subjectGeometry.get())
             val fishPathSnapshot = requireNotNull(handoff.fishPathSnapshot)
+            val bindingProbe = RecognitionRevealSessionStore().apply {
+                beginAttempt(SESSION_ID, ATTEMPT_ID, selectedImage)
+            }
+            assertTrue(bindingProbe.updateFishPathSnapshot(revealKey, fishPathSnapshot))
+            assertEquals(
+                RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+                bindingProbe.snapshot?.fishPathSnapshotBindingState,
+            )
+            assertEquals(fishPathSnapshot, bindingProbe.snapshot?.pendingFishPathSnapshot)
+            bindingProbe.updateSubject(revealKey, maskResult, trustedGeometry)
+            assertEquals(
+                RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+                bindingProbe.snapshot?.fishPathSnapshotBindingState,
+            )
+            bindingProbe.updateProcessingPhoto(revealKey, processingPhotoSnapshot)
+            assertEquals(
+                RecognitionFishPathSnapshotBindingState.BOUND,
+                bindingProbe.snapshot?.fishPathSnapshotBindingState,
+            )
+            assertEquals(fishPathSnapshot, bindingProbe.snapshot?.fishPathSnapshot)
             assertEquals(SESSION_ID, fishPathSnapshot.sessionId)
             assertEquals(ATTEMPT_ID, fishPathSnapshot.attemptId)
             assertEquals(selectedImage.imageId, fishPathSnapshot.imageId)
@@ -333,6 +445,11 @@ class RecognitionRevealProductionRuntimeTest {
             }
             assertNotNull("the automatic Result host must submit its RETURN event to the shared controller",
                 acceptedAutomaticReturn)
+            assertTrue("RETURN Canvas receipt must precede EnergyEvent acceptance",
+                sceneController.orbReturnRenderReceiptReady())
+            assertTrue("accepted RETURN event must complete Stage 10", sceneController.orbReturnComplete())
+            assertEquals("Result RETURN must render and submit all three Processing ledger segments",
+                3, acceptedAutomaticReturn?.pathSegments?.size)
             assertEquals(fishPathSnapshot.returnPathId, acceptedAutomaticReturn?.pathId)
             assertEquals(fishPathSnapshot.returnPathSegments, acceptedAutomaticReturn?.pathSegments)
             assertEquals(fishPathSnapshot.maskSha256, acceptedAutomaticReturn?.pathMaskSha256)
@@ -505,6 +622,8 @@ class RecognitionRevealProductionRuntimeTest {
                 .put("result_entry_mode", "PRODUCTION_ON_FINISHED_SESSIONSTORE_COMPLETE_ATTEMPT_SHARED_CONTROLLER")
                 .put("flow_start_elapsed_realtime_ms", flowStartElapsedRealtimeMs)
                 .put("result_entry_elapsed_realtime_ms", resultEntryElapsedRealtimeMs)
+                .put("stage10_navigation_request_elapsed_ms", navigationElapsed)
+                .put("stage10_navigation_requests", navigationRequests.get())
                 .put("semantic_frames_sampled_elapsed_realtime_ms", semanticFramesSampledElapsedRealtimeMs)
                 .put("runtime_visual_acceptance", "API36_NATIVE_SCREEN_CAPTURED; deterministic stage projections are marked separately")
                 .put("real_time_playback", "CAPTURED_BY_NATIVE_SCREENRECORD; production AUTO controller and production handoff")

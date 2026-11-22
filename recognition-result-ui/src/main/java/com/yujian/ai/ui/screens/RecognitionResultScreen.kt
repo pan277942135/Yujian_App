@@ -333,6 +333,11 @@ fun RecognitionResultScreen(
                 .format(Date(it.captureTimestampEpochMs))
         }.orEmpty()
     }
+    // Keep the AndroidImageBitmap wrapper stable across the shared 60fps scene clock.
+    // ResultHeroViewport keys its crop render and measured snapshot by this value.
+    val heroImageBitmap = remember(image?.imageId, image?.bitmap?.generationId) {
+        image?.bitmap?.asImageBitmap()
+    }
     LaunchedEffect(saving, saveError) {
         if (!saving && saveRequested) {
             saveRequested = false
@@ -663,7 +668,7 @@ fun RecognitionResultScreen(
                 safeInsets = safeInsets,
                 resultPageScrollable = resultPageScrollable,
                 resultContentAlpha = resultContentAlpha,
-                heroBitmap = image?.bitmap?.asImageBitmap(),
+                heroBitmap = heroImageBitmap,
                 heroBoundingBox = bbox,
                 heroPrimaryAmbiguous = primaryFishAmbiguous,
                 heroWidthDp = geometry.heroWidthDp,

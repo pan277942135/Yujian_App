@@ -44,6 +44,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffContract
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultGeometryReadiness
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
@@ -271,8 +272,13 @@ fun RecognitionResultRevealCoordinator(
         revealGeometryReady = revealGeometry != null,
         reduceMotion = revealMotionPolicy.reduceMotion,
     )
-    val resultGeometryReady = revealPhotoIdentityMatches && photoTransitionGeometry != null &&
-        heroSnapshot?.renderReady == true && revealTitleBounds?.isValid() == true && revealGeometry != null
+    val resultGeometryReady = RecognitionResultGeometryReadiness.isReady(
+        photoIdentityMatches = revealPhotoIdentityMatches,
+        transitionGeometryReady = photoTransitionGeometry != null,
+        heroBoundsReady = heroSnapshot?.boundsInWindow?.isValid() == true,
+        titleBoundsReady = revealTitleBounds?.isValid() == true,
+        revealGeometryReady = revealGeometry != null,
+    )
     val diagnosticUiAvailable = false
     val diagnosticManualActive = diagnosticUiAvailable &&
         diagnosticPlaybackController?.mode == ScenePlaybackMode.MANUAL
@@ -463,7 +469,6 @@ fun RecognitionResultRevealCoordinator(
         !revealPhotoIdentityMatches && revealHandoff != null && image != null -> "PHOTO_IDENTITY_MISMATCH"
         !revealPhotoIdentityMatches -> "PHOTO_IDENTITY_PENDING"
         photoTransitionGeometry == null -> "PHOTO_TRANSITION_GEOMETRY_PENDING"
-        heroSnapshot?.renderReady != true -> "RESULT_HERO_PENDING"
         revealTitleBounds?.isValid() != true -> "RESULT_TITLE_BOUNDS_PENDING"
         revealGeometry == null -> "REVEAL_GEOMETRY_PENDING"
         else -> null
@@ -471,7 +476,7 @@ fun RecognitionResultRevealCoordinator(
     val geometryStillMeasuring = geometryResolutionReason in setOf(
         "LAYOUT_ROOT_PENDING", "LAYOUT_HERO_PENDING", "LAYOUT_TITLE_PENDING",
         "PHOTO_IDENTITY_PENDING", "PHOTO_TRANSITION_GEOMETRY_PENDING",
-        "RESULT_HERO_PENDING", "RESULT_TITLE_BOUNDS_PENDING", "REVEAL_GEOMETRY_PENDING",
+        "RESULT_TITLE_BOUNDS_PENDING", "REVEAL_GEOMETRY_PENDING",
     )
     // 350ms is an advisory threshold only. Keep the shared scene clock held while
     // Compose measures; only an explicit geometry rejection enters static fallback.

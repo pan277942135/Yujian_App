@@ -13,8 +13,36 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+
+/** Geometry and raster readiness are separate; a measured photo may be used while its crop renders. */
+object RecognitionResultGeometryReadiness {
+    fun isReady(
+        photoIdentityMatches: Boolean,
+        transitionGeometryReady: Boolean,
+        heroBoundsReady: Boolean,
+        titleBoundsReady: Boolean,
+        revealGeometryReady: Boolean,
+    ): Boolean = photoIdentityMatches && transitionGeometryReady && heroBoundsReady &&
+        titleBoundsReady && revealGeometryReady
+}
+
+/** RETURN waits for the Result Canvas receipt before the shared controller consumes its EnergyEvent. */
+object RecognitionReturnEventSubmissionReadiness {
+    fun isReady(
+        feedback: EnergyFeedback,
+        level: Float,
+        hasResultSceneFrame: Boolean,
+        returnCanvasReceiptAccepted: Boolean,
+        returnEnergyEventAlreadyAccepted: Boolean,
+    ): Boolean {
+        if (!hasResultSceneFrame || !level.isFinite() || level < .999f) return false
+        return feedback != EnergyFeedback.RETURN ||
+            (returnCanvasReceiptAccepted && !returnEnergyEventAlreadyAccepted)
+    }
+}
 
 object RecognitionGlyphPathInspector {
     fun inspect(

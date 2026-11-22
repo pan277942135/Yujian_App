@@ -149,6 +149,7 @@ class RecognitionSceneAnimationController(
     private var residueSettleComplete = false
     private var resultGeometryState = SceneGeometryState.PENDING
     private var residueRenderReceipt: RecognitionResidueRenderReceipt? = null
+    private var visualCheckpointCapturePendingStage: RecognitionSceneStage? = null
     private var failed = false
     var lastRejectedEnergyEvent: EnergyEventRejectionDiagnostic? = null
         private set
@@ -206,6 +207,7 @@ class RecognitionSceneAnimationController(
         paused = false
         previewCompleted = false
         diagnosticAuto = false
+        visualCheckpointCapturePendingStage = null
     }
 
     /** Compatibility reset for deterministic unit fixtures; production uses beginNewSession. */
@@ -218,6 +220,7 @@ class RecognitionSceneAnimationController(
         sceneClockStartedAtMs = nowMs.takeIf { !paused }
         stageStartedAtMs = nowMs
         mode = ScenePlaybackMode.AUTO
+        visualCheckpointCapturePendingStage = null
     }
 
     fun cancelSession() {
@@ -228,6 +231,7 @@ class RecognitionSceneAnimationController(
         sceneStartedAtMs = UNSET
         stageStartedAtMs = UNSET
         mode = ScenePlaybackMode.AUTO
+        visualCheckpointCapturePendingStage = null
     }
 
     /** PHOTO_STABLE and the scene clock start only after the current source photo is presented. */
@@ -1012,6 +1016,22 @@ class RecognitionSceneAnimationController(
 
     fun orbReturnComplete(): Boolean = orbReturnComplete
 
+    /** Holds the AUTO checkpoint stage until PixelCopy has copied its committed window frame. */
+    fun setVisualCheckpointCapturePending(
+        stage: RecognitionSceneStage,
+        pending: Boolean,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!isCurrent(currentIdentity)) return false
+        if (pending) {
+            if (currentStage != stage) return false
+            visualCheckpointCapturePendingStage = stage
+        } else if (visualCheckpointCapturePendingStage == stage) {
+            visualCheckpointCapturePendingStage = null
+        }
+        return true
+    }
+
     /** Samples and advances at most one event-gated stage. MANUAL never advances here. */
     fun currentSceneStage(
         nowMs: Long,
@@ -1025,6 +1045,7 @@ class RecognitionSceneAnimationController(
             return currentStage
         }
         if (!photoFirstFramePresented || paused || geometryGateStartedAtMs != null || failed) return currentStage
+        if (visualCheckpointCapturePendingStage == currentStage) return currentStage
         val elapsed = stageElapsedMs(nowMs)
         val progress = stageProgress(nowMs)
         val required = if (diagnosticAuto) maxOf(DIAGNOSTIC_STEP_DURATION_MS, minimum(currentStage)) else minimum(currentStage)

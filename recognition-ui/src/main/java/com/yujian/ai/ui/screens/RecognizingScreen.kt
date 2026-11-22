@@ -1716,6 +1716,9 @@ fun RecognitionProcessingScene(
                     frame = waterLightFrame.sceneFrame,
                     latestFrame = { latestEvidenceSceneFrame.value },
                     allowPixelCopyCapture = BuildConfig.DEBUG,
+                    onCheckpointCaptureGateChanged = { stage, pending ->
+                        controller.setVisualCheckpointCapturePending(stage, pending, sceneIdentity)
+                    },
                 )
             }
             .onGloballyPositioned { rootOrigin = it.boundsInWindow().topLeft },

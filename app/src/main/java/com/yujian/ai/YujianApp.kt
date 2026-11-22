@@ -339,6 +339,26 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
         }
     }
 
+    fun recordFishPathSessionStoreBinding(phase: String, key: RecognitionRevealKey) {
+        val boundState = revealSessionStore.snapshot?.takeIf { it.matches(key) } ?: return
+        val payload = linkedMapOf<String, Any?>(
+            "phase" to phase,
+            "sessionStoreState" to boundState.fishPathSnapshotBindingState.name,
+            "revealDecision" to boundState.revealDecision.name,
+            "pathBound" to (boundState.fishPathSnapshot != null),
+            "pathPending" to (boundState.pendingFishPathSnapshot != null),
+        ).apply { putAll(boundState.fishPathSnapshotBindingDiagnostic) }
+        Log.i(
+            "RecognitionRevealHandoff",
+            "FISH_PATH_SESSION_STORE_BINDING phase=$phase attempt=${key.recognitionAttemptId} " +
+                "state=${boundState.fishPathSnapshotBindingState} decision=${boundState.revealDecision} " +
+                "pathBound=${boundState.fishPathSnapshot != null} pending=${boundState.pendingFishPathSnapshot != null} " +
+                "reason=${boundState.fishPathSnapshotBindingDiagnostic["reason"]} " +
+                "pendingInputs=${boundState.fishPathSnapshotBindingDiagnostic["pendingInputs"]}",
+        )
+        recognitionEvidenceRecorder.recordGateDiagnostic("FISH_PATH_SESSION_STORE_BINDING", payload)
+    }
+
     fun handleIdentifyImageReady(selected: SelectedImage) {
         subjectAttemptRunner.cancel()
         // Each newly selected or captured photo owns a fresh Recognition session.
@@ -546,7 +566,19 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
             inferenceAsset = inferenceAsset ?: revealSessionStore.snapshot?.inferenceAsset,
             handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
         )
-        Log.i("RecognitionRevealHandoff", "RESULT_HANDOFF_${if (completed == null) "REJECTED" else "ACCEPTED"} phase=COMPLETE attempt=$attemptId decision=${completed?.revealDecision} reason=${if (completed == null) "COMPLETE_ATTEMPT_UNAVAILABLE" else "NONE"}")
+        val storeState = revealSessionStore.snapshot?.takeIf {
+            it.matches(RecognitionRevealKey(sessionId, attemptId))
+        }
+        Log.i(
+            "RecognitionRevealHandoff",
+            "RESULT_HANDOFF_${if (completed == null) "REJECTED" else "ACCEPTED"} phase=COMPLETE " +
+                "attempt=$attemptId decision=${completed?.revealDecision ?: storeState?.revealDecision} " +
+                "reason=${if (completed == null) "COMPLETE_ATTEMPT_UNAVAILABLE" else "NONE"} " +
+                "pathBinding=${storeState?.fishPathSnapshotBindingState} " +
+                "pathBound=${storeState?.fishPathSnapshot != null} pathPending=${storeState?.pendingFishPathSnapshot != null} " +
+                "pendingInputs=${storeState?.fishPathSnapshotBindingDiagnostic?.get("pendingInputs")} " +
+                "bindingReason=${storeState?.fishPathSnapshotBindingDiagnostic?.get("reason")}",
+        )
         return completed
     }
 
@@ -554,20 +586,26 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
     fun retryReadyRecognitionHandoff(attemptId: String): Boolean {
         if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return false
         val handoffNowMs = SystemClock.uptimeMillis()
+        val sessionId = recognitionSessionId ?: return false
+        val key = RecognitionRevealKey(sessionId, attemptId)
+        val saved = revealSessionStore.snapshot?.takeIf { it.matches(key) } ?: return false
         if (diagnosticPlaybackController.currentStage != RecognitionSceneStage.ORB_RETURN ||
             !diagnosticPlaybackController.resultVisualReady(handoffNowMs)
         ) {
             Log.i(
                 "RecognitionRevealHandoff",
                 "HANDOFF_RETRY_DEFERRED attempt=$attemptId stage=${diagnosticPlaybackController.currentStage} " +
-                    "reason=WAITING_FOR_STAGE_10_HANDOFF_READINESS",
+                    "reason=WAITING_FOR_STAGE_10_HANDOFF_READINESS decision=${saved.revealDecision} " +
+                    "pathBinding=${saved.fishPathSnapshotBindingState} " +
+                    "pathBound=${saved.fishPathSnapshot != null} pathPending=${saved.pendingFishPathSnapshot != null} " +
+                    "pendingInputs=${saved.fishPathSnapshotBindingDiagnostic["pendingInputs"]}",
             )
             return false
         }
-        val sessionId = recognitionSessionId ?: return false
-        val key = RecognitionRevealKey(sessionId, attemptId)
-        val saved = revealSessionStore.snapshot?.takeIf { it.matches(key) } ?: return false
-        val result = saved.productionResult?.takeIf { it.ready } ?: return false
+        val result = saved.productionResult?.takeIf { it.ready } ?: run {
+            Log.i("RecognitionRevealHandoff", "HANDOFF_RETRY_DEFERRED attempt=$attemptId reason=PRODUCTION_RESULT_NOT_READY")
+            return false
+        }
         val handoff = completeRecognitionAttempt(result, attemptId) ?: return false
         if (!RecognitionRevealDecisionGate.isNavigable(
                 handoff.revealDecision ?: RecognitionRevealDecisionState.WAITING_BOTH,
@@ -616,7 +654,11 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                 Log.w(
                     "RecognitionRevealDecision",
                     "NAVIGATION_BLOCKED session=$recognitionSessionId attempt=$attemptId " +
-                        "decision=${revealSessionStore.snapshot?.revealDecision}",
+                        "decision=${revealSessionStore.snapshot?.revealDecision} " +
+                        "pathBinding=${revealSessionStore.snapshot?.fishPathSnapshotBindingState} " +
+                        "pathBound=${revealSessionStore.snapshot?.fishPathSnapshot != null} " +
+                        "pendingInputs=${revealSessionStore.snapshot?.fishPathSnapshotBindingDiagnostic?.get("pendingInputs")} " +
+                        "bindingReason=${revealSessionStore.snapshot?.fishPathSnapshotBindingDiagnostic?.get("reason")}",
                 )
                 if (revealSessionStore.snapshot?.revealDecision == RecognitionRevealDecisionState.WAITING_PSTAR_PATH) {
                     schedulePStarDeadlineRetry(attemptId)
@@ -1049,6 +1091,10 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                 inferenceAsset = null,
                                 highConfidenceResult = highConfidence,
                             )
+                            recordFishPathSessionStoreBinding(
+                                "CLASSIFIER_RESULT",
+                                RecognitionRevealKey(requireNotNull(recognitionSessionId), attemptId),
+                            )
                             if (savedDecision != null) {
                                 productionResult = result
                                 prediction = result.prediction
@@ -1119,6 +1165,10 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                     resolvedSubject,
                                     geometry,
                                 )
+                                recordFishPathSessionStoreBinding(
+                                    "SUBJECT_GEOMETRY",
+                                    RecognitionRevealKey(sessionId, attemptId),
+                                )
                                 scope.launch { retryReadyRecognitionHandoff(attemptId) }
                             }
                         },
@@ -1126,6 +1176,10 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                             val sessionId = recognitionSessionId
                             if (sessionId != null && attemptId != null && activeRecognitionAttemptId == attemptId) {
                                 revealSessionStore.updateProcessingPhoto(RecognitionRevealKey(sessionId, attemptId), photo)
+                                recordFishPathSessionStoreBinding(
+                                    "PROCESSING_PHOTO",
+                                    RecognitionRevealKey(sessionId, attemptId),
+                                )
                                 scope.launch { retryReadyRecognitionHandoff(attemptId) }
                             }
                         },
@@ -1138,12 +1192,18 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                 val accepted = revealSessionStore.updateFishPathSnapshot(
                                     RecognitionRevealKey(sessionId, attemptId), pathSnapshot,
                                 )
+                                recordFishPathSessionStoreBinding(
+                                    "PATH_SNAPSHOT",
+                                    RecognitionRevealKey(sessionId, attemptId),
+                                )
                                 android.util.Log.i(
                                     "RecognitionRevealHandoff",
                                     "FISH_PATH_SNAPSHOT session=$sessionId attempt=$attemptId " +
                                         "image=${pathSnapshot.imageId} path=${pathSnapshot.fishPathId} " +
                                         "mask=${pathSnapshot.maskSha256.take(16)} mask_version=${pathSnapshot.maskVersion} " +
-                                        "geometry_version=${pathSnapshot.geometryVersion} accepted=$accepted",
+                                        "geometry_version=${pathSnapshot.geometryVersion} received=$accepted " +
+                                        "binding=${revealSessionStore.snapshot?.fishPathSnapshotBindingState} " +
+                                        "reason=${revealSessionStore.snapshot?.fishPathSnapshotBindingDiagnostic?.get("reason")}",
                                 )
                                 scope.launch { retryReadyRecognitionHandoff(attemptId) }
                             }

@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.recognition
 
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
 import com.yujian.ai.ui.waterlight.core.RecognitionOrbReturnRenderReceipt
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.EnergyAnchor
@@ -71,6 +72,22 @@ class RecognitionVisualStateControllerTest {
         controller.resume(0L, 10_700L)
         assertEquals(500L, controller.stageElapsedMs(10_700L))
         assertEquals(750L, controller.stageElapsedMs(10_950L))
+    }
+
+    @Test
+    fun autoCheckpointStageWaitsForItsPixelCopyBeforeAdvancing() {
+        val controller = SceneMotionCoordinator()
+        controller.beginNewSession(identity, debugBuild = false, nowMs = 0L)
+        assertTrue(controller.markPhotoFirstFramePresented(identity, 0L))
+        controller.onOrbAnchorAvailable(true, identity)
+        assertEquals(RecognitionSceneStage.ORB_WAKE, controller.currentSceneStage(1_000L))
+
+        assertTrue(controller.setVisualCheckpointCapturePending(RecognitionSceneStage.ORB_WAKE, true, identity))
+        assertFalse(controller.setVisualCheckpointCapturePending(RecognitionSceneStage.ORB_RELEASE, true, identity))
+        assertEquals(RecognitionSceneStage.ORB_WAKE, controller.currentSceneStage(5_000L))
+
+        assertTrue(controller.setVisualCheckpointCapturePending(RecognitionSceneStage.ORB_WAKE, false, identity))
+        assertEquals(RecognitionSceneStage.ORB_RELEASE, controller.currentSceneStage(5_001L))
     }
 
     @Test fun previousAndReplayTouchOnlyTheSelectedManualStage() {
@@ -574,13 +591,14 @@ class RecognitionVisualStateControllerTest {
         val snapshot = requireNotNull(ledger.exportRecognitionFishPathSnapshot(processingFrame, maskSha, 42L, contact))
         assertTrue(controller.onFishPathSnapshot(snapshot, runtimeIdentity))
         controller.beginStepPreview(RecognitionSceneStage.ORB_RETURN, 4_000L)
-        controller.setResultGeometryState(SceneGeometryState.READY, 4_000L, runtimeIdentity, setOf(resultGeometryVersion))
-        val resultScene = controller.currentFrame(runtimeIdentity, 7_000L, resultGeometryVersion)
-        val resultFrame = WaterLightFrame(
+        controller.setResultGeometryState(SceneGeometryState.PENDING, 4_000L, runtimeIdentity)
+        val pendingScene = controller.currentFrame(runtimeIdentity, 7_000L, resultGeometryVersion)
+            .copy(stageProgress = 1f)
+        fun handoffFrame(scene: RecognitionSceneFrame) = WaterLightFrame(
             sessionId = runtimeIdentity.sessionId,
             photoSha256 = photoSha,
-            elapsedMs = resultScene.sceneElapsedMs,
-            opticalReferenceElapsedMs = resultScene.opticalReferenceElapsedMs,
+            elapsedMs = scene.sceneElapsedMs,
+            opticalReferenceElapsedMs = scene.opticalReferenceElapsedMs,
             phase = WaterLightPhase.HANDOFF,
             completion = 0f,
             reducedMotion = false,
@@ -588,9 +606,29 @@ class RecognitionVisualStateControllerTest {
             attemptId = runtimeIdentity.attemptId,
             imageId = runtimeIdentity.imageId,
             photoContentVersion = runtimeIdentity.photoContentVersion,
-            eventSequence = resultScene.eventSequence,
-            sceneFrameOverride = resultScene,
+            eventSequence = scene.eventSequence,
+            sceneFrameOverride = scene,
         )
+        val pendingFrame = handoffFrame(pendingScene)
+        val fallbackReturn = requireNotNull(WaterLightEnergy.at(
+            frame = pendingFrame,
+            trustedMask = false,
+            successfulRevealAllowed = true,
+            orbOnlyRevealAllowed = true,
+            pathGeometry = snapshot.returnPathSegments.first(),
+        ))
+        assertEquals("photo-perimeter-to-original-orb", fallbackReturn.pathId)
+        assertTrue(fallbackReturn.pathSegments.isEmpty())
+        val geometryPendingResult = controller.recordEnergyEventWithReason(pendingScene, fallbackReturn)
+        assertFalse(geometryPendingResult.accepted)
+        assertEquals(
+            com.yujian.ai.ui.waterlight.core.EnergyEventRejectionReason.EVENT_GEOMETRY_MISMATCH,
+            geometryPendingResult.rejectionReason,
+        )
+
+        controller.setResultGeometryState(SceneGeometryState.READY, 4_000L, runtimeIdentity, setOf(resultGeometryVersion))
+        val resultScene = controller.currentFrame(runtimeIdentity, 7_000L, resultGeometryVersion)
+        val resultFrame = handoffFrame(resultScene)
         fun returned(pathId: String) = WaterLightEnergy.at(
             frame = resultFrame,
             trustedMask = true,

@@ -367,6 +367,118 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  # Exact-head AUTO recognition smoke on a GitHub-hosted API 36 AVD. The commit
+  # marker keeps this production-model flow opt-in while preserving the normal
+  # Android CI cost for unrelated updates.
+  recognition-result-api36-smoke:
+    if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' && contains(github.event.head_commit.message, '[recognition-result-api36-smoke]') }}
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+      ANDROID_AVD_HOME: ${{ github.workspace }}/.android-avd
+    steps:
+      - name: Checkout exact source commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.source_sha }}
+
+      - name: Set up API 36 Android SDK and AVD packages
+        uses: android-actions/setup-android@v3
+        with:
+          packages: >-
+            platform-tools
+            emulator
+            build-tools;35.0.0
+            system-images;android-36;google_apis;x86_64
+
+      - name: Enable KVM access for the hosted runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -r /dev/kvm && test -w /dev/kvm
+
+      - name: Download APK pair built from the exact source commit
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          path: build/runtime-apks
+
+      - name: Verify exact APK pair and hashes
+        run: |
+          set -euo pipefail
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+          test -s build/runtime-apks/app-debug.apk
+          test -s build/runtime-apks/app-debug-androidTest.apk
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          contract = json.loads(Path('build/runtime-apks/model_release_contract.json').read_text())
+          assert contract.get('build_sha') == os.environ['SOURCE_SHA'], contract.get('build_sha')
+          PY
+
+      - name: Run production AUTO smoke on API 36
+        id: api36_smoke
+        continue-on-error: true
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-boot-timeout: 600
+          script: |
+            set -euo pipefail
+            mkdir -p evidence/runtime/recognition-result-api36
+            adb install -r build/runtime-apks/app-debug.apk
+            adb install -r build/runtime-apks/app-debug-androidTest.apk
+            adb logcat -c
+            adb shell screenrecord --time-limit 180 /sdcard/Download/recognition-result-api36.mp4 \
+              > evidence/runtime/recognition-result-api36/screenrecord.log 2>&1 &
+            sleep 2
+            set +e
+            adb shell am instrument -w -r \
+              -e class 'com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal' \
+              com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner \
+              2>&1 | tee evidence/runtime/recognition-result-api36/instrumentation.log
+            smoke_status=${PIPESTATUS[0]}
+            set -e
+            recorder_pid="$(adb shell pidof screenrecord 2>/dev/null | tr -d '\r' || true)"
+            if [[ -n "$recorder_pid" ]]; then adb shell kill -INT "$recorder_pid" || true; fi
+            sleep 2
+            adb pull /sdcard/Download/recognition-result-api36.mp4 \
+              evidence/runtime/recognition-result-api36/recognition-result-api36.mp4 || true
+            adb logcat -d -v threadtime > evidence/runtime/recognition-result-api36/logcat.txt
+            if adb exec-out run-as com.yujian.ai.uiv2 tar -C cache -cf - rr09-gold-transfer-production \
+              > evidence/runtime/recognition-result-api36/test-cache.tar; then
+              tar -xf evidence/runtime/recognition-result-api36/test-cache.tar \
+                -C evidence/runtime/recognition-result-api36
+              rm evidence/runtime/recognition-result-api36/test-cache.tar
+            fi
+            exit "$smoke_status"
+
+      - name: Upload API 36 runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-recognition-result-api36-${{ needs.build.outputs.source_sha }}
+          path: evidence/runtime/recognition-result-api36
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce exact-head API 36 AUTO smoke result
+        if: always()
+        run: |
+          if [[ "${{ steps.api36_smoke.outcome }}" != "success" ]]; then
+            echo "API36_AUTO_SMOKE=FAIL_OR_INFRA_BLOCKED; inspect the uploaded exact-head runtime evidence."
+            exit 1
+          fi
+
   fish-optics-api36-runtime:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 316 }}
     needs: build

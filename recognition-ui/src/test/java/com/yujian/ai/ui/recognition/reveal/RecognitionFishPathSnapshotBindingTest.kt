@@ -66,11 +66,11 @@ class RecognitionFishPathSnapshotBindingTest {
             evaluate(path = path, subject = null, photo = photo),
         )
         assertEquals(
-            RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH,
+            RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH,
             evaluate(subject = subject.copy(maskSha256 = "c".repeat(64))),
         )
         assertEquals(
-            RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH,
+            RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH,
             evaluate(photo = photo.copy(contactPointGeometryVersion = geometryVersion + 1)),
         )
         assertEquals(
@@ -88,7 +88,7 @@ class RecognitionFishPathSnapshotBindingTest {
         )
         assertTrue("fixture remains a structurally continuous but P-star-mismatched route", wrongEndpoint.isValid())
         assertEquals(
-            RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH,
+            RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH,
             evaluate(path = wrongEndpoint),
         )
     }
@@ -96,11 +96,35 @@ class RecognitionFishPathSnapshotBindingTest {
     @Test
     fun nonPositiveGeometryCannotBindAndDuplicateCallbackIsIdempotentlyAcceptable() {
         assertEquals(
-            RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH,
+            RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH,
             evaluate(path = path.copy(geometryVersion = 0L)),
         )
         assertEquals(RecognitionFishPathSnapshotBindOutcome.ACCEPTED, evaluate())
         assertEquals(RecognitionFishPathSnapshotBindOutcome.ACCEPTED, evaluate())
+    }
+
+    @Test
+    fun samePStarWithSubPixelViewportProjectionDriftStillBinds() {
+        // The device trace supplies this P* source point. The 0.25 px endpoint
+        // perturbation is a deterministic candidate case, not a claim about an
+        // unlogged SessionStore rejection in that device run.
+        val tracedContact = DisplayPoint(.5604575f, .9372829f)
+        val tracedPhoto = photo.copy(contactPointNormalizedSource = tracedContact)
+        val projected = tracedPhoto.sourceToViewport.mapNormalized(tracedContact.x, tracedContact.y)
+        val roundedEndpoint = WaterLightPathPoint(projected.x + .25f, projected.y - .25f)
+        val roundedPath = path.copy(
+            pStarNormalizedSource = WaterLightPathPoint(tracedContact.x, tracedContact.y),
+            fishPathGeometry = path.fishPathGeometry.copy(end = roundedEndpoint),
+            returnPathSegments = path.returnPathSegments.toMutableList().also {
+                it[0] = it[0].copy(start = roundedEndpoint)
+            },
+        )
+
+        assertTrue("the rounded route remains a structurally valid three-segment snapshot", roundedPath.isValid())
+        assertEquals(
+            RecognitionFishPathSnapshotBindOutcome.ACCEPTED,
+            evaluate(path = roundedPath, photo = tracedPhoto),
+        )
     }
 
     private fun runOrder(order: List<String>): RecognitionFishPathSnapshot {
@@ -127,6 +151,8 @@ class RecognitionFishPathSnapshotBindingTest {
                         pendingPath = null
                     }
                     RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH -> error("valid callback order mismatched")
+                    RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH,
+                    RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH -> error("valid callback order mismatched")
                 }
             }
         }

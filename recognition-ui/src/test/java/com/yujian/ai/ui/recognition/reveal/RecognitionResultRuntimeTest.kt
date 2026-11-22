@@ -207,6 +207,78 @@ class RecognitionResultRuntimeTest {
     }
 
     @Test
+    fun measuredResultGeometryCanOpenBeforeTheHeroRasterReceipt() {
+        assertTrue(
+            RecognitionResultGeometryReadiness.isReady(
+                photoIdentityMatches = true,
+                transitionGeometryReady = true,
+                heroBoundsReady = true,
+                titleBoundsReady = true,
+                revealGeometryReady = true,
+            ),
+        )
+        val stable = ResultStableReadiness.evaluateResultSceneStable(
+            opticalResidue = OpticalResidueStatus(complete = true),
+            resultInfoLayoutReady = true,
+            resultGeometryReady = true,
+            photoTransformAtTarget = true,
+            heroRenderReady = false,
+            photoProgress = 1f,
+            resultInfoEntranceProgress = 1f,
+            eventSequenceSynced = true,
+            completedSubstages = setOf(
+                ResultHandoffSubstage.NAME_STABLE,
+                ResultHandoffSubstage.PHOTO_SETTLE,
+                ResultHandoffSubstage.RESULT_SCENE_HANDOFF,
+                ResultHandoffSubstage.RESULT_INFO_ARRIVAL,
+            ),
+            alreadyStable = false,
+        )
+        assertFalse(stable.ready)
+        assertEquals("HERO_RENDER_PENDING", stable.waitingReason)
+    }
+
+    @Test
+    fun terminalReturnEnergyWaitsForCanvasReceiptAndIsConsumedOnlyOnce() {
+        assertFalse(
+            RecognitionReturnEventSubmissionReadiness.isReady(
+                feedback = com.yujian.ai.ui.waterlight.core.EnergyFeedback.RETURN,
+                level = 1f,
+                hasResultSceneFrame = true,
+                returnCanvasReceiptAccepted = false,
+                returnEnergyEventAlreadyAccepted = false,
+            ),
+        )
+        assertTrue(
+            RecognitionReturnEventSubmissionReadiness.isReady(
+                feedback = com.yujian.ai.ui.waterlight.core.EnergyFeedback.RETURN,
+                level = 1f,
+                hasResultSceneFrame = true,
+                returnCanvasReceiptAccepted = true,
+                returnEnergyEventAlreadyAccepted = false,
+            ),
+        )
+        assertFalse(
+            RecognitionReturnEventSubmissionReadiness.isReady(
+                feedback = com.yujian.ai.ui.waterlight.core.EnergyFeedback.RETURN,
+                level = 1f,
+                hasResultSceneFrame = true,
+                returnCanvasReceiptAccepted = true,
+                returnEnergyEventAlreadyAccepted = true,
+            ),
+        )
+        assertFalse(
+            RecognitionReturnEventSubmissionReadiness.isReady(
+                feedback = com.yujian.ai.ui.waterlight.core.EnergyFeedback.ABSORB,
+                level = .98f,
+                hasResultSceneFrame = true,
+                returnCanvasReceiptAccepted = true,
+                returnEnergyEventAlreadyAccepted = false,
+            ),
+        )
+    }
+
+    @Test
     fun fullRevealReturnProjectionConsumesAllThreeOriginalSegmentsAndKeepsIdentity() {
         val identity = RecognitionSceneIdentity("session", "attempt", "image", "photo-sha", 42L)
         val maskSha = "a".repeat(64)

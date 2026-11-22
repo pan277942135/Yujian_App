@@ -563,6 +563,7 @@ class RecognitionSessionEvidenceRecorder(
         latestFrame: () -> RecognitionSceneFrame?,
         resultSceneStable: Boolean = false,
         allowPixelCopyCapture: Boolean = false,
+        onCheckpointCaptureGateChanged: ((RecognitionSceneStage, Boolean) -> Unit)? = null,
     ) {
         if (!allowPixelCopyCapture || window == null || frame.geometryVersion <= 0L) return
         val isCurrentFrame = synchronized(lock) {
@@ -579,6 +580,7 @@ class RecognitionSessionEvidenceRecorder(
             pendingVisualCheckpoints.firstOrNull { it.stage == frame.stage }
         }
         if (readyCheckpoint != null) {
+            onCheckpointCaptureGateChanged?.invoke(frame.stage, true)
             val handled = requestCapture(
                 window = window,
                 frame = frame,
@@ -587,6 +589,7 @@ class RecognitionSessionEvidenceRecorder(
                 directoryName = "checkpoints",
                 priority = "KEY",
                 checkpointId = readyCheckpoint.id,
+                onPixelCopyCompleted = { onCheckpointCaptureGateChanged?.invoke(frame.stage, false) },
             )
             if (handled) synchronized(lock) {
                 pendingVisualCheckpoints.removeAll { it.id == readyCheckpoint.id }
@@ -1014,18 +1017,25 @@ class RecognitionSessionEvidenceRecorder(
         directoryName: String,
         priority: String,
         checkpointId: String? = null,
+        onPixelCopyCompleted: (() -> Unit)? = null,
     ): Boolean {
         val setup = synchronized(lock) {
             if (activeIdentity?.matches(frame.identity) != true) null
             else activeAttempt?.let { it to activeGeneration }
-        } ?: return false
+        } ?: run {
+            onPixelCopyCompleted?.invoke()
+            return false
+        }
         val attempt = setup.first
         val generation = setup.second
         val captureId = UUID.randomUUID().toString()
         val drawFrameSequence: Long
         val requestTimestamp = SystemClock.uptimeMillis()
         synchronized(lock) {
-            if (generation != activeGeneration) return false
+            if (generation != activeGeneration) {
+                onPixelCopyCompleted?.invoke()
+                return false
+            }
             if (pixelCopySuspendedReason != null || pixelCopyInFlight ||
                 pendingBitmapWrites >= RecognitionEvidenceCapturePolicy.MAX_UNFINISHED_PIXEL_WRITES
             ) {
@@ -1038,6 +1048,7 @@ class RecognitionSessionEvidenceRecorder(
                         )
                     }
                     pendingVisualCheckpoints.removeAll { it.id == checkpointId }
+                    onPixelCopyCompleted?.invoke()
                 }
                 return false
             }
@@ -1054,6 +1065,7 @@ class RecognitionSessionEvidenceRecorder(
                     mapOf("captureId" to captureId, "stage" to frame.stage.name, "checkpointId" to checkpointId),
                     generation = generation,
                 )
+                onPixelCopyCompleted?.invoke()
                 // The request is terminally accounted for. Tell the caller not to retry
                 // this same checkpoint or blocked-stage frame on every subsequent draw.
                 return true
@@ -1086,6 +1098,7 @@ class RecognitionSessionEvidenceRecorder(
             ),
         )
         RecognitionPixelCopyCapture.request(window, frame, latestFrame) { result ->
+            onPixelCopyCompleted?.invoke()
             synchronized(lock) {
                 if (generation == activeGeneration) {
                     pixelCopyInFlight = false

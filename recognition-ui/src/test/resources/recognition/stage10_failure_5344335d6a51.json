@@ -1,0 +1,72 @@
+{
+  "fixtureKind": "DETERMINISTIC_LOGIC_FIXTURE_DERIVED_FROM_DEVICE_JSONL",
+  "sourceCommit": "3eb481c1f2ca4053fc58f87729f923fb70ef7f50",
+  "fullModelInferenceReplay": false,
+  "videoStatus": "REAL_DEVICE_EVIDENCE_UNAVAILABLE",
+  "timeline": {
+    "completedStageCount": 9,
+    "stage10EnteredSceneElapsedMs": 22444,
+    "stage10BlockedSceneElapsedMs": 23027,
+    "resultFirstPresentedSceneElapsedMs": 60006
+  },
+  "path": {
+    "controllerStatus": "PATH_BOUND",
+    "controllerDecision": "FISH_FOCUS_READY",
+    "maskTrusted": true,
+    "contourPointCount": 789,
+    "returnPathSegmentCount": 3,
+    "sessionStoreBinding": "NOT_OBSERVABLE",
+    "navigation": "NOT_OBSERVABLE"
+  },
+  "stage10Gate": {
+    "stage": "ORB_RETURN",
+    "stageProgress": 1.0,
+    "resultGeometryState": "PENDING",
+    "orbReturnComplete": false,
+    "glyphAvailable": false,
+    "unmetConditions": [
+      "orbReturnRenderReceiptReady",
+      "orbReturnComplete",
+      "glyphAvailable",
+      "resultGeometryReady"
+    ],
+    "lastRejectedEvent": "EVENT_STAGE_MISMATCH"
+  },
+  "resultGeometry": [
+    {
+      "sceneElapsedMs": 60006,
+      "failureReason": "LAYOUT_ROOT_PENDING",
+      "geometryReady": false,
+      "transitionGeometryReady": false,
+      "heroRenderReady": false,
+      "titleBoundsReady": false,
+      "revealGeometryReady": false
+    },
+    {
+      "sceneElapsedMs": 60006,
+      "failureReason": "RESULT_HERO_PENDING",
+      "geometryReady": false,
+      "transitionGeometryReady": true,
+      "heroRenderReady": false,
+      "titleBoundsReady": true,
+      "revealGeometryReady": true
+    }
+  ],
+  "returnEvent": {
+    "pathId": "photo-perimeter-to-original-orb",
+    "pathSegmentCount": 0,
+    "geometryMismatchRejected": true,
+    "sequence": 14
+  },
+  "capture": {
+    "checkpointCount": 26,
+    "captured": 1,
+    "missing": 10,
+    "notReached": 13,
+    "failed": 2,
+    "kf08Status": "CAPTURED",
+    "kf02Failure": "STAGE_IDENTITY_UNVERIFIED",
+    "kf09Failure": "STAGE_IDENTITY_UNVERIFIED",
+    "eventDrops": 0
+  }
+}

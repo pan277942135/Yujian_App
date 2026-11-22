@@ -153,6 +153,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometry
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhase
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealTitleMode
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect
+import com.yujian.ai.ui.recognition.reveal.RecognitionReturnEventSubmissionReadiness
 import com.yujian.ai.ui.recognition.RecognitionStepDiagnosticControls
 import com.yujian.ai.ui.recognition.result.RecognitionResultGeometryResolver
 import com.yujian.ai.ui.recognition.result.RecognitionResultInputValidation
@@ -299,6 +300,23 @@ fun RecognitionResultOpticalLayer(
                     ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
             )
         } else null
+        var returnCanvasReceiptAccepted by remember(
+            resultSceneIdentity,
+            processingFishPathSnapshot?.returnPathId,
+            geometryVersion,
+        ) {
+            mutableStateOf(diagnosticPlaybackController?.orbReturnRenderReceiptReady() == true)
+        }
+        var returnEnergyEventAccepted by remember(
+            resultSceneIdentity,
+            processingFishPathSnapshot?.returnPathId,
+        ) {
+            mutableStateOf(diagnosticPlaybackController?.orbReturnComplete() == true)
+        }
+        var returnEventWaitingLogged by remember(
+            resultSceneIdentity,
+            processingFishPathSnapshot?.returnPathId,
+        ) { mutableStateOf(false) }
         LaunchedEffect(
             resultFrame.sessionId,
             resultFrame.attemptId,
@@ -307,11 +325,36 @@ fun RecognitionResultOpticalLayer(
             resultEnergyEvent?.pathId,
             resultEnergyEvent?.eventSequence,
             resultEnergyEvent?.level?.let { it >= .999f },
+            returnCanvasReceiptAccepted,
+            returnEnergyEventAccepted,
         ) {
             val event = resultEnergyEvent ?: return@LaunchedEffect
+            val returnEventReady = RecognitionReturnEventSubmissionReadiness.isReady(
+                feedback = event.feedback,
+                level = event.level,
+                hasResultSceneFrame = resultSceneFrame != null,
+                returnCanvasReceiptAccepted = returnCanvasReceiptAccepted,
+                returnEnergyEventAlreadyAccepted = returnEnergyEventAccepted,
+            )
+            if (event.feedback == EnergyFeedback.RETURN && event.level >= .999f &&
+                resultSceneFrame != null && !returnCanvasReceiptAccepted
+            ) {
+                if (!returnEventWaitingLogged) {
+                    recognitionEvidenceRecorder?.recordGateDiagnostic(
+                        "RETURN_EVENT_WAITING_FOR_CANVAS_RECEIPT",
+                        mapOf(
+                            "stage" to event.stage.name,
+                            "pathId" to event.pathId,
+                            "eventSequence" to event.eventSequence,
+                            "geometryVersion" to event.geometryVersion,
+                        ),
+                    )
+                    returnEventWaitingLogged = true
+                }
+            }
             if (event.level >= .999f && resultSceneFrame != null) {
                 val activeController = diagnosticPlaybackController
-                if (event.feedback == EnergyFeedback.RETURN && activeController?.orbReturnComplete() == true) {
+                if (!returnEventReady) {
                     return@LaunchedEffect
                 }
                 val eventEvidence = mapOf(
@@ -333,6 +376,7 @@ fun RecognitionResultOpticalLayer(
                 recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_PRODUCED", eventEvidence)
                 val receipt = activeController?.recordEnergyEventWithReason(resultSceneFrame, event)
                 if (receipt?.accepted == true) {
+                    if (event.feedback == EnergyFeedback.RETURN) returnEnergyEventAccepted = true
                     recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_ACCEPTED", eventEvidence)
                     recognitionEvidenceRecorder?.recordEnergyEvent(
                         event = event,
@@ -394,6 +438,7 @@ fun RecognitionResultOpticalLayer(
                 val accepted = if (receipt.identity == resultSceneIdentity) {
                     diagnosticPlaybackController?.onOrbReturnRenderComplete(receipt, resultSceneIdentity) ?: false
                 } else false
+                if (accepted) returnCanvasReceiptAccepted = true
                 recognitionEvidenceRecorder?.recordGateDiagnostic(
                     if (accepted) "RETURN_RENDER_RECEIPT_ACCEPTED" else "RETURN_RENDER_RECEIPT_REJECTED",
                     mapOf(
