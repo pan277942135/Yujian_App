@@ -2,6 +2,7 @@ package com.yujian.ai.ui.recognition.diagnostics
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -24,7 +25,10 @@ class RecognitionEvidenceWebpDecodeTest {
             }
             source.setPixels(pixels, 0, source.width, 0, 0, source.width, source.height)
             val encoded = ByteArrayOutputStream().use { output ->
-                assertEquals(true, source.compress(Bitmap.CompressFormat.WEBP, 92, output))
+                val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    Bitmap.CompressFormat.WEBP_LOSSY
+                } else Bitmap.CompressFormat.WEBP
+                assertEquals(true, source.compress(format, 92, output))
                 output.toByteArray()
             }
             val decoded = BitmapFactory.decodeByteArray(encoded, 0, encoded.size)

@@ -778,14 +778,6 @@ class RecognitionSessionEvidenceRecorder(
                 sink?.markIncomplete("KEYFRAME_FRAME_BUDGET_EXCEEDED:$keyFrameBudgetExceededBytes")
                 degradedReasons += "KEYFRAME_FRAME_BUDGET_EXCEEDED:$keyFrameBudgetExceededBytes"
             }
-            summary.put("droppedSampleCaptureCount", summary.optLong("droppedSampleCaptureCount") + droppedSamples)
-                .put("snapshotFrameBytes", copiedFrameBytes)
-                .put("snapshotFrameBudgetBytes", MAX_EXPORT_FRAMES_BYTES)
-                .put("screenshotFailureCount", summary.optInt("screenshotFailureCount") + missingFrameCount)
-                .put("checkpointCapturedCount", checkpointStatusCount(checkpointIndex, "CAPTURED"))
-                .put("checkpointMissingCount", checkpointStatusCount(checkpointIndex, "MISSING"))
-                .put("checkpointNotReachedCount", checkpointStatusCount(checkpointIndex, "NOT_REACHED"))
-                .put("checkpointCaptureFailedCount", checkpointStatusCount(checkpointIndex, "CAPTURE_FAILED"))
             val maskSource = File(attempt.directory, "mask")
             maskSource.listFiles()?.filter(File::isFile)?.forEach { sourceMask ->
                 val destMask = File(stagingDirectory, "mask/${sourceMask.name}")
@@ -794,6 +786,14 @@ class RecognitionSessionEvidenceRecorder(
             }
             val finalDiagnostics = diagnostics()
             val refreshedSummary = synchronized(lock) { summaryJson() }
+            refreshedSummary.put("droppedSampleCaptureCount", summary.optLong("droppedSampleCaptureCount") + droppedSamples)
+                .put("snapshotFrameBytes", copiedFrameBytes)
+                .put("snapshotFrameBudgetBytes", MAX_EXPORT_FRAMES_BYTES)
+                .put("screenshotFailureCount", summary.optInt("screenshotFailureCount") + missingFrameCount)
+                .put("checkpointCapturedCount", checkpointStatusCount(checkpointIndex, "CAPTURED"))
+                .put("checkpointMissingCount", checkpointStatusCount(checkpointIndex, "MISSING"))
+                .put("checkpointNotReachedCount", checkpointStatusCount(checkpointIndex, "NOT_REACHED"))
+                .put("checkpointCaptureFailedCount", checkpointStatusCount(checkpointIndex, "CAPTURE_FAILED"))
             RecognitionEvidenceExportSnapshot(
                 attemptDirectory = attempt.directory,
                 identity = identity,
