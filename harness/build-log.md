@@ -246,3 +246,10 @@
 - API36 local emulator is `BLOCKED_INFRA`: no VMX/SVM/KVM and ADB cannot write `/home/agent/.android`. Added a marker-gated GitHub-hosted API36 AUTO smoke to the existing Android workflow; exact-head execution is pending push. Final Debug APK has not been built.
 
 - Minimal recovered-state Admission on source `d499a615bcaffe5ea37f8f1ff4e028af08af9e84`: **PASS**; project/work state validators pass; Unified Contract has `structural_errors=0`, one unchanged historical `OPEN_GAP` for the pre-migration RecognitionResultScreen path. No Registry or validator edits.
+
+## 2026-11-22 — PR #346 API36 KVM preflight
+
+- CI-only commit `f0d8e1471627e15b6101cdf7168aa8b0e7427faf` adds direct `/dev/kvm` permission repair, emulator `-accel-check` classification, an isolated preflight-only mode, and an `ubuntu-22.04` x64 fallback. No Stage10–13.5 product source changed.
+- Preflight-only run `45029788799` on that exact source completed successfully on `ubuntu-24.04`; fallback was skipped and the Android build was skipped by design. The summary reached `KVM_READY`.
+- Primary preflight report artifact: `api36-kvm-preflight-ubuntu-24.04-f0d8e1471627e15b6101cdf7168aa8b0e7427faf`, 533 bytes, artifact digest `sha256:97ed5a0039ee24770dcaf1784d8622eb86037bf0149633aaec289c3230993a5b`.
+- A full exact-head build plus API36 AUTO smoke is the next validation run; it will use the KVM-selected GitHub-hosted x64 runner and upload the exact-head APK pair and runtime evidence.
