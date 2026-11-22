@@ -22,6 +22,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.recognition.ui.R as RecognitionUiR
+import com.yujian.ai.recognition.ui.BuildConfig as RecognitionUiBuildConfig
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
 import com.yujian.ai.ui.designsystem.components.aiorb.LocalOrbShaderOverlayTestOutput
@@ -185,7 +186,7 @@ class OrbRenderIsolationRuntimeTest {
         assertEquals("all frozen comparison modes must be captured", expectedCaptureCount, capturedModeCount)
         val report = JSONObject()
             .put("status", "PASS")
-            .put("sourceCommitSha", BuildConfig.SOURCE_REVISION)
+            .put("sourceCommitSha", RecognitionUiBuildConfig.SOURCE_REVISION)
             .put("renderer", "Android Compose captureToImage + production AIOrbCore")
             .put("setContentCalls", 1)
             .put("stageElapsedDerivedFromProgress", true)
@@ -337,7 +338,7 @@ class OrbRenderIsolationRuntimeTest {
         File(outputRoot, "orb_shader_overlay_fault_report.json").writeText(
             JSONObject()
                 .put("status", "PASS")
-                .put("sourceCommitSha", BuildConfig.SOURCE_REVISION)
+                .put("sourceCommitSha", RecognitionUiBuildConfig.SOURCE_REVISION)
                 .put("renderer", "Android Compose captureToImage + production AIOrbCore core composite")
                 .put("stage", sharedFrame.sceneFrame.stage.name)
                 .put("stageProgress", sharedFrame.sceneFrame.stageProgress.toDouble())
@@ -430,7 +431,7 @@ class OrbRenderIsolationRuntimeTest {
         savePng(maxFluid, File(outputRoot, "r03_max_stage02_75.png"))
         File(outputRoot, "r03_max_pixel_report.json").writeText(
             JSONObject()
-                .put("sourceCommitSha", BuildConfig.SOURCE_REVISION)
+                .put("sourceCommitSha", RecognitionUiBuildConfig.SOURCE_REVISION)
                 .put("stage", sharedFrame.sceneFrame.stage.name)
                 .put("stageProgress", sharedFrame.sceneFrame.stageProgress.toDouble())
                 .put("visualComparison", "production AIOrbCore NORMAL R03_ONLY")
@@ -583,7 +584,7 @@ class OrbRenderIsolationRuntimeTest {
         }
         val report = JSONObject()
             .put("status", "PASS")
-            .put("sourceCommitSha", BuildConfig.SOURCE_REVISION)
+            .put("sourceCommitSha", RecognitionUiBuildConfig.SOURCE_REVISION)
             .put("renderer", "OrbFilamentPathRenderer on android.graphics.Canvas")
             .put("frozenPathOrder", JSONArray(expectedIds))
             .put("geometryMaterialPhaseCycleAnd14dpBoundaryChanged", false)
@@ -731,7 +732,7 @@ class OrbRenderIsolationRuntimeTest {
         }
         File(outputRoot, "r06_per_path_final_pixel_report.json").writeText(
             JSONObject()
-                .put("sourceCommitSha", BuildConfig.SOURCE_REVISION)
+                .put("sourceCommitSha", RecognitionUiBuildConfig.SOURCE_REVISION)
                 .put("stage", RecognitionSceneStage.ORB_WAKE.name)
                 .put("visualProfile", OrbStage02VisualProfile.MAX.name)
                 .put("layerIsolation", OrbStage02LayerIsolation.R06_ONLY.name)
