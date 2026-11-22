@@ -499,7 +499,7 @@ jobs:
   # marker keeps this production-model flow opt-in while preserving the normal
   # Android CI cost for unrelated updates.
   recognition-result-api36-smoke:
-    if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' && contains(github.event.head_commit.message, '[recognition-result-api36-smoke]') && needs.api36-kvm-preflight-summary.outputs.classification == 'KVM_READY' }}
+    if: ${{ always() && github.event_name == 'push' && github.ref != 'refs/heads/main' && contains(github.event.head_commit.message, '[recognition-result-api36-smoke]') && needs.build.result == 'success' && needs.api36-kvm-preflight-summary.result == 'success' && needs.api36-kvm-preflight-summary.outputs.classification == 'KVM_READY' }}
     needs:
       - build
       - api36-kvm-preflight-summary
