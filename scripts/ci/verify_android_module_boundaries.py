@@ -208,8 +208,10 @@ for consumer in MODULES:
             for internal_fqn, owner in internal_fqns.items():
                 internal_package, symbol = internal_fqn.rsplit(".", 1)
                 if owner != consumer and internal_package == consumer_package and symbol not in imported_symbols:
-                    if re.search(rf"\b{re.escape(symbol)}\b", source):
-                        fail(f"cross-module same-package internal API reference {internal_fqn}: :{consumer} -> :{owner}")
+                    reference = re.search(rf"\b{re.escape(symbol)}\b", source_without_imports)
+                    if reference:
+                        line = source_without_imports.count("\n", 0, reference.start()) + 1
+                        fail(f"cross-module same-package internal API reference {internal_fqn}: :{consumer} -> :{owner} at {path.relative_to(ROOT)}:{line}")
         for imported, alias in import_records:
             if imported.endswith(".*"):
                 imported_package = imported[:-2]
@@ -217,24 +219,31 @@ for consumer in MODULES:
                     internal_package, symbol = internal_fqn.rsplit(".", 1)
                     if owner != consumer and internal_package == imported_package:
                         if re.search(rf"\b{re.escape(symbol)}\b", source_without_imports):
-                            fail(f"cross-module wildcard import references internal API {internal_fqn}: :{consumer} -> :{owner}")
+                            reference = re.search(rf"\b{re.escape(symbol)}\b", source_without_imports)
+                            line = source_without_imports.count("\n", 0, reference.start()) + 1
+                            fail(f"cross-module wildcard import references internal API {internal_fqn}: :{consumer} -> :{owner} at {path.relative_to(ROOT)}:{line}")
                 continue
 
             owner = internal_fqns.get(imported)
+            import_match = re.search(rf"^import\s+{re.escape(imported)}", source, re.MULTILINE)
+            import_line = source.count("\n", 0, import_match.start()) + 1 if import_match else 1
             require(owner is None or owner == consumer,
-                    f"cross-module internal API import {imported}: :{consumer} -> :{owner}")
+                    f"cross-module internal API import {imported}: :{consumer} -> :{owner} at {path.relative_to(ROOT)}:{import_line}")
             owner_path = fqns.get(imported)
             if owner_path is not None:
                 owner_module = owner_path.relative_to(ROOT).parts[0]
                 require(owner_module in visible_modules,
-                        f"cross-module import without Gradle dependency {imported}: :{consumer} -> :{owner_module}")
+                        f"cross-module import without Gradle dependency {imported}: :{consumer} -> :{owner_module} at {path.relative_to(ROOT)}:{import_line}")
 
         for internal_fqn, owner in internal_fqns.items():
-            if owner != consumer and re.search(
-                rf"\b{re.escape(internal_fqn)}\b",
-                source_without_imports,
-            ):
-                fail(f"cross-module fully-qualified internal API reference {internal_fqn}: :{consumer} -> :{owner}")
+            if owner != consumer:
+                reference = re.search(
+                    rf"\b{re.escape(internal_fqn)}\b",
+                    source_without_imports,
+                )
+                if reference:
+                    line = source_without_imports.count("\n", 0, reference.start()) + 1
+                    fail(f"cross-module fully-qualified internal API reference {internal_fqn}: :{consumer} -> :{owner} at {path.relative_to(ROOT)}:{line}")
 
 
 # Compile-time API checks for cross-module calls that use extension/member syntax.
@@ -267,6 +276,21 @@ fish_photo_renderer_test_app = ROOT / "app/src/androidTest/java/com/yujian/ai/ui
 fish_photo_renderer_test_owner = ROOT / "recognition-ui/src/androidTest/java/com/yujian/ai/ui/components/FishPhotoRendererRuntimeTest.kt"
 require(fish_photo_renderer_test_owner.is_file() and not fish_photo_renderer_test_app.exists(),
         "FishPhotoRendererRuntimeTest must stay with the :recognition-ui implementation because it exercises internal renderer types")
+
+home_evidence_bitmap_test_app = ROOT / "app/src/androidTest/java/com/yujian/ai/ui/components/HomeEvidenceBitmapTest.kt"
+home_evidence_bitmap_test_owner = ROOT / "recognition-ui/src/androidTest/java/com/yujian/ai/ui/components/HomeEvidenceBitmapTest.kt"
+require(home_evidence_bitmap_test_owner.is_file() and not home_evidence_bitmap_test_app.exists(),
+        "HomeEvidenceBitmapTest must stay with the :recognition-ui bitmap implementation")
+
+lake_glass_agsl_test_app = ROOT / "app/src/androidTest/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassAgslRuntimeTest.kt"
+lake_glass_agsl_test_owner = ROOT / "recognition-ui/src/androidTest/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassAgslRuntimeTest.kt"
+require(lake_glass_agsl_test_owner.is_file() and not lake_glass_agsl_test_app.exists(),
+        "LakeGlassAgslRuntimeTest must stay with the :recognition-ui LakeGlass implementation")
+
+lake_glass_static_test_app = ROOT / "app/src/androidTest/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassStaticRuntimeTest.kt"
+lake_glass_static_test_owner = ROOT / "recognition-ui/src/androidTest/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassStaticRuntimeTest.kt"
+require(lake_glass_static_test_owner.is_file() and not lake_glass_static_test_app.exists(),
+        "LakeGlassStaticRuntimeTest must stay with the :recognition-ui LakeGlass implementation")
 
 if violations:
     print(f"FAIL: {len(violations)} Android module-boundary violation(s):", file=sys.stderr)
