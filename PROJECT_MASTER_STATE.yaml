@@ -1,0 +1,184 @@
+schema_version: '1.0'
+state_id: YUJIAN_APP_PR346_CROSS_LAYER_CLOSURE_V4_1
+project:
+  name: YuJian Android App
+  repository: pan277942135/Yujian_App
+  scope: 'PR #346 recognition cross-layer closure'
+state_control:
+  execution_baseline_sha: d499a615bcaffe5ea37f8f1ff4e028af08af9e84
+  current_branch: fix/26kf-path-boundary-and-fish-gate-v1
+  current_pr: 346
+  base_sha: 03db3692669847084d7e48fc3128f85cbf832af9
+  state_origin: initialized on this Work branch from canonical control-plane definitions; no prior branch-local state existed
+source_of_truth:
+  canonical_control_plane: origin/main:CONTROL_PLANE_REGISTRY.yaml
+  current_work_state: WORK_EXECUTION_STATE.json
+  evidence_status: Supplied evidence ZIP is downloaded and archive-integrity checked; 285122.mp4 could not be transferred
+    because it exceeds the executor's 32 MiB limit.
+repositories:
+  android_app:
+    remote: https://github.com/pan277942135/Yujian_App.git
+    branch: fix/26kf-path-boundary-and-fish-gate-v1
+    head_sha: d499a615bcaffe5ea37f8f1ff4e028af08af9e84
+pull_requests:
+  PR346:
+    number: 346
+    branch: fix/26kf-path-boundary-and-fish-gate-v1
+    base_branch: main
+    base_sha: 03db3692669847084d7e48fc3128f85cbf832af9
+    head_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
+    status: DRAFT_OPEN_UNMERGED
+    status_source: user task instruction and GitHub pull request page Draft badge; GitHub API unavailable
+phases:
+  P0:
+    status: NOT_CONFIRMED
+  P1:
+    status: NOT_CONFIRMED
+  P2:
+    status: NOT_CONFIRMED
+  P3:
+    status: NOT_CONFIRMED
+  P4:
+    status: NOT_CONFIRMED
+  P5:
+    status: NOT_CONFIRMED
+  P6:
+    status: IN_PROGRESS
+  P7:
+    status: NOT_CONFIRMED
+  P8:
+    status: NOT_CONFIRMED
+  P9:
+    status: NOT_CONFIRMED
+recognition_main_journey:
+  contract_status: FROZEN
+  route:
+  - J01 Empty Home
+  - J02 Tap Camera
+  - J03 Camera Permission
+  - J04 First Capture Guide
+  - J05 Camera Capture
+  - J06 Preview Ready
+  - J07 Recognition Processing
+  - J08 Detection
+  - J09 Outline
+  - J10 Classification
+  - J11 Recognition Result
+  - J12 High Confidence Result
+  - J13 Medium/Low Confidence Result
+  - J14 No Fish / Invalid Image
+  - J15 Save Catch
+  - J16 Continue / Edit Catch
+  - J17 Return Home
+  - J18 Recent Catch
+  - J19 FishRecordDetail A
+  - J20 FishRecordDetail B / Memory
+runtime_gates:
+  exact_head:
+    sha: d499a615bcaffe5ea37f8f1ff4e028af08af9e84
+    admission: PASS
+    baseline_android_ci:
+      status: PASS_BEFORE_THIS_WORK
+      run_id: '44989215170'
+      url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
+      source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
+    build: NOT_RUN
+    unit_tests: PASS_LOCAL_AFTER_VALIDATED_ASSET_BOOTSTRAP
+    android_test_compile: PASS_COMPILE_ONLY
+    lint: PENDING_EXACT_HEAD_CI
+    api36_emulator: BLOCKED_INFRA_LOCAL; GITHUB_HOSTED_EXACT_HEAD_JOB_PENDING
+    model_validation: PASS
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+    status: NOT_CONFIRMED
+apk_and_evidence:
+  source_head: d499a615bcaffe5ea37f8f1ff4e028af08af9e84
+  exact_head_apk: NOT_BUILT
+  model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
+  input_video: 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: 285122.mp4 exceeds 32 MiB transfer limit; no video replay.'
+  input_evidence_zip: /workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip
+    (downloaded and archive integrity checked)
+  emulator_device_evidence: NOT_RUN; local API36 blocked by missing virtualization and read-only ADB home; hosted job pending
+    exact-head push.
+current_work:
+  id: YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1
+  phase: P6
+  task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
+  exact_head: d499a615bcaffe5ea37f8f1ff4e028af08af9e84
+  status: RUNNING
+  stage: G8_EXACT_HEAD_CI_AND_API36_SMOKE
+  blockers:
+  - 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: video exceeds 32 MiB transfer limit; ZIP logs/screenshots only.'
+  - 'API36_LOCAL_EMULATOR_BLOCKED_INFRA: missing KVM/VMX/SVM and ADB home is read-only; hosted exact-head job pending.'
+  - 'EXACT_HEAD_CI_PENDING: no current-source GitHub run or final APK yet.'
+blockers:
+- id: EVIDENCE-INPUT-001
+  severity: P0
+  area: G0
+  status: OPEN
+  condition: The supplied ZIP is present and passes archive integrity checking; the supplied 285122.mp4 exceeds the Sediment
+    download tool's 32 MiB transfer limit and is unavailable locally.
+  affected_gate: G0 synchronized video inspection; ZIP JSONL and captured frames remain available for source-bound event analysis.
+  unblock_condition: Obtain a supported transfer route for 285122.mp4 if video-only evidence is needed; do not treat ZIP evidence
+    as the missing video.
+  independent_work_may_continue: true
+- id: GITHUB-ACTIONS-API-001
+  severity: P1
+  area: G0/G8
+  status: OPEN
+  condition: GitHub REST/GraphQL and Actions API requests return Forbidden in this environment; Git remote read works.
+  affected_gate: Current CI/check-run and artifact discovery
+  unblock_condition: Use an authorized GitHub API route or exact-head workflow evidence available through the web UI.
+  independent_work_may_continue: true
+protected_invariants:
+  product_scope:
+  - Keep Detector, Classifier, SlimSAM, trusted Mask, P-star, PathLedger and Orb GPU material behavior unchanged unless a
+    failing cross-layer test proves a required edit.
+  - Use production AUTO flow; MANUAL preview is not runtime evidence.
+  timing:
+  - Retain the frozen 13-stage minimum 6000 ms contract.
+  - Use the first stable photo frame as the shared clock origin; model wait remains independently bounded.
+  - Do not force Result Stable by time or hard-coded state.
+  handoff:
+  - FULL_REVEAL uses the real Attempt Mask and Fish Path with consistent identity, mask and geometry provenance.
+  - Orb, Chinese glyph and Result progress only from real rendering and accepted events.
+  evidence:
+  - Do not promote user-pasted facts or synthetic fixtures to device-verified evidence.
+  - Do not claim API36 emulator or physical-device PASS without exact-HEAD execution evidence.
+next_actions:
+- id: G0-01
+  owner: Codex
+  status: COMPLETED
+  action: Verify the evidence ZIP and inspect device JSONL/screenshots; preserve REAL_DEVICE_EVIDENCE_UNAVAILABLE for the
+    MP4.
+- id: G1-01
+  owner: Codex
+  status: COMPLETED
+  action: Add deterministic regression fixture and red-to-green P-star viewport tolerance test before product edits.
+- id: G2-G6
+  owner: Codex
+  status: LOCAL_TESTS_PASS_ANDROIDTEST_COMPILE_ONLY
+  action: Path binding, Stage10 readiness assertions, geometry/RETURN event tests, Stage11–13.5 test harness and 26KF scheduler
+    regression are prepared; runtime instrumentation remains pending hosted API36 execution.
+- id: G8-01
+  owner: Codex
+  status: READY
+  action: 'Run current-state Admission; publish to existing PR #346, run exact-head Android CI and marked API36 AUTO smoke;
+    produce final APK only after blocking gates pass.'
+completion_rules:
+- Complete applicable deterministic cross-layer tests before final APK packaging.
+- Separate LOGIC_PASS, EMULATOR_PASS, EXACT_HEAD_CI_PASS and DEVICE_QA_PASS.
+- 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
+state_update:
+  initialized_at: '2026-11-22T11:07:35Z'
+  last_updated_at: '2026-11-22T12:51:54Z'
+  note: Minimal current-state Admission passed on source d499a615bcaffe5ea37f8f1ff4e028af08af9e84. Unified Contract reported
+    structural_errors=0 and one historical OPEN_GAP, which is non-blocking and unchanged. Local eight-module tests, model
+    bootstrap, 26KF matrix and AndroidTest compile pass; exact-head hosted CI/API36 smoke and final APK remain pending.
+agent_recovery:
+  resume_order:
+  - Run the minimal current-state Admission check; leave the historical Registry OPEN_GAP unchanged.
+  - 'Push the committed source and state checkpoint only to the existing PR #346 branch with the API36 smoke marker.'
+  - Inspect exact-head Android CI and hosted API36 runtime artifacts; distinguish infrastructure and business failures.
+  - Build and hash the final Debug APK only after all blocking gates pass; keep the MP4 and physical-device evidence limitations
+    explicit.

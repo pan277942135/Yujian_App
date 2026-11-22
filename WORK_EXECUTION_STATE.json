@@ -1,0 +1,49 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+  "control_plane_revision": "03db3692669847084d7e48fc3128f85cbf832af9",
+  "base_branch": "main",
+  "base_sha": "03db3692669847084d7e48fc3128f85cbf832af9",
+  "phase": "P6",
+  "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+  "stage": "G8_EXACT_HEAD_CI_AND_API36_SMOKE",
+  "status": "RUNNING",
+  "source_sha": "d499a615bcaffe5ea37f8f1ff4e028af08af9e84",
+  "checkpoint_updated_at": "2026-11-22T12:51:54Z",
+  "next_action": "Commit the state checkpoint and execution log, then push only to the existing PR #346 branch with [recognition-result-api36-smoke]; inspect exact-head Android CI and API36 artifacts before final APK packaging.",
+  "dependencies": [
+    "P5-02"
+  ],
+  "blockers": [
+    "REAL_DEVICE_EVIDENCE_UNAVAILABLE: the evidence ZIP is available and integrity checked, but the attached 285122.mp4 exceeds the 32 MiB Sediment transfer limit; no synchronized video replay is claimed.",
+    "API36_LOCAL_EMULATOR_BLOCKED_INFRA: this host has no VMX/SVM/KVM, and its read-only /home/agent/.android prevents the ADB daemon from starting; the exact-head GitHub-hosted API36 job is prepared but has not run.",
+    "EXACT_HEAD_CI_PENDING: source commit is local on the existing PR branch; no current-source CI result or delivery APK exists yet."
+  ],
+  "evidence": {
+    "task_spec": "/workspace/attachments/c7f7f4b4-e598-4edc-bf13-97f04b10c79a/已粘贴的文本.txt",
+    "branch_head": "d499a615bcaffe5ea37f8f1ff4e028af08af9e84",
+    "remote_branch_and_pr_ref": "Before publication, remote branch and refs/pull/346/head remain at 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; changes are committed locally to the same existing branch.",
+    "main_control_plane": "03db3692669847084d7e48fc3128f85cbf832af9",
+    "pr_status": "GitHub page rendered a Draft badge; REST/GraphQL status could not be read",
+    "evidence_zip": "/workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip; 14,190,826 bytes; unzip -t passed; 33 recorded hash entries verified; extracted at /tmp/yujian-evidence-5344335",
+    "video_attachment": "REAL_DEVICE_EVIDENCE_UNAVAILABLE: download rejected above Sediment 32 MiB limit; no local MP4 and no video replay.",
+    "previous_admission_attempt": "WP2 state mapping rejected by WORK_EXECUTION_STATE current-scope check on historical Registry OPEN_GAP; current Work now maps to the canonical Stage10 root-cause task per user steering",
+    "user_supplied_failure_facts": "Task prose is not device evidence; inspect the ZIP records directly before promoting any fact",
+    "archive_integrity": "unzip -t passed for the uploaded evidence ZIP",
+    "admission": "CONTROL_PLANE_ADMISSION=PASS on local source d499a615bcaffe5ea37f8f1ff4e028af08af9e84; Unified Contract structural_errors=0, open_gaps=1 (historical moved RecognitionResultScreen path, explicitly non-blocking).",
+    "runtime_capability": "Temurin JDK 21, Android SDK and Gradle 9.3.1 present; emulator package and /dev/kvm absent",
+    "local_source_commit": "d499a615bcaffe5ea37f8f1ff4e028af08af9e84",
+    "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
+    "admission_baseline": "CONTROL_PLANE_ADMISSION=PASS at 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; structural_errors=0; historical OPEN_GAP=1 is not an Admission failure. Current recovered-state Admission is the next required check.",
+    "unit_tests": "All eight source-module unit-test tasks PASS after running the same validated model asset bootstrap as Android CI; aggregate JUnit XML reports 516 tests, 0 failures/errors, 0 skipped.",
+    "model_asset_validation": "Bootstrap PASS; classifier SHA256 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18; detector ONNX SHA256 98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1. Build-scoped model_release_contract.json was restored and is not part of source changes.",
+    "android_test_compile": ":app:assembleDebugAndroidTest PASS after the Stage10 timing/route-attachment assertions were added; instrumentation was compiled but not executed locally.",
+    "kf_matrix": "scripts/android_runtime/tests/test_26kf_runtime_trace_matrix_v2.py: 4/4 PASS; RecognitionVisualStateControllerTest.autoCheckpointStageWaitsForItsPixelCopyBeforeAdvancing passed in the module suite.",
+    "exact_head_ci": "PENDING; .github/workflows/android.yml now has an opt-in GitHub-hosted API36 AUTO smoke job keyed by commit marker [recognition-result-api36-smoke].",
+    "exact_head_apk": "NOT_BUILT; the final delivery APK is intentionally pending exact-head CI and runtime gate outcome.",
+    "local_sdk_state": "Tracked local.properties restored exactly; builds used ANDROID_HOME environment variables and did not persist SDK path edits."
+  }
+}
