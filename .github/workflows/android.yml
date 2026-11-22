@@ -82,6 +82,11 @@ on:
         required: false
         default: false
         type: boolean
+      api36_kvm_preflight_only:
+        description: Run the API 36 GitHub-hosted x64 KVM preflight without building Android APKs
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted' }}
@@ -97,7 +102,130 @@ env:
   YUJIAN_FEEDBACK_BASE_URL: https://81.71.1.11
 
 jobs:
+  api36-kvm-preflight-primary:
+    if: ${{ (github.event_name == 'push' && github.ref != 'refs/heads/main' && (contains(github.event.head_commit.message, '[api36-kvm-preflight-only]') || contains(github.event.head_commit.message, '[recognition-result-api36-smoke]'))) || (github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      classification: ${{ steps.kvm.outputs.classification }}
+    steps:
+      - name: Checkout the selected source
+        uses: actions/checkout@v4
+
+      - name: Set up Android emulator tools for KVM-only preflight
+        uses: android-actions/setup-android@v3
+        with:
+          packages: emulator
+
+      - name: Check /dev/kvm permissions and emulator hardware acceleration
+        id: kvm
+        continue-on-error: true
+        env:
+          KVM_PREFLIGHT_REPORT: evidence/kvm-preflight-ubuntu-24.04.txt
+        run: bash scripts/ci/check_api36_kvm.sh
+
+      - name: Upload primary runner KVM preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api36-kvm-preflight-ubuntu-24.04-${{ github.sha }}
+          path: evidence/kvm-preflight-ubuntu-24.04.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+  api36-kvm-preflight-fallback:
+    if: ${{ always() && needs.api36-kvm-preflight-primary.outputs.classification != 'KVM_READY' && ((github.event_name == 'push' && github.ref != 'refs/heads/main' && (contains(github.event.head_commit.message, '[api36-kvm-preflight-only]') || contains(github.event.head_commit.message, '[recognition-result-api36-smoke]'))) || (github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only)) }}
+    needs: api36-kvm-preflight-primary
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      classification: ${{ steps.kvm.outputs.classification }}
+    steps:
+      - name: Checkout the selected source
+        uses: actions/checkout@v4
+
+      - name: Set up Android emulator tools for fallback x64 runner
+        uses: android-actions/setup-android@v3
+        with:
+          packages: emulator
+
+      - name: Check fallback /dev/kvm and emulator hardware acceleration
+        id: kvm
+        continue-on-error: true
+        env:
+          KVM_PREFLIGHT_REPORT: evidence/kvm-preflight-ubuntu-22.04.txt
+        run: bash scripts/ci/check_api36_kvm.sh
+
+      - name: Upload fallback runner KVM preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api36-kvm-preflight-ubuntu-22.04-${{ github.sha }}
+          path: evidence/kvm-preflight-ubuntu-22.04.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+  api36-kvm-preflight-summary:
+    if: ${{ always() && ((github.event_name == 'push' && github.ref != 'refs/heads/main' && (contains(github.event.head_commit.message, '[api36-kvm-preflight-only]') || contains(github.event.head_commit.message, '[recognition-result-api36-smoke]'))) || (github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only)) }}
+    needs:
+      - api36-kvm-preflight-primary
+      - api36-kvm-preflight-fallback
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      classification: ${{ steps.summary.outputs.classification }}
+      runner: ${{ steps.summary.outputs.runner }}
+      mode: ${{ steps.summary.outputs.mode }}
+    steps:
+      - name: Summarize the primary and fallback x64 KVM checks
+        id: summary
+        env:
+          PRIMARY_CLASSIFICATION: ${{ needs.api36-kvm-preflight-primary.outputs.classification }}
+          PRIMARY_RESULT: ${{ needs.api36-kvm-preflight-primary.result }}
+          FALLBACK_CLASSIFICATION: ${{ needs.api36-kvm-preflight-fallback.outputs.classification }}
+          FALLBACK_RESULT: ${{ needs.api36-kvm-preflight-fallback.result }}
+          PREFLIGHT_ONLY: ${{ (github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[api36-kvm-preflight-only]')) }}
+        run: |
+          set -euo pipefail
+          primary="${PRIMARY_CLASSIFICATION:-}"
+          fallback="${FALLBACK_CLASSIFICATION:-}"
+          mode=FULL_VALIDATION
+          if [[ "$PREFLIGHT_ONLY" == "true" ]]; then mode=PREFLIGHT_ONLY; fi
+          runner=none
+          classification=KVM_ACCEL_NOT_USABLE
+          if [[ "$primary" == KVM_READY ]]; then
+            runner=ubuntu-24.04
+            classification=KVM_READY
+          elif [[ "$fallback" == KVM_READY ]]; then
+            runner=ubuntu-22.04
+            classification=KVM_READY
+          elif [[ "$primary" == KVM_PERMISSION_DENIED || "$fallback" == KVM_PERMISSION_DENIED ]]; then
+            classification=KVM_PERMISSION_DENIED
+          elif [[ "$primary" == KVM_MISSING && ( -z "$fallback" || "$fallback" == KVM_MISSING ) ]]; then
+            classification=KVM_MISSING
+          fi
+          {
+            echo "classification=$classification"
+            echo "runner=$runner"
+            echo "mode=$mode"
+          } >> "$GITHUB_OUTPUT"
+          echo "API36_KVM_CLASSIFICATION=$classification"
+          echo "API36_KVM_RUNNER=$runner"
+          echo "API36_PREFLIGHT_MODE=$mode"
+          echo "PRIMARY_RESULT=${PRIMARY_RESULT:-unknown} PRIMARY_CLASSIFICATION=${primary:-unknown}"
+          echo "FALLBACK_RESULT=${FALLBACK_RESULT:-unknown} FALLBACK_CLASSIFICATION=${fallback:-unknown}"
+          if [[ "$classification" != KVM_READY ]]; then
+            echo "API36_KVM_PREFLIGHT_BLOCKED=$classification" >&2
+            exit 1
+          fi
+
   build:
+    needs: api36-kvm-preflight-summary
+    if: ${{ always() && !(github.event_name == 'push' && contains(github.event.head_commit.message, '[api36-kvm-preflight-only]')) && !(github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only) }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -371,9 +499,11 @@ jobs:
   # marker keeps this production-model flow opt-in while preserving the normal
   # Android CI cost for unrelated updates.
   recognition-result-api36-smoke:
-    if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' && contains(github.event.head_commit.message, '[recognition-result-api36-smoke]') }}
-    needs: build
-    runs-on: ubuntu-24.04
+    if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' && contains(github.event.head_commit.message, '[recognition-result-api36-smoke]') && needs.api36-kvm-preflight-summary.outputs.classification == 'KVM_READY' }}
+    needs:
+      - build
+      - api36-kvm-preflight-summary
+    runs-on: ${{ needs.api36-kvm-preflight-summary.outputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 45
     env:
       SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
@@ -393,13 +523,11 @@ jobs:
             build-tools;35.0.0
             system-images;android-36;google_apis;x86_64
 
-      - name: Enable KVM access for the hosted runner
+      - name: Check KVM permissions and hardware acceleration on the smoke runner
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
-            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-          test -r /dev/kvm && test -w /dev/kvm
+          mkdir -p evidence/runtime/recognition-result-api36
+          KVM_PREFLIGHT_REPORT=evidence/runtime/recognition-result-api36/kvm-preflight.txt \
+            bash scripts/ci/check_api36_kvm.sh
 
       - name: Download APK pair built from the exact source commit
         uses: actions/download-artifact@v4
@@ -432,35 +560,7 @@ jobs:
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           emulator-boot-timeout: 600
-          script: |
-            set -euo pipefail
-            mkdir -p evidence/runtime/recognition-result-api36
-            adb install -r build/runtime-apks/app-debug.apk
-            adb install -r build/runtime-apks/app-debug-androidTest.apk
-            adb logcat -c
-            adb shell screenrecord --time-limit 180 /sdcard/Download/recognition-result-api36.mp4 \
-              > evidence/runtime/recognition-result-api36/screenrecord.log 2>&1 &
-            sleep 2
-            set +e
-            adb shell am instrument -w -r \
-              -e class 'com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal' \
-              com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner \
-              2>&1 | tee evidence/runtime/recognition-result-api36/instrumentation.log
-            smoke_status=${PIPESTATUS[0]}
-            set -e
-            recorder_pid="$(adb shell pidof screenrecord 2>/dev/null | tr -d '\r' || true)"
-            if [[ -n "$recorder_pid" ]]; then adb shell kill -INT "$recorder_pid" || true; fi
-            sleep 2
-            adb pull /sdcard/Download/recognition-result-api36.mp4 \
-              evidence/runtime/recognition-result-api36/recognition-result-api36.mp4 || true
-            adb logcat -d -v threadtime > evidence/runtime/recognition-result-api36/logcat.txt
-            if adb exec-out run-as com.yujian.ai.uiv2 tar -C cache -cf - rr09-gold-transfer-production \
-              > evidence/runtime/recognition-result-api36/test-cache.tar; then
-              tar -xf evidence/runtime/recognition-result-api36/test-cache.tar \
-                -C evidence/runtime/recognition-result-api36
-              rm evidence/runtime/recognition-result-api36/test-cache.tar
-            fi
-            exit "$smoke_status"
+          script: bash scripts/ci/run_recognition_result_api36_smoke.sh
 
       - name: Upload API 36 runtime evidence
         if: always()
@@ -474,8 +574,19 @@ jobs:
       - name: Enforce exact-head API 36 AUTO smoke result
         if: always()
         run: |
+          result="evidence/runtime/recognition-result-api36/runtime-result.json"
+          if [[ ! -s "$result" ]]; then
+            echo "API36_AUTO_SMOKE_CLASSIFICATION=INFRA_BLOCKED reason=emulator_runner_or_runtime_preflight_failed"
+            exit 1
+          fi
           if [[ "${{ steps.api36_smoke.outcome }}" != "success" ]]; then
-            echo "API36_AUTO_SMOKE=FAIL_OR_INFRA_BLOCKED; inspect the uploaded exact-head runtime evidence."
+            classification="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("classification", "INFRA_BLOCKED"))' "$result")"
+            echo "API36_AUTO_SMOKE_CLASSIFICATION=$classification"
+            exit 1
+          fi
+          classification="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("classification", "UNKNOWN"))' "$result")"
+          echo "API36_AUTO_SMOKE_CLASSIFICATION=$classification"
+          if [[ "$classification" != "AUTO_SMOKE_PASS" ]]; then
             exit 1
           fi
 
