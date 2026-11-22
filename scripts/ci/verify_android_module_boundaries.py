@@ -50,9 +50,11 @@ REQUIRED_OWNERS = {
 }
 
 
+violations: list[str] = []
+
+
 def fail(message: str) -> None:
-    print(f"FAIL: {message}", file=sys.stderr)
-    raise SystemExit(1)
+    violations.append(message)
 
 
 def require(condition: bool, message: str) -> None:
@@ -60,7 +62,9 @@ def require(condition: bool, message: str) -> None:
         fail(message)
 
 
-settings = (ROOT / "settings.gradle.kts").read_text(encoding="utf-8")
+settings_path = ROOT / "settings.gradle.kts"
+require(settings_path.is_file(), "settings.gradle.kts is missing")
+settings = settings_path.read_text(encoding="utf-8") if settings_path.is_file() else ""
 for module in MODULES:
     require(f'":{module}"' in settings, f"settings.gradle.kts does not include :{module}")
 
@@ -68,6 +72,8 @@ graph: dict[str, set[str]] = {}
 for module, expected in MODULES.items():
     gradle_file = ROOT / module / "build.gradle.kts"
     require(gradle_file.is_file(), f"missing Gradle module script: {gradle_file.relative_to(ROOT)}")
+    if not gradle_file.is_file():
+        continue
     source = gradle_file.read_text(encoding="utf-8")
     actual = set(re.findall(r'project\(\s*":([A-Za-z0-9_-]+)"\s*\)', source))
     require(actual == expected, f":{module} project dependencies drifted: expected {sorted(expected)}, got {sorted(actual)}")
@@ -80,6 +86,10 @@ visited: set[str] = set()
 def visit(module: str) -> None:
     if module in visiting:
         fail(f"module dependency cycle contains :{module}")
+        return
+    if module not in graph:
+        fail(f"module dependency graph references unknown module :{module}")
+        return
     if module in visited:
         return
     visiting.add(module)
@@ -185,14 +195,13 @@ for consumer in MODULES:
     ]
     for path in sources:
         source = path.read_text(encoding="utf-8")
-        imported_symbols = {
-            alias or imported.rsplit(".", 1)[-1]
-            for imported, alias in re.findall(
-                r"^import\s+([A-Za-z0-9_.]+)(?:\s+as\s+([A-Za-z0-9_]+))?\s*$",
-                source,
-                re.MULTILINE,
-            )
-        }
+        import_records = re.findall(
+            r"^import\s+([A-Za-z0-9_.*]+)(?:\s+as\s+([A-Za-z0-9_]+))?\s*$",
+            source,
+            re.MULTILINE,
+        )
+        imported_symbols = {alias or imported.rsplit(".", 1)[-1] for imported, alias in import_records}
+        source_without_imports = re.sub(r"^import\s+[^\n]*$", "", source, flags=re.MULTILINE)
         package_match = re.search(r"^package\s+([A-Za-z0-9_.]+)", source, re.MULTILINE)
         if package_match:
             consumer_package = package_match.group(1)
@@ -201,7 +210,16 @@ for consumer in MODULES:
                 if owner != consumer and internal_package == consumer_package and symbol not in imported_symbols:
                     if re.search(rf"\b{re.escape(symbol)}\b", source):
                         fail(f"cross-module same-package internal API reference {internal_fqn}: :{consumer} -> :{owner}")
-        for imported in re.findall(r"^import\s+([A-Za-z0-9_.]+)\s*$", source, re.MULTILINE):
+        for imported, alias in import_records:
+            if imported.endswith(".*"):
+                imported_package = imported[:-2]
+                for internal_fqn, owner in internal_fqns.items():
+                    internal_package, symbol = internal_fqn.rsplit(".", 1)
+                    if owner != consumer and internal_package == imported_package:
+                        if re.search(rf"\b{re.escape(symbol)}\b", source_without_imports):
+                            fail(f"cross-module wildcard import references internal API {internal_fqn}: :{consumer} -> :{owner}")
+                continue
+
             owner = internal_fqns.get(imported)
             require(owner is None or owner == consumer,
                     f"cross-module internal API import {imported}: :{consumer} -> :{owner}")
@@ -210,6 +228,14 @@ for consumer in MODULES:
                 owner_module = owner_path.relative_to(ROOT).parts[0]
                 require(owner_module in visible_modules,
                         f"cross-module import without Gradle dependency {imported}: :{consumer} -> :{owner_module}")
+
+        for internal_fqn, owner in internal_fqns.items():
+            if owner != consumer and re.search(
+                rf"\b{re.escape(internal_fqn)}\b",
+                source_without_imports,
+            ):
+                fail(f"cross-module fully-qualified internal API reference {internal_fqn}: :{consumer} -> :{owner}")
+
 
 # Compile-time API checks for cross-module calls that use extension/member syntax.
 # These are easy to miss when auditing only explicit imports, but Kotlin enforces
@@ -236,5 +262,16 @@ multi_contour_test_app = ROOT / "app/src/androidTest/java/com/yujian/ai/ui/recog
 multi_contour_test_owner = ROOT / "recognition-ui/src/androidTest/java/com/yujian/ai/ui/recognition/MultiContourRevealTest.kt"
 require(multi_contour_test_owner.is_file() and not multi_contour_test_app.exists(),
         "MultiContourRevealTest must stay with the :recognition-ui implementation")
+
+fish_photo_renderer_test_app = ROOT / "app/src/androidTest/java/com/yujian/ai/ui/components/FishPhotoRendererRuntimeTest.kt"
+fish_photo_renderer_test_owner = ROOT / "recognition-ui/src/androidTest/java/com/yujian/ai/ui/components/FishPhotoRendererRuntimeTest.kt"
+require(fish_photo_renderer_test_owner.is_file() and not fish_photo_renderer_test_app.exists(),
+        "FishPhotoRendererRuntimeTest must stay with the :recognition-ui implementation because it exercises internal renderer types")
+
+if violations:
+    print(f"FAIL: {len(violations)} Android module-boundary violation(s):", file=sys.stderr)
+    for index, message in enumerate(violations, start=1):
+        print(f"  {index}. {message}", file=sys.stderr)
+    raise SystemExit(1)
 
 print(f"PASS: module graph is acyclic; {len(MODULES)} module boundaries, {len(MOVED_RESOURCES)} unchanged resources, {len(fqns)} production types verified")
