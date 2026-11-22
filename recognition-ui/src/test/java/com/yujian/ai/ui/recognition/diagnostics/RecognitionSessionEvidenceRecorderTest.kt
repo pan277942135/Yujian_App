@@ -134,7 +134,13 @@ class RecognitionSessionEvidenceRecorderTest {
         assertEquals(
             listOf("KF15"),
             RecognitionEvidenceCapturePolicy.checkpointsPresented(
-                frame(RecognitionSceneStage.ORB_TO_NAME, 0f, false, taskEnergyMerged = true),
+                frame(
+                    RecognitionSceneStage.ORB_TO_NAME,
+                    0f,
+                    false,
+                    taskEnergyMerged = true,
+                    stageElapsedMs = 0L,
+                ),
             ).map { it.id },
         )
         assertTrue(

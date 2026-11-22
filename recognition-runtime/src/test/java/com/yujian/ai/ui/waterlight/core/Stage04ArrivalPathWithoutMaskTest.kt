@@ -244,7 +244,7 @@ class Stage04ArrivalPathWithoutMaskTest {
             maskVersion = pathSnapshot.maskVersion,
             pathGeometryVersion = pathSnapshot.geometryVersion,
             resultGeometryVersion = returnEvent.geometryVersion,
-            pathGeometry = requireNotNull(returnEvent.pathGeometry),
+            pathGeometry = returnEvent.pathGeometry,
             pathSegments = pathSnapshot.returnPathSegments,
             renderedSegmentCount = 3,
             renderedProgress = 1f,
