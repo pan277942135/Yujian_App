@@ -449,6 +449,10 @@ class RecognitionSessionEvidenceRecorder(
         record(type, fileName, payload, RecognitionEvidencePriority.SAMPLE)
     }
 
+    fun recordGateDiagnostic(type: String, payload: Map<String, Any?>) {
+        record(type, "recognition_events.jsonl", payload, RecognitionEvidencePriority.CRITICAL)
+    }
+
     /** Stores the GPU host receipt in the existing bounded evidence stream. */
     fun recordGpuRenderResult(
         identity: RecognitionSceneIdentity,

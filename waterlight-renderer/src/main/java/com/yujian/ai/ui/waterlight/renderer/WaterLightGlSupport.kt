@@ -591,10 +591,10 @@ internal class GlBloomPipeline {
             RenderPassStatus.NOT_READY, RenderPassStatus.NOT_READY, RenderPassStatus.NOT_READY,
             RenderPassStatus.NOT_READY, "BLOOM_FBO_B_NOT_READY",
         )
-        if (!shaderProgramsReady) return GlBloomExecution(
-            if (extractProg == 0) RenderPassStatus.FAIL else RenderPassStatus.NOT_RUN,
-            if (blurProg == 0) RenderPassStatus.FAIL else RenderPassStatus.NOT_RUN,
-            if (blurProg == 0) RenderPassStatus.FAIL else RenderPassStatus.NOT_RUN,
+        if (compositeProg == 0 || (!skipBlur && !shaderProgramsReady)) return GlBloomExecution(
+            if (!skipBlur && extractProg == 0) RenderPassStatus.FAIL else RenderPassStatus.NOT_RUN,
+            if (!skipBlur && blurProg == 0) RenderPassStatus.FAIL else RenderPassStatus.NOT_RUN,
+            if (!skipBlur && blurProg == 0) RenderPassStatus.FAIL else RenderPassStatus.NOT_RUN,
             if (compositeProg == 0) RenderPassStatus.FAIL else RenderPassStatus.NOT_RUN,
             "BLOOM_SHADER_PROGRAM_MISSING",
         )

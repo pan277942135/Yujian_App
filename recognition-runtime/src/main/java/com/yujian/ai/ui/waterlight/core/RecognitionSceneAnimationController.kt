@@ -1096,6 +1096,87 @@ class RecognitionSceneAnimationController(
             (contourValid && fishPathSnapshot != null)) &&
         stageElapsedMs(nowMs) >= 0L
 
+    /** Read-only AUTO gate evidence. Conditions mirror canAdvance; no receipt or state is synthesized. */
+    fun gateSnapshot(nowMs: Long, successfulRevealAllowed: Boolean = true): Map<String, Any?> {
+        val missing = mutableListOf<String>()
+        fun requireGate(name: String, ready: Boolean) { if (!ready) missing += name }
+        when (currentStage) {
+            RecognitionSceneStage.PHOTO_STABLE -> requireGate("photoFirstFramePresented", photoFirstFramePresented)
+            RecognitionSceneStage.ORB_WAKE -> requireGate("orbAnchorReady", orbAnchorReady)
+            RecognitionSceneStage.ORB_RELEASE -> {
+                requireGate("releasePathReady", releasePathReady); requireGate("orbAnchorReady", orbAnchorReady)
+                requireGate("photoTransformReady", photoTransformReady)
+            }
+            RecognitionSceneStage.PERIMETER_ARRIVAL -> {
+                requireGate("detectorReady", detectorReady); requireGate("photoTransformReady", photoTransformReady)
+                requireGate("perimeterArrivalPathReady", perimeterArrivalPathReady)
+                requireGate("perimeterArrivalPresented", perimeterArrivalPresented)
+            }
+            RecognitionSceneStage.PATH_TO_FISH -> {
+                requireGate("detectorReady", detectorReady); requireGate("photoTransformReady", photoTransformReady)
+                requireGate("classifierReady", classifierReady); requireGate("slimSamTerminal", slimSamTerminal)
+                requireGate("revealDecisionReady", revealDecisionReady)
+                requireGate("revealDecisionState", revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY ||
+                    revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY)
+                if (revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY) {
+                    requireGate("maskTrusted", maskTrusted); requireGate("fishContactPathReady", fishContactPathReady)
+                }
+            }
+            RecognitionSceneStage.CONTOUR_A, RecognitionSceneStage.CONTOUR_B, RecognitionSceneStage.CONTOUR_C -> {
+                requireGate("fishFocusDecision", revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY)
+                requireGate("maskTrusted", maskTrusted); requireGate("fishContactPathReady", fishContactPathReady)
+                requireGate("contourValid", contourValid); requireGate("contourClosed", contourClosed)
+            }
+            RecognitionSceneStage.FISH_GOLD_PEAK -> {
+                requireGate("fishFocusDecision", revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY)
+                requireGate("maskTrusted", maskTrusted); requireGate("fishContactPathReady", fishContactPathReady)
+                requireGate("contourValid", contourValid); requireGate("contourClosed", contourClosed)
+                requireGate("fishGoldComplete", fishGoldComplete); requireGate("classifierReady", classifierReady)
+                requireGate("revealDecisionReady", revealDecisionReady)
+            }
+            RecognitionSceneStage.ORB_RETURN, RecognitionSceneStage.ORB_TO_NAME,
+            RecognitionSceneStage.SPECIES_NAME_REVEAL, RecognitionSceneStage.RESIDUE_SETTLE -> {
+                requireGate("successfulRevealAllowed", successfulRevealAllowed)
+                requireGate("revealDecisionState", revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY ||
+                    revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY)
+                when (currentStage) {
+                    RecognitionSceneStage.ORB_RETURN -> {
+                        requireGate("orbReturnComplete", orbReturnComplete); requireGate("orbAnchorReady", orbAnchorReady)
+                        requireGate("glyphAvailable", glyphAvailable)
+                        requireGate("resultGeometryReady", resultGeometryState == SceneGeometryState.READY)
+                    }
+                    RecognitionSceneStage.ORB_TO_NAME -> {
+                        requireGate("orbToGlyphComplete", orbToGlyphComplete); requireGate("glyphAvailable", glyphAvailable)
+                    }
+                    RecognitionSceneStage.SPECIES_NAME_REVEAL -> {
+                        requireGate("glyphRevealComplete", glyphRevealComplete); requireGate("glyphAvailable", glyphAvailable)
+                        requireGate("nameStable", ResultHandoffSubstage.NAME_STABLE in completedResultHandoffSubstages)
+                    }
+                    else -> requireGate("residueSettleComplete", residueSettleComplete)
+                }
+            }
+        }
+        return linkedMapOf(
+            "stage" to currentStage.name, "stageElapsedMs" to stageElapsedMs(nowMs),
+            "sceneElapsedMs" to sceneElapsedMs(nowMs), "minVisibleMs" to minimum(currentStage),
+            "modelTerminal" to (classifierReady && slimSamTerminal), "classifierReady" to classifierReady,
+            "slimSamTerminal" to slimSamTerminal, "revealDecisionReady" to revealDecisionReady,
+            "revealDecisionState" to revealDecisionState.name, "maskTrusted" to maskTrusted,
+            "contourValid" to contourValid, "contourClosed" to contourClosed,
+            "photoGeometryVersion" to activePhotoGeometryVersion, "maskGeometryVersion" to activeMaskGeometryVersion,
+            "maskSha256" to activeMaskSha256, "maskVersion" to activeMaskVersion,
+            "fishContactPathReady" to fishContactPathReady, "fishPathSnapshotReady" to (fishPathSnapshot != null),
+            "fishPathId" to activeFishContactPathId, "fishGoldComplete" to fishGoldComplete,
+            "orbReturnComplete" to orbReturnComplete, "orbAnchorReady" to orbAnchorReady,
+            "glyphAvailable" to glyphAvailable, "orbToGlyphComplete" to orbToGlyphComplete,
+            "glyphRevealComplete" to glyphRevealComplete, "residueSettleComplete" to residueSettleComplete,
+            "resultGeometryState" to resultGeometryState.name, "eventSequence" to eventSequence,
+            "lastAcceptedEventSequence" to lastAcceptedEventSequence,
+            "lastRejectedEvent" to lastRejectedEnergyEvent?.reason?.name,
+            "unmetConditions" to missing.toList(),
+        )
+    }
+
     fun sample(authoritativeReferenceMs: Long, nowMs: Long): Long {
         @Suppress("UNUSED_VARIABLE") val compatibilityReference = authoritativeReferenceMs.coerceAtLeast(0L)
         if (mode == ScenePlaybackMode.MANUAL) {

@@ -415,18 +415,28 @@ class RecognitionRevealSessionStore : ViewModel() {
     }
 
     /** Idempotent Processing → navigation transaction. Rejected handoffs remain retryable. */
+    fun resultNavigationRejectionReason(key: RecognitionRevealKey): String? {
+        val current = snapshot ?: return "NO_SNAPSHOT"
+        if (!current.matches(key)) return "ATTEMPT_IDENTITY_MISMATCH"
+        if (current.handoff?.key != key) return "HANDOFF_NOT_READY"
+        return when (current.resultHandoffState.transactionStatus) {
+            RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED -> "NAVIGATION_ALREADY_REQUESTED"
+            RecognitionHandoffTransactionStatus.RESULT_ATTACHED -> "RESULT_ALREADY_ATTACHED"
+            RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED -> "HANDOFF_ALREADY_COMPLETED"
+            else -> null
+        }
+    }
+
     fun requestResultNavigation(
         key: RecognitionRevealKey,
         monotonicTimestampMs: Long = SystemClock.uptimeMillis(),
     ): Boolean {
-        val current = snapshot?.takeIf { it.matches(key) } ?: return false
-        if (current.handoff?.key != key) return false
-        when (current.resultHandoffState.transactionStatus) {
-            RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED,
-            RecognitionHandoffTransactionStatus.RESULT_ATTACHED,
-            RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED -> return false
-            else -> Unit
+        val rejection = resultNavigationRejectionReason(key)
+        if (rejection != null) {
+            android.util.Log.w("RecognitionRevealHandoff", "RESULT_HANDOFF_REJECTED attempt=${key.recognitionAttemptId} reason=$rejection")
+            return false
         }
+        val current = requireNotNull(snapshot)
         snapshot = current.copy(
             resultHandoffState = current.resultHandoffState.copy(
                 transactionStatus = RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED,

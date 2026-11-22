@@ -8,6 +8,8 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
@@ -178,6 +180,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect
 import com.yujian.ai.ui.recognition.reveal.RecognitionSubjectGeometrySnapshot
 import com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporter
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExportResult
 import com.yujian.ai.ui.recognition.FISH_FOCUS_A_PROMOTION_DELAY_MS
 import com.yujian.ai.ui.recognition.recognitionDisplayedFishFocusLevel
 import com.yujian.ai.ui.recognition.recognitionMaskAcceptanceOpen
@@ -421,13 +424,18 @@ fun RecognitionProcessingScene(
     val currentFinishedAcceptedCallback = rememberUpdatedState(onFinishedAccepted)
     val currentSubjectGeometryCallback = rememberUpdatedState(onSubjectGeometry)
     suspend fun dispatchFinished(result: ProductionRecognitionResult): Boolean {
-        if (delivered || deliveryInProgress) return delivered
+        if (delivered || deliveryInProgress) {
+            Log.w(LOG_TAG, "RESULT_HANDOFF_REJECTED reason=${if (delivered) "ALREADY_DELIVERED" else "DELIVERY_IN_PROGRESS"} stage=${controller.currentStage}")
+            return delivered
+        }
         deliveryInProgress = true
         try {
             while (latestPhotoPresentedAtMs == null && currentCoroutineContext().isActive) withFrameNanos { }
+            Log.i(LOG_TAG, "RESULT_HANDOFF_ATTEMPT session=${sceneIdentity.sessionId} attempt=${sceneIdentity.attemptId} stage=${controller.currentStage} gate=${controller.gateSnapshot(recognitionMonotonicNowMs())}")
             currentFinishedCallback.value(result)
             val accepted = currentFinishedAcceptedCallback.value(result)
             delivered = accepted
+            Log.i(LOG_TAG, "RESULT_HANDOFF_${if (accepted) "ACCEPTED" else "REJECTED"} attempt=${sceneIdentity.attemptId} reason=${if (accepted) "NONE" else "APP_CALLBACK_REJECTED"} stage=${controller.currentStage}")
             return accepted
         } finally {
             deliveryInProgress = false
@@ -476,6 +484,30 @@ fun RecognitionProcessingScene(
     )
     var diagnosticActionStatus by remember(sceneKey) { mutableStateOf<String?>(null) }
     var evidenceExportStatus by remember(sceneKey) { mutableStateOf("READY") }
+    var pendingEvidenceExport by remember(sceneKey) { mutableStateOf<RecognitionEvidenceZipExportResult?>(null) }
+    val saveEvidenceLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+        val pending = pendingEvidenceExport
+        if (uri == null) {
+            evidenceExportStatus = "CANCELLED · 已取消保存，可使用备用分享"
+            Log.i(LOG_TAG, "EXPORT_SAVE_CANCELLED stage=${controller.currentStage} attempt=${sceneIdentity.attemptId}")
+        } else if (pending == null) {
+            evidenceExportStatus = "FAILED · ZIP 已丢失，请重新生成"
+            Log.e(LOG_TAG, "EXPORT_FAILED phase=SAVE reason=NO_PENDING_ZIP attempt=${sceneIdentity.attemptId}")
+        } else {
+            evidenceExportStatus = "SAVING"
+            orbEvidenceScope.launch {
+                try {
+                    RecognitionEvidenceZipExporter.saveToUri(pageContext, pending, uri)
+                    evidenceExportStatus = "SAVED · 已保存 ZIP · ${pending.sha256.take(12)}"
+                    Log.i(LOG_TAG, "EXPORT_SAVE_COMPLETE stage=${controller.currentStage} attempt=${sceneIdentity.attemptId} sha256=${pending.sha256}")
+                } catch (failure: Throwable) {
+                    if (failure is CancellationException) throw failure
+                    evidenceExportStatus = "FAILED · 保存失败 · ${failure.message ?: failure.javaClass.simpleName}"
+                    Log.e(LOG_TAG, "EXPORT_FAILED phase=SAVE stage=${controller.currentStage} attempt=${sceneIdentity.attemptId}", failure)
+                }
+            }
+        }
+    }
 
     LaunchedEffect(
         sceneKey, photoPresentedAtMs, assessment?.primary?.box, finishedResult, subjectResult.status,
@@ -1171,6 +1203,9 @@ fun RecognitionProcessingScene(
             finishedResult?.ready == true
         ) delivered = false
         if (photoPresentedAtMs == null && phaseOverride == null) return@LaunchedEffect
+        var lastGateReason: String? = null
+        var lastGateLogMs = 0L
+        var stalledStage: RecognitionSceneStage? = null
         try {
             while (isActive && phaseOverride == null && !delivered) {
                 withFrameNanos { _ ->
@@ -1194,6 +1229,29 @@ fun RecognitionProcessingScene(
                 productionSceneStage = nextSceneStage
                 productionStageElapsedMs = controller.stageElapsedMs(visualNowMs)
                 productionStageProgress = controller.stageProgress(visualNowMs)
+                if (controller.mode == ScenePlaybackMode.AUTO) {
+                    val gate = controller.gateSnapshot(visualNowMs, successfulRevealReady)
+                    @Suppress("UNCHECKED_CAST")
+                    val missing = gate["unmetConditions"] as List<String>
+                    val blocked = missing.isNotEmpty() && productionStageElapsedMs >= (gate["minVisibleMs"] as Long)
+                    val reason = if (blocked) "${nextSceneStage.name}:${missing.joinToString(",")}" else null
+                    if (reason != null && (reason != lastGateReason || visualNowMs - lastGateLogMs >= 5_000L)) {
+                        val payload = gate + mapOf("sessionId" to sceneIdentity.sessionId,
+                            "attemptId" to sceneIdentity.attemptId, "imageId" to sceneIdentity.imageId)
+                        Log.w(LOG_TAG, "SCENE_GATE_BLOCKED $payload")
+                        recognitionEvidenceRecorder?.recordGateDiagnostic("SCENE_GATE_BLOCKED", payload)
+                        lastGateLogMs = visualNowMs
+                    }
+                    if (reason != null && gate["modelTerminal"] == true && productionStageElapsedMs >= 8_000L && stalledStage != nextSceneStage) {
+                        val payload = gate + mapOf("lastAcceptedEvent" to controller.acceptedEnergyEventsSnapshot().lastOrNull()?.toString(),
+                            "lastRejectedEvent" to controller.lastRejectedEnergyEvent?.toString())
+                        Log.e(LOG_TAG, "STAGE_GATE_STALL $payload")
+                        recognitionEvidenceRecorder?.recordGateDiagnostic("STAGE_GATE_STALL", payload)
+                        stalledStage = nextSceneStage
+                    }
+                    if (reason == null) stalledStage = null
+                    lastGateReason = reason
+                }
                 val nextVisualPhase = controller.presentedPhase()
                 if (nextSceneStage != previousSceneStage) {
                     val stageElapsed = controller.stageElapsedMs(visualNowMs)
@@ -1991,15 +2049,27 @@ fun RecognitionProcessingScene(
             // Binding can happen during the stage, but its completion event must
             // only be submitted on a frame that has actually reached the gate.
             if (waterLightFrame.sceneFrame.stageProgress < .999f) return@LaunchedEffect
+            val eventEvidence = mapOf<String, Any?>(
+                "eventType" to event.feedback.name, "sessionId" to event.sessionId,
+                "attemptId" to event.attemptId, "imageId" to event.imageId,
+                "maskSha256" to event.pathMaskSha256, "maskVersion" to event.pathMaskVersion,
+                "pathId" to event.pathId, "geometryVersion" to event.geometryVersion,
+                "eventSequence" to event.eventSequence, "renderReceipt" to event.renderStatus,
+                "stage" to event.stage.name,
+            )
+            recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_PRODUCED", eventEvidence)
             val result = controller.recordEnergyEventWithReason(waterLightFrame.sceneFrame, event)
             if (result.accepted) {
+                recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_ACCEPTED", eventEvidence)
                 recognitionEvidenceRecorder?.recordEnergyEvent(
                     event = event,
                     accepted = true,
                     taskEnergyMergedBeforeEvent = waterLightFrame.sceneFrame.taskEnergyMerged,
                 )
+                recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_CONSUMED", eventEvidence)
             } else {
                 val reason = requireNotNull(result.rejectionReason)
+                recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_REJECTED", eventEvidence + ("reason" to reason.name))
                 recognitionEvidenceRecorder?.recordEnergyEventRejection(
                     frame = waterLightFrame.sceneFrame,
                     event = event,
@@ -2641,6 +2711,11 @@ fun RecognitionProcessingScene(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
+                if (BuildConfig.DEBUG && !diagnosticUiAvailable) Text(
+                    "${debugStage.name} · Gate: ${controller.gateSnapshot(visualNowMs)["unmetConditions"]}",
+                    color = Color(0xFF31545A), fontSize = 10.sp,
+                    textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),
+                )
                 if (diagnosticUiAvailable) Text(
                     "${debugStage.ordinal + 1}/13 ${debugStage.name} · wait=$debugWaiting · " +
                         "Classifier=$debugClassifier SlimSAM=$debugSlimSam Mask=$debugMaskTrust · " +
@@ -2652,31 +2727,30 @@ fun RecognitionProcessingScene(
                 )
                 if (recognitionEvidenceRecorder != null) {
                     TextButton(
-                        enabled = evidenceExportStatus != "EXPORTING",
+                        enabled = evidenceExportStatus != "EXPORTING" && evidenceExportStatus != "SAVING",
                         modifier = Modifier
                             .defaultMinSize(minHeight = 48.dp)
                             .testTag("processing_export_diagnostics_button"),
                         onClick = {
-                            if (evidenceExportStatus == "EXPORTING") return@TextButton
+                            if (evidenceExportStatus == "EXPORTING" || evidenceExportStatus == "SAVING") return@TextButton
+                            Log.i(LOG_TAG, "EVIDENCE_EXPORT_TAP session=${sceneIdentity.sessionId} attempt=${sceneIdentity.attemptId} stage=${controller.currentStage} state=$evidenceExportStatus atMs=${SystemClock.uptimeMillis()} sceneKey=$sceneKey")
                             evidenceExportStatus = "EXPORTING"
                             orbEvidenceScope.launch {
                                 try {
                                     val exported = RecognitionEvidenceZipExporter.export(
                                         pageContext,
                                         recognitionEvidenceRecorder,
+                                        stage = controller.currentStage.name,
                                     )
-                                    val shareOutcome = RecognitionEvidenceZipExporter.share(pageContext, exported)
+                                    pendingEvidenceExport = exported
                                     val kb = (exported.sizeBytes / 1024L).coerceAtLeast(1L)
-                                    evidenceExportStatus = if (shareOutcome.chooserLaunched) {
-                                        "EXPORTED · 导出成功 · ${exported.integrityStatus} · ${kb}KB · ${exported.sha256.take(12)}"
-                                    } else {
-                                        "EXPORTED · 已保存(${shareOutcome.errorReason ?: "NO_SHARE_APP"}) · ${exported.file.name} · ${exported.sha256.take(12)}"
-                                    }
+                                    evidenceExportStatus = "PACKAGED · ${exported.integrityStatus} · ${kb}KB · 请选择保存位置"
+                                    saveEvidenceLauncher.launch(exported.file.name)
                                     Log.i(
                                         LOG_TAG,
                                         "PROCESSING_EVIDENCE_EXPORTED sha256=${exported.sha256} " +
                                             "sizeBytes=${exported.sizeBytes} integrity=${exported.integrityStatus} " +
-                                            "chooserLaunched=${shareOutcome.chooserLaunched} degraded=${exported.degradedReasons}",
+                                            "savePickerLaunched=true degraded=${exported.degradedReasons}",
                                     )
                                 } catch (failure: Throwable) {
                                     if (failure is CancellationException) throw failure
@@ -2691,12 +2765,18 @@ fun RecognitionProcessingScene(
                             }
                         },
                     ) {
-                        Text(if (evidenceExportStatus == "EXPORTING") "正在导出本次识鱼诊断 ZIP…" else "导出本次识鱼诊断包")
+                        Text(if (evidenceExportStatus == "EXPORTING" || evidenceExportStatus == "SAVING") "正在导出本次识鱼诊断 ZIP…" else "导出本次识鱼诊断包")
                     }
+                    if (pendingEvidenceExport != null) TextButton(onClick = {
+                        val outcome = RecognitionEvidenceZipExporter.share(pageContext, pendingEvidenceExport!!)
+                        Log.i(LOG_TAG, "EXPORT_SHARE_FALLBACK outcome=$outcome stage=${controller.currentStage}")
+                        if (!outcome.chooserLaunched) evidenceExportStatus = "FAILED · 分享失败 · ${outcome.errorReason}"
+                    }) { Text("备用：分享已生成的 ZIP") }
                     Text(
                         text = when {
                             evidenceExportStatus == "READY" -> "诊断包状态：待导出"
                             evidenceExportStatus == "EXPORTING" -> "诊断包状态：正在冻结快照并打包导出…"
+                            evidenceExportStatus == "SAVING" -> "诊断包状态：正在保存到所选目录…"
                             else -> "诊断包状态：$evidenceExportStatus"
                         },
                         color = Color(0xFF31545A),

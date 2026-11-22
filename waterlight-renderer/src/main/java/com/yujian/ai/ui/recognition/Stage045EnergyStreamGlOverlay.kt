@@ -1,6 +1,8 @@
 package com.yujian.ai.ui.recognition
 
 import android.opengl.GLES20
+import android.os.SystemClock
+import android.util.Log
 import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -20,6 +22,8 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import com.yujian.ai.ui.waterlight.renderer.GL_FLOAT_BYTES
 import com.yujian.ai.ui.waterlight.renderer.GlBloomPipeline
+import com.yujian.ai.ui.waterlight.renderer.GlBloomExecution
+import com.yujian.ai.ui.waterlight.renderer.RenderPassStatus
 import com.yujian.ai.ui.waterlight.renderer.GlSceneRenderer
 import com.yujian.ai.ui.waterlight.renderer.GlShaderUtil
 import com.yujian.ai.ui.waterlight.renderer.TransparentGlTextureView
@@ -54,7 +58,17 @@ internal data class Stage045GlFrame(
     val globalOpacity: Float,
     val lowPerformance: Boolean,
     val reducedMotion: Boolean,
+    val attemptId: String = "",
+    val geometryVersion: Long = 0L,
 )
+
+internal fun stage045CompositeSucceeded(execution: GlBloomExecution, skipBlur: Boolean): Boolean =
+    execution.failureReason == null && execution.composite == RenderPassStatus.PASS &&
+        (skipBlur || (execution.extract == RenderPassStatus.PASS &&
+            execution.blurHorizontal == RenderPassStatus.PASS && execution.blurVertical == RenderPassStatus.PASS))
+
+internal fun stage045OutputViewport(surfaceWidth: Int, surfaceHeight: Int): Pair<Int, Int> =
+    surfaceWidth.coerceAtLeast(1) to surfaceHeight.coerceAtLeast(1)
 
 /**
  * Unified GLES20 + 1/4-Res Bloom overlay for Stage 04-05 (KF01 -> KF02 -> KF03 -> KF04):
@@ -186,6 +200,8 @@ fun Stage045EnergyStreamGlOverlay(
         globalOpacity = effectiveOpacity,
         lowPerformance = lowPerformance,
         reducedMotion = reduce,
+        attemptId = scene.identity.attemptId,
+        geometryVersion = scene.geometryVersion,
     )
 
     AndroidView(
@@ -222,6 +238,8 @@ private fun smoothstep(x: Float): Float {
 
 private class Stage045GlRenderer : GlSceneRenderer<Stage045GlFrame> {
     private val bloom = GlBloomPipeline()
+    private var lastCompositeDiagnostic: String? = null
+    private var lastCompositeDiagnosticAtMs = 0L
     private var quadVbo = 0
     private var ribbonVbo = 0
     private var spriteVbo = 0
@@ -301,14 +319,20 @@ private class Stage045GlRenderer : GlSceneRenderer<Stage045GlFrame> {
     }
 
     override fun onDrawFrame(frame: Stage045GlFrame): Boolean {
-        if (perimProg == 0 || streamProg == 0) return false
+        if (perimProg == 0 || streamProg == 0) {
+            logPreflightFailure(frame, "STAGE045_SHADER_PROGRAM_MISSING")
+            return false
+        }
 
         // 0.70x max 840px internal FBO keeps full-screen Bloom ultra fast & smooth across emulators & phones
         val maxDim = if (frame.lowPerformance) 560 else 860
         val scale = minOf(0.85f, maxDim.toFloat() / maxOf(surfaceW, surfaceH).toFloat())
         val targetW = (surfaceW * scale).toInt().coerceAtLeast(64)
         val targetH = (surfaceH * scale).toInt().coerceAtLeast(64)
-        if (!bloom.ensureSize(targetW, targetH)) return false
+        if (!bloom.ensureSize(targetW, targetH)) {
+            logPreflightFailure(frame, "STAGE045_FBO_INIT_FAILED")
+            return false
+        }
         fboW = targetW
         fboH = targetH
 
@@ -387,16 +411,45 @@ private class Stage045GlRenderer : GlSceneRenderer<Stage045GlFrame> {
         // =========================================================================
         // PASS 2 & 3: 1/4-Res Bloom Blur + Premultiplied Composite to TextureView
         // =========================================================================
-        bloom.renderBloomAndComposite(
+        val outputViewport = stage045OutputViewport(surfaceW, surfaceH)
+        val execution = bloom.renderBloomAndComposite(
             quadVbo = quadVbo,
             threshold = 0.48f,
             bloomIntensity = 0.68f,
             globalOpacity = frame.globalOpacity,
             skipBlur = frame.lowPerformance,
+            outputWidth = outputViewport.first,
+            outputHeight = outputViewport.second,
         )
-
+        val succeeded = stage045CompositeSucceeded(execution, frame.lowPerformance)
+        val diagnostic = "$surfaceW/$surfaceH:$fboW/$fboH:${execution.composite}:${execution.failureReason}:${frame.stage}"
+        val diagnosticNowMs = SystemClock.uptimeMillis()
+        if (lastCompositeDiagnostic != diagnostic || (!succeeded && diagnosticNowMs - lastCompositeDiagnosticAtMs >= 5_000L)) {
+            Log.i(
+                "Stage045EnergyGl",
+                "STAGE045_GPU_COMPOSITE surfaceWidth=$surfaceW surfaceHeight=$surfaceH " +
+                    "fboWidth=$fboW fboHeight=$fboH outputWidth=$surfaceW outputHeight=$surfaceH " +
+                    "photoRect=${frame.photoRect} geometryVersion=${frame.geometryVersion} " +
+                    "compositeStatus=${execution.composite} failureReason=${execution.failureReason} " +
+                    "stage=${frame.stage} attemptId=${frame.attemptId}",
+            )
+            lastCompositeDiagnostic = diagnostic
+            lastCompositeDiagnosticAtMs = diagnosticNowMs
+        }
         GLES20.glViewport(0, 0, surfaceW, surfaceH)
-        return true
+        return succeeded
+    }
+
+    private fun logPreflightFailure(frame: Stage045GlFrame, reason: String) {
+        val now = SystemClock.uptimeMillis()
+        val diagnostic = "$reason:$surfaceW/$surfaceH:$fboW/$fboH"
+        if (diagnostic == lastCompositeDiagnostic && now - lastCompositeDiagnosticAtMs < 5_000L) return
+        lastCompositeDiagnostic = diagnostic
+        lastCompositeDiagnosticAtMs = now
+        Log.e("Stage045EnergyGl", "STAGE045_GPU_COMPOSITE surfaceWidth=$surfaceW surfaceHeight=$surfaceH " +
+            "fboWidth=$fboW fboHeight=$fboH outputWidth=$surfaceW outputHeight=$surfaceH " +
+            "photoRect=${frame.photoRect} geometryVersion=${frame.geometryVersion} compositeStatus=FAIL " +
+            "failureReason=$reason stage=${frame.stage} attemptId=${frame.attemptId}")
     }
 
     private fun buildTwinStreamVertices(

@@ -4,7 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Process
+import android.os.SystemClock
 import android.util.DisplayMetrics
+import android.util.Log
+import android.net.Uri
 import androidx.core.content.FileProvider
 import com.yujian.ai.recognition.ui.BuildConfig
 import com.yujian.ai.ui.waterlight.renderer.OrbStage02RenderTrace
@@ -56,8 +59,11 @@ object RecognitionEvidenceZipExporter {
         context: Context,
         recorder: RecognitionSessionEvidenceRecorder,
         flushTimeoutMs: Long = RecognitionSessionEvidenceRecorder.DEFAULT_FLUSH_TIMEOUT_MS,
+        stage: String = "UNKNOWN",
     ): RecognitionEvidenceZipExportResult = withContext(Dispatchers.IO) {
         check(BuildConfig.DEBUG) { "Evidence ZIP export is available only in Debug/QA builds" }
+        val startedAt = SystemClock.elapsedRealtime()
+        Log.i("RecognitionEvidenceExport", "EXPORT_SNAPSHOT_START stage=$stage atMs=$startedAt")
         val diagnosticDir = File(context.cacheDir, "diagnostics").apply { mkdirs() }
         cleanupStaleTempArtifacts(diagnosticDir)
         val stagingDir = File(diagnosticDir, ".staging_${UUID.randomUUID()}").apply { mkdirs() }
@@ -65,6 +71,7 @@ object RecognitionEvidenceZipExporter {
             val snapshot = requireNotNull(recorder.createImmutableExportSnapshot(stagingDir, flushTimeoutMs)) {
                 "No active recognition Attempt"
             }
+            Log.i("RecognitionEvidenceExport", "EXPORT_SNAPSHOT_COMPLETE stage=$stage attempt=${snapshot.identity?.attemptId} elapsedMs=${SystemClock.elapsedRealtime() - startedAt} degraded=${snapshot.degradedReasons}")
             val degradedReasons = snapshot.degradedReasons.toMutableList()
             val summary = JSONObject(snapshot.summary.toString())
             val captureIndex = JSONArray(snapshot.captureIndex.toString())
@@ -126,11 +133,14 @@ object RecognitionEvidenceZipExporter {
 
             ensureExpectedFiles(logsFolder, reportsFolder)
             val filesBeforeManifest = listFiles(stagingDir).filter { it.name != "manifest.json" }
-            val integrityStatus = evidenceStatus(summary, captureIndex, snapshot.queueDiagnostics, filesBeforeManifest)
+            val integrityStatus = if (uniqueDegraded.isNotEmpty() ||
+                evidenceStatus(summary, captureIndex, snapshot.queueDiagnostics, filesBeforeManifest) != "COMPLETE"
+            ) "DEGRADED" else "COMPLETE"
             val identity = snapshot.identity
             val sessionId = identity?.let { sha256(it.sessionId).take(12) } ?: "unknown"
             val archive = File(diagnosticDir, "YuJian_Recognition_Evidence_${sessionId}.zip")
 
+            Log.i("RecognitionEvidenceExport", "EXPORT_PACKAGE_START stage=$stage attempt=${identity?.attemptId} atMs=${SystemClock.elapsedRealtime()}")
             val packaged = packageSnapshotAndVerify(stagingDir, archive) { fileHashesMap ->
                 val fileHashes = JSONObject().apply {
                     fileHashesMap.forEach { (path, hash) -> put(path, hash) }
@@ -166,6 +176,7 @@ object RecognitionEvidenceZipExporter {
                     .put("fileSha256", fileHashes)
                 manifest.toString(2).toByteArray(Charsets.UTF_8)
             }
+            Log.i("RecognitionEvidenceExport", "EXPORT_PACKAGE_COMPLETE stage=$stage attempt=${identity?.attemptId} elapsedMs=${SystemClock.elapsedRealtime() - startedAt} sizeBytes=${packaged.sizeBytes} sha256=${packaged.sha256}")
             RecognitionEvidenceZipExportResult(
                 file = packaged.archive,
                 sha256 = packaged.sha256,
@@ -174,9 +185,43 @@ object RecognitionEvidenceZipExporter {
                 sourceSha = BuildConfig.SOURCE_REVISION,
                 degradedReasons = uniqueDegraded,
             )
+        } catch (failure: Throwable) {
+            Log.e("RecognitionEvidenceExport", "EXPORT_FAILED stage=$stage elapsedMs=${SystemClock.elapsedRealtime() - startedAt} errorType=${failure.javaClass.simpleName} error=${failure.message}", failure)
+            throw failure
         } finally {
             stagingDir.deleteRecursively()
         }
+    }
+
+    suspend fun saveToUri(context: Context, result: RecognitionEvidenceZipExportResult, uri: Uri): Long =
+        withContext(Dispatchers.IO) {
+            val startedAt = SystemClock.elapsedRealtime()
+            Log.i("RecognitionEvidenceExport", "EXPORT_SAVE_START atMs=$startedAt uri=$uri sizeBytes=${result.sizeBytes}")
+            try {
+                val stream = requireNotNull(context.contentResolver.openOutputStream(uri, "wt")) {
+                    "ContentResolver returned no output stream"
+                }
+                val copied = stream.use { output -> result.file.inputStream().use { input -> copyArchive(input, output) } }
+                check(copied == result.sizeBytes) { "ZIP_SAVE_SIZE_MISMATCH expected=${result.sizeBytes} actual=$copied" }
+                Log.i("RecognitionEvidenceExport", "EXPORT_SAVE_COMPLETE elapsedMs=${SystemClock.elapsedRealtime() - startedAt} sizeBytes=$copied sha256=${result.sha256}")
+                copied
+            } catch (failure: Throwable) {
+                Log.e("RecognitionEvidenceExport", "EXPORT_FAILED phase=SAVE elapsedMs=${SystemClock.elapsedRealtime() - startedAt} errorType=${failure.javaClass.simpleName} error=${failure.message}", failure)
+                throw failure
+            }
+        }
+
+    internal fun copyArchive(input: InputStream, output: java.io.OutputStream): Long {
+        var bytes = 0L
+        val buffer = ByteArray(64 * 1024)
+        while (true) {
+            val count = input.read(buffer)
+            if (count < 0) break
+            output.write(buffer, 0, count)
+            bytes += count
+        }
+        output.flush()
+        return bytes
     }
 
     internal fun resolveShareUri(context: Context, file: File): android.net.Uri =

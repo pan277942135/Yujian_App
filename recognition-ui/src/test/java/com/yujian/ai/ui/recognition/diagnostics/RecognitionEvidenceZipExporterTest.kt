@@ -2,6 +2,8 @@ package com.yujian.ai.ui.recognition.diagnostics
 
 import java.io.File
 import java.io.FileOutputStream
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
 import java.security.MessageDigest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -10,6 +12,21 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecognitionEvidenceZipExporterTest {
+    @Test fun archiveCopyPreservesBytesForDocumentProvider() {
+        val bytes = ByteArray(140_000) { it.toByte() }
+        val output = ByteArrayOutputStream()
+        assertEquals(bytes.size.toLong(), RecognitionEvidenceZipExporter.copyArchive(bytes.inputStream(), output))
+        assertTrue(bytes.contentEquals(output.toByteArray()))
+    }
+
+    @Test(expected = java.io.IOException::class)
+    fun documentProviderWriteFailurePropagates() {
+        val output = object : OutputStream() {
+            override fun write(value: Int) { throw java.io.IOException("provider rejected write") }
+            override fun write(data: ByteArray, offset: Int, length: Int) { throw java.io.IOException("provider rejected write") }
+        }
+        RecognitionEvidenceZipExporter.copyArchive(byteArrayOf(1, 2).inputStream(), output)
+    }
     @Test fun archiveContainsExactlyTheHashedFilesAndMatchingManifest() {
         val content = "events\n".toByteArray()
         val manifest = "{\"schemaVersion\":1}\n".toByteArray()

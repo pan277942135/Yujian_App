@@ -529,11 +529,15 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
     }
 
     fun completeRecognitionAttempt(result: ProductionRecognitionResult, attemptId: String): RecognitionRevealHandoff? {
+        Log.i("RecognitionRevealHandoff", "RESULT_HANDOFF_ATTEMPT phase=COMPLETE attempt=$attemptId ready=${result.ready} route=$currentRoute")
         productionResult = result
         recognitionTechnicalFailure = false
         prediction = result.prediction
-        val sessionId = recognitionSessionId ?: return null
-        return revealSessionStore.completeAttempt(
+        val sessionId = recognitionSessionId ?: run {
+            Log.w("RecognitionRevealHandoff", "RESULT_HANDOFF_REJECTED attempt=$attemptId reason=SESSION_MISSING")
+            return null
+        }
+        val completed = revealSessionStore.completeAttempt(
             key = RecognitionRevealKey(sessionId, attemptId),
             result = result,
             highConfidenceResult = result.prediction?.let {
@@ -542,6 +546,8 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
             inferenceAsset = inferenceAsset ?: revealSessionStore.snapshot?.inferenceAsset,
             handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
         )
+        Log.i("RecognitionRevealHandoff", "RESULT_HANDOFF_${if (completed == null) "REJECTED" else "ACCEPTED"} phase=COMPLETE attempt=$attemptId decision=${completed?.revealDecision} reason=${if (completed == null) "COMPLETE_ATTEMPT_UNAVAILABLE" else "NONE"}")
+        return completed
     }
 
     /** Re-run the frozen Reveal Decision after any late Subject, Photo, or Path join callback. */
@@ -556,8 +562,12 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                 handoff.revealDecision ?: RecognitionRevealDecisionState.WAITING_BOTH,
             )
         ) return false
-        if (!revealSessionStore.requestResultNavigation(key, SystemClock.uptimeMillis())) return false
+        if (!revealSessionStore.requestResultNavigation(key, SystemClock.uptimeMillis())) {
+            Log.w("RecognitionRevealHandoff", "RESULT_HANDOFF_REJECTED phase=RETRY_NAVIGATION attempt=$attemptId reason=${revealSessionStore.resultNavigationRejectionReason(key)}")
+            return false
+        }
         runCatching { nav.navigate("result") { popUpTo("recognizing") { inclusive = true } } }
+            .onSuccess { Log.i("RecognitionRevealHandoff", "RESULT_NAVIGATION_SUCCESS attempt=$attemptId route=result") }
             .onFailure {
                 revealSessionStore.markNavigationFailed(key, SystemClock.uptimeMillis())
                 Log.e("RecognitionRevealHandoff", "RESULT_NAVIGATION_FAILED attempt=$attemptId", it)
@@ -603,8 +613,12 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                 return
             }
             val key = handoff.key
-            if (!revealSessionStore.requestResultNavigation(key, SystemClock.uptimeMillis())) return
+            if (!revealSessionStore.requestResultNavigation(key, SystemClock.uptimeMillis())) {
+                Log.w("RecognitionRevealHandoff", "RESULT_HANDOFF_REJECTED phase=NAVIGATION attempt=$attemptId reason=${revealSessionStore.resultNavigationRejectionReason(key)}")
+                return
+            }
             runCatching { nav.navigate("result") { popUpTo("recognizing") { inclusive = true } } }
+                .onSuccess { Log.i("RecognitionRevealHandoff", "RESULT_NAVIGATION_SUCCESS attempt=$attemptId route=result") }
                 .onFailure {
                     revealSessionStore.markNavigationFailed(key, SystemClock.uptimeMillis())
                     Log.e("RecognitionRevealHandoff", "RESULT_NAVIGATION_FAILED attempt=$attemptId", it)
@@ -1142,12 +1156,14 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                         },
                         onFinishedAccepted = { result ->
                             val activeAttempt = attemptId
-                            if (!result.ready) currentRoute != "recognizing"
+                            val accepted = if (!result.ready) currentRoute != "recognizing"
                             else activeAttempt?.let {
                                 revealSessionStore.navigationAccepted(
                                     RecognitionRevealKey(recognitionSessionId.orEmpty(), it),
                                 )
                             } == true
+                            Log.i("RecognitionRevealHandoff", "RESULT_HANDOFF_${if (accepted) "ACCEPTED" else "REJECTED"} phase=CALLBACK attempt=$activeAttempt route=$currentRoute reason=${if (accepted) "NONE" else "NAVIGATION_NOT_ACCEPTED"}")
+                            accepted
                         },
                         onFailure = { error ->
                             if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
