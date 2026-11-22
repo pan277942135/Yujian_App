@@ -26,6 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import com.yujian.ai.ui.recognition.reveal.RecognitionOrbCoreDissolveReceipt
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionOrbReturnRenderReceipt
+import com.yujian.ai.ui.waterlight.core.RecognitionOrbReturnPathDrawCoverage
 import com.yujian.ai.ui.waterlight.core.RecognitionResidueRenderReceipt
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -41,6 +43,7 @@ import com.yujian.ai.ui.recognition.RecognitionPerimeterOpticalProfileV1
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMath
 import com.yujian.ai.ui.recognition.recognitionPerimeterOpacity
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
@@ -62,6 +65,7 @@ fun RecognitionRevealOpticalOverlay(
     waterLightFrame: WaterLightFrame? = null,
     sceneIdentity: RecognitionSceneIdentity? = null,
     onOrbCoreDissolveRendered: ((RecognitionOrbCoreDissolveReceipt) -> Boolean)? = null,
+    onOrbReturnRenderComplete: ((RecognitionOrbReturnRenderReceipt) -> Boolean)? = null,
     onResidueRenderComplete: ((RecognitionResidueRenderReceipt) -> Boolean)? = null,
 ) {
     val frame = frameState.value
@@ -84,7 +88,28 @@ fun RecognitionRevealOpticalOverlay(
     )
 
     val orbReturnMeasure = remember(activeRevealGeometry) {
-        activeRevealGeometry?.fullReturnPathLocal?.let { PathMeasure(it, false) }
+        (activeRevealGeometry?.fullReturnPathLocal
+            ?: activeRevealGeometry?.orbReturnPathLocal?.toPath())?.let { PathMeasure(it, false) }
+    }
+    val returnPathCoverage = remember(
+        handoff.key,
+        sceneIdentity,
+        waterLightFrame?.geometryVersion,
+        activeRevealGeometry?.returnPathSegments,
+        activeRevealGeometry?.orbReturnPathLocal,
+    ) {
+        val segments = activeRevealGeometry?.returnPathSegments.orEmpty()
+        val segmentLengths = if (segments.size == 3) {
+            segments.map { PathMeasure(it.toPath(), false).length }
+        } else {
+            activeRevealGeometry?.orbReturnPathLocal?.toPath()
+                ?.let { listOf(PathMeasure(it, false).length) }.orEmpty()
+        }
+        val measuredTotal = orbReturnMeasure?.length ?: 0f
+        val segmentTotal = segmentLengths.sum()
+        val normalizedLengths = segmentLengths.takeIf { segmentTotal > 1f && measuredTotal > 1f }
+            ?.map { it * measuredTotal / segmentTotal }.orEmpty()
+        normalizedLengths.takeIf { it.isNotEmpty() }?.let(::RecognitionOrbReturnPathDrawCoverage)
     }
     val orbToGlyphMeasure = remember(activeRevealGeometry) {
         activeRevealGeometry?.orbToGlyphPathLocal?.let { PathMeasure(it.toPath(), false) }
@@ -203,8 +228,24 @@ fun RecognitionRevealOpticalOverlay(
     val residueReceiptInFlight = remember(handoff.key, sceneIdentity) { AtomicBoolean(false) }
     val residueReceiptHandler = remember { Handler(Looper.getMainLooper()) }
     val latestOnResidueRenderComplete = androidx.compose.runtime.rememberUpdatedState(onResidueRenderComplete)
+    val orbReturnReceiptAccepted = remember(
+        handoff.key, sceneIdentity, waterLightFrame?.geometryVersion, activeRevealGeometry?.returnPathSegments,
+    ) { AtomicBoolean(false) }
+    val orbReturnReceiptInFlight = remember(
+        handoff.key, sceneIdentity, waterLightFrame?.geometryVersion, activeRevealGeometry?.returnPathSegments,
+    ) { AtomicBoolean(false) }
+    val orbReturnReceiptHandler = remember(
+        handoff.key, sceneIdentity, waterLightFrame?.geometryVersion, activeRevealGeometry?.returnPathSegments,
+    ) { Handler(Looper.getMainLooper()) }
+    val latestOnOrbReturnRenderComplete = androidx.compose.runtime.rememberUpdatedState(onOrbReturnRenderComplete)
     androidx.compose.runtime.DisposableEffect(residueReceiptHandler, handoff.key, sceneIdentity) {
         onDispose { residueReceiptHandler.removeCallbacksAndMessages(null) }
+    }
+    androidx.compose.runtime.DisposableEffect(
+        orbReturnReceiptHandler, handoff.key, sceneIdentity,
+        waterLightFrame?.geometryVersion, activeRevealGeometry?.returnPathSegments,
+    ) {
+        onDispose { orbReturnReceiptHandler.removeCallbacksAndMessages(null) }
     }
 
     Box(canvasModifier) {
@@ -212,6 +253,9 @@ fun RecognitionRevealOpticalOverlay(
         val drawPassSequence = opticalDrawPassSequence.incrementAndGet()
         drawIntoCanvas { composeCanvas ->
             val canvas = composeCanvas.nativeCanvas
+            var returnPathCanvasSubmitted = false
+            var returnPathStartDistance = 0f
+            var returnPathHeadDistance = 0f
             val gold = material.primaryColor.toInt()
             val brightGold = material.secondaryColor.toInt()
             val drawSharedPhoto = frame.photoProgress < 1f || holdPhotoUntilHeroReady
@@ -360,12 +404,14 @@ fun RecognitionRevealOpticalOverlay(
             if (activeRevealGeometry != null && orbReturnMeasure != null &&
                 frame.stage == RecognitionSceneStage.ORB_RETURN
             ) {
-                val progress = frame.photoProgress.coerceIn(0f, 1f)
+                val progress = frame.transferProgress.coerceIn(0f, 1f)
                 val headDistance = orbReturnMeasure.length * progress
+                returnPathHeadDistance = headDistance
                 if (headDistance > 0f) {
                     transferTail.reset()
+                    returnPathStartDistance = (headDistance - orbReturnMeasure.length * .38f).coerceAtLeast(0f)
                     orbReturnMeasure.getSegment(
-                        (headDistance - orbReturnMeasure.length * .38f).coerceAtLeast(0f),
+                        returnPathStartDistance,
                         headDistance,
                         transferTail,
                         true,
@@ -382,6 +428,7 @@ fun RecognitionRevealOpticalOverlay(
                     corePaint.alpha = (210 * frame.afterglowAlpha * material.opacity).toInt().coerceIn(0, 255)
                     corePaint.strokeWidth = 2.4f
                     canvas.drawPath(transferTail, corePaint)
+                    returnPathCanvasSubmitted = !transferTail.isEmpty
                 }
                 if (orbReturnMeasure.getPosTan(headDistance, transferPosition, null)) {
                     dotPaint.color = 0xFFFFE5AA.toInt()
@@ -487,6 +534,59 @@ fun RecognitionRevealOpticalOverlay(
                         residueReceiptInFlight.set(false)
                     }
                     if (accepted) residueReceiptAccepted.set(true)
+                }
+            }
+
+            val returnEvent = energyEvent?.takeIf {
+                it.feedback == EnergyFeedback.RETURN && it.stage == RecognitionSceneStage.ORB_RETURN &&
+                    it.renderStatus == "READY" && it.pathId?.isNotBlank() == true &&
+                    sceneIdentity != null && it.sessionId == sceneIdentity.sessionId &&
+                    it.attemptId == sceneIdentity.attemptId && it.imageId == sceneIdentity.imageId &&
+                    it.geometryVersion == waterLightFrame?.geometryVersion
+            }
+            if (returnPathCanvasSubmitted && returnEvent != null) {
+                returnPathCoverage?.recordDrawnRange(returnPathStartDistance, returnPathHeadDistance)
+            }
+            val terminalReturnEvent = returnEvent?.takeIf { it.level >= .999f }
+            val trustedReturnPath = handoff.fishPathSnapshot?.takeIf {
+                handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL && it.isValid()
+            }
+            val renderedReturnSegmentCount = when {
+                trustedReturnPath != null -> returnPathCoverage?.fullyCoveredSegmentCount() ?: 0
+                terminalReturnEvent?.source == com.yujian.ai.ui.waterlight.core.EnergyAnchor.PHOTO_PERIMETER ->
+                    returnPathCoverage?.fullyCoveredSegmentCount() ?: 0
+                else -> 0
+            }
+            if (frame.stage == RecognitionSceneStage.ORB_RETURN &&
+                frame.stageProgress >= .999f && frame.transferProgress >= .999f &&
+                returnPathCanvasSubmitted && orbReturnMeasure?.length?.let { it > 1f } == true &&
+                renderedReturnSegmentCount == (if (trustedReturnPath != null) 3 else 1) &&
+                terminalReturnEvent != null && sceneIdentity != null &&
+                !orbReturnReceiptAccepted.get() && orbReturnReceiptInFlight.compareAndSet(false, true)
+            ) {
+                val receipt = RecognitionOrbReturnRenderReceipt(
+                    identity = sceneIdentity,
+                    stage = frame.stage,
+                    pathId = requireNotNull(terminalReturnEvent.pathId),
+                    maskSha256 = terminalReturnEvent.pathMaskSha256,
+                    maskVersion = terminalReturnEvent.pathMaskVersion,
+                    pathGeometryVersion = terminalReturnEvent.pathGeometryVersion,
+                    resultGeometryVersion = terminalReturnEvent.geometryVersion,
+                    pathGeometry = terminalReturnEvent.pathGeometry,
+                    pathSegments = terminalReturnEvent.pathSegments,
+                    renderedSegmentCount = renderedReturnSegmentCount,
+                    renderedProgress = frame.transferProgress,
+                    renderedPathLength = requireNotNull(orbReturnMeasure).length,
+                    pathCanvasSubmitted = returnPathCanvasSubmitted,
+                    drawPassSequence = drawPassSequence,
+                )
+                orbReturnReceiptHandler.post {
+                    val accepted = try {
+                        latestOnOrbReturnRenderComplete.value?.invoke(receipt) == true
+                    } finally {
+                        orbReturnReceiptInFlight.set(false)
+                    }
+                    if (accepted) orbReturnReceiptAccepted.set(true)
                 }
             }
 

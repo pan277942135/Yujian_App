@@ -553,6 +553,17 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
     /** Re-run the frozen Reveal Decision after any late Subject, Photo, or Path join callback. */
     fun retryReadyRecognitionHandoff(attemptId: String): Boolean {
         if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return false
+        val handoffNowMs = SystemClock.uptimeMillis()
+        if (diagnosticPlaybackController.currentStage != RecognitionSceneStage.ORB_RETURN ||
+            !diagnosticPlaybackController.resultVisualReady(handoffNowMs)
+        ) {
+            Log.i(
+                "RecognitionRevealHandoff",
+                "HANDOFF_RETRY_DEFERRED attempt=$attemptId stage=${diagnosticPlaybackController.currentStage} " +
+                    "reason=WAITING_FOR_STAGE_10_HANDOFF_READINESS",
+            )
+            return false
+        }
         val sessionId = recognitionSessionId ?: return false
         val key = RecognitionRevealKey(sessionId, attemptId)
         val saved = revealSessionStore.snapshot?.takeIf { it.matches(key) } ?: return false
@@ -1357,6 +1368,10 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                         }
                                         if (saveResult.isSuccess) {
                                             val createdRecord = saveResult.getOrThrow()
+                                            recognitionEvidenceRecorder.recordSaveOutcome(
+                                                stage = diagnosticPlaybackController.currentStage,
+                                                savedRecordId = createdRecord.id,
+                                            )
                                             val updatedInference = resultSnapshot.inferenceAsset?.let { asset ->
                                                 runCatching { inferenceRecorder.attachFeedback(asset, feedback) }.getOrNull()
                                             }
@@ -1419,6 +1434,11 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                             clearRecognitionSession()
                                         } else {
                                             val error = requireNotNull(saveResult.exceptionOrNull())
+                                            recognitionEvidenceRecorder.recordSaveOutcome(
+                                                stage = diagnosticPlaybackController.currentStage,
+                                                errorType = error.javaClass.simpleName,
+                                                errorMessage = error.message,
+                                            )
                                             catchSaving = false
                                             if ((error as? ApiException)?.statusCode == 401) {
                                                 catchSaveRequiresLogin = true

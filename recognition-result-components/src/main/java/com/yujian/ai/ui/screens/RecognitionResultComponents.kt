@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import java.security.MessageDigest
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -132,6 +133,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
 import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
@@ -309,14 +311,40 @@ fun RecognitionResultOpticalLayer(
             val event = resultEnergyEvent ?: return@LaunchedEffect
             if (event.level >= .999f && resultSceneFrame != null) {
                 val activeController = diagnosticPlaybackController
+                if (event.feedback == EnergyFeedback.RETURN && activeController?.orbReturnComplete() == true) {
+                    return@LaunchedEffect
+                }
+                val eventEvidence = mapOf(
+                    "eventType" to "${event.stage.name}_${event.feedback.name}",
+                    "sessionIdHash" to resultEventIdentityHash(event.sessionId),
+                    "attemptIdHash" to resultEventIdentityHash(event.attemptId),
+                    "imageIdHash" to resultEventIdentityHash(event.imageId),
+                    "stage" to event.stage.name,
+                    "feedback" to event.feedback.name,
+                    "maskSha256" to event.pathMaskSha256,
+                    "maskVersion" to event.pathMaskVersion,
+                    "pathId" to event.pathId,
+                    "geometryVersion" to event.geometryVersion,
+                    "pathGeometryVersion" to event.pathGeometryVersion,
+                    "eventSequence" to event.eventSequence,
+                    "level" to event.level,
+                    "renderStatus" to event.renderStatus,
+                )
+                recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_PRODUCED", eventEvidence)
                 val receipt = activeController?.recordEnergyEventWithReason(resultSceneFrame, event)
                 if (receipt?.accepted == true) {
+                    recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_ACCEPTED", eventEvidence)
                     recognitionEvidenceRecorder?.recordEnergyEvent(
                         event = event,
                         accepted = true,
                         taskEnergyMergedBeforeEvent = resultSceneFrame.taskEnergyMerged,
                     )
+                    recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_CONSUMED", eventEvidence)
                 } else if (activeController != null && receipt?.rejectionReason != null) {
+                    recognitionEvidenceRecorder?.recordGateDiagnostic(
+                        "EVENT_REJECTED",
+                        eventEvidence + ("reason" to requireNotNull(receipt.rejectionReason).name),
+                    )
                     recognitionEvidenceRecorder?.recordEnergyEventRejection(
                         frame = resultSceneFrame,
                         event = event,
@@ -361,6 +389,32 @@ fun RecognitionResultOpticalLayer(
                 if (receipt.identity == resultSceneIdentity) {
                     diagnosticPlaybackController?.onOrbCoreDissolveRendered(receipt) ?: true
                 } else false
+            },
+            onOrbReturnRenderComplete = { receipt ->
+                val accepted = if (receipt.identity == resultSceneIdentity) {
+                    diagnosticPlaybackController?.onOrbReturnRenderComplete(receipt, resultSceneIdentity) ?: false
+                } else false
+                recognitionEvidenceRecorder?.recordGateDiagnostic(
+                    if (accepted) "RETURN_RENDER_RECEIPT_ACCEPTED" else "RETURN_RENDER_RECEIPT_REJECTED",
+                    mapOf(
+                        "stage" to receipt.stage.name,
+                        "attemptIdHash" to resultEventIdentityHash(receipt.identity.attemptId),
+                        "imageIdHash" to resultEventIdentityHash(receipt.identity.imageId),
+                        "pathId" to receipt.pathId,
+                        "maskSha256" to receipt.maskSha256,
+                        "maskVersion" to receipt.maskVersion,
+                        "pathGeometryVersion" to receipt.pathGeometryVersion,
+                        "geometryVersion" to receipt.resultGeometryVersion,
+                        "renderedSegmentCount" to receipt.renderedSegmentCount,
+                        "renderedProgress" to receipt.renderedProgress,
+                        "renderedPathLength" to receipt.renderedPathLength,
+                        "drawPassSequence" to receipt.drawPassSequence,
+                        "pathCanvasSubmitted" to receipt.pathCanvasSubmitted,
+                        "identityAccepted" to (receipt.identity == resultSceneIdentity),
+                        "controllerAccepted" to accepted,
+                    ),
+                )
+                accepted
             },
             onResidueRenderComplete = { receipt ->
                 if (receipt.identity == resultSceneIdentity) {
@@ -1616,5 +1670,9 @@ fun ResultFieldEditorSheet(
         }
     }
 }
+
+private fun resultEventIdentityHash(value: String): String = MessageDigest.getInstance("SHA-256")
+    .digest(value.toByteArray(Charsets.UTF_8))
+    .joinToString("") { "%02x".format(it) }
 
 fun String.takeUnicodeCodePoints(limit: Int): String = RecognitionResultInputValidation.takeUnicodeCodePoints(this, limit)

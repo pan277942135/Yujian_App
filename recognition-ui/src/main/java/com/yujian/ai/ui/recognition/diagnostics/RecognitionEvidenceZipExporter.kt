@@ -33,6 +33,8 @@ data class RecognitionEvidenceZipExportResult(
     val integrityStatus: String,
     val sourceSha: String,
     val degradedReasons: List<String> = emptyList(),
+    val stage: String = "UNKNOWN",
+    val attemptIdHash: String = "NOT_RECORDED",
 )
 
 data class RecognitionEvidenceShareOutcome(
@@ -46,6 +48,11 @@ internal data class RecognitionEvidencePackagedArchive(
     val sha256: String,
     val sizeBytes: Long,
     val fileHashes: Map<String, String>,
+)
+
+internal data class RecognitionEvidenceFrameBudgetOutcome(
+    val droppedSampleCount: Int,
+    val retainedFrameBytes: Long,
 )
 
 internal data class LogcatCaptureResult(
@@ -63,7 +70,9 @@ object RecognitionEvidenceZipExporter {
     ): RecognitionEvidenceZipExportResult = withContext(Dispatchers.IO) {
         check(BuildConfig.DEBUG) { "Evidence ZIP export is available only in Debug/QA builds" }
         val startedAt = SystemClock.elapsedRealtime()
-        Log.i("RecognitionEvidenceExport", "EXPORT_SNAPSHOT_START stage=$stage atMs=$startedAt")
+        val startIdentity = recorder.exportIdentity()
+        val attemptIdHash = startIdentity?.let { sha256(it.attemptId) } ?: "NOT_RECORDED"
+        Log.i("RecognitionEvidenceExport", "EXPORT_SNAPSHOT_START stage=$stage attemptIdHash=$attemptIdHash atMs=$startedAt")
         val diagnosticDir = File(context.cacheDir, "diagnostics").apply { mkdirs() }
         cleanupStaleTempArtifacts(diagnosticDir)
         val stagingDir = File(diagnosticDir, ".staging_${UUID.randomUUID()}").apply { mkdirs() }
@@ -71,10 +80,21 @@ object RecognitionEvidenceZipExporter {
             val snapshot = requireNotNull(recorder.createImmutableExportSnapshot(stagingDir, flushTimeoutMs)) {
                 "No active recognition Attempt"
             }
-            Log.i("RecognitionEvidenceExport", "EXPORT_SNAPSHOT_COMPLETE stage=$stage attempt=${snapshot.identity?.attemptId} elapsedMs=${SystemClock.elapsedRealtime() - startedAt} degraded=${snapshot.degradedReasons}")
+            val snapshotAttemptHash = snapshot.identity?.let { sha256(it.attemptId) } ?: "NOT_RECORDED"
+            Log.i("RecognitionEvidenceExport", "EXPORT_SNAPSHOT_COMPLETE stage=$stage attemptIdHash=$snapshotAttemptHash elapsedMs=${SystemClock.elapsedRealtime() - startedAt} degraded=${snapshot.degradedReasons}")
             val degradedReasons = snapshot.degradedReasons.toMutableList()
             val summary = JSONObject(snapshot.summary.toString())
             val captureIndex = JSONArray(snapshot.captureIndex.toString())
+            val checkpointIndex = JSONArray(snapshot.checkpointIndex.toString())
+            for (index in 0 until checkpointIndex.length()) {
+                val checkpoint = checkpointIndex.optJSONObject(index) ?: continue
+                val status = checkpoint.optString("status")
+                if (status != "CAPTURED") {
+                    val reason = checkpoint.optString("reason").takeIf(String::isNotBlank)
+                    degradedReasons += "CHECKPOINT_${status}:${checkpoint.optString("checkpointId")}" +
+                        (reason?.let { ":$it" } ?: "")
+                }
+            }
             val sessionFolder = File(stagingDir, "session").apply { mkdirs() }
             val framesFolder = File(stagingDir, "frames").apply { mkdirs() }
             val logsFolder = File(stagingDir, "logs").apply { mkdirs() }
@@ -83,6 +103,7 @@ object RecognitionEvidenceZipExporter {
             File(sessionFolder, "session_summary.json").writeText(summary.toString(2), Charsets.UTF_8)
             File(sessionFolder, "stage_timeline.json").writeText(stageTimelineJson(summary).toString(2), Charsets.UTF_8)
             File(framesFolder, "frame_index.json").writeText(captureIndex.toString(2), Charsets.UTF_8)
+            File(framesFolder, "26kf_checkpoint_index.json").writeText(checkpointIndex.toString(2), Charsets.UTF_8)
 
             val rawOrbTrace = OrbStage02RenderTrace.snapshotJsonLines().toByteArray(Charsets.UTF_8)
             val orbTraceBytes = if (rawOrbTrace.size <= MAX_ORB_TRACE_BYTES) {
@@ -96,6 +117,13 @@ object RecognitionEvidenceZipExporter {
             val logcatOutcome = captureLogcat(Process.myPid(), File(logsFolder, "logcat.txt"))
             logcatOutcome.degradedReason?.let { degradedReasons += it }
 
+            val budgetOutcome = applyStandardFrameBudget(
+                stagingDirectory = stagingDir,
+                captureIndex = captureIndex,
+                degradedReasons = degradedReasons,
+                lossless = summary.optString("screenshotEncoding") == "PNG_LOSSLESS",
+            )
+            File(framesFolder, "frame_index.json").writeText(captureIndex.toString(2), Charsets.UTF_8)
             val successfulFrames = captureIndex.filesFrom(stagingDir).filter(File::isFile)
             if (!File(stagingDir, "mask/original_mask.png").isFile ||
                 !File(stagingDir, "mask/alpha_statistics.json").isFile) {
@@ -120,6 +148,7 @@ object RecognitionEvidenceZipExporter {
                 attemptDirectory = stagingDir,
                 summary = summary,
                 captureIndex = captureIndex,
+                checkpointIndex = checkpointIndex,
                 queue = snapshot.queueDiagnostics,
                 degradedReasons = uniqueDegraded,
             )
@@ -134,13 +163,13 @@ object RecognitionEvidenceZipExporter {
             ensureExpectedFiles(logsFolder, reportsFolder)
             val filesBeforeManifest = listFiles(stagingDir).filter { it.name != "manifest.json" }
             val integrityStatus = if (uniqueDegraded.isNotEmpty() ||
-                evidenceStatus(summary, captureIndex, snapshot.queueDiagnostics, filesBeforeManifest) != "COMPLETE"
+                evidenceStatus(summary, captureIndex, checkpointIndex, snapshot.queueDiagnostics, filesBeforeManifest) != "COMPLETE"
             ) "DEGRADED" else "COMPLETE"
             val identity = snapshot.identity
             val sessionId = identity?.let { sha256(it.sessionId).take(12) } ?: "unknown"
             val archive = File(diagnosticDir, "YuJian_Recognition_Evidence_${sessionId}.zip")
 
-            Log.i("RecognitionEvidenceExport", "EXPORT_PACKAGE_START stage=$stage attempt=${identity?.attemptId} atMs=${SystemClock.elapsedRealtime()}")
+            Log.i("RecognitionEvidenceExport", "EXPORT_PACKAGE_START stage=$stage attemptIdHash=$snapshotAttemptHash atMs=${SystemClock.elapsedRealtime()}")
             val packaged = packageSnapshotAndVerify(stagingDir, archive) { fileHashesMap ->
                 val fileHashes = JSONObject().apply {
                     fileHashesMap.forEach { (path, hash) -> put(path, hash) }
@@ -168,6 +197,22 @@ object RecognitionEvidenceZipExporter {
                     .put("screenshotRequestCount", summary.optInt("screenshotRequestCount"))
                     .put("screenshotSuccessCount", summary.optInt("screenshotSuccessCount"))
                     .put("screenshotFailureCount", summary.optInt("screenshotFailureCount"))
+                    .put("retainedScreenshotCount", successfulFrames.size)
+                    .put("droppedSampleCaptureCount", summary.optLong("droppedSampleCaptureCount") + budgetOutcome.droppedSampleCount)
+                    .put("screenshotEncoding", summary.optString("screenshotEncoding", "WEBP_Q92"))
+                    .put("checkpointIndex", "frames/26kf_checkpoint_index.json")
+                    .put("captureIndex", "frames/frame_index.json")
+                    .put("checkpointCount", checkpointIndex.length())
+                    .put("stageAtExport", stage)
+                    .put("attemptIdHash", snapshotAttemptHash)
+                    .put("checkpointCapturedCount", checkpointStatusCount(checkpointIndex, "CAPTURED"))
+                    .put("checkpointMissingCount", checkpointStatusCount(checkpointIndex, "MISSING"))
+                    .put("checkpointNotReachedCount", checkpointStatusCount(checkpointIndex, "NOT_REACHED"))
+                    .put("checkpointCaptureFailedCount", checkpointStatusCount(checkpointIndex, "CAPTURE_FAILED"))
+                    .put("originalMaskSha256", File(stagingDir, "mask/original_mask.png")
+                        .takeIf(File::isFile)?.let(::sha256) ?: JSONObject.NULL)
+                    .put("originalMaskSizeBytes", File(stagingDir, "mask/original_mask.png")
+                        .takeIf(File::isFile)?.length() ?: 0L)
                     .put("eventCount", summary.optLong("eventCount"))
                     .put("droppedEventCount", summary.optLong("droppedCriticalEventCount") + summary.optLong("droppedSampleEventCount"))
                     .put("evidenceIntegrityStatus", integrityStatus)
@@ -176,7 +221,7 @@ object RecognitionEvidenceZipExporter {
                     .put("fileSha256", fileHashes)
                 manifest.toString(2).toByteArray(Charsets.UTF_8)
             }
-            Log.i("RecognitionEvidenceExport", "EXPORT_PACKAGE_COMPLETE stage=$stage attempt=${identity?.attemptId} elapsedMs=${SystemClock.elapsedRealtime() - startedAt} sizeBytes=${packaged.sizeBytes} sha256=${packaged.sha256}")
+            Log.i("RecognitionEvidenceExport", "EXPORT_PACKAGE_COMPLETE stage=$stage attemptIdHash=$snapshotAttemptHash elapsedMs=${SystemClock.elapsedRealtime() - startedAt} sizeBytes=${packaged.sizeBytes} sha256=${packaged.sha256}")
             RecognitionEvidenceZipExportResult(
                 file = packaged.archive,
                 sha256 = packaged.sha256,
@@ -184,9 +229,11 @@ object RecognitionEvidenceZipExporter {
                 integrityStatus = integrityStatus,
                 sourceSha = BuildConfig.SOURCE_REVISION,
                 degradedReasons = uniqueDegraded,
+                stage = stage,
+                attemptIdHash = snapshotAttemptHash,
             )
         } catch (failure: Throwable) {
-            Log.e("RecognitionEvidenceExport", "EXPORT_FAILED stage=$stage elapsedMs=${SystemClock.elapsedRealtime() - startedAt} errorType=${failure.javaClass.simpleName} error=${failure.message}", failure)
+            Log.e("RecognitionEvidenceExport", "EXPORT_FAILED stage=$stage attemptIdHash=$attemptIdHash elapsedMs=${SystemClock.elapsedRealtime() - startedAt} errorType=${failure.javaClass.simpleName} error=${failure.message}", failure)
             throw failure
         } finally {
             stagingDir.deleteRecursively()
@@ -196,17 +243,17 @@ object RecognitionEvidenceZipExporter {
     suspend fun saveToUri(context: Context, result: RecognitionEvidenceZipExportResult, uri: Uri): Long =
         withContext(Dispatchers.IO) {
             val startedAt = SystemClock.elapsedRealtime()
-            Log.i("RecognitionEvidenceExport", "EXPORT_SAVE_START atMs=$startedAt uri=$uri sizeBytes=${result.sizeBytes}")
+            Log.i("RecognitionEvidenceExport", "EXPORT_SAVE_START stage=${result.stage} attemptIdHash=${result.attemptIdHash} atMs=$startedAt uri=$uri sizeBytes=${result.sizeBytes}")
             try {
                 val stream = requireNotNull(context.contentResolver.openOutputStream(uri, "wt")) {
                     "ContentResolver returned no output stream"
                 }
                 val copied = stream.use { output -> result.file.inputStream().use { input -> copyArchive(input, output) } }
                 check(copied == result.sizeBytes) { "ZIP_SAVE_SIZE_MISMATCH expected=${result.sizeBytes} actual=$copied" }
-                Log.i("RecognitionEvidenceExport", "EXPORT_SAVE_COMPLETE elapsedMs=${SystemClock.elapsedRealtime() - startedAt} sizeBytes=$copied sha256=${result.sha256}")
+                Log.i("RecognitionEvidenceExport", "EXPORT_SAVE_COMPLETE stage=${result.stage} attemptIdHash=${result.attemptIdHash} elapsedMs=${SystemClock.elapsedRealtime() - startedAt} sizeBytes=$copied sha256=${result.sha256}")
                 copied
             } catch (failure: Throwable) {
-                Log.e("RecognitionEvidenceExport", "EXPORT_FAILED phase=SAVE elapsedMs=${SystemClock.elapsedRealtime() - startedAt} errorType=${failure.javaClass.simpleName} error=${failure.message}", failure)
+                Log.e("RecognitionEvidenceExport", "EXPORT_FAILED phase=SAVE stage=${result.stage} attemptIdHash=${result.attemptIdHash} elapsedMs=${SystemClock.elapsedRealtime() - startedAt} sizeBytes=${result.sizeBytes} errorType=${failure.javaClass.simpleName} error=${failure.message}", failure)
                 throw failure
             }
         }
@@ -324,6 +371,7 @@ object RecognitionEvidenceZipExporter {
         attemptDirectory: File,
         summary: JSONObject,
         captureIndex: JSONArray,
+        checkpointIndex: JSONArray,
         queue: RecognitionEvidenceQueueDiagnostics,
         degradedReasons: List<String> = emptyList(),
     ) {
@@ -408,6 +456,13 @@ object RecognitionEvidenceZipExporter {
                 .put("screenshotSuccessCount", summary.optInt("screenshotSuccessCount"))
                 .put("screenshotFailureCount", summary.optInt("screenshotFailureCount"))
                 .put("captureIndexCount", captureIndex.length())
+                .put("checkpointIndexCount", checkpointIndex.length())
+                .put("checkpointCapturedCount", checkpointStatusCount(checkpointIndex, "CAPTURED"))
+                .put("checkpointMissingCount", checkpointStatusCount(checkpointIndex, "MISSING"))
+                .put("checkpointNotReachedCount", checkpointStatusCount(checkpointIndex, "NOT_REACHED"))
+                .put("checkpointCaptureFailedCount", checkpointStatusCount(checkpointIndex, "CAPTURE_FAILED"))
+                .put("droppedSampleCaptureCount", summary.optLong("droppedSampleCaptureCount"))
+                .put("screenshotEncoding", summary.optString("screenshotEncoding", "WEBP_Q92"))
                 .put("droppedCriticalEventCount", queue.droppedCriticalEvents)
                 .put("droppedSampleEventCount", queue.droppedSampleEvents)
                 .put("writeFailures", queue.writeFailures)
@@ -420,6 +475,7 @@ object RecognitionEvidenceZipExporter {
     private fun evidenceStatus(
         summary: JSONObject,
         captureIndex: JSONArray,
+        checkpointIndex: JSONArray,
         queue: RecognitionEvidenceQueueDiagnostics,
         files: List<File>,
     ): String {
@@ -440,6 +496,7 @@ object RecognitionEvidenceZipExporter {
                         stage = row.optString("stage"),
                         captureType = row.optString("captureType"),
                         pixelCopyStatus = row.optString("pixelCopyStatus"),
+                        checkpointId = row.optString("checkpointId").takeIf(String::isNotBlank),
                     ),
                 )
             }
@@ -455,6 +512,22 @@ object RecognitionEvidenceZipExporter {
             droppedSampleEventCount = queue.droppedSampleEvents,
             writeFailures = queue.writeFailures,
             queueIncompleteReasons = queue.incompleteReasons,
+            checkpoints = buildList {
+                for (i in 0 until checkpointIndex.length()) {
+                    val row = checkpointIndex.optJSONObject(i) ?: continue
+                    add(
+                        RecognitionEvidenceCheckpointSnapshot(
+                            id = row.optString("checkpointId"),
+                            stage = row.optString("stage"),
+                            status = row.optString("status"),
+                            reason = row.optString("reason").takeIf(String::isNotBlank),
+                            eventSequence = row.optLong("eventSequence").takeIf {
+                                row.has("eventSequence") && !row.isNull("eventSequence")
+                            },
+                        ),
+                    )
+                }
+            },
         )
         return if (failures.isEmpty()) "COMPLETE" else "EVIDENCE_INCOMPLETE"
     }
@@ -469,6 +542,54 @@ object RecognitionEvidenceZipExporter {
             "resident_lifecycle_summary.json", "task_energy_summary.json", "capture_integrity.json",
             "result_evidence_status.json",
         ).forEach { name -> File(reports, name).takeIf { !it.exists() }?.writeText("{}\n", Charsets.UTF_8) }
+    }
+
+    private fun checkpointStatusCount(index: JSONArray, status: String): Int = (0 until index.length())
+        .count { index.optJSONObject(it)?.optString("status") == status }
+
+    internal fun applyStandardFrameBudget(
+        stagingDirectory: File,
+        captureIndex: JSONArray,
+        degradedReasons: MutableList<String>,
+        lossless: Boolean,
+    ): RecognitionEvidenceFrameBudgetOutcome {
+        fun successfulRows(): List<JSONObject> = buildList {
+            for (index in 0 until captureIndex.length()) {
+                val row = captureIndex.optJSONObject(index) ?: continue
+                if (row.optString("pixelCopyStatus") == "SUCCESS" &&
+                    row.optString("relativePath").isNotBlank()
+                ) add(row)
+            }
+        }
+        val rows = successfulRows()
+        var frameBytes = rows.sumOf { row ->
+            File(stagingDirectory, row.optString("relativePath")).takeIf(File::isFile)?.length() ?: 0L
+        }
+        if (!lossless && frameBytes > STANDARD_FRAME_BUDGET_BYTES) {
+            var dropped = 0
+            val samples = rows.filter { it.optString("priority") == "SAMPLE" }
+                .sortedByDescending { row -> File(stagingDirectory, row.optString("relativePath")).length() }
+            for (row in samples) {
+                if (frameBytes <= STANDARD_FRAME_BUDGET_BYTES) break
+                val file = File(stagingDirectory, row.optString("relativePath"))
+                val size = file.length()
+                if (file.exists() && file.delete()) {
+                    frameBytes = (frameBytes - size).coerceAtLeast(0L)
+                    row.put("pixelCopyStatus", "DROPPED_SAMPLE_BUDGET")
+                        .put("dropReason", "STANDARD_FRAME_BUDGET")
+                    dropped++
+                }
+            }
+            if (dropped > 0) degradedReasons += "MOTION_SAMPLES_DROPPED_TO_MEET_FRAME_BUDGET:$dropped"
+            if (frameBytes > STANDARD_FRAME_BUDGET_BYTES) {
+                degradedReasons += "KEYFRAME_FRAME_BUDGET_EXCEEDED:$frameBytes"
+            }
+            return RecognitionEvidenceFrameBudgetOutcome(dropped, frameBytes)
+        }
+        if (lossless && frameBytes > STANDARD_FRAME_BUDGET_BYTES) {
+            degradedReasons += "LOSSLESS_EXPORT_EXCEEDS_STANDARD_FRAME_BUDGET:$frameBytes"
+        }
+        return RecognitionEvidenceFrameBudgetOutcome(0, frameBytes)
     }
 
     private fun stageTimelineJson(summary: JSONObject): JSONObject = JSONObject()
@@ -690,4 +811,5 @@ object RecognitionEvidenceZipExporter {
     internal const val MAX_LOGCAT_BYTES_HARD_LIMIT = 2 * 1024 * 1024
     internal const val MAX_ORB_TRACE_BYTES = 4 * 1024 * 1024
     private const val STALE_TEMP_CLEANUP_AGE_MS = 10 * 60 * 1000L
+    internal const val STANDARD_FRAME_BUDGET_BYTES = 18L * 1024L * 1024L
 }

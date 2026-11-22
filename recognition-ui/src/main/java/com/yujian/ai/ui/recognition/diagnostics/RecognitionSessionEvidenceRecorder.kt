@@ -2,6 +2,7 @@ package com.yujian.ai.ui.recognition.diagnostics
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.SystemClock
 import android.view.Window
 import com.yujian.ai.recognition.ui.BuildConfig
@@ -32,14 +33,22 @@ internal data class RecognitionEvidenceExportSnapshot(
     val identity: RecognitionEvidenceIdentity?,
     val summary: JSONObject,
     val captureIndex: JSONArray,
+    val checkpointIndex: JSONArray,
     val queueDiagnostics: RecognitionEvidenceQueueDiagnostics,
     val degradedReasons: List<String>,
+)
+
+private data class PendingVisualCheckpoint(
+    val id: String,
+    val stage: RecognitionSceneStage,
+    val eventSequence: Long,
 )
 
 /** One Session/Attempt evidence owner shared by Processing, Result, and Export. */
 class RecognitionSessionEvidenceRecorder(
     context: Context,
     private val clockMs: () -> Long = { SystemClock.uptimeMillis() },
+    private val losslessVisualEvidence: Boolean = false,
 ) {
     private val applicationContext = context.applicationContext
     private val store = RecognitionSessionEvidenceStore(applicationContext)
@@ -57,16 +66,19 @@ class RecognitionSessionEvidenceRecorder(
     private var eventSink: RecognitionEvidenceEventSink? = null
     private val stageStatuses = linkedMapOf<RecognitionSceneStage, RecognitionEvidenceStageStatus>()
     private var recordedStageTimelineCount = 0
-    private val entryCaptureRequested = linkedSetOf<String>()
     private val captureRows = mutableListOf<JSONObject>()
-    private var lastMotionRequestMs = Long.MIN_VALUE
+    private val motionCapturedStages = linkedSetOf<RecognitionSceneStage>()
+    private val checkpointStatuses = linkedMapOf<String, RecognitionEvidenceCheckpointSnapshot>()
+    private val pendingVisualCheckpoints = mutableListOf<PendingVisualCheckpoint>()
+    private val blockedCaptureStages = linkedSetOf<RecognitionSceneStage>()
+    private var pendingBitmapWrites = 0
+    private var droppedSampleCaptureCount = 0L
     private var lastHeartbeatMs = Long.MIN_VALUE
     private var frameSequence = 0L
     private var screenshotRequestCount = 0
     private var screenshotSuccessCount = 0
     private var screenshotFailureCount = 0
     private var motionRequestCount = 0
-    private var resultStableCaptureRequested = false
     private var pixelCopyInFlight = false
     private var pixelCopySuspendedReason: String? = null
     private var firstFrameTimestampMs: Long? = null
@@ -86,21 +98,34 @@ class RecognitionSessionEvidenceRecorder(
             RecognitionSceneStage.entries.forEach { stage ->
                 stageStatuses[stage] = RecognitionEvidenceStageStatus(stage, "NOT_REACHED")
             }
-            entryCaptureRequested.clear()
             captureRows.clear()
-            lastMotionRequestMs = Long.MIN_VALUE
+            motionCapturedStages.clear()
+            checkpointStatuses.clear()
+            RecognitionEvidenceCapturePolicy.checkpointIds.forEach { checkpointId ->
+                checkpointStatuses[checkpointId] = RecognitionEvidenceCheckpointSnapshot(
+                    id = checkpointId,
+                    stage = RecognitionEvidenceCapturePolicy.checkpointStage(checkpointId)?.name
+                        ?: if (checkpointId == "KF00") "HOME" else "IDENTIFY",
+                    status = "NOT_REACHED",
+                    reason = if (checkpointId == "KF00" || checkpointId == "KF01") {
+                        "OUTSIDE_ACTIVE_ATTEMPT_CAPTURE_WINDOW"
+                    } else null,
+                )
+            }
+            pendingVisualCheckpoints.clear()
+            blockedCaptureStages.clear()
             lastHeartbeatMs = Long.MIN_VALUE
             frameSequence = 0L
             screenshotRequestCount = 0
             screenshotSuccessCount = 0
             screenshotFailureCount = 0
             motionRequestCount = 0
-            resultStableCaptureRequested = false
             pixelCopyInFlight = false
             pixelCopySuspendedReason = null
             firstFrameTimestampMs = null
             latestSceneElapsedMs = 0L
             latestGeometryVersion = -1L
+            droppedSampleCaptureCount = 0L
         }
         record(
             type = "SESSION_ATTEMPT_STARTED",
@@ -453,6 +478,35 @@ class RecognitionSessionEvidenceRecorder(
         record(type, "recognition_events.jsonl", payload, RecognitionEvidencePriority.CRITICAL)
     }
 
+    /** Records the repository outcome for the KF25 save tap without exporting the raw record id. */
+    fun recordSaveOutcome(
+        stage: RecognitionSceneStage,
+        savedRecordId: String? = null,
+        errorType: String? = null,
+        errorMessage: String? = null,
+    ) {
+        val active = synchronized(lock) {
+            val identity = activeIdentity ?: return@synchronized null
+            identity to checkpointStatuses["KF25"]?.eventSequence
+        } ?: return
+        val accepted = !savedRecordId.isNullOrBlank()
+        recordGateDiagnostic(
+            if (accepted) "SAVE_RESULT_ACCEPTED" else "SAVE_FAILED",
+            mapOf(
+                "sessionIdHash" to sha256(active.first.sessionId),
+                "attemptIdHash" to sha256(active.first.attemptId),
+                "imageIdHash" to sha256(active.first.imageId),
+                "stage" to stage.name,
+                "checkpointId" to "KF25",
+                "recordIdentityAccepted" to accepted,
+                "savedRecordIdHash" to savedRecordId?.takeIf(String::isNotBlank)?.let(::sha256),
+                "errorType" to errorType,
+                "errorMessage" to errorMessage?.take(512),
+                "eventSequence" to active.second,
+            ),
+        )
+    }
+
     /** Stores the GPU host receipt in the existing bounded evidence stream. */
     fun recordGpuRenderResult(
         identity: RecognitionSceneIdentity,
@@ -519,32 +573,60 @@ class RecognitionSessionEvidenceRecorder(
             latestGeometryVersion = frame.geometryVersion
             latestSceneElapsedMs = maxOf(latestSceneElapsedMs, frame.sceneElapsedMs)
         }
-        val stageName = frame.stage.name
-        val enterRequest = synchronized(lock) { entryCaptureRequested.add(stageName) }
-        if (enterRequest) requestCapture(window, frame, latestFrame, "STAGE_ENTRY", "stage_entry", priority = "KEY")
-        if (resultSceneStable && synchronized(lock) { !resultStableCaptureRequested.also { if (!it) resultStableCaptureRequested = true } }) {
-            requestCapture(window, frame, latestFrame, "RESULT_SCENE_STABLE", "stage_entry", priority = "KEY")
+        RecognitionEvidenceCapturePolicy.checkpointsPresented(frame).forEach(::queueVisualCheckpoint)
+        val readyCheckpoint = synchronized(lock) {
+            markStaleCheckpointsMissingLocked(frame.stage)
+            pendingVisualCheckpoints.firstOrNull { it.stage == frame.stage }
         }
-        // Motion screenshots are reserved for visible AUTO progress. Model waits are
-        // represented by the one-second heartbeat and must not trigger high-frequency capture.
-        val visibleMotion = !enterRequest && RecognitionEvidenceCapturePolicy.shouldCaptureMotion(
+        if (readyCheckpoint != null) {
+            val handled = requestCapture(
+                window = window,
+                frame = frame,
+                latestFrame = latestFrame,
+                captureType = "VISUAL_CHECKPOINT",
+                directoryName = "checkpoints",
+                priority = "KEY",
+                checkpointId = readyCheckpoint.id,
+            )
+            if (handled) synchronized(lock) {
+                pendingVisualCheckpoints.removeAll { it.id == readyCheckpoint.id }
+            }
+            return
+        }
+        val firstBlockedFrame = synchronized(lock) {
+            val alreadyCaptured = frame.stage in blockedCaptureStages
+            val shouldCapture = RecognitionEvidenceCapturePolicy.isFirstBlockedFrame(frame, alreadyCaptured)
+            if (shouldCapture) blockedCaptureStages += frame.stage
+            shouldCapture
+        }
+        if (firstBlockedFrame) {
+            val handled = requestCapture(
+                window = window,
+                frame = frame,
+                latestFrame = latestFrame,
+                captureType = "GATE_BLOCKED",
+                directoryName = "anomalies",
+                priority = "KEY",
+            )
+            if (!handled) synchronized(lock) { blockedCaptureStages.remove(frame.stage) }
+            return
+        }
+        // Optional motion support is one actual midpoint frame per progressing Stage.
+        // It is never periodic and is skipped whenever a KF checkpoint is queued.
+        val visibleMotion = RecognitionEvidenceCapturePolicy.shouldCaptureMotion(
             paused = frame.paused,
             runState = frame.modelGates.runState,
             waitingReason = frame.modelGates.waitingReason,
             stage = frame.stage,
+            stageProgress = frame.stageProgress,
         )
-        val now = frame.monotonicTimestampMs
-        if (visibleMotion && now >= 0L) {
-            val shouldRequest = synchronized(lock) {
-                if (motionRequestCount >= MAX_MOTION_SAMPLES ||
-                    (lastMotionRequestMs != Long.MIN_VALUE && now - lastMotionRequestMs < MOTION_INTERVAL_MS)
-                ) false else {
-                    lastMotionRequestMs = now
-                    motionRequestCount++
-                    true
-                }
-            }
-            if (shouldRequest) requestCapture(window, frame, latestFrame, "MOTION_SAMPLE", "motion_samples", priority = "SAMPLE")
+        val shouldCaptureMotion = synchronized(lock) {
+            visibleMotion && pendingVisualCheckpoints.isEmpty() &&
+                motionRequestCount < MAX_MOTION_SAMPLES && motionCapturedStages.add(frame.stage)
+        }
+        if (shouldCaptureMotion) {
+            synchronized(lock) { motionRequestCount++ }
+            requestCapture(window, frame, latestFrame, "MOTION_SAMPLE", "motion_samples", priority = "SAMPLE")
         }
     }
 
@@ -621,9 +703,11 @@ class RecognitionSessionEvidenceRecorder(
         }
 
         return synchronized(pixelFileLock) {
+            synchronized(lock) { finalizeCheckpointStatusesLocked() }
             val (identity, summary, captureIndex) = synchronized(lock) {
                 Triple(activeIdentity, summaryJson(), captureIndexJson())
             }
+            val checkpointIndex = synchronized(lock) { checkpointIndexJsonLocked() }
             val sessionIdentitySource = attempt.file("session/session_identity.json")
             if (sessionIdentitySource.isFile) {
                 val targetIdentity = File(stagingDirectory, "session/session_identity.json")
@@ -632,13 +716,33 @@ class RecognitionSessionEvidenceRecorder(
             }
             val framesSourceRoot = File(attempt.directory, "frames")
             var copiedFrameBytes = 0L
-            var frameCapHit = false
-            val frameFiles = framesSourceRoot.walkTopDown().filter(File::isFile).sortedBy(File::getPath).toList()
-            for (sourceFrame in frameFiles) {
-                val rel = sourceFrame.relativeTo(attempt.directory).invariantSeparatorsPath
+            var droppedSamples = 0L
+            var missingKeyFrames = 0
+            val captureRowsByPath = buildMap {
+                for (index in 0 until captureIndex.length()) {
+                    val row = captureIndex.optJSONObject(index) ?: continue
+                    val path = row.optString("relativePath").takeIf(String::isNotBlank) ?: continue
+                    put(path, row)
+                }
+            }
+            val frameFiles = framesSourceRoot.walkTopDown().filter(File::isFile).toList()
+            val indexedFrames = frameFiles.mapNotNull { source ->
+                val rel = source.relativeTo(attempt.directory).invariantSeparatorsPath
+                captureRowsByPath[rel]?.let { row -> Triple(source, rel, row) }
+            }
+            // Preserve every accepted checkpoint frame, even if the optional-frame budget
+            // is exceeded. Only SAMPLE captures may be dropped to satisfy the archive cap.
+            val orderedFrames = indexedFrames.sortedWith(
+                compareBy<Triple<File, String, JSONObject>> { it.third.optString("priority") == "SAMPLE" }
+                    .thenBy { it.second },
+            )
+            for ((sourceFrame, rel, row) in orderedFrames) {
                 val size = sourceFrame.length()
-                if (copiedFrameBytes + size > MAX_EXPORT_FRAMES_BYTES) {
-                    frameCapHit = true
+                val isSample = row.optString("priority") == "SAMPLE"
+                if (isSample && copiedFrameBytes + size > MAX_EXPORT_FRAMES_BYTES) {
+                    row.put("pixelCopyStatus", "DROPPED_SAMPLE_SNAPSHOT_BUDGET")
+                        .put("dropReason", "EXPORT_SNAPSHOT_FRAME_BUDGET")
+                    droppedSamples++
                     continue
                 }
                 val destFrame = File(stagingDirectory, rel)
@@ -646,10 +750,42 @@ class RecognitionSessionEvidenceRecorder(
                 sourceFrame.copyTo(destFrame, overwrite = true)
                 copiedFrameBytes += size
             }
-            if (frameCapHit) {
-                sink?.markIncomplete("FRAME_SNAPSHOT_SIZE_CAP_REACHED")
-                degradedReasons += "FRAME_SNAPSHOT_SIZE_CAP_REACHED"
+            var missingFrameCount = 0
+            captureRowsByPath.forEach { (path, row) ->
+                if (row.optString("pixelCopyStatus") != "SUCCESS") return@forEach
+                if (File(attempt.directory, path).isFile) return@forEach
+                row.put("pixelCopyStatus", "CAPTURE_FAILED")
+                    .put("failureReason", "FRAME_FILE_MISSING_FROM_ACTIVE_ATTEMPT")
+                missingFrameCount++
+                val captureId = row.optString("captureId")
+                for (index in 0 until checkpointIndex.length()) {
+                    val checkpoint = checkpointIndex.optJSONObject(index) ?: continue
+                    if (checkpoint.optString("captureId") == captureId) {
+                        checkpoint.put("status", "CAPTURE_FAILED")
+                            .put("reason", "FRAME_FILE_MISSING_FROM_ACTIVE_ATTEMPT")
+                    }
+                }
             }
+            val keyFrameBudgetExceededBytes = (copiedFrameBytes - MAX_EXPORT_FRAMES_BYTES).coerceAtLeast(0L)
+            if (droppedSamples > 0L) {
+                degradedReasons += "OPTIONAL_SAMPLE_FRAMES_DROPPED_AT_SNAPSHOT:$droppedSamples"
+            }
+            if (missingFrameCount > 0) {
+                sink?.markIncomplete("FRAME_FILE_MISSING_FROM_ACTIVE_ATTEMPT:$missingFrameCount")
+                degradedReasons += "FRAME_FILE_MISSING_FROM_ACTIVE_ATTEMPT:$missingFrameCount"
+            }
+            if (keyFrameBudgetExceededBytes > 0L) {
+                sink?.markIncomplete("KEYFRAME_FRAME_BUDGET_EXCEEDED:$keyFrameBudgetExceededBytes")
+                degradedReasons += "KEYFRAME_FRAME_BUDGET_EXCEEDED:$keyFrameBudgetExceededBytes"
+            }
+            summary.put("droppedSampleCaptureCount", summary.optLong("droppedSampleCaptureCount") + droppedSamples)
+                .put("snapshotFrameBytes", copiedFrameBytes)
+                .put("snapshotFrameBudgetBytes", MAX_EXPORT_FRAMES_BYTES)
+                .put("screenshotFailureCount", summary.optInt("screenshotFailureCount") + missingFrameCount)
+                .put("checkpointCapturedCount", checkpointStatusCount(checkpointIndex, "CAPTURED"))
+                .put("checkpointMissingCount", checkpointStatusCount(checkpointIndex, "MISSING"))
+                .put("checkpointNotReachedCount", checkpointStatusCount(checkpointIndex, "NOT_REACHED"))
+                .put("checkpointCaptureFailedCount", checkpointStatusCount(checkpointIndex, "CAPTURE_FAILED"))
             val maskSource = File(attempt.directory, "mask")
             maskSource.listFiles()?.filter(File::isFile)?.forEach { sourceMask ->
                 val destMask = File(stagingDirectory, "mask/${sourceMask.name}")
@@ -663,6 +799,7 @@ class RecognitionSessionEvidenceRecorder(
                 identity = identity,
                 summary = refreshedSummary,
                 captureIndex = captureIndex,
+                checkpointIndex = checkpointIndex,
                 queueDiagnostics = finalDiagnostics,
                 degradedReasons = (degradedReasons + finalDiagnostics.incompleteReasons).distinct(),
             )
@@ -702,6 +839,12 @@ class RecognitionSessionEvidenceRecorder(
             .put("screenshotRequestCount", screenshotRequestCount)
             .put("screenshotSuccessCount", screenshotSuccessCount)
             .put("screenshotFailureCount", screenshotFailureCount)
+            .put("droppedSampleCaptureCount", droppedSampleCaptureCount)
+            .put("screenshotEncoding", if (losslessVisualEvidence) "PNG_LOSSLESS" else "WEBP_Q92")
+            .put("checkpointCount", checkpointStatuses.size)
+            .put("checkpointCapturedCount", checkpointStatuses.values.count { it.status == "CAPTURED" })
+            .put("checkpointMissingCount", checkpointStatuses.values.count { it.status == "MISSING" })
+            .put("checkpointNotReachedCount", checkpointStatuses.values.count { it.status == "NOT_REACHED" })
             .put("eventCount", sinkStatus?.eventCount ?: 0L)
             .put("droppedCriticalEventCount", sinkStatus?.droppedCriticalEvents ?: 0L)
             .put("droppedSampleEventCount", sinkStatus?.droppedSampleEvents ?: 0L)
@@ -716,11 +859,134 @@ class RecognitionSessionEvidenceRecorder(
                     stage = row.optString("stage"),
                     captureType = row.optString("captureType"),
                     pixelCopyStatus = row.optString("pixelCopyStatus"),
+                    checkpointId = row.optString("checkpointId").takeIf(String::isNotBlank),
                 )
             },
         )
 
     fun captureIndexJson(): JSONArray = synchronized(lock) { JSONArray(captureRows.map { JSONObject(it.toString()) }) }
+
+    fun checkpointIndexJson(): JSONArray = synchronized(lock) { checkpointIndexJsonLocked() }
+
+    /** Arms a post-draw screenshot for a true UI checkpoint such as the Result save action. */
+    fun requestCheckpointCapture(
+        checkpointId: String,
+        stage: RecognitionSceneStage,
+        eventSequence: Long,
+        eventType: String,
+    ): Boolean {
+        if (checkpointId !in RecognitionEvidenceCapturePolicy.checkpointIds) return false
+        synchronized(lock) {
+            val current = checkpointStatuses[checkpointId] ?: return false
+            if (!RecognitionEvidenceCapturePolicy.shouldQueueCheckpoint(current.status)) {
+                return current.status in setOf("PENDING", "CAPTURE_REQUESTED", "CAPTURED")
+            }
+            val expectedStage = RecognitionEvidenceCapturePolicy.checkpointStage(checkpointId) ?: stage
+            checkpointStatuses[checkpointId] = current.copy(
+                stage = expectedStage.name,
+                status = "PENDING",
+                reason = null,
+                eventSequence = eventSequence,
+            )
+            pendingVisualCheckpoints += PendingVisualCheckpoint(checkpointId, expectedStage, eventSequence)
+            record(
+                eventType,
+                "recognition_events.jsonl",
+                mapOf(
+                    "checkpointId" to checkpointId,
+                    "stage" to stage.name,
+                    "expectedCaptureStage" to expectedStage.name,
+                    "eventSequence" to eventSequence,
+                    "captureAfterDraw" to true,
+                ),
+                generation = activeGeneration,
+            )
+        }
+        return true
+    }
+
+    private fun queueVisualCheckpoint(signal: RecognitionEvidenceCheckpointSignal) {
+        synchronized(lock) {
+            val current = checkpointStatuses[signal.id] ?: return
+            if (!RecognitionEvidenceCapturePolicy.shouldQueueCheckpoint(current.status)) return
+            checkpointStatuses[signal.id] = current.copy(
+                status = "PENDING",
+                reason = null,
+                eventSequence = signal.eventSequence,
+            )
+            pendingVisualCheckpoints += PendingVisualCheckpoint(signal.id, signal.stage, signal.eventSequence)
+            record(
+                "VISUAL_CHECKPOINT_REACHED",
+                "recognition_events.jsonl",
+                mapOf(
+                    "checkpointId" to signal.id,
+                    "stage" to signal.stage.name,
+                    "eventSequence" to signal.eventSequence,
+                    "framePresentedAfterDraw" to true,
+                ),
+                generation = activeGeneration,
+            )
+        }
+    }
+
+    private fun markStaleCheckpointsMissingLocked(currentStage: RecognitionSceneStage) {
+        val stale = pendingVisualCheckpoints.filter { currentStage.ordinal > it.stage.ordinal }
+        stale.forEach { pending ->
+            checkpointStatuses[pending.id]?.let { old ->
+                checkpointStatuses[pending.id] = old.copy(
+                    status = "MISSING",
+                    reason = "SCENE_ADVANCED_BEFORE_MATCHING_FRAME_CAPTURE",
+                )
+            }
+            pendingVisualCheckpoints.removeAll { it.id == pending.id }
+        }
+    }
+
+    private fun finalizeCheckpointStatusesLocked() {
+        val stageSnapshots = stageStatuses.values.map { RecognitionEvidenceStageSnapshot(it.stage.name, it.status) }
+        checkpointStatuses.entries.toList().forEach { (id, checkpoint) ->
+            checkpointStatuses[id] = RecognitionEvidenceCapturePolicy.checkpointStatusAfterExport(checkpoint, stageSnapshots)
+        }
+        checkpointStatuses.entries.toList().forEach { (id, checkpoint) ->
+            if (checkpoint.status == "CAPTURE_REQUESTED" || checkpoint.status == "PENDING") {
+                checkpointStatuses[id] = checkpoint.copy(
+                    status = "CAPTURE_FAILED",
+                    reason = "EXPORT_FLUSH_DID_NOT_COMPLETE_CAPTURE",
+                )
+            }
+        }
+        pendingVisualCheckpoints.forEach { pending ->
+            checkpointStatuses[pending.id]?.let { old ->
+                checkpointStatuses[pending.id] = old.copy(
+                    status = "MISSING",
+                    reason = "EXPORT_BEFORE_CHECKPOINT_FRAME_CAPTURE",
+                )
+            }
+        }
+        pendingVisualCheckpoints.clear()
+    }
+
+    private fun checkpointIndexJsonLocked(): JSONArray = JSONArray().apply {
+        RecognitionEvidenceCapturePolicy.checkpointIds.forEach { id ->
+            val checkpoint = checkpointStatuses[id]
+                ?: RecognitionEvidenceCheckpointSnapshot(id, "UNKNOWN", "NOT_REACHED")
+            val capture = captureRows.firstOrNull { it.optString("checkpointId") == id }
+            put(
+                JSONObject()
+                    .put("checkpointId", checkpoint.id)
+                    .put("stage", checkpoint.stage)
+                    .put("status", checkpoint.status)
+                    .put("reason", checkpoint.reason ?: JSONObject.NULL)
+                    .put("eventSequence", checkpoint.eventSequence ?: JSONObject.NULL)
+                    .put("captureId", capture?.optString("captureId") ?: JSONObject.NULL)
+                    .put("relativePath", capture?.optString("relativePath") ?: JSONObject.NULL)
+                    .put("sha256", capture?.optString("sha256") ?: JSONObject.NULL),
+            )
+        }
+    }
+
+    private fun checkpointStatusCount(index: JSONArray, status: String): Int = (0 until index.length())
+        .count { index.optJSONObject(it)?.optString("status") == status }
 
     private fun heartbeat(stage: RecognitionSceneStage, sceneElapsedMs: Long, waitingReason: String) {
         val now = SystemClock.uptimeMillis()
@@ -747,40 +1013,59 @@ class RecognitionSessionEvidenceRecorder(
         captureType: String,
         directoryName: String,
         priority: String,
-    ) {
+        checkpointId: String? = null,
+    ): Boolean {
         val setup = synchronized(lock) {
             if (activeIdentity?.matches(frame.identity) != true) null
             else activeAttempt?.let { it to activeGeneration }
-        } ?: return
+        } ?: return false
         val attempt = setup.first
         val generation = setup.second
         val captureId = UUID.randomUUID().toString()
         val drawFrameSequence: Long
         val requestTimestamp = SystemClock.uptimeMillis()
         synchronized(lock) {
-            if (generation != activeGeneration) return
-            if (pixelCopySuspendedReason != null || pixelCopyInFlight) {
-                if (captureType == "STAGE_ENTRY") entryCaptureRequested.remove(frame.stage.name)
-                if (captureType == "RESULT_SCENE_STABLE") resultStableCaptureRequested = false
-                return
+            if (generation != activeGeneration) return false
+            if (pixelCopySuspendedReason != null || pixelCopyInFlight ||
+                pendingBitmapWrites >= RecognitionEvidenceCapturePolicy.MAX_UNFINISHED_PIXEL_WRITES
+            ) {
+                if (priority == "SAMPLE") droppedSampleCaptureCount++
+                if (checkpointId != null && pixelCopySuspendedReason != null) {
+                    checkpointStatuses[checkpointId]?.let { old ->
+                        checkpointStatuses[checkpointId] = old.copy(
+                            status = "CAPTURE_FAILED",
+                            reason = "PIXELCOPY_SUSPENDED:$pixelCopySuspendedReason",
+                        )
+                    }
+                    pendingVisualCheckpoints.removeAll { it.id == checkpointId }
+                }
+                return false
             }
             if (screenshotRequestCount >= MAX_TOTAL_SCREENSHOTS) {
                 screenshotFailureCount++
                 eventSink?.markIncomplete("CAPTURE_LIMIT_REACHED")
                 appendCaptureRow(
-                    failureRow(captureId, frame, captureType, "CAPTURE_LIMIT_REACHED", requestTimestamp, requestTimestamp, frame.stage.name),
+                    failureRow(captureId, frame, captureType, "CAPTURE_LIMIT_REACHED", requestTimestamp, requestTimestamp, frame.stage.name, checkpointId = checkpointId),
                 )
+                markCheckpointCaptureFailedLocked(checkpointId, "CAPTURE_LIMIT_REACHED")
                 record(
                     "CAPTURE_LIMIT_REACHED",
                     "recognition_events.jsonl",
-                    mapOf("captureId" to captureId, "stage" to frame.stage.name),
+                    mapOf("captureId" to captureId, "stage" to frame.stage.name, "checkpointId" to checkpointId),
                     generation = generation,
                 )
-                return
+                // The request is terminally accounted for. Tell the caller not to retry
+                // this same checkpoint or blocked-stage frame on every subsequent draw.
+                return true
             }
             pixelCopyInFlight = true
             screenshotRequestCount++
             drawFrameSequence = ++frameSequence
+            if (checkpointId != null) {
+                checkpointStatuses[checkpointId]?.let { old ->
+                    checkpointStatuses[checkpointId] = old.copy(status = "CAPTURE_REQUESTED")
+                }
+            }
         }
         captureLock.withLock { pendingCaptures++ }
         val sessionHash = sha256(frame.identity.sessionId)
@@ -792,6 +1077,7 @@ class RecognitionSessionEvidenceRecorder(
             mapOf(
                 "captureId" to captureId,
                 "captureType" to captureType,
+                "checkpointId" to checkpointId,
                 "priority" to priority,
                 "stage" to frame.stage.name,
                 "frameSequence" to drawFrameSequence,
@@ -820,19 +1106,17 @@ class RecognitionSessionEvidenceRecorder(
                 result.bitmap?.recycle()
                 synchronized(lock) {
                     if (generation == activeGeneration) {
-                        if (status == "STAGE_IDENTITY_UNVERIFIED") {
-                            if (captureType == "STAGE_ENTRY") entryCaptureRequested.remove(frame.stage.name)
-                            if (captureType == "RESULT_SCENE_STABLE") resultStableCaptureRequested = false
-                        }
                         if (status == "PIXELCOPY_ERROR" || status == "PIXELCOPY_TIMEOUT") {
                             pixelCopySuspendedReason = status
                         }
                         screenshotFailureCount++
                         eventSink?.markIncomplete(status)
+                        markCheckpointCaptureFailedLocked(checkpointId, status)
                         appendCaptureRow(
                             failureRow(
                                 captureId, frame, captureType, status, requestTimestamp,
                                 result.completionTimestampMs, result.stageAtCompletion, result.geometryVersionAtCompletion,
+                                checkpointId = checkpointId,
                             ),
                         )
                     }
@@ -842,6 +1126,7 @@ class RecognitionSessionEvidenceRecorder(
                     "recognition_events.jsonl",
                     mapOf(
                         "captureId" to captureId,
+                        "checkpointId" to checkpointId,
                         "stage" to frame.stage.name,
                         "stageAtCompletion" to result.stageAtCompletion,
                         "geometryVersionAtRequest" to frame.geometryVersion,
@@ -857,34 +1142,68 @@ class RecognitionSessionEvidenceRecorder(
                 return@request
             }
             val bitmap = result.bitmap
+            val acceptedWriteSlot = synchronized(lock) {
+                if (pendingBitmapWrites >= RecognitionEvidenceCapturePolicy.MAX_UNFINISHED_PIXEL_WRITES) false
+                else { pendingBitmapWrites++; true }
+            }
+            if (!acceptedWriteSlot) {
+                bitmap.recycle()
+                synchronized(lock) {
+                    if (priority == "SAMPLE") droppedSampleCaptureCount++ else screenshotFailureCount++
+                    markCheckpointCaptureFailedLocked(checkpointId, "PIXEL_WRITE_QUEUE_FULL")
+                    if (priority == "KEY") eventSink?.markIncomplete("PIXEL_WRITE_QUEUE_FULL")
+                    appendCaptureRow(
+                        failureRow(
+                            captureId, frame, captureType, "PIXEL_WRITE_QUEUE_FULL", requestTimestamp,
+                            result.completionTimestampMs, frame.stage.name, checkpointId = checkpointId,
+                        ),
+                    )
+                }
+                record(
+                    "PIXEL_WRITE_QUEUE_FULL",
+                    "recognition_events.jsonl",
+                    mapOf("captureId" to captureId, "priority" to priority, "stage" to frame.stage.name, "checkpointId" to checkpointId),
+                    generation = generation,
+                )
+                completeCapture()
+                return@request
+            }
             runCatching {
                 pixelIo.execute {
-                    saveCapturedBitmap(
-                        attempt = attempt,
-                        bitmap = bitmap,
-                        captureId = captureId,
-                        captureType = captureType,
-                        directoryName = directoryName,
-                        frame = frame,
-                        generation = generation,
-                        requestTimestamp = requestTimestamp,
-                        completionTimestamp = result.completionTimestampMs,
-                        drawFrameSequence = drawFrameSequence,
-                        sessionHash = sessionHash,
-                        attemptHash = attemptHash,
-                        imageHash = imageHash,
-                    )
-                    completeCapture()
+                    try {
+                        saveCapturedBitmap(
+                            attempt = attempt,
+                            bitmap = bitmap,
+                            captureId = captureId,
+                            captureType = captureType,
+                            directoryName = directoryName,
+                            generation = generation,
+                            frame = frame,
+                            requestTimestamp = requestTimestamp,
+                            completionTimestamp = result.completionTimestampMs,
+                            drawFrameSequence = drawFrameSequence,
+                            sessionHash = sessionHash,
+                            attemptHash = attemptHash,
+                            imageHash = imageHash,
+                            checkpointId = checkpointId,
+                        )
+                    } finally {
+                        synchronized(lock) { pendingBitmapWrites = (pendingBitmapWrites - 1).coerceAtLeast(0) }
+                        completeCapture()
+                    }
                 }
             }.onFailure {
                 bitmap.recycle()
                 if (isActiveGeneration(generation)) synchronized(lock) {
+                    pendingBitmapWrites = (pendingBitmapWrites - 1).coerceAtLeast(0)
                     screenshotFailureCount++
                     eventSink?.markIncomplete("CAPTURE_IO_QUEUE_FAILED")
+                    markCheckpointCaptureFailedLocked(checkpointId, "CAPTURE_IO_QUEUE_FAILED:${it.javaClass.simpleName}")
                 }
                 completeCapture()
             }
         }
+        return true
     }
 
     private fun completeCapture() {
@@ -908,17 +1227,29 @@ class RecognitionSessionEvidenceRecorder(
         sessionHash: String,
         attemptHash: String,
         imageHash: String,
+        checkpointId: String?,
     ) {
         try {
-            val fileName = "${frame.stage.name}_${captureId}.png"
+            val encoding = RecognitionEvidenceCapturePolicy.screenshotEncoding(captureType, losslessVisualEvidence)
+            val suffix = if (encoding.format == "PNG") "png" else "webp"
+            val fileName = "${checkpointId?.let { "${it}_" }.orEmpty()}${frame.stage.name}_${captureId}.$suffix"
             val file = attempt.file("frames/$directoryName/$fileName")
             val (accepted, digest) = synchronized(pixelFileLock) {
                 file.parentFile?.mkdirs()
-                val compressed = file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
-                if (!compressed || !file.isFile) error("PNG_WRITE_FAILED")
+                val bitmapFormat = when (encoding.format) {
+                    "PNG" -> Bitmap.CompressFormat.PNG
+                    else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        Bitmap.CompressFormat.WEBP_LOSSY
+                    } else Bitmap.CompressFormat.WEBP
+                }
+                val compressed = file.outputStream().use {
+                    bitmap.compress(bitmapFormat, encoding.quality ?: 100, it)
+                }
+                if (!compressed || !file.isFile) error("${encoding.format}_WRITE_FAILED")
                 val hash = file.sha256()
                 val row = JSONObject()
                     .put("captureId", captureId)
+                    .put("checkpointId", checkpointId ?: JSONObject.NULL)
                     .put("sessionIdHash", sessionHash)
                     .put("attemptIdHash", attemptHash)
                     .put("imageIdHash", imageHash)
@@ -934,7 +1265,10 @@ class RecognitionSessionEvidenceRecorder(
                     .put("stageAtCompletion", frame.stage.name)
                     .put("pixelCopyStatus", "SUCCESS")
                     .put("captureType", captureType)
-                    .put("priority", if (captureType == "STAGE_ENTRY" || captureType == "RESULT_SCENE_STABLE") "KEY" else "SAMPLE")
+                    .put("priority", if (captureType != "MOTION_SAMPLE") "KEY" else "SAMPLE")
+                    .put("encoding", encoding.format)
+                    .put("quality", encoding.quality ?: JSONObject.NULL)
+                    .put("mimeType", encoding.mimeType)
                     .put("relativePath", "frames/$directoryName/$fileName")
                     .put("sha256", hash)
                     .put("width", bitmap.width)
@@ -942,6 +1276,11 @@ class RecognitionSessionEvidenceRecorder(
                 val stored = synchronized(lock) {
                     if (generation != activeGeneration) false else {
                         screenshotSuccessCount++
+                        if (checkpointId != null) {
+                            checkpointStatuses[checkpointId]?.let { old ->
+                                checkpointStatuses[checkpointId] = old.copy(status = "CAPTURED", reason = null)
+                            }
+                        }
                         appendCaptureRow(row)
                         true
                     }
@@ -956,15 +1295,16 @@ class RecognitionSessionEvidenceRecorder(
             if (isActiveGeneration(generation)) synchronized(lock) {
                 screenshotFailureCount++
                 eventSink?.markIncomplete("CAPTURE_WRITE_FAILED:${failure.javaClass.simpleName}")
+                markCheckpointCaptureFailedLocked(checkpointId, "CAPTURE_WRITE_FAILED:${failure.javaClass.simpleName}")
                 appendCaptureRow(
-                    failureRow(captureId, frame, captureType, "REQUEST_FAILED", requestTimestamp, completionTimestamp, frame.stage.name),
+                    failureRow(captureId, frame, captureType, "REQUEST_FAILED", requestTimestamp, completionTimestamp, frame.stage.name, checkpointId = checkpointId),
                 )
             }
             if (isActiveGeneration(generation)) {
                 record(
                     "REQUEST_FAILED",
                     "recognition_events.jsonl",
-                    mapOf("captureId" to captureId, "error" to failure.javaClass.simpleName),
+                    mapOf("captureId" to captureId, "checkpointId" to checkpointId, "error" to failure.javaClass.simpleName, "message" to failure.message),
                     generation = generation,
                 )
             }
@@ -982,8 +1322,10 @@ class RecognitionSessionEvidenceRecorder(
         completionTimestamp: Long,
         stageAtCompletion: String,
         geometryVersionAtCompletion: Long? = null,
+        checkpointId: String? = null,
     ) = JSONObject()
         .put("captureId", captureId)
+        .put("checkpointId", checkpointId ?: JSONObject.NULL)
         .put("sessionIdHash", sha256(frame.identity.sessionId))
         .put("attemptIdHash", sha256(frame.identity.attemptId))
         .put("imageIdHash", sha256(frame.identity.imageId))
@@ -999,6 +1341,14 @@ class RecognitionSessionEvidenceRecorder(
         .put("stageAtCompletion", stageAtCompletion)
         .put("pixelCopyStatus", status)
         .put("captureType", captureType)
+
+    private fun markCheckpointCaptureFailedLocked(checkpointId: String?, reason: String) {
+        if (checkpointId == null) return
+        checkpointStatuses[checkpointId]?.let { old ->
+            checkpointStatuses[checkpointId] = old.copy(status = "CAPTURE_FAILED", reason = reason)
+        }
+        pendingVisualCheckpoints.removeAll { it.id == checkpointId }
+    }
 
     private fun appendCaptureRow(row: JSONObject) {
         captureRows += JSONObject(row.toString())
@@ -1077,14 +1427,13 @@ class RecognitionSessionEvidenceRecorder(
 
     internal companion object {
         const val MAX_TOTAL_SCREENSHOTS = 64
-        const val MAX_MOTION_SAMPLES = 32
-        const val MOTION_INTERVAL_MS = 250L
+        const val MAX_MOTION_SAMPLES = 13
         const val WAIT_HEARTBEAT_INTERVAL_MS = 1_000L
         const val DEFAULT_FLUSH_TIMEOUT_MS = 20_000L
         const val MAX_FLUSH_TIMEOUT_MS = 30_000L
         const val DEFAULT_TAIL_FLUSH_WAIT_MS = 400L
-        // The 26 actual full-resolution PixelCopy PNGs are copied on disk, not
-        // retained as Bitmaps. The former 24 MiB cap dropped valid captures.
+        // Full-resolution WebP checkpoints and optional lossless PNG captures are
+        // copied on disk, not retained as Bitmaps. The former 24 MiB cap dropped valid captures.
         const val MAX_EXPORT_FRAMES_BYTES = 128L * 1024L * 1024L
     }
 }

@@ -6,7 +6,10 @@ import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.security.MessageDigest
 import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -62,6 +65,138 @@ class RecognitionEvidenceZipExporterTest {
             mapOf("logs/recognition_events.jsonl" to "0".repeat(64)),
             manifest,
         )
+    }
+
+    @Test fun archiveIndexesResolveToFullResolutionWebpCheckpointsWithinStandardBudget() {
+        val fixture = requireNotNull(
+            javaClass.getResourceAsStream("/evidence/representative_checkpoint_1080x2400_q92.webp"),
+        ).use { it.readBytes() }
+        assertTrue(fixture.copyOfRange(0, 4).contentEquals("RIFF".toByteArray()))
+        assertTrue(fixture.copyOfRange(8, 12).contentEquals("WEBP".toByteArray()))
+        val tempRoot = java.nio.file.Files.createTempDirectory("yujian-26kf-webp-budget-test").toFile()
+        val snapshot = File(tempRoot, "snapshot").apply { mkdirs() }
+        try {
+            val captureIndex = JSONArray()
+            val checkpointIndex = JSONArray()
+            repeat(26) { index ->
+                val checkpointId = "KF${index.toString().padStart(2, '0')}"
+                val captureId = "capture-$checkpointId"
+                val path = "frames/checkpoints/${checkpointId}_ORB_RETURN.webp"
+                File(snapshot, path).apply { parentFile?.mkdirs(); writeBytes(fixture) }
+                val hash = sha256(fixture)
+                captureIndex.put(
+                    JSONObject()
+                        .put("captureId", captureId).put("checkpointId", checkpointId)
+                        .put("stage", "ORB_RETURN").put("pixelCopyStatus", "SUCCESS")
+                        .put("priority", "KEY").put("encoding", "WEBP").put("mimeType", "image/webp")
+                        .put("quality", 92)
+                        .put("width", 1080).put("height", 2400).put("relativePath", path).put("sha256", hash),
+                )
+                checkpointIndex.put(
+                    JSONObject()
+                        .put("checkpointId", checkpointId).put("stage", "ORB_RETURN")
+                        .put("status", "CAPTURED").put("captureId", captureId)
+                        .put("relativePath", path).put("sha256", hash),
+                )
+            }
+            File(snapshot, "frames/frame_index.json").writeText(captureIndex.toString(), Charsets.UTF_8)
+            File(snapshot, "frames/26kf_checkpoint_index.json").writeText(checkpointIndex.toString(), Charsets.UTF_8)
+            File(snapshot, "logs/recognition_events.jsonl").apply {
+                parentFile?.mkdirs()
+                writeText("{\"event\":\"checkpoint-index-retained\"}\n", Charsets.UTF_8)
+            }
+            val budgetDegradedReasons = mutableListOf<String>()
+            val budgetOutcome = RecognitionEvidenceZipExporter.applyStandardFrameBudget(
+                snapshot,
+                captureIndex,
+                budgetDegradedReasons,
+                lossless = false,
+            )
+            assertEquals(0, budgetOutcome.droppedSampleCount)
+            assertTrue(budgetDegradedReasons.isEmpty())
+            assertTrue(budgetOutcome.retainedFrameBytes <= RecognitionEvidenceZipExporter.STANDARD_FRAME_BUDGET_BYTES)
+            val archive = File(tempRoot, "diagnostics/26kf.zip")
+            val packaged = RecognitionEvidenceZipExporter.packageSnapshotAndVerify(snapshot, archive) { hashes ->
+                JSONObject().put("schemaVersion", 2).put("fileSha256", JSONObject(hashes))
+                    .toString().toByteArray(Charsets.UTF_8)
+            }
+            assertTrue("unexpected ZIP size ${packaged.sizeBytes}", packaged.sizeBytes in (10L * 1024 * 1024)..(20L * 1024 * 1024))
+            ZipFile(archive).use { zip ->
+                val archivedCheckpoints = JSONArray(
+                    zip.getInputStream(zip.getEntry("frames/26kf_checkpoint_index.json"))
+                        .use { it.readBytes().toString(Charsets.UTF_8) },
+                )
+                val archivedFrames = JSONArray(
+                    zip.getInputStream(zip.getEntry("frames/frame_index.json"))
+                        .use { it.readBytes().toString(Charsets.UTF_8) },
+                )
+                assertEquals(26, archivedCheckpoints.length())
+                assertEquals(26, archivedFrames.length())
+                assertEquals(1080, archivedFrames.getJSONObject(0).getInt("width"))
+                assertEquals(2400, archivedFrames.getJSONObject(0).getInt("height"))
+                assertEquals(26, zip.entries().asSequence().count {
+                    it.name.startsWith("frames/checkpoints/") && it.name.endsWith(".webp")
+                })
+            }
+        } finally {
+            tempRoot.deleteRecursively()
+        }
+    }
+
+    @Test fun frameBudgetDropsMotionSamplesBeforeKeyCheckpoints() {
+        val root = java.nio.file.Files.createTempDirectory("yujian-frame-budget-test").toFile()
+        try {
+            val key = File(root, "frames/checkpoints/KF14.webp").apply {
+                parentFile?.mkdirs()
+                writeBytes(ByteArray(128) { 7 })
+            }
+            val sample = File(root, "frames/motion_samples/sample.webp").apply {
+                parentFile?.mkdirs()
+                java.io.RandomAccessFile(this, "rw").use {
+                    it.setLength(RecognitionEvidenceZipExporter.STANDARD_FRAME_BUDGET_BYTES + 1L)
+                }
+            }
+            val index = JSONArray()
+                .put(JSONObject().put("captureId", "key").put("priority", "KEY")
+                    .put("pixelCopyStatus", "SUCCESS").put("relativePath", key.relativeTo(root).invariantSeparatorsPath))
+                .put(JSONObject().put("captureId", "sample").put("priority", "SAMPLE")
+                    .put("pixelCopyStatus", "SUCCESS").put("relativePath", sample.relativeTo(root).invariantSeparatorsPath))
+            val degraded = mutableListOf<String>()
+            val outcome = RecognitionEvidenceZipExporter.applyStandardFrameBudget(root, index, degraded, lossless = false)
+            assertEquals(1, outcome.droppedSampleCount)
+            assertTrue(key.isFile)
+            assertTrue(!sample.exists())
+            assertEquals("SUCCESS", index.getJSONObject(0).optString("pixelCopyStatus"))
+            assertEquals("DROPPED_SAMPLE_BUDGET", index.getJSONObject(1).optString("pixelCopyStatus"))
+            assertTrue(degraded.single().startsWith("MOTION_SAMPLES_DROPPED_TO_MEET_FRAME_BUDGET"))
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test fun originalMaskPngBytesAndShaSurviveArchivePackagingExactly() {
+        val sourceBytes = requireNotNull(javaClass.getResourceAsStream("/evidence/original_mask_fixture.png"))
+            .use { it.readBytes() }
+        val tempRoot = java.nio.file.Files.createTempDirectory("yujian-mask-archive-test").toFile()
+        try {
+            val snapshot = File(tempRoot, "snapshot").apply { mkdirs() }
+            File(snapshot, "mask/original_mask.png").apply { parentFile?.mkdirs(); writeBytes(sourceBytes) }
+            val maskHash = sha256(sourceBytes)
+            val archive = File(tempRoot, "mask.zip")
+            val packaged = RecognitionEvidenceZipExporter.packageSnapshotAndVerify(snapshot, archive) { hashes ->
+                JSONObject().put("originalMaskSha256", maskHash)
+                    .put("originalMaskSizeBytes", sourceBytes.size).put("fileSha256", JSONObject(hashes))
+                    .toString().toByteArray(Charsets.UTF_8)
+            }
+            ZipFile(packaged.archive).use { zip ->
+                val archived = zip.getInputStream(zip.getEntry("mask/original_mask.png")).use { it.readBytes() }
+                assertTrue(sourceBytes.contentEquals(archived))
+                assertEquals(maskHash, sha256(archived))
+                assertEquals(maskHash, packaged.fileHashes["mask/original_mask.png"])
+            }
+        } finally {
+            tempRoot.deleteRecursively()
+        }
     }
 
     @Test fun blockedProcessingStagesExportVerifiedZipWithoutInventingResultEvidence() {

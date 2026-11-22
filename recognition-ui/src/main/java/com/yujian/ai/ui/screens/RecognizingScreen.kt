@@ -2012,36 +2012,6 @@ fun RecognitionProcessingScene(
                     pStarBindRejectionReason = null
                 }
             }
-            producer.fishPathSnapshot?.let { snapshot ->
-                if (controller.onFishPathSnapshot(snapshot, sceneIdentity)) {
-                    recognitionEvidenceRecorder?.recordOrbRuntime(
-                        fileName = "waterlight_paths.jsonl",
-                        type = "TRUSTED_FISH_PATH_SNAPSHOT",
-                        payload = mapOf(
-                            "sessionIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(snapshot.sessionId),
-                            "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(snapshot.attemptId),
-                            "imageIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(snapshot.imageId),
-                            "fishPathId" to snapshot.fishPathId,
-                            "returnPathId" to snapshot.returnPathId,
-                            "maskSha256" to snapshot.maskSha256,
-                            "maskVersion" to snapshot.maskVersion,
-                            "geometryVersion" to snapshot.geometryVersion,
-                            "pStarNormalizedSource" to listOf(
-                                snapshot.pStarNormalizedSource.x, snapshot.pStarNormalizedSource.y,
-                            ),
-                            "fishPathGeometry" to evidenceGeometry(snapshot.fishPathGeometry),
-                            "perimeterBranch" to evidenceGeometry(snapshot.perimeterBranch),
-                            "orbReleasePath" to evidenceGeometry(snapshot.orbReleasePath),
-                            "returnPathSegments" to snapshot.returnPathSegments.map(::evidenceGeometry),
-                            "sourceCoordinateSpace" to snapshot.sourceCoordinateSpace,
-                            "creationTimestampMonotonicMs" to snapshot.creationTimestampMonotonicMs,
-                            "creationEventSequence" to snapshot.creationEventSequence,
-                            "valid" to snapshot.isValid(),
-                        ),
-                    )
-                    fishPathSnapshotCallback.value.invoke(snapshot)
-                }
-            }
             // A valid Fish Path must be bound before the reveal decision can
             // become terminal. Otherwise a late Mask may be rejected as an
             // ORB_ONLY route even though its actual P* was just produced.
@@ -2067,6 +2037,65 @@ fun RecognitionProcessingScene(
                     taskEnergyMergedBeforeEvent = waterLightFrame.sceneFrame.taskEnergyMerged,
                 )
                 recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_CONSUMED", eventEvidence)
+                if (event.feedback == EnergyFeedback.ABSORB && !controller.fishPathSnapshotReady()) {
+                    val snapshot = producer.fishPathSnapshot
+                    if (snapshot == null) {
+                        recognitionEvidenceRecorder?.recordGateDiagnostic(
+                            "FISH_PATH_SNAPSHOT_EXPORT_PENDING",
+                            mapOf(
+                                "stage" to event.stage.name,
+                                "pathBindingStatus" to producer.pathBindingStatus.name,
+                                "pathId" to event.pathId,
+                                "maskSha256" to event.pathMaskSha256,
+                                "maskVersion" to event.pathMaskVersion,
+                                "geometryVersion" to event.geometryVersion,
+                            ),
+                        )
+                    } else if (controller.onFishPathSnapshot(snapshot, sceneIdentity)) {
+                        val snapshotEvidence = mapOf(
+                            "sessionIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(snapshot.sessionId),
+                            "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(snapshot.attemptId),
+                            "imageIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(snapshot.imageId),
+                            "fishPathId" to snapshot.fishPathId,
+                            "returnPathId" to snapshot.returnPathId,
+                            "maskSha256" to snapshot.maskSha256,
+                            "maskVersion" to snapshot.maskVersion,
+                            "geometryVersion" to snapshot.geometryVersion,
+                            "pStarNormalizedSource" to listOf(snapshot.pStarNormalizedSource.x, snapshot.pStarNormalizedSource.y),
+                            "fishPathGeometry" to evidenceGeometry(snapshot.fishPathGeometry),
+                            "perimeterBranch" to evidenceGeometry(snapshot.perimeterBranch),
+                            "orbReleasePath" to evidenceGeometry(snapshot.orbReleasePath),
+                            "returnPathSegments" to snapshot.returnPathSegments.map(::evidenceGeometry),
+                            "sourceCoordinateSpace" to snapshot.sourceCoordinateSpace,
+                            "creationTimestampMonotonicMs" to snapshot.creationTimestampMonotonicMs,
+                            "creationEventSequence" to snapshot.creationEventSequence,
+                            "valid" to snapshot.isValid(),
+                            "acceptedAfterEvent" to event.feedback.name,
+                            "acceptedEventSequence" to event.eventSequence,
+                        )
+                        recognitionEvidenceRecorder?.recordOrbRuntime(
+                            fileName = "waterlight_paths.jsonl",
+                            type = "TRUSTED_FISH_PATH_SNAPSHOT",
+                            payload = snapshotEvidence,
+                        )
+                        recognitionEvidenceRecorder?.recordGateDiagnostic("FISH_PATH_SNAPSHOT_ACCEPTED", snapshotEvidence)
+                        fishPathSnapshotCallback.value.invoke(snapshot)
+                    } else {
+                        recognitionEvidenceRecorder?.recordGateDiagnostic(
+                            "FISH_PATH_SNAPSHOT_REJECTED",
+                            mapOf(
+                                "reason" to "CONTROLLER_IDENTITY_OR_MASK_PATH_MISMATCH",
+                                "fishPathId" to snapshot.fishPathId,
+                                "returnPathId" to snapshot.returnPathId,
+                                "eventPathId" to event.pathId,
+                                "eventSequence" to event.eventSequence,
+                                "maskSha256" to snapshot.maskSha256,
+                                "maskVersion" to snapshot.maskVersion,
+                                "geometryVersion" to snapshot.geometryVersion,
+                            ),
+                        )
+                    }
+                }
             } else {
                 val reason = requireNotNull(result.rejectionReason)
                 recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_REJECTED", eventEvidence + ("reason" to reason.name))
@@ -3311,7 +3340,14 @@ private fun createRecognitionEnergyProducerSnapshot(
     )
 
     var arrivalPath: WaterLightPerimeterArrivalSnapshot? = null
-    var fishPathSnapshot: RecognitionFishPathSnapshot? = null
+    // Freeze the exact ledger route as soon as trusted Stage-05 path identity exists.
+    // Result navigation must not wait until Stage 10 to create the identity it needs.
+    var fishPathSnapshot: RecognitionFishPathSnapshot? = if (
+        fishEnergyAllowed && fishPathRegistered && stableContact != null &&
+        maskSha256.isNotBlank() && maskVersion >= 0L
+    ) {
+        ledger.exportRecognitionFishPathSnapshot(frame, maskSha256, maskVersion, stableContact)
+    } else null
     var pathGeometry: com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry? = null
     var pathSegments = emptyList<com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry>()
     var pathId: String? = ledger.pathId(frame)
@@ -3379,18 +3415,19 @@ private fun createRecognitionEnergyProducerSnapshot(
                 maskSha256.isNotBlank() && maskVersion >= 0L
             ) ledger.returnRoute(frame, true, maskSha256, maskVersion, stableContact) else null
             if (fullRoute?.isValid() == true) {
-                fishPathSnapshot = ledger.exportRecognitionFishPathSnapshot(
+                fishPathSnapshot = fishPathSnapshot ?: ledger.exportRecognitionFishPathSnapshot(
                     frame, maskSha256, maskVersion, requireNotNull(stableContact),
                 )
                 if (fishPathSnapshot?.isValid() == true) {
-                    pathSegments = fullRoute.segments
-                    pathId = fullRoute.id
+                    pathSegments = requireNotNull(fishPathSnapshot).returnPathSegments
+                    pathId = requireNotNull(fishPathSnapshot).returnPathId
                     eventMaskSha = fishPathSnapshot?.maskSha256
                     eventMaskVersion = fishPathSnapshot?.maskVersion
                     eventPathGeometryVersion = fishPathSnapshot?.geometryVersion
                     eventContact = fishPathSnapshot?.pStarNormalizedSource
                 } else {
-                    decision = RecognitionRevealDecisionState.ORB_ONLY_READY
+                    decision = if (pStarDeadlineExpired) RecognitionRevealDecisionState.ORB_ONLY_READY
+                    else RecognitionRevealDecisionState.WAITING_PSTAR_PATH
                 }
             } else if (fishEnergyAllowed) {
                 decision = if (pStarDeadlineExpired) RecognitionRevealDecisionState.ORB_ONLY_READY

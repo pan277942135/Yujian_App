@@ -109,6 +109,104 @@ object RecognitionFishGoldRenderContract {
         receipt.outerHaloDrawn && receipt.glintDrawn && receipt.drawPassSequence > 0L
 }
 
+/** Renderer receipt for the actual Result-host Orb RETURN path and measured viewport. */
+data class RecognitionOrbReturnRenderReceipt(
+    val identity: RecognitionSceneIdentity,
+    val stage: RecognitionSceneStage,
+    val pathId: String,
+    val maskSha256: String?,
+    val maskVersion: Long?,
+    val pathGeometryVersion: Long?,
+    val resultGeometryVersion: Long,
+    val pathGeometry: WaterLightPathGeometry?,
+    val pathSegments: List<WaterLightPathGeometry>,
+    val renderedSegmentCount: Int,
+    val renderedProgress: Float,
+    val renderedPathLength: Float,
+    val pathCanvasSubmitted: Boolean,
+    val drawPassSequence: Long,
+)
+
+object RecognitionOrbReturnRenderContract {
+    fun isComplete(
+        identity: RecognitionSceneIdentity,
+        snapshot: RecognitionFishPathSnapshot?,
+        resultGeometryVersion: Long,
+        receipt: RecognitionOrbReturnRenderReceipt,
+    ): Boolean {
+        if (receipt.identity != identity || receipt.stage != RecognitionSceneStage.ORB_RETURN ||
+            receipt.pathId.isBlank() || receipt.resultGeometryVersion != resultGeometryVersion ||
+            resultGeometryVersion <= 0L || receipt.renderedProgress.isFinite().not() ||
+            receipt.renderedProgress < .999f || receipt.renderedPathLength.isFinite().not() ||
+            receipt.renderedPathLength <= 1f || !receipt.pathCanvasSubmitted || receipt.drawPassSequence <= 0L
+        ) return false
+        return if (snapshot != null) {
+            snapshot.isValid() && receipt.pathId == snapshot.returnPathId &&
+                receipt.maskSha256 == snapshot.maskSha256 && receipt.maskVersion == snapshot.maskVersion &&
+                receipt.pathGeometryVersion == snapshot.geometryVersion &&
+                receipt.pathSegments == snapshot.returnPathSegments &&
+                receipt.renderedSegmentCount == snapshot.returnPathSegments.size &&
+                receipt.renderedSegmentCount == 3
+        } else {
+            receipt.maskSha256 == null && receipt.maskVersion == null && receipt.pathGeometryVersion == null &&
+                receipt.pathSegments.isEmpty() && receipt.renderedSegmentCount == 1 &&
+                receipt.pathGeometry?.isValid() == true
+        }
+    }
+}
+
+/** Accumulates the portions of the real projected RETURN path submitted to Canvas. */
+class RecognitionOrbReturnPathDrawCoverage(segmentLengthsPx: List<Float>) {
+    private data class Range(val start: Float, val end: Float)
+
+    private val segmentLengths = segmentLengthsPx.toList()
+    private val drawnRanges = mutableListOf<Range>()
+    val totalLengthPx: Float = segmentLengths.sum()
+
+    init {
+        require(segmentLengths.isNotEmpty() && segmentLengths.all { it.isFinite() && it > 0f })
+    }
+
+    fun recordDrawnRange(startPx: Float, endPx: Float) {
+        if (!startPx.isFinite() || !endPx.isFinite() || endPx <= startPx) return
+        val start = startPx.coerceIn(0f, totalLengthPx)
+        val end = endPx.coerceIn(0f, totalLengthPx)
+        if (end <= start) return
+        val sorted = (drawnRanges + Range(start, end)).sortedBy(Range::start)
+        drawnRanges.clear()
+        sorted.forEach { next ->
+            val previous = drawnRanges.lastOrNull()
+            if (previous != null && next.start <= previous.end + COVERAGE_JOIN_TOLERANCE_PX) {
+                drawnRanges[drawnRanges.lastIndex] = Range(previous.start, maxOf(previous.end, next.end))
+            } else {
+                drawnRanges += next
+            }
+        }
+    }
+
+    /** Counts only route segments whose entire measured distance has actually been drawn. */
+    fun fullyCoveredSegmentCount(): Int {
+        var segmentStart = 0f
+        var covered = 0
+        segmentLengths.forEach { length ->
+            val segmentEnd = segmentStart + length
+            if (drawnRanges.any { range ->
+                    range.start <= segmentStart + COVERAGE_JOIN_TOLERANCE_PX &&
+                        range.end >= segmentEnd - COVERAGE_JOIN_TOLERANCE_PX
+                }
+            ) covered++
+            segmentStart = segmentEnd
+        }
+        return covered
+    }
+
+    fun isComplete(): Boolean = fullyCoveredSegmentCount() == segmentLengths.size
+
+    companion object {
+        private const val COVERAGE_JOIN_TOLERANCE_PX = .75f
+    }
+}
+
 /** Receipt proving that a real, ordered contour slice reached the target Canvas frame. */
 data class RecognitionContourRenderReceipt(
     val identity: RecognitionSceneIdentity,

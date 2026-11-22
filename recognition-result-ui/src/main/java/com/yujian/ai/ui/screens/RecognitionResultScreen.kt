@@ -434,6 +434,14 @@ fun RecognitionResultScreen(
         saveRequested = true
         requestedSaveDestination = destination
         lastSaveDestination = destination
+        latestEvidenceResultFrame.value?.let { frame ->
+            recognitionEvidenceRecorder?.requestCheckpointCapture(
+                checkpointId = "KF25",
+                stage = frame.stage,
+                eventSequence = frame.eventSequence,
+                eventType = "SAVE_ENTRY_TAP",
+            )
+        }
         val corrected = selectedKey != prediction.top1.speciesKey
         val detector = productionResult?.assessment?.primary?.let {
             JSONObject().put("confidence", it.confidence.toDouble()).put("box", JSONObject()

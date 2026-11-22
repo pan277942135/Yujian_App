@@ -236,7 +236,35 @@ class Stage04ArrivalPathWithoutMaskTest {
             ),
         )
         assertEquals(EnergyFeedback.RETURN, returnEvent.feedback)
-        assertTrue(fixture.controller.recordEnergyEventWithReason(returnFrame.sceneFrame, returnEvent).accepted)
+        val renderedReturn = RecognitionOrbReturnRenderReceipt(
+            identity = fixture.identity,
+            stage = RecognitionSceneStage.ORB_RETURN,
+            pathId = pathSnapshot.returnPathId,
+            maskSha256 = pathSnapshot.maskSha256,
+            maskVersion = pathSnapshot.maskVersion,
+            pathGeometryVersion = pathSnapshot.geometryVersion,
+            resultGeometryVersion = returnEvent.geometryVersion,
+            pathGeometry = requireNotNull(returnEvent.pathGeometry),
+            pathSegments = pathSnapshot.returnPathSegments,
+            renderedSegmentCount = 3,
+            renderedProgress = 1f,
+            renderedPathLength = 500f,
+            pathCanvasSubmitted = true,
+            drawPassSequence = 6L,
+        )
+        assertTrue(fixture.controller.onOrbReturnRenderComplete(renderedReturn, fixture.identity))
+        val returnFrameAfterReceipt = controllerFrame(
+            fixture.controller, fixture.identity, fixture.geometryVersion, 4_900L,
+        )
+        val eventAfterReceipt = returnEvent.copy(
+            eventSequence = returnFrameAfterReceipt.sceneFrame.eventSequence,
+            monotonicTimestampMs = returnFrameAfterReceipt.sceneFrame.monotonicTimestampMs,
+            referenceMs = returnFrameAfterReceipt.sceneFrame.opticalReferenceElapsedMs,
+        )
+        assertTrue(fixture.controller.recordEnergyEventWithReason(
+            returnFrameAfterReceipt.sceneFrame,
+            eventAfterReceipt,
+        ).accepted)
         assertEquals(RecognitionSceneStage.ORB_TO_NAME, fixture.controller.currentSceneStage(4_900L))
         val visited = fixture.controller.stageTimelineSnapshot().map { it.stage }
         assertTrue(visited.containsAll(listOf(

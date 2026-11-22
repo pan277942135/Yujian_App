@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.recognition
 
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionOrbReturnRenderReceipt
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.EnergyAnchor
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
@@ -333,7 +334,38 @@ class RecognitionVisualStateControllerTest {
             renderStatus = "READY",
             stage = RecognitionSceneStage.ORB_RETURN,
         )
-        assertTrue(controller.recordEnergyEvent(firstFrame, event))
+        val withoutReceipt = controller.recordEnergyEventWithReason(firstFrame, event)
+        assertFalse(withoutReceipt.accepted)
+        assertEquals(
+            com.yujian.ai.ui.waterlight.core.EnergyEventRejectionReason.EVENT_RETURN_RENDER_RECEIPT_MISSING,
+            withoutReceipt.rejectionReason,
+        )
+        val returnReceipt = RecognitionOrbReturnRenderReceipt(
+            identity = identity,
+            stage = RecognitionSceneStage.ORB_RETURN,
+            pathId = requireNotNull(event.pathId),
+            maskSha256 = null,
+            maskVersion = null,
+            pathGeometryVersion = null,
+            resultGeometryVersion = event.geometryVersion,
+            pathGeometry = path,
+            pathSegments = emptyList(),
+            renderedSegmentCount = 1,
+            renderedProgress = 1f,
+            renderedPathLength = 42f,
+            pathCanvasSubmitted = true,
+            drawPassSequence = 1L,
+        )
+        assertTrue(controller.onOrbReturnRenderComplete(returnReceipt, identity))
+        val frameAfterReceipt = controller.currentFrame(identity, 3_200L, 100L)
+        assertTrue(controller.recordEnergyEvent(
+            frameAfterReceipt,
+            event.copy(
+                eventSequence = frameAfterReceipt.eventSequence,
+                monotonicTimestampMs = frameAfterReceipt.monotonicTimestampMs,
+                referenceMs = frameAfterReceipt.opticalReferenceElapsedMs,
+            ),
+        ))
 
         controller.setResultGeometryState(SceneGeometryState.READY, 3_201L, identity, setOf(200L))
         val nextFrame = controller.currentFrame(identity, 3_202L, 100L)
@@ -580,8 +612,37 @@ class RecognitionVisualStateControllerTest {
 
         val exactProcessingRoute = returned(snapshot.returnPathId)
         assertEquals(snapshot.returnPathSegments, exactProcessingRoute.pathSegments)
-        assertTrue(controller.recordEnergyEvent(resultScene, exactProcessingRoute))
-        assertFalse(controller.recordEnergyEvent(resultScene, exactProcessingRoute))
+        val missingReceipt = controller.recordEnergyEventWithReason(resultScene, exactProcessingRoute)
+        assertFalse(missingReceipt.accepted)
+        assertEquals(
+            com.yujian.ai.ui.waterlight.core.EnergyEventRejectionReason.EVENT_RETURN_RENDER_RECEIPT_MISSING,
+            missingReceipt.rejectionReason,
+        )
+        val returnReceipt = RecognitionOrbReturnRenderReceipt(
+            identity = runtimeIdentity,
+            stage = RecognitionSceneStage.ORB_RETURN,
+            pathId = snapshot.returnPathId,
+            maskSha256 = snapshot.maskSha256,
+            maskVersion = snapshot.maskVersion,
+            pathGeometryVersion = snapshot.geometryVersion,
+            resultGeometryVersion = resultGeometryVersion,
+            pathGeometry = requireNotNull(exactProcessingRoute.pathGeometry),
+            pathSegments = snapshot.returnPathSegments,
+            renderedSegmentCount = 3,
+            renderedProgress = 1f,
+            renderedPathLength = 300f,
+            pathCanvasSubmitted = true,
+            drawPassSequence = 1L,
+        )
+        assertTrue(controller.onOrbReturnRenderComplete(returnReceipt, runtimeIdentity))
+        val frameAfterReceipt = controller.currentFrame(runtimeIdentity, 7_000L, resultGeometryVersion)
+        val exactRouteAfterReceipt = exactProcessingRoute.copy(
+            eventSequence = frameAfterReceipt.eventSequence,
+            monotonicTimestampMs = frameAfterReceipt.monotonicTimestampMs,
+            referenceMs = frameAfterReceipt.opticalReferenceElapsedMs,
+        )
+        assertTrue(controller.recordEnergyEvent(frameAfterReceipt, exactRouteAfterReceipt))
+        assertFalse(controller.recordEnergyEvent(frameAfterReceipt, exactRouteAfterReceipt))
         val acceptedReturn = controller.acceptedEnergyEventsSnapshot().single {
             it.stage == RecognitionSceneStage.ORB_RETURN && it.feedback == EnergyFeedback.RETURN
         }

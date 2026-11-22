@@ -28,6 +28,8 @@ enum class EnergyEventRejectionReason {
     EVENT_NOT_AT_STAGE_COMPLETION,
     EVENT_IDENTITY_MISMATCH,
     EVENT_INVALID,
+    EVENT_RETURN_RENDER_RECEIPT_MISSING,
+    EVENT_RETURN_RENDER_RECEIPT_MISMATCH,
 }
 
 data class EnergyEventAcceptanceResult(
@@ -139,6 +141,7 @@ class RecognitionSceneAnimationController(
     private var lastContourDrawPassSequence = 0L
     private var fishGoldComplete = false
     private var orbReturnComplete = false
+    private var orbReturnRenderReceipt: RecognitionOrbReturnRenderReceipt? = null
     private var orbToGlyphComplete = false
     private var orbCoreDissolveReceipt: RecognitionOrbCoreDissolveReceipt? = null
     private var glyphRevealComplete = false
@@ -706,6 +709,10 @@ class RecognitionSceneAnimationController(
         when (state) {
             SceneGeometryState.PENDING -> {
                 resultGeometryVersions = emptySet()
+                if (currentStage == RecognitionSceneStage.ORB_RETURN) {
+                    orbReturnRenderReceipt = null
+                    orbReturnComplete = false
+                }
                 if (geometryGateStartedAtMs == null) {
                     geometryFrozenElapsedMs = stageElapsedMs(nowMs)
                     geometryGateStartedAtMs = nowMs
@@ -714,6 +721,10 @@ class RecognitionSceneAnimationController(
             }
             SceneGeometryState.READY,
             SceneGeometryState.INVALID -> {
+                if (versionChanged && currentStage == RecognitionSceneStage.ORB_RETURN) {
+                    orbReturnRenderReceipt = null
+                    orbReturnComplete = false
+                }
                 resultGeometryVersions = acceptedVersions
                 val startedAt = geometryGateStartedAtMs
                 if (startedAt != null) {
@@ -819,6 +830,20 @@ class RecognitionSceneAnimationController(
                 event.pathGeometryVersion != snapshot.geometryVersion ||
                 event.pathContactPointNormalizedSource != snapshot.pStarNormalizedSource
             ) return reject(EnergyEventRejectionReason.EVENT_PSTAR_BIND_MISMATCH)
+        }
+        if (event.feedback == EnergyFeedback.RETURN) {
+            val receipt = orbReturnRenderReceipt
+                ?: return reject(EnergyEventRejectionReason.EVENT_RETURN_RENDER_RECEIPT_MISSING)
+            if (receipt.identity != frame.identity || receipt.stage != event.stage ||
+                receipt.pathId != event.pathId || receipt.resultGeometryVersion != event.geometryVersion ||
+                receipt.pathGeometry != event.pathGeometry || receipt.pathSegments != event.pathSegments ||
+                receipt.maskSha256 != event.pathMaskSha256 || receipt.maskVersion != event.pathMaskVersion ||
+                receipt.pathGeometryVersion != event.pathGeometryVersion || receipt.renderedProgress < .999f ||
+                receipt.renderedSegmentCount != (if (
+                    revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY &&
+                    fishPathSnapshot != null
+                ) 3 else 1)
+            ) return reject(EnergyEventRejectionReason.EVENT_RETURN_RENDER_RECEIPT_MISMATCH)
         }
         if (!acceptedEnergyEvents.add(eventKey)) return reject(EnergyEventRejectionReason.EVENT_DUPLICATE)
         if (event.feedback == EnergyFeedback.ABSORB && event.stage in setOf(
@@ -957,6 +982,36 @@ class RecognitionSceneAnimationController(
         return true
     }
 
+    /** Accepts only a Canvas receipt for the current Result-host RETURN route. */
+    fun onOrbReturnRenderComplete(
+        receipt: RecognitionOrbReturnRenderReceipt,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!isCurrent(currentIdentity) || currentStage != RecognitionSceneStage.ORB_RETURN ||
+            resultGeometryState != SceneGeometryState.READY ||
+            receipt.resultGeometryVersion !in resultGeometryVersions
+        ) return false
+        val active = identity ?: return false
+        if (!RecognitionOrbReturnRenderContract.isComplete(
+                identity = active,
+                snapshot = fishPathSnapshot.takeIf {
+                    revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY
+                },
+                resultGeometryVersion = receipt.resultGeometryVersion,
+                receipt = receipt,
+            )
+        ) return false
+        val previous = orbReturnRenderReceipt
+        if (previous != null && receipt.drawPassSequence <= previous.drawPassSequence) return false
+        orbReturnRenderReceipt = receipt
+        bumpEventSequence()
+        return true
+    }
+
+    fun orbReturnRenderReceiptReady(): Boolean = orbReturnRenderReceipt != null
+
+    fun orbReturnComplete(): Boolean = orbReturnComplete
+
     /** Samples and advances at most one event-gated stage. MANUAL never advances here. */
     fun currentSceneStage(
         nowMs: Long,
@@ -1088,7 +1143,7 @@ class RecognitionSceneAnimationController(
 
     fun fishPathSnapshotReady(): Boolean = fishPathSnapshot != null
 
-    /** Handoff eligibility is an exact stage-10 check plus the real model join, fish path snapshot when trusted, and original Orb anchor. */
+    /** Result can mount at Stage 10; Result geometry, Glyph, RETURN render and event gates complete there. */
     fun resultVisualReady(nowMs: Long): Boolean = !failed && photoFirstFramePresented &&
         currentStage == RecognitionSceneStage.ORB_RETURN && classifierReady && slimSamTerminal &&
         revealDecisionReady && orbAnchorReady &&
@@ -1141,6 +1196,9 @@ class RecognitionSceneAnimationController(
                     revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY)
                 when (currentStage) {
                     RecognitionSceneStage.ORB_RETURN -> {
+                        requireGate("fishPathSnapshotReady", !maskTrusted ||
+                            revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY || fishPathSnapshot != null)
+                        requireGate("orbReturnRenderReceiptReady", orbReturnRenderReceipt != null)
                         requireGate("orbReturnComplete", orbReturnComplete); requireGate("orbAnchorReady", orbAnchorReady)
                         requireGate("glyphAvailable", glyphAvailable)
                         requireGate("resultGeometryReady", resultGeometryState == SceneGeometryState.READY)
@@ -1354,7 +1412,8 @@ class RecognitionSceneAnimationController(
             fishGoldComplete && classifierReady && revealDecisionReady
         RecognitionSceneStage.ORB_RETURN -> successfulRevealAllowed &&
             revealDecisionState in setOf(RecognitionRevealDecisionState.FISH_FOCUS_READY, RecognitionRevealDecisionState.ORB_ONLY_READY) &&
-            orbReturnComplete && orbAnchorReady && glyphAvailable &&
+            (!maskTrusted || revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY || fishPathSnapshot != null) &&
+            orbReturnRenderReceipt != null && orbReturnComplete && orbAnchorReady && glyphAvailable &&
             resultGeometryState == SceneGeometryState.READY
         RecognitionSceneStage.ORB_TO_NAME -> successfulRevealAllowed &&
             revealDecisionState in setOf(RecognitionRevealDecisionState.FISH_FOCUS_READY, RecognitionRevealDecisionState.ORB_ONLY_READY) &&
@@ -1383,7 +1442,7 @@ class RecognitionSceneAnimationController(
         RecognitionSceneStage.CONTOUR_C -> maskTrusted && fishContactPathReady && contourValid && contourClosed &&
             contourRenderReceipts[stage]?.let(RecognitionContourRenderContract::isComplete) == true
         RecognitionSceneStage.FISH_GOLD_PEAK -> fishContactPathReady && fishGoldComplete
-        RecognitionSceneStage.ORB_RETURN -> orbReturnComplete
+        RecognitionSceneStage.ORB_RETURN -> orbReturnRenderReceipt != null && orbReturnComplete
         RecognitionSceneStage.ORB_TO_NAME -> orbToGlyphComplete
         RecognitionSceneStage.SPECIES_NAME_REVEAL -> glyphRevealComplete
         RecognitionSceneStage.RESIDUE_SETTLE -> residueSettleComplete
@@ -1558,6 +1617,7 @@ class RecognitionSceneAnimationController(
         lastContourDrawPassSequence = 0L
         fishGoldComplete = false
         orbReturnComplete = false
+        orbReturnRenderReceipt = null
         orbToGlyphComplete = false
         orbCoreDissolveReceipt = null
         glyphRevealComplete = false
@@ -1633,6 +1693,7 @@ class RecognitionSceneAnimationController(
         fishContactPathReady = false
         fishGoldComplete = false
         orbReturnComplete = false
+        orbReturnRenderReceipt = null
         orbToGlyphComplete = false
         orbCoreDissolveReceipt = null
         glyphRevealComplete = false
