@@ -570,7 +570,6 @@ jobs:
     timeout-minutes: 45
     env:
       SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
-      ANDROID_AVD_HOME: ${{ github.workspace }}/.android-avd
       BUILD_PASS: ${{ needs.build.result == 'success' }}
       KVM_READY: ${{ needs.api36-kvm-preflight-summary.outputs.classification == 'KVM_READY' }}
     steps:

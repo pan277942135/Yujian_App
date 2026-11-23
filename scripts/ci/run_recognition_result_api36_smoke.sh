@@ -338,9 +338,23 @@ printf 'adb_state=device\nsys.boot_completed=1\napi_level=36\n' > "$evidence_dir
 adb devices -l > "$evidence_dir/adb-devices-ready.txt"
 adb shell getprop > "$evidence_dir/device-properties.txt"
 
-avd_home="${ANDROID_AVD_HOME:-${HOME}/.android/avd}"
-find "$avd_home" -maxdepth 3 -name config.ini -type f -print -exec cat {} \; \
-  > "$evidence_dir/avd-config-and-memory.txt" 2>&1 || true
+# android-emulator-runner@v2 creates its AVD under $HOME/.android/avd.
+# Do not follow a caller-provided ANDROID_AVD_HOME here: job-level setup may
+# point it at a separate SDK cache that does not hold the active AVD.
+avd_home="${HOME}/.android/avd"
+{
+  printf 'HOME=%s\nANDROID_HOME=%s\nANDROID_AVD_HOME=%s\navd_home_used=%s\n' \
+    "${HOME:-unset}" "${ANDROID_HOME:-unset}" "${ANDROID_AVD_HOME:-unset}" "$avd_home"
+  printf 'active_avd_name=%s\n' "$(adb shell getprop ro.boot.qemu.avd_name 2>/dev/null | tr -d '\r' || true)"
+  printf '%s\n' '--- AVD config files ---'
+  if [[ -d "$avd_home" ]]; then
+    find "$avd_home" -maxdepth 4 -type f \( -name config.ini -o -name hardware-qemu.ini \) \
+      -print -exec cat {} \;
+  else
+    printf 'AVD_HOME_NOT_FOUND=%s\n' "$avd_home"
+    ls -la "$(dirname "$avd_home")" 2>&1 || true
+  fi
+} > "$evidence_dir/avd-config-and-memory.txt" 2>&1
 
 # Capture the booted AVD's baseline before the config gate so an infra failure
 # still carries RAM, swap, Dalvik heap and host memory evidence.
@@ -356,9 +370,10 @@ capture_memory_snapshot before_install
 avd_ram_config_mb="$(awk -F= 'tolower($1) == "hw.ramsize" { value=$2; gsub(/[[:space:]]/, "", value); sub(/[mM]([bB])?$/, "", value); result=value } END { print result }' "$evidence_dir/avd-config-and-memory.txt")"
 avd_heap_config_mb="$(awk -F= 'tolower($1) == "hw.heapsize" { value=$2; gsub(/[[:space:]]/, "", value); sub(/[mM]([bB])?$/, "", value); result=value } END { print result }' "$evidence_dir/avd-config-and-memory.txt")"
 if [[ "$avd_ram_config_mb" != "4096" || "$avd_heap_config_mb" != "512" ]]; then
-  failure_reason="AVD_RAM_OR_VM_HEAP_CONFIGURATION_MISMATCH:hw.ramSize_mb=${avd_ram_config_mb:-missing}:hw.heapSize_mb=${avd_heap_config_mb:-missing}"
-  printf '::error title=AVD memory configuration mismatch::expected hw.ramSize=4096M hw.heapSize=512M; observed hw.ramSize=%sM hw.heapSize=%sM\n' \
-    "${avd_ram_config_mb:-missing}" "${avd_heap_config_mb:-missing}"
+  failure_reason="AVD_RAM_OR_VM_HEAP_CONFIGURATION_MISMATCH:hw.ramSize_mb=${avd_ram_config_mb:-missing}:hw.heapSize_mb=${avd_heap_config_mb:-missing}:avd_home=${avd_home}"
+  printf '::error title=AVD memory configuration mismatch::expected hw.ramSize=4096M hw.heapSize=512M; observed hw.ramSize=%sM hw.heapSize=%sM; ANDROID_AVD_HOME=%s; active_avd=%s\n' \
+    "${avd_ram_config_mb:-missing}" "${avd_heap_config_mb:-missing}" \
+    "${ANDROID_AVD_HOME:-unset}" "$(adb shell getprop ro.boot.qemu.avd_name 2>/dev/null | tr -d '\r' || true)"
   printf 'AVD_MEMORY_CONFIG_MISMATCH %s\n' "$failure_reason"
   grep -Ei '^(hw\.(ramSize|heapSize)|vm\.heapSize)=' \
     "$evidence_dir/avd-config-and-memory.txt" || true
