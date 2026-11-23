@@ -11,9 +11,9 @@
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
   "stage": "G8_EXACT_HEAD_CI_AND_API36_SMOKE",
   "status": "RUNNING",
-  "source_sha": "0acb593e258e1a752df0778807684fd442f40def",
-  "checkpoint_updated_at": "2026-11-23T00:13:22Z",
-  "next_action": "Fix API36 AUTO smoke false-positive reporting with an independent fail-closed parser and three script tests; capture hosted emulator memory/runtime evidence; run the exact-source APK pair through production AUTO.",
+  "source_sha": "dfcd04b020a3e8efd32f09180850846eb5476e5d",
+  "checkpoint_updated_at": "2026-11-23T01:00:23Z",
+  "next_action": "Run current-state Admission, checkpoint that result, then push the final state-only checkpoint with the API36 smoke marker to the existing PR #346 branch. Inspect exact-HEAD build, hosted KVM/memory, API36 runtime artifacts and APK provenance.",
   "dependencies": [
     "P5-02"
   ],
@@ -21,11 +21,11 @@
     "REAL_DEVICE_EVIDENCE_UNAVAILABLE: the attached 285122.mp4 exceeds the 32 MiB Sediment transfer limit; no synchronized video replay is claimed.",
     "API36_LOCAL_EMULATOR_BLOCKED_INFRA: this host has no VMX/SVM/KVM; use the GitHub-hosted Ubuntu x64 runner for the next exact-source API36 attempt.",
     "API36_FALSE_PASS_AUDIT: user reports Run 45032036762 logged Process crashed with INSTRUMENTATION_CODE 0 while the job reported success; run source SHA and raw GitHub artifact could not be independently retrieved here.",
-    "EXACT_HEAD_REVALIDATION_PENDING: the fail-closed implementation and new API36 run for its exact source have not yet been built or executed."
+    "EXACT_HEAD_REVALIDATION_PENDING: fail-closed code and local parser tests are committed; hosted exact-HEAD build, APK Pair and API36 production AUTO remain pending."
   ],
   "evidence": {
     "task_spec": "/workspace/attachments/c7f7f4b4-e598-4edc-bf13-97f04b10c79a/已粘贴的文本.txt",
-    "branch_head": "0acb593e258e1a752df0778807684fd442f40def",
+    "branch_head": "dfcd04b020a3e8efd32f09180850846eb5476e5d",
     "remote_branch_and_pr_ref": "Last verified branch and refs/pull/346/head were at 0acb593e258e1a752df0778807684fd442f40def; keep the current existing PR #346 Draft. No PR was opened.",
     "main_control_plane": "03db3692669847084d7e48fc3128f85cbf832af9",
     "pr_status": "GitHub page rendered a Draft badge; REST/GraphQL status could not be read",
@@ -43,10 +43,15 @@
     "model_asset_validation": "Bootstrap PASS; classifier SHA256 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18; detector ONNX SHA256 98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1. Build-scoped model_release_contract.json was restored and is not part of source changes.",
     "android_test_compile": ":app:assembleDebugAndroidTest PASS after the Stage10 timing/route-attachment assertions were added; instrumentation was compiled but not executed locally.",
     "kf_matrix": "scripts/android_runtime/tests/test_26kf_runtime_trace_matrix_v2.py: 4/4 PASS; RecognitionVisualStateControllerTest.autoCheckpointStageWaitsForItsPixelCopyBeforeAdvancing passed in the module suite.",
-    "exact_head_ci": "Prior run 45032036762 was user-audited as a false-positive AUTO success; do not count it as runtime PASS. A new fail-closed exact-source build and API36 AUTO run are pending.",
-    "exact_head_apk": "NOT_BUILT_FOR_API36_SMOKE_FIX_SOURCE",
+    "exact_head_ci": "Pending a marked push of the final state-only checkpoint. The API36 build and smoke will use the same SOURCE_SHA and APK Pair; previous Run 45032036762 remains rejected as a user-audited false pass.",
+    "exact_head_apk": "NOT_BUILT_FOR_FAIL_CLOSED_SOURCE; produce only through the final exact-HEAD GitHub Actions build.",
     "local_sdk_state": "Tracked local.properties restored exactly; builds used ANDROID_HOME environment variables and did not persist SDK path edits.",
-    "api36_false_positive_audit": "User supplied Run 45032036762 facts: INSTRUMENTATION_RESULT shortMsg=Process crashed; INSTRUMENTATION_CODE=0; lowmemorykiller reported Kill com.yujian.ai.uiv2 with rss=670552kB, swap=1257028kB and min-watermark/swap-low reason. GitHub Actions API/raw artifact unavailable here; the run source SHA is NOT_CONFIRMED and these facts are not independently replayed.",
-    "current_admission_attempt": "At current pre-recovery HEAD 0acb593e258e1a752df0778807684fd442f40def, static validation and sync passed; Work State failed because source_sha d499a615bcaffe5ea37f8f1ff4e028af08af9e84 predates committed CI changes. This checkpoint records the existing branch baseline; re-run Admission after committing this state-only checkpoint."
+    "api36_false_positive_audit": "User supplied Run 45032036762 facts: INSTRUMENTATION_RESULT shortMsg=Process crashed; INSTRUMENTATION_CODE=0; lowmemorykiller reported Kill com.yujian.ai.uiv2 with rss=670552kB, swap=1257028kB and min-watermark/swap-low reason. Source SHA/raw artifact remain NOT_CONFIRMED; facts were not independently replayed.",
+    "current_admission_attempt": "Source implementation committed at dfcd04b020a3e8efd32f09180850846eb5476e5d. Branch-local state now points at this code SHA; rerun minimal Admission after the state-only checkpoint is committed.",
+    "code_implementation_commit": "dfcd04b020a3e8efd32f09180850846eb5476e5d",
+    "fail_closed_parser_tests": "3/3 PASS: normal success accepted; Process crashed with exit 0 rejected; missing target completion rejected.",
+    "local_script_validation": "bash -n PASS; Android workflow YAML parse PASS; inline Python syntax PASS; git diff --check PASS; memory analyzer fixture PASS.",
+    "local_android_test_compile": "NOT_RUN_FOR_FAIL_CLOSED_PATCH: AndroidTest harness additions have not been compiled locally; exact-head Android CI build must compile them.",
+    "api36_memory_controls": "API36 AVD requests ram-size=4096M and heap-size=512M; preflight requires at least 5 GiB MemAvailable and records host/emulator RAM, swap, pressure, PSS/RSS, GC/Native Heap, SlimSAM encoder/decoder timing and LMK evidence."
   }
 }

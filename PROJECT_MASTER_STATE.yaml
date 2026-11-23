@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'PR #346 recognition cross-layer closure'
 state_control:
-  execution_baseline_sha: 0acb593e258e1a752df0778807684fd442f40def
+  execution_baseline_sha: dfcd04b020a3e8efd32f09180850846eb5476e5d
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 03db3692669847084d7e48fc3128f85cbf832af9
@@ -19,14 +19,14 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: 0acb593e258e1a752df0778807684fd442f40def
+    head_sha: dfcd04b020a3e8efd32f09180850846eb5476e5d
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: main
     base_sha: 03db3692669847084d7e48fc3128f85cbf832af9
-    head_sha: 0acb593e258e1a752df0778807684fd442f40def
+    head_sha: dfcd04b020a3e8efd32f09180850846eb5476e5d
     status: DRAFT_OPEN_UNMERGED
     status_source: user instruction to keep PR #346 Draft; GitHub Actions API unavailable
 phases:
@@ -75,25 +75,25 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: 0acb593e258e1a752df0778807684fd442f40def
-    admission: PENDING_STATE_CHECKPOINT
+    sha: dfcd04b020a3e8efd32f09180850846eb5476e5d
+    admission: PENDING_POST_IMPLEMENTATION_CHECKPOINT
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
       url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
       source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
-    build: PENDING_API36_SMOKE_FIX_SOURCE
+    build: PENDING_FAIL_CLOSED_API36_SOURCE
     unit_tests: PASS_LOCAL_AFTER_VALIDATED_ASSET_BOOTSTRAP
-    android_test_compile: PASS_COMPILE_ONLY
+    android_test_compile: PENDING_FAIL_CLOSED_PATCH_EXACT_HEAD_COMPILE
     lint: PENDING_EXACT_HEAD_CI
-    api36_emulator: RUN_450320_CRASH_REPORTED; EXACT_HEAD_RETRY_REQUIRED
+    api36_emulator: HOSTED_EXACT_HEAD_RETRY_PENDING; Run_45032036762_FALSE_PASS_REJECTED
     model_validation: PASS
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: 0acb593e258e1a752df0778807684fd442f40def
-  exact_head_apk: NOT_BUILT_FOR_API36_SMOKE_FIX_SOURCE
+  source_head: dfcd04b020a3e8efd32f09180850846eb5476e5d
+  exact_head_apk: NOT_BUILT_FOR_FAIL_CLOSED_API36_SOURCE
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
   input_video: 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: 285122.mp4 exceeds 32 MiB transfer limit; no video replay.'
   input_evidence_zip: /workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip
@@ -103,14 +103,14 @@ current_work:
   id: YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 0acb593e258e1a752df0778807684fd442f40def
+  exact_head: dfcd04b020a3e8efd32f09180850846eb5476e5d
   status: RUNNING
   stage: G8_EXACT_HEAD_CI_AND_API36_SMOKE
   blockers:
   - 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: video exceeds 32 MiB transfer limit; ZIP logs/screenshots only.'
   - 'API36_LOCAL_EMULATOR_BLOCKED_INFRA: missing KVM/VMX/SVM; use hosted exact-head runner.'
   - 'API36_FALSE_PASS_AUDIT: Run 45032036762 was reported with Process crashed and final code 0; source SHA is not confirmed.'
-  - 'EXACT_HEAD_REVALIDATION_PENDING: fail-closed code and exact-source hosted API36 AUTO run are not yet complete.'
+  - 'EXACT_HEAD_REVALIDATION_PENDING: fail-closed code and 3/3 parser tests are committed; final hosted exact-head build and API36 AUTO run remain pending.'
 blockers:
 - id: API36-AUTO-SMOKE-001
   severity: P0
@@ -118,7 +118,7 @@ blockers:
   status: OPEN
   condition: User reports Run 45032036762 emitted Process crashed and INSTRUMENTATION_CODE 0 while smoke reported success; source SHA and raw artifact are not independently available here.
   affected_gate: Exact-source production AUTO result validity and Stage10-13.5 runtime evidence.
-  unblock_condition: Fail-closed parser, three passing parser tests, and a new hosted API36 run whose instrumentation and business contract both complete.
+  unblock_condition: Marked exact-head hosted build passes; KVM and memory preflight plus API36 boot pass; AUTO instrumentation and all business evidence validate from the same APK Pair.
   independent_work_may_continue: true
 - id: EVIDENCE-INPUT-001
   severity: P0
@@ -165,25 +165,22 @@ next_actions:
   action: Add deterministic regression fixture and red-to-green P-star viewport tolerance test before product edits.
 - id: G2-G6
   owner: Codex
-  status: LOCAL_TESTS_PASS_ANDROIDTEST_COMPILE_ONLY
-  action: Path binding, Stage10 readiness assertions, geometry/RETURN event tests, Stage11–13.5 test harness and 26KF scheduler
-    regression are prepared; runtime instrumentation remains pending hosted API36 execution.
+  status: PRIOR_LOCAL_TESTS_PASS; FAIL_CLOSED_ANDROIDTEST_COMPILE_PENDING
+  action: Prior cross-layer source tests pass. The fail-closed production AUTO test harness and business evidence assertions await
+    compilation and execution on the final hosted exact HEAD.
 - id: G8-01
   owner: Codex
   status: READY
-  action: 'Run current-state Admission; publish to existing PR #346, run exact-head Android CI and marked API36 AUTO smoke;
-    produce final APK only after blocking gates pass.'
+  action: 'Run minimal Admission, commit the state checkpoint, then push the marked state-only checkpoint to the existing Draft
+    PR #346; inspect exact-head Android CI, KVM/memory preflight and API36 AUTO evidence.'
 completion_rules:
 - Complete applicable deterministic cross-layer tests before final APK packaging.
 - Separate LOGIC_PASS, EMULATOR_PASS, EXACT_HEAD_CI_PASS and DEVICE_QA_PASS.
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-23T00:13:22Z'
-  note: Previous Admission passed on source d499a615bcaffe5ea37f8f1ff4e028af08af9e84. Unified Contract reported
-    structural_errors=0 and one unchanged historical OPEN_GAP. User audit of Run 45032036762 reports Process crashed,
-    INSTRUMENTATION_CODE 0 and a lowmemorykiller app kill; its source SHA and raw artifact are not independently available.
-    Do not accept its AUTO result. New fail-closed parser, memory evidence and exact-head hosted rerun are pending.
+  last_updated_at: '2026-11-23T01:00:23Z'
+  note: Source implementation dfcd04b020a3e8efd32f09180850846eb5476e5d adds fail-closed Instrumentation and business-evidence validation; the three requested parser tests and local script/workflow syntax checks pass. API36 AVD requests 4096M RAM and 512M VM heap with a 5 GiB host headroom gate and runtime memory evidence. The final hosted exact-HEAD build, API36 production AUTO and APK Pair are pending. Run 45032036762 remains rejected as a user-reported false PASS; its source SHA and raw artifact are not independently available. The historical Unified Contract OPEN_GAP remains unchanged.
 agent_recovery:
   resume_order:
   - Re-run minimal Admission after the baseline checkpoint; leave the historical Registry OPEN_GAP unchanged.
