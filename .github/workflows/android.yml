@@ -673,11 +673,14 @@ jobs:
           arch: x86_64
           target: google_apis
           profile: pixel_2
+          avd-name: test
           ram-size: 4096M
           heap-size: 512M
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           emulator-boot-timeout: 600
+          pre-emulator-launch-script: >-
+            set -eu; avd_config="$ANDROID_AVD_HOME/test.avd/config.ini"; test -f "$avd_config"; sed -i -e '/^[[:space:]]*hw\.ramSize=/d' -e '/^[[:space:]]*hw\.heapSize=/d' "$avd_config"; printf '%s\n' 'hw.ramSize=4096M' 'hw.heapSize=512M' >> "$avd_config"; echo 'API36_ACTIVE_AVD_MEMORY_CONFIG'; grep -E '^[[:space:]]*hw\.(ramSize|heapSize)=' "$avd_config"
           script: bash scripts/ci/run_recognition_result_api36_smoke.sh
 
       - name: Record early API36 infrastructure failure when smoke did not start
