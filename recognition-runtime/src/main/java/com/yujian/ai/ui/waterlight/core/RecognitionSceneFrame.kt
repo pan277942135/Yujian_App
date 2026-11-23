@@ -130,7 +130,7 @@ data class RecognitionOrbReturnRenderReceipt(
 object RecognitionOrbReturnRenderContract {
     fun isComplete(
         identity: RecognitionSceneIdentity,
-        snapshot: RecognitionFishPathSnapshot?,
+        snapshot: RecognitionSnapshot?,
         resultGeometryVersion: Long,
         receipt: RecognitionOrbReturnRenderReceipt,
         orbOnlySnapshot: RecognitionOrbOnlyReturnPathSnapshot? = null,

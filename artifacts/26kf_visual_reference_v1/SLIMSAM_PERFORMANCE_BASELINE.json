@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "FIXTURE_HUAWEI_EAC685C9_V1",
+  "measurementStatus": "REAL_DEVICE_HISTORICAL_BASELINE",
+  "device": {
+    "manufacturer": "HUAWEI",
+    "model": "CMS-AL20",
+    "androidVersion": "16",
+    "apiLevel": 36
+  },
+  "sourceSha": "67f17f0eb6a80233438cb8b00111a55d6767a6d8",
+  "evidenceZipSha256": "f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275",
+  "photoSha256": "6b0efaeecd4f1f250e5643645d59626b3d8c707fae005e37b06d2a7a243f6f3e",
+  "modelSha256": {
+    "vision": "cce23c7b2e5d4f330932738fb67ba518e04b0d99ccdd1cccd22a7da4e01f2971",
+    "decoder": "cb90b279f549d2cab7fd6e20c38522438c65d84bdcca3d2a764cff7d857fdce2"
+  },
+  "measuredWindow": {
+    "startSource": "logs/model_inference.jsonl MODEL_RUNTIME_STATE slimSamStatus=PROCESSING",
+    "startSequence": 41,
+    "startUptimeMs": 427089557,
+    "endSource": "logs/model_inference.jsonl MODEL_RUNTIME_STATE slimSamStatus=READY",
+    "endSequence": 333,
+    "endUptimeMs": 427102114,
+    "endToEndMs": 12557,
+    "interpretation": "Observed SlimSAM processing-to-ready wall time. This does not split encoder, decoder, PNG or contour phases."
+  },
+  "quality": {
+    "status": "READY",
+    "maskSha256": "4b554bb4a2af48d139c2b7994c342961a42e9a0abe92800e7e96f9f72d403de4",
+    "maskTrusted": true,
+    "roiDimensions": [
+      716,
+      1440
+    ],
+    "contourPointCount": 789,
+    "contourClosed": true
+  },
+  "phaseMetrics": {
+    "APPLICATION_STARTUP_PRELOAD": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "VISION_SESSION_INIT": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "DECODER_SESSION_INIT": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "SESSION_READY": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "PHOTO_PREPROCESS": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "VISION_EMBEDDING": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "PROMPT_BUILD": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "MASK_DECODER": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "MASK_POSTPROCESS": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "PNG_ENCODE": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "PNG_DECODE": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "CONTOUR_EXTRACT": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "PSTAR_RESOLVE": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    },
+    "FISH_PATH_CREATE": {
+      "durationMs": null,
+      "status": "NOT_RECORDED_IN_SOURCE_EVIDENCE"
+    }
+  },
+  "resourceMetrics": {
+    "pssKb": null,
+    "rssKb": null,
+    "swapKb": null,
+    "nativeHeapKb": null,
+    "gcEvents": null,
+    "reason": "Not present in the supplied device evidence package."
+  },
+  "comparisonLimit": "No same-photo post-change measurement has been run on this Huawei device. Do not claim an optimization delta."
+}

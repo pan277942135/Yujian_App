@@ -185,7 +185,13 @@ class WaterLightPathLedgerTest {
         assertTrue(recordFish(ledger, current, fish))
 
         val snapshot = requireNotNull(
-            ledger.exportRecognitionFishPathSnapshot(current, maskShaA, 42L, contactA),
+            ledger.exportRecognitionFishPathSnapshot(
+                current,
+                maskShaA,
+                42L,
+                contactA,
+                modelVersion = "slimsam-fixture-v1",
+            ),
         )
         val originalPathId = requireNotNull(ledger.pathId(current, maskShaA, 42L, contactA))
         val originalReturnSegments = requireNotNull(
@@ -202,6 +208,9 @@ class WaterLightPathLedgerTest {
         assertEquals(42L, snapshot.maskVersion)
         assertEquals(11L, snapshot.geometryVersion)
         assertEquals(contactA, snapshot.pStarNormalizedSource)
+        assertEquals(fish.end, snapshot.pStarViewport)
+        assertEquals("slimsam-fixture-v1", snapshot.modelVersion)
+        assertEquals(1, snapshot.snapshotVersion)
         assertEquals(originalPathId, snapshot.fishPathId)
         assertEquals(originalPathId, snapshot.returnPathId)
         assertEquals(fish, snapshot.fishPathGeometry)

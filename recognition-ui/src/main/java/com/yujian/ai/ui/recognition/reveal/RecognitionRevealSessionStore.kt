@@ -13,7 +13,8 @@ import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.inference.InferenceAsset
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
-import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
+import com.yujian.ai.ui.identify.RecognitionImageTransform
+import com.yujian.ai.ui.waterlight.core.RecognitionSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionOrbOnlyReturnPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
@@ -29,9 +30,9 @@ data class RecognitionRevealSessionSnapshot(
     val inferenceAsset: InferenceAsset? = null,
     val subjectGeometry: RecognitionSubjectGeometrySnapshot? = null,
     val processingPhoto: RecognitionProcessingPhotoSnapshot? = null,
-    val fishPathSnapshot: RecognitionFishPathSnapshot? = null,
+    val fishPathSnapshot: RecognitionSnapshot? = null,
     /** Path callback retained until Subject and measured Photo identities arrive. */
-    val pendingFishPathSnapshot: RecognitionFishPathSnapshot? = null,
+    val pendingFishPathSnapshot: RecognitionSnapshot? = null,
     val fishPathSnapshotBindingState: RecognitionFishPathSnapshotBindingState =
         RecognitionFishPathSnapshotBindingState.NOT_RECEIVED,
     val fishPathSnapshotBindingDiagnostic: Map<String, String> = emptyMap(),
@@ -84,7 +85,7 @@ internal object RecognitionFishPathSnapshotBinding {
     const val P_STAR_VIEWPORT_TOLERANCE_PX = 1f
 
     fun evaluate(
-        path: RecognitionFishPathSnapshot?,
+        path: RecognitionSnapshot?,
         subjectStatus: SubjectStatus,
         subject: RecognitionSubjectGeometrySnapshot?,
         photo: RecognitionProcessingPhotoSnapshot?,
@@ -104,15 +105,43 @@ internal object RecognitionFishPathSnapshotBinding {
             subject.recognitionSessionId == sessionId && subject.recognitionAttemptId == attemptId
         if (!identityMatches) return RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH
 
-        val maskMatches = path.maskSha256 == subject.maskSha256 && path.maskVersion == subject.maskVersion &&
-            path.maskSha256 == photo.contactPointMaskSha256 &&
-            path.maskVersion == photo.contactPointMaskVersion
-        if (!maskMatches) return RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH
+        // A Path callback can race the Processing Photo geometry callback. Empty/default photo
+        // fields are not contradictory Mask evidence: keep the immutable Path pending until the
+        // same photo reports its Mask identity. Compare complete producer/subject identities
+        // immediately so genuine Mask disagreements remain fail-closed.
+        if (subject.maskSha256.isBlank() || subject.maskVersion < 0L) {
+            return RecognitionFishPathSnapshotBindOutcome.WAITING_FOR_INPUTS
+        }
+        if (path.maskSha256 != subject.maskSha256 || path.maskVersion != subject.maskVersion) {
+            return RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH
+        }
+        if (photo.contactPointMaskSha256.isBlank() || photo.contactPointMaskVersion == -1L) {
+            return RecognitionFishPathSnapshotBindOutcome.WAITING_FOR_INPUTS
+        }
+        if (photo.contactPointMaskVersion < 0L) {
+            return RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH
+        }
+        if (path.maskSha256 != photo.contactPointMaskSha256 ||
+            path.maskVersion != photo.contactPointMaskVersion
+        ) return RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH
 
-        val photoContact = photo.contactPointNormalizedSource?.let { WaterLightPathPoint(it.x, it.y) }
-        val expectedContactInViewport = photo.contactPointNormalizedSource?.let {
-            photo.sourceToViewport.mapNormalized(it.x, it.y)
-        }?.let { WaterLightPathPoint(it.x, it.y) }
+        val photoContactPoint = photo.contactPointNormalizedSource
+            ?: return RecognitionFishPathSnapshotBindOutcome.WAITING_FOR_INPUTS
+        if (photo.contactPointGeometryVersion == 0L || hasMissingTransformInputs(photo.sourceToViewport)) {
+            return RecognitionFishPathSnapshotBindOutcome.WAITING_FOR_INPUTS
+        }
+        if (photo.contactPointGeometryVersion < 0L || hasMalformedTransform(photo.sourceToViewport) ||
+            !photoContactPoint.x.isFinite() || !photoContactPoint.y.isFinite() ||
+            photoContactPoint.x !in 0f..1f || photoContactPoint.y !in 0f..1f
+        ) {
+            return RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH
+        }
+
+        val photoContact = WaterLightPathPoint(photoContactPoint.x, photoContactPoint.y)
+        val expectedContactInViewport = photo.sourceToViewport.mapNormalized(
+            photoContactPoint.x,
+            photoContactPoint.y,
+        ).let { WaterLightPathPoint(it.x, it.y) }
         val endpointMatches = path.fishPathGeometry.end.isWithinViewportToleranceOf(
             expectedContactInViewport,
             P_STAR_VIEWPORT_TOLERANCE_PX,
@@ -127,7 +156,7 @@ internal object RecognitionFishPathSnapshotBinding {
     }
 
     fun diagnostic(
-        path: RecognitionFishPathSnapshot?,
+        path: RecognitionSnapshot?,
         subject: RecognitionSubjectGeometrySnapshot?,
         photo: RecognitionProcessingPhotoSnapshot?,
         sessionId: String,
@@ -147,7 +176,16 @@ internal object RecognitionFishPathSnapshotBinding {
             if (path == null) add("PATH")
             if (subject == null) add("SUBJECT_GEOMETRY")
             if (subjectStatus != SubjectStatus.READY) add("SUBJECT_READY")
+            if (subject != null && (subject.maskSha256.isBlank() || subject.maskVersion < 0L)) {
+                add("SUBJECT_MASK_IDENTITY")
+            }
             if (photo == null) add("PROCESSING_PHOTO")
+            if (photo != null && photo.contactPointMaskSha256.isBlank()) add("PHOTO_MASK_SHA256")
+            if (photo != null && photo.contactPointMaskVersion < 0L) add("PHOTO_MASK_VERSION")
+            if (photo != null && photo.contactPointNormalizedSource == null) add("PHOTO_PSTAR_SOURCE")
+            if (photo != null && photo.contactPointGeometryVersion == 0L) add("PHOTO_GEOMETRY_VERSION")
+            if (photo != null && hasMissingTransformInputs(photo.sourceToViewport)) add("PHOTO_TRANSFORM_DIMENSIONS")
+            if (photo != null && hasMalformedTransform(photo.sourceToViewport)) add("PHOTO_TRANSFORM_INVALID")
         }.joinToString(",")
         fun identityDigest(session: String, attempt: String, image: String, sha: String, version: Long): String =
             MessageDigest.getInstance("SHA-256")
@@ -165,6 +203,9 @@ internal object RecognitionFishPathSnapshotBinding {
             "expectedMaskVersion" to subject?.maskVersion?.toString().orEmpty(),
             "actualMaskVersion" to path?.maskVersion?.toString().orEmpty(),
             "processingGeometryVersion" to photo?.contactPointGeometryVersion?.toString().orEmpty(),
+            "photoMaskSha256" to photo?.contactPointMaskSha256?.take(16).orEmpty(),
+            "photoMaskVersion" to photo?.contactPointMaskVersion?.toString().orEmpty(),
+            "photoPStarSource" to photo?.contactPointNormalizedSource?.let { "${it.x},${it.y}" }.orEmpty(),
             "pathGeometryVersion" to path?.geometryVersion?.toString().orEmpty(),
             "pStarSourceExpected" to expectedPStar?.let { "${it.x},${it.y}" }.orEmpty(),
             "pStarSourceActual" to path?.pStarNormalizedSource?.let { "${it.x},${it.y}" }.orEmpty(),
@@ -174,6 +215,28 @@ internal object RecognitionFishPathSnapshotBinding {
             "pendingInputs" to pendingInputs,
             "handoffFrozen" to handoffFrozen.toString(),
         )
+    }
+
+    fun hasMissingTransformInputs(transform: RecognitionImageTransform): Boolean =
+        transform.sourceWidthPx == 0 || transform.sourceHeightPx == 0 ||
+            transform.viewportWidthPx == 0f || transform.viewportHeightPx == 0f ||
+            transform.scale == 0f || transform.drawnWidth == 0f || transform.drawnHeight == 0f ||
+            (transform.visibleSourceRect.width == 0f && transform.visibleSourceRect.height == 0f)
+
+    private fun hasMalformedTransform(transform: RecognitionImageTransform): Boolean {
+        val visible = transform.visibleSourceRect
+        return transform.sourceWidthPx < 0 || transform.sourceHeightPx < 0 ||
+            !transform.viewportWidthPx.isFinite() || transform.viewportWidthPx < 0f ||
+            !transform.viewportHeightPx.isFinite() || transform.viewportHeightPx < 0f ||
+            !transform.scale.isFinite() || transform.scale < 0f ||
+            !transform.drawnWidth.isFinite() || transform.drawnWidth < 0f ||
+            !transform.drawnHeight.isFinite() || transform.drawnHeight < 0f ||
+            !transform.translationX.isFinite() || !transform.translationY.isFinite() ||
+            !visible.left.isFinite() || !visible.top.isFinite() ||
+            !visible.right.isFinite() || !visible.bottom.isFinite() ||
+            visible.left !in 0f..1f || visible.top !in 0f..1f ||
+            visible.right !in 0f..1f || visible.bottom !in 0f..1f ||
+            visible.right <= visible.left || visible.bottom <= visible.top
     }
 
     private fun WaterLightPathPoint.isWithinViewportToleranceOf(
@@ -261,7 +324,7 @@ class RecognitionRevealSessionStore : ViewModel() {
     @Synchronized
     fun updateFishPathSnapshot(
         key: RecognitionRevealKey,
-        pathSnapshot: RecognitionFishPathSnapshot,
+        pathSnapshot: RecognitionSnapshot,
     ): Boolean {
         val current = snapshot ?: return false
         val image = current.image ?: return false
@@ -489,7 +552,7 @@ class RecognitionRevealSessionStore : ViewModel() {
 
     private fun RecognitionRevealSessionSnapshot.withPathBindingState(
         state: RecognitionFishPathSnapshotBindingState,
-        path: RecognitionFishPathSnapshot,
+        path: RecognitionSnapshot,
         reason: String?,
         handoffFrozen: Boolean,
     ): RecognitionRevealSessionSnapshot {
@@ -535,11 +598,18 @@ class RecognitionRevealSessionStore : ViewModel() {
     ): String = when {
         subject == null -> "SUBJECT_GEOMETRY_NOT_RECEIVED"
         subjectStatus != SubjectStatus.READY -> "SUBJECT_NOT_READY"
+        subject.maskSha256.isBlank() || subject.maskVersion < 0L -> "SUBJECT_MASK_IDENTITY_NOT_READY"
         photo == null -> "PROCESSING_PHOTO_NOT_RECEIVED"
+        photo.contactPointMaskSha256.isBlank() -> "PROCESSING_PHOTO_MASK_SHA256_NOT_READY"
+        photo.contactPointMaskVersion < 0L -> "PROCESSING_PHOTO_MASK_VERSION_NOT_READY"
+        photo.contactPointGeometryVersion == 0L -> "PROCESSING_PHOTO_GEOMETRY_VERSION_NOT_READY"
+        photo.contactPointNormalizedSource == null -> "PROCESSING_PHOTO_PSTAR_NOT_READY"
+        RecognitionFishPathSnapshotBinding.hasMissingTransformInputs(photo.sourceToViewport) ->
+            "PROCESSING_PHOTO_TRANSFORM_NOT_READY"
         else -> "BINDING_INPUTS_RECEIVED_AWAITING_RETRY"
     }
 
-    fun fishPathSnapshot(key: RecognitionRevealKey): RecognitionFishPathSnapshot? =
+    fun fishPathSnapshot(key: RecognitionRevealKey): RecognitionSnapshot? =
         snapshot?.takeIf { it.matches(key) }?.fishPathSnapshot
 
     /** Retain the real Classifier result immediately while the independent SlimSAM task continues. */

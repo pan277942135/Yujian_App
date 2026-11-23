@@ -157,6 +157,27 @@ class Stage04ArrivalPathWithoutMaskTest {
         assertNull(returnEvent.pathMaskVersion)
         assertNull(returnEvent.pathContactPointNormalizedSource)
         assertTrue(returnEvent.pathSegments.isEmpty())
+        assertEquals(RecognitionSceneStage.ORB_TO_NAME, returnEvent.targetStage)
+        assertTrue(returnEvent.hasValidContract())
+
+        val sequenceBeforeStale = controllerFrame(
+            fixture.controller, fixture.identity, resultGeometryVersion, 2_550L,
+        ).eventSequence
+        val staleContourEvent = returnEvent.copy(
+            feedback = EnergyFeedback.ABSORB,
+            source = EnergyAnchor.PHOTO_PATH,
+            target = EnergyAnchor.FISH_CONTOUR,
+            stage = RecognitionSceneStage.CONTOUR_C,
+            level = 1f,
+        )
+        val staleResult = fixture.controller.recordEnergyEventWithReason(
+            returnFrame.sceneFrame,
+            staleContourEvent,
+        )
+        assertEquals(EnergyEventRejectionReason.EVENT_STAGE_MISMATCH, staleResult.rejectionReason)
+        assertEquals(sequenceBeforeStale, controllerFrame(
+            fixture.controller, fixture.identity, resultGeometryVersion, 2_550L,
+        ).eventSequence)
 
         val receipt = RecognitionOrbReturnRenderReceipt(
             identity = fixture.identity,
@@ -199,6 +220,13 @@ class Stage04ArrivalPathWithoutMaskTest {
         ).accepted)
         assertTrue(fixture.controller.orbReturnComplete())
         assertEquals(RecognitionSceneStage.ORB_TO_NAME, fixture.controller.currentSceneStage(2_550L))
+        val acceptedCountAfterReturn = fixture.controller.acceptedEnergyEventsSnapshot().size
+        val duplicateResult = fixture.controller.recordEnergyEventWithReason(
+            acceptedFrame.sceneFrame,
+            acceptedEvent,
+        )
+        assertEquals(EnergyEventRejectionReason.EVENT_DUPLICATE, duplicateResult.rejectionReason)
+        assertEquals(acceptedCountAfterReturn, fixture.controller.acceptedEnergyEventsSnapshot().size)
 
         val orbDissolve = RecognitionOrbCoreDissolveReceipt(
             identity = fixture.identity,

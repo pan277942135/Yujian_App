@@ -53,6 +53,33 @@ internal class SlimSamInitializationFailedException(
     cause: Throwable?,
 ) : IllegalStateException("SlimSAM Runtime initialization failed after $attempts attempt(s)", cause)
 
+internal data class SlimSamFailureDetails(
+    val errorCode: String,
+    val stage: String,
+    val exceptionClass: String,
+    val rootCause: String,
+    val tensorMetadata: String? = null,
+)
+
+/** Keeps the model-stage failure visible when the bounded initialization gate wraps it. */
+internal fun Throwable.slimSamFailureDetails(): SlimSamFailureDetails {
+    val chain = generateSequence(this as Throwable?) { it.cause }.take(16).toList()
+    val modelFailure = chain.filterIsInstance<SlimSamModelException>().firstOrNull()
+    val root = chain.lastOrNull() ?: this
+    val rootDescription = buildString {
+        append(root.javaClass.name)
+        root.message?.takeIf(String::isNotBlank)?.let { append(": ").append(it.take(1024)) }
+    }
+    return SlimSamFailureDetails(
+        errorCode = modelFailure?.errorCode
+            ?: root.javaClass.simpleName.uppercase().ifBlank { "SLIMSAM_FAILURE" },
+        stage = modelFailure?.stage ?: "UNKNOWN",
+        exceptionClass = modelFailure?.javaClass?.name ?: javaClass.name,
+        rootCause = rootDescription,
+        tensorMetadata = modelFailure?.tensorMetadata,
+    )
+}
+
 /** Stable single-photo cache identity. Bitmap object identity is intentionally not part of the key. */
 internal data class SlimSamEmbeddingCacheKey(
     val photoSha256: String,

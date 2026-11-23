@@ -62,6 +62,27 @@ class SlimSamRuntimeCoordinatorTest {
     }
 
     @Test
+    fun wrappedRuntimeFailureRetainsModelStageRootCauseAndActualTensorMetadata() {
+        val metadata = "inputs=[pixel_values] FLOAT [-1, 4, 1024, 1024]"
+        val modelFailure = SlimSamModelException(
+            errorCode = "VISION_INPUT_SHAPE_MISMATCH",
+            message = "SlimSAM Vision Session metadata rejected: $metadata",
+            stage = "VISION_SESSION_VALIDATE",
+            cause = IllegalArgumentException("expected channel count 3"),
+            tensorMetadata = metadata,
+        )
+        val wrapped = SlimSamInitializationFailedException(attempts = 2, cause = modelFailure)
+
+        val details = wrapped.slimSamFailureDetails()
+
+        assertEquals("VISION_INPUT_SHAPE_MISMATCH", details.errorCode)
+        assertEquals("VISION_SESSION_VALIDATE", details.stage)
+        assertEquals(SlimSamModelException::class.java.name, details.exceptionClass)
+        assertTrue(details.rootCause.contains("expected channel count 3"))
+        assertEquals(metadata, details.tensorMetadata)
+    }
+
+    @Test
     fun cancellationDoesNotConsumeInitializationRetryBudget() = runBlocking {
         val attempts = AtomicInteger()
         val gate = SlimSamInitializationGate(maxAttempts = 3) {

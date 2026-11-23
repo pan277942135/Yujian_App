@@ -48,10 +48,49 @@ data class EnergyEvent(
     val renderStatus: String = "PENDING",
     val stage: RecognitionSceneStage = RecognitionSceneStage.PHOTO_STABLE,
 ) {
+    /** Stable idempotency key for this attempt-scoped event. */
+    val eventId: String
+        get() = listOf(
+            sessionId, attemptId, imageId, photoSha256, photoContentVersion,
+            geometryVersion, pathId.orEmpty(), stage.name, feedback.name, eventSequence,
+        ).joinToString("|")
+    val sourceStage: RecognitionSceneStage get() = stage
+    val targetStage: RecognitionSceneStage get() = RecognitionSceneEventContract.targetStage(stage, feedback)
+    val producerId: String get() = RecognitionSceneEventContract.PRODUCER_ID
+    val consumerId: String get() = RecognitionSceneEventContract.CONSUMER_ID
+
+    fun hasValidContract(): Boolean = eventId.isNotBlank() && attemptId.isNotBlank() &&
+        eventSequence >= 0L && geometryVersion > 0L && monotonicTimestampMs >= 0L &&
+        sourceStage == stage && targetStage == RecognitionSceneEventContract.targetStage(stage, feedback) &&
+        producerId == RecognitionSceneEventContract.PRODUCER_ID &&
+        consumerId == RecognitionSceneEventContract.CONSUMER_ID
+
     fun matches(frame: WaterLightFrame): Boolean =
         sessionId == frame.sessionId && attemptId == frame.attemptId && imageId == frame.imageId &&
             photoSha256 == frame.photoSha256 && photoContentVersion == frame.photoContentVersion &&
             geometryVersion == frame.geometryVersion
+}
+
+/** Single event envelope used from WaterLightEnergy production through Controller consumption. */
+object RecognitionSceneEventContract {
+    const val PRODUCER_ID = "WaterLightEnergy"
+    const val CONSUMER_ID = "RecognitionSceneAnimationController"
+
+    fun targetStage(sourceStage: RecognitionSceneStage, feedback: EnergyFeedback): RecognitionSceneStage =
+        when (feedback) {
+            EnergyFeedback.RELEASE -> RecognitionSceneStage.PERIMETER_ARRIVAL
+            EnergyFeedback.ARRIVE -> RecognitionSceneStage.PATH_TO_FISH
+            EnergyFeedback.ABSORB -> when (sourceStage) {
+                RecognitionSceneStage.PATH_TO_FISH -> RecognitionSceneStage.CONTOUR_A
+                RecognitionSceneStage.CONTOUR_A -> RecognitionSceneStage.CONTOUR_B
+                RecognitionSceneStage.CONTOUR_B -> RecognitionSceneStage.CONTOUR_C
+                RecognitionSceneStage.CONTOUR_C -> RecognitionSceneStage.FISH_GOLD_PEAK
+                else -> sourceStage
+            }
+            EnergyFeedback.RETURN -> RecognitionSceneStage.ORB_TO_NAME
+            EnergyFeedback.TRANSLATE -> RecognitionSceneStage.SPECIES_NAME_REVEAL
+            EnergyFeedback.REVEAL, EnergyFeedback.SETTLE -> RecognitionSceneStage.RESIDUE_SETTLE
+        }
 }
 
 object WaterLightEnergy {

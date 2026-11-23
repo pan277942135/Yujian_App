@@ -592,6 +592,23 @@ class RecognitionRevealProductionRuntimeTest {
                 RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
                 bindingProbe.snapshot?.fishPathSnapshotBindingState,
             )
+            val incompleteProcessingPhoto = processingPhotoSnapshot.copy(
+                contactPointNormalizedSource = null,
+                contactPointMaskSha256 = "",
+                contactPointMaskVersion = -1L,
+                contactPointGeometryVersion = 0L,
+            )
+            bindingProbe.updateProcessingPhoto(revealKey, incompleteProcessingPhoto)
+            assertEquals(
+                "default photo-side P*/Mask/geometry fields keep the exact received path pending",
+                RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+                bindingProbe.snapshot?.fishPathSnapshotBindingState,
+            )
+            assertEquals(fishPathSnapshot, bindingProbe.snapshot?.pendingFishPathSnapshot)
+            assertTrue(
+                bindingProbe.snapshot?.fishPathSnapshotBindingDiagnostic?.get("pendingInputs")
+                    ?.contains("PHOTO_PSTAR_SOURCE") == true,
+            )
             bindingProbe.updateProcessingPhoto(revealKey, processingPhotoSnapshot)
             assertEquals(
                 RecognitionFishPathSnapshotBindingState.BOUND,

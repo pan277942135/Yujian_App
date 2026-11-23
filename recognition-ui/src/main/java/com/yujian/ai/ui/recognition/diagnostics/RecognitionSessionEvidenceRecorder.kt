@@ -1389,6 +1389,7 @@ class RecognitionSessionEvidenceRecorder(
     }
 
     private fun energyPayload(event: EnergyEvent): Map<String, Any?> = mapOf(
+        "eventId" to event.eventId,
         "sessionIdHash" to sha256(event.sessionId),
         "attemptIdHash" to sha256(event.attemptId),
         "imageIdHash" to sha256(event.imageId),
@@ -1398,8 +1399,13 @@ class RecognitionSessionEvidenceRecorder(
         "target" to event.target.name,
         "level" to event.level,
         "stage" to event.stage.name,
+        "sourceStage" to event.sourceStage.name,
+        "targetStage" to event.targetStage.name,
         "eventSequence" to event.eventSequence,
         "geometryVersion" to event.geometryVersion,
+        "monotonicTimestampMs" to event.monotonicTimestampMs,
+        "producerId" to event.producerId,
+        "consumerId" to event.consumerId,
         "taskPathId" to event.pathId,
         "pStarPathId" to event.pathId,
         "taskPathGeometry" to event.pathGeometry?.toEvidenceMap(),

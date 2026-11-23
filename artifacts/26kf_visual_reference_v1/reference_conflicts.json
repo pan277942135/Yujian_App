@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "sourceArchiveSha256": "d054bc189cd65795dbfd96fcbf57d3766d7c381ab3101d0411ada307f2b85746",
+  "items": [
+    {
+      "id": "CONFLICT_MASTER_MODE_DIMENSIONS",
+      "severity": "HIGH",
+      "conflict": "P0 visual contract declares AI_26KF_HighRes_Overview.png as 2048x1327 RGBA; actual packaged image and inventory are 8677x5626 RGB.",
+      "resolution": "Retain and measure the packaged original at 8677x5626 RGB."
+    },
+    {
+      "id": "CONFLICT_V2_FILENAME",
+      "severity": "HIGH",
+      "conflict": "Mapping workbook/README references YuJian_AI_26KF_HighRes_Overview_V2.png, but it is absent; packaged AI_26KF_HighRes_Overview.png matches the P0 contract master name.",
+      "resolution": "Map overview cells only to actual AI_26KF_HighRes_Overview.png and record V2-named assets MISSING."
+    },
+    {
+      "id": "CONFLICT_6000MS_VS_HISTORIC_3650MS",
+      "severity": "MEDIUM",
+      "conflict": "Later P0 visual contract sets 6000ms; older 13-stage manifest records historical 3650ms.",
+      "resolution": "Use the later 6000ms contract; retain older manifest as historical."
+    },
+    {
+      "id": "CONFLICT_RESULT_STAGE_FRAMES",
+      "severity": "MEDIUM",
+      "conflict": "Overview KF22-KF24 already show result fields, while the Result board distinguishes result handoff, info arrival and stable result.",
+      "resolution": "Keep overview as the 26KF master mapping; reference Result board as supporting stage evidence."
+    },
+    {
+      "id": "CONFLICT_KF15_REFERENCE",
+      "severity": "LOW",
+      "conflict": "Independent 11.1 image appears elliptical; six-frame board Frame 1 depicts a whole sphere before deformation.",
+      "resolution": "Use six-frame board Frame 1 as STRONG; retain independent image only as candidate."
+    }
+  ]
+}

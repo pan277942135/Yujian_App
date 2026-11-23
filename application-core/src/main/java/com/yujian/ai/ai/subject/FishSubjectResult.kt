@@ -15,6 +15,8 @@ data class FishSubjectResult(
     val exceptionClass: String? = null,
     val mlKitErrorCode: Int? = null,
     val rootCause: String? = null,
+    /** ONNX input/output names, dtypes and shapes when runtime validation fails. */
+    val tensorMetadata: String? = null,
     val processingMs: Long = 0L,
     val roiWidth: Int = 0,
     val roiHeight: Int = 0,

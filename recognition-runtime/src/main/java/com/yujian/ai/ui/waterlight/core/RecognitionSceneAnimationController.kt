@@ -16,6 +16,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGate
 
 enum class EnergyEventRejectionReason {
+    EVENT_CONTRACT_INVALID,
     EVENT_STAGE_MISMATCH,
     EVENT_SEQUENCE_MISMATCH,
     EVENT_TIMESTAMP_MISMATCH,
@@ -133,7 +134,7 @@ class RecognitionSceneAnimationController(
     private var activeMaskContactPointNormalizedSource: WaterLightPathPoint? = null
     private var activeFishContactPathId: String? = null
     private var fishContactPathId: String? = null
-    private var fishPathSnapshot: RecognitionFishPathSnapshot? = null
+    private var fishPathSnapshot: RecognitionSnapshot? = null
     private var orbOnlyReturnPathSnapshot: RecognitionOrbOnlyReturnPathSnapshot? = null
     private var revealDecisionState = RecognitionRevealDecisionState.WAITING_BOTH
     private var fishContactPathReady = false
@@ -765,7 +766,8 @@ class RecognitionSceneAnimationController(
         if (!frame.isIdentityValid || (active != null && frame.identity != active)) {
             return reject(EnergyEventRejectionReason.EVENT_IDENTITY_MISMATCH)
         }
-        val eventKey = "${frame.identity.sessionId}|${frame.identity.attemptId}|${frame.identity.imageId}|${frame.geometryVersion}|${event.stage}|${event.feedback}|${event.pathId}"
+        if (!event.hasValidContract()) return reject(EnergyEventRejectionReason.EVENT_CONTRACT_INVALID)
+        val eventKey = event.eventId
         if (eventKey in acceptedEnergyEvents) return reject(EnergyEventRejectionReason.EVENT_DUPLICATE)
         if (event.stage != frame.stage || currentStage != frame.stage) {
             return reject(EnergyEventRejectionReason.EVENT_STAGE_MISMATCH)
@@ -980,7 +982,7 @@ class RecognitionSceneAnimationController(
 
     /** Bind the immutable RETURN route exported by the same Processing PathLedger. */
     fun onFishPathSnapshot(
-        snapshot: RecognitionFishPathSnapshot,
+        snapshot: RecognitionSnapshot,
         currentIdentity: RecognitionSceneIdentity? = null,
     ): Boolean {
         if (!isCurrent(currentIdentity)) return false

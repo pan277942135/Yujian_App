@@ -80,6 +80,7 @@ class RecognitionFishPathSnapshotBindingTest {
         val movedEnd = path.fishPathGeometry.end.copy(x = path.fishPathGeometry.end.x + 3f)
         val wrongEndpoint = path.copy(
             fishPathGeometry = path.fishPathGeometry.copy(end = movedEnd),
+            pStarViewport = movedEnd,
             returnPathSegments = listOf(
                 geometry(movedEnd.x, movedEnd.y, path.perimeterBranch.end.x, path.perimeterBranch.end.y),
                 path.returnPathSegments[1],
@@ -143,6 +144,7 @@ class RecognitionFishPathSnapshotBindingTest {
         val roundedPath = path.copy(
             pStarNormalizedSource = WaterLightPathPoint(tracedContact.x, tracedContact.y),
             fishPathGeometry = path.fishPathGeometry.copy(end = roundedEndpoint),
+            pStarViewport = roundedEndpoint,
             returnPathSegments = path.returnPathSegments.toMutableList().also {
                 it[0] = it[0].copy(start = roundedEndpoint)
             },

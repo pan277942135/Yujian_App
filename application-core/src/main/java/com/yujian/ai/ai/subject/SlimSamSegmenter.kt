@@ -65,6 +65,8 @@ class SlimSamSegmenter(
     private var decoderSession: OrtSession? = null
     private var visionModelSha256: String? = null
     private var decoderModelSha256: String? = null
+    private var visionTensorMetadata: String? = null
+    private var decoderTensorMetadata: String? = null
     private var verifiedVisionModelBytes: ByteArray? = null
     private var verifiedDecoderModelBytes: ByteArray? = null
     private var visionAssetVerified = false
@@ -142,6 +144,8 @@ class SlimSamSegmenter(
         decoderSessionReady = decoderSession != null,
         visionModelSha256 = visionModelSha256,
         decoderModelSha256 = decoderModelSha256,
+        visionTensorMetadata = visionTensorMetadata,
+        decoderTensorMetadata = decoderTensorMetadata,
         intraOpThreads = Runtime.getRuntime().availableProcessors().coerceIn(2, 4),
         embeddingBufferBytes = if (embeddingCache.hasValue()) EMBEDDING_CACHE_BYTES else 0L,
         cachedPhotoCount = if (embeddingCache.hasValue()) 1 else 0,
@@ -234,24 +238,34 @@ class SlimSamSegmenter(
     private fun validateVisionSession(session: OrtSession) {
         val inputs = tensorSignatures(session.inputInfo)
         val outputs = tensorSignatures(session.outputInfo)
+        val metadata = formatMetadata(session, inputs, outputs)
         val errorCode = SlimSamTensorContract.validateVision(session.inputNames, session.outputNames, inputs, outputs)
-            ?: return
+        if (errorCode == null) {
+            visionTensorMetadata = metadata
+            return
+        }
         throw SlimSamModelException(
             errorCode,
-            "SlimSAM Vision Session metadata rejected: ${formatMetadata(session, inputs, outputs)}",
+            "SlimSAM Vision Session metadata rejected: $metadata",
             "VISION_SESSION_VALIDATE",
+            tensorMetadata = metadata,
         )
     }
 
     private fun validateDecoderSession(session: OrtSession) {
         val inputs = tensorSignatures(session.inputInfo)
         val outputs = tensorSignatures(session.outputInfo)
+        val metadata = formatMetadata(session, inputs, outputs)
         val errorCode = SlimSamTensorContract.validateDecoder(session.inputNames, session.outputNames, inputs, outputs)
-            ?: return
+        if (errorCode == null) {
+            decoderTensorMetadata = metadata
+            return
+        }
         throw SlimSamModelException(
             errorCode,
-            "SlimSAM Decoder Session metadata rejected: ${formatMetadata(session, inputs, outputs)}",
+            "SlimSAM Decoder Session metadata rejected: $metadata",
             "DECODER_SESSION_VALIDATE",
+            tensorMetadata = metadata,
         )
     }
 
@@ -451,6 +465,7 @@ class SlimSamSegmenter(
             } catch (error: Throwable) {
                 Log.e(TAG, "SlimSAM segmentation failure", error)
                 val failedAtNs = SystemClock.elapsedRealtimeNanos()
+                val failure = error.slimSamFailureDetails()
                 recordTiming(
                     identity,
                     "SLIMSAM_RESULT",
@@ -458,16 +473,22 @@ class SlimSamSegmenter(
                     started,
                     failedAtNs,
                     "FAILED",
-                    (error as? SlimSamModelException)?.errorCode ?: error::class.java.simpleName,
+                    failure.errorCode,
+                    errorMessage = error.message ?: error::class.java.simpleName,
+                    exceptionClass = failure.exceptionClass,
+                    rootCause = failure.rootCause,
+                    tensorMetadata = failure.tensorMetadata,
                 )
                 failed(
-                    code = (error as? SlimSamModelException)?.errorCode
-                        ?: error::class.java.simpleName.ifBlank { "SLIMSAM_EXECUTION_FAILED" },
+                    code = failure.errorCode,
                     started = started,
                     roiWidth = roiW,
                     roiHeight = roiH,
                     expectedMaskSize = expectedMaskSize,
                     errorMessage = error.message ?: "SlimSAM execution failed",
+                    exceptionClass = failure.exceptionClass,
+                    rootCause = failure.rootCause,
+                    tensorMetadata = failure.tensorMetadata,
                 )
             }
         }
@@ -819,6 +840,10 @@ class SlimSamSegmenter(
         endedAtNs: Long,
         result: String,
         errorCode: String = "",
+        errorMessage: String? = null,
+        exceptionClass: String? = null,
+        rootCause: String? = null,
+        tensorMetadata: String? = null,
     ) {
         eventSink(
             SlimSamRuntimeEvent(
@@ -834,6 +859,10 @@ class SlimSamSegmenter(
                 threadName = Thread.currentThread().name,
                 result = result,
                 errorCode = errorCode,
+                errorMessage = errorMessage,
+                exceptionClass = exceptionClass,
+                rootCause = rootCause,
+                tensorMetadata = tensorMetadata,
             ),
         )
     }
@@ -863,6 +892,9 @@ class SlimSamSegmenter(
         quality: FishSubjectQuality = FishSubjectQuality.INVALID,
         maskIouScore: Float? = null,
         errorMessage: String? = null,
+        exceptionClass: String? = null,
+        rootCause: String? = null,
+        tensorMetadata: String? = null,
     ) = FishSubjectResult(
         status = SubjectStatus.FAILED,
         processingMs = (SystemClock.elapsedRealtimeNanos() - started) / 1_000_000,
@@ -875,6 +907,9 @@ class SlimSamSegmenter(
         maskIouScore = maskIouScore?.takeIf { it.isFinite() },
         errorCode = code,
         errorMessage = errorMessage,
+        exceptionClass = exceptionClass,
+        rootCause = rootCause,
+        tensorMetadata = tensorMetadata,
     )
 
     override fun close() {
@@ -884,6 +919,8 @@ class SlimSamSegmenter(
         decoderSession = null
         visionModelSha256 = null
         decoderModelSha256 = null
+        visionTensorMetadata = null
+        decoderTensorMetadata = null
         verifiedVisionModelBytes = null
         verifiedDecoderModelBytes = null
         embeddingCache.clear()

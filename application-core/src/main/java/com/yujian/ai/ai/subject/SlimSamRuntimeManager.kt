@@ -44,9 +44,14 @@ data class SlimSamRuntimeSnapshot(
     val decoderSessionReady: Boolean = false,
     val visionModelSha256: String? = null,
     val decoderModelSha256: String? = null,
+    val visionTensorMetadata: String? = null,
+    val decoderTensorMetadata: String? = null,
     val intraOpThreads: Int? = null,
     val errorCode: String? = null,
     val errorMessage: String? = null,
+    val exceptionClass: String? = null,
+    val rootCause: String? = null,
+    val tensorMetadata: String? = null,
     val updatedUptimeNs: Long = 0L,
 )
 
@@ -64,6 +69,10 @@ data class SlimSamRuntimeEvent(
     val threadName: String,
     val result: String,
     val errorCode: String = "",
+    val errorMessage: String? = null,
+    val exceptionClass: String? = null,
+    val rootCause: String? = null,
+    val tensorMetadata: String? = null,
 )
 
 /**
@@ -112,23 +121,28 @@ class SlimSamRuntimeManager(
                     throw cancelled
                 } catch (error: Throwable) {
                     val attempts = initializationGate.attemptCount
-                    val code = (error.cause as? SlimSamModelException)?.errorCode
-                        ?: (error as? SlimSamModelException)?.errorCode
-                        ?: "SLIMSAM_RUNTIME_INITIALIZATION_FAILED"
+                    val failure = error.slimSamFailureDetails()
                     updateState(
                         state = SlimSamRuntimeState.FAILED,
-                        stage = "RUNTIME_FAILED",
+                        stage = failure.stage,
                         attempt = attempts,
-                        errorCode = code,
+                        errorCode = failure.errorCode,
                         errorMessage = error.message ?: error::class.java.simpleName,
+                        exceptionClass = failure.exceptionClass,
+                        rootCause = failure.rootCause,
+                        tensorMetadata = failure.tensorMetadata,
                     )
                     record(
-                        stage = "RUNTIME_INITIALIZATION",
+                        stage = failure.stage,
                         event = "SLIMSAM_RUNTIME_FAILED",
                         startNs = mutableState.value.updatedUptimeNs,
                         endNs = SystemClock.elapsedRealtimeNanos(),
                         result = "FAILED",
-                        errorCode = code,
+                        errorCode = failure.errorCode,
+                        errorMessage = error.message ?: error::class.java.simpleName,
+                        exceptionClass = failure.exceptionClass,
+                        rootCause = failure.rootCause,
+                        tensorMetadata = failure.tensorMetadata,
                     )
                 }
             }
@@ -312,24 +326,34 @@ class SlimSamRuntimeManager(
                 decoderSessionReady = stats.decoderSessionReady,
                 visionModelSha256 = stats.visionModelSha256,
                 decoderModelSha256 = stats.decoderModelSha256,
+                visionTensorMetadata = stats.visionTensorMetadata,
+                decoderTensorMetadata = stats.decoderTensorMetadata,
                 intraOpThreads = stats.intraOpThreads,
             )
-            record("RUNTIME_INITIALIZATION", "SLIMSAM_RUNTIME_READY", mutableState.value.updatedUptimeNs,
-                SystemClock.elapsedRealtimeNanos(), "READY")
+            record(
+                "RUNTIME_INITIALIZATION",
+                "SLIMSAM_RUNTIME_READY",
+                mutableState.value.updatedUptimeNs,
+                SystemClock.elapsedRealtimeNanos(),
+                "READY",
+                tensorMetadata = "vision=${stats.visionTensorMetadata.orEmpty()}; decoder=${stats.decoderTensorMetadata.orEmpty()}",
+            )
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Throwable) {
-            val modelError = error as? SlimSamModelException
-            val errorStage = modelError?.stage ?: currentStage
-            val errorCode = modelError?.errorCode ?: "SLIMSAM_RUNTIME_INITIALIZATION_FAILED"
+            val failure = error.slimSamFailureDetails()
+            val errorStage = failure.stage.takeUnless { it == "UNKNOWN" } ?: currentStage
             updateState(
                 state = SlimSamRuntimeState.DEGRADED,
                 stage = errorStage,
                 attempt = attempt,
                 visionSessionReady = segmenter?.runtimeStats()?.visionSessionReady == true,
                 decoderSessionReady = segmenter?.runtimeStats()?.decoderSessionReady == true,
-                errorCode = errorCode,
+                errorCode = failure.errorCode,
                 errorMessage = error.message ?: error::class.java.simpleName,
+                exceptionClass = failure.exceptionClass,
+                rootCause = failure.rootCause,
+                tensorMetadata = failure.tensorMetadata,
             )
             record(
                 stage = errorStage,
@@ -337,7 +361,11 @@ class SlimSamRuntimeManager(
                 startNs = mutableState.value.updatedUptimeNs,
                 endNs = SystemClock.elapsedRealtimeNanos(),
                 result = "FAILED",
-                errorCode = errorCode,
+                errorCode = failure.errorCode,
+                errorMessage = error.message ?: error::class.java.simpleName,
+                exceptionClass = failure.exceptionClass,
+                rootCause = failure.rootCause,
+                tensorMetadata = failure.tensorMetadata,
             )
             throw error
         }
@@ -352,7 +380,19 @@ class SlimSamRuntimeManager(
             record(stage, "${stage}_END", start, end, "PASS")
         } catch (error: Throwable) {
             val end = SystemClock.elapsedRealtimeNanos()
-            record(stage, "${stage}_FAIL", start, end, "FAILED", errorCode = (error as? SlimSamModelException)?.errorCode ?: error::class.java.simpleName)
+            val failure = error.slimSamFailureDetails()
+            record(
+                stage,
+                "${stage}_FAIL",
+                start,
+                end,
+                "FAILED",
+                errorCode = failure.errorCode,
+                errorMessage = error.message ?: error::class.java.simpleName,
+                exceptionClass = failure.exceptionClass,
+                rootCause = failure.rootCause,
+                tensorMetadata = failure.tensorMetadata,
+            )
             throw error
         }
         updateState(mutableState.value.state, stage, attempt)
@@ -369,9 +409,14 @@ class SlimSamRuntimeManager(
         decoderSessionReady: Boolean = mutableState.value.decoderSessionReady,
         visionModelSha256: String? = mutableState.value.visionModelSha256,
         decoderModelSha256: String? = mutableState.value.decoderModelSha256,
+        visionTensorMetadata: String? = mutableState.value.visionTensorMetadata,
+        decoderTensorMetadata: String? = mutableState.value.decoderTensorMetadata,
         intraOpThreads: Int? = mutableState.value.intraOpThreads,
         errorCode: String? = null,
         errorMessage: String? = null,
+        exceptionClass: String? = null,
+        rootCause: String? = null,
+        tensorMetadata: String? = null,
     ) {
         mutableState.value = SlimSamRuntimeSnapshot(
             state = state,
@@ -381,9 +426,14 @@ class SlimSamRuntimeManager(
             decoderSessionReady = decoderSessionReady,
             visionModelSha256 = visionModelSha256,
             decoderModelSha256 = decoderModelSha256,
+            visionTensorMetadata = visionTensorMetadata,
+            decoderTensorMetadata = decoderTensorMetadata,
             intraOpThreads = intraOpThreads,
             errorCode = errorCode,
             errorMessage = errorMessage,
+            exceptionClass = exceptionClass,
+            rootCause = rootCause,
+            tensorMetadata = tensorMetadata,
             updatedUptimeNs = SystemClock.elapsedRealtimeNanos(),
         )
     }
@@ -428,6 +478,10 @@ class SlimSamRuntimeManager(
         endNs: Long,
         result: String,
         errorCode: String = "",
+        errorMessage: String? = null,
+        exceptionClass: String? = null,
+        rootCause: String? = null,
+        tensorMetadata: String? = null,
     ) = recordEvent(
         SlimSamRuntimeEvent(
             stageName = stage,
@@ -438,6 +492,10 @@ class SlimSamRuntimeManager(
             threadName = Thread.currentThread().name,
             result = result,
             errorCode = errorCode,
+            errorMessage = errorMessage,
+            exceptionClass = exceptionClass,
+            rootCause = rootCause,
+            tensorMetadata = tensorMetadata,
         ),
     )
 
@@ -447,6 +505,10 @@ class SlimSamRuntimeManager(
         append(" imageId=$imageId photoSha256=$photoSha256")
         append(" startUptimeNs=$startUptimeNs endUptimeNs=$endUptimeNs durationMs=$durationMs")
         append(" threadName=$threadName result=$result errorCode=$errorCode")
+        errorMessage?.let { append(" errorMessage=${it.take(512)}") }
+        exceptionClass?.let { append(" exceptionClass=$it") }
+        rootCause?.let { append(" rootCause=${it.take(1024)}") }
+        tensorMetadata?.let { append(" tensorMetadata=${it.take(1024)}") }
     }
 
     private companion object {
@@ -459,6 +521,8 @@ internal data class SlimSamRuntimeStats(
     val decoderSessionReady: Boolean,
     val visionModelSha256: String?,
     val decoderModelSha256: String?,
+    val visionTensorMetadata: String?,
+    val decoderTensorMetadata: String?,
     val intraOpThreads: Int,
     val embeddingBufferBytes: Long,
     val cachedPhotoCount: Int,
@@ -478,4 +542,5 @@ class SlimSamModelException(
     message: String,
     val stage: String,
     cause: Throwable? = null,
+    val tensorMetadata: String? = null,
 ) : IllegalStateException(message, cause)

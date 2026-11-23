@@ -58,6 +58,12 @@ data class RecognitionFishPathSnapshot(
     val creationEventSequence: Long,
     /** Content digest emitted by the Processing producer and independently rechecked by SessionStore. */
     val snapshotSha256: String = "",
+    /** Version of the cross-layer immutable RecognitionSnapshot contract. */
+    val snapshotVersion: Int = CURRENT_RECOGNITION_SNAPSHOT_VERSION,
+    /** Actual segmentation model identity; legacy evidence may explicitly record NOT_RECORDED. */
+    val modelVersion: String = "UNSPECIFIED",
+    /** The same P* endpoint in Recognition Viewport pixels. */
+    val pStarViewport: WaterLightPathPoint = fishPathGeometry.end,
 ) {
     fun isValid(): Boolean = sessionId.isNotBlank() && attemptId.isNotBlank() && imageId.isNotBlank() &&
         photoSha256.isNotBlank() && photoContentVersion >= 0L &&
@@ -77,17 +83,40 @@ data class RecognitionFishPathSnapshot(
         returnPathSegments[2].start == orbReleasePath.end &&
         returnPathSegments.last().end == orbReleasePath.start &&
         creationTimestampMonotonicMs >= 0L && creationEventSequence >= 0L &&
+        snapshotVersion >= LEGACY_RECOGNITION_SNAPSHOT_VERSION && modelVersion.isNotBlank() &&
+        pStarViewport.isValid() && pStarViewport == fishPathGeometry.end &&
         (snapshotSha256.isBlank() ||
             (snapshotSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) && snapshotSha256 == calculateContentSha256()))
 
     fun calculateContentSha256(): String = MessageDigest.getInstance("SHA-256")
-        .digest(copy(snapshotSha256 = "").toString().toByteArray(Charsets.UTF_8))
+        .digest(canonicalContent().toByteArray(Charsets.UTF_8))
         .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+
+    private fun canonicalContent(): String = if (snapshotVersion == LEGACY_RECOGNITION_SNAPSHOT_VERSION) {
+        // Preserve the exact v0 toString contract so archived device evidence remains verifiable.
+        "RecognitionFishPathSnapshot(" +
+            "sessionId=$sessionId, attemptId=$attemptId, imageId=$imageId, photoSha256=$photoSha256, " +
+            "photoContentVersion=$photoContentVersion, maskSha256=$maskSha256, maskVersion=$maskVersion, " +
+            "geometryVersion=$geometryVersion, pStarNormalizedSource=$pStarNormalizedSource, " +
+            "fishPathId=$fishPathId, fishPathGeometry=$fishPathGeometry, perimeterBranch=$perimeterBranch, " +
+            "orbReleasePath=$orbReleasePath, returnPathId=$returnPathId, " +
+            "returnPathSegments=$returnPathSegments, sourceCoordinateSpace=$sourceCoordinateSpace, " +
+            "creationTimestampMonotonicMs=$creationTimestampMonotonicMs, " +
+            "creationEventSequence=$creationEventSequence, snapshotSha256=)"
+    } else {
+        copy(snapshotSha256 = "").toString()
+    }
 
     fun matches(frame: WaterLightFrame): Boolean = isValid() &&
         sessionId == frame.sessionId && attemptId == frame.attemptId && imageId == frame.imageId &&
         photoSha256 == frame.photoSha256 && photoContentVersion == frame.photoContentVersion
 }
+
+/** Canonical cross-layer name for the same immutable value emitted by the Processing ledger. */
+typealias RecognitionSnapshot = RecognitionFishPathSnapshot
+
+const val LEGACY_RECOGNITION_SNAPSHOT_VERSION = 0
+const val CURRENT_RECOGNITION_SNAPSHOT_VERSION = 1
 
 /** Processing Ledger identity for the single real photo-perimeter-to-Orb route when no Mask is trusted. */
 data class RecognitionOrbOnlyReturnPathSnapshot(
@@ -369,7 +398,8 @@ class WaterLightPathLedger {
         maskSha256: String,
         maskVersion: Long,
         contactPointNormalizedSource: WaterLightPathPoint,
-    ): RecognitionFishPathSnapshot? {
+        modelVersion: String = "UNSPECIFIED",
+    ): RecognitionSnapshot? {
         if (!bind(frame)) return null
         val base = identity ?: return null
         val binding = maskBinding ?: return null
@@ -383,7 +413,7 @@ class WaterLightPathLedger {
         val route = returnRoute(frame, trustedMask = true, maskSha256, maskVersion, contactPointNormalizedSource)
             ?.takeIf(WaterLightPathRoute::isValid) ?: return null
         val pathId = pathId(frame, maskSha256, maskVersion, contactPointNormalizedSource) ?: return null
-        val snapshot = RecognitionFishPathSnapshot(
+        val snapshot = RecognitionSnapshot(
             sessionId = base.sessionId,
             attemptId = base.attemptId,
             imageId = base.imageId,
@@ -402,9 +432,12 @@ class WaterLightPathLedger {
             sourceCoordinateSpace = fish.coordinateSpace,
             creationTimestampMonotonicMs = binding.creationTimestampMonotonicMs,
             creationEventSequence = binding.creationEventSequence,
+            snapshotVersion = CURRENT_RECOGNITION_SNAPSHOT_VERSION,
+            modelVersion = modelVersion,
+            pStarViewport = fish.end,
         )
         val withDigest = snapshot.copy(snapshotSha256 = snapshot.calculateContentSha256())
-        return withDigest.takeIf(RecognitionFishPathSnapshot::isValid)
+        return withDigest.takeIf(RecognitionSnapshot::isValid)
     }
 
     fun pathId(

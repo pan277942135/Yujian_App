@@ -101,6 +101,7 @@ import com.yujian.ai.ai.RecognitionProgress
 import com.yujian.ai.ai.RecognitionStageFailureException
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.FishSubjectQuality
+import com.yujian.ai.ai.subject.SlimSamSegmenter
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionImageTransform
@@ -131,7 +132,7 @@ import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
-import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
+import com.yujian.ai.ui.waterlight.core.RecognitionSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionOrbOnlyReturnPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionFishGoldRenderReceipt
@@ -231,7 +232,7 @@ fun RecognizingScreen(
     motionPolicyOverride: RecognitionMotionPolicy? = null,
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
-    onFishPathSnapshot: (RecognitionFishPathSnapshot) -> Unit = {},
+    onFishPathSnapshot: (RecognitionSnapshot) -> Unit = {},
     onOrbOnlyReturnPathSnapshot: (RecognitionOrbOnlyReturnPathSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
@@ -282,7 +283,7 @@ fun RecognitionProcessingScene(
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)? = null,
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
-    onFishPathSnapshot: (RecognitionFishPathSnapshot) -> Unit = {},
+    onFishPathSnapshot: (RecognitionSnapshot) -> Unit = {},
     onOrbOnlyReturnPathSnapshot: (RecognitionOrbOnlyReturnPathSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
@@ -1547,6 +1548,11 @@ fun RecognitionProcessingScene(
                 "maskFileSha256" to maskFileSha256,
                 "maskShaMatchesGeometry" to maskShaMatchesGeometry,
                 "quality" to subjectResult.quality?.name,
+                "slimSamErrorCode" to subjectResult.errorCode,
+                "slimSamErrorMessage" to subjectResult.errorMessage,
+                "slimSamExceptionClass" to subjectResult.exceptionClass,
+                "slimSamRootCause" to subjectResult.rootCause,
+                "slimSamTensorMetadata" to subjectResult.tensorMetadata,
                 "maskSize" to subjectResult.maskSize,
                 "expectedMaskSize" to subjectResult.expectedMaskSize,
                 "roiDimensions" to listOf(maskRoiDimensions.first, maskRoiDimensions.second),
@@ -2079,11 +2085,15 @@ fun RecognitionProcessingScene(
             // only be submitted on a frame that has actually reached the gate.
             if (waterLightFrame.sceneFrame.stageProgress < .999f) return@LaunchedEffect
             val eventEvidence = mapOf<String, Any?>(
+                "eventId" to event.eventId,
                 "eventType" to event.feedback.name, "sessionId" to event.sessionId,
                 "attemptId" to event.attemptId, "imageId" to event.imageId,
                 "maskSha256" to event.pathMaskSha256, "maskVersion" to event.pathMaskVersion,
                 "pathId" to event.pathId, "geometryVersion" to event.geometryVersion,
                 "eventSequence" to event.eventSequence, "renderReceipt" to event.renderStatus,
+                "sourceStage" to event.sourceStage.name, "targetStage" to event.targetStage.name,
+                "monotonicTimestampMs" to event.monotonicTimestampMs,
+                "producerId" to event.producerId, "consumerId" to event.consumerId,
                 "stage" to event.stage.name,
             )
             recognitionEvidenceRecorder?.recordGateDiagnostic("EVENT_PRODUCED", eventEvidence)
@@ -2120,7 +2130,10 @@ fun RecognitionProcessingScene(
                             "maskSha256" to snapshot.maskSha256,
                             "maskVersion" to snapshot.maskVersion,
                             "geometryVersion" to snapshot.geometryVersion,
+                            "snapshotVersion" to snapshot.snapshotVersion,
+                            "modelVersion" to snapshot.modelVersion,
                             "pStarNormalizedSource" to listOf(snapshot.pStarNormalizedSource.x, snapshot.pStarNormalizedSource.y),
+                            "pStarViewport" to listOf(snapshot.pStarViewport.x, snapshot.pStarViewport.y),
                             "fishPathGeometry" to evidenceGeometry(snapshot.fishPathGeometry),
                             "perimeterBranch" to evidenceGeometry(snapshot.perimeterBranch),
                             "orbReleasePath" to evidenceGeometry(snapshot.orbReleasePath),
@@ -2169,6 +2182,8 @@ fun RecognitionProcessingScene(
                 "WaterLightEnergy",
                 "ENERGY_EVENT session=${event.sessionId} attempt=${event.attemptId} image=${event.imageId} " +
                     "stage=${event.stage} feedback=${event.feedback} path=${event.pathId} geometry=${event.geometryVersion} " +
+                    "eventId=${event.eventId} targetStage=${event.targetStage} sequence=${event.eventSequence} " +
+                    "producer=${event.producerId} consumer=${event.consumerId} " +
                     "render_status=${event.renderStatus} accepted=${result.accepted} reject=${result.rejectionReason}",
             )
         }
@@ -3304,7 +3319,7 @@ private data class RecognitionEnergyProducerSnapshot(
     val decision: RecognitionRevealDecisionState,
     val event: EnergyEvent?,
     val contactPointNormalizedSource: WaterLightPathPoint?,
-    val fishPathSnapshot: RecognitionFishPathSnapshot?,
+    val fishPathSnapshot: RecognitionSnapshot?,
     val orbOnlyReturnPathSnapshot: RecognitionOrbOnlyReturnPathSnapshot?,
     val perimeterArrivalPath: WaterLightPerimeterArrivalSnapshot?,
     val pathBindingStatus: RecognitionFishPathBindingStatus,
@@ -3402,11 +3417,17 @@ private fun createRecognitionEnergyProducerSnapshot(
     var arrivalPath: WaterLightPerimeterArrivalSnapshot? = null
     // Freeze the exact ledger route as soon as trusted Stage-05 path identity exists.
     // Result navigation must not wait until Stage 10 to create the identity it needs.
-    var fishPathSnapshot: RecognitionFishPathSnapshot? = if (
+    var fishPathSnapshot: RecognitionSnapshot? = if (
         fishEnergyAllowed && fishPathRegistered && stableContact != null &&
         maskSha256.isNotBlank() && maskVersion >= 0L
     ) {
-        ledger.exportRecognitionFishPathSnapshot(frame, maskSha256, maskVersion, stableContact)
+        ledger.exportRecognitionFishPathSnapshot(
+            frame,
+            maskSha256,
+            maskVersion,
+            stableContact,
+            modelVersion = SlimSamSegmenter.MODEL_VERSION,
+        )
     } else null
     var pathGeometry: com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry? = null
     var pathSegments = emptyList<com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry>()
@@ -3476,7 +3497,11 @@ private fun createRecognitionEnergyProducerSnapshot(
             ) ledger.returnRoute(frame, true, maskSha256, maskVersion, stableContact) else null
             if (fullRoute?.isValid() == true) {
                 fishPathSnapshot = fishPathSnapshot ?: ledger.exportRecognitionFishPathSnapshot(
-                    frame, maskSha256, maskVersion, requireNotNull(stableContact),
+                    frame,
+                    maskSha256,
+                    maskVersion,
+                    requireNotNull(stableContact),
+                    modelVersion = SlimSamSegmenter.MODEL_VERSION,
                 )
                 if (fishPathSnapshot?.isValid() == true) {
                     pathSegments = requireNotNull(fishPathSnapshot).returnPathSegments
