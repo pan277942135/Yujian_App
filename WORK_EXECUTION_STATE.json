@@ -9,13 +9,13 @@
     "API36_EXACT_HEAD_V5_PENDING: no V5 hosted KVM boot, production AUTO, memory/LMK report, or Stage10–13.5 result yet."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-23T10:29:29Z",
+  "checkpoint_updated_at": "2026-11-23T10:34:45Z",
   "control_plane_revision": "03db3692669847084d7e48fc3128f85cbf832af9",
   "dependencies": [
     "P5-02"
   ],
   "evidence": {
-    "admission": "PENDING: current branch HEAD is 9325be29a5c907b73fa264e7532a51384037e645; prior tracked state source_sha was 7119089573515c4f5e0699b72d057cec592eee3b. This branch-local state-only checkpoint records the verified baseline; rerun Admission after committing it.",
+    "admission": "CONTROL_PLANE_ADMISSION=PASS on state checkpoint 06e357b93107539892898bf1c11ef4a0d078db01, code source baseline 9325be29a5c907b73fa264e7532a51384037e645; Registry, Feature Matrix, Phase/Task, Unified Contract structural validation, Control Plane Sync, Project Master State and Work Execution State all pass; structural_errors=0; one unchanged historical OPEN_GAP for the pre-migration RecognitionResultScreen path is non-blocking.",
     "admission_baseline": "CONTROL_PLANE_ADMISSION=PASS at 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; structural_errors=0; historical OPEN_GAP=1 is not an Admission failure. Current recovered-state Admission is the next required check.",
     "android_test_compile": ":app:assembleDebugAndroidTest PASS after the Stage10 timing/route-attachment assertions were added; instrumentation was compiled but not executed locally.",
     "api36_false_positive_audit": "User supplied Run 45032036762 facts: INSTRUMENTATION_RESULT shortMsg=Process crashed; INSTRUMENTATION_CODE=0; lowmemorykiller reported Kill com.yujian.ai.uiv2 with rss=670552kB, swap=1257028kB and min-watermark/swap-low reason. Source SHA/raw artifact remain NOT_CONFIRMED; facts were not independently replayed.",
@@ -23,7 +23,7 @@
     "archive_integrity": "Fixture A ZIP unzip -t passed; 14,190,826 bytes; SHA256 19a01dcc9dd07e0b489b22ddae41cc763fed1fe6a03377cceef5e13616e1164d; archive provenance records source SHA 3eb481c1f2ca4053fc58f87729f923fb70ef7f50, so it is historical evidence and not current-head runtime proof.",
     "branch_head": "9325be29a5c907b73fa264e7532a51384037e645",
     "code_implementation_commit": "9325be29a5c907b73fa264e7532a51384037e645",
-    "current_admission_attempt": "Initial/current state was stale (source_sha 7119089573515c4f5e0699b72d057cec592eee3b versus branch source HEAD 9325be29a5c907b73fa264e7532a51384037e645). This state-only checkpoint is pending; Admission result not yet claimed.",
+    "current_admission_attempt": "Admission passed on state checkpoint 06e357b93107539892898bf1c11ef4a0d078db01, source baseline 9325be29a5c907b73fa264e7532a51384037e645; prior state mismatch is resolved by branch-local recovery. No static registry/validator change; OPEN_GAP remains unchanged and non-blocking.",
     "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
     "evidence_zip": "/workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip; 14,190,826 bytes; unzip -t passed; 33 recorded hash entries verified; extracted at /tmp/yujian-evidence-5344335",
     "exact_head_apk": "Prior V1 baseline artifact only: app-debug.apk source 9325be29a5c907b73fa264e7532a51384037e645, 200191556 bytes, SHA256 642d9ea46ee0672addea6912be2a5be5e650d57ec7a5695e0d4a5043ca990df9; final V5 APK must be rebuilt after source changes.",
@@ -112,12 +112,12 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Commit this state-only checkpoint and rerun CONTROL_PLANE_ADMISSION; after Admission passes, begin deterministic red regression tests for the V5 dual-path closure.",
+  "next_action": "Record Admission PASS in a state-only checkpoint and rerun final Admission; then inspect target production code and add the first deterministic red regressions.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
   "source_sha": "9325be29a5c907b73fa264e7532a51384037e645",
-  "stage": "G0_MINIMAL_STATE_RECOVERY",
+  "stage": "G1_DETERMINISTIC_REGRESSION_TESTS",
   "status": "RUNNING",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
   "work_id": "YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1"

@@ -301,3 +301,9 @@
 - Fixture A ZIP is present, 14,190,826 bytes, `unzip -t` passed, SHA-256 `19a01dcc9dd07e0b489b22ddae41cc763fed1fe6a03377cceef5e13616e1164d`. Its embedded device/build provenance is source SHA `3eb481c1f2ca4053fc58f87729f923fb70ef7f50`; the observations remain historical, not V5 runtime proof. Fixture B `YuJian_Recognition_Evidence_c2b6cc74040c.zip` was not found in current attachments/workspace. `285122.mp4` is unavailable because Sediment transfer exceeded 32 MiB.
 - The prior exact-head APK is a V1 baseline artifact at 9325 only (200,191,556 bytes, SHA-256 `642d9ea46ee0672addea6912be2a5be5e650d57ec7a5695e0d4a5043ca990df9`); it is not a final V5 deliverable. Local `/dev/kvm`, `adb`, and `emulator` are absent. No V5 tests, build, or runtime pass are claimed.
 - The initial Admission attempt found stale dynamic state (7119089… versus verified branch source 9325be…). This minimal state checkpoint updates the baseline; Admission must be rerun before any V5 tests or implementation. The historical Registry OPEN_GAP is left unchanged.
+
+
+### Admission result — V5 state checkpoint `06e357b93107539892898bf1c11ef4a0d078db01`
+
+- `CONTROL_PLANE_ADMISSION=PASS` on checkpoint `06e357b93107539892898bf1c11ef4a0d078db01` with code source baseline `9325be29a5c907b73fa264e7532a51384037e645`. Registry, Feature Matrix, Phase/Task, Unified Contract structural validation, Control Plane Sync, Project Master State, and Work Execution State pass. `structural_errors=0`; the single unchanged pre-migration Registry `OPEN_GAP` remains non-blocking.
+- Admission recovery is complete. Next stage: inspect the required production layers and add deterministic regression tests before each corresponding fix. No tests or product implementation ran before Admission passed.

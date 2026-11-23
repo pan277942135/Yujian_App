@@ -76,7 +76,7 @@ recognition_main_journey:
 runtime_gates:
   exact_head:
     sha: 9325be29a5c907b73fa264e7532a51384037e645
-    admission: PENDING_STATE_CHECKPOINT_COMMIT; previous tracked Work state pointed to 7119089573515c4f5e0699b72d057cec592eee3b
+    admission: PASS on state checkpoint 06e357b93107539892898bf1c11ef4a0d078db01; source baseline 9325be29a5c907b73fa264e7532a51384037e645; structural_errors=0; historical OPEN_GAP=1 non-blocking
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
@@ -105,7 +105,7 @@ current_work:
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
   exact_head: 9325be29a5c907b73fa264e7532a51384037e645
   status: RUNNING
-  stage: G0_MINIMAL_STATE_RECOVERY
+  stage: G1_DETERMINISTIC_REGRESSION_TESTS
   requested_task_id: YUJIAN_P0_26KF_END_TO_END_RECOGNITION_CLOSURE_V5
   requested_task_title: 'YuJian 26KF dual-path root-cause repair, Stage10–13.5 closure and exact-head APK V5'
   blockers:
@@ -162,12 +162,12 @@ next_actions:
   action: Verify branch history/checkpoint, Fixture A ZIP provenance, and Fixture B/MP4 availability.
 - id: G0-02
   owner: Codex
-  status: READY
-  action: Commit the minimal branch-local state checkpoint for source 9325be29a5c907b73fa264e7532a51384037e645 and rerun Admission; leave the historical Registry OPEN_GAP unchanged.
+  status: COMPLETED
+  action: Minimal state checkpoint 06e357b93107539892898bf1c11ef4a0d078db01 passed CONTROL_PLANE_ADMISSION; historical Registry OPEN_GAP remains unchanged and non-blocking.
 - id: G1-G6
   owner: Codex
-  status: PENDING_ADMISSION
-  action: After Admission, add deterministic regressions before corresponding fixes for tensor metadata, crop/geometry, Store races, Stage10 handoff, and Glyph/13.5 order.
+  status: READY
+  action: Add deterministic red regressions before corresponding fixes for tensor metadata, crop/geometry, Store races, Stage10 handoff, and Glyph/13.5 order.
 - id: G8-01
   owner: Codex
   status: PENDING_SOURCE_FIXES
@@ -178,11 +178,11 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-23T10:29:29Z'
-  note: 'V5 minimal recovery checkpoint: branch and origin ref are 9325be29a5c907b73fa264e7532a51384037e645. Existing Work state points to the prior source SHA 7119089573515c4f5e0699b72d057cec592eee3b; branch history has no checkpoint for 9325. Record only verifiable current branch/task/evidence state and preserve the canonical P6 task ID and existing Work ID. Fixture A is historical evidence at source SHA 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; Fixture B and 285122.mp4 are unavailable. No V5 runtime PASS is claimed. Admission is pending this checkpoint.'
+  last_updated_at: '2026-11-23T10:34:45Z'
+  note: 'V5 minimal recovery checkpoint: branch and origin ref are 9325be29a5c907b73fa264e7532a51384037e645. Existing Work state points to the prior source SHA 7119089573515c4f5e0699b72d057cec592eee3b; branch history has no checkpoint for 9325. Record only verifiable current branch/task/evidence state and preserve the canonical P6 task ID and existing Work ID. Fixture A is historical evidence at source SHA 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; Fixture B and 285122.mp4 are unavailable. No V5 runtime PASS is claimed. Admission passed on checkpoint 06e357b93107539892898bf1c11ef4a0d078db01; static layers and branch sync pass, structural_errors=0, historical OPEN_GAP=1 is non-blocking.'
 agent_recovery:
   resume_order:
-  - Commit minimal branch-local state/evidence checkpoint and rerun CONTROL_PLANE_ADMISSION; keep historical Registry OPEN_GAP unchanged.
+  - Admission passed on state checkpoint 06e357b93107539892898bf1c11ef4a0d078db01; keep historical Registry OPEN_GAP unchanged.
   - After Admission, add deterministic red regression tests before fixing each affected production path.
   - Run required module suites, focused tests, AndroidTest compile, and final exact-head Debug build; record Fixture B and hosted runtime blockers accurately.
   - Push the completed V5 change only to existing Draft PR #346 and inspect exact-head hosted Build/API36 evidence without inferring inaccessible artifacts.
