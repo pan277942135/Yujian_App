@@ -3,6 +3,7 @@ package com.yujian.ai.ai.subject
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import ai.onnxruntime.TensorInfo
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -12,6 +13,7 @@ import android.os.SystemClock
 import android.util.Log
 import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.ai.RecognitionModelIdentity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
@@ -44,9 +46,10 @@ import kotlin.math.roundToInt
 class SlimSamSegmenter(
     private val context: Context,
     private val expandRatio: Float = 0.12f,
+    private val eventSink: (SlimSamRuntimeEvent) -> Unit = {},
 ) : AutoCloseable {
 
-    private val environment: OrtEnvironment = OrtEnvironment.getEnvironment()
+    private var environment: OrtEnvironment? = null
 
     private val sessionOptions: OrtSession.SessionOptions by lazy {
         OrtSession.SessionOptions().apply {
@@ -61,9 +64,13 @@ class SlimSamSegmenter(
     private var decoderSession: OrtSession? = null
     private var visionModelSha256: String? = null
     private var decoderModelSha256: String? = null
+    private var verifiedVisionModelBytes: ByteArray? = null
+    private var verifiedDecoderModelBytes: ByteArray? = null
+    private var visionAssetVerified = false
+    private var decoderAssetVerified = false
 
     private data class CachedVisionEmbedding(
-        val bitmapId: Int,
+        val cacheKey: SlimSamEmbeddingCacheKey,
         val photoSha256: String,
         val width: Int,
         val height: Int,
@@ -74,42 +81,172 @@ class SlimSamSegmenter(
         val imagePositionalEmbeddings: FloatBuffer, // 1 * 256 * 64 * 64
     )
 
-    private var cachedEmbedding: CachedVisionEmbedding? = null
+    private val embeddingCache = SlimSamEmbeddingCache<CachedVisionEmbedding>()
 
     private val outputDir = File(context.cacheDir, "fish_subject_previews").apply { mkdirs() }
 
+    @Synchronized
+    fun verifyModelAssets() {
+        if (!visionAssetVerified) {
+            val bytes = try {
+                readAssetBytes(VISION_ENCODER_MODEL)
+            } catch (error: Throwable) {
+                throw SlimSamModelException("MODEL_ASSET_MISSING", "$VISION_ENCODER_MODEL is unavailable", "MODEL_VERIFY", error)
+            }
+            val actual = sha256(bytes)
+            if (actual != VISION_ENCODER_SHA256) {
+                throw SlimSamModelException("MODEL_SHA256_MISMATCH", "$VISION_ENCODER_MODEL SHA-256 mismatch: $actual", "MODEL_VERIFY")
+            }
+            visionModelSha256 = actual
+            verifiedVisionModelBytes = bytes
+            visionAssetVerified = true
+        }
+        if (!decoderAssetVerified) {
+            val bytes = try {
+                readAssetBytes(MASK_DECODER_MODEL)
+            } catch (error: Throwable) {
+                throw SlimSamModelException("MODEL_ASSET_MISSING", "$MASK_DECODER_MODEL is unavailable", "MODEL_VERIFY", error)
+            }
+            val actual = sha256(bytes)
+            if (actual != DECODER_MODEL_SHA256) {
+                throw SlimSamModelException("MODEL_SHA256_MISMATCH", "$MASK_DECODER_MODEL SHA-256 mismatch: $actual", "MODEL_VERIFY")
+            }
+            decoderModelSha256 = actual
+            verifiedDecoderModelBytes = bytes
+            decoderAssetVerified = true
+        }
+    }
+
+    @Synchronized
+    fun initializeOrtEnvironment() {
+        if (environment != null) return
+        try {
+            environment = OrtEnvironment.getEnvironment()
+        } catch (error: Throwable) {
+            throw SlimSamModelException("ORT_INITIALIZATION_FAILED", "ONNX Runtime environment initialization failed", "ORT_INITIALIZATION", error)
+        }
+    }
+
+    fun preloadVisionSession() {
+        getVisionSession()
+    }
+
+    fun preloadDecoderSession() {
+        getDecoderSession()
+    }
+
+    @Synchronized
+    internal fun runtimeStats() = SlimSamRuntimeStats(
+        visionSessionReady = visionSession != null,
+        decoderSessionReady = decoderSession != null,
+        visionModelSha256 = visionModelSha256,
+        decoderModelSha256 = decoderModelSha256,
+        intraOpThreads = Runtime.getRuntime().availableProcessors().coerceIn(2, 4),
+        embeddingBufferBytes = if (embeddingCache.hasValue()) EMBEDDING_CACHE_BYTES else 0L,
+        cachedPhotoCount = if (embeddingCache.hasValue()) 1 else 0,
+    )
+
+    fun clearEmbedding(reason: String) {
+        val started = SystemClock.elapsedRealtimeNanos()
+        embeddingCache.clear()
+        recordTiming(
+            identity = null,
+            stage = "EMBEDDING_CACHE",
+            event = "EMBEDDING_CACHE_CLEAR",
+            startedAtNs = started,
+            endedAtNs = SystemClock.elapsedRealtimeNanos(),
+            result = reason,
+        )
+    }
+
     /** Precomputes the photo-only vision embedding while detector work is in flight. */
-    fun prepareImageEmbedding(source: Bitmap, photoSha256: String) {
+    fun prepareImageEmbedding(
+        source: Bitmap,
+        photoSha256: String,
+        identity: RecognitionModelIdentity? = null,
+    ) {
         require(source.width > 0 && source.height > 0) { "Bitmap dimensions must be greater than zero" }
-        val started = SystemClock.uptimeMillis()
-        getOrComputeImageEmbedding(source, photoSha256)
-        Log.i(TAG, "SLIMSAM_PREWARM_END duration_ms=${SystemClock.uptimeMillis() - started} " +
+        val started = SystemClock.elapsedRealtimeNanos()
+        getOrComputeImageEmbedding(source, photoSha256, identity)
+        val ended = SystemClock.elapsedRealtimeNanos()
+        recordTiming(identity, "PHOTO_EMBEDDING", "VISION_EMBEDDING_READY", started, ended, "READY")
+        Log.i(TAG, "SLIMSAM_PREWARM_END duration_ms=${(ended - started) / 1_000_000} " +
             "photoSha256=$photoSha256 source=${source.width}x${source.height}")
     }
 
     @Synchronized
     private fun getVisionSession(): OrtSession {
         visionSession?.let { Log.i(TAG, "SLIMSAM_MODEL_REUSE model=vision"); return it }
-        val started = SystemClock.uptimeMillis()
+        val started = SystemClock.elapsedRealtimeNanos()
         Log.i(TAG, "SLIMSAM_MODEL_LOAD_START model=vision")
-        val bytes = readAssetBytes(VISION_ENCODER_MODEL)
-        visionModelSha256 = sha256(bytes)
-        return environment.createSession(bytes, sessionOptions).also {
-            visionSession = it
-            Log.i(TAG, "SLIMSAM_MODEL_LOAD_END model=vision bytes=${bytes.size} duration_ms=${SystemClock.uptimeMillis() - started}")
+        initializeOrtEnvironment()
+        verifyModelAssets()
+        val bytes = requireNotNull(verifiedVisionModelBytes)
+        return try {
+            val created = requireNotNull(environment).createSession(bytes, sessionOptions)
+            try {
+                validateVisionSession(created)
+            } catch (error: Throwable) {
+                created.close()
+                throw error
+            }
+            visionSession = created
+            verifiedVisionModelBytes = null
+            val ended = SystemClock.elapsedRealtimeNanos()
+            recordTiming(null, "VISION_SESSION_CREATE", "VISION_SESSION_CREATE_END", started, ended, "READY")
+            Log.i(TAG, "SLIMSAM_MODEL_LOAD_END model=vision bytes=${bytes.size} duration_ms=${(ended - started) / 1_000_000}")
+            created
+        } catch (error: Throwable) {
+            if (error is SlimSamModelException) throw error
+            throw SlimSamModelException("VISION_SESSION_CREATE_FAILED", "Failed to create SlimSAM Vision Session", "VISION_SESSION_CREATE", error)
         }
     }
 
     @Synchronized
     private fun getDecoderSession(): OrtSession {
         decoderSession?.let { Log.i(TAG, "SLIMSAM_MODEL_REUSE model=decoder"); return it }
-        val started = SystemClock.uptimeMillis()
+        val started = SystemClock.elapsedRealtimeNanos()
         Log.i(TAG, "SLIMSAM_MODEL_LOAD_START model=decoder")
-        val bytes = readAssetBytes(MASK_DECODER_MODEL)
-        decoderModelSha256 = sha256(bytes)
-        return environment.createSession(bytes, sessionOptions).also {
-            decoderSession = it
-            Log.i(TAG, "SLIMSAM_MODEL_LOAD_END model=decoder bytes=${bytes.size} duration_ms=${SystemClock.uptimeMillis() - started}")
+        initializeOrtEnvironment()
+        verifyModelAssets()
+        val bytes = requireNotNull(verifiedDecoderModelBytes)
+        return try {
+            val created = requireNotNull(environment).createSession(bytes, sessionOptions)
+            try {
+                validateDecoderSession(created)
+            } catch (error: Throwable) {
+                created.close()
+                throw error
+            }
+            decoderSession = created
+            verifiedDecoderModelBytes = null
+            val ended = SystemClock.elapsedRealtimeNanos()
+            recordTiming(null, "DECODER_SESSION_CREATE", "DECODER_SESSION_CREATE_END", started, ended, "READY")
+            Log.i(TAG, "SLIMSAM_MODEL_LOAD_END model=decoder bytes=${bytes.size} duration_ms=${(ended - started) / 1_000_000}")
+            created
+        } catch (error: Throwable) {
+            if (error is SlimSamModelException) throw error
+            throw SlimSamModelException("DECODER_SESSION_CREATE_FAILED", "Failed to create SlimSAM Decoder Session", "DECODER_SESSION_CREATE", error)
+        }
+    }
+
+    private fun validateVisionSession(session: OrtSession) {
+        val expectedInputs = setOf("pixel_values")
+        val expectedOutputs = setOf("image_embeddings", "image_positional_embeddings")
+        if (!session.inputNames.containsAll(expectedInputs) || !session.outputNames.containsAll(expectedOutputs)) {
+            throw SlimSamModelException("VISION_SESSION_CONTRACT_MISMATCH", "SlimSAM Vision Session input/output names do not match the frozen contract", "VISION_SESSION_VALIDATE")
+        }
+        val shape = (session.inputInfo["pixel_values"]?.info as? TensorInfo)?.shape
+        if (shape == null || !shape.contentEquals(longArrayOf(1, 3, 1024, 1024))) {
+            throw SlimSamModelException("VISION_SESSION_SHAPE_MISMATCH", "SlimSAM Vision Session input shape is ${shape?.contentToString()}", "VISION_SESSION_VALIDATE")
+        }
+    }
+
+    private fun validateDecoderSession(session: OrtSession) {
+        val expectedInputs = setOf("input_points", "input_labels", "image_embeddings", "image_positional_embeddings")
+        val expectedOutputs = setOf("iou_scores", "pred_masks")
+        if (!session.inputNames.containsAll(expectedInputs) || !session.outputNames.containsAll(expectedOutputs)) {
+            throw SlimSamModelException("DECODER_SESSION_CONTRACT_MISMATCH", "SlimSAM Decoder Session input/output names do not match the frozen contract", "DECODER_SESSION_VALIDATE")
         }
     }
 
@@ -120,9 +257,10 @@ class SlimSamSegmenter(
         attemptId: String = "",
         imageId: String = "",
         photoSha256: String = "",
+        identity: RecognitionModelIdentity? = null,
     ): FishSubjectResult =
         withContext(Dispatchers.Default) {
-            val started = System.nanoTime()
+            val started = SystemClock.elapsedRealtimeNanos()
             val origW = source.width
             val origH = source.height
             if (origW <= 0 || origH <= 0) {
@@ -149,7 +287,11 @@ class SlimSamSegmenter(
                 // 2. Ensure Vision Encoder embeddings for this photo are computed
                 val encoderStarted = SystemClock.uptimeMillis()
                 Log.i(TAG, "SLIMSAM_ENCODER_START uptime_ms=$encoderStarted")
-                val embedding = getOrComputeImageEmbedding(source, photoSha256)
+                val bboxEmbeddingWaitStartNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "BBOX_WAIT", "BBOX_EMBEDDING_WAIT_START", bboxEmbeddingWaitStartNs, bboxEmbeddingWaitStartNs, "WAITING")
+                val embedding = getOrComputeImageEmbedding(source, photoSha256, identity)
+                val bboxEmbeddingReadyNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "BBOX_WAIT", "BBOX_EMBEDDING_WAIT_END", bboxEmbeddingWaitStartNs, bboxEmbeddingReadyNs, "EMBEDDING_READY")
                 Log.i(TAG, "SLIMSAM_ENCODER_END duration_ms=${SystemClock.uptimeMillis() - encoderStarted}")
 
                 // 3. Generate prompts from detector BBOX
@@ -164,10 +306,14 @@ class SlimSamSegmenter(
                 )
 
                 // 4. Run Mask Decoder
+                val decoderStartedNs = SystemClock.elapsedRealtimeNanos()
                 val decoderStarted = SystemClock.uptimeMillis()
                 Log.i(TAG, "SLIMSAM_DECODER_START uptime_ms=$decoderStarted")
+                recordTiming(identity, "MASK_DECODER", "MASK_DECODER_START", decoderStartedNs, decoderStartedNs, "STARTED")
                 val (bestMask256, iouScore) = runMaskDecoder(embedding, points)
-                Log.i(TAG, "SLIMSAM_DECODER_END duration_ms=${SystemClock.uptimeMillis() - decoderStarted} iou=$iouScore")
+                val decoderEndedNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "MASK_DECODER", "MASK_DECODER_END", decoderStartedNs, decoderEndedNs, "PASS")
+                Log.i(TAG, "SLIMSAM_DECODER_END duration_ms=${(decoderEndedNs - decoderStartedNs) / 1_000_000} iou=$iouScore")
 
                 val gridToPhoto = Matrix().apply { setScale(4f / embedding.scale, 4f / embedding.scale) }
                 var geometry = MaskGeometryMetadata(
@@ -185,6 +331,8 @@ class SlimSamSegmenter(
                 )
 
                 // 5. Bilinearly sample 256x256 logits into the ROI mask
+                val postprocessStartedNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "MASK_POSTPROCESS", "MASK_POSTPROCESS_START", postprocessStartedNs, postprocessStartedNs, "STARTED")
                 val rawConfidence = FloatArray(expectedMaskSize)
                 val scale = embedding.scale
                 for (ry in 0 until roiH) {
@@ -206,6 +354,8 @@ class SlimSamSegmenter(
                 val quality = FishSubjectQualityGate.assess(cleanConfidence, roiW, roiH)
                 val foregroundCount = cleanConfidence.count { it >= FishSubjectQualityGate.MASK_THRESHOLD }
                 val areaRatio = foregroundCount.toFloat() / expectedMaskSize
+                val postprocessEndedNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "MASK_POSTPROCESS", "MASK_POSTPROCESS_END", postprocessStartedNs, postprocessEndedNs, quality.name)
                 Log.i(TAG, "SLIMSAM_QUALITY quality=$quality area_ratio=$areaRatio roi=${roiW}x$roiH iou=$iouScore uptime_ms=${SystemClock.uptimeMillis()}")
 
                 if (quality == FishSubjectQuality.INVALID) {
@@ -224,6 +374,8 @@ class SlimSamSegmenter(
                 }
 
                 // 8. Generate transparent PNG subject bitmap
+                val pngStartedNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "MASK_PNG_WRITE", "MASK_PNG_WRITE_START", pngStartedNs, pngStartedNs, "STARTED")
                 val roiBitmap = Bitmap.createBitmap(source, roiX1, roiY1, roiW, roiH)
                 val colors = IntArray(expectedMaskSize)
                 for (i in 0 until expectedMaskSize) {
@@ -242,14 +394,22 @@ class SlimSamSegmenter(
                     check(subjectBitmap.compress(Bitmap.CompressFormat.PNG, 100, out))
                 }
                 subjectBitmap.recycle()
+                val pngEndedNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "MASK_PNG_WRITE", "MASK_PNG_WRITE_END", pngStartedNs, pngEndedNs, "PASS")
                 // Bind this attempt to the bytes actually handed to the UI. The hash is
                 // deliberately computed after PNG encoding, rather than from logits or a
                 // Bitmap generation ID, so every downstream consumer can reject a stale mask.
+                val shaStartedNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "MASK_SHA_VERIFY", "MASK_SHA_VERIFY_START", shaStartedNs, shaStartedNs, "STARTED")
                 val maskSha256 = withContext(Dispatchers.IO) { sha256(file) }
+                val shaEndedNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "MASK_SHA_VERIFY", "MASK_SHA_VERIFY_END", shaStartedNs, shaEndedNs, "PASS")
                 geometry = geometry.copy(maskSha256 = maskSha256)
 
-                val elapsed = (System.nanoTime() - started) / 1_000_000
+                val elapsed = (SystemClock.elapsedRealtimeNanos() - started) / 1_000_000
                 Log.d(TAG, "SlimSAM segment success in ${elapsed}ms, iou=$iouScore, area=$areaRatio")
+                val completedAtNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "SLIMSAM_RESULT", "SLIMSAM_RESULT_READY", started, completedAtNs, "READY")
 
                 FishSubjectResult(
                     status = SubjectStatus.READY,
@@ -272,8 +432,11 @@ class SlimSamSegmenter(
                 throw cancelled
             } catch (error: Throwable) {
                 Log.e(TAG, "SlimSAM segmentation failure", error)
+                val failedAtNs = SystemClock.elapsedRealtimeNanos()
+                recordTiming(identity, "SLIMSAM_RESULT", "SLIMSAM_RESULT_FAILED", started, failedAtNs, "FAILED", error::class.java.simpleName)
                 failed(
-                    code = error::class.java.simpleName.ifBlank { "SLIMSAM_EXECUTION_FAILED" },
+                    code = (error as? SlimSamModelException)?.errorCode
+                        ?: error::class.java.simpleName.ifBlank { "SLIMSAM_EXECUTION_FAILED" },
                     started = started,
                     roiWidth = roiW,
                     roiHeight = roiH,
@@ -283,17 +446,32 @@ class SlimSamSegmenter(
             }
         }
 
-    private fun getOrComputeImageEmbedding(source: Bitmap, photoSha256: String): CachedVisionEmbedding {
-        val bitmapId = source.generationId
-        val existing = cachedEmbedding
-        if (existing != null && existing.bitmapId == bitmapId && existing.photoSha256 == photoSha256 &&
-            existing.width == source.width && existing.height == source.height
-        ) {
+    private fun getOrComputeImageEmbedding(
+        source: Bitmap,
+        photoSha256: String,
+        identity: RecognitionModelIdentity?,
+    ): CachedVisionEmbedding {
+        val cacheKey = SlimSamEmbeddingCacheKey.create(
+            photoSha256 = photoSha256.ifBlank { "bitmap-generation-${source.generationId}" },
+            width = source.width,
+            height = source.height,
+            modelVersion = MODEL_VERSION,
+            preprocessingVersion = PREPROCESSING_VERSION,
+        )
+        embeddingCache.activate(cacheKey)
+        val existing = embeddingCache.get(cacheKey)
+        if (existing != null) {
+            val now = SystemClock.elapsedRealtimeNanos()
+            recordTiming(identity, "EMBEDDING_CACHE", "EMBEDDING_CACHE_HIT", now, now, "HIT")
             existing.imageEmbeddings.rewind()
             existing.imagePositionalEmbeddings.rewind()
             return existing
         }
+        val cacheMissAt = SystemClock.elapsedRealtimeNanos()
+        recordTiming(identity, "EMBEDDING_CACHE", "EMBEDDING_CACHE_MISS", cacheMissAt, cacheMissAt, "MISS")
 
+        val preprocessingStartedNs = SystemClock.elapsedRealtimeNanos()
+        recordTiming(identity, "PHOTO_PREPROCESS", "PHOTO_PREPROCESS_START", preprocessingStartedNs, preprocessingStartedNs, "STARTED")
         val origW = source.width
         val origH = source.height
         val scale = 1024f / max(origW, origH)
@@ -322,8 +500,6 @@ class SlimSamSegmenter(
         val rMean = 0.485f; val rStd = 0.229f
         val gMean = 0.456f; val gStd = 0.224f
         val bMean = 0.406f; val bStd = 0.225f
-
-        val planeSize = 1024 * 1024
 
         // Channel R
         for (y in 0 until 1024) {
@@ -368,6 +544,8 @@ class SlimSamSegmenter(
             }
         }
         pixelBuffer.rewind()
+        val preprocessingEndedNs = SystemClock.elapsedRealtimeNanos()
+        recordTiming(identity, "PHOTO_PREPROCESS", "PHOTO_PREPROCESS_END", preprocessingStartedNs, preprocessingEndedNs, "PASS")
 
         val session = getVisionSession()
         val shape = longArrayOf(1, 3, 1024, 1024)
@@ -380,7 +558,9 @@ class SlimSamSegmenter(
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
 
-        OnnxTensor.createTensor(environment, pixelBuffer, shape).use { inputTensor ->
+        val encoderStartedNs = SystemClock.elapsedRealtimeNanos()
+        recordTiming(identity, "VISION_ENCODER", "VISION_ENCODER_START", encoderStartedNs, encoderStartedNs, "STARTED")
+        OnnxTensor.createTensor(requireNotNull(environment), pixelBuffer, shape).use { inputTensor ->
             session.run(mapOf("pixel_values" to inputTensor)).use { result ->
                 val embTensor = result["image_embeddings"].get() as OnnxTensor
                 val posTensor = result["image_positional_embeddings"].get() as OnnxTensor
@@ -394,9 +574,11 @@ class SlimSamSegmenter(
                 posEmbBuffer.rewind()
             }
         }
+        val encoderEndedNs = SystemClock.elapsedRealtimeNanos()
+        recordTiming(identity, "VISION_ENCODER", "VISION_ENCODER_END", encoderStartedNs, encoderEndedNs, "PASS")
 
         val cached = CachedVisionEmbedding(
-            bitmapId = bitmapId,
+            cacheKey = cacheKey,
             photoSha256 = photoSha256,
             width = origW,
             height = origH,
@@ -406,7 +588,7 @@ class SlimSamSegmenter(
             imageEmbeddings = embBuffer,
             imagePositionalEmbeddings = posEmbBuffer,
         )
-        cachedEmbedding = cached
+        check(embeddingCache.putIfActive(cacheKey, cached)) { "Stale SlimSAM embedding write rejected" }
         return cached
     }
 
@@ -481,10 +663,11 @@ class SlimSamSegmenter(
 
         val inputs = mutableMapOf<String, OnnxTensor>()
         try {
-            inputs["input_points"] = OnnxTensor.createTensor(environment, pointsBuffer, pointsShape)
-            inputs["input_labels"] = OnnxTensor.createTensor(environment, labelsBuffer, labelsShape)
-            inputs["image_embeddings"] = OnnxTensor.createTensor(environment, embedding.imageEmbeddings, embShape)
-            inputs["image_positional_embeddings"] = OnnxTensor.createTensor(environment, embedding.imagePositionalEmbeddings, embShape)
+            val ortEnvironment = requireNotNull(environment)
+            inputs["input_points"] = OnnxTensor.createTensor(ortEnvironment, pointsBuffer, pointsShape)
+            inputs["input_labels"] = OnnxTensor.createTensor(ortEnvironment, labelsBuffer, labelsShape)
+            inputs["image_embeddings"] = OnnxTensor.createTensor(ortEnvironment, embedding.imageEmbeddings, embShape)
+            inputs["image_positional_embeddings"] = OnnxTensor.createTensor(ortEnvironment, embedding.imagePositionalEmbeddings, embShape)
 
             decoder.run(inputs).use { result ->
                 val iouScoresTensor = result["iou_scores"].get() as OnnxTensor
@@ -602,6 +785,33 @@ class SlimSamSegmenter(
             ByteArrayOutputStream().use { out -> input.copyTo(out); out.toByteArray() }
         }
 
+    private fun recordTiming(
+        identity: RecognitionModelIdentity?,
+        stage: String,
+        event: String,
+        startedAtNs: Long,
+        endedAtNs: Long,
+        result: String,
+        errorCode: String = "",
+    ) {
+        eventSink(
+            SlimSamRuntimeEvent(
+                recognitionSessionId = identity?.sessionId.orEmpty(),
+                recognitionAttemptId = identity?.attemptId.orEmpty(),
+                imageId = identity?.imageId.orEmpty(),
+                photoSha256 = identity?.photoSha256.orEmpty(),
+                stageName = stage,
+                eventName = event,
+                startUptimeNs = startedAtNs,
+                endUptimeNs = endedAtNs,
+                durationMs = (endedAtNs - startedAtNs).coerceAtLeast(0L) / 1_000_000.0,
+                threadName = Thread.currentThread().name,
+                result = result,
+                errorCode = errorCode,
+            ),
+        )
+    }
+
     private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
         .digest(bytes).joinToString("") { "%02x".format(it) }
 
@@ -629,7 +839,7 @@ class SlimSamSegmenter(
         errorMessage: String? = null,
     ) = FishSubjectResult(
         status = SubjectStatus.FAILED,
-        processingMs = (System.nanoTime() - started) / 1_000_000,
+        processingMs = (SystemClock.elapsedRealtimeNanos() - started) / 1_000_000,
         roiWidth = roiWidth,
         roiHeight = roiHeight,
         maskSize = maskSize,
@@ -648,12 +858,20 @@ class SlimSamSegmenter(
         decoderSession = null
         visionModelSha256 = null
         decoderModelSha256 = null
-        cachedEmbedding = null
+        verifiedVisionModelBytes = null
+        verifiedDecoderModelBytes = null
+        embeddingCache.clear()
+        runCatching { sessionOptions.close() }
     }
 
     companion object {
         private const val TAG = "SlimSamSegmenter"
         const val VISION_ENCODER_MODEL = "slimsam/vision_encoder_quantized.onnx"
         const val MASK_DECODER_MODEL = "slimsam/prompt_encoder_mask_decoder_quantized.onnx"
+        const val VISION_ENCODER_SHA256 = "cce23c7b2e5d4f330932738fb67ba518e04b0d99ccdd1cccd22a7da4e01f2971"
+        const val DECODER_MODEL_SHA256 = "cb90b279f549d2cab7fd6e20c38522438c65d84bdcca3d2a764cff7d857fdce2"
+        const val MODEL_VERSION = "cce23c7b+cb90b279-v1"
+        const val PREPROCESSING_VERSION = "rgb1024-pad-mean-std-v1"
+        const val EMBEDDING_CACHE_BYTES = 8L * 1024L * 1024L
     }
 }

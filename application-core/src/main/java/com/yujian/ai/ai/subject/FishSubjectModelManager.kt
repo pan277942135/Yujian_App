@@ -1,51 +1,47 @@
 package com.yujian.ai.ai.subject
 
-import android.content.Context
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.StateFlow
 
 enum class SubjectModelStatus { NOT_READY, DOWNLOADING, READY, FAILED }
 
 data class SubjectModelState(
-    val status: SubjectModelStatus = SubjectModelStatus.READY,
+    val status: SubjectModelStatus = SubjectModelStatus.NOT_READY,
     val errorCode: String? = null,
     val errorMessage: String? = null,
 )
 
-/**
- * Manages SlimSAM model readiness.
- *
- * SlimSAM quantized ONNX models are embedded directly inside Android assets
- * (slimsam/vision_encoder_quantized.onnx, slimsam/prompt_encoder_mask_decoder_quantized.onnx),
- * eliminating runtime network downloads.
- */
+/** UI state adapter. READY is reported only after both ONNX Sessions pass metadata validation. */
 class FishSubjectModelManager(
-    private val context: Context,
-    @Suppress("UNUSED_PARAMETER") segmenterProvider: (() -> Any)? = null,
+    private val runtime: SlimSamRuntimeManager,
 ) : AutoCloseable {
+    val runtimeState: StateFlow<SlimSamRuntimeSnapshot> = runtime.state
 
-    suspend fun checkStatus(): SubjectModelState = withContext(Dispatchers.IO) {
-        val ready = try {
-            context.assets.open(SlimSamSegmenter.VISION_ENCODER_MODEL).close()
-            context.assets.open(SlimSamSegmenter.MASK_DECODER_MODEL).close()
-            true
-        } catch (_: Exception) {
-            false
-        }
-        if (ready) {
-            SubjectModelState(SubjectModelStatus.READY)
-        } else {
-            SubjectModelState(
-                status = SubjectModelStatus.FAILED,
-                errorCode = "MODEL_ASSET_MISSING",
-                errorMessage = "SlimSAM model assets not found in APK",
+    fun checkStatus(): SubjectModelState = runtime.state.value.toSubjectModelState()
+
+    suspend fun prepareSubjectModel(): SubjectModelState {
+        runtime.startPreload()
+        return runCatching { runtime.awaitReady() }
+            .fold(
+                onSuccess = { checkStatus() },
+                onFailure = { checkStatus() },
             )
-        }
     }
-
-    suspend fun prepareSubjectModel(): SubjectModelState = checkStatus()
 
     override fun close() {
-        // Assets are managed by Android AssetManager
+        // Asset and Session lifetimes belong to the process runtime.
     }
+}
+
+fun SlimSamRuntimeSnapshot.toSubjectModelState(): SubjectModelState = when (state) {
+    SlimSamRuntimeState.READY -> SubjectModelState(SubjectModelStatus.READY)
+    SlimSamRuntimeState.FAILED, SlimSamRuntimeState.DEGRADED -> SubjectModelState(
+        status = SubjectModelStatus.FAILED,
+        errorCode = errorCode ?: "SLIMSAM_RUNTIME_NOT_READY",
+        errorMessage = errorMessage ?: "SlimSAM Session initialization did not complete",
+    )
+    SlimSamRuntimeState.NOT_STARTED -> SubjectModelState(SubjectModelStatus.NOT_READY)
+    SlimSamRuntimeState.ASSETS_VERIFYING,
+    SlimSamRuntimeState.ORT_INITIALIZING,
+    SlimSamRuntimeState.VISION_LOADING,
+    SlimSamRuntimeState.DECODER_LOADING -> SubjectModelState(SubjectModelStatus.DOWNLOADING)
 }

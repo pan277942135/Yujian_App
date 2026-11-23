@@ -18,6 +18,7 @@ emulator_boot_pass=false
 instrument_status=-1
 instrumentation_timed_out=false
 validation_reason="NOT_RUN"
+slimsam_validation_reason="NOT_RUN"
 logcat_pid=""
 memory_sampler_pid=""
 screenrecord_pid=""
@@ -84,6 +85,12 @@ pull_private_evidence() {
     tar -xf "$cache_root/production-runtime-evidence.tar" -C "$cache_root" >> "$cache_root/production-runtime-evidence-pull.log" 2>&1
     rm -f "$cache_root/production-runtime-evidence.tar"
   fi
+  adb exec-out run-as "$app_package" tar -C cache -cf - YuJian_SlimSAM_Preload_Evidence \
+    > "$cache_root/slimsam-preload-evidence.tar" 2> "$cache_root/slimsam-preload-evidence-pull.log"
+  if [[ -s "$cache_root/slimsam-preload-evidence.tar" ]]; then
+    tar -xf "$cache_root/slimsam-preload-evidence.tar" -C "$cache_root" >> "$cache_root/slimsam-preload-evidence-pull.log" 2>&1
+    rm -f "$cache_root/slimsam-preload-evidence.tar"
+  fi
 }
 
 finish() {
@@ -123,6 +130,24 @@ finish() {
       "$evidence_dir/logcat.txt" > "$evidence_dir/model-gc-native-memory-events.txt" || true
     adb devices -l > "$evidence_dir/adb-devices-final.txt" 2>&1
     pull_private_evidence
+    local slim_evidence="$evidence_dir/business-events/YuJian_SlimSAM_Preload_Evidence"
+    mkdir -p "$slim_evidence/videos" "$slim_evidence/screenshots"
+    [[ -s "$evidence_dir/recognition-result-api36.mp4" ]] && \
+      cp "$evidence_dir/recognition-result-api36.mp4" "$slim_evidence/videos/recognition-result-api36.mp4"
+    [[ -s "$evidence_dir/screenshots/pre-smoke.png" ]] && \
+      cp "$evidence_dir/screenshots/pre-smoke.png" "$slim_evidence/screenshots/pre-smoke.png"
+    [[ -s "$evidence_dir/screenshots/post-smoke.png" ]] && \
+      cp "$evidence_dir/screenshots/post-smoke.png" "$slim_evidence/screenshots/post-smoke.png"
+    [[ -s "$evidence_dir/logcat.txt" ]] && cp "$evidence_dir/logcat.txt" "$slim_evidence/logcat.txt"
+    [[ -s "$evidence_dir/instrumentation.log" ]] && cp "$evidence_dir/instrumentation.log" "$slim_evidence/instrumentation.log"
+    [[ -s "$evidence_dir/instrumentation_results.xml" ]] && cp "$evidence_dir/instrumentation_results.xml" "$slim_evidence/instrumentation_results.xml"
+    [[ -s "$evidence_dir/slimsam-preload-integrity-report.json" ]] && \
+      cp "$evidence_dir/slimsam-preload-integrity-report.json" "$slim_evidence/slimsam-preload-integrity-report.json"
+    [[ -s "$evidence_dir/business-integrity-report.json" ]] && \
+      cp "$evidence_dir/business-integrity-report.json" "$slim_evidence/business-integrity-report.json"
+    if [[ -d "$slim_evidence" ]]; then
+      find "$slim_evidence" -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > "$slim_evidence/SHA256SUMS"
+    fi
   fi
 
   python3 - "$evidence_dir/memory-analysis.json" "$evidence_dir" <<'PY'
@@ -231,7 +256,13 @@ PY
       "$evidence_dir/business-events/rr09-gold-transfer-production/Result_Navigation_Trace.json" \
       "$evidence_dir/business-events/rr09-gold-transfer-production/Result_Geometry.json" \
       "$evidence_dir/business-events/rr09-gold-transfer-production/Return_Event.json" \
-      "$evidence_dir/business-events/rr09-gold-transfer-production/Result_Handoff_Trace.json"; do
+      "$evidence_dir/business-events/rr09-gold-transfer-production/Result_Handoff_Trace.json" \
+      "$evidence_dir/business-events/YuJian_SlimSAM_Preload_Evidence/model_runtime_state.json" \
+      "$evidence_dir/business-events/YuJian_SlimSAM_Preload_Evidence/slimsam_timing.json" \
+      "$evidence_dir/business-events/YuJian_SlimSAM_Preload_Evidence/recognition_stage_timing.json" \
+      "$evidence_dir/business-events/YuJian_SlimSAM_Preload_Evidence/memory_profile.json" \
+      "$evidence_dir/business-events/YuJian_SlimSAM_Preload_Evidence/slimsam_execution_trace.csv" \
+      "$evidence_dir/instrumentation_results.xml"; do
       if [[ ! -s "$required_evidence" ]]; then
         result_classification=INFRA_BLOCKED
         failure_reason="REQUIRED_RUNTIME_EVIDENCE_MISSING:${required_evidence#"$evidence_dir"/}"
@@ -250,12 +281,12 @@ PY
   python3 - "$evidence_dir/runtime-result.json" "$source_sha" "$result_classification" \
     "$failure_reason" "$rc" "$instrument_status" "$instrumentation_timed_out" "$test_started" \
     "$instrumentation_attempted" "$adb_ready" "$emulator_boot_pass" "${BUILD_PASS:-false}" \
-    "${KVM_READY:-false}" "$validation_reason" "$apk_dir" "$screenrecord_exit_status" \
+    "${KVM_READY:-false}" "$validation_reason" "$slimsam_validation_reason" "$apk_dir" "$screenrecord_exit_status" \
     "$video_pull_status" "$pre_screenshot_pull_status" "$post_screenshot_pull_status" <<'PY'
 import hashlib, json, pathlib, sys, time
 (path, source_sha, classification, reason, exit_code, instrument_status, timed_out,
  test_started, attempted, adb_ready, emulator_boot_pass, build_pass, kvm_ready,
- validation_reason, apk_dir, screenrecord_exit_status, video_pull_status,
+ validation_reason, slimsam_validation_reason, apk_dir, screenrecord_exit_status, video_pull_status,
  pre_screenshot_pull_status, post_screenshot_pull_status) = sys.argv[1:]
 def sha256_file(name):
     p = pathlib.Path(apk_dir) / name
@@ -274,6 +305,7 @@ result = {
     'classification': classification,
     'failure_reason': reason,
     'validation_reason': validation_reason,
+    'slimsam_validation_reason': slimsam_validation_reason,
     'instrumentation_started': test_started == 'true',
     'instrumentation_attempted': attempted == 'true',
     'instrumentation_command_exit_code': int(instrument_status),
@@ -409,10 +441,40 @@ adb shell rm -f /sdcard/Download/recognition-result-api36.mp4 \
   /sdcard/Download/recognition-result-api36-post-smoke.png
 adb logcat -b all -v threadtime > "$evidence_dir/logcat-live.txt" 2>&1 &
 logcat_pid=$!
-adb shell screenrecord --time-limit 180 /sdcard/Download/recognition-result-api36.mp4 \
+adb shell screenrecord --time-limit 300 /sdcard/Download/recognition-result-api36.mp4 \
   > "$evidence_dir/screenrecord.log" 2>&1 &
 screenrecord_pid=$!
 sleep 2
+
+failure_reason="APP_STARTUP_DID_NOT_COMPLETE"
+set +e
+timeout 60s adb shell am start -W -n "$app_package/com.yujian.ai.MainActivity" \
+  > "$evidence_dir/app-startup.txt" 2>&1
+app_start_status=$?
+set -e
+if [[ "$app_start_status" -ne 0 ]] || ! grep -Fq 'Status: ok' "$evidence_dir/app-startup.txt"; then
+  result_classification="BUSINESS_LOGIC_FAILURE"
+  failure_reason="APP_STARTUP_FAILED:status=$app_start_status"
+  exit 42
+fi
+first_frame_seen=false
+for attempt in $(seq 1 30); do
+  if adb logcat -d -s SlimSamTiming:I 2>/dev/null | grep -Fq 'event=APP_FIRST_FRAME'; then
+    first_frame_seen=true
+    break
+  fi
+  sleep 1
+done
+if [[ "$first_frame_seen" != true ]]; then
+  result_classification="BUSINESS_LOGIC_FAILURE"
+  failure_reason="APP_FIRST_FRAME_EVENT_MISSING"
+  exit 43
+fi
+adb shell screencap -p /sdcard/Download/recognition-result-api36-app-first-frame.png \
+  > "$evidence_dir/app-first-frame-screencap.log" 2>&1
+adb pull /sdcard/Download/recognition-result-api36-app-first-frame.png \
+  "$evidence_dir/screenshots/app-first-frame.png" > "$evidence_dir/app-first-frame-pull.log" 2>&1
+capture_memory_snapshot after_app_first_frame
 
 (
   while true; do
@@ -425,7 +487,7 @@ memory_sampler_pid=$!
 instrumentation_attempted=true
 failure_reason="INSTRUMENTATION_DID_NOT_COMPLETE"
 set +e
-timeout 240s adb shell am instrument -w -r \
+timeout 1200s adb shell am instrument -w -r \
   -e class "$test_class#$test_method" \
   "$test_package/$runner" 2>&1 | tee "$evidence_dir/instrumentation.log"
 instrument_status=${PIPESTATUS[0]}
@@ -450,6 +512,28 @@ fi
 
 # Pull the app-private trace before applying the verdict so crashes retain partial evidence.
 pull_private_evidence
+python3 - "$evidence_dir/instrumentation.log" "$evidence_dir/instrumentation_results.xml" <<'PY'
+import pathlib, re, sys, xml.etree.ElementTree as ET
+raw_path, xml_path = map(pathlib.Path, sys.argv[1:])
+raw = raw_path.read_text(encoding='utf-8', errors='replace') if raw_path.is_file() else ''
+test_name = 'realNightCatchHandoffDrivesTheNativeResultReveal'
+final_codes = re.findall(r'^INSTRUMENTATION_CODE:\s*(-?\d+)\s*$', raw, re.M)
+failed = bool(re.search(r'FAILURES!!!|INSTRUMENTATION_RESULT: shortMsg=|INSTRUMENTATION_STATUS_CODE: -\d+', raw))
+passed = bool(final_codes and final_codes[-1] == '-1' and not failed and re.search(r'OK \(1 test\)', raw))
+root = ET.Element('testsuites')
+suite = ET.SubElement(root, 'testsuite', {
+    'name': 'com.yujian.ai.RecognitionRevealProductionRuntimeTest',
+    'tests': '1', 'failures': '0' if passed else '1', 'errors': '0',
+})
+case = ET.SubElement(suite, 'testcase', {
+    'classname': 'com.yujian.ai.RecognitionRevealProductionRuntimeTest',
+    'name': test_name,
+})
+if not passed:
+    failure = ET.SubElement(case, 'failure', {'message': 'AndroidJUnitRunner did not report a normal passing completion'})
+    failure.text = raw[-12000:]
+ET.ElementTree(root).write(xml_path, encoding='utf-8', xml_declaration=True)
+PY
 business_dir="$evidence_dir/business-events/rr09-gold-transfer-production"
 business_report="$business_dir/AUTO_SMOKE_BUSINESS_CONTRACT.json"
 validator_args=(
@@ -468,6 +552,20 @@ validation_status=$?
 set -e
 printf '%s\n' "$validation_output" | tee "$evidence_dir/business-integrity-report.json"
 validation_reason="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("reason", "VALIDATOR_OUTPUT_INVALID"))' <<< "$validation_output" 2>/dev/null || printf '%s' 'VALIDATOR_OUTPUT_INVALID')"
+
+slimsam_evidence_dir="$evidence_dir/business-events/YuJian_SlimSAM_Preload_Evidence"
+set +e
+slimsam_validation_output="$(python3 scripts/ci/validate_slimsam_preload_evidence.py --evidence-dir "$slimsam_evidence_dir" 2>&1)"
+slimsam_validation_status=$?
+set -e
+printf '%s\n' "$slimsam_validation_output" | tee "$evidence_dir/slimsam-preload-integrity-report.json"
+slimsam_validation_reason="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("reason", "VALIDATOR_OUTPUT_INVALID"))' <<< "$slimsam_validation_output" 2>/dev/null || printf '%s' 'VALIDATOR_OUTPUT_INVALID')"
+if [[ "$slimsam_validation_status" -ne 0 ]]; then
+  validation_status=1
+  if [[ "$validation_reason" == NONE ]]; then
+    validation_reason="SLIMSAM_RUNTIME_EVIDENCE_INVALID:$slimsam_validation_reason"
+  fi
+fi
 
 if grep -Eiq '(lowmemorykiller|lmkd|am_kill|am_proc_died).*(com\.yujian\.ai\.uiv2|oom|low memory)|(oom.*kill.*com\.yujian\.ai\.uiv2)' \
     "$evidence_dir/instrumentation.log" "$evidence_dir/logcat-pre-verdict.txt" "$evidence_dir/logcat-live.txt" "$evidence_dir/emulator-memory-snapshots.txt"; then

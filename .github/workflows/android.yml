@@ -310,7 +310,9 @@ jobs:
           echo "sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Validate fail-closed API36 smoke parser
-        run: python3 -m unittest discover -s scripts/ci/tests -p 'test_validate_recognition_result_api36_smoke.py' -v
+        run: |
+          python3 -m unittest discover -s scripts/ci/tests -p 'test_validate_recognition_result_api36_smoke.py' -v
+          python3 -m unittest discover -s scripts/ci/tests -p 'test_validate_slimsam_preload_evidence.py' -v
 
       - name: Set up Python image verification dependency
         uses: actions/setup-python@v5

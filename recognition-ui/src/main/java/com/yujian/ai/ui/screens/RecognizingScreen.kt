@@ -89,6 +89,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.yujian.ai.ai.FishInputAssessment
 import com.yujian.ai.recognition.ui.BuildConfig
 import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.ai.RecognitionModelIdentity
 import com.yujian.ai.ui.recognition.Stage045EnergyStreamGlOverlay
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import com.yujian.ai.ai.ProductionRecognitionResult
@@ -207,6 +208,7 @@ import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 private const val LOG_TAG = "RecognitionProcessingScene"
+typealias SlimSamTimingCallback = (identity: RecognitionModelIdentity, stage: String, event: String, startUptimeNs: Long, endUptimeNs: Long, result: String) -> Unit
 
 private fun recognitionMonotonicNowMs(): Long = SystemClock.uptimeMillis()
 
@@ -240,6 +242,7 @@ fun RecognizingScreen(
     generateSubjectWithConfidence: (suspend (SelectedImage, NormalizedFishBox, Float) -> FishSubjectResult)? = null,
     recognitionAttemptDeadline: RecognitionAttemptDeadline? = null,
     prepareSubject: (suspend (SelectedImage) -> Unit)? = null,
+    onSlimSamTiming: SlimSamTimingCallback = { _, _, _, _, _, _ -> },
     onFinishedAccepted: (ProductionRecognitionResult) -> Boolean = { true },
 ) = RecognitionProcessingScene(
     image, onBack, recognize, generateSubject, onFinished, onFailure,
@@ -258,6 +261,7 @@ fun RecognizingScreen(
     generateSubjectWithConfidence = generateSubjectWithConfidence,
     recognitionAttemptDeadline = recognitionAttemptDeadline,
     prepareSubject = prepareSubject,
+    onSlimSamTiming = onSlimSamTiming,
     onFinishedAccepted = onFinishedAccepted,
 )
 
@@ -287,6 +291,7 @@ fun RecognitionProcessingScene(
     generateSubjectWithConfidence: (suspend (SelectedImage, NormalizedFishBox, Float) -> FishSubjectResult)? = null,
     recognitionAttemptDeadline: RecognitionAttemptDeadline? = null,
     prepareSubject: (suspend (SelectedImage) -> Unit)? = null,
+    onSlimSamTiming: SlimSamTimingCallback = { _, _, _, _, _, _ -> },
     onPhotoFramePresented: ((Long) -> Unit)? = null,
     onFinishedAccepted: (ProductionRecognitionResult) -> Boolean = { true },
 ) {
@@ -307,6 +312,7 @@ fun RecognitionProcessingScene(
     }
     val phasePresentedCallback by rememberUpdatedState(onVisualPhasePresented)
     val prepareSubjectCallback = rememberUpdatedState(prepareSubject)
+    val slimSamTimingCallback = rememberUpdatedState(onSlimSamTiming)
     val photoFramePresentedCallback = rememberUpdatedState(onPhotoFramePresented)
     val fishPathSnapshotCallback = rememberUpdatedState(onFishPathSnapshot)
     val sceneKey = remember(
@@ -423,6 +429,21 @@ fun RecognitionProcessingScene(
     val currentFinishedCallback = rememberUpdatedState(onFinished)
     val currentFinishedAcceptedCallback = rememberUpdatedState(onFinishedAccepted)
     val currentSubjectGeometryCallback = rememberUpdatedState(onSubjectGeometry)
+    fun recordSlimSamTiming(stage: String, event: String, startNs: Long, endNs: Long, result: String) {
+        slimSamTimingCallback.value(
+            RecognitionModelIdentity(
+                sessionId = sceneIdentity.sessionId,
+                attemptId = sceneIdentity.attemptId,
+                imageId = sceneIdentity.imageId,
+                photoSha256 = sceneIdentity.photoSha256.orEmpty(),
+            ),
+            stage,
+            event,
+            startNs,
+            endNs,
+            result,
+        )
+    }
     suspend fun dispatchFinished(result: ProductionRecognitionResult): Boolean {
         if (delivered || deliveryInProgress) {
             Log.w(LOG_TAG, "RESULT_HANDOFF_REJECTED reason=${if (delivered) "ALREADY_DELIVERED" else "DELIVERY_IN_PROGRESS"} stage=${controller.currentStage}")
@@ -661,6 +682,7 @@ fun RecognitionProcessingScene(
         val selected = image ?: return@LaunchedEffect
         val primary = assessment?.primary ?: return@LaunchedEffect
         if (generateSubject == null && generateSubjectWithConfidence == null) return@LaunchedEffect
+        val slimSamUiStartedNs = SystemClock.elapsedRealtimeNanos()
         subjectBitmap = null; subjectBox = null; contour = emptyList(); trustedSubjectMask = false
         maskFileGenerated = false
         maskFileExists = false
@@ -760,12 +782,17 @@ fun RecognitionProcessingScene(
             logFocusDiagnostic(subjectResult, contour.size, null, false, false)
             return@LaunchedEffect
         }
+        val maskDecodeStartedNs = SystemClock.elapsedRealtimeNanos()
+        recordSlimSamTiming("MASK_PNG_DECODE", "MASK_PNG_DECODE_START", maskDecodeStartedNs, maskDecodeStartedNs, "STARTED")
         val loaded = withContext(Dispatchers.IO) {
             BitmapFactory.decodeFile(
                 result.bitmapPath,
                 BitmapFactory.Options().apply { inScaled = false },
             )
         }
+        val maskDecodeEndedNs = SystemClock.elapsedRealtimeNanos()
+        recordSlimSamTiming("MASK_PNG_DECODE", "MASK_PNG_DECODE_END", maskDecodeStartedNs, maskDecodeEndedNs,
+            if (loaded == null) "FAILED" else "PASS")
         if (loaded == null) {
             maskBitmapDecodeStatus = "MASK_BITMAP_DECODE_FAILED"
             maskRuntimeRejectReason = "MASK_BITMAP_DECODE_FAILED"
@@ -787,9 +814,14 @@ fun RecognitionProcessingScene(
             currentCoroutineContext().ensureActive()
             val metadata = result.geometry
             maskBitmapDecodeStatus = "DECODED"
+            val maskShaStartedNs = SystemClock.elapsedRealtimeNanos()
+            recordSlimSamTiming("MASK_SHA_VERIFY", "MASK_SHA_VERIFY_START", maskShaStartedNs, maskShaStartedNs, "STARTED")
             val actualMaskSha256 = withContext(Dispatchers.IO) {
                 RecognitionMaskIntegrity.sha256File(java.io.File(requireNotNull(result.bitmapPath)))
             }
+            val maskShaEndedNs = SystemClock.elapsedRealtimeNanos()
+            recordSlimSamTiming("MASK_SHA_VERIFY", "MASK_SHA_VERIFY_END", maskShaStartedNs, maskShaEndedNs,
+                if (actualMaskSha256 == null) "FAILED" else "PASS")
             maskFileSha256 = actualMaskSha256
             val maskArtifactRecorded = if (actualMaskSha256 != null) withContext(Dispatchers.IO) {
                 recognitionEvidenceRecorder?.recordMaskArtifact(
@@ -835,7 +867,8 @@ fun RecognitionProcessingScene(
             val maskShapeValid = result.quality == FishSubjectQuality.GOOD &&
                 result.maskSize > 0 && result.maskSize == result.expectedMaskSize &&
                 maskShaValid && cropDimensionsMatch && geometryMatchesPhoto && roi != null
-            val contourStartedAtMs = recognitionMonotonicNowMs()
+            val contourStartedAtNs = SystemClock.elapsedRealtimeNanos()
+            recordSlimSamTiming("CONTOUR_EXTRACT", "CONTOUR_EXTRACT_START", contourStartedAtNs, contourStartedAtNs, "STARTED")
             val extractedContour = if (maskShapeValid) {
                 try {
                     withContext(Dispatchers.Default) {
@@ -850,10 +883,13 @@ fun RecognitionProcessingScene(
             } else {
                 emptyList()
             }
+            val contourEndedAtNs = SystemClock.elapsedRealtimeNanos()
+            recordSlimSamTiming("CONTOUR_EXTRACT", "CONTOUR_EXTRACT_END", contourStartedAtNs, contourEndedAtNs,
+                if (extractedContour.isEmpty()) "EMPTY" else "PASS")
             Log.i(LOG_TAG, "MASK_CONTOUR_EXTRACTION maskSha=${result.maskSha256} " +
                 "input=${loaded.width}x${loaded.height} attempted=$maskShapeValid " +
                 "segments=${extractedContour.size} closed=${extractedContour.lastOrNull()?.closesContour == true} " +
-                "durationMs=${recognitionMonotonicNowMs() - contourStartedAtMs}")
+                "durationMs=${(contourEndedAtNs - contourStartedAtNs) / 1_000_000}")
             currentCoroutineContext().ensureActive()
             val geometry = if (maskShapeValid && extractedContour.isNotEmpty()) RecognitionSubjectGeometrySnapshot(
                 imageId = selected.imageId,
@@ -873,6 +909,8 @@ fun RecognitionProcessingScene(
                 maskVersion = RecognitionMaskIntegrity.versionFromSha256(result.maskSha256),
                 maskSha256 = result.maskSha256,
             ) else null
+            val trustStartedNs = SystemClock.elapsedRealtimeNanos()
+            recordSlimSamTiming("MASK_TRUST_GATE", "MASK_TRUST_GATE_START", trustStartedNs, trustStartedNs, "STARTED")
             val trustState = RecognitionRevealPolicy.geometryTrust(
                 detectorBox = primary.box,
                 subject = geometry,
@@ -887,6 +925,11 @@ fun RecognitionProcessingScene(
             val isTrustedForCurrentPhoto = trustState == RecognitionGeometryTrustState.TRUSTED_MASK &&
                 !recognitionSessionId.isNullOrBlank() && !recognitionAttemptId.isNullOrBlank() &&
                 selected.imageId.isNotBlank() && selected.photoSha256.isNotBlank()
+            val trustEndedNs = SystemClock.elapsedRealtimeNanos()
+            recordSlimSamTiming("MASK_TRUST_GATE", "MASK_TRUST_GATE_END", trustStartedNs, trustEndedNs,
+                if (isTrustedForCurrentPhoto) "TRUSTED" else "REJECTED")
+            recordSlimSamTiming("TRUSTED_MASK", if (isTrustedForCurrentPhoto) "TRUSTED_MASK_READY" else "TRUSTED_MASK_FAILED",
+                trustStartedNs, trustEndedNs, if (isTrustedForCurrentPhoto) "READY" else "FAILED")
             // Use the actually presented phase as the acceptance boundary. Calling
             // controller.current() here would advance the visual state from the
             // asynchronous SlimSAM coroutine and desynchronize the shared clock.
@@ -941,6 +984,9 @@ fun RecognitionProcessingScene(
                 else -> "NONE"
             }
             maskRuntimeRejectReason = maskRejectReason
+            val slimSamUiEndedNs = SystemClock.elapsedRealtimeNanos()
+            recordSlimSamTiming("SLIMSAM_UI_RESULT", if (trustedForReveal) "SLIMSAM_UI_RESULT_READY" else "SLIMSAM_UI_RESULT_FAILED",
+                slimSamUiStartedNs, slimSamUiEndedNs, if (trustedForReveal) "READY" else maskRejectReason)
             subjectResult = if (trustedForReveal) generatedSubject else generatedSubject.copy(
                 status = SubjectStatus.FAILED, errorCode = maskRejectReason,
             )

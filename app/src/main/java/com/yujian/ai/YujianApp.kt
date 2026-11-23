@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +46,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.yujian.ai.ai.FishRecognitionPipeline
+import com.yujian.ai.ai.RecognitionModelIdentity
 import com.yujian.ai.ai.RecognitionAttemptDeadline
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectPreviewEngine
@@ -167,12 +169,14 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
     val catchRepository = remember { CatchRepository() }
     val localCatchOverlays = remember(context) { CatchLocalOverlayStore(context) }
     val guestCatchRepository = remember(guestId) { GuestCatchRepository(context) }
+    val slimSamRuntime = remember(context) { (context as YujianApplication).slimSamRuntimeManager }
+    val slimSamRuntimeState by slimSamRuntime.state.collectAsState()
     val recognitionPipeline = remember { FishRecognitionPipeline(context) }
-    val subjectPreviewEngine = remember { FishSubjectPreviewEngine(context) }
+    val subjectPreviewEngine = remember(slimSamRuntime) { FishSubjectPreviewEngine(slimSamRuntime) }
     val subjectAttemptRunner = remember(scope, subjectPreviewEngine) {
         RecognitionSubjectAttemptRunner(scope, subjectPreviewEngine)
     }
-    val subjectModelManager = remember { FishSubjectModelManager(context) }
+    val subjectModelManager = remember(slimSamRuntime) { FishSubjectModelManager(slimSamRuntime) }
     val feedbackRepository = remember { FeedbackRepository(context) }
     val inferenceRecorder = remember { InferenceRecorder(context) }
     val recognitionEvidenceRecorder = remember(context) { RecognitionSessionEvidenceRecorder(context) }
@@ -217,6 +221,9 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
         mutableStateOf(revealSessionStore.snapshot?.subjectResult ?: FishSubjectResult(SubjectStatus.IDLE))
     }
     var subjectModelState by remember { mutableStateOf(SubjectModelState()) }
+    LaunchedEffect(slimSamRuntimeState) {
+        subjectModelState = subjectModelManager.checkStatus()
+    }
     var prediction by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.prediction) }
     var inferenceAsset by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.inferenceAsset) }
     var activeRecognitionAttemptId by remember(revealSessionStore) {
@@ -483,7 +490,7 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
             .getOrDefault(false)
     }
 
-    DisposableEffect(Unit) { onDispose { recognitionPipeline.close(); subjectPreviewEngine.close(); subjectModelManager.close() } }
+    DisposableEffect(Unit) { onDispose { recognitionPipeline.close(); subjectModelManager.close() } }
     // Inference uploads are consent-scoped. Existing queued artifacts are not
     // flushed automatically because their original-photo provenance predates
     // the current server consent check.
@@ -1152,7 +1159,27 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                 }
                             }.await()
                         },
-                        prepareSubject = { selected -> subjectPreviewEngine.prepare(selected) },
+                        prepareSubject = { selected ->
+                            subjectPreviewEngine.prepare(
+                                selected,
+                                RecognitionModelIdentity(
+                                    sessionId = recognitionSessionId.orEmpty(),
+                                    attemptId = attemptId.orEmpty(),
+                                    imageId = selected.imageId,
+                                    photoSha256 = selected.photoSha256,
+                                ),
+                            )
+                        },
+                        onSlimSamTiming = { identity, stage, event, startNs, endNs, result ->
+                            slimSamRuntime.recordPhotoStage(
+                                identity,
+                                stage = stage,
+                                event = event,
+                                startUptimeNs = startNs,
+                                endUptimeNs = endNs,
+                                result = result,
+                            )
+                        },
                         onSubjectGeometry = { resolvedSubject, geometry ->
                             val sessionId = recognitionSessionId
                             if (sessionId != null && attemptId != null &&

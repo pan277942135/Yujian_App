@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.os.Debug
+import android.content.ComponentCallbacks2
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
@@ -14,8 +16,12 @@ import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.ai.FishRecognitionPipeline
+import com.yujian.ai.ai.RecognitionModelIdentity
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectPreviewEngine
+import com.yujian.ai.ai.subject.SlimSamRuntimeEvent
+import com.yujian.ai.ai.subject.SlimSamRuntimeManager
+import com.yujian.ai.ai.subject.SlimSamSegmenter
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.knowledge.FishKnowledgeRepository
@@ -65,6 +71,10 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionFishPathSnapshotBindingSta
 import com.yujian.ai.ui.recognition.reveal.RecognitionHandoffTransactionStatus
 import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 /** Runtime proof using the registered night-catch photo, production detector/classifier and ML Kit mask. */
 @RunWith(AndroidJUnit4::class)
@@ -73,11 +83,28 @@ class RecognitionRevealProductionRuntimeTest {
     val activityRule = ActivityScenarioRule(ComponentActivity::class.java)
 
     @Test
-    fun realNightCatchHandoffDrivesTheNativeResultReveal() = runBlocking {
+    fun realNightCatchHandoffDrivesTheNativeResultReveal() = runProductionRuntimeFlow()
+
+    /** Keep the large orchestration body out of a single generated coroutine state machine. */
+    private fun runProductionRuntimeFlow() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val targetContext = instrumentation.targetContext
         val testContext = instrumentation.context
+        val slimSamRuntime = (targetContext.applicationContext as YujianApplication).slimSamRuntimeManager
+        slimSamRuntime.startPreload()
+        runBlocking { slimSamRuntime.awaitReady() }
+        val startupRuntimeState = slimSamRuntime.state.value
+        assertEquals("application startup preload must create both ONNX Sessions", com.yujian.ai.ai.subject.SlimSamRuntimeState.READY, startupRuntimeState.state)
+        assertTrue(startupRuntimeState.visionSessionReady && startupRuntimeState.decoderSessionReady)
+        assertEquals(SlimSamSegmenter.VISION_ENCODER_SHA256, startupRuntimeState.visionModelSha256)
+        assertEquals(SlimSamSegmenter.DECODER_MODEL_SHA256, startupRuntimeState.decoderModelSha256)
+        assertEquals(1, slimSamRuntime.metricsSnapshot().visionSessionCount)
+        assertEquals(1, slimSamRuntime.metricsSnapshot().decoderSessionCount)
         val evidence = File(targetContext.cacheDir, "rr09-gold-transfer-production").apply {
+            deleteRecursively()
+            mkdirs()
+        }
+        val slimSamEvidence = File(targetContext.cacheDir, "YuJian_SlimSAM_Preload_Evidence").apply {
             deleteRecursively()
             mkdirs()
         }
@@ -92,7 +119,7 @@ class RecognitionRevealProductionRuntimeTest {
             imageId = "rr09-production-night-catch-$sourceSha256",
             photoSha256 = sourceSha256,
         )
-        val subjectEngine = FishSubjectPreviewEngine(targetContext)
+        val subjectEngine = FishSubjectPreviewEngine(slimSamRuntime)
         val actualResult = AtomicReference<ProductionRecognitionResult?>()
         val actualSubject = AtomicReference<FishSubjectResult?>()
         val subjectGeometry = AtomicReference<RecognitionSubjectGeometrySnapshot?>()
@@ -115,6 +142,43 @@ class RecognitionRevealProductionRuntimeTest {
         val rr09Evidence = File(evidence, "shared-stage-reveal").apply { mkdirs() }
         val processingCaptureReady = CountDownLatch(1)
         val screenshotExecutor = Executors.newSingleThreadExecutor()
+        val pipelineStageEvents = Collections.synchronizedList(mutableListOf<JSONObject>())
+        val repeatTimingsMs = Collections.synchronizedList(mutableListOf<Double>())
+        val distinctPhotoWorkload = Collections.synchronizedList(mutableListOf<JSONObject>())
+        val cancellationEvidence = AtomicReference<JSONObject?>()
+        val memorySamples = Collections.synchronizedList(mutableListOf<JSONObject>())
+        val memorySampler = Executors.newSingleThreadScheduledExecutor()
+        fun captureMemory(label: String) {
+            val info = Debug.MemoryInfo()
+            Debug.getMemoryInfo(info)
+            val managed = Runtime.getRuntime()
+            val procStatus = runCatching { File("/proc/self/status").readLines() }.getOrDefault(emptyList())
+            fun procKb(name: String): Long? = procStatus.firstOrNull { it.startsWith("$name:") }
+                ?.substringAfter(':')?.trim()?.substringBefore(' ')?.toLongOrNull()
+            val metrics = slimSamRuntime.metricsSnapshot()
+            memorySamples += JSONObject()
+                .put("label", label)
+                .put("uptime_ns", SystemClock.elapsedRealtimeNanos())
+                .put("java_heap_used_bytes", managed.totalMemory() - managed.freeMemory())
+                .put("java_heap_max_bytes", managed.maxMemory())
+                .put("native_heap_allocated_bytes", Debug.getNativeHeapAllocatedSize())
+                .put("native_heap_size_bytes", Debug.getNativeHeapSize())
+                .put("total_pss_kb", info.totalPss)
+                .put("native_pss_kb", info.nativePss)
+                .put("dalvik_pss_kb", info.dalvikPss)
+                .put("rss_kb", procKb("VmRSS") ?: JSONObject.NULL)
+                .put("rss_peak_kb", procKb("VmHWM") ?: JSONObject.NULL)
+                .put("swap_kb", procKb("VmSwap") ?: JSONObject.NULL)
+                .put("vision_session_count", metrics.visionSessionCount)
+                .put("decoder_session_count", metrics.decoderSessionCount)
+                .put("embedding_buffer_bytes", metrics.embeddingBufferBytes)
+                .put("cached_photo_count", metrics.cachedPhotoCount)
+                .put("active_operation_count", metrics.activeOperationCount)
+        }
+        captureMemory("APP_STARTUP_PRELOAD_READY")
+        val memorySampleFuture = memorySampler.scheduleAtFixedRate({
+            runCatching { captureMemory("PERIODIC") }
+        }, 5L, 5L, TimeUnit.SECONDS)
         var failureScreenshotPath: String? = null
         var failureScreenshotError: String? = null
         val processingSamples = RecognitionSceneStage.entries
@@ -189,7 +253,9 @@ class RecognitionRevealProductionRuntimeTest {
                 stageEventComplete = stage == RecognitionSceneStage.RESIDUE_SETTLE && progress >= 1f,
             )
 
-        val catalog = runCatching { FishKnowledgeRepository().listSpecies() }.getOrDefault(emptyList())
+        val catalog = runBlocking {
+            runCatching { FishKnowledgeRepository().listSpecies() }.getOrDefault(emptyList())
+        }
         var failureReason: String? = null
         activityRule.scenario.onActivity { activity ->
             activity.setContent {
@@ -201,7 +267,23 @@ class RecognitionRevealProductionRuntimeTest {
                             recognize = { onProgress ->
                                 val pipeline = FishRecognitionPipeline(targetContext)
                                 try {
-                                    pipeline.recognize(selectedImage.bitmap, onProgress).also { result ->
+                                    pipelineStageEvents += JSONObject()
+                                        .put("phase", "PIPELINE_START")
+                                        .put("uptime_ns", SystemClock.elapsedRealtimeNanos())
+                                        .put("thread_name", Thread.currentThread().name)
+                                    pipeline.recognize(selectedImage.bitmap, { progress ->
+                                        val atNs = SystemClock.elapsedRealtimeNanos()
+                                        val phase = progress.phase.name
+                                        pipelineStageEvents += JSONObject()
+                                            .put("phase", phase)
+                                            .put("uptime_ns", atNs)
+                                            .put("thread_name", Thread.currentThread().name)
+                                        onProgress(progress)
+                                    }).also { result ->
+                                        pipelineStageEvents += JSONObject()
+                                            .put("phase", "PIPELINE_END")
+                                            .put("uptime_ns", SystemClock.elapsedRealtimeNanos())
+                                            .put("thread_name", Thread.currentThread().name)
                                         actualResult.set(result)
                                         val decision = revealSessionStore.recordClassifierResult(
                                             key = revealKey,
@@ -219,7 +301,22 @@ class RecognitionRevealProductionRuntimeTest {
                             generateSubject = { selected, box ->
                                 subjectEngine.generate(selected, box, SESSION_ID, ATTEMPT_ID).also(actualSubject::set)
                             },
-                            prepareSubject = { selected -> subjectEngine.prepare(selected) },
+                            prepareSubject = { selected ->
+                                subjectEngine.prepare(
+                                    selected,
+                                    RecognitionModelIdentity(SESSION_ID, ATTEMPT_ID, selected.imageId, selected.photoSha256),
+                                )
+                            },
+                            onSlimSamTiming = { identity, stage, event, startNs, endNs, outcome ->
+                                slimSamRuntime.recordPhotoStage(
+                                    identity,
+                                    stage,
+                                    event,
+                                    startNs,
+                                    endNs,
+                                    outcome,
+                                )
+                            },
                             onFinished = { completed ->
                                 resultState.value = completed
                                 val handoff = revealSessionStore.completeAttempt(
@@ -383,6 +480,65 @@ class RecognitionRevealProductionRuntimeTest {
             assertEquals("production mask must be ready for the trusted contour reveal", SubjectStatus.READY, maskResult.status)
             assertEquals("production mask quality must be trusted", com.yujian.ai.ai.subject.FishSubjectQuality.GOOD, maskResult.quality)
             assertTrue("production Mask geometry must map to the original PhotoSession", subjectGeometry.get()?.contour?.isNotEmpty() == true)
+            val executionEvents = slimSamRuntime.snapshotEvents()
+            val encoderStartNs = executionEvents.firstOrNull {
+                it.imageId == selectedImage.imageId && it.eventName == "VISION_ENCODER_START"
+            }?.startUptimeNs
+            val encoderEndNs = executionEvents.firstOrNull {
+                it.imageId == selectedImage.imageId && it.eventName == "VISION_ENCODER_END"
+            }?.endUptimeNs
+            fun phaseAt(name: String): Long? = synchronized(pipelineStageEvents) {
+                pipelineStageEvents.firstOrNull { it.optString("phase") == name }?.optLong("uptime_ns")
+            }
+            val detectorOverlapMs = overlapDurationMs(
+                encoderStartNs, encoderEndNs, phaseAt("DETECTING"), phaseAt("OUTLINE"),
+            )
+            val classifierOverlapMs = overlapDurationMs(
+                encoderStartNs, encoderEndNs, phaseAt("CLASSIFYING"), phaseAt("RESULT"),
+            )
+            assertTrue("Vision Encoder must overlap the production Detector interval; overlap=${detectorOverlapMs}ms", detectorOverlapMs > 0.0)
+            assertTrue("Vision Encoder must overlap the production Classifier interval; overlap=${classifierOverlapMs}ms", classifierOverlapMs > 0.0)
+            captureMemory("AFTER_REAL_VISION_AND_DECODER")
+            val encoderCountBeforeRepeat = slimSamRuntime.snapshotEvents().count {
+                it.imageId == selectedImage.imageId && it.eventName == "VISION_ENCODER_END"
+            }
+            assertEquals("one PhotoSession must execute one Vision Encoder", 1, encoderCountBeforeRepeat)
+            repeat(5) { repeatIndex ->
+                val repeatStartNs = SystemClock.elapsedRealtimeNanos()
+                runBlocking {
+                    slimSamRuntime.prepare(
+                        selectedImage,
+                        RecognitionModelIdentity(SESSION_ID, ATTEMPT_ID, selectedImage.imageId, selectedImage.photoSha256),
+                    )
+                }
+                val repeatEndNs = SystemClock.elapsedRealtimeNanos()
+                repeatTimingsMs += (repeatEndNs - repeatStartNs) / 1_000_000.0
+                assertEquals("same PhotoSession repeat ${repeatIndex + 1} must reuse Embedding", 1,
+                    slimSamRuntime.snapshotEvents().count {
+                        it.imageId == selectedImage.imageId && it.eventName == "VISION_ENCODER_END"
+                    })
+            }
+            assertEquals(5, repeatTimingsMs.size)
+            assertTrue("same-photo repeats must hit the active Embedding", slimSamRuntime.snapshotEvents().count {
+                it.imageId == selectedImage.imageId && it.eventName == "EMBEDDING_CACHE_HIT"
+            } >= 5)
+            captureMemory("AFTER_FIVE_SAME_PHOTO_CACHE_HITS")
+            slimSamRuntime.onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL)
+            assertTrue("critical trim must release inactive Embedding memory", waitUntil(5_000L) {
+                slimSamRuntime.metricsSnapshot().cachedPhotoCount == 0
+            })
+            assertEquals(1, slimSamRuntime.metricsSnapshot().visionSessionCount)
+            assertEquals(1, slimSamRuntime.metricsSnapshot().decoderSessionCount)
+            captureMemory("AFTER_CRITICAL_TRIM_EMBEDDING_RELEASE")
+            runBlocking {
+                slimSamRuntime.prepare(
+                    selectedImage,
+                    RecognitionModelIdentity(SESSION_ID, ATTEMPT_ID, selectedImage.imageId, selectedImage.photoSha256),
+                )
+            }
+            assertEquals("session reuse after cache trim", 1, slimSamRuntime.metricsSnapshot().visionSessionCount)
+            assertEquals(1, slimSamRuntime.metricsSnapshot().decoderSessionCount)
+            captureMemory("AFTER_EMBEDDING_RECREATION_SESSIONS_REUSED")
             assertTrue("production Processing screenshot was not captured", processingCaptureReady.await(15, TimeUnit.SECONDS))
             assertNull("production Processing screenshot failed: ${processingCaptureFailure.get()}", processingCaptureFailure.get())
             val processingPhotoSnapshot = requireNotNull(processingPhoto.get())
@@ -671,6 +827,18 @@ class RecognitionRevealProductionRuntimeTest {
                 pathBoundUptimeMs = requireNotNull(pathBoundUptimeMs.get()),
                 realTimeStages = synchronized(realTimeStages) { realTimeStages.toSet() },
             )
+            runConsecutiveRealPhotoWorkload(
+                targetContext = targetContext,
+                testContext = testContext,
+                runtime = slimSamRuntime,
+                reportSink = distinctPhotoWorkload,
+                captureMemory = ::captureMemory,
+            )
+            cancellationEvidence.set(runCancelledPhotoReplacement(
+                targetContext = targetContext,
+                runtime = slimSamRuntime,
+                captureMemory = ::captureMemory,
+            ))
         } catch (failure: Throwable) {
             failureReason = "${failure.javaClass.simpleName}: ${failure.message.orEmpty()}"
             throw failure
@@ -678,6 +846,9 @@ class RecognitionRevealProductionRuntimeTest {
             stageMonitorRunning.set(false)
             stageMonitorHandler.removeCallbacks(stageMonitor)
             screenshotExecutor.shutdownNow()
+            memorySampleFuture.cancel(true)
+            memorySampler.shutdownNow()
+            runCatching { captureMemory("FINAL") }
             runCatching { screenshotExecutor.awaitTermination(5L, TimeUnit.SECONDS) }
             if (failureReason != null) {
                 val failureCapture = evidence.resolve("Recognition_Runtime_Failure.png")
@@ -688,6 +859,23 @@ class RecognitionRevealProductionRuntimeTest {
             // Dispose the Compose tree before releasing the source bitmap it is drawing.
             runCatching { activityRule.scenario.close() }
             subjectEngine.close()
+            runCatching {
+                writeSlimSamEvidence(
+                    output = slimSamEvidence,
+                    resultEvidence = evidence,
+                    runtime = slimSamRuntime,
+                    sourceImageId = selectedImage.imageId,
+                    sourcePhotoSha256 = selectedImage.photoSha256,
+                    memorySamples = synchronized(memorySamples) { memorySamples.toList() },
+                    pipelineEvents = synchronized(pipelineStageEvents) { pipelineStageEvents.toList() },
+                    repeatTimingsMs = synchronized(repeatTimingsMs) { repeatTimingsMs.toList() },
+                    distinctPhotoWorkload = synchronized(distinctPhotoWorkload) { distinctPhotoWorkload.toList() },
+                    cancellationEvidence = cancellationEvidence.get(),
+                    failure = failureReason,
+                )
+            }.onFailure { error ->
+                runCatching { File(slimSamEvidence, "evidence-write-failure.txt").writeText(error.stackTraceToString()) }
+            }
             if (!bitmap.isRecycled) bitmap.recycle()
             val diagnostic = JSONObject()
                 .put("source_sha256", sourceSha256)
@@ -720,6 +908,388 @@ class RecognitionRevealProductionRuntimeTest {
                 .put("runtime_mode", "PRODUCTION_MODEL_AND_SLIMSAM_WITH_FIXED_60_SECOND_ATTEMPT_DEADLINE")
             runCatching { evidence.resolve("Runtime_Test_Diagnostic.json").writeText(diagnostic.toString(2) + "\n") }
         }
+    }
+
+    private fun overlapDurationMs(
+        firstStart: Long?,
+        firstEnd: Long?,
+        secondStart: Long?,
+        secondEnd: Long?,
+    ): Double {
+        if (firstStart == null || firstEnd == null || secondStart == null || secondEnd == null) return 0.0
+        return (minOf(firstEnd, secondEnd) - maxOf(firstStart, secondStart)).coerceAtLeast(0L) / 1_000_000.0
+    }
+
+    private fun runConsecutiveRealPhotoWorkload(
+        targetContext: android.content.Context,
+        testContext: android.content.Context,
+        runtime: SlimSamRuntimeManager,
+        reportSink: MutableList<JSONObject>,
+        captureMemory: (String) -> Unit,
+    ) = runBlocking {
+        val fixtures = listOf(
+            testContext to "recognition_real_catch_fixture.jpg",
+            targetContext to "test_catches/test_fish_01_catfish.jpg",
+            targetContext to "test_catches/test_fish_02_yellow_catfish.jpg",
+            targetContext to "test_catches/test_fish_03_mandarin_fish.jpg",
+            targetContext to "test_catches/test_fish_04_mandarin_perch.jpg",
+        )
+        val photoHashes = mutableSetOf<String>()
+        fixtures.forEachIndexed { index, (assetContext, assetName) ->
+            val bytes = assetContext.assets.open(assetName).use { it.readBytes() }
+            val photoSha = bytes.sha256()
+            assertTrue("five-photo instrumentation must use five distinct source images", photoHashes.add(photoSha))
+            val bitmap = requireNotNull(BitmapFactory.decodeByteArray(bytes, 0, bytes.size)) {
+                "could not decode sequential photo fixture $assetName"
+            }
+            val imageId = "slimsam-sequential-${index + 1}-$photoSha"
+            val attemptId = "slimsam-sequential-attempt-${index + 1}"
+            val identity = RecognitionModelIdentity(SESSION_ID, attemptId, imageId, photoSha)
+            val selected = SelectedImage(
+                filePath = assetName,
+                bitmap = bitmap,
+                source = "androidTest_sequential_fish_photo",
+                imageId = imageId,
+                photoSha256 = photoSha,
+            )
+            val pipelineDiagnostics = Collections.synchronizedList(mutableListOf<JSONObject>())
+            val startedNs = SystemClock.elapsedRealtimeNanos()
+            val pipeline = FishRecognitionPipeline(targetContext)
+            try {
+                val recognition = coroutineScope {
+                    val embedding = async(Dispatchers.Default) { runtime.prepare(selected, identity) }
+                    val modelResult = async(Dispatchers.Default) {
+                        pipeline.recognize(
+                            bitmap = bitmap,
+                            onProgress = { progress ->
+                                pipelineDiagnostics += JSONObject()
+                                    .put("event", "PIPELINE_PHASE")
+                                    .put("phase", progress.phase.name)
+                                    .put("uptime_ns", SystemClock.elapsedRealtimeNanos())
+                                    .put("thread_name", Thread.currentThread().name)
+                            },
+                            modelIdentity = identity,
+                            onDiagnostic = { event, stage, result, metadata, error ->
+                                pipelineDiagnostics += JSONObject()
+                                    .put("event", event)
+                                    .put("stage", stage)
+                                    .put("result", result)
+                                    .put("uptime_ns", SystemClock.elapsedRealtimeNanos())
+                                    .put("thread_name", Thread.currentThread().name)
+                                    .put("metadata", JSONObject(metadata))
+                                    .put("error", error?.toString() ?: JSONObject.NULL)
+                            },
+                        )
+                    }
+                    embedding.await()
+                    modelResult.await()
+                }
+                val detector = recognition.assessment.primary
+                val evidence = JSONObject()
+                    .put("sequence", index + 1)
+                    .put("asset", assetName)
+                    .put("image_id", imageId)
+                    .put("photo_sha256", photoSha)
+                    .put("width", bitmap.width)
+                    .put("height", bitmap.height)
+                    .put("recognition_status", recognition.status.name)
+                    .put("recognition_ready", recognition.ready)
+                    .put("failure_code", recognition.failureCode?.name ?: JSONObject.NULL)
+                    .put("detector_eligible", recognition.assessment.isClassifierEligible)
+                    .put("detector_box", detector?.box?.toString() ?: JSONObject.NULL)
+                    .put("species", recognition.prediction?.top1?.speciesKey ?: JSONObject.NULL)
+                    .put("recognition_duration_ms", (SystemClock.elapsedRealtimeNanos() - startedNs) / 1_000_000.0)
+                    .put("pipeline_events", org.json.JSONArray(synchronized(pipelineDiagnostics) { pipelineDiagnostics.toList() }))
+                reportSink += evidence
+                assertTrue("production Detector/Classifier did not recognize $assetName", recognition.ready)
+                val box = requireNotNull(detector?.box) { "production Detector returned no BBox for $assetName" }.normalized()
+                val mask = runtime.generate(selected, box, identity)
+                val photoEvents = runtime.snapshotEvents().filter { it.imageId == imageId && it.photoSha256 == photoSha }
+                val encoderCount = photoEvents.count { it.eventName == "VISION_ENCODER_END" }
+                val decoderCount = photoEvents.count { it.eventName == "MASK_DECODER_END" }
+                val encoderStart = photoEvents.firstOrNull { it.eventName == "VISION_ENCODER_START" }?.startUptimeNs
+                val encoderEnd = photoEvents.firstOrNull { it.eventName == "VISION_ENCODER_END" }?.endUptimeNs
+                fun diagnosticAt(eventName: String): Long? = synchronized(pipelineDiagnostics) {
+                    pipelineDiagnostics.firstOrNull { it.optString("event") == eventName }?.optLong("uptime_ns")
+                }
+                val detectorOverlapMs = overlapDurationMs(
+                    encoderStart, encoderEnd, diagnosticAt("DETECTOR_START"), diagnosticAt("DETECTOR_END"),
+                )
+                val classifierOverlapMs = overlapDurationMs(
+                    encoderStart, encoderEnd, diagnosticAt("CLASSIFIER_START"), diagnosticAt("CLASSIFIER_END"),
+                )
+                evidence
+                    .put("mask_status", mask.status.name)
+                    .put("mask_quality", mask.quality?.name ?: JSONObject.NULL)
+                    .put("vision_encoder_count", encoderCount)
+                    .put("mask_decoder_count", decoderCount)
+                    .put("encoder_detector_overlap_ms", detectorOverlapMs)
+                    .put("encoder_classifier_overlap_ms", classifierOverlapMs)
+                    .put("vision_session_count", runtime.metricsSnapshot().visionSessionCount)
+                    .put("decoder_session_count", runtime.metricsSnapshot().decoderSessionCount)
+                    .put("cached_photo_count", runtime.metricsSnapshot().cachedPhotoCount)
+                    .put("completed_uptime_ns", SystemClock.elapsedRealtimeNanos())
+                assertEquals("one actual encoder execution is expected for $assetName", 1, encoderCount)
+                assertEquals("one actual decoder execution is expected for $assetName", 1, decoderCount)
+                assertTrue("$assetName Embedding must overlap Detector", detectorOverlapMs > 0.0)
+                assertTrue("$assetName Embedding must overlap Classifier", classifierOverlapMs > 0.0)
+                assertEquals(1, runtime.metricsSnapshot().visionSessionCount)
+                assertEquals(1, runtime.metricsSnapshot().decoderSessionCount)
+                assertEquals(1, runtime.metricsSnapshot().cachedPhotoCount)
+                captureMemory("AFTER_DISTINCT_PHOTO_${index + 1}")
+            } finally {
+                pipeline.close()
+                if (!bitmap.isRecycled) bitmap.recycle()
+            }
+        }
+        assertEquals("five distinct real photos must complete", 5, reportSink.size)
+    }
+
+    private fun runCancelledPhotoReplacement(
+        targetContext: android.content.Context,
+        runtime: SlimSamRuntimeManager,
+        captureMemory: (String) -> Unit,
+    ): JSONObject = runBlocking {
+        val oldAsset = "test_catches/test_fish_01_catfish.jpg"
+        val newAsset = "test_catches/test_fish_04_mandarin_perch.jpg"
+        val oldBytes = targetContext.assets.open(oldAsset).use { it.readBytes() }
+        val newBytes = targetContext.assets.open(newAsset).use { it.readBytes() }
+        val oldSha = oldBytes.sha256()
+        val newSha = newBytes.sha256()
+        val oldBitmap = requireNotNull(BitmapFactory.decodeByteArray(oldBytes, 0, oldBytes.size))
+        val newBitmap = requireNotNull(BitmapFactory.decodeByteArray(newBytes, 0, newBytes.size))
+        val oldImageId = "cancelled-photo-$oldSha"
+        val newImageId = "replacement-photo-$newSha"
+        val oldIdentity = RecognitionModelIdentity(SESSION_ID, "cancelled-photo-attempt", oldImageId, oldSha)
+        val newIdentity = RecognitionModelIdentity(SESSION_ID, "replacement-photo-attempt", newImageId, newSha)
+        val oldSelected = SelectedImage(oldAsset, oldBitmap, "androidTest_cancelled_photo", oldImageId, photoSha256 = oldSha)
+        val newSelected = SelectedImage(newAsset, newBitmap, "androidTest_replacement_photo", newImageId, photoSha256 = newSha)
+        var oldEncoderStarted = false
+        var cancellationRequested = false
+        var cancelledTaskObserved = false
+        try {
+            coroutineScope {
+                val oldTask = async(Dispatchers.Default) { runtime.prepare(oldSelected, oldIdentity) }
+                val deadline = SystemClock.elapsedRealtime() + 30_000L
+                while (SystemClock.elapsedRealtime() < deadline && !oldEncoderStarted) {
+                    oldEncoderStarted = runtime.snapshotEvents().any {
+                        it.imageId == oldImageId && it.eventName == "VISION_ENCODER_START"
+                    }
+                    if (!oldEncoderStarted && oldTask.isCompleted) break
+                    delay(5L)
+                }
+                assertTrue("cancel fixture never entered real Vision Encoder", oldEncoderStarted)
+                oldTask.cancel()
+                cancellationRequested = true
+                val replacementTask = async(Dispatchers.Default) { runtime.prepare(newSelected, newIdentity) }
+                runCatching { oldTask.await() }
+                cancelledTaskObserved = oldTask.isCancelled
+                replacementTask.await()
+                assertEquals(0, runtime.metricsSnapshot().activeOperationCount)
+                assertEquals(1, runtime.metricsSnapshot().cachedPhotoCount)
+            }
+            val replacementEvents = runtime.snapshotEvents().filter { it.imageId == newImageId && it.photoSha256 == newSha }
+            assertTrue("replacement photo did not become the active Embedding", replacementEvents.any {
+                it.eventName == "EMBEDDING_CACHE_MISS" || it.eventName == "EMBEDDING_CACHE_HIT"
+            })
+            JSONObject()
+                .put("old_photo_sha256", oldSha)
+                .put("replacement_photo_sha256", newSha)
+                .put("old_encoder_started", oldEncoderStarted)
+                .put("cancellation_requested_after_encoder_start", cancellationRequested)
+                .put("cancelled_task_observed", cancelledTaskObserved)
+                .put("replacement_embedding_ready", replacementEvents.any { it.eventName == "VISION_EMBEDDING_READY" })
+                .put("active_operation_count_after_replace", runtime.metricsSnapshot().activeOperationCount)
+                .put("cached_photo_count_after_replace", runtime.metricsSnapshot().cachedPhotoCount)
+        } finally {
+            if (!oldBitmap.isRecycled) oldBitmap.recycle()
+            if (!newBitmap.isRecycled) newBitmap.recycle()
+            captureMemory("AFTER_CANCELLATION_REPLACEMENT")
+        }
+    }
+
+    private fun writeSlimSamEvidence(
+        output: File,
+        resultEvidence: File,
+        runtime: SlimSamRuntimeManager,
+        sourceImageId: String,
+        sourcePhotoSha256: String,
+        memorySamples: List<JSONObject>,
+        pipelineEvents: List<JSONObject>,
+        repeatTimingsMs: List<Double>,
+        distinctPhotoWorkload: List<JSONObject>,
+        cancellationEvidence: JSONObject?,
+        failure: String?,
+    ) {
+        output.mkdirs()
+        val runtimeSnapshot = runtime.state.value
+        val metrics = runtime.metricsSnapshot()
+        val events = runtime.snapshotEvents()
+        fun JSONObject.longOrNull(name: String): Long? = optLong(name).takeIf { has(name) && !isNull(name) }
+        fun stageStart(name: String) = pipelineEvents.firstOrNull { it.optString("phase") == name }?.longOrNull("uptime_ns")
+        fun stageEnd(name: String) = pipelineEvents.firstOrNull { it.optString("phase") == name }?.longOrNull("uptime_ns")
+        fun overlapMs(aStart: Long?, aEnd: Long?, bStart: Long?, bEnd: Long?): Double {
+            if (aStart == null || aEnd == null || bStart == null || bEnd == null) return 0.0
+            return (minOf(aEnd, bEnd) - maxOf(aStart, bStart)).coerceAtLeast(0L) / 1_000_000.0
+        }
+        val photoEvents = events.filter { it.imageId == sourceImageId && it.photoSha256 == sourcePhotoSha256 }
+        val encoderStart = photoEvents.firstOrNull { it.eventName == "VISION_ENCODER_START" }?.startUptimeNs
+        val encoderEnd = photoEvents.firstOrNull { it.eventName == "VISION_ENCODER_END" }?.endUptimeNs
+        val detectorStart = stageStart("DETECTING")
+        val detectorEnd = stageEnd("OUTLINE")
+        val classifierStart = stageStart("CLASSIFYING")
+        val classifierEnd = stageEnd("RESULT")
+        val pipelineStarted = stageStart("PIPELINE_START")
+        val pipelineEnded = stageEnd("PIPELINE_END")
+        val eventJson = org.json.JSONArray().apply {
+            events.forEach { event ->
+                put(JSONObject()
+                    .put("recognitionSessionId", event.recognitionSessionId)
+                    .put("recognitionAttemptId", event.recognitionAttemptId)
+                    .put("imageId", event.imageId)
+                    .put("photoSha256", event.photoSha256)
+                    .put("modelVersion", event.modelVersion)
+                    .put("stageName", event.stageName)
+                    .put("eventName", event.eventName)
+                    .put("startUptimeNs", event.startUptimeNs)
+                    .put("endUptimeNs", event.endUptimeNs)
+                    .put("durationMs", event.durationMs)
+                    .put("threadName", event.threadName)
+                    .put("result", event.result)
+                    .put("errorCode", event.errorCode))
+            }
+        }
+        val stateJson = JSONObject()
+            .put("status", runtimeSnapshot.state.name)
+            .put("attempt", runtimeSnapshot.attempt)
+            .put("stage", runtimeSnapshot.stage)
+            .put("visionSessionReady", runtimeSnapshot.visionSessionReady)
+            .put("decoderSessionReady", runtimeSnapshot.decoderSessionReady)
+            .put("visionModelSha256", runtimeSnapshot.visionModelSha256)
+            .put("decoderModelSha256", runtimeSnapshot.decoderModelSha256)
+            .put("intraOpThreads", runtimeSnapshot.intraOpThreads ?: JSONObject.NULL)
+            .put("errorCode", runtimeSnapshot.errorCode ?: JSONObject.NULL)
+            .put("errorMessage", runtimeSnapshot.errorMessage ?: JSONObject.NULL)
+            .put("updatedUptimeNs", runtimeSnapshot.updatedUptimeNs)
+            .put("visionSessionCount", metrics.visionSessionCount)
+            .put("decoderSessionCount", metrics.decoderSessionCount)
+            .put("activeOperationCount", metrics.activeOperationCount)
+            .put("embeddingBufferBytes", metrics.embeddingBufferBytes)
+            .put("cachedPhotoCount", metrics.cachedPhotoCount)
+            .put("sourceImageId", sourceImageId)
+            .put("sourcePhotoSha256", sourcePhotoSha256)
+            .put("failure", failure ?: JSONObject.NULL)
+            .put("events", eventJson)
+        File(output, "model_runtime_state.json").writeText(stateJson.toString(2) + "\n")
+
+        val encoderRows = photoEvents.filter { it.stageName == "VISION_ENCODER" }
+        val decoderRows = photoEvents.filter { it.stageName == "MASK_DECODER" }
+        fun runtimeEvent(name: String) = events.firstOrNull { it.eventName == name }
+        val appCreate = runtimeEvent("APP_CREATE_START")
+        val appFirstFrame = runtimeEvent("APP_FIRST_FRAME")
+        val preloadReady = runtimeEvent("SLIMSAM_RUNTIME_READY")
+        File(output, "slimsam_timing.json").writeText(JSONObject()
+            .put("schema_version", 1)
+            .put("source_image_id", sourceImageId)
+            .put("source_photo_sha256", sourcePhotoSha256)
+            .put("startup_timing", JSONObject()
+                .put("app_create_start_uptime_ns", appCreate?.startUptimeNs ?: JSONObject.NULL)
+                .put("app_first_frame_uptime_ns", appFirstFrame?.endUptimeNs ?: JSONObject.NULL)
+                .put("app_first_frame_duration_ms", appFirstFrame?.durationMs ?: JSONObject.NULL)
+                .put("runtime_ready_uptime_ns", preloadReady?.endUptimeNs ?: JSONObject.NULL)
+                .put("preload_completed", runtimeSnapshot.state == com.yujian.ai.ai.subject.SlimSamRuntimeState.READY))
+            .put("events", org.json.JSONArray().apply {
+                photoEvents.forEach { event -> put(JSONObject()
+                    .put("stageName", event.stageName)
+                    .put("eventName", event.eventName)
+                    .put("startUptimeNs", event.startUptimeNs)
+                    .put("endUptimeNs", event.endUptimeNs)
+                    .put("durationMs", event.durationMs)
+                    .put("threadName", event.threadName)
+                    .put("result", event.result)
+                    .put("errorCode", event.errorCode)) }
+            })
+            .put("visionEncoderExecutionCount", encoderRows.count { it.eventName == "VISION_ENCODER_END" })
+            .put("decoderExecutionCount", decoderRows.count { it.eventName == "MASK_DECODER_END" })
+            .put("samePhotoCacheHitCount", photoEvents.count { it.eventName == "EMBEDDING_CACHE_HIT" })
+            .put("samePhotoRepeatTimingsMs", org.json.JSONArray(repeatTimingsMs))
+            .put("distinctPhotoCount", distinctPhotoWorkload.map { it.optString("photo_sha256") }.distinct().size)
+            .put("distinctPhotoWorkload", org.json.JSONArray(distinctPhotoWorkload))
+            .put("cancelledPhotoReplacement", cancellationEvidence ?: JSONObject.NULL)
+            .toString(2) + "\n")
+
+        val visualStages = resultEvidence.resolve("Stage_Timeline.json")
+            .takeIf { it.isFile }
+            ?.let { runCatching { JSONObject(it.readText()) }.getOrNull() }
+        val recognizerInterval = JSONObject()
+            .put("pipelineStartUptimeNs", pipelineStarted ?: JSONObject.NULL)
+            .put("pipelineEndUptimeNs", pipelineEnded ?: JSONObject.NULL)
+            .put("pipelineDurationMs", if (pipelineStarted != null && pipelineEnded != null) (pipelineEnded - pipelineStarted) / 1_000_000.0 else JSONObject.NULL)
+            .put("detectorStartUptimeNs", detectorStart ?: JSONObject.NULL)
+            .put("detectorEndUptimeNs", detectorEnd ?: JSONObject.NULL)
+            .put("detectorDurationMs", if (detectorStart != null && detectorEnd != null) (detectorEnd - detectorStart) / 1_000_000.0 else JSONObject.NULL)
+            .put("classifierStartUptimeNs", classifierStart ?: JSONObject.NULL)
+            .put("classifierEndUptimeNs", classifierEnd ?: JSONObject.NULL)
+            .put("classifierDurationMs", if (classifierStart != null && classifierEnd != null) (classifierEnd - classifierStart) / 1_000_000.0 else JSONObject.NULL)
+            .put("encoderStartUptimeNs", encoderStart ?: JSONObject.NULL)
+            .put("encoderEndUptimeNs", encoderEnd ?: JSONObject.NULL)
+            .put("encoderDetectorOverlapMs", overlapMs(encoderStart, encoderEnd, detectorStart, detectorEnd))
+            .put("encoderClassifierOverlapMs", overlapMs(encoderStart, encoderEnd, classifierStart, classifierEnd))
+            .put("fiveDistinctPhotoWorkload", org.json.JSONArray(distinctPhotoWorkload))
+            .put("visualStageTimeline", visualStages?.optJSONArray("stages") ?: org.json.JSONArray())
+            .put("pipelineEvents", org.json.JSONArray().apply {
+                pipelineEvents.forEach { put(it) }
+            })
+        File(output, "recognition_stage_timing.json").writeText(recognizerInterval.toString(2) + "\n")
+
+        val consecutiveSamples = memorySamples.filter { it.optString("label").startsWith("AFTER_DISTINCT_PHOTO_") }
+            .sortedBy { it.optString("label").substringAfterLast('_').toIntOrNull() ?: Int.MAX_VALUE }
+        fun deltaLong(key: String): Long? {
+            if (consecutiveSamples.size < 2) return null
+            val first = consecutiveSamples.first()
+            val last = consecutiveSamples.last()
+            if (!first.has(key) || first.isNull(key) || !last.has(key) || last.isNull(key)) return null
+            return last.optLong(key) - first.optLong(key)
+        }
+        File(output, "memory_profile.json").writeText(JSONObject()
+            .put("schema_version", 1)
+            .put("samples", org.json.JSONArray().apply { memorySamples.forEach { put(it) } })
+            .put("peak_total_pss_kb", memorySamples.mapNotNull { if (it.has("total_pss_kb")) it.optInt("total_pss_kb") else null }.maxOrNull() ?: JSONObject.NULL)
+            .put("peak_native_heap_allocated_bytes", memorySamples.mapNotNull { if (it.has("native_heap_allocated_bytes")) it.optLong("native_heap_allocated_bytes") else null }.maxOrNull() ?: JSONObject.NULL)
+            .put("min_rss_kb", memorySamples.mapNotNull { if (it.has("rss_kb") && !it.isNull("rss_kb")) it.optLong("rss_kb") else null }.minOrNull() ?: JSONObject.NULL)
+            .put("max_rss_kb", memorySamples.mapNotNull { if (it.has("rss_kb") && !it.isNull("rss_kb")) it.optLong("rss_kb") else null }.maxOrNull() ?: JSONObject.NULL)
+            .put("five_distinct_photo_samples", org.json.JSONArray().apply { consecutiveSamples.forEach { put(it) } })
+            .put("five_photo_growth_delta", JSONObject()
+                .put("sample_count", consecutiveSamples.size)
+                .put("total_pss_kb", deltaLong("total_pss_kb") ?: JSONObject.NULL)
+                .put("native_heap_allocated_bytes", deltaLong("native_heap_allocated_bytes") ?: JSONObject.NULL)
+                .put("rss_kb", deltaLong("rss_kb") ?: JSONObject.NULL))
+            .put("session_and_embedding_state_after_five_photos", JSONObject()
+                .put("vision_session_count", metrics.visionSessionCount)
+                .put("decoder_session_count", metrics.decoderSessionCount)
+                .put("embedding_buffer_bytes", metrics.embeddingBufferBytes)
+                .put("cached_photo_count", metrics.cachedPhotoCount))
+            .put("lmk_events", "See host-pulled logcat.txt and lowmemorykiller-events.txt")
+            .toString(2) + "\n")
+
+        val csv = buildString {
+            appendLine("recognitionSessionId,recognitionAttemptId,imageId,photoSha256,modelVersion,stageName,eventName,startUptimeNs,endUptimeNs,durationMs,threadName,result,errorCode")
+            events.forEach { event ->
+                val values = listOf(
+                    event.recognitionSessionId, event.recognitionAttemptId, event.imageId, event.photoSha256,
+                    event.modelVersion, event.stageName, event.eventName, event.startUptimeNs.toString(),
+                    event.endUptimeNs.toString(), event.durationMs.toString(), event.threadName, event.result, event.errorCode,
+                )
+                appendLine(values.joinToString(",") { "\"${it.replace("\"", "\"\"")}\"" })
+            }
+        }
+        File(output, "slimsam_execution_trace.csv").writeText(csv)
+        val screenshots = File(output, "screenshots").apply { mkdirs() }
+        listOf("Recognition_Processing_Photo.png", "Recognition_Result_Automatic_Handoff.png")
+            .map { resultEvidence.resolve(it) }
+            .filter { it.isFile }
+            .forEach { source -> source.copyTo(File(screenshots, source.name), overwrite = true) }
+        resultEvidence.resolve("Stage_Timeline.json").takeIf { it.isFile }?.copyTo(File(output, "stage_timeline_visual.json"), overwrite = true)
     }
 
     private fun waitUntil(timeoutMillis: Long, condition: () -> Boolean): Boolean {
