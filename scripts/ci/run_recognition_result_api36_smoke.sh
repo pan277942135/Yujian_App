@@ -341,20 +341,29 @@ adb shell getprop > "$evidence_dir/device-properties.txt"
 avd_home="${ANDROID_AVD_HOME:-${HOME}/.android/avd}"
 find "$avd_home" -maxdepth 3 -name config.ini -type f -print -exec cat {} \; \
   > "$evidence_dir/avd-config-and-memory.txt" 2>&1 || true
-if ! grep -Eiq '^hw\.ramSize=4096(M|MB)?$' "$evidence_dir/avd-config-and-memory.txt" ||
-   ! grep -Eiq '^hw\.heapSize=512(M|MB)?$' "$evidence_dir/avd-config-and-memory.txt"; then
-  printf 'AVD_MEMORY_CONFIG_MISMATCH expected_hw.ramSize=4096M expected_hw.heapSize=512M observed:\n'
-  grep -Ei '^(hw\.(ramSize|heapSize)|vm\.heapSize)=' \
-    "$evidence_dir/avd-config-and-memory.txt" || true
-  failure_reason="AVD_RAM_OR_VM_HEAP_CONFIGURATION_MISMATCH"
-  exit 32
-fi
+
+# Capture the booted AVD's baseline before the config gate so an infra failure
+# still carries RAM, swap, Dalvik heap and host memory evidence.
 adb shell cat /proc/meminfo > "$evidence_dir/emulator-meminfo-before.txt" 2>&1
 adb shell cat /proc/swaps > "$evidence_dir/emulator-swaps-before.txt" 2>&1
 adb shell getprop > "$evidence_dir/emulator-properties-before.txt" 2>&1
 adb shell getprop | grep -E 'dalvik.vm.(heap|growth)|ro.config.low_ram' \
   > "$evidence_dir/emulator-heap-properties.txt" 2>&1 || true
 capture_memory_snapshot before_install
+
+# android-emulator-runner writes these AVD properties directly. Normalize
+# optional units and whitespace because AVD Manager versions vary in formatting.
+avd_ram_config_mb="$(awk -F= 'tolower($1) == "hw.ramsize" { value=$2; gsub(/[[:space:]]/, "", value); sub(/[mM]([bB])?$/, "", value); result=value } END { print result }' "$evidence_dir/avd-config-and-memory.txt")"
+avd_heap_config_mb="$(awk -F= 'tolower($1) == "hw.heapsize" { value=$2; gsub(/[[:space:]]/, "", value); sub(/[mM]([bB])?$/, "", value); result=value } END { print result }' "$evidence_dir/avd-config-and-memory.txt")"
+if [[ "$avd_ram_config_mb" != "4096" || "$avd_heap_config_mb" != "512" ]]; then
+  failure_reason="AVD_RAM_OR_VM_HEAP_CONFIGURATION_MISMATCH:hw.ramSize_mb=${avd_ram_config_mb:-missing}:hw.heapSize_mb=${avd_heap_config_mb:-missing}"
+  printf '::error title=AVD memory configuration mismatch::expected hw.ramSize=4096M hw.heapSize=512M; observed hw.ramSize=%sM hw.heapSize=%sM\n' \
+    "${avd_ram_config_mb:-missing}" "${avd_heap_config_mb:-missing}"
+  printf 'AVD_MEMORY_CONFIG_MISMATCH %s\n' "$failure_reason"
+  grep -Ei '^(hw\.(ramSize|heapSize)|vm\.heapSize)=' \
+    "$evidence_dir/avd-config-and-memory.txt" || true
+  exit 32
+fi
 
 if ! adb install -r "$apk_dir/app-debug.apk" > "$evidence_dir/app-install.log" 2>&1; then
   result_classification="INFRA_BLOCKED"
