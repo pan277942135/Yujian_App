@@ -307,3 +307,12 @@
 
 - `CONTROL_PLANE_ADMISSION=PASS` on checkpoint `06e357b93107539892898bf1c11ef4a0d078db01` with code source baseline `9325be29a5c907b73fa264e7532a51384037e645`. Registry, Feature Matrix, Phase/Task, Unified Contract structural validation, Control Plane Sync, Project Master State, and Work Execution State pass. `structural_errors=0`; the single unchanged pre-migration Registry `OPEN_GAP` remains non-blocking.
 - Admission recovery is complete. Next stage: inspect the required production layers and add deterministic regression tests before each corresponding fix. No tests or product implementation ran before Admission passed.
+
+## 2026-11-23 — PR #346 V5 dual-path source and APK checkpoint
+
+- Product source commit `6102640437041159abc519b00249b7aedff0bb03` was pushed to the existing `fix/26kf-path-boundary-and-fish-gate-v1` branch. No PR was created, merged, closed, or marked ready.
+- All eight module test tasks are accounted for; available JUnit XML reports 540 tests with zero failures, errors, or skips. `:app:assembleDebugAndroidTest` and `:app:assembleDebug` both passed. The production AUTO Instrumentation was compiled but not executed in this environment.
+- Exact product-source Debug APK: 200,193,281 bytes, SHA-256 `5357ce7a0489c5d3b3abae64bf506d1eaf6e7e5810fb739f4098037f2e636aef`; packaged model trace reports the same `build_sha` as source commit 6102640. The APK Pair was built in one Gradle invocation.
+- Classifier, Detector, and SlimSAM encoder/decoder packaged model hashes passed verification. Local `/dev/kvm`, `adb`, and `emulator` are absent. A marked push triggered hosted validation, but the GitHub API query returned HTTP 403; KVM boot, AUTO, memory/LMK capture, and Stage10–13.5 device outcomes remain unconfirmed.
+- Fixture A ZIP is historical evidence at source SHA `3eb481c1f2ca4053fc58f87729f923fb70ef7f50`; it was not replayed against this source. Fixture B is absent and the MP4 transfer exceeds 32 MiB. No real-device replay is claimed.
+- This record accompanies a minimal branch-local dynamic-state checkpoint only. Static Registry/validator files are unchanged; the historical RecognitionResultScreen path remains a non-blocking `OPEN_GAP`.
