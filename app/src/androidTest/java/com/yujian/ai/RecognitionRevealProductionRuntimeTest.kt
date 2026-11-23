@@ -24,6 +24,9 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
 import com.yujian.ai.ui.recognition.reveal.RecognitionSubjectGeometrySnapshot
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultProductionEvidenceWriter
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadinessContract
+import com.yujian.ai.ui.recognition.reveal.RevealPlaybackStatus
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.screens.extractContour
@@ -103,6 +106,8 @@ class RecognitionRevealProductionRuntimeTest {
         val resultEntries = AtomicInteger(0)
         val navigationRequests = AtomicInteger(0)
         val navigationRequestElapsedMs = AtomicReference<Long?>()
+        val slimSamTerminalUptimeMs = AtomicReference<Long?>()
+        val pathBoundUptimeMs = AtomicReference<Long?>()
         val automaticHandoff = AtomicReference<RecognitionRevealHandoff?>()
         val handoffFailure = AtomicReference<String?>()
         val processingCaptureFailure = AtomicReference<String?>()
@@ -246,6 +251,7 @@ class RecognitionRevealProductionRuntimeTest {
                                         RecognitionFishPathSnapshotBindingState.BOUND,
                                         revealSessionStore.snapshot?.fishPathSnapshotBindingState,
                                     )
+                                    pathBoundUptimeMs.compareAndSet(null, SystemClock.uptimeMillis())
                                     markNavigationPrerequisitesReady()
                                     val prerequisitesReadyAt = requireNotNull(
                                         navigationPrerequisitesReadyElapsedRealtimeMs.get(),
@@ -282,6 +288,9 @@ class RecognitionRevealProductionRuntimeTest {
                                 subjectGeometry.set(geometry)
                                 subjectCallbackComplete.incrementAndGet()
                                 revealSessionStore.updateSubject(revealKey, subject, geometry)
+                                if (subject.status == SubjectStatus.READY && geometry?.contour?.isNotEmpty() == true) {
+                                    slimSamTerminalUptimeMs.compareAndSet(null, SystemClock.uptimeMillis())
+                                }
                                 markNavigationPrerequisitesReady()
                                 if (subject.status == SubjectStatus.READY && geometry?.contour?.isNotEmpty() == true &&
                                     processingCaptureStarted.compareAndSet(false, true)
@@ -341,6 +350,12 @@ class RecognitionRevealProductionRuntimeTest {
                                 diagnosticPlaybackController = sceneController,
                                 revealAlreadyPlayed = false,
                                 onClaimReveal = revealSessionStore::claimPlayback,
+                                onRevealFinished = { key ->
+                                    revealSessionStore.releaseAnimationGeometry(key, SystemClock.uptimeMillis())
+                                },
+                                onPlaybackStart = revealSessionStore::startPlayback,
+                                onPlaybackProgress = revealSessionStore::updatePlaybackProgress,
+                                onPlaybackInterrupted = revealSessionStore::interruptPlayback,
                                 revealGeometryResolutionObserver = geometryResolution::set,
                                 onBack = {},
                                 onRetry = {},
@@ -638,6 +653,24 @@ class RecognitionRevealProductionRuntimeTest {
             assertNotNull("production photo-source identity is required", handoff.photoSourceIdentity)
             assertTrue("Result page must display captured native pixels", evidence.resolve("Recognition_Result_Automatic_Handoff.png").length() > 1024L)
             assertEquals("stage capture manifest must cover all semantic stages", 13, stageManifest.length())
+            assertTrue("Result scene did not release geometry after its stable receipt", waitUntil(5_000L) {
+                revealSessionStore.snapshot?.resultHandoffState?.animationGeometryReleased == true
+            })
+            writeApi36BusinessContract(
+                targetContext = targetContext,
+                evidence = evidence,
+                key = revealKey,
+                store = revealSessionStore,
+                controller = sceneController,
+                maskResult = maskResult,
+                trustedGeometry = trustedGeometry,
+                geometryResolution = requireNotNull(geometryResolution.get()),
+                resultEntries = resultEntries.get(),
+                navigationRequests = navigationRequests.get(),
+                slimSamTerminalUptimeMs = requireNotNull(slimSamTerminalUptimeMs.get()),
+                pathBoundUptimeMs = requireNotNull(pathBoundUptimeMs.get()),
+                realTimeStages = synchronized(realTimeStages) { realTimeStages.toSet() },
+            )
         } catch (failure: Throwable) {
             failureReason = "${failure.javaClass.simpleName}: ${failure.message.orEmpty()}"
             throw failure
@@ -696,6 +729,214 @@ class RecognitionRevealProductionRuntimeTest {
             SystemClock.sleep(100L)
         }
         return condition()
+    }
+
+    private fun writeApi36BusinessContract(
+        targetContext: android.content.Context,
+        evidence: File,
+        key: RecognitionRevealKey,
+        store: RecognitionRevealSessionStore,
+        controller: com.yujian.ai.ui.waterlight.core.RecognitionSceneAnimationController,
+        maskResult: FishSubjectResult,
+        trustedGeometry: RecognitionSubjectGeometrySnapshot,
+        geometryResolution: RecognitionRevealGeometryResolution,
+        resultEntries: Int,
+        navigationRequests: Int,
+        slimSamTerminalUptimeMs: Long,
+        pathBoundUptimeMs: Long,
+        realTimeStages: Set<RecognitionSceneStage>,
+    ) {
+        val snapshot = requireNotNull(store.snapshot)
+        val state = snapshot.resultHandoffState
+        assertEquals(RecognitionFishPathSnapshotBindingState.BOUND, snapshot.fishPathSnapshotBindingState)
+        assertEquals(ResultHandoffSubstage.entries, state.acceptedEvents.map { it.substage })
+        assertEquals(5, state.acceptedEvents.size)
+        assertEquals(5, state.eventTrace.size)
+        assertTrue(state.eventTrace.all { it.accepted })
+        assertTrue(state.resultSceneStable)
+        assertEquals(RevealPlaybackStatus.COMPLETED, state.playbackStatus)
+        assertTrue(state.animationGeometryReleased)
+        assertTrue("production SessionStore evidence did not validate", RecognitionResultProductionEvidenceWriter.writeStableResult(
+            targetContext,
+            key,
+            store,
+            controller,
+        ))
+
+        val sourceBuildSha = BuildConfig.SOURCE_REVISION
+        val modelContract = JSONObject(targetContext.assets.open("model_release_contract.json").bufferedReader().use { it.readText() })
+        assertEquals("installed APK model contract must be built from this source", sourceBuildSha, modelContract.getString("build_sha"))
+        val path = requireNotNull(snapshot.fishPathSnapshot)
+        val navigation = state.navigationTrace
+        val stage10 = navigation.single { it.status == RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED }
+        val routeAttached = navigation.single { it.status == RecognitionHandoffTransactionStatus.RESULT_ATTACHED }
+        val completed = navigation.single { it.status == RecognitionHandoffTransactionStatus.HANDOFF_COMPLETED }
+        assertEquals(1, navigationRequests)
+        assertEquals(1, resultEntries)
+        assertEquals(1, navigation.count { it.status == RecognitionHandoffTransactionStatus.NAVIGATION_REQUESTED })
+        assertEquals(1, navigation.count { it.status == RecognitionHandoffTransactionStatus.RESULT_ATTACHED })
+
+        val nameStableEvent = state.acceptedEvents.single { it.substage == ResultHandoffSubstage.NAME_STABLE }
+        val glyphReadiness = requireNotNull(nameStableEvent.glyphReadiness)
+        val glyphDescriptor = requireNotNull(glyphReadiness.descriptor)
+        val glyphReceipt = requireNotNull(glyphReadiness.renderReceipt)
+        assertTrue("glyph must have an actual accepted Canvas draw receipt", RecognitionGlyphReadinessContract.isNameStableClaim(
+            nameStableEvent.identity,
+            nameStableEvent.resultIdentity,
+            glyphDescriptor.speciesName,
+            glyphReadiness,
+        ))
+        val resultGeometry = requireNotNull(geometryResolution.geometry)
+        val stageRows = controller.stageTimelineSnapshot()
+        assertEquals(RecognitionSceneStage.entries, stageRows.map { it.stage })
+        assertTrue(realTimeStages.containsAll(RecognitionSceneStage.entries))
+        val orbToName = stageRows.single { it.stage == RecognitionSceneStage.ORB_TO_NAME }
+        val returnEvent = controller.acceptedEnergyEventsSnapshot().single {
+            it.stage == RecognitionSceneStage.ORB_RETURN && it.feedback == EnergyFeedback.RETURN
+        }
+        assertTrue(controller.orbReturnRenderReceiptReady())
+        assertEquals(3, returnEvent.pathSegments.size)
+        assertEquals(path.returnPathId, returnEvent.pathId)
+        val stableEvent = state.acceptedEvents.single { it.substage == ResultHandoffSubstage.RESULT_SCENE_STABLE }
+
+        evidence.resolve("Stage_Timeline.json").writeText(JSONObject()
+            .put("status", "PASS")
+            .put("stages", org.json.JSONArray().apply {
+                stageRows.forEach { row -> put(JSONObject()
+                    .put("stage", row.stage.name)
+                    .put("stage_ordinal", row.stageOrdinal)
+                    .put("stage_start_timestamp_ms", row.stageStartTimestampMs)
+                    .put("stage_end_timestamp_ms", row.stageEndTimestampMs)
+                    .put("stage_duration_ms", row.stageDurationMs)
+                    .put("required_duration_ms", row.requiredDurationMs)
+                    .put("active_duration_ms", row.activeDurationMs)
+                    .put("gate_wait_duration_ms", row.gateWaitDurationMs)
+                    .put("event_sequence", row.eventSequence)) }
+            }).toString(2) + "\n")
+        evidence.resolve("Result_Navigation_Trace.json").writeText(JSONObject()
+            .put("status", "PASS")
+            .put("transitions", org.json.JSONArray().apply {
+                navigation.forEach { row -> put(JSONObject()
+                    .put("status", row.status.name)
+                    .put("monotonicTimestampMs", row.monotonicTimestampMs)
+                    .put("source", row.source)
+                    .put("eventSequence", row.eventSequence)) }
+            }).toString(2) + "\n")
+        evidence.resolve("Result_Geometry.json").writeText(JSONObject()
+            .put("status", "RESOLVED")
+            .put("failure_reason", JSONObject.NULL)
+            .put("geometry_version", nameStableEvent.geometryVersion)
+            .put("source_width_px", resultGeometry.sourceWidth)
+            .put("source_height_px", resultGeometry.sourceHeight)
+            .put("title_bounds", JSONObject()
+                .put("left", resultGeometry.titleBounds.left.toDouble())
+                .put("top", resultGeometry.titleBounds.top.toDouble())
+                .put("right", resultGeometry.titleBounds.right.toDouble())
+                .put("bottom", resultGeometry.titleBounds.bottom.toDouble()))
+            .put("return_path_id", resultGeometry.returnPathId)
+            .put("return_path_segment_count", resultGeometry.returnPathSegments.size)
+            .toString(2) + "\n")
+        evidence.resolve("Return_Event.json").writeText(JSONObject()
+            .put("accepted", true)
+            .put("feedback", returnEvent.feedback.name)
+            .put("source", returnEvent.source.name)
+            .put("target", returnEvent.target.name)
+            .put("render_canvas_receipt_ready", controller.orbReturnRenderReceiptReady())
+            .put("segment_count", returnEvent.pathSegments.size)
+            .put("path_id", returnEvent.pathId)
+            .put("event_sequence", returnEvent.eventSequence)
+            .put("timestamp_uptime_ms", returnEvent.monotonicTimestampMs)
+            .toString(2) + "\n")
+        val handoffTrace = JSONObject(requireNotNull(store.resultHandoffTraceJson(key)))
+        evidence.resolve("Result_Handoff_Trace.json").writeText(handoffTrace.toString(2) + "\n")
+
+        val facts = JSONObject()
+            .put("slimsam_terminal", JSONObject()
+                .put("status", maskResult.status.name)
+                .put("quality", maskResult.quality?.name)
+                .put("contour_segments", trustedGeometry.contour.size)
+                .put("timestamp_uptime_ms", slimSamTerminalUptimeMs))
+            .put("path_bound", JSONObject()
+                .put("binding_state", snapshot.fishPathSnapshotBindingState.name)
+                .put("path_id", path.returnPathId)
+                .put("segment_count", path.returnPathSegments.size)
+                .put("timestamp_uptime_ms", pathBoundUptimeMs))
+            .put("stage10", JSONObject()
+                .put("navigation_status", stage10.status.name)
+                .put("navigation_requests", navigationRequests)
+                .put("timestamp_uptime_ms", stage10.monotonicTimestampMs))
+            .put("result_route_attached", JSONObject()
+                .put("status", routeAttached.status.name)
+                .put("result_entries", resultEntries)
+                .put("timestamp_uptime_ms", routeAttached.monotonicTimestampMs))
+            .put("return_event", JSONObject()
+                .put("accepted", true)
+                .put("feedback", returnEvent.feedback.name)
+                .put("source", returnEvent.source.name)
+                .put("render_canvas_receipt_ready", controller.orbReturnRenderReceiptReady())
+                .put("segment_count", returnEvent.pathSegments.size)
+                .put("path_id", returnEvent.pathId)
+                .put("timestamp_uptime_ms", returnEvent.monotonicTimestampMs))
+            .put("orb_to_name", JSONObject()
+                .put("stage", orbToName.stage.name)
+                .put("timestamp_uptime_ms", orbToName.stageStartTimestampMs))
+            .put("glyph", JSONObject()
+                .put("glyph_path_ready", glyphReadiness.glyphPathReady)
+                .put("glyph_reveal_rendered", glyphReadiness.glyphRevealRendered)
+                .put("name_stable", glyphReadiness.nameStable)
+                .put("rendered_progress", glyphReceipt.renderedProgress.toDouble())
+                .put("fill_path_drawn", glyphReceipt.fillPathDrawn)
+                .put("contour_path_drawn", glyphReceipt.contourPathDrawn)
+                .put("draw_pass_sequence", glyphReceipt.drawPassSequence)
+                .put("timestamp_uptime_ms", nameStableEvent.monotonicTimestampMs))
+            .put("name_stable", JSONObject()
+                .put("accepted", true)
+                .put("event_sequence", nameStableEvent.eventSequence)
+                .put("timestamp_uptime_ms", nameStableEvent.monotonicTimestampMs))
+            .put("geometry", JSONObject()
+                .put("status", "RESOLVED")
+                .put("geometry_version", nameStableEvent.geometryVersion)
+                .put("return_path_segment_count", resultGeometry.returnPathSegments.size))
+            .put("result_scene", JSONObject()
+                .put("accepted", true)
+                .put("result_scene_stable", state.resultSceneStable)
+                .put("all_stages_visited", realTimeStages.containsAll(RecognitionSceneStage.entries))
+                .put("stage_count", stageRows.size)
+                .put("completed_handoff_substages", org.json.JSONArray().apply {
+                    ResultHandoffSubstage.entries.forEach { put(it.name) }
+                })
+                .put("navigation_status", completed.status.name)
+                .put("timestamp_uptime_ms", stableEvent.monotonicTimestampMs))
+        val chain = org.json.JSONArray().apply {
+            listOf(
+                "SLIMSAM_TERMINAL" to slimSamTerminalUptimeMs,
+                "PATH_BOUND" to pathBoundUptimeMs,
+                "STAGE10" to stage10.monotonicTimestampMs,
+                "RESULT_ROUTE_ATTACHED" to routeAttached.monotonicTimestampMs,
+                "REAL_3_SEGMENT_RETURN_ACCEPTED" to returnEvent.monotonicTimestampMs,
+                "ORB_TO_NAME" to orbToName.stageStartTimestampMs,
+                "GLYPH_RENDERED" to nameStableEvent.monotonicTimestampMs,
+                "NAME_STABLE" to nameStableEvent.monotonicTimestampMs,
+                "RESULT_SCENE_STABLE" to stableEvent.monotonicTimestampMs,
+            ).forEach { (name, timestamp) ->
+                put(JSONObject().put("name", name).put("timestamp_uptime_ms", timestamp))
+            }
+        }
+        evidence.resolve("AUTO_SMOKE_BUSINESS_CONTRACT.json").writeText(JSONObject()
+            .put("schema_version", 1)
+            .put("status", "PASS")
+            .put("test", "com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal")
+            .put("source_build_sha", sourceBuildSha)
+            .put("model_contract_build_sha", modelContract.getString("build_sha"))
+            .put("event_chain", chain)
+            .put("facts", facts)
+            .put("evidence_files", JSONObject()
+                .put("stage_timeline", "Stage_Timeline.json")
+                .put("navigation", "Result_Navigation_Trace.json")
+                .put("geometry", "Result_Geometry.json")
+                .put("return_event", "Return_Event.json")
+                .put("handoff_trace", "Result_Handoff_Trace.json"))
+            .toString(2) + "\n")
     }
 
     private fun saveScreenshot(file: File) {

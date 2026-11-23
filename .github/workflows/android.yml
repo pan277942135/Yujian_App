@@ -109,7 +109,7 @@ jobs:
     permissions:
       contents: read
     outputs:
-      classification: ${{ steps.kvm.outputs.classification }}
+      classification: ${{ steps.resources.outputs.classification }}
     steps:
       - name: Checkout the selected source
         uses: actions/checkout@v4
@@ -125,6 +125,35 @@ jobs:
         env:
           KVM_PREFLIGHT_REPORT: evidence/kvm-preflight-ubuntu-24.04.txt
         run: bash scripts/ci/check_api36_kvm.sh
+
+      - name: Capture host memory and validate 4 GiB AVD plus 1 GiB host headroom
+        id: resources
+        env:
+          KVM_CLASSIFICATION: ${{ steps.kvm.outputs.classification }}
+          KVM_REPORT: evidence/kvm-preflight-ubuntu-24.04.txt
+          REQUIRED_AVAILABLE_KB: '5242880'
+        run: |
+          set -euo pipefail
+          {
+            echo "runner_name=${RUNNER_NAME:-unknown} arch=${RUNNER_ARCH:-unknown}"
+            echo '--- /proc/meminfo ---'
+            cat /proc/meminfo
+            echo '--- /proc/swaps ---'
+            cat /proc/swaps
+            echo '--- /proc/pressure/memory ---'
+            cat /proc/pressure/memory
+            for f in /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory.events; do
+              if [[ -r "$f" ]]; then echo "--- $f ---"; cat "$f"; fi
+            done
+          } >> "$KVM_REPORT"
+          available_kb="$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)"
+          classification="$KVM_CLASSIFICATION"
+          if [[ "$KVM_CLASSIFICATION" == KVM_READY && "$available_kb" -lt "$REQUIRED_AVAILABLE_KB" ]]; then
+            classification=HOST_MEMORY_HEADROOM_INSUFFICIENT
+          fi
+          echo "host_mem_available_kb=$available_kb required_available_kb=$REQUIRED_AVAILABLE_KB" | tee -a "$KVM_REPORT"
+          echo "classification=$classification" | tee -a "$KVM_REPORT"
+          echo "classification=$classification" >> "$GITHUB_OUTPUT"
 
       - name: Upload primary runner KVM preflight evidence
         if: always()
@@ -143,7 +172,7 @@ jobs:
     permissions:
       contents: read
     outputs:
-      classification: ${{ steps.kvm.outputs.classification }}
+      classification: ${{ steps.resources.outputs.classification }}
     steps:
       - name: Checkout the selected source
         uses: actions/checkout@v4
@@ -159,6 +188,35 @@ jobs:
         env:
           KVM_PREFLIGHT_REPORT: evidence/kvm-preflight-ubuntu-22.04.txt
         run: bash scripts/ci/check_api36_kvm.sh
+
+      - name: Capture fallback host memory and validate 4 GiB AVD plus 1 GiB host headroom
+        id: resources
+        env:
+          KVM_CLASSIFICATION: ${{ steps.kvm.outputs.classification }}
+          KVM_REPORT: evidence/kvm-preflight-ubuntu-22.04.txt
+          REQUIRED_AVAILABLE_KB: '5242880'
+        run: |
+          set -euo pipefail
+          {
+            echo "runner_name=${RUNNER_NAME:-unknown} arch=${RUNNER_ARCH:-unknown}"
+            echo '--- /proc/meminfo ---'
+            cat /proc/meminfo
+            echo '--- /proc/swaps ---'
+            cat /proc/swaps
+            echo '--- /proc/pressure/memory ---'
+            cat /proc/pressure/memory
+            for f in /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory.events; do
+              if [[ -r "$f" ]]; then echo "--- $f ---"; cat "$f"; fi
+            done
+          } >> "$KVM_REPORT"
+          available_kb="$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)"
+          classification="$KVM_CLASSIFICATION"
+          if [[ "$KVM_CLASSIFICATION" == KVM_READY && "$available_kb" -lt "$REQUIRED_AVAILABLE_KB" ]]; then
+            classification=HOST_MEMORY_HEADROOM_INSUFFICIENT
+          fi
+          echo "host_mem_available_kb=$available_kb required_available_kb=$REQUIRED_AVAILABLE_KB" | tee -a "$KVM_REPORT"
+          echo "classification=$classification" | tee -a "$KVM_REPORT"
+          echo "classification=$classification" >> "$GITHUB_OUTPUT"
 
       - name: Upload fallback runner KVM preflight evidence
         if: always()
@@ -207,6 +265,8 @@ jobs:
             classification=KVM_PERMISSION_DENIED
           elif [[ "$primary" == KVM_MISSING && ( -z "$fallback" || "$fallback" == KVM_MISSING ) ]]; then
             classification=KVM_MISSING
+          elif [[ "$primary" == HOST_MEMORY_HEADROOM_INSUFFICIENT || "$fallback" == HOST_MEMORY_HEADROOM_INSUFFICIENT ]]; then
+            classification=HOST_MEMORY_HEADROOM_INSUFFICIENT
           fi
           {
             echo "classification=$classification"
@@ -225,7 +285,7 @@ jobs:
 
   build:
     needs: api36-kvm-preflight-summary
-    if: ${{ always() && !(github.event_name == 'push' && contains(github.event.head_commit.message, '[api36-kvm-preflight-only]')) && !(github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only) }}
+    if: ${{ always() && !(github.event_name == 'push' && contains(github.event.head_commit.message, '[api36-kvm-preflight-only]')) && !(github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only) && (!(github.event_name == 'push' && contains(github.event.head_commit.message, '[recognition-result-api36-smoke]')) || needs.api36-kvm-preflight-summary.outputs.classification == 'KVM_READY') }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -248,6 +308,9 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
           echo "sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Validate fail-closed API36 smoke parser
+        run: python3 -m unittest discover -s scripts/ci/tests -p 'test_validate_recognition_result_api36_smoke.py' -v
 
       - name: Set up Python image verification dependency
         uses: actions/setup-python@v5
@@ -508,6 +571,8 @@ jobs:
     env:
       SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
       ANDROID_AVD_HOME: ${{ github.workspace }}/.android-avd
+      BUILD_PASS: ${{ needs.build.result == 'success' }}
+      KVM_READY: ${{ needs.api36-kvm-preflight-summary.outputs.classification == 'KVM_READY' }}
     steps:
       - name: Checkout exact source commit
         uses: actions/checkout@v4
@@ -528,6 +593,58 @@ jobs:
           mkdir -p evidence/runtime/recognition-result-api36
           KVM_PREFLIGHT_REPORT=evidence/runtime/recognition-result-api36/kvm-preflight.txt \
             bash scripts/ci/check_api36_kvm.sh
+          echo 'KVM_READY=true' >> "$GITHUB_ENV"
+
+      - name: Capture hosted runner memory and require AVD headroom
+        env:
+          REQUIRED_AVAILABLE_KB: '5242880'
+        run: |
+          set -euo pipefail
+          evidence=evidence/runtime/recognition-result-api36
+          mkdir -p "$evidence"
+          {
+            echo "runner_name=${RUNNER_NAME:-unknown}"
+            echo "runner_arch=${RUNNER_ARCH:-unknown}"
+            echo "kernel=$(uname -a)"
+            echo '--- /proc/meminfo ---'
+            cat /proc/meminfo
+            echo '--- /proc/swaps ---'
+            cat /proc/swaps
+            echo '--- /proc/pressure/memory ---'
+            cat /proc/pressure/memory
+            echo '--- cgroup memory ---'
+            for f in /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory.events; do
+              if [[ -r "$f" ]]; then echo "--- $f ---"; cat "$f"; fi
+            done
+          } > "$evidence/host-memory-preflight.txt"
+          python3 - "$evidence/host-memory-preflight.json" "$REQUIRED_AVAILABLE_KB" <<'PY'
+          import json, pathlib, sys
+          mem = {}
+          for line in pathlib.Path('/proc/meminfo').read_text().splitlines():
+              key, _, rest = line.partition(':')
+              if key in {'MemTotal', 'MemAvailable', 'SwapTotal', 'SwapFree'}:
+                  mem[key] = int(rest.strip().split()[0])
+          required = int(sys.argv[2])
+          payload = {
+              'runner_name': __import__('os').environ.get('RUNNER_NAME', 'unknown'),
+              'runner_arch': __import__('os').environ.get('RUNNER_ARCH', 'unknown'),
+              'mem_total_kb': mem.get('MemTotal'),
+              'mem_available_kb': mem.get('MemAvailable'),
+              'swap_total_kb': mem.get('SwapTotal'),
+              'swap_free_kb': mem.get('SwapFree'),
+              'required_mem_available_kb_before_avd': required,
+              'headroom_pass': mem.get('MemAvailable', 0) >= required,
+          }
+          pathlib.Path(sys.argv[1]).write_text(json.dumps(payload, indent=2) + '\n')
+          if not payload['headroom_pass']:
+              runtime = dict(payload, source_sha=__import__('os').environ.get('SOURCE_SHA'),
+                  classification='INFRA_BLOCKED', failure_reason='HOST_MEMORY_HEADROOM_INSUFFICIENT',
+                  BUILD_PASS=True, KVM_READY=True, emulator_boot_pass=False, EMULATOR_BOOT_PASS=False, AUTO_SMOKE_PASS=False,
+                  DEVICE_QA_PENDING=True)
+              pathlib.Path('evidence/runtime/recognition-result-api36/runtime-result.json').write_text(
+                  json.dumps(runtime, indent=2) + '\n')
+              raise SystemExit('HOST_MEMORY_HEADROOM_INSUFFICIENT')
+          PY
 
       - name: Download APK pair built from the exact source commit
         uses: actions/download-artifact@v4
@@ -557,10 +674,42 @@ jobs:
           arch: x86_64
           target: google_apis
           profile: pixel_2
+          ram-size: 4096M
+          heap-size: 512M
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           emulator-boot-timeout: 600
           script: bash scripts/ci/run_recognition_result_api36_smoke.sh
+
+      - name: Record early API36 infrastructure failure when smoke did not start
+        if: always()
+        run: |
+          set -euo pipefail
+          result=evidence/runtime/recognition-result-api36/runtime-result.json
+          if [[ -s "$result" ]]; then exit 0; fi
+          kvm_report=evidence/runtime/recognition-result-api36/kvm-preflight.txt
+          kvm_classification=NOT_CONFIRMED
+          if [[ -s "$kvm_report" ]]; then
+            kvm_classification="$(sed -n 's/^classification=//p' "$kvm_report" | tail -1)"
+          fi
+          python3 - "$result" "$SOURCE_SHA" "$kvm_classification" "${{ needs.build.result }}" "${{ steps.api36_smoke.outcome }}" <<'PY'
+          import json, pathlib, sys
+          path, source_sha, kvm, build_result, smoke_result = sys.argv[1:]
+          payload = {
+              'source_sha': source_sha,
+              'api_level_expected': 36,
+              'classification': 'INFRA_BLOCKED',
+              'failure_reason': f'SMOKE_DID_NOT_START:kvm={kvm}:build={build_result}:runner={smoke_result}',
+              'BUILD_PASS': build_result == 'success',
+              'KVM_READY': kvm == 'KVM_READY',
+              'emulator_boot_pass': False,
+              'EMULATOR_BOOT_PASS': False,
+              'AUTO_SMOKE_PASS': False,
+              'DEVICE_QA_PENDING': True,
+          }
+          pathlib.Path(path).parent.mkdir(parents=True, exist_ok=True)
+          pathlib.Path(path).write_text(json.dumps(payload, indent=2) + '\n')
+          PY
 
       - name: Upload API 36 runtime evidence
         if: always()
