@@ -133,6 +133,7 @@ object RecognitionOrbReturnRenderContract {
         snapshot: RecognitionFishPathSnapshot?,
         resultGeometryVersion: Long,
         receipt: RecognitionOrbReturnRenderReceipt,
+        orbOnlySnapshot: RecognitionOrbOnlyReturnPathSnapshot? = null,
     ): Boolean {
         if (receipt.identity != identity || receipt.stage != RecognitionSceneStage.ORB_RETURN ||
             receipt.pathId.isBlank() || receipt.resultGeometryVersion != resultGeometryVersion ||
@@ -147,11 +148,15 @@ object RecognitionOrbReturnRenderContract {
                 receipt.pathSegments == snapshot.returnPathSegments &&
                 receipt.renderedSegmentCount == snapshot.returnPathSegments.size &&
                 receipt.renderedSegmentCount == 3
-        } else {
-            receipt.maskSha256 == null && receipt.maskVersion == null && receipt.pathGeometryVersion == null &&
-                receipt.pathSegments.isEmpty() && receipt.renderedSegmentCount == 1 &&
-                receipt.pathGeometry?.isValid() == true
-        }
+        } else if (orbOnlySnapshot != null) {
+            orbOnlySnapshot.isValid() && orbOnlySnapshot.sessionId == identity.sessionId &&
+                orbOnlySnapshot.attemptId == identity.attemptId && orbOnlySnapshot.imageId == identity.imageId &&
+                orbOnlySnapshot.photoSha256 == identity.photoSha256 &&
+                orbOnlySnapshot.photoContentVersion == identity.photoContentVersion &&
+                receipt.pathId == orbOnlySnapshot.pathId && receipt.maskSha256 == null && receipt.maskVersion == null &&
+                receipt.pathGeometryVersion == orbOnlySnapshot.geometryVersion && receipt.pathSegments.isEmpty() &&
+                receipt.renderedSegmentCount == 1 && receipt.pathGeometry?.isValid() == true
+        } else false
     }
 }
 

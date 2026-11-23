@@ -148,6 +148,25 @@ class WaterLightPathLedgerTest {
         assertNull(route.maskSha256)
     }
 
+    @Test fun orbOnlyProcessingSnapshotPreservesLedgerPathIdentityWithoutMaskOrPStar() {
+        val current = frame()
+        val release = release()
+        val ledger = WaterLightPathLedger()
+        assertTrue(ledger.recordRelease(current, release))
+
+        val snapshot = requireNotNull(ledger.exportOrbOnlyReturnPathSnapshot(current))
+        assertTrue(snapshot.isValid())
+        assertTrue(snapshot.matches(current))
+        assertEquals(ledger.returnRoute(current, trustedMask = false)?.id, snapshot.pathId)
+        assertEquals(release.end, snapshot.segment.start)
+        assertEquals(release.start, snapshot.segment.end)
+        assertFalse(snapshot.segment === release)
+        assertTrue(snapshot.segment.coordinateSpace == "RECOGNITION_VIEWPORT_PX")
+        assertFalse(snapshot.toString().contains("maskSha256"))
+        assertFalse(snapshot.toString().contains("pStar"))
+        assertNull(ledger.exportOrbOnlyReturnPathSnapshot(frame(attempt = "attempt-2")))
+    }
+
     @Test fun identityChangeInvalidatesEveryStoredSegment() {
         val current = frame()
         val ledger = WaterLightPathLedger()
@@ -189,6 +208,8 @@ class WaterLightPathLedgerTest {
         assertEquals(release, snapshot.orbReleasePath)
         assertEquals(originalReturnSegments, snapshot.returnPathSegments)
         assertEquals("RECOGNITION_VIEWPORT_PX", snapshot.sourceCoordinateSpace)
+        assertEquals(snapshot.calculateContentSha256(), snapshot.snapshotSha256)
+        assertTrue(snapshot.snapshotSha256.matches(Regex("(?i)^[a-f0-9]{64}$")))
     }
 
     @Test fun processingSnapshotRejectsChangedMaskPStarAttemptAndGeometry() {

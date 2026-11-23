@@ -94,6 +94,34 @@ class RecognitionFishPathSnapshotBindingTest {
     }
 
     @Test
+    fun bindingChecksPhotoContentMaskGenerationSourceDimensionsAndSubjectReadiness() {
+        assertEquals(
+            RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH,
+            evaluate(path = path.copy(photoContentVersion = 43L)),
+        )
+        assertEquals(
+            RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH,
+            evaluate(path = path.copy(maskVersion = path.maskVersion + 1L)),
+        )
+        assertEquals(
+            RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH,
+            evaluate(photo = photo.copy(contactPointMaskVersion = photo.contactPointMaskVersion + 1L)),
+        )
+        assertEquals(
+            RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH,
+            evaluate(subject = subject.copy(sourceWidthPx = subject.sourceWidthPx + 1)),
+        )
+        assertEquals(
+            RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH,
+            evaluate(photo = photo.copy(contactPointNormalizedSource = DisplayPoint(contact.x + .01f, contact.y))),
+        )
+        assertEquals(
+            RecognitionFishPathSnapshotBindOutcome.WAITING_FOR_INPUTS,
+            evaluate(subjectStatus = SubjectStatus.PROCESSING),
+        )
+    }
+
+    @Test
     fun nonPositiveGeometryCannotBindAndDuplicateCallbackIsIdempotentlyAcceptable() {
         assertEquals(
             RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH,

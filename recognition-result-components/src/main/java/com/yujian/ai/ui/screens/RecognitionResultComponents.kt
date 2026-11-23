@@ -273,11 +273,14 @@ fun RecognitionResultOpticalLayer(
         }
         val processingFishPathSnapshot = visualHandoff?.fishPathSnapshot
             ?.takeIf { it.isValid() && it.imageId == image?.imageId && it.photoSha256 == image?.photoSha256 }
+        val orbOnlyReturnPathSnapshot = visualHandoff?.orbOnlyReturnPathSnapshot
+            ?.takeIf { it.isValid() && it.imageId == image?.imageId && it.photoSha256 == image?.photoSha256 }
         val trustedMaskReveal = visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL &&
             processingFishPathSnapshot != null
         val orbOnlyReveal = visualHandoff != null &&
             visualHandoff.revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY &&
             visualHandoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY &&
+            orbOnlyReturnPathSnapshot != null &&
             revealGeometry?.orbReturnPathLocal != null
         val resultEnergyEvent = if (trustedMaskReveal || orbOnlyReveal) {
             WaterLightEnergy.at(
@@ -287,15 +290,22 @@ fun RecognitionResultOpticalLayer(
                 pathSegments = if (resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal) {
                     requireNotNull(processingFishPathSnapshot).returnPathSegments
                 } else emptyList(),
-                pathIdOverride = if (resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal) {
-                    requireNotNull(processingFishPathSnapshot).returnPathId
-                } else null,
+                pathIdOverride = when {
+                    resultSceneFrame?.stage != RecognitionSceneStage.ORB_RETURN -> null
+                    trustedMaskReveal -> requireNotNull(processingFishPathSnapshot).returnPathId
+                    orbOnlyReveal -> requireNotNull(orbOnlyReturnPathSnapshot).pathId
+                    else -> null
+                },
                 pathMaskSha256 = processingFishPathSnapshot?.maskSha256
                     ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
                 pathMaskVersion = processingFishPathSnapshot?.maskVersion
                     ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
-                pathGeometryVersion = processingFishPathSnapshot?.geometryVersion
-                    ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
+                pathGeometryVersion = when {
+                    resultSceneFrame?.stage != RecognitionSceneStage.ORB_RETURN -> null
+                    trustedMaskReveal -> processingFishPathSnapshot?.geometryVersion
+                    orbOnlyReveal -> orbOnlyReturnPathSnapshot?.geometryVersion
+                    else -> null
+                },
                 pathContactPointNormalizedSource = processingFishPathSnapshot?.pStarNormalizedSource
                     ?.takeIf { resultSceneFrame?.stage == RecognitionSceneStage.ORB_RETURN && trustedMaskReveal },
             )
@@ -303,6 +313,7 @@ fun RecognitionResultOpticalLayer(
         var returnCanvasReceiptAccepted by remember(
             resultSceneIdentity,
             processingFishPathSnapshot?.returnPathId,
+            orbOnlyReturnPathSnapshot?.pathId,
             geometryVersion,
         ) {
             mutableStateOf(diagnosticPlaybackController?.orbReturnRenderReceiptReady() == true)
@@ -310,12 +321,14 @@ fun RecognitionResultOpticalLayer(
         var returnEnergyEventAccepted by remember(
             resultSceneIdentity,
             processingFishPathSnapshot?.returnPathId,
+            orbOnlyReturnPathSnapshot?.pathId,
         ) {
             mutableStateOf(diagnosticPlaybackController?.orbReturnComplete() == true)
         }
         var returnEventWaitingLogged by remember(
             resultSceneIdentity,
             processingFishPathSnapshot?.returnPathId,
+            orbOnlyReturnPathSnapshot?.pathId,
         ) { mutableStateOf(false) }
         LaunchedEffect(
             resultFrame.sessionId,
@@ -324,6 +337,12 @@ fun RecognitionResultOpticalLayer(
             resultEnergyEvent?.feedback,
             resultEnergyEvent?.pathId,
             resultEnergyEvent?.eventSequence,
+            resultEnergyEvent?.geometryVersion,
+            resultEnergyEvent?.pathGeometryVersion,
+            resultEnergyEvent?.pathGeometry,
+            resultEnergyEvent?.pathSegments,
+            resultSceneFrame?.eventSequence,
+            resultSceneFrame?.geometryVersion,
             resultEnergyEvent?.level?.let { it >= .999f },
             returnCanvasReceiptAccepted,
             returnEnergyEventAccepted,
@@ -941,7 +960,7 @@ fun ResultHeroViewport(
         val bounds = heroBounds ?: return@LaunchedEffect
         onHeroSnapshot?.invoke(
             bounds,
-            plannedCrop?.let { NormalizedSourceRect(it.left, it.top, it.right, it.bottom) },
+            plannedCrop?.toNormalizedSourceRect(bitmap.width, bitmap.height),
             renderReady,
         )
     }

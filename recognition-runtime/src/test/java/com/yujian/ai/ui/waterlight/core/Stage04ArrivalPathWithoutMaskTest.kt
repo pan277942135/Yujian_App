@@ -7,8 +7,15 @@ import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPathGeometry
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphBounds
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathDescriptor
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
+import com.yujian.ai.ui.recognition.reveal.RecognitionOrbCoreDissolveReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultInfoRenderReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultStableRenderReceipt
+import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER
+import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -78,6 +85,273 @@ class Stage04ArrivalPathWithoutMaskTest {
             )
         })
     }
+
+    @Test fun orbOnlyLedgerPathRequiresCanvasReceiptAndCompletesStage10To135() {
+        val fixture = stage04ReadyFixture()
+        fixture.controller.updateModelJoin(
+            detectorReady = true,
+            classifierReady = true,
+            slimSamTerminal = true,
+            maskTrusted = false,
+            contourValid = false,
+            contourClosed = false,
+            currentIdentity = fixture.identity,
+        )
+        fixture.controller.onRevealDecision(
+            RecognitionRevealDecisionState.ORB_ONLY_READY,
+            nowMs = 2_075L,
+            currentIdentity = fixture.identity,
+        )
+        assertEquals(RecognitionSceneStage.ORB_RETURN, fixture.controller.currentSceneStage(2_200L))
+
+        val pathFrame = controllerFrame(fixture.controller, fixture.identity, fixture.geometryVersion, 2_200L)
+        val route = requireNotNull(fixture.ledger.exportOrbOnlyReturnPathSnapshot(pathFrame))
+        assertTrue(route.isValid())
+        assertTrue(fixture.controller.onOrbOnlyReturnPathAvailable(route, fixture.identity))
+        assertEquals("the path is the exact ledger returnRoute(trustedMask=false)",
+            route.segment, requireNotNull(fixture.ledger.returnRoute(pathFrame, trustedMask = false)).segments.single())
+
+        val resultGeometryVersion = fixture.geometryVersion + 100L
+        fixture.controller.setResultGeometryState(
+            SceneGeometryState.READY,
+            nowMs = 2_200L,
+            currentIdentity = fixture.identity,
+            geometryVersions = setOf(resultGeometryVersion),
+        )
+        val glyphDescriptor = RecognitionGlyphPathDescriptor(
+            identity = fixture.identity,
+            speciesKey = "yellow_catfish",
+            speciesName = "黄颡鱼",
+            pathId = "glyph:${fixture.identity.attemptId}:yellow_catfish",
+            geometryVersion = resultGeometryVersion,
+            expectedCharacterCount = 3,
+            builtCharacterCount = 3,
+            contourCount = 12,
+            totalPathLengthPx = 250f,
+            bounds = RecognitionGlyphBounds(0f, 0f, 90f, 36f),
+        )
+        val glyphReadiness = RecognitionGlyphReadiness(
+            speciesResultReady = true,
+            glyphPathReady = true,
+            descriptor = glyphDescriptor,
+        )
+        fixture.controller.onGlyphPathReady(glyphReadiness, fixture.identity)
+
+        val returnFrame = controllerFrame(
+            fixture.controller, fixture.identity, resultGeometryVersion, 2_550L,
+        )
+        val returnEvent = requireNotNull(
+            WaterLightEnergy.at(
+                frame = returnFrame,
+                trustedMask = false,
+                successfulRevealAllowed = true,
+                orbOnlyRevealAllowed = true,
+                pathGeometry = route.segment,
+                pathIdOverride = route.pathId,
+                pathGeometryVersion = route.geometryVersion,
+                pathSegments = emptyList(),
+            ),
+        )
+        assertEquals(EnergyFeedback.RETURN, returnEvent.feedback)
+        assertNull(returnEvent.pathMaskSha256)
+        assertNull(returnEvent.pathMaskVersion)
+        assertNull(returnEvent.pathContactPointNormalizedSource)
+        assertTrue(returnEvent.pathSegments.isEmpty())
+
+        val receipt = RecognitionOrbReturnRenderReceipt(
+            identity = fixture.identity,
+            stage = RecognitionSceneStage.ORB_RETURN,
+            pathId = route.pathId,
+            maskSha256 = null,
+            maskVersion = null,
+            pathGeometryVersion = route.geometryVersion,
+            resultGeometryVersion = returnEvent.geometryVersion,
+            pathGeometry = returnEvent.pathGeometry,
+            pathSegments = emptyList(),
+            renderedSegmentCount = 1,
+            renderedProgress = 1f,
+            renderedPathLength = 400f,
+            pathCanvasSubmitted = true,
+            drawPassSequence = 1L,
+        )
+        assertFalse("stage 10 stays blocked until the actual Result canvas receipt arrives",
+            fixture.controller.orbReturnRenderReceiptReady())
+        assertTrue(fixture.controller.onOrbReturnRenderComplete(receipt, fixture.identity))
+
+        val acceptedFrame = controllerFrame(
+            fixture.controller, fixture.identity, resultGeometryVersion, 2_550L,
+        )
+        val acceptedEvent = requireNotNull(
+            WaterLightEnergy.at(
+                frame = acceptedFrame,
+                trustedMask = false,
+                successfulRevealAllowed = true,
+                orbOnlyRevealAllowed = true,
+                pathGeometry = route.segment,
+                pathIdOverride = route.pathId,
+                pathGeometryVersion = route.geometryVersion,
+                pathSegments = emptyList(),
+            ),
+        )
+        assertTrue(fixture.controller.recordEnergyEventWithReason(
+            acceptedFrame.sceneFrame,
+            acceptedEvent,
+        ).accepted)
+        assertTrue(fixture.controller.orbReturnComplete())
+        assertEquals(RecognitionSceneStage.ORB_TO_NAME, fixture.controller.currentSceneStage(2_550L))
+
+        val orbDissolve = RecognitionOrbCoreDissolveReceipt(
+            identity = fixture.identity,
+            stage = RecognitionSceneStage.ORB_TO_NAME,
+            horizontalStretchProgress = 1f,
+            coreAlpha = 0f,
+            drawPassSequence = 2L,
+        )
+        assertTrue(fixture.controller.onOrbCoreDissolveRendered(orbDissolve))
+        assertEquals(RecognitionSceneStage.SPECIES_NAME_REVEAL, fixture.controller.currentSceneStage(3_400L))
+        val renderedGlyph = glyphReadiness.copy(
+            glyphRevealRendered = true,
+            nameStable = false,
+            renderReceipt = RecognitionGlyphDrawReceipt(
+                identity = fixture.identity,
+                speciesKey = "yellow_catfish",
+                speciesName = "黄颡鱼",
+                pathId = glyphDescriptor.pathId,
+                geometryVersion = glyphDescriptor.geometryVersion,
+                renderedProgress = 1f,
+                fillPathDrawn = true,
+                contourPathDrawn = true,
+                drawPassSequence = 3L,
+            ),
+        )
+        assertTrue(fixture.controller.onGlyphRevealRendered(renderedGlyph, fixture.identity))
+        assertTrue(fixture.controller.acceptResultHandoffEvent(
+            orbOnlyMilestone(
+                fixture.identity,
+                resultGeometryVersion,
+                ResultHandoffSubstage.NAME_STABLE,
+                sequence = 1L,
+                timestamp = 4_200L,
+                glyph = renderedGlyph.copy(nameStable = true),
+            ),
+        ).accepted)
+        assertEquals(RecognitionSceneStage.RESIDUE_SETTLE, fixture.controller.currentSceneStage(4_200L))
+        assertTrue(fixture.controller.onResidueRenderComplete(
+            RecognitionResidueRenderReceipt(
+                identity = fixture.identity,
+                stage = RecognitionSceneStage.RESIDUE_SETTLE,
+                stageProgress = 1f,
+                afterglowAlpha = 0f,
+                residueCanvasSubmitted = true,
+                drawPassSequence = 4L,
+            ),
+            fixture.identity,
+        ))
+        val settleFrame = controllerFrame(fixture.controller, fixture.identity, resultGeometryVersion, 4_650L)
+        val settleEvent = requireNotNull(
+            WaterLightEnergy.at(
+                frame = settleFrame,
+                trustedMask = false,
+                successfulRevealAllowed = true,
+                pathGeometry = route.segment,
+                orbOnlyRevealAllowed = true,
+            ),
+        )
+        assertEquals(EnergyFeedback.SETTLE, settleEvent.feedback)
+        assertTrue(fixture.controller.recordEnergyEventWithReason(settleFrame.sceneFrame, settleEvent).accepted)
+        val nameStable = renderedGlyph.copy(nameStable = true)
+        assertTrue(fixture.controller.acceptResultHandoffEvent(
+            orbOnlyMilestone(
+                fixture.identity, resultGeometryVersion, ResultHandoffSubstage.PHOTO_SETTLE,
+                2L, 4_651L, nameStable,
+            ),
+        ).accepted)
+        assertTrue(fixture.controller.acceptResultHandoffEvent(
+            orbOnlyMilestone(
+                fixture.identity, resultGeometryVersion, ResultHandoffSubstage.RESULT_SCENE_HANDOFF,
+                3L, 4_652L, nameStable,
+            ),
+        ).accepted)
+        val infoReceipt = RecognitionResultInfoRenderReceipt(
+            identity = fixture.identity,
+            resultIdentity = "yellow_catfish",
+            geometryVersion = resultGeometryVersion,
+            renderedProgress = 1f,
+            layoutWidthPx = 1080,
+            layoutHeightPx = 1920,
+            contentDrawn = true,
+            drawPassSequence = 5L,
+        )
+        assertTrue(fixture.controller.acceptResultHandoffEvent(
+            orbOnlyMilestone(
+                fixture.identity, resultGeometryVersion, ResultHandoffSubstage.RESULT_INFO_ARRIVAL,
+                4L, 4_653L, nameStable,
+                resultInfoRenderReceipt = infoReceipt,
+            ),
+        ).accepted)
+        val stableReceipt = RecognitionResultStableRenderReceipt(
+            identity = fixture.identity,
+            resultIdentity = "yellow_catfish",
+            geometryVersion = resultGeometryVersion,
+            completedPrerequisites = ResultHandoffSubstage.entries.dropLast(1).toSet(),
+            photoProgress = 1f,
+            resultInfoProgress = 1f,
+            opticalResidueComplete = true,
+            layoutWidthPx = 1080,
+            layoutHeightPx = 1920,
+            contentDrawn = true,
+            drawPassSequence = 6L,
+        )
+        assertTrue(fixture.controller.acceptResultHandoffEvent(
+            orbOnlyMilestone(
+                fixture.identity, resultGeometryVersion, ResultHandoffSubstage.RESULT_SCENE_STABLE,
+                5L, 4_654L, nameStable,
+                resultStableRenderReceipt = stableReceipt,
+            ),
+        ).accepted)
+        assertTrue(fixture.controller.sceneComplete())
+        assertEquals(ResultHandoffSubstage.entries.toSet(), fixture.controller.completedResultHandoffSubstagesSnapshot())
+        assertFalse(fixture.controller.onOrbOnlyReturnPathAvailable(
+            route.copy(attemptId = "old-attempt"), fixture.identity,
+        ))
+    }
+
+    private fun orbOnlyMilestone(
+        identity: RecognitionSceneIdentity,
+        geometryVersion: Long,
+        substage: ResultHandoffSubstage,
+        sequence: Long,
+        timestamp: Long,
+        glyph: RecognitionGlyphReadiness,
+        resultInfoRenderReceipt: RecognitionResultInfoRenderReceipt? = null,
+        resultStableRenderReceipt: RecognitionResultStableRenderReceipt? = null,
+    ) = RecognitionResultHandoffEvent(
+        identity = identity,
+        maskSha256 = null,
+        maskVersion = null,
+        geometryVersion = geometryVersion,
+        pathId = null,
+        pathGeometryVersion = null,
+        pStarNormalizedSource = null,
+        pathSegments = emptyList(),
+        stage = when (substage) {
+            ResultHandoffSubstage.NAME_STABLE -> RecognitionSceneStage.SPECIES_NAME_REVEAL
+            else -> RecognitionSceneStage.RESIDUE_SETTLE
+        },
+        substage = substage,
+        eventSequence = sequence,
+        monotonicTimestampMs = timestamp,
+        eventProducer = RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER,
+        source = "ORBITAL_RESULT_RENDERER",
+        target = "RESULT_SCENE",
+        feedback = substage.name,
+        progress = 1f,
+        renderStatus = "READY",
+        resultIdentity = "yellow_catfish",
+        glyphReadiness = glyph,
+        resultInfoRenderReceipt = resultInfoRenderReceipt,
+        resultStableRenderReceipt = resultStableRenderReceipt,
+    )
 
     @Test fun fullRevealRequiresRealMaskClosedContourAndBoundPStarThroughOrbReturn() {
         val fixture = stage04ReadyFixture()

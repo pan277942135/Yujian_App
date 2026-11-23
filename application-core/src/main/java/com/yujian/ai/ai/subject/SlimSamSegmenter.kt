@@ -3,6 +3,7 @@ package com.yujian.ai.ai.subject
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import ai.onnxruntime.NodeInfo
 import ai.onnxruntime.TensorInfo
 import android.content.Context
 import android.graphics.Bitmap
@@ -231,24 +232,41 @@ class SlimSamSegmenter(
     }
 
     private fun validateVisionSession(session: OrtSession) {
-        val expectedInputs = setOf("pixel_values")
-        val expectedOutputs = setOf("image_embeddings", "image_positional_embeddings")
-        if (!session.inputNames.containsAll(expectedInputs) || !session.outputNames.containsAll(expectedOutputs)) {
-            throw SlimSamModelException("VISION_SESSION_CONTRACT_MISMATCH", "SlimSAM Vision Session input/output names do not match the frozen contract", "VISION_SESSION_VALIDATE")
-        }
-        val shape = (session.inputInfo["pixel_values"]?.info as? TensorInfo)?.shape
-        if (shape == null || !shape.contentEquals(longArrayOf(1, 3, 1024, 1024))) {
-            throw SlimSamModelException("VISION_SESSION_SHAPE_MISMATCH", "SlimSAM Vision Session input shape is ${shape?.contentToString()}", "VISION_SESSION_VALIDATE")
-        }
+        val inputs = tensorSignatures(session.inputInfo)
+        val outputs = tensorSignatures(session.outputInfo)
+        val errorCode = SlimSamTensorContract.validateVision(session.inputNames, session.outputNames, inputs, outputs)
+            ?: return
+        throw SlimSamModelException(
+            errorCode,
+            "SlimSAM Vision Session metadata rejected: ${formatMetadata(session, inputs, outputs)}",
+            "VISION_SESSION_VALIDATE",
+        )
     }
 
     private fun validateDecoderSession(session: OrtSession) {
-        val expectedInputs = setOf("input_points", "input_labels", "image_embeddings", "image_positional_embeddings")
-        val expectedOutputs = setOf("iou_scores", "pred_masks")
-        if (!session.inputNames.containsAll(expectedInputs) || !session.outputNames.containsAll(expectedOutputs)) {
-            throw SlimSamModelException("DECODER_SESSION_CONTRACT_MISMATCH", "SlimSAM Decoder Session input/output names do not match the frozen contract", "DECODER_SESSION_VALIDATE")
-        }
+        val inputs = tensorSignatures(session.inputInfo)
+        val outputs = tensorSignatures(session.outputInfo)
+        val errorCode = SlimSamTensorContract.validateDecoder(session.inputNames, session.outputNames, inputs, outputs)
+            ?: return
+        throw SlimSamModelException(
+            errorCode,
+            "SlimSAM Decoder Session metadata rejected: ${formatMetadata(session, inputs, outputs)}",
+            "DECODER_SESSION_VALIDATE",
+        )
     }
+
+    private fun tensorSignatures(nodes: Map<String, NodeInfo>): Map<String, SlimSamTensorSignature> =
+        nodes.mapValues { (_, node) ->
+            val tensor = node.info as? TensorInfo
+            if (tensor == null) SlimSamTensorSignature("NON_TENSOR", emptyList())
+            else SlimSamTensorSignature(tensor.type.name, tensor.shape.toList())
+        }
+
+    private fun formatMetadata(
+        session: OrtSession,
+        inputs: Map<String, SlimSamTensorSignature>,
+        outputs: Map<String, SlimSamTensorSignature>,
+    ): String = "inputs=${session.inputNames.sorted()} $inputs outputs=${session.outputNames.sorted()} $outputs"
 
     suspend fun segment(
         source: Bitmap,
@@ -433,7 +451,15 @@ class SlimSamSegmenter(
             } catch (error: Throwable) {
                 Log.e(TAG, "SlimSAM segmentation failure", error)
                 val failedAtNs = SystemClock.elapsedRealtimeNanos()
-                recordTiming(identity, "SLIMSAM_RESULT", "SLIMSAM_RESULT_FAILED", started, failedAtNs, "FAILED", error::class.java.simpleName)
+                recordTiming(
+                    identity,
+                    "SLIMSAM_RESULT",
+                    "SLIMSAM_RESULT_FAILED",
+                    started,
+                    failedAtNs,
+                    "FAILED",
+                    (error as? SlimSamModelException)?.errorCode ?: error::class.java.simpleName,
+                )
                 failed(
                     code = (error as? SlimSamModelException)?.errorCode
                         ?: error::class.java.simpleName.ifBlank { "SLIMSAM_EXECUTION_FAILED" },

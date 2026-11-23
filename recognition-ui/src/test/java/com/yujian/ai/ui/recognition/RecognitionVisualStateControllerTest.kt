@@ -330,6 +330,27 @@ class RecognitionVisualStateControllerTest {
             WaterLightPathPoint(10f, 20f), WaterLightPathPoint(20f, 30f),
             WaterLightPathPoint(30f, 40f), WaterLightPathPoint(40f, 50f),
         )
+        val pathFrame = WaterLightFrame(
+            sessionId = identity.sessionId,
+            photoSha256 = identity.photoSha256,
+            elapsedMs = firstFrame.sceneElapsedMs,
+            opticalReferenceElapsedMs = firstFrame.opticalReferenceElapsedMs,
+            phase = WaterLightPhase.PROCESSING,
+            completion = 1f,
+            reducedMotion = false,
+            geometryVersion = 100L,
+            attemptId = identity.attemptId,
+            imageId = identity.imageId,
+            photoContentVersion = identity.photoContentVersion,
+            eventSequence = firstFrame.eventSequence,
+            sceneStageOverride = RecognitionSceneStage.ORB_RETURN,
+            sceneStageElapsedMsOverride = firstFrame.stageElapsedMs,
+            sceneStageProgressOverride = 1f,
+        )
+        val ledger = WaterLightPathLedger()
+        assertTrue(ledger.recordRelease(pathFrame, path))
+        val orbOnlyRoute = requireNotNull(ledger.exportOrbOnlyReturnPathSnapshot(pathFrame))
+        assertTrue(controller.onOrbOnlyReturnPathAvailable(orbOnlyRoute, identity))
         val event = EnergyEvent(
             sessionId = identity.sessionId,
             photoSha256 = requireNotNull(identity.photoSha256),
@@ -342,8 +363,9 @@ class RecognitionVisualStateControllerTest {
             attemptId = identity.attemptId,
             imageId = identity.imageId,
             photoContentVersion = identity.photoContentVersion,
-            pathId = "photo-perimeter-to-original-orb",
-            pathGeometry = path,
+            pathId = orbOnlyRoute.pathId,
+            pathGeometry = orbOnlyRoute.segment,
+            pathGeometryVersion = orbOnlyRoute.geometryVersion,
             eventSequence = firstFrame.eventSequence,
             monotonicTimestampMs = firstFrame.monotonicTimestampMs,
             sourceHost = EnergyAnchor.PHOTO_PERIMETER.name,
@@ -360,12 +382,12 @@ class RecognitionVisualStateControllerTest {
         val returnReceipt = RecognitionOrbReturnRenderReceipt(
             identity = identity,
             stage = RecognitionSceneStage.ORB_RETURN,
-            pathId = requireNotNull(event.pathId),
+            pathId = orbOnlyRoute.pathId,
             maskSha256 = null,
             maskVersion = null,
-            pathGeometryVersion = null,
+            pathGeometryVersion = orbOnlyRoute.geometryVersion,
             resultGeometryVersion = event.geometryVersion,
-            pathGeometry = path,
+            pathGeometry = orbOnlyRoute.segment,
             pathSegments = emptyList(),
             renderedSegmentCount = 1,
             renderedProgress = 1f,

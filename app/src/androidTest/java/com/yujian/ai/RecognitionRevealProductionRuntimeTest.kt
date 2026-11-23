@@ -598,6 +598,242 @@ class RecognitionRevealProductionRuntimeTest {
                 bindingProbe.snapshot?.fishPathSnapshotBindingState,
             )
             assertEquals(fishPathSnapshot, bindingProbe.snapshot?.fishPathSnapshot)
+            assertEquals(fishPathSnapshot.fishPathId, bindingProbe.snapshot?.fishPathSnapshotPathId)
+            assertEquals(fishPathSnapshot.snapshotSha256, bindingProbe.snapshot?.fishPathSnapshotProducerSha256)
+            assertEquals(fishPathSnapshot.calculateContentSha256(), bindingProbe.snapshot?.fishPathSnapshotContentSha256)
+            assertTrue(requireNotNull(bindingProbe.snapshot?.fishPathSnapshotReceivedAtUptimeMs) > 0L)
+            assertEquals("BOUND", bindingProbe.snapshot?.fishPathSnapshotBindingDiagnostic?.get("state"))
+            assertEquals(
+                fishPathSnapshot.snapshotSha256,
+                bindingProbe.snapshot?.fishPathSnapshotBindingDiagnostic?.get("producerSnapshotSha256"),
+            )
+            val digestProbe = RecognitionRevealSessionStore().apply {
+                beginAttempt(SESSION_ID, ATTEMPT_ID, selectedImage)
+            }
+            assertTrue(
+                "SessionStore must fail closed on a corrupted producer Snapshot SHA",
+                !digestProbe.updateFishPathSnapshot(revealKey, fishPathSnapshot.copy(snapshotSha256 = "f".repeat(64))),
+            )
+            assertEquals(
+                RecognitionFishPathSnapshotBindingState.REJECTED_GEOMETRY,
+                digestProbe.snapshot?.fishPathSnapshotBindingState,
+            )
+            assertEquals(
+                "PATH_SNAPSHOT_SHA256_MISMATCH",
+                digestProbe.snapshot?.fishPathSnapshotBindingDiagnostic?.get("reason"),
+            )
+            val callbackOrders = listOf(
+                listOf("PATH", "SUBJECT", "PHOTO"),
+                listOf("PATH", "PHOTO", "SUBJECT"),
+                listOf("SUBJECT", "PATH", "PHOTO"),
+                listOf("SUBJECT", "PHOTO", "PATH"),
+                listOf("PHOTO", "PATH", "SUBJECT"),
+                listOf("PHOTO", "SUBJECT", "PATH"),
+            )
+            callbackOrders.forEachIndexed { index, order ->
+                val raceProbe = RecognitionRevealSessionStore().apply {
+                    beginAttempt(SESSION_ID, "$ATTEMPT_ID-order-$index", selectedImage)
+                }
+                val raceKey = RecognitionRevealKey(SESSION_ID, "$ATTEMPT_ID-order-$index")
+                val racePathWithoutDigest = fishPathSnapshot.copy(
+                    attemptId = raceKey.recognitionAttemptId,
+                    fishPathId = "${fishPathSnapshot.fishPathId}:callback-order-$index",
+                    returnPathId = "${fishPathSnapshot.returnPathId}:callback-order-$index",
+                    snapshotSha256 = "",
+                )
+                val racePath = racePathWithoutDigest.copy(
+                    snapshotSha256 = racePathWithoutDigest.calculateContentSha256(),
+                )
+                order.forEach { callback ->
+                    when (callback) {
+                        "PATH" -> raceProbe.updateFishPathSnapshot(raceKey, racePath)
+                        "SUBJECT" -> raceProbe.updateSubject(raceKey, maskResult, trustedGeometry.copy(
+                            recognitionAttemptId = raceKey.recognitionAttemptId,
+                        ))
+                        "PHOTO" -> raceProbe.updateProcessingPhoto(raceKey, processingPhotoSnapshot)
+                    }
+                }
+                assertEquals(
+                    "real SessionStore callback order $order must converge to BOUND",
+                    RecognitionFishPathSnapshotBindingState.BOUND,
+                    raceProbe.snapshot?.fishPathSnapshotBindingState,
+                )
+                assertEquals(racePath, raceProbe.snapshot?.fishPathSnapshot)
+            }
+            val handoffRaceProbe = RecognitionRevealSessionStore().apply {
+                beginAttempt(SESSION_ID, ATTEMPT_ID, selectedImage)
+            }
+            assertTrue(handoffRaceProbe.updateFishPathSnapshot(revealKey, fishPathSnapshot))
+            handoffRaceProbe.updateSubject(revealKey, maskResult, trustedGeometry)
+            assertEquals(
+                com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState.WAITING_PSTAR_PATH,
+                handoffRaceProbe.recordClassifierResult(
+                    revealKey,
+                    result,
+                    inferenceAsset = null,
+                    highConfidenceResult = true,
+                ),
+            )
+            assertNull("Result cannot freeze a FULL_REVEAL handoff while its path is still pending",
+                handoffRaceProbe.completeAttempt(
+                    revealKey, result, true, null, SystemClock.uptimeMillis(),
+                ))
+            assertNull(handoffRaceProbe.snapshot?.handoff)
+            handoffRaceProbe.updateProcessingPhoto(revealKey, processingPhotoSnapshot)
+            assertEquals(RecognitionFishPathSnapshotBindingState.BOUND,
+                handoffRaceProbe.snapshot?.fishPathSnapshotBindingState)
+            val pathAfterRace = requireNotNull(handoffRaceProbe.completeAttempt(
+                revealKey, result, true, null, SystemClock.uptimeMillis(),
+            ))
+            assertEquals(fishPathSnapshot, pathAfterRace.fishPathSnapshot)
+            assertEquals(true, handoffRaceProbe.snapshot?.handoffFreezePathBound)
+
+            val concurrentProbe = RecognitionRevealSessionStore().apply {
+                beginAttempt(SESSION_ID, ATTEMPT_ID, selectedImage)
+            }
+            val concurrentStart = CountDownLatch(1)
+            val concurrentExecutor = Executors.newFixedThreadPool(5)
+            try {
+                val concurrentCallbacks = listOf(
+                    concurrentExecutor.submit {
+                        concurrentStart.await()
+                        concurrentProbe.updateFishPathSnapshot(revealKey, fishPathSnapshot)
+                    },
+                    concurrentExecutor.submit {
+                        concurrentStart.await()
+                        concurrentProbe.updateSubject(revealKey, maskResult, trustedGeometry)
+                    },
+                    concurrentExecutor.submit {
+                        concurrentStart.await()
+                        concurrentProbe.updateProcessingPhoto(revealKey, processingPhotoSnapshot)
+                    },
+                    concurrentExecutor.submit {
+                        concurrentStart.await()
+                        concurrentProbe.recordClassifierResult(
+                            revealKey,
+                            result,
+                            inferenceAsset = null,
+                            highConfidenceResult = result.prediction?.lowConfidence == false,
+                        )
+                    },
+                    concurrentExecutor.submit {
+                        concurrentStart.await()
+                        concurrentProbe.completeAttempt(
+                            revealKey,
+                            result,
+                            result.prediction?.lowConfidence == false,
+                            null,
+                            SystemClock.uptimeMillis(),
+                        )
+                    },
+                )
+                concurrentStart.countDown()
+                concurrentCallbacks.forEach { it.get(10, TimeUnit.SECONDS) }
+            } finally {
+                concurrentExecutor.shutdownNow()
+            }
+            assertEquals(
+                RecognitionFishPathSnapshotBindingState.BOUND,
+                concurrentProbe.snapshot?.fishPathSnapshotBindingState,
+            )
+            val concurrentHandoff = concurrentProbe.snapshot?.handoff ?: concurrentProbe.completeAttempt(
+                revealKey,
+                result,
+                result.prediction?.lowConfidence == false,
+                null,
+                SystemClock.uptimeMillis(),
+            )
+            assertEquals(fishPathSnapshot, concurrentHandoff?.fishPathSnapshot)
+            assertEquals(true, concurrentProbe.snapshot?.handoffFreezePathBound)
+
+            // A terminal SlimSAM failure must not freeze ORB_ONLY before its Processing-ledger
+            // perimeter route arrives. The follow-up handoff must carry that route without Mask/P*.
+            val orbOnlyAttemptId = "$ATTEMPT_ID-orb-only-race"
+            val orbOnlyKey = RecognitionRevealKey(SESSION_ID, orbOnlyAttemptId)
+            val orbOnlyStore = RecognitionRevealSessionStore().apply {
+                beginAttempt(SESSION_ID, orbOnlyAttemptId, selectedImage)
+                updateSubject(
+                    orbOnlyKey,
+                    FishSubjectResult(
+                        status = SubjectStatus.FAILED,
+                        errorCode = "SLIMSAM_RUNTIME_INIT_FAILED",
+                        errorMessage = "instrumented terminal fallback fixture",
+                    ),
+                    geometry = null,
+                )
+            }
+            assertEquals(
+                com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState.ORB_ONLY_READY,
+                orbOnlyStore.recordClassifierResult(
+                    orbOnlyKey,
+                    result,
+                    inferenceAsset = null,
+                    highConfidenceResult = result.prediction?.lowConfidence == false,
+                ),
+            )
+            assertNull("ORB_ONLY cannot freeze a handoff before its real perimeter route arrives",
+                orbOnlyStore.completeAttempt(
+                    orbOnlyKey,
+                    result,
+                    result.prediction?.lowConfidence == false,
+                    null,
+                    SystemClock.uptimeMillis(),
+                ))
+            assertNull(orbOnlyStore.snapshot?.handoff)
+
+            val orbOnlyFrame = com.yujian.ai.ui.waterlight.core.WaterLightFrame(
+                sessionId = SESSION_ID,
+                photoSha256 = selectedImage.photoSha256,
+                elapsedMs = 1_000L,
+                opticalReferenceElapsedMs = 1_000L,
+                phase = com.yujian.ai.ui.waterlight.core.WaterLightPhase.PROCESSING,
+                completion = 1f,
+                reducedMotion = false,
+                geometryVersion = geometryVersion.coerceAtLeast(1L),
+                attemptId = orbOnlyAttemptId,
+                imageId = selectedImage.imageId,
+                photoContentVersion = selectedImage.bitmap.generationId.toLong().coerceAtLeast(0L),
+                eventSequence = 9L,
+            )
+            val orbOnlyLedger = com.yujian.ai.ui.waterlight.core.WaterLightPathLedger()
+            val releaseGeometry = requireNotNull(
+                com.yujian.ai.ui.waterlight.core.WaterLightPathGeometryFactory.between(
+                    com.yujian.ai.ui.waterlight.core.WaterLightPathPoint(20f, 40f),
+                    com.yujian.ai.ui.waterlight.core.WaterLightPathPoint(220f, 340f),
+                    seed = 346,
+                    bendFraction = .1f,
+                ),
+            )
+            assertTrue(orbOnlyLedger.recordRelease(orbOnlyFrame, releaseGeometry))
+            val orbOnlyRoute = requireNotNull(orbOnlyLedger.exportOrbOnlyReturnPathSnapshot(orbOnlyFrame))
+            assertTrue(orbOnlyRoute.isValid())
+            assertTrue(orbOnlyStore.updateOrbOnlyReturnPathSnapshot(orbOnlyKey, orbOnlyRoute))
+            val orbOnlyHandoff = requireNotNull(orbOnlyStore.completeAttempt(
+                orbOnlyKey,
+                result,
+                result.prediction?.lowConfidence == false,
+                null,
+                SystemClock.uptimeMillis(),
+            ))
+            assertEquals(
+                com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState.ORB_ONLY_READY,
+                orbOnlyHandoff.revealDecision,
+            )
+            assertEquals(orbOnlyRoute, orbOnlyHandoff.orbOnlyReturnPathSnapshot)
+            assertNull(orbOnlyHandoff.fishPathSnapshot)
+            assertTrue(orbOnlyHandoff.maskSha256.isBlank())
+            assertEquals(0L, orbOnlyHandoff.maskVersion)
+            assertNull(orbOnlyHandoff.subjectAnchorNormalizedSource)
+            assertEquals(true, orbOnlyStore.snapshot?.handoffFreezePathBound == false)
+
+            val cancelledAttemptProbe = RecognitionRevealSessionStore().apply {
+                beginAttempt(SESSION_ID, ATTEMPT_ID, selectedImage)
+                beginAttempt(SESSION_ID, "$ATTEMPT_ID-replaced", selectedImage)
+            }
+            assertTrue(
+                "late Path from a cancelled attempt must not enter the replacement Attempt",
+                !cancelledAttemptProbe.updateFishPathSnapshot(revealKey, fishPathSnapshot),
+            )
             assertEquals(SESSION_ID, fishPathSnapshot.sessionId)
             assertEquals(ATTEMPT_ID, fishPathSnapshot.attemptId)
             assertEquals(selectedImage.imageId, fishPathSnapshot.imageId)
@@ -606,6 +842,42 @@ class RecognitionRevealProductionRuntimeTest {
                 trustedGeometry.maskSha256, fishPathSnapshot.maskSha256)
             assertEquals(trustedGeometry.maskVersion, fishPathSnapshot.maskVersion)
             assertEquals(processingPhotoSnapshot.contactPointGeometryVersion, fishPathSnapshot.geometryVersion)
+            assertTrue("the actual Handoff must record when the path binding was frozen",
+                requireNotNull(revealSessionStore.snapshot?.handoffFreezeAtUptimeMs) > 0L)
+            assertEquals(true, revealSessionStore.snapshot?.handoffFreezePathBound)
+            assertEquals(
+                com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState.FISH_FOCUS_READY,
+                bindingProbe.recordClassifierResult(
+                    revealKey,
+                    result,
+                    inferenceAsset = null,
+                    highConfidenceResult = result.prediction?.lowConfidence == false,
+                ),
+            )
+            val frozenProbeHandoff = requireNotNull(bindingProbe.completeAttempt(
+                key = revealKey,
+                result = result,
+                highConfidenceResult = result.prediction?.lowConfidence == false,
+                inferenceAsset = null,
+                handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
+            ))
+            assertTrue("only a bound path may freeze a full-reveal handoff", frozenProbeHandoff.fishPathSnapshot != null)
+            val latePathWithoutDigest = fishPathSnapshot.copy(
+                creationEventSequence = fishPathSnapshot.creationEventSequence + 1L,
+                snapshotSha256 = "",
+            )
+            val lateDifferentPath = latePathWithoutDigest.copy(
+                snapshotSha256 = latePathWithoutDigest.calculateContentSha256(),
+            )
+            assertTrue(
+                "a distinct Path callback after handoff freeze must be rejected",
+                !bindingProbe.updateFishPathSnapshot(revealKey, lateDifferentPath),
+            )
+            assertEquals(
+                RecognitionFishPathSnapshotBindingState.REJECTED_FROZEN_HANDOFF,
+                bindingProbe.snapshot?.fishPathSnapshotBindingState,
+            )
+            assertEquals(fishPathSnapshot, bindingProbe.snapshot?.handoff?.fishPathSnapshot)
             assertEquals("Processing RETURN must preserve its ledger-owned path ID",
                 fishPathSnapshot.fishPathId, fishPathSnapshot.returnPathId)
             assertEquals(3, fishPathSnapshot.returnPathSegments.size)

@@ -14,6 +14,7 @@ import com.yujian.ai.inference.InferenceAsset
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
+import com.yujian.ai.ui.waterlight.core.RecognitionOrbOnlyReturnPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import java.security.MessageDigest
@@ -34,6 +35,14 @@ data class RecognitionRevealSessionSnapshot(
     val fishPathSnapshotBindingState: RecognitionFishPathSnapshotBindingState =
         RecognitionFishPathSnapshotBindingState.NOT_RECEIVED,
     val fishPathSnapshotBindingDiagnostic: Map<String, String> = emptyMap(),
+    val fishPathSnapshotPathId: String? = null,
+    val fishPathSnapshotProducerSha256: String? = null,
+    val fishPathSnapshotContentSha256: String? = null,
+    val fishPathSnapshotReceivedAtUptimeMs: Long? = null,
+    val fishPathSnapshotPendingReason: String? = null,
+    val orbOnlyReturnPathSnapshot: RecognitionOrbOnlyReturnPathSnapshot? = null,
+    val handoffFreezeAtUptimeMs: Long? = null,
+    val handoffFreezePathBound: Boolean? = null,
     val pStarPathTerminalUnavailable: Boolean = false,
     val pStarPathFailureReason: String? = null,
     val attemptStartedUptimeMs: Long = 0L,
@@ -183,12 +192,14 @@ class RecognitionRevealSessionStore : ViewModel() {
 
     private val playedKeys = RecognitionRevealPlaybackLedger()
 
+    @Synchronized
     fun ensureSession(sessionId: String): RecognitionRevealSessionSnapshot {
         val current = snapshot?.takeIf { it.recognitionSessionId == sessionId }
         if (current != null) return current
         return RecognitionRevealSessionSnapshot(recognitionSessionId = sessionId).also { snapshot = it }
     }
 
+    @Synchronized
     fun beginAttempt(
         sessionId: String,
         attemptId: String,
@@ -213,6 +224,7 @@ class RecognitionRevealSessionStore : ViewModel() {
         )
     }
 
+    @Synchronized
     fun updateSubject(
         key: RecognitionRevealKey,
         result: FishSubjectResult,
@@ -231,6 +243,7 @@ class RecognitionRevealSessionStore : ViewModel() {
         )
     }
 
+    @Synchronized
     fun updateProcessingPhoto(key: RecognitionRevealKey, photo: RecognitionProcessingPhotoSnapshot) {
         val current = snapshot ?: return
         if (!current.matches(key) || current.image?.imageId != photo.imageId) return
@@ -245,6 +258,7 @@ class RecognitionRevealSessionStore : ViewModel() {
     }
 
     /** Save only the exact P* route exported by the active Processing PathLedger. */
+    @Synchronized
     fun updateFishPathSnapshot(
         key: RecognitionRevealKey,
         pathSnapshot: RecognitionFishPathSnapshot,
@@ -254,13 +268,15 @@ class RecognitionRevealSessionStore : ViewModel() {
         if (!current.matches(key)) return false
 
         val contentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L)
+        val digestMismatch = pathSnapshot.snapshotSha256.isNotBlank() &&
+            pathSnapshot.snapshotSha256 != pathSnapshot.calculateContentSha256()
         val rejection = when {
             pathSnapshot.sessionId != key.recognitionSessionId ||
                 pathSnapshot.attemptId != key.recognitionAttemptId ||
                 pathSnapshot.imageId != image.imageId || pathSnapshot.photoSha256 != image.photoSha256 ||
                 pathSnapshot.photoContentVersion != contentVersion ->
                 RecognitionFishPathSnapshotBindingState.REJECTED_IDENTITY
-            !pathSnapshot.isValid() || pathSnapshot.geometryVersion <= 0L ->
+            digestMismatch || !pathSnapshot.isValid() || pathSnapshot.geometryVersion <= 0L ->
                 RecognitionFishPathSnapshotBindingState.REJECTED_GEOMETRY
             else -> null
         }
@@ -268,7 +284,7 @@ class RecognitionRevealSessionStore : ViewModel() {
             snapshot = current.withPathBindingState(
                 state = rejection,
                 path = pathSnapshot,
-                reason = rejection.name,
+                reason = if (digestMismatch) "PATH_SNAPSHOT_SHA256_MISMATCH" else rejection.name,
                 handoffFrozen = current.handoff != null,
             )
             return false
@@ -308,6 +324,16 @@ class RecognitionRevealSessionStore : ViewModel() {
         val staged = current.copy(
             pendingFishPathSnapshot = pathSnapshot,
             fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+            fishPathSnapshotPathId = pathSnapshot.fishPathId,
+            fishPathSnapshotProducerSha256 = pathSnapshot.snapshotSha256.takeIf(String::isNotBlank),
+            fishPathSnapshotContentSha256 = pathSnapshot.calculateContentSha256(),
+            fishPathSnapshotReceivedAtUptimeMs = current.fishPathSnapshotReceivedAtUptimeMs
+                ?: SystemClock.uptimeMillis(),
+            fishPathSnapshotPendingReason = pendingBindingReason(
+                current.subjectGeometry,
+                current.processingPhoto,
+                current.subjectResult.status,
+            ),
             fishPathSnapshotBindingDiagnostic = RecognitionFishPathSnapshotBinding.diagnostic(
                 path = pathSnapshot,
                 subject = current.subjectGeometry,
@@ -331,7 +357,30 @@ class RecognitionRevealSessionStore : ViewModel() {
         return candidate.pendingFishPathSnapshot == pathSnapshot || candidate.fishPathSnapshot == pathSnapshot
     }
 
+    /** Retains the real Processing-ledger perimeter route before an Orb-only handoff freezes. */
+    @Synchronized
+    fun updateOrbOnlyReturnPathSnapshot(
+        key: RecognitionRevealKey,
+        route: RecognitionOrbOnlyReturnPathSnapshot,
+    ): Boolean {
+        val current = snapshot ?: return false
+        val image = current.image ?: return false
+        if (!current.matches(key) || !route.isValid() ||
+            route.sessionId != key.recognitionSessionId || route.attemptId != key.recognitionAttemptId ||
+            route.imageId != image.imageId || route.photoSha256 != image.photoSha256 ||
+            route.photoContentVersion != image.bitmap.generationId.toLong().coerceAtLeast(0L)
+        ) return false
+        if (current.orbOnlyReturnPathSnapshot == route) return true
+        if (current.handoff != null) return false
+        snapshot = current.copy(
+            orbOnlyReturnPathSnapshot = route,
+            revealDecision = decisionFor(current),
+        )
+        return true
+    }
+
     /** Called with the monotonic Attempt clock; only the real 60s deadline may end P* waiting. */
+    @Synchronized
     fun expirePendingPathBinding(key: RecognitionRevealKey, nowUptimeMs: Long): Boolean {
         val current = snapshot?.takeIf { it.matches(key) } ?: return false
         val elapsed = nowUptimeMs - current.attemptStartedUptimeMs
@@ -354,7 +403,7 @@ class RecognitionRevealSessionStore : ViewModel() {
         val path = candidate.pendingFishPathSnapshot ?: return candidate
         val image = candidate.image ?: return candidate
         val contentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L)
-        fun diagnostic(state: RecognitionFishPathSnapshotBindingState) =
+        fun diagnostic(state: RecognitionFishPathSnapshotBindingState, reason: String? = null) =
             RecognitionFishPathSnapshotBinding.diagnostic(
                 path = path,
                 subject = candidate.subjectGeometry,
@@ -367,6 +416,12 @@ class RecognitionRevealSessionStore : ViewModel() {
                 state = state,
                 subjectStatus = candidate.subjectResult.status,
                 handoffFrozen = candidate.handoff != null,
+            ) + mapOf(
+                "producerSnapshotSha256" to path.snapshotSha256,
+                "snapshotContentSha256" to path.calculateContentSha256(),
+                "snapshotPathId" to path.fishPathId,
+                "snapshotReceivedAtUptimeMs" to candidate.fishPathSnapshotReceivedAtUptimeMs.toString(),
+                "pendingReason" to reason.orEmpty(),
             )
         return when (RecognitionFishPathSnapshotBinding.evaluate(
             path = path,
@@ -381,38 +436,51 @@ class RecognitionRevealSessionStore : ViewModel() {
         )) {
             RecognitionFishPathSnapshotBindOutcome.WAITING_FOR_INPUTS -> candidate.copy(
                 fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+                fishPathSnapshotPendingReason = pendingBindingReason(
+                    candidate.subjectGeometry,
+                    candidate.processingPhoto,
+                    candidate.subjectResult.status,
+                ),
                 fishPathSnapshotBindingDiagnostic = diagnostic(
                     RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+                    pendingBindingReason(candidate.subjectGeometry, candidate.processingPhoto, candidate.subjectResult.status),
                 ),
             )
             RecognitionFishPathSnapshotBindOutcome.ACCEPTED -> candidate.copy(
                 fishPathSnapshot = path,
                 pendingFishPathSnapshot = null,
                 fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.BOUND,
+                fishPathSnapshotPendingReason = null,
                 fishPathSnapshotBindingDiagnostic = diagnostic(RecognitionFishPathSnapshotBindingState.BOUND),
                 pStarPathFailureReason = null,
             )
             RecognitionFishPathSnapshotBindOutcome.IDENTITY_MISMATCH -> candidate.copy(
                 pendingFishPathSnapshot = null,
                 fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.REJECTED_IDENTITY,
+                fishPathSnapshotPendingReason = "PATH_IDENTITY_MISMATCH",
                 fishPathSnapshotBindingDiagnostic = diagnostic(
                     RecognitionFishPathSnapshotBindingState.REJECTED_IDENTITY,
+                    "PATH_IDENTITY_MISMATCH",
                 ),
                 pStarPathFailureReason = "PATH_IDENTITY_MISMATCH",
             )
             RecognitionFishPathSnapshotBindOutcome.MASK_MISMATCH -> candidate.copy(
                 pendingFishPathSnapshot = null,
                 fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.REJECTED_MASK,
+                fishPathSnapshotPendingReason = "PATH_MASK_MISMATCH",
                 fishPathSnapshotBindingDiagnostic = diagnostic(
                     RecognitionFishPathSnapshotBindingState.REJECTED_MASK,
+                    "PATH_MASK_MISMATCH",
                 ),
                 pStarPathFailureReason = "PATH_MASK_MISMATCH",
             )
             RecognitionFishPathSnapshotBindOutcome.GEOMETRY_MISMATCH -> candidate.copy(
                 pendingFishPathSnapshot = null,
                 fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.REJECTED_GEOMETRY,
+                fishPathSnapshotPendingReason = "PATH_GEOMETRY_MISMATCH",
                 fishPathSnapshotBindingDiagnostic = diagnostic(
                     RecognitionFishPathSnapshotBindingState.REJECTED_GEOMETRY,
+                    "PATH_GEOMETRY_MISMATCH",
                 ),
                 pStarPathFailureReason = "PATH_GEOMETRY_MISMATCH",
             )
@@ -426,8 +494,17 @@ class RecognitionRevealSessionStore : ViewModel() {
         handoffFrozen: Boolean,
     ): RecognitionRevealSessionSnapshot {
         val activeImage = this.image
+        val receivedAt = fishPathSnapshotReceivedAtUptimeMs ?: SystemClock.uptimeMillis()
+        val pendingReason = reason ?: if (state == RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING) {
+            pendingBindingReason(subjectGeometry, processingPhoto, subjectResult.status)
+        } else null
         return copy(
             fishPathSnapshotBindingState = state,
+            fishPathSnapshotPathId = path.fishPathId,
+            fishPathSnapshotProducerSha256 = path.snapshotSha256.takeIf(String::isNotBlank),
+            fishPathSnapshotContentSha256 = path.calculateContentSha256(),
+            fishPathSnapshotReceivedAtUptimeMs = receivedAt,
+            fishPathSnapshotPendingReason = pendingReason,
             fishPathSnapshotBindingDiagnostic = RecognitionFishPathSnapshotBinding.diagnostic(
                 path = path,
                 subject = subjectGeometry,
@@ -440,14 +517,33 @@ class RecognitionRevealSessionStore : ViewModel() {
                 state = state,
                 subjectStatus = subjectResult.status,
                 handoffFrozen = handoffFrozen,
-            ) + mapOf("reason" to reason.orEmpty()),
+            ) + mapOf(
+                "reason" to reason.orEmpty(),
+                "producerSnapshotSha256" to path.snapshotSha256,
+                "snapshotContentSha256" to path.calculateContentSha256(),
+                "snapshotPathId" to path.fishPathId,
+                "snapshotReceivedAtUptimeMs" to receivedAt.toString(),
+                "pendingReason" to pendingReason.orEmpty(),
+            ),
         )
+    }
+
+    private fun pendingBindingReason(
+        subject: RecognitionSubjectGeometrySnapshot?,
+        photo: RecognitionProcessingPhotoSnapshot?,
+        subjectStatus: SubjectStatus,
+    ): String = when {
+        subject == null -> "SUBJECT_GEOMETRY_NOT_RECEIVED"
+        subjectStatus != SubjectStatus.READY -> "SUBJECT_NOT_READY"
+        photo == null -> "PROCESSING_PHOTO_NOT_RECEIVED"
+        else -> "BINDING_INPUTS_RECEIVED_AWAITING_RETRY"
     }
 
     fun fishPathSnapshot(key: RecognitionRevealKey): RecognitionFishPathSnapshot? =
         snapshot?.takeIf { it.matches(key) }?.fishPathSnapshot
 
     /** Retain the real Classifier result immediately while the independent SlimSAM task continues. */
+    @Synchronized
     fun recordClassifierResult(
         key: RecognitionRevealKey,
         result: ProductionRecognitionResult,
@@ -483,6 +579,7 @@ class RecognitionRevealSessionStore : ViewModel() {
         return current.handoff?.revealDecision ?: current.revealDecision
     }
 
+    @Synchronized
     fun completeAttempt(
         key: RecognitionRevealKey,
         result: ProductionRecognitionResult,
@@ -503,7 +600,9 @@ class RecognitionRevealSessionStore : ViewModel() {
             it.key == key && it.imageId == image.imageId &&
                 it.resultIdentity == result.prediction?.top1?.speciesKey &&
                 RecognitionRevealDecisionGate.isNavigable(it.revealDecision ?: RecognitionRevealDecisionState.WAITING_BOTH) &&
-                (it.revealDecision != RecognitionRevealDecisionState.FISH_FOCUS_READY || current.fishPathSnapshot != null)
+                (it.revealDecision != RecognitionRevealDecisionState.FISH_FOCUS_READY || current.fishPathSnapshot != null) &&
+                (it.revealDecision != RecognitionRevealDecisionState.ORB_ONLY_READY ||
+                    it.orbOnlyReturnPathSnapshot?.isValid() == true)
         }
         if (existingHandoff != null) {
             if (current.resultHandoffState.transactionStatus == RecognitionHandoffTransactionStatus.CREATED ||
@@ -578,6 +677,20 @@ class RecognitionRevealSessionStore : ViewModel() {
             ))
             return null
         }
+        val orbOnlyPath = current.orbOnlyReturnPathSnapshot?.takeIf { route ->
+            route.isValid() && route.sessionId == key.recognitionSessionId &&
+                route.attemptId == key.recognitionAttemptId && route.imageId == image.imageId &&
+                route.photoSha256 == image.photoSha256 &&
+                route.photoContentVersion == image.bitmap.generationId.toLong().coerceAtLeast(0L)
+        }
+        if (decision == RecognitionRevealDecisionState.ORB_ONLY_READY && orbOnlyPath == null) {
+            snapshot = candidate.copy(
+                resultHandoffState = candidate.resultHandoffState.copy(
+                    transactionStatus = RecognitionHandoffTransactionStatus.PROCESSING_COMPLETE,
+                ),
+            )
+            return null
+        }
         val handoff = RecognitionRevealHandoffFactory.create(
             recognitionSessionId = key.recognitionSessionId,
             recognitionAttemptId = key.recognitionAttemptId,
@@ -589,6 +702,7 @@ class RecognitionRevealSessionStore : ViewModel() {
             handoffTimestampUptimeMs = handoffTimestampUptimeMs,
             subjectStatus = current.subjectResult.status,
             fishPathSnapshot = current.fishPathSnapshot,
+            orbOnlyReturnPathSnapshot = orbOnlyPath,
             pStarPathTerminalUnavailable = current.pStarPathState == RecognitionPStarPathState.PSTAR_TERMINAL_UNAVAILABLE,
             frozenRevealDecision = decision,
         )
@@ -610,6 +724,8 @@ class RecognitionRevealSessionStore : ViewModel() {
         snapshot = candidate.copy(
             handoff = handoff,
             revealDecision = handoff.revealDecision ?: decision,
+            handoffFreezeAtUptimeMs = handoffTimestampUptimeMs,
+            handoffFreezePathBound = current.fishPathSnapshot != null,
             resultHandoffState = candidate.resultHandoffState.copy(
                 transactionStatus = readyStatus,
                 navigationTrace = processingTrace + transition(
@@ -636,6 +752,7 @@ class RecognitionRevealSessionStore : ViewModel() {
         }
     }
 
+    @Synchronized
     fun requestResultNavigation(
         key: RecognitionRevealKey,
         monotonicTimestampMs: Long = SystemClock.uptimeMillis(),
@@ -1054,6 +1171,7 @@ class RecognitionRevealSessionStore : ViewModel() {
             handoffTimestampUptimeMs = handoff.handoffTimestampUptimeMs,
             subjectStatus = current.subjectResult.status,
             fishPathSnapshot = current.fishPathSnapshot,
+                orbOnlyReturnPathSnapshot = current.orbOnlyReturnPathSnapshot,
             pStarPathTerminalUnavailable = current.pStarPathTerminalUnavailable,
             frozenRevealDecision = handoff.revealDecision,
         )

@@ -212,7 +212,12 @@ fun RecognitionResultRevealCoordinator(
         else -> null
     }
 
-    val photoTransitionGeometry = remember(decisionHandoff, heroSnapshot, rootBounds) {
+    val photoTransitionGeometry = remember(
+        decisionHandoff,
+        heroSnapshot?.boundsInWindow,
+        heroSnapshot?.cropRect,
+        rootBounds,
+    ) {
         if (decisionHandoff == null || heroSnapshot == null || rootBounds == null) null
         else RecognitionRevealGeometryResolver.resolvePhoto(
             handoff = decisionHandoff,
@@ -220,7 +225,13 @@ fun RecognitionResultRevealCoordinator(
             rootBoundsInWindow = requireNotNull(rootBounds),
         )
     }
-    val revealGeometryResolution = remember(decisionHandoff, heroSnapshot, revealTitleBounds, rootBounds) {
+    val revealGeometryResolution = remember(
+        decisionHandoff,
+        heroSnapshot?.boundsInWindow,
+        heroSnapshot?.cropRect,
+        revealTitleBounds,
+        rootBounds,
+    ) {
         if (decisionHandoff == null) null
         else when {
             rootBounds == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_ROOT_PENDING")

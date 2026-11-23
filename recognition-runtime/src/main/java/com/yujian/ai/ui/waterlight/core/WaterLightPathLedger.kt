@@ -1,5 +1,7 @@
 package com.yujian.ai.ui.waterlight.core
 
+import java.security.MessageDigest
+
 /** Stable identity for the trusted Mask and nearest-contour contact used by the fish route. */
 data class WaterLightPathMaskIdentity(
     val maskSha256: String,
@@ -54,6 +56,8 @@ data class RecognitionFishPathSnapshot(
     val sourceCoordinateSpace: String,
     val creationTimestampMonotonicMs: Long,
     val creationEventSequence: Long,
+    /** Content digest emitted by the Processing producer and independently rechecked by SessionStore. */
+    val snapshotSha256: String = "",
 ) {
     fun isValid(): Boolean = sessionId.isNotBlank() && attemptId.isNotBlank() && imageId.isNotBlank() &&
         photoSha256.isNotBlank() && photoContentVersion >= 0L &&
@@ -72,11 +76,42 @@ data class RecognitionFishPathSnapshot(
         returnPathSegments[1].end == perimeterBranch.start &&
         returnPathSegments[2].start == orbReleasePath.end &&
         returnPathSegments.last().end == orbReleasePath.start &&
-        creationTimestampMonotonicMs >= 0L && creationEventSequence >= 0L
+        creationTimestampMonotonicMs >= 0L && creationEventSequence >= 0L &&
+        (snapshotSha256.isBlank() ||
+            (snapshotSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) && snapshotSha256 == calculateContentSha256()))
+
+    fun calculateContentSha256(): String = MessageDigest.getInstance("SHA-256")
+        .digest(copy(snapshotSha256 = "").toString().toByteArray(Charsets.UTF_8))
+        .joinToString("") { "%02x".format(it.toInt() and 0xff) }
 
     fun matches(frame: WaterLightFrame): Boolean = isValid() &&
         sessionId == frame.sessionId && attemptId == frame.attemptId && imageId == frame.imageId &&
         photoSha256 == frame.photoSha256 && photoContentVersion == frame.photoContentVersion
+}
+
+/** Processing Ledger identity for the single real photo-perimeter-to-Orb route when no Mask is trusted. */
+data class RecognitionOrbOnlyReturnPathSnapshot(
+    val sessionId: String,
+    val attemptId: String,
+    val imageId: String,
+    val photoSha256: String,
+    val photoContentVersion: Long,
+    val pathId: String,
+    val geometryVersion: Long,
+    val segment: WaterLightPathGeometry,
+    val sourceCoordinateSpace: String,
+    val creationTimestampMonotonicMs: Long,
+    val creationEventSequence: Long,
+) {
+    /** This contract intentionally contains no Mask, P*, or Fish Path fields. */
+    fun isValid(): Boolean = sessionId.isNotBlank() && attemptId.isNotBlank() && imageId.isNotBlank() &&
+        photoSha256.isNotBlank() && photoContentVersion >= 0L && pathId.isNotBlank() && geometryVersion > 0L &&
+        segment.isValid() && segment.coordinateSpace == sourceCoordinateSpace &&
+        creationTimestampMonotonicMs >= 0L && creationEventSequence >= 0L
+
+    fun matches(frame: WaterLightFrame): Boolean = isValid() && sessionId == frame.sessionId &&
+        attemptId == frame.attemptId && imageId == frame.imageId && photoSha256 == frame.photoSha256 &&
+        photoContentVersion == frame.photoContentVersion && geometryVersion == frame.geometryVersion
 }
 
 private data class WaterLightPathIdentity(
@@ -119,6 +154,7 @@ class WaterLightPathLedger {
     private var perimeterArrival: WaterLightPerimeterArrivalSnapshot? = null
     private var maskBinding: WaterLightPathMaskBinding? = null
     private var perimeterBranch: WaterLightPathGeometry? = null
+    private var orbOnlyReturnSnapshot: RecognitionOrbOnlyReturnPathSnapshot? = null
 
     fun bind(frame: WaterLightFrame): Boolean {
         val next = frame.identityOrNull() ?: return false
@@ -129,6 +165,7 @@ class WaterLightPathLedger {
             perimeterArrival = null
             maskBinding = null
             perimeterBranch = null
+            orbOnlyReturnSnapshot = null
         } else if (current.geometryVersion != next.geometryVersion) {
             // Keep the authored Stage-03 endpoint for Stage-04, but rebuild routes whose
             // geometry and P* are bound to the photo's current measured transform.
@@ -136,6 +173,7 @@ class WaterLightPathLedger {
             perimeterArrival = null
             maskBinding = null
             perimeterBranch = null
+            orbOnlyReturnSnapshot = null
         }
         return true
     }
@@ -297,6 +335,34 @@ class WaterLightPathLedger {
         ).takeIf(WaterLightPathRoute::isValid)
     }
 
+    /** Exports only the real ledger-created perimeter return segment for an Orb-only decision. */
+    fun exportOrbOnlyReturnPathSnapshot(frame: WaterLightFrame): RecognitionOrbOnlyReturnPathSnapshot? {
+        val photoSha256 = frame.photoSha256?.takeIf(String::isNotBlank) ?: return null
+        val route = returnRoute(frame, trustedMask = false)?.takeIf(WaterLightPathRoute::isValid) ?: return null
+        if (route.maskSha256 != null || route.maskVersion != null || route.contactPointNormalizedSource != null ||
+            route.segments.size != 1
+        ) return null
+        orbOnlyReturnSnapshot?.takeIf {
+            it.matches(frame) && it.pathId == route.id && it.segment == route.segments.single()
+        }?.let { return it }
+        val scene = frame.sceneFrame
+        val snapshot = RecognitionOrbOnlyReturnPathSnapshot(
+            sessionId = frame.sessionId,
+            attemptId = frame.attemptId,
+            imageId = frame.imageId,
+            photoSha256 = photoSha256,
+            photoContentVersion = frame.photoContentVersion,
+            pathId = route.id,
+            geometryVersion = route.geometryVersion,
+            segment = route.segments.single(),
+            sourceCoordinateSpace = route.segments.single().coordinateSpace,
+            creationTimestampMonotonicMs = scene.monotonicTimestampMs,
+            creationEventSequence = scene.eventSequence,
+        ).takeIf(RecognitionOrbOnlyReturnPathSnapshot::isValid) ?: return null
+        orbOnlyReturnSnapshot = snapshot
+        return snapshot
+    }
+
     /** Exports the exact ledger paths and identities used by Processing for a FULL_REVEAL handoff. */
     fun exportRecognitionFishPathSnapshot(
         frame: WaterLightFrame,
@@ -337,7 +403,8 @@ class WaterLightPathLedger {
             creationTimestampMonotonicMs = binding.creationTimestampMonotonicMs,
             creationEventSequence = binding.creationEventSequence,
         )
-        return snapshot.takeIf(RecognitionFishPathSnapshot::isValid)
+        val withDigest = snapshot.copy(snapshotSha256 = snapshot.calculateContentSha256())
+        return withDigest.takeIf(RecognitionFishPathSnapshot::isValid)
     }
 
     fun pathId(
@@ -378,6 +445,7 @@ class WaterLightPathLedger {
         perimeterArrival = null
         maskBinding = null
         perimeterBranch = null
+        orbOnlyReturnSnapshot = null
     }
 
     private fun expectedMaskIdentity(

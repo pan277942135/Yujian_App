@@ -29,6 +29,23 @@ object RecognitionResultGeometryReadiness {
         titleBoundsReady && revealGeometryReady
 }
 
+/** Navigation consumes only the completed Classifier and reveal decision, never Result render gates. */
+object RecognitionResultNavigationReadiness {
+    fun canNavigate(
+        classifierReady: Boolean,
+        identityCurrent: Boolean,
+        decision: RecognitionRevealDecisionState,
+        fishPathBound: Boolean,
+        orbOnlyPathReady: Boolean,
+    ): Boolean = classifierReady && identityCurrent &&
+        RecognitionRevealDecisionGate.isNavigable(decision) &&
+        when (decision) {
+            RecognitionRevealDecisionState.FISH_FOCUS_READY -> fishPathBound
+            RecognitionRevealDecisionState.ORB_ONLY_READY -> orbOnlyPathReady
+            else -> true
+        }
+}
+
 /** RETURN waits for the Result Canvas receipt before the shared controller consumes its EnergyEvent. */
 object RecognitionReturnEventSubmissionReadiness {
     fun isReady(

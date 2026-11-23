@@ -132,6 +132,7 @@ import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
+import com.yujian.ai.ui.waterlight.core.RecognitionOrbOnlyReturnPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionFishGoldRenderReceipt
 import com.yujian.ai.ui.waterlight.core.RecognitionContourRenderReceipt
@@ -231,6 +232,7 @@ fun RecognizingScreen(
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
     onFishPathSnapshot: (RecognitionFishPathSnapshot) -> Unit = {},
+    onOrbOnlyReturnPathSnapshot: (RecognitionOrbOnlyReturnPathSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
     recognitionEvidenceRecorder: RecognitionSessionEvidenceRecorder? = null,
@@ -250,6 +252,7 @@ fun RecognizingScreen(
     onSubjectGeometry = onSubjectGeometry,
     onProcessingPhotoSnapshot = onProcessingPhotoSnapshot,
     onFishPathSnapshot = onFishPathSnapshot,
+    onOrbOnlyReturnPathSnapshot = onOrbOnlyReturnPathSnapshot,
     recognitionSessionId = recognitionSessionId,
     recognitionAttemptId = recognitionAttemptId,
     recognitionEvidenceRecorder = recognitionEvidenceRecorder,
@@ -280,6 +283,7 @@ fun RecognitionProcessingScene(
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
     onFishPathSnapshot: (RecognitionFishPathSnapshot) -> Unit = {},
+    onOrbOnlyReturnPathSnapshot: (RecognitionOrbOnlyReturnPathSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
     recognitionEvidenceRecorder: RecognitionSessionEvidenceRecorder? = null,
@@ -315,6 +319,7 @@ fun RecognitionProcessingScene(
     val slimSamTimingCallback = rememberUpdatedState(onSlimSamTiming)
     val photoFramePresentedCallback = rememberUpdatedState(onPhotoFramePresented)
     val fishPathSnapshotCallback = rememberUpdatedState(onFishPathSnapshot)
+    val orbOnlyReturnPathSnapshotCallback = rememberUpdatedState(onOrbOnlyReturnPathSnapshot)
     val sceneKey = remember(
         image?.imageId,
         image?.photoSha256,
@@ -1871,6 +1876,11 @@ fun RecognitionProcessingScene(
             )
         } else null
         val energyProducerEvent = energyProducerSnapshot?.event
+        LaunchedEffect(energyProducerSnapshot?.orbOnlyReturnPathSnapshot) {
+            energyProducerSnapshot?.orbOnlyReturnPathSnapshot?.let { route ->
+                orbOnlyReturnPathSnapshotCallback.value(route)
+            }
+        }
         var lastPStarDiagnosticKey by remember(sceneKey) { mutableStateOf<String?>(null) }
         LaunchedEffect(
             sceneIdentity, subjectResult.maskSha256, trustedSubjectMask,
@@ -3295,6 +3305,7 @@ private data class RecognitionEnergyProducerSnapshot(
     val event: EnergyEvent?,
     val contactPointNormalizedSource: WaterLightPathPoint?,
     val fishPathSnapshot: RecognitionFishPathSnapshot?,
+    val orbOnlyReturnPathSnapshot: RecognitionOrbOnlyReturnPathSnapshot?,
     val perimeterArrivalPath: WaterLightPerimeterArrivalSnapshot?,
     val pathBindingStatus: RecognitionFishPathBindingStatus,
     val pathApplicability: String = "APPLICABLE",
@@ -3509,11 +3520,13 @@ private fun createRecognitionEnergyProducerSnapshot(
             pathContactPointNormalizedSource = eventContact,
         )
     }
+    val orbOnlyReturnPathSnapshot = ledger.exportOrbOnlyReturnPathSnapshot(frame)
     return RecognitionEnergyProducerSnapshot(
         decision = decision,
         event = event,
         contactPointNormalizedSource = stableContact,
         fishPathSnapshot = fishPathSnapshot,
+        orbOnlyReturnPathSnapshot = orbOnlyReturnPathSnapshot,
         perimeterArrivalPath = arrivalPath ?: arrivalSnapshot,
         pathBindingStatus = pathBindingStatus,
         pathApplicability = pathApplicability,

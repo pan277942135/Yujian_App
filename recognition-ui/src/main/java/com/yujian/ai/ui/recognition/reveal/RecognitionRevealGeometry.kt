@@ -113,6 +113,8 @@ data class RecognitionRevealGeometry(
     /** Projected from the original Processing PathLedger snapshot into Result-root coordinates. */
     val returnPathSegments: List<RecognitionRevealCubicPath> = emptyList(),
     val returnPathId: String? = null,
+    /** Original Processing route version; independent from the current Result projection version. */
+    val returnPathGeometryVersion: Long? = null,
 ) {
     val processingPhotoClipLocal: RecognitionRevealWindowRect
         get() = processingPhotoClip.localTo(rootWindowOrigin)
@@ -228,6 +230,32 @@ object RecognitionRevealReturnPathProjector {
             segments = projected,
         )
     }
+
+    fun projectOrbOnly(
+        handoff: RecognitionRevealHandoff,
+        snapshot: com.yujian.ai.ui.waterlight.core.RecognitionOrbOnlyReturnPathSnapshot,
+        resultRootBoundsInWindow: RecognitionRevealWindowRect,
+    ): RecognitionRevealCubicPath? {
+        val processingViewport = handoff.processingPhotoViewportBounds ?: return null
+        if (!snapshot.isValid() || handoff.eligibility != RecognitionRevealEligibility.TITLE_FADE_ONLY ||
+            handoff.revealDecision != RecognitionRevealDecisionState.ORB_ONLY_READY ||
+            handoff.fishPathSnapshot != null || snapshot.sessionId != handoff.key.recognitionSessionId ||
+            snapshot.attemptId != handoff.key.recognitionAttemptId || snapshot.imageId != handoff.imageId ||
+            snapshot.photoSha256 != handoff.photoSourceIdentity.substringAfter("sha256=") ||
+            snapshot.photoContentVersion != handoff.photoContentVersion ||
+            !processingViewport.isValid() || !resultRootBoundsInWindow.isValid()
+        ) return null
+        val dx = processingViewport.left - resultRootBoundsInWindow.left
+        val dy = processingViewport.top - resultRootBoundsInWindow.top
+        fun WaterLightPathPoint.project() = DisplayPoint(x + dx, y + dy)
+        val route = snapshot.segment
+        return RecognitionRevealCubicPath(
+            start = route.start.project(),
+            control1 = route.control1.project(),
+            control2 = route.control2.project(),
+            end = route.end.project(),
+        )
+    }
 }
 
 /** Result of resolving the live Result layout into source-space reveal geometry. */
@@ -236,20 +264,46 @@ data class RecognitionRevealGeometryResolution(
     val failureReason: String?,
 )
 
+data class RecognitionRevealPhotoGeometryResolution(
+    val geometry: RecognitionRevealPhotoGeometry?,
+    val failureReason: String?,
+    val failureDetails: String? = null,
+)
+
 object RecognitionRevealGeometryResolver {
     fun resolvePhoto(
         handoff: RecognitionRevealHandoff,
         hero: RecognitionRevealHeroSnapshot,
         rootBoundsInWindow: RecognitionRevealWindowRect,
-    ): RecognitionRevealPhotoGeometry? {
-        val processingBounds = handoff.processingPhotoViewportBounds ?: return null
-        val processingTransform = handoff.processingPhotoTransform ?: return null
-        if (handoff.imageId.isBlank() || handoff.normalizedSourceWidth <= 0 || handoff.normalizedSourceHeight <= 0) return null
-        if (!processingBounds.isValid() || !hero.boundsInWindow.isValid() || !rootBoundsInWindow.isValid()) return null
+    ): RecognitionRevealPhotoGeometry? = resolvePhotoDetailed(handoff, hero, rootBoundsInWindow).geometry
+
+    fun resolvePhotoDetailed(
+        handoff: RecognitionRevealHandoff,
+        hero: RecognitionRevealHeroSnapshot,
+        rootBoundsInWindow: RecognitionRevealWindowRect,
+    ): RecognitionRevealPhotoGeometryResolution {
+        val processingBounds = handoff.processingPhotoViewportBounds
+            ?: return photoRejected("PROCESSING_BOUNDS_INVALID", "Processing viewport is missing")
+        val processingTransform = handoff.processingPhotoTransform
+            ?: return photoRejected("PROCESSING_BOUNDS_INVALID", "Processing image transform is missing")
+        if (handoff.imageId.isBlank()) return photoRejected("SOURCE_DIMENSION_MISMATCH", "Image identity is blank")
+        if (handoff.normalizedSourceWidth <= 0 || handoff.normalizedSourceHeight <= 0) {
+            return photoRejected("SOURCE_DIMENSION_MISMATCH", "Source dimensions are ${handoff.normalizedSourceWidth}x${handoff.normalizedSourceHeight}")
+        }
+        if (!processingBounds.isValid()) return photoRejected("PROCESSING_BOUNDS_INVALID", "Processing bounds are invalid")
+        if (!hero.boundsInWindow.isValid()) return photoRejected("HERO_BOUNDS_INVALID", "Hero bounds are invalid")
+        if (!rootBoundsInWindow.isValid()) return photoRejected("ROOT_BOUNDS_INVALID", "Result root bounds are invalid")
         if (processingTransform.sourceWidthPx != handoff.normalizedSourceWidth ||
             processingTransform.sourceHeightPx != handoff.normalizedSourceHeight
-        ) return null
-        val heroTransform = runCatching {
+        ) return photoRejected(
+            "SOURCE_DIMENSION_MISMATCH",
+            "Handoff=${handoff.normalizedSourceWidth}x${handoff.normalizedSourceHeight} " +
+                "Processing=${processingTransform.sourceWidthPx}x${processingTransform.sourceHeightPx}",
+        )
+        if (hero.cropRect != null && !isValidSourceBox(hero.cropRect)) {
+            return photoRejected("CROP_OUT_OF_RANGE", "Normalized crop is ${hero.cropRect}")
+        }
+        val heroTransform = try {
             hero.cropRect?.let { crop ->
                 calculateRecognitionImageTransformForSourceRect(
                     containerWidth = hero.boundsInWindow.width,
@@ -265,8 +319,17 @@ object RecognitionRevealGeometryResolver {
                 imageHeight = handoff.normalizedSourceHeight,
                 contentScaleMode = RecognitionContentScaleMode.FIT,
             )
-        }.getOrNull() ?: return null
-        return RecognitionRevealPhotoGeometry(
+        } catch (error: Throwable) {
+            return photoRejected(
+                "IMAGE_TRANSFORM_FAILED",
+                "${error::class.java.simpleName}: ${error.message.orEmpty()}",
+            )
+        }
+        if (!heroTransform.scale.isFinite() || heroTransform.scale <= 0f ||
+            !heroTransform.translationX.isFinite() || !heroTransform.translationY.isFinite() ||
+            heroTransform.viewportWidthPx <= 0f || heroTransform.viewportHeightPx <= 0f
+        ) return photoRejected("IMAGE_TRANSFORM_FAILED", "Resolved Hero transform is invalid: $heroTransform")
+        val geometry = RecognitionRevealPhotoGeometry(
             rootWindowOrigin = DisplayPoint(rootBoundsInWindow.left, rootBoundsInWindow.top),
             sourceWidth = handoff.normalizedSourceWidth,
             sourceHeight = handoff.normalizedSourceHeight,
@@ -280,7 +343,11 @@ object RecognitionRevealGeometryResolver {
             heroPhotoClip = hero.boundsInWindow,
             heroSourceTransform = heroTransform,
         )
+        return RecognitionRevealPhotoGeometryResolution(geometry, failureReason = null)
     }
+
+    private fun photoRejected(reason: String, details: String) =
+        RecognitionRevealPhotoGeometryResolution(null, reason, details)
 
     fun resolve(
         handoff: RecognitionRevealHandoff,
@@ -300,8 +367,9 @@ object RecognitionRevealGeometryResolver {
         titleBoundsInWindow: RecognitionRevealWindowRect,
         rootBoundsInWindow: RecognitionRevealWindowRect,
     ): RecognitionRevealGeometryResolution {
-        val photoGeometry = resolvePhoto(handoff, hero, rootBoundsInWindow)
-            ?: return rejected("INVALID_PHOTO_GEOMETRY")
+        val photoResolution = resolvePhotoDetailed(handoff, hero, rootBoundsInWindow)
+        val photoGeometry = photoResolution.geometry
+            ?: return rejected(requireNotNull(photoResolution.failureReason))
         if (handoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY) {
             return resolveDegradedOrbToGlyph(handoff, photoGeometry, titleBoundsInWindow, rootBoundsInWindow)
         }
@@ -393,6 +461,7 @@ object RecognitionRevealGeometryResolver {
                 maskVersion = handoff.maskVersion,
                 returnPathSegments = returnProjection.segments,
                 returnPathId = returnProjection.pathId,
+            returnPathGeometryVersion = returnProjection.geometryVersion,
             ),
             failureReason = null,
         )
@@ -414,10 +483,13 @@ object RecognitionRevealGeometryResolver {
         // When SlimSAM has no trusted contour, the perimeter is the only valid
         // energy source. Return from its measured photo edge; never substitute a
         // detector box or a fabricated fish anchor for the missing Mask.
-        val perimeterStart = nearestPerimeterPoint(photo.processingPhotoClip, originalOrb)
-            ?: return rejected("PHOTO_PERIMETER_ANCHOR_MISSING")
-        val orbReturn = opticalCurve(perimeterStart, originalOrb)
-            ?: return rejected("PERIMETER_TO_ORB_PATH_INVALID")
+        val orbPathSnapshot = handoff.orbOnlyReturnPathSnapshot
+            ?: return rejected("ORB_ONLY_RETURN_PATH_MISSING")
+        val orbReturn = RecognitionRevealReturnPathProjector.projectOrbOnly(
+            handoff = handoff,
+            snapshot = orbPathSnapshot,
+            resultRootBoundsInWindow = root,
+        ) ?: return rejected("ORB_ONLY_RETURN_PATH_IDENTITY_OR_PROJECTION_INVALID")
         val glyphAnchor = DisplayPoint(title.left + title.width * .5f, title.top + title.height * .38f)
         val orbToGlyph = opticalCurve(originalOrb, glyphAnchor) ?: return rejected("ORB_TO_GLYPH_PATH_INVALID")
         val residueAnchor = DisplayPoint(title.right - title.width * .08f, title.bottom - title.height * .12f)
@@ -438,6 +510,9 @@ object RecognitionRevealGeometryResolver {
                 orbReturnPath = orbReturn,
                 orbToGlyphPath = orbToGlyph,
                 glyphResiduePath = residue,
+                returnPathSegments = listOf(orbReturn),
+                returnPathId = orbPathSnapshot.pathId,
+                returnPathGeometryVersion = orbPathSnapshot.geometryVersion,
             ),
             failureReason = null,
         )
@@ -447,29 +522,6 @@ object RecognitionRevealGeometryResolver {
         geometry = null,
         failureReason = reason,
     )
-
-    private fun nearestPerimeterPoint(
-        photoBoundsInWindow: RecognitionRevealWindowRect,
-        targetInWindow: DisplayPoint,
-    ): DisplayPoint? {
-        if (!photoBoundsInWindow.isValid() || !targetInWindow.x.isFinite() || !targetInWindow.y.isFinite()) return null
-        val bounds = photoBoundsInWindow
-        val isOutside = targetInWindow.x !in bounds.left..bounds.right ||
-            targetInWindow.y !in bounds.top..bounds.bottom
-        if (isOutside) {
-            return DisplayPoint(
-                targetInWindow.x.coerceIn(bounds.left, bounds.right),
-                targetInWindow.y.coerceIn(bounds.top, bounds.bottom),
-            )
-        }
-        val candidates = listOf(
-            DisplayPoint(bounds.left, targetInWindow.y) to (targetInWindow.x - bounds.left),
-            DisplayPoint(bounds.right, targetInWindow.y) to (bounds.right - targetInWindow.x),
-            DisplayPoint(targetInWindow.x, bounds.top) to (targetInWindow.y - bounds.top),
-            DisplayPoint(targetInWindow.x, bounds.bottom) to (bounds.bottom - targetInWindow.y),
-        )
-        return candidates.minByOrNull { it.second }?.first
-    }
 
     private fun sourceMatrix(
         transform: RecognitionImageTransform,

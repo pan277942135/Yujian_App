@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.imagery
 
 import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.ui.identify.NormalizedSourceRect
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -46,6 +47,25 @@ data class PhotoCropRect(
     val width: Float get() = right - left
     val height: Float get() = bottom - top
     val aspectRatio: Float get() = width / height
+
+    /** Converts this pixel-space crop to the normalized source-space contract used by Result geometry. */
+    fun toNormalizedSourceRect(sourceWidth: Int, sourceHeight: Int): NormalizedSourceRect? {
+        if (sourceWidth <= 0 || sourceHeight <= 0) return null
+        val pixelValues = listOf(left, top, right, bottom)
+        if (pixelValues.any { !it.isFinite() } || left < 0f || top < 0f || right > sourceWidth || bottom > sourceHeight ||
+            left >= right || top >= bottom
+        ) return null
+        val normalized = NormalizedSourceRect(
+            left = left / sourceWidth,
+            top = top / sourceHeight,
+            right = right / sourceWidth,
+            bottom = bottom / sourceHeight,
+        )
+        return normalized.takeIf {
+            listOf(it.left, it.top, it.right, it.bottom).all { value -> value.isFinite() && value in 0f..1f } &&
+                it.left < it.right && it.top < it.bottom
+        }
+    }
 
     fun contains(other: PhotoCropRect, tolerance: Float = 0.001f): Boolean =
         left <= other.left + tolerance && top <= other.top + tolerance &&

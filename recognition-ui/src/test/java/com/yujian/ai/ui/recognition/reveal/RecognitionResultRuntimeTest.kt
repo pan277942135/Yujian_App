@@ -14,6 +14,96 @@ import org.junit.Test
 
 class RecognitionResultRuntimeTest {
     @Test
+    fun resultNavigationDoesNotDependOnStage10GeometryOrCanvasReceipts() {
+        assertTrue(
+            RecognitionResultNavigationReadiness.canNavigate(
+                classifierReady = true,
+                identityCurrent = true,
+                decision = RecognitionRevealDecisionState.FISH_FOCUS_READY,
+                fishPathBound = true,
+                orbOnlyPathReady = false,
+            ),
+        )
+        assertTrue(
+            RecognitionResultNavigationReadiness.canNavigate(
+                classifierReady = true,
+                identityCurrent = true,
+                decision = RecognitionRevealDecisionState.ORB_ONLY_READY,
+                fishPathBound = false,
+                orbOnlyPathReady = true,
+            ),
+        )
+        assertFalse(
+            RecognitionResultNavigationReadiness.canNavigate(
+                classifierReady = true,
+                identityCurrent = true,
+                decision = RecognitionRevealDecisionState.FISH_FOCUS_READY,
+                fishPathBound = false,
+                orbOnlyPathReady = false,
+            ),
+        )
+        assertFalse(
+            RecognitionResultNavigationReadiness.canNavigate(
+                classifierReady = true,
+                identityCurrent = false,
+                decision = RecognitionRevealDecisionState.ORB_ONLY_READY,
+                fishPathBound = false,
+                orbOnlyPathReady = true,
+            ),
+        )
+        assertFalse(
+            RecognitionResultNavigationReadiness.canNavigate(
+                classifierReady = false,
+                identityCurrent = true,
+                decision = RecognitionRevealDecisionState.ORB_ONLY_READY,
+                fishPathBound = false,
+                orbOnlyPathReady = true,
+            ),
+        )
+        assertFalse(
+            RecognitionResultNavigationReadiness.canNavigate(
+                classifierReady = true,
+                identityCurrent = true,
+                decision = RecognitionRevealDecisionState.ORB_ONLY_READY,
+                fishPathBound = false,
+                orbOnlyPathReady = false,
+            ),
+        )
+    }
+
+    @Test
+    fun returnEventCanRetryAfterGeometryAndCanvasReadinessWithTheCurrentSequence() {
+        assertFalse(RecognitionReturnEventSubmissionReadiness.isReady(
+            feedback = com.yujian.ai.ui.waterlight.core.EnergyFeedback.RETURN,
+            level = 1f,
+            hasResultSceneFrame = true,
+            returnCanvasReceiptAccepted = false,
+            returnEnergyEventAlreadyAccepted = false,
+        ))
+        assertTrue(RecognitionReturnEventSubmissionReadiness.isReady(
+            feedback = com.yujian.ai.ui.waterlight.core.EnergyFeedback.RETURN,
+            level = 1f,
+            hasResultSceneFrame = true,
+            returnCanvasReceiptAccepted = true,
+            returnEnergyEventAlreadyAccepted = false,
+        ))
+        assertFalse(RecognitionReturnEventSubmissionReadiness.isReady(
+            feedback = com.yujian.ai.ui.waterlight.core.EnergyFeedback.RETURN,
+            level = 1f,
+            hasResultSceneFrame = true,
+            returnCanvasReceiptAccepted = true,
+            returnEnergyEventAlreadyAccepted = true,
+        ))
+        assertFalse(RecognitionReturnEventSubmissionReadiness.isReady(
+            feedback = com.yujian.ai.ui.waterlight.core.EnergyFeedback.RETURN,
+            level = .98f,
+            hasResultSceneFrame = true,
+            returnCanvasReceiptAccepted = true,
+            returnEnergyEventAlreadyAccepted = false,
+        ))
+    }
+
+    @Test
     fun fiveResultMilestonesHaveStableContractIdsAndStrictOrder() {
         val sequence = ResultHandoffSubstage.entries
         assertEquals(listOf("13.1", "13.2", "13.3", "13.4", "13.5"), sequence.map { it.contractId })

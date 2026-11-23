@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.imagery
 
 import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.ui.identify.NormalizedSourceRect
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -10,6 +11,39 @@ import org.junit.Test
 
 class FishPhotoCropPlannerTest {
     private val sample = NormalizedFishBox(0.1f, 0.2f, 0.4f, 0.7f)
+
+    @Test
+    fun yellowFishPixelCropConvertsToValidatedNormalizedHeroGeometry() {
+        val plan = FishPhotoCropPlanner.plan(
+            sourceWidthPx = 640,
+            sourceHeightPx = 427,
+            targetAspectRatio = 322f / 210f,
+            boundingBox = FishPhotoBoundingBox(
+                NormalizedFishBox(0.067878835f, 0.08322883f, 0.99690515f, 0.9079427f),
+                confidence = .96f,
+            ),
+        )
+        val crop = requireNotNull(plan.cropRect)
+        val normalized = requireNotNull(crop.toNormalizedSourceRect(640, 427))
+
+        assertEquals(0f, normalized.left, .001f)
+        assertEquals(.00684f, normalized.top, .0001f)
+        assertEquals(1f, normalized.right, .001f)
+        assertEquals(.98433f, normalized.bottom, .0002f)
+        assertTrue(normalized.left < normalized.right)
+        assertTrue(normalized.top < normalized.bottom)
+    }
+
+    @Test
+    fun pixelCropConversionRejectsInvalidSourceAndOutOfRangeGeometry() {
+        assertNull(PhotoCropRect(0f, 0f, 10f, 10f).toNormalizedSourceRect(0, 100))
+        assertNull(PhotoCropRect(-1f, 0f, 10f, 10f).toNormalizedSourceRect(100, 100))
+        assertNull(PhotoCropRect(20f, 0f, 10f, 10f).toNormalizedSourceRect(100, 100))
+        assertEquals(
+            NormalizedSourceRect(0f, 0f, 1f, 1f),
+            PhotoCropRect(0f, 0f, 100f, 100f).toNormalizedSourceRect(100, 100),
+        )
+    }
 
     @Test
     fun exifOrientationsTwoThroughEightMapBoundingBoxCornersCorrectly() {

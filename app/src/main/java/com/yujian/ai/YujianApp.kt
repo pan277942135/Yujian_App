@@ -116,6 +116,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealSessionStore
 import com.yujian.ai.ui.recognition.reveal.matches
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGate
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
+import com.yujian.ai.ui.recognition.reveal.RecognitionResultNavigationReadiness
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffConsumer
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultProductionEvidenceWriter
 import com.yujian.ai.ui.screens.RecognizingScreen
@@ -596,24 +597,27 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
         val sessionId = recognitionSessionId ?: return false
         val key = RecognitionRevealKey(sessionId, attemptId)
         val saved = revealSessionStore.snapshot?.takeIf { it.matches(key) } ?: return false
-        if (diagnosticPlaybackController.currentStage != RecognitionSceneStage.ORB_RETURN ||
-            !diagnosticPlaybackController.resultVisualReady(handoffNowMs)
+        val result = saved.productionResult?.takeIf { it.ready }
+        if (!RecognitionResultNavigationReadiness.canNavigate(
+                classifierReady = result != null,
+                identityCurrent = saved.image?.let { it.imageId.isNotBlank() && it.photoSha256.isNotBlank() } == true,
+                decision = saved.revealDecision,
+                fishPathBound = saved.fishPathSnapshot != null,
+                orbOnlyPathReady = saved.orbOnlyReturnPathSnapshot?.isValid() == true,
+            )
         ) {
             Log.i(
                 "RecognitionRevealHandoff",
-                "HANDOFF_RETRY_DEFERRED attempt=$attemptId stage=${diagnosticPlaybackController.currentStage} " +
-                    "reason=WAITING_FOR_STAGE_10_HANDOFF_READINESS decision=${saved.revealDecision} " +
+                "HANDOFF_RETRY_DEFERRED attempt=$attemptId " +
+                    "reason=WAITING_FOR_CLASSIFIER_IDENTITY_OR_REVEAL_DECISION decision=${saved.revealDecision} " +
                     "pathBinding=${saved.fishPathSnapshotBindingState} " +
                     "pathBound=${saved.fishPathSnapshot != null} pathPending=${saved.pendingFishPathSnapshot != null} " +
                     "pendingInputs=${saved.fishPathSnapshotBindingDiagnostic["pendingInputs"]}",
             )
             return false
         }
-        val result = saved.productionResult?.takeIf { it.ready } ?: run {
-            Log.i("RecognitionRevealHandoff", "HANDOFF_RETRY_DEFERRED attempt=$attemptId reason=PRODUCTION_RESULT_NOT_READY")
-            return false
-        }
-        val handoff = completeRecognitionAttempt(result, attemptId) ?: return false
+        val readyResult = requireNotNull(result)
+        val handoff = completeRecognitionAttempt(readyResult, attemptId) ?: return false
         if (!RecognitionRevealDecisionGate.isNavigable(
                 handoff.revealDecision ?: RecognitionRevealDecisionState.WAITING_BOTH,
             )
@@ -1233,6 +1237,39 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                         "reason=${revealSessionStore.snapshot?.fishPathSnapshotBindingDiagnostic?.get("reason")}",
                                 )
                                 scope.launch { retryReadyRecognitionHandoff(attemptId) }
+                            }
+                        },
+                        onOrbOnlyReturnPathSnapshot = { routeSnapshot ->
+                            val sessionId = recognitionSessionId
+                            val activeAttempt = attemptId
+                            val activeImage = sessionImage
+                            if (sessionId != null && activeAttempt != null &&
+                                activeRecognitionAttemptId == activeAttempt && activeImage != null &&
+                                activeImage.imageId == routeSnapshot.imageId &&
+                                activeImage.photoSha256 == routeSnapshot.photoSha256
+                            ) {
+                                val identity = com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity(
+                                    sessionId = sessionId,
+                                    attemptId = activeAttempt,
+                                    imageId = activeImage.imageId,
+                                    photoSha256 = activeImage.photoSha256,
+                                    photoContentVersion = activeImage.bitmap.generationId.toLong().coerceAtLeast(0L),
+                                )
+                                val controllerAccepted = diagnosticPlaybackController.onOrbOnlyReturnPathAvailable(
+                                    routeSnapshot,
+                                    identity,
+                                )
+                                val storeAccepted = revealSessionStore.updateOrbOnlyReturnPathSnapshot(
+                                    RecognitionRevealKey(sessionId, activeAttempt),
+                                    routeSnapshot,
+                                )
+                                android.util.Log.i(
+                                    "RecognitionRevealHandoff",
+                                    "ORB_ONLY_RETURN_PATH session=$sessionId attempt=$activeAttempt " +
+                                        "path=${routeSnapshot.pathId} geometry=${routeSnapshot.geometryVersion} " +
+                                        "accepted=${storeAccepted && controllerAccepted}",
+                                )
+                                scope.launch { retryReadyRecognitionHandoff(activeAttempt) }
                             }
                         },
                         recognitionSessionId = recognitionSessionId,

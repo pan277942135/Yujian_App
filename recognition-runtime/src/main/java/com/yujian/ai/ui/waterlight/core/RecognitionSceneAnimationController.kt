@@ -134,6 +134,7 @@ class RecognitionSceneAnimationController(
     private var activeFishContactPathId: String? = null
     private var fishContactPathId: String? = null
     private var fishPathSnapshot: RecognitionFishPathSnapshot? = null
+    private var orbOnlyReturnPathSnapshot: RecognitionOrbOnlyReturnPathSnapshot? = null
     private var revealDecisionState = RecognitionRevealDecisionState.WAITING_BOTH
     private var fishContactPathReady = false
     private var fishPathBindingStatus = RecognitionFishPathBindingStatus.WAITING_FOR_PHOTO_GEOMETRY
@@ -321,6 +322,7 @@ class RecognitionSceneAnimationController(
         val nextReady = ready && (geometryVersion == null || acceptedVersion != null)
         if (!nextReady) {
             photoTransformReady = false
+            orbOnlyReturnPathSnapshot = null
             perimeterArrivalPathReady = false
             perimeterArrivalPathId = null
             perimeterArrivalPathGeometry = null
@@ -334,6 +336,7 @@ class RecognitionSceneAnimationController(
         }
         if (activePhotoGeometryVersion != acceptedVersion) {
             activePhotoGeometryVersion = acceptedVersion
+            orbOnlyReturnPathSnapshot = null
             perimeterArrivalPathReady = false
             perimeterArrivalPathId = null
             perimeterArrivalPathGeometry = null
@@ -835,6 +838,17 @@ class RecognitionSceneAnimationController(
                 event.pathContactPointNormalizedSource != snapshot.pStarNormalizedSource
             ) return reject(EnergyEventRejectionReason.EVENT_PSTAR_BIND_MISMATCH)
         }
+        if (event.feedback == EnergyFeedback.RETURN && event.source == EnergyAnchor.PHOTO_PERIMETER &&
+            revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY
+        ) {
+            val route = orbOnlyReturnPathSnapshot
+                ?: return reject(EnergyEventRejectionReason.EVENT_PATH_PENDING)
+            if (event.pathId != route.pathId || event.pathGeometryVersion != route.geometryVersion ||
+                event.pathMaskSha256 != null || event.pathMaskVersion != null ||
+                event.pathContactPointNormalizedSource != null || event.pathSegments.isNotEmpty() ||
+                event.pathGeometry?.isValid() != true
+            ) return reject(EnergyEventRejectionReason.EVENT_PATH_INVALID)
+        }
         if (event.feedback == EnergyFeedback.RETURN) {
             val receipt = orbReturnRenderReceipt
                 ?: return reject(EnergyEventRejectionReason.EVENT_RETURN_RENDER_RECEIPT_MISSING)
@@ -986,6 +1000,23 @@ class RecognitionSceneAnimationController(
         return true
     }
 
+    /** Stores only the real Processing ledger route used by the ORB_ONLY_READY branch. */
+    fun onOrbOnlyReturnPathAvailable(
+        snapshot: RecognitionOrbOnlyReturnPathSnapshot,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!isCurrent(currentIdentity) || !snapshot.isValid()) return false
+        val active = identity ?: return false
+        if (snapshot.sessionId != active.sessionId || snapshot.attemptId != active.attemptId ||
+            snapshot.imageId != active.imageId || snapshot.photoSha256 != active.photoSha256 ||
+            snapshot.photoContentVersion != active.photoContentVersion
+        ) return false
+        val current = orbOnlyReturnPathSnapshot
+        if (current != null && current != snapshot) return false
+        orbOnlyReturnPathSnapshot = snapshot
+        return true
+    }
+
     /** Accepts only a Canvas receipt for the current Result-host RETURN route. */
     fun onOrbReturnRenderComplete(
         receipt: RecognitionOrbReturnRenderReceipt,
@@ -1003,6 +1034,9 @@ class RecognitionSceneAnimationController(
                 },
                 resultGeometryVersion = receipt.resultGeometryVersion,
                 receipt = receipt,
+                orbOnlySnapshot = orbOnlyReturnPathSnapshot.takeIf {
+                    revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY
+                },
             )
         ) return false
         val previous = orbReturnRenderReceipt
@@ -1706,6 +1740,7 @@ class RecognitionSceneAnimationController(
         activeFishContactPathId = null
         fishContactPathId = null
         fishPathSnapshot = null
+        orbOnlyReturnPathSnapshot = null
         revealDecisionState = RecognitionRevealDecisionState.WAITING_BOTH
         contourRenderReceipts.clear()
         lastContourDrawPassSequence = 0L

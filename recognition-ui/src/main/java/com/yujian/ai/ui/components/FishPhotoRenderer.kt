@@ -220,7 +220,6 @@ fun FishPhotoBitmapImage(
     primaryAmbiguous: Boolean = false,
     allowSubjectCrop: Boolean = true,
     onRenderGeometry: ((PhotoCropRect?, Boolean) -> Unit)? = null,
-    placeholder: @Composable () -> Unit = { FishPhotoErrorPlaceholder() },
 ) {
     BoxWithConstraints(modifier = modifier) {
         val density = LocalDensity.current
@@ -323,7 +322,14 @@ fun FishPhotoBitmapImage(
             onRenderGeometry?.invoke(activePlan.cropRect, image != null)
         }
         if (image == null) {
-            Box(Modifier.fillMaxSize()) { placeholder() }
+            // Keep the actual capture visible while its derived crop rasterizes. Geometry
+            // readiness is reported from the plan/layout and does not depend on this job.
+            Image(
+                bitmap = bitmap,
+                contentDescription = contentDescription,
+                modifier = Modifier.fillMaxSize().testTag("fish-photo-source-fit-fallback"),
+                contentScale = ContentScale.Fit,
+            )
         } else {
             Image(
                 bitmap = image.bitmap.asImageBitmap(),

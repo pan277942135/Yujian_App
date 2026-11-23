@@ -10,6 +10,7 @@ import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
+import com.yujian.ai.ui.waterlight.core.RecognitionOrbOnlyReturnPathSnapshot
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 
 data class RecognitionRevealKey(
@@ -121,6 +122,8 @@ data class RecognitionRevealHandoff(
     val contactPointGeometryVersion: Long = 0L,
     /** Exact path ledger snapshot emitted by Processing; Result must consume it unchanged. */
     val fishPathSnapshot: RecognitionFishPathSnapshot? = null,
+    /** Ledger-authored single perimeter return path for a real Orb-only downgrade. */
+    val orbOnlyReturnPathSnapshot: RecognitionOrbOnlyReturnPathSnapshot? = null,
     val captureTimestampEpochMs: Long = 0L,
     val captureTimestampSource: String = "UNKNOWN",
     val photoContentVersion: Long = 0L,
@@ -138,6 +141,7 @@ object RecognitionRevealHandoffFactory {
         handoffTimestampUptimeMs: Long,
         subjectStatus: SubjectStatus = if (subject == null) SubjectStatus.FAILED else SubjectStatus.READY,
         fishPathSnapshot: RecognitionFishPathSnapshot? = null,
+        orbOnlyReturnPathSnapshot: RecognitionOrbOnlyReturnPathSnapshot? = null,
         pStarPathTerminalUnavailable: Boolean = false,
         frozenRevealDecision: RecognitionRevealDecisionState? = null,
     ): RecognitionRevealHandoff {
@@ -234,6 +238,12 @@ object RecognitionRevealHandoffFactory {
         val decision = if (frozenRevealDecision == RecognitionRevealDecisionState.FISH_FOCUS_READY &&
             validFishPathSnapshot == null
         ) RecognitionRevealDecisionState.WAITING_PSTAR_PATH else frozenRevealDecision ?: computedDecision
+        val validOrbOnlyReturnPath = orbOnlyReturnPathSnapshot?.takeIf { route ->
+            decision == RecognitionRevealDecisionState.ORB_ONLY_READY && route.isValid() &&
+                route.sessionId == recognitionSessionId && route.attemptId == recognitionAttemptId &&
+                route.imageId == image.imageId && route.photoSha256 == image.photoSha256 &&
+                route.photoContentVersion == image.bitmap.generationId.toLong().coerceAtLeast(0L)
+        }
         val eligibility = RecognitionRevealPolicy.eligibility(
             resultReady = result.ready,
             identityValid = identityValid,
@@ -275,6 +285,7 @@ object RecognitionRevealHandoffFactory {
             maskSha256 = if (maskTrusted) subject?.maskSha256.orEmpty() else "",
             contactPointGeometryVersion = photo?.contactPointGeometryVersion ?: 0L,
             fishPathSnapshot = validFishPathSnapshot,
+            orbOnlyReturnPathSnapshot = validOrbOnlyReturnPath,
             captureTimestampEpochMs = image.captureTimestampEpochMs,
             captureTimestampSource = image.captureTimestampSource,
             photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),

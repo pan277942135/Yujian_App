@@ -301,8 +301,8 @@ class SlimSamRuntimeManager(
             timedStage("DECODER_SESSION_CREATE", attempt) { worker.preloadDecoderSession() }
 
             val stats = worker.runtimeStats()
-            check(stats.visionSessionReady && stats.decoderSessionReady) {
-                "Session metadata validation completed without both Sessions READY"
+            check(SlimSamSessionReadiness.isReady(stats.visionSessionReady, stats.decoderSessionReady)) {
+                "Session metadata validation completed without both validated Sessions READY"
             }
             updateState(
                 state = SlimSamRuntimeState.READY,
