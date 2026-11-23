@@ -342,7 +342,10 @@ avd_home="${ANDROID_AVD_HOME:-${HOME}/.android/avd}"
 find "$avd_home" -maxdepth 3 -name config.ini -type f -print -exec cat {} \; \
   > "$evidence_dir/avd-config-and-memory.txt" 2>&1 || true
 if ! grep -Eiq '^hw\.ramSize=4096(M|MB)?$' "$evidence_dir/avd-config-and-memory.txt" ||
-   ! grep -Eiq '^vm\.heapSize=512(M|MB)?$' "$evidence_dir/avd-config-and-memory.txt"; then
+   ! grep -Eiq '^hw\.heapSize=512(M|MB)?$' "$evidence_dir/avd-config-and-memory.txt"; then
+  printf 'AVD_MEMORY_CONFIG_MISMATCH expected_hw.ramSize=4096M expected_hw.heapSize=512M observed:\n'
+  grep -Ei '^(hw\.(ramSize|heapSize)|vm\.heapSize)=' \
+    "$evidence_dir/avd-config-and-memory.txt" || true
   failure_reason="AVD_RAM_OR_VM_HEAP_CONFIGURATION_MISMATCH"
   exit 32
 fi
