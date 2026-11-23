@@ -715,29 +715,131 @@ jobs:
         run: |
           set -euo pipefail
           result=evidence/runtime/recognition-result-api36/runtime-result.json
-          if [[ -s "$result" ]]; then exit 0; fi
-          kvm_report=evidence/runtime/recognition-result-api36/kvm-preflight.txt
-          kvm_classification=NOT_CONFIRMED
-          if [[ -s "$kvm_report" ]]; then
-            kvm_classification="$(sed -n 's/^classification=//p' "$kvm_report" | tail -1)"
+          if [[ ! -s "$result" ]]; then
+            kvm_report=evidence/runtime/recognition-result-api36/kvm-preflight.txt
+            kvm_classification=NOT_CONFIRMED
+            if [[ -s "$kvm_report" ]]; then
+              kvm_classification="$(sed -n 's/^classification=//p' "$kvm_report" | tail -1)"
+            fi
+            python3 - "$result" "$SOURCE_SHA" "$kvm_classification" "${{ needs.build.result }}" "${{ steps.api36_smoke.outcome }}" <<'PY'
+            import json, pathlib, sys
+            path, source_sha, kvm, build_result, smoke_result = sys.argv[1:]
+            payload = {
+                'source_sha': source_sha,
+                'api_level_expected': 36,
+                'classification': 'INFRA_BLOCKED',
+                'failure_reason': f'SMOKE_DID_NOT_WRITE_RUNTIME_RESULT:kvm={kvm}:build={build_result}:runner={smoke_result}',
+                'validation_reason': 'NOT_RUN',
+                'instrumentation_started': False,
+                'instrumentation_attempted': False,
+                'instrumentation_command_exit_code': None,
+                'instrumentation_timed_out': False,
+                'BUILD_PASS': build_result == 'success',
+                'KVM_READY': kvm == 'KVM_READY',
+                'emulator_boot_pass': False,
+                'EMULATOR_BOOT_PASS': False,
+                'AUTO_SMOKE_PASS': False,
+                'DEVICE_QA_PENDING': True,
+            }
+            pathlib.Path(path).parent.mkdir(parents=True, exist_ok=True)
+            pathlib.Path(path).write_text(json.dumps(payload, indent=2) + '\n')
+            PY
           fi
-          python3 - "$result" "$SOURCE_SHA" "$kvm_classification" "${{ needs.build.result }}" "${{ steps.api36_smoke.outcome }}" <<'PY'
-          import json, pathlib, sys
-          path, source_sha, kvm, build_result, smoke_result = sys.argv[1:]
-          payload = {
-              'source_sha': source_sha,
-              'api_level_expected': 36,
-              'classification': 'INFRA_BLOCKED',
-              'failure_reason': f'SMOKE_DID_NOT_START:kvm={kvm}:build={build_result}:runner={smoke_result}',
-              'BUILD_PASS': build_result == 'success',
-              'KVM_READY': kvm == 'KVM_READY',
-              'emulator_boot_pass': False,
-              'EMULATOR_BOOT_PASS': False,
-              'AUTO_SMOKE_PASS': False,
-              'DEVICE_QA_PENDING': True,
-          }
-          pathlib.Path(path).parent.mkdir(parents=True, exist_ok=True)
-          pathlib.Path(path).write_text(json.dumps(payload, indent=2) + '\n')
+          python3 - "$result" "$GITHUB_STEP_SUMMARY" "${{ needs.build.result }}" \
+            "${{ steps.api36_smoke.outcome }}" "$SOURCE_SHA" <<'PY'
+          import hashlib, json, pathlib, sys
+          result_path, summary_path, build_result, smoke_result, expected_sha = sys.argv[1:]
+          result_path = pathlib.Path(result_path)
+          payload = json.loads(result_path.read_text(encoding='utf-8'))
+          if payload.get('source_sha') != expected_sha:
+              payload['classification'] = 'INFRA_BLOCKED'
+              payload['failure_reason'] = 'RUNTIME_RESULT_SOURCE_SHA_MISMATCH'
+              payload['AUTO_SMOKE_PASS'] = False
+          if smoke_result != 'success' and payload.get('classification') == 'AUTO_SMOKE_PASS':
+              payload['classification'] = 'INFRA_BLOCKED'
+              payload['failure_reason'] = f'SMOKE_RUNNER_STEP_FAILED_AFTER_RUNTIME_RESULT:{smoke_result}'
+              payload['AUTO_SMOKE_PASS'] = False
+          payload['BUILD_PASS'] = build_result == 'success'
+          payload['smoke_step_outcome'] = smoke_result
+          payload.setdefault('KVM_READY', False)
+          payload.setdefault('EMULATOR_BOOT_PASS', False)
+          payload.setdefault('AUTO_SMOKE_PASS', False)
+          payload.setdefault('DEVICE_QA_PENDING', True)
+          apk_dir = pathlib.Path('build/runtime-apks')
+          def sha256_file(path):
+              digest = hashlib.sha256()
+              with path.open('rb') as stream:
+                  for block in iter(lambda: stream.read(1024 * 1024), b''):
+                      digest.update(block)
+              return digest.hexdigest()
+          for field, filename in (
+              ('app_apk_sha256', 'app-debug.apk'),
+              ('android_test_apk_sha256', 'app-debug-androidTest.apk'),
+          ):
+              apk = apk_dir / filename
+              if apk.is_file():
+                  payload[field] = sha256_file(apk)
+          host_preflight = pathlib.Path('evidence/runtime/recognition-result-api36')
+          host_json = host_preflight / 'host-memory-preflight.json'
+          if host_json.is_file():
+              host = json.loads(host_json.read_text(encoding='utf-8'))
+              for field in ('mem_total_kb', 'mem_available_kb', 'swap_total_kb', 'swap_free_kb'):
+                  if field in host:
+                      payload[f'host_{field}'] = host[field]
+          avd_report = host_preflight / 'avd-config-before-launch.txt'
+          if avd_report.is_file():
+              import re
+              avd_text = avd_report.read_text(encoding='utf-8', errors='replace')
+              for key, field in (('ramSize', 'avd_ram_mb'), ('heapSize', 'avd_vm_heap_mb')):
+                  match = re.search(rf'^hw\.{key}=(\d+)(?:M)?$', avd_text, re.MULTILINE | re.IGNORECASE)
+                  if match:
+                      payload[field] = int(match.group(1))
+          result_path.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
+
+          root = result_path.parent
+          sums_path = root / 'evidence-sha256sums.txt'
+          rows = []
+          for path in sorted(p for p in root.rglob('*') if p.is_file() and p != sums_path):
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              rows.append(f'{digest}  {path.relative_to(root).as_posix()}')
+          sums_path.write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
+
+          fields = [
+              ('BUILD_PASS', str(payload['BUILD_PASS']).lower()),
+              ('KVM_READY', str(payload['KVM_READY']).lower()),
+              ('EMULATOR_BOOT_PASS', str(payload['EMULATOR_BOOT_PASS']).lower()),
+              ('AUTO_SMOKE_PASS', str(payload['AUTO_SMOKE_PASS']).lower()),
+              ('DEVICE_QA_PENDING', str(payload['DEVICE_QA_PENDING']).lower()),
+              ('classification', payload.get('classification', 'UNKNOWN')),
+              ('failure_reason', payload.get('failure_reason', 'UNKNOWN')),
+              ('validation_reason', payload.get('validation_reason', 'NOT_RECORDED')),
+              ('instrumentation_attempted', str(payload.get('instrumentation_attempted', False)).lower()),
+              ('instrumentation_started', str(payload.get('instrumentation_started', False)).lower()),
+              ('instrumentation_command_exit_code', payload.get('instrumentation_command_exit_code', 'NOT_RECORDED')),
+              ('instrumentation_timed_out', str(payload.get('instrumentation_timed_out', False)).lower()),
+              ('smoke_step_outcome', smoke_result),
+              ('source_sha', payload.get('source_sha', 'UNKNOWN')),
+              ('app_apk_sha256', payload.get('app_apk_sha256', 'NOT_RECORDED')),
+              ('android_test_apk_sha256', payload.get('android_test_apk_sha256', 'NOT_RECORDED')),
+              ('host_mem_available_kb', payload.get('host_mem_available_kb', 'NOT_RECORDED')),
+              ('host_swap_total_kb', payload.get('host_swap_total_kb', 'NOT_RECORDED')),
+              ('avd_ram_mb', payload.get('avd_ram_mb', 'NOT_CONFIRMED')),
+              ('avd_vm_heap_mb', payload.get('avd_vm_heap_mb', 'NOT_CONFIRMED')),
+          ]
+          markdown = ['## API 36 production AUTO smoke result', '', '| Field | Value |', '| --- | --- |']
+          for name, value in fields:
+              safe_value = str(value).replace('|', '/').replace('`', "'").replace('\r', ' ').replace('\n', ' ')
+              markdown.append(f'| `{name}` | `{safe_value}` |')
+          markdown.extend(['', 'Evidence hashes: `evidence/runtime/recognition-result-api36/evidence-sha256sums.txt`.'])
+          with pathlib.Path(summary_path).open('a', encoding='utf-8') as out:
+              out.write('\n'.join(markdown) + '\n')
+
+          if payload.get('classification') != 'AUTO_SMOKE_PASS':
+              reason = str(payload.get('failure_reason', 'UNKNOWN')).replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              classification = str(payload.get('classification', 'UNKNOWN')).replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              print(f'::error title=API36 production AUTO smoke failed::classification={classification}; reason={reason}')
+          else:
+              print(f"API36_PRODUCTION_AUTO_SMOKE={payload['classification']} source_sha={payload['source_sha']}")
           PY
 
       - name: Upload API 36 runtime evidence
