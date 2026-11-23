@@ -76,7 +76,7 @@ recognition_main_journey:
 runtime_gates:
   exact_head:
     sha: a9f597a4f3b5f2911e8962d2b138ace503fdbe4b
-    admission: PENDING_AFTER_CURRENT_MARKED_STATE_CHECKPOINT
+    admission: PASS_ON_b21c416b28bb3e7f1310c23ffd5520a3a97680fa; source_code_SHA_unchanged
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
@@ -187,8 +187,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-23T04:07:45Z'
-  note: Run 45106300573 at trigger HEAD 8301b486 passed Build/KVM/host-memory/Pair checks and the visible 4096M/512M AVD config step, then the smoke runner returned exit 2. Artifact 14788427080 SHA256 f0aaa9891a87ffda19f52146be08a389a48acc62090c2eddf867c4e3f4e93099 is inaccessible; boot and Instrumentation are NOT_CONFIRMED. Source a9f597a4 adds a fail-closed runtime-result summary, exact source-SHA check, APK and memory fields, per-file hashes and a failure annotation. Parser cases pass 3/3; new exact-head run pending. Run 45032036762 remains rejected as a false PASS.
+  last_updated_at: '2026-11-23T04:09:20Z'
+  note: Run 45106300573 at trigger HEAD 8301b486 passed Build/KVM/host-memory/Pair checks and the visible 4096M/512M AVD config step, then the smoke runner returned exit 2. Artifact 14788427080 SHA256 f0aaa9891a87ffda19f52146be08a389a48acc62090c2eddf867c4e3f4e93099 is inaccessible; boot and Instrumentation are NOT_CONFIRMED. Source a9f597a4 adds a fail-closed runtime-result summary, exact source-SHA check, APK and memory fields, per-file hashes and a failure annotation. Parser cases pass 3/3. Admission passed on checkpoint b21c416b; this checkpoint only records that result, then the same source SHA proceeds to exact-head CI. Run 45032036762 remains rejected as a false PASS.
 agent_recovery:
   resume_order:
   - Re-run minimal Admission after the baseline checkpoint; leave the historical Registry OPEN_GAP unchanged.

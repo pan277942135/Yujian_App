@@ -12,13 +12,13 @@
     "API36_RUNNER_EXIT_2_UNCLASSIFIED: Run 45106300573 triggered at HEAD 8301b4868f00476ed6f6ff2bc30e8286273d269c passed Build, KVM, host-memory headroom, exact APK Pair verification and the standalone AVD 4096M/512M config step; the production AUTO smoke runner ended with exit 2. Runtime artifact 14788427080 SHA256 f0aaa9891a87ffda19f52146be08a389a48acc62090c2eddf867c4e3f4e93099 is uploaded but inaccessible here. Do not infer API36 boot, Instrumentation start, BUSINESS_LOGIC_FAILURE, RESOURCE_EXHAUSTED or PASS."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-23T04:05:31Z",
+  "checkpoint_updated_at": "2026-11-23T04:09:33Z",
   "control_plane_revision": "03db3692669847084d7e48fc3128f85cbf832af9",
   "dependencies": [
     "P5-02"
   ],
   "evidence": {
-    "admission": "CONTROL_PLANE_ADMISSION=PASS at the refreshed pre-trigger state checkpoint; structural_errors=0, the single historical OPEN_GAP is unchanged and non-blocking, and no Registry or validator edits were made.",
+    "admission": "CONTROL_PLANE_ADMISSION=PASS on checkpoint b21c416b28bb3e7f1310c23ffd5520a3a97680fa; Registry, Feature Matrix, Phase/Task, Unified Contract structural validation, Control Plane Sync, Project Master State and Work Execution State pass. structural_errors=0; the one historical RecognitionResultScreen OPEN_GAP is unchanged and non-blocking.",
     "admission_baseline": "CONTROL_PLANE_ADMISSION=PASS at 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; structural_errors=0; historical OPEN_GAP=1 is not an Admission failure. Current recovered-state Admission is the next required check.",
     "android_test_compile": ":app:assembleDebugAndroidTest PASS after the Stage10 timing/route-attachment assertions were added; instrumentation was compiled but not executed locally.",
     "api36_false_positive_audit": "User supplied Run 45032036762 facts: INSTRUMENTATION_RESULT shortMsg=Process crashed; INSTRUMENTATION_CODE=0; lowmemorykiller reported Kill com.yujian.ai.uiv2 with rss=670552kB, swap=1257028kB and min-watermark/swap-low reason. Source SHA/raw artifact remain NOT_CONFIRMED; facts were not independently replayed.",
@@ -26,7 +26,7 @@
     "archive_integrity": "unzip -t passed for the uploaded evidence ZIP",
     "branch_head": "a9f597a4f3b5f2911e8962d2b138ace503fdbe4b",
     "code_implementation_commit": "a9f597a4f3b5f2911e8962d2b138ace503fdbe4b",
-    "current_admission_attempt": "Admission passed on prior checkpoint 8301b486; rerun after the current code source and marked state checkpoint are committed.",
+    "current_admission_attempt": "CONTROL_PLANE_ADMISSION=PASS on checkpoint b21c416b28bb3e7f1310c23ffd5520a3a97680fa; the next local commit only records this Admission result in branch-local state/log; source code SHA a9f597a4f3b5f2911e8962d2b138ace503fdbe4b is unchanged.",
     "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
     "evidence_zip": "/workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip; 14,190,826 bytes; unzip -t passed; 33 recorded hash entries verified; extracted at /tmp/yujian-evidence-5344335",
     "exact_head_apk": "Run_45106300573_pair_for_8301b4868f00476ed6f6ff2bc30e8286273d269c_artifact_14788132404_sha256_ecfa141aff887bcc47eb590412ba5b16a82d14a9fc87ad7176693c1569fb16f0; this Pair is from the prior source and is not the final Pair for the new workflow source.",
@@ -99,7 +99,7 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Complete the marked state checkpoint, rerun Admission, fast-forward push to the existing Draft PR #346 branch, then inspect the exact-head Build, KVM, API36 boot, Smoke classification and evidence summary.",
+  "next_action": "After the current state-only checkpoint passes Admission, fast-forward push the same branch to existing Draft PR #346 and inspect its exact-head Android/KVM/API36 run.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
