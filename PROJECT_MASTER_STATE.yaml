@@ -3,9 +3,9 @@ state_id: YUJIAN_APP_PR346_CROSS_LAYER_CLOSURE_V4_1
 project:
   name: YuJian Android App
   repository: pan277942135/Yujian_App
-  scope: 'PR #346 recognition cross-layer closure'
+  scope: 'PR #346 recognition cross-layer closure; V5 Stage10–13.5 dual-path root-cause repair'
 state_control:
-  execution_baseline_sha: 7119089573515c4f5e0699b72d057cec592eee3b
+  execution_baseline_sha: 9325be29a5c907b73fa264e7532a51384037e645
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 03db3692669847084d7e48fc3128f85cbf832af9
@@ -19,14 +19,14 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: 7119089573515c4f5e0699b72d057cec592eee3b
+    head_sha: 9325be29a5c907b73fa264e7532a51384037e645
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: main
     base_sha: 03db3692669847084d7e48fc3128f85cbf832af9
-    head_sha: 7119089573515c4f5e0699b72d057cec592eee3b
+    head_sha: 9325be29a5c907b73fa264e7532a51384037e645
     status: DRAFT_OPEN_UNMERGED
     status_source: user instruction to keep PR #346 Draft; GitHub Actions API unavailable
 phases:
@@ -75,78 +75,71 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: 7119089573515c4f5e0699b72d057cec592eee3b
-    admission: PRIOR_BASELINE_PASS_ON_6ad3eb6264abdb29f43924210422765ce7a7803a; recheck_this_state_checkpoint_before_push
+    sha: 9325be29a5c907b73fa264e7532a51384037e645
+    admission: PENDING_STATE_CHECKPOINT_COMMIT; previous tracked Work state pointed to 7119089573515c4f5e0699b72d057cec592eee3b
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
       url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
       source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
-    build: PENDING_EXACT_HEAD_BUILD_FOR_7119089573515c4f5e0699b72d057cec592eee3b
-    unit_tests: 8_TARGETED_FAIL_CLOSED_API36_SCRIPT_TESTS_PASS_LOCALLY; EXACT_HEAD_ANDROID_TESTS_PENDING
-    android_test_compile: PENDING_EXACT_HEAD_ANDROID_TEST_COMPILE_FOR_7119089573515c4f5e0699b72d057cec592eee3b
-    lint: PENDING_EXACT_HEAD_LINT_FOR_7119089573515c4f5e0699b72d057cec592eee3b
-    api36_emulator: LATEST_RUN_45110217717_KVM_READY; HOST_MEMORY_GATE_PASS; PRELAUNCH_AVD_4096M_512M_PASS; SUMMARY_FINALIZATION_FAILURE_UNCLASSIFIED; BOOT_AND_INSTRUMENTATION_NOT_CONFIRMED
-    model_validation: PASS
+    build: PRIOR_V1_BASELINE_DEBUG_APK_BUILT_AT_9325; V5_FINAL_BUILD_PENDING
+    unit_tests: PRIOR_V1_BASELINE_PASS; V5_REQUIRED_REGRESSIONS_NOT_RUN
+    android_test_compile: V5_ANDROID_TEST_COMPILE_NOT_RUN
+    lint: V5_LINT_NOT_RUN
+    api36_emulator: V5_EXACT_HEAD_HOSTED_KVM_API36_PENDING; historical run artifacts are not independently inspectable
+    model_validation: PRIOR_BASELINE_VALIDATION_REPORTED; V5_FINAL_HEAD_REVALIDATION_PENDING
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: 7119089573515c4f5e0699b72d057cec592eee3b
-  exact_head_apk: NOT_BUILT_FOR_7119089573515c4f5e0699b72d057cec592eee3b; Run_45110217717_pair_for_6ad3eb6264abdb29f43924210422765ce7a7803a_artifact_14789643852_is_not_final
+  source_head: 9325be29a5c907b73fa264e7532a51384037e645
+  exact_head_apk: 'PRIOR_V1_BASELINE_ONLY: build/exact-head-apk/app-debug.apk at source 9325be29a5c907b73fa264e7532a51384037e645; SHA256 642d9ea46ee0672addea6912be2a5be5e650d57ec7a5695e0d4a5043ca990df9; not final V5 artifact'
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
-  input_video: 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: 285122.mp4 exceeds 32 MiB transfer limit; no video replay.'
-  input_evidence_zip: /workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip
-    (downloaded and archive integrity checked)
-  emulator_device_evidence: Run_45110217717 passed Build, KVM, host-memory headroom, exact APK Pair verification and prelaunch AVD 4096M/512M configuration. Summary finalization and exact-head enforcement failed; runtime artifact 14790495872 SHA256 2729c61d007bff9e659d7725e54f126df60cfc6935a8069e406ab44ab4d5febf is uploaded but inaccessible. API36 boot, Instrumentation, app memory, LMK and business outcome remain NOT_CONFIRMED. Source 7119089573515c4f5e0699b72d057cec592eee3b adds a tested fail-closed finalizer; exact-head hosted rerun is pending.
+  input_video: 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: 285122.mp4 not present in workspace; transfer exceeded 32 MiB limit.'
+  input_evidence_zip: '/workspace/attachments/c26278b3-abb6-416d-9e61-b858e169fd6f/YuJian_Recognition_Evidence_5344335d6a51.zip; 14,190,826 bytes; unzip -t passed; SHA256 19a01dcc9dd07e0b489b22ddae41cc763fed1fe6a03377cceef5e13616e1164d; source SHA 3eb481c1f2ca4053fc58f87729f923fb70ef7f50, historical evidence only'
+  fixture_b: 'FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not found in current attachments/workspace.'
+  emulator_device_evidence: 'NOT_RUN_FOR_V5. Local host lacks /dev/kvm, adb, and emulator; historical hosted runs do not establish V5 runtime.'
 current_work:
   id: YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 7119089573515c4f5e0699b72d057cec592eee3b
+  exact_head: 9325be29a5c907b73fa264e7532a51384037e645
   status: RUNNING
-  stage: G8_EXACT_HEAD_CI_AND_API36_SMOKE
+  stage: G0_MINIMAL_STATE_RECOVERY
+  requested_task_id: YUJIAN_P0_26KF_END_TO_END_RECOGNITION_CLOSURE_V5
+  requested_task_title: 'YuJian 26KF dual-path root-cause repair, Stage10–13.5 closure and exact-head APK V5'
   blockers:
-  - 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: video exceeds 32 MiB transfer limit; ZIP logs/screenshots only.'
-  - 'API36_LOCAL_EMULATOR_BLOCKED_INFRA: missing KVM/VMX/SVM; use hosted exact-head runner.'
-  - 'API36_FALSE_PASS_AUDIT: Run 45032036762 was reported with Process crashed and final code 0; no PASS is accepted for that run.'
-  - 'API36_LATEST_RUN_SUMMARY_FAILURE: Run 45110217717 passed Build/KVM/host-memory/APK-pair/AVD-config checks, then summary finalization and enforcement failed. Artifact 14790495872 is uploaded but inaccessible; emulator boot, Instrumentation, memory and business outcome are NOT_CONFIRMED.'
-  - 'EXACT_HEAD_REVALIDATION_PENDING: build the exact APK Pair and rerun production AUTO for source 7119089573515c4f5e0699b72d057cec592eee3b after the marked state checkpoint is pushed; require all fail-closed Instrumentation and Stage10-13.5 business checks.'
+  - 'FIXTURE_B_UNAVAILABLE: named ZIP absent from current attachments/workspace; deterministic source regression can proceed but real Fixture B replay is blocked.'
+  - 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: 285122.mp4 is not local; Sediment transfer exceeded 32 MiB.'
+  - 'API36_LOCAL_EMULATOR_BLOCKED_INFRA: /dev/kvm, adb, and emulator are absent; use existing hosted x64 workflow.'
+  - 'API36_EXACT_HEAD_V5_PENDING: no V5 hosted KVM boot, production AUTO, memory/LMK evidence, or Stage10–13.5 result.'
+
 blockers:
-- id: API36-AUTO-SMOKE-001
+- id: FIXTURE-B-INPUT-001
   severity: P0
-  area: G8
+  area: G0/G6
   status: OPEN
-  condition: Run 45032036762 was reported with Process crashed and INSTRUMENTATION_CODE 0; fail-closed validation rejects it. Run 45110217717 passed Build/KVM/host-memory/exact Pair and AVD 4096M/512M prelaunch checks, then summary finalization and exact-head enforcement failed. Its runtime artifact is inaccessible, so boot and Instrumentation are NOT_CONFIRMED. Source 7119089573515c4f5e0699b72d057cec592eee3b adds tested fail-closed finalization; exact-head hosted rerun is pending.
-  affected_gate: Exact-source production AUTO result validity and Stage10-13.5 runtime evidence.
-  unblock_condition: New marked exact-head hosted build passes; KVM and memory preflight plus API36 boot pass; AUTO instrumentation and all business evidence validate from the same APK Pair. Preserve the current INFRA_BLOCKED result and do not promote it to PASS.
+  condition: YuJian_Recognition_Evidence_c2b6cc74040c.zip was not present in current attachments or workspace search.
+  affected_gate: Real BBOX_ONLY/ORB_ONLY fixture replay.
+  unblock_condition: Obtain the authorized named ZIP; continue deterministic source regressions without claiming fixture replay.
   independent_work_may_continue: true
 - id: EVIDENCE-INPUT-001
   severity: P0
   area: G0
   status: OPEN
-  condition: The supplied ZIP is present and passes archive integrity checking; the supplied 285122.mp4 exceeds the Sediment
-    download tool's 32 MiB transfer limit and is unavailable locally.
-  affected_gate: G0 synchronized video inspection; ZIP JSONL and captured frames remain available for source-bound event analysis.
-  unblock_condition: Obtain a supported transfer route for 285122.mp4 if video-only evidence is needed; do not treat ZIP evidence
-    as the missing video.
+  condition: 285122.mp4 is not locally available; Sediment transfer exceeded 32 MiB. Fixture A ZIP is present and archive-integrity checked.
+  affected_gate: Synchronized video replay.
+  unblock_condition: Obtain an authorized transfer route if synchronized video review is required.
   independent_work_may_continue: true
-- id: GITHUB-ACTIONS-API-001
-  severity: P1
-  area: G0/G8
-  status: OPEN
-  condition: GitHub REST/GraphQL and Actions API requests return Forbidden in this environment; Git remote read works.
-  affected_gate: Current CI/check-run and artifact discovery
-  unblock_condition: Use an authorized GitHub API route or exact-head workflow evidence available through the web UI.
-  independent_work_may_continue: true
-- id: API36-AVD-SETUP-STEP-001
+- id: API36-AUTO-SMOKE-001
   severity: P0
   area: G8
   status: OPEN
-  condition: Run 45106300573 exited with code 2 during the emulator-runner step after standalone setup asserted 4096M/512M. The inaccessible runtime artifact leaves API36 boot and Instrumentation unconfirmed. New summary diagnostics are in source a9f597a4f3b5f2911e8962d2b138ace503fdbe4b.
-  affected_gate: API36 Smoke proceeds to APK installation, production Instrumentation and runtime memory collection.
-  unblock_condition: New exact-head run starts API36, confirms boot/API36/ADB, executes the production target test with successful final code -1, validates all Stage10–13.5 business artifacts and records memory/runtime evidence.
+  condition: No API36 KVM/AVD/production AUTO run has been performed for V5 source HEAD 9325be29a5c907b73fa264e7532a51384037e645 or subsequent V5 source; earlier hosted artifacts are historical and inaccessible here.
+  affected_gate: Exact-head API36 AUTO and Stage10–13.5 device evidence.
+  unblock_condition: Run the same exact-head APK Pair on hosted KVM, confirm API36 boot/ADB, successful final Instrumentation code -1, and complete business evidence.
   independent_work_may_continue: true
+
 protected_invariants:
   product_scope:
   - Keep Detector, Classifier, SlimSAM, trusted Mask, P-star, PathLedger and Orb GPU material behavior unchanged unless a
@@ -166,33 +159,30 @@ next_actions:
 - id: G0-01
   owner: Codex
   status: COMPLETED
-  action: Verify the evidence ZIP and inspect device JSONL/screenshots; preserve REAL_DEVICE_EVIDENCE_UNAVAILABLE for the
-    MP4.
-- id: G1-01
-  owner: Codex
-  status: COMPLETED
-  action: Add deterministic regression fixture and red-to-green P-star viewport tolerance test before product edits.
-- id: G2-G6
-  owner: Codex
-  status: PRIOR_LOCAL_TESTS_PASS; FAIL_CLOSED_ANDROIDTEST_COMPILE_PENDING
-  action: Prior cross-layer source tests pass. The fail-closed production AUTO test harness and business evidence assertions await
-    compilation and execution on the final hosted exact HEAD.
-- id: G8-01
+  action: Verify branch history/checkpoint, Fixture A ZIP provenance, and Fixture B/MP4 availability.
+- id: G0-02
   owner: Codex
   status: READY
-  action: 'Commit this branch-local state checkpoint, rerun Admission, fast-forward push only to existing Draft PR #346, then inspect the exact-head Build, KVM/API36 smoke and complete runtime evidence.'
+  action: Commit the minimal branch-local state checkpoint for source 9325be29a5c907b73fa264e7532a51384037e645 and rerun Admission; leave the historical Registry OPEN_GAP unchanged.
+- id: G1-G6
+  owner: Codex
+  status: PENDING_ADMISSION
+  action: After Admission, add deterministic regressions before corresponding fixes for tensor metadata, crop/geometry, Store races, Stage10 handoff, and Glyph/13.5 order.
+- id: G8-01
+  owner: Codex
+  status: PENDING_SOURCE_FIXES
+  action: After source regressions pass, build the exact-head APK Pair and run hosted API36 production AUTO; classify infra and business outcomes separately.
 completion_rules:
 - Complete applicable deterministic cross-layer tests before final APK packaging.
 - Separate LOGIC_PASS, EMULATOR_PASS, EXACT_HEAD_CI_PASS and DEVICE_QA_PASS.
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-23T04:52:03Z'
-  note: Run 45110217717 built and verified its APK Pair, passed KVM/host-memory/AVD 4096M+512M prelaunch checks, then failed summary finalization and exact-head enforcement; its runtime artifact is inaccessible, so boot and Instrumentation remain NOT_CONFIRMED. Source 7119089573515c4f5e0699b72d057cec592eee3b adds a separately tested summary finalizer that rejects missing source SHA and gate contradictions. Eight targeted script tests pass; exact-head hosted Build and production AUTO remain pending. Run 45032036762 remains rejected as a false PASS. Checkpoint Admission will be rerun before pushing to the existing Draft PR #346.
+  last_updated_at: '2026-11-23T10:29:29Z'
+  note: 'V5 minimal recovery checkpoint: branch and origin ref are 9325be29a5c907b73fa264e7532a51384037e645. Existing Work state points to the prior source SHA 7119089573515c4f5e0699b72d057cec592eee3b; branch history has no checkpoint for 9325. Record only verifiable current branch/task/evidence state and preserve the canonical P6 task ID and existing Work ID. Fixture A is historical evidence at source SHA 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; Fixture B and 285122.mp4 are unavailable. No V5 runtime PASS is claimed. Admission is pending this checkpoint.'
 agent_recovery:
   resume_order:
-  - Re-run minimal Admission after the baseline checkpoint; leave the historical Registry OPEN_GAP unchanged.
-  - 'Push the committed source and state checkpoint only to the existing PR #346 branch with the API36 smoke marker.'
-  - Inspect exact-head Android CI and hosted API36 runtime artifacts; distinguish infrastructure and business failures.
-  - Build and hash the final Debug APK only after all blocking gates pass; keep the MP4 and physical-device evidence limitations
-    explicit.
+  - Commit minimal branch-local state/evidence checkpoint and rerun CONTROL_PLANE_ADMISSION; keep historical Registry OPEN_GAP unchanged.
+  - After Admission, add deterministic red regression tests before fixing each affected production path.
+  - Run required module suites, focused tests, AndroidTest compile, and final exact-head Debug build; record Fixture B and hosted runtime blockers accurately.
+  - Push the completed V5 change only to existing Draft PR #346 and inspect exact-head hosted Build/API36 evidence without inferring inaccessible artifacts.
