@@ -1,4 +1,5 @@
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -134,6 +135,118 @@ class Api36SmokeValidationTest(unittest.TestCase):
                               business_evidence_dir=self.evidence_dir)
         self.assertFalse(result.passed)
         self.assertEqual("TARGET_TEST_COMPLETION_MISSING_OR_DUPLICATED", result.reason)
+
+
+class Api36SmokeSummaryFinalizerTest(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp_dir.name)
+        self.evidence_dir = self.root / "evidence"
+        self.evidence_dir.mkdir()
+        self.apk_dir = self.root / "apks"
+        self.apk_dir.mkdir()
+        self.result_path = self.evidence_dir / "runtime-result.json"
+        self.summary_path = self.root / "step-summary.md"
+        self.result_path.write_text(json.dumps({
+            "source_sha": SOURCE_SHA,
+            "classification": "AUTO_SMOKE_PASS",
+            "failure_reason": "NONE",
+            "validation_reason": "NONE",
+            "instrumentation_started": True,
+            "instrumentation_attempted": True,
+            "instrumentation_command_exit_code": 0,
+            "instrumentation_timed_out": False,
+            "emulator_boot_pass": True,
+            "EMULATOR_BOOT_PASS": True,
+            "BUILD_PASS": True,
+            "KVM_READY": True,
+            "AUTO_SMOKE_PASS": True,
+            "DEVICE_QA_PENDING": True,
+        }), encoding="utf-8")
+        (self.evidence_dir / "host-memory-preflight.json").write_text(json.dumps({
+            "mem_total_kb": 16000000,
+            "mem_available_kb": 12000000,
+            "swap_total_kb": 0,
+            "swap_free_kb": 0,
+        }), encoding="utf-8")
+        (self.evidence_dir / "avd-config-before-launch.txt").write_text(
+            "hw.ramSize=4096M\nhw.heapSize=512M\n", encoding="utf-8"
+        )
+        (self.apk_dir / "app-debug.apk").write_bytes(b"app-apk-fixture")
+        (self.apk_dir / "app-debug-androidTest.apk").write_bytes(b"android-test-apk-fixture")
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def finalize(self, smoke_result="success", corrupt_host_json=False):
+        if corrupt_host_json:
+            (self.evidence_dir / "host-memory-preflight.json").write_text("{bad", encoding="utf-8")
+        script = Path(__file__).resolve().parents[1] / "finalize_recognition_result_api36_smoke.py"
+        return subprocess.run([
+            sys.executable,
+            str(script),
+            "--result", str(self.result_path),
+            "--evidence-dir", str(self.evidence_dir),
+            "--summary", str(self.summary_path),
+            "--apk-dir", str(self.apk_dir),
+            "--build-result", "success",
+            "--smoke-result", smoke_result,
+            "--source-sha", SOURCE_SHA,
+            "--kvm-ready", "true",
+        ], capture_output=True, text=True, check=False)
+
+    def test_valid_exact_head_auto_pass_is_preserved(self):
+        process = self.finalize()
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertEqual("AUTO_SMOKE_PASS", payload["classification"])
+        self.assertIs(payload["AUTO_SMOKE_PASS"], True)
+        self.assertEqual(4096, payload["avd_ram_mb"])
+        self.assertEqual(512, payload["avd_vm_heap_mb"])
+        self.assertTrue(payload["app_apk_sha256"])
+        self.assertIn("runtime-result.json", (self.evidence_dir / "evidence-sha256sums.txt").read_text())
+        self.assertFalse((self.evidence_dir / "summary-finalization-error.txt").exists())
+
+    def test_runner_failure_downgrades_a_prior_auto_flag(self):
+        process = self.finalize(smoke_result="failure")
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertEqual("INFRA_BLOCKED", payload["classification"])
+        self.assertEqual("AUTO_PASS_GATE_CONTRADICTION:SMOKE_RUNNER_STEP", payload["failure_reason"])
+        self.assertIs(payload["AUTO_SMOKE_PASS"], False)
+
+    def test_missing_runtime_source_sha_cannot_be_filled_from_expected_sha(self):
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        payload.pop("source_sha")
+        self.result_path.write_text(json.dumps(payload), encoding="utf-8")
+        process = self.finalize()
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertIsNone(payload.get("source_sha"))
+        self.assertEqual("INFRA_BLOCKED", payload["classification"])
+        self.assertEqual("RUNTIME_RESULT_SOURCE_SHA_MISSING", payload["failure_reason"])
+        self.assertIs(payload["AUTO_SMOKE_PASS"], False)
+
+    def test_boot_failure_cannot_keep_auto_pass(self):
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        payload["EMULATOR_BOOT_PASS"] = False
+        self.result_path.write_text(json.dumps(payload), encoding="utf-8")
+        process = self.finalize()
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertEqual("INFRA_BLOCKED", payload["classification"])
+        self.assertEqual("AUTO_PASS_GATE_CONTRADICTION:EMULATOR_BOOT_PASS", payload["failure_reason"])
+        self.assertIs(payload["AUTO_SMOKE_PASS"], False)
+
+    def test_bad_memory_input_is_reported_and_fails_closed(self):
+        process = self.finalize(corrupt_host_json=True)
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertEqual("INFRA_BLOCKED", payload["classification"])
+        self.assertIs(payload["AUTO_SMOKE_PASS"], False)
+        self.assertTrue(payload["failure_reason"].startswith("SMOKE_RESULT_FINALIZATION_FAILED:"))
+        self.assertTrue((self.evidence_dir / "summary-finalization-error.txt").is_file())
+        self.assertIn("INFRA_BLOCKED", self.summary_path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

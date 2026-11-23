@@ -745,102 +745,63 @@ jobs:
             pathlib.Path(path).write_text(json.dumps(payload, indent=2) + '\n')
             PY
           fi
-          python3 - "$result" "$GITHUB_STEP_SUMMARY" "${{ needs.build.result }}" \
-            "${{ steps.api36_smoke.outcome }}" "$SOURCE_SHA" <<'PY'
+          finalizer_status=0
+          python3 scripts/ci/finalize_recognition_result_api36_smoke.py \
+            --result "$result" \
+            --evidence-dir evidence/runtime/recognition-result-api36 \
+            --summary "$GITHUB_STEP_SUMMARY" \
+            --apk-dir build/runtime-apks \
+            --build-result "${{ needs.build.result }}" \
+            --smoke-result "${{ steps.api36_smoke.outcome }}" \
+            --source-sha "$SOURCE_SHA" \
+            --kvm-ready "${KVM_READY:-false}" || finalizer_status=$?
+          if [[ "$finalizer_status" -ne 0 ]]; then
+            python3 - "$result" "$GITHUB_STEP_SUMMARY" "$SOURCE_SHA" "$finalizer_status" \
+              "${{ needs.build.result }}" "${{ steps.api36_smoke.outcome }}" "${KVM_READY:-false}" <<'PY'
           import hashlib, json, pathlib, sys
-          result_path, summary_path, build_result, smoke_result, expected_sha = sys.argv[1:]
-          result_path = pathlib.Path(result_path)
-          payload = json.loads(result_path.read_text(encoding='utf-8'))
-          if payload.get('source_sha') != expected_sha:
-              payload['classification'] = 'INFRA_BLOCKED'
-              payload['failure_reason'] = 'RUNTIME_RESULT_SOURCE_SHA_MISMATCH'
-              payload['AUTO_SMOKE_PASS'] = False
-          if smoke_result != 'success' and payload.get('classification') == 'AUTO_SMOKE_PASS':
-              payload['classification'] = 'INFRA_BLOCKED'
-              payload['failure_reason'] = f'SMOKE_RUNNER_STEP_FAILED_AFTER_RUNTIME_RESULT:{smoke_result}'
-              payload['AUTO_SMOKE_PASS'] = False
-          payload['BUILD_PASS'] = build_result == 'success'
-          payload['smoke_step_outcome'] = smoke_result
-          payload.setdefault('KVM_READY', False)
-          payload.setdefault('EMULATOR_BOOT_PASS', False)
-          payload.setdefault('AUTO_SMOKE_PASS', False)
-          payload.setdefault('DEVICE_QA_PENDING', True)
-          apk_dir = pathlib.Path('build/runtime-apks')
-          def sha256_file(path):
-              digest = hashlib.sha256()
-              with path.open('rb') as stream:
-                  for block in iter(lambda: stream.read(1024 * 1024), b''):
-                      digest.update(block)
-              return digest.hexdigest()
-          for field, filename in (
-              ('app_apk_sha256', 'app-debug.apk'),
-              ('android_test_apk_sha256', 'app-debug-androidTest.apk'),
-          ):
-              apk = apk_dir / filename
-              if apk.is_file():
-                  payload[field] = sha256_file(apk)
-          host_preflight = pathlib.Path('evidence/runtime/recognition-result-api36')
-          host_json = host_preflight / 'host-memory-preflight.json'
-          if host_json.is_file():
-              host = json.loads(host_json.read_text(encoding='utf-8'))
-              for field in ('mem_total_kb', 'mem_available_kb', 'swap_total_kb', 'swap_free_kb'):
-                  if field in host:
-                      payload[f'host_{field}'] = host[field]
-          avd_report = host_preflight / 'avd-config-before-launch.txt'
-          if avd_report.is_file():
-              import re
-              avd_text = avd_report.read_text(encoding='utf-8', errors='replace')
-              for key, field in (('ramSize', 'avd_ram_mb'), ('heapSize', 'avd_vm_heap_mb')):
-                  match = re.search(rf'^hw\.{key}=(\d+)(?:M)?$', avd_text, re.MULTILINE | re.IGNORECASE)
-                  if match:
-                      payload[field] = int(match.group(1))
+          result, summary, source_sha, status, build_result, smoke_result, kvm_ready = sys.argv[1:]
+          result_path = pathlib.Path(result)
+          try:
+              payload = json.loads(result_path.read_text(encoding='utf-8'))
+              if not isinstance(payload, dict): payload = {}
+          except Exception:
+              payload = {}
+          reason = f'SUMMARY_FINALIZER_PROCESS_EXIT_{status}'
+          payload.update({
+              'source_sha': source_sha,
+              'classification': 'INFRA_BLOCKED',
+              'failure_reason': reason,
+              'validation_reason': payload.get('validation_reason', 'NOT_CONFIRMED'),
+              'BUILD_PASS': build_result == 'success',
+              'KVM_READY': kvm_ready.lower() == 'true',
+              'EMULATOR_BOOT_PASS': payload.get('EMULATOR_BOOT_PASS', payload.get('emulator_boot_pass', 'NOT_CONFIRMED')),
+              'AUTO_SMOKE_PASS': False,
+              'DEVICE_QA_PENDING': True,
+              'smoke_step_outcome': smoke_result,
+          })
+          result_path.parent.mkdir(parents=True, exist_ok=True)
           result_path.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
-
-          root = result_path.parent
-          sums_path = root / 'evidence-sha256sums.txt'
-          rows = []
-          for path in sorted(p for p in root.rglob('*') if p.is_file() and p != sums_path):
-              digest = hashlib.sha256(path.read_bytes()).hexdigest()
-              rows.append(f'{digest}  {path.relative_to(root).as_posix()}')
-          sums_path.write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
-
-          fields = [
-              ('BUILD_PASS', str(payload['BUILD_PASS']).lower()),
-              ('KVM_READY', str(payload['KVM_READY']).lower()),
-              ('EMULATOR_BOOT_PASS', str(payload['EMULATOR_BOOT_PASS']).lower()),
-              ('AUTO_SMOKE_PASS', str(payload['AUTO_SMOKE_PASS']).lower()),
-              ('DEVICE_QA_PENDING', str(payload['DEVICE_QA_PENDING']).lower()),
-              ('classification', payload.get('classification', 'UNKNOWN')),
-              ('failure_reason', payload.get('failure_reason', 'UNKNOWN')),
-              ('validation_reason', payload.get('validation_reason', 'NOT_RECORDED')),
-              ('instrumentation_attempted', str(payload.get('instrumentation_attempted', False)).lower()),
-              ('instrumentation_started', str(payload.get('instrumentation_started', False)).lower()),
-              ('instrumentation_command_exit_code', payload.get('instrumentation_command_exit_code', 'NOT_RECORDED')),
-              ('instrumentation_timed_out', str(payload.get('instrumentation_timed_out', False)).lower()),
-              ('smoke_step_outcome', smoke_result),
-              ('source_sha', payload.get('source_sha', 'UNKNOWN')),
-              ('app_apk_sha256', payload.get('app_apk_sha256', 'NOT_RECORDED')),
-              ('android_test_apk_sha256', payload.get('android_test_apk_sha256', 'NOT_RECORDED')),
-              ('host_mem_available_kb', payload.get('host_mem_available_kb', 'NOT_RECORDED')),
-              ('host_swap_total_kb', payload.get('host_swap_total_kb', 'NOT_RECORDED')),
-              ('avd_ram_mb', payload.get('avd_ram_mb', 'NOT_CONFIRMED')),
-              ('avd_vm_heap_mb', payload.get('avd_vm_heap_mb', 'NOT_CONFIRMED')),
-          ]
-          markdown = ['## API 36 production AUTO smoke result', '', '| Field | Value |', '| --- | --- |']
-          for name, value in fields:
-              safe_value = str(value).replace('|', '/').replace('`', "'").replace('\r', ' ').replace('\n', ' ')
-              markdown.append(f'| `{name}` | `{safe_value}` |')
-          markdown.extend(['', 'Evidence hashes: `evidence/runtime/recognition-result-api36/evidence-sha256sums.txt`.'])
-          with pathlib.Path(summary_path).open('a', encoding='utf-8') as out:
-              out.write('\n'.join(markdown) + '\n')
-
-          if payload.get('classification') != 'AUTO_SMOKE_PASS':
-              reason = str(payload.get('failure_reason', 'UNKNOWN')).replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
-              classification = str(payload.get('classification', 'UNKNOWN')).replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
-              print(f'::error title=API36 production AUTO smoke failed::classification={classification}; reason={reason}')
-          else:
-              print(f"API36_PRODUCTION_AUTO_SMOKE={payload['classification']} source_sha={payload['source_sha']}")
+          try:
+              root = result_path.parent
+              sums = root / 'evidence-sha256sums.txt'
+              rows = []
+              for path in sorted(x for x in root.rglob('*') if x.is_file() and x != sums):
+                  digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                  rows.append(f'{digest}  {path.relative_to(root).as_posix()}')
+              sums.write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
+          except Exception as exc:
+              reason = f'{reason}:EVIDENCE_HASH_ERROR:{type(exc).__name__}:{str(exc)[:200]}'
+              payload['failure_reason'] = reason
+              result_path.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
+          with pathlib.Path(summary).open('a', encoding='utf-8') as out:
+              out.write('## API 36 production AUTO smoke result\n\n')
+              out.write(f'- `classification`: `INFRA_BLOCKED`\n- `failure_reason`: `{reason}`\n')
+              out.write(f'- `source_sha`: `{source_sha}`\n- `smoke_step_outcome`: `{smoke_result}`\n')
+              out.write('- Runtime result finalization failed; inspect `summary-finalization-error.txt` and the full runtime artifact.\n')
+          print(f'::error title=API36 result finalization failed::{reason}')
           PY
+          fi
+
 
       - name: Upload API 36 runtime evidence
         if: always()
@@ -856,19 +817,35 @@ jobs:
         run: |
           result="evidence/runtime/recognition-result-api36/runtime-result.json"
           if [[ ! -s "$result" ]]; then
-            echo "API36_AUTO_SMOKE_CLASSIFICATION=INFRA_BLOCKED reason=emulator_runner_or_runtime_preflight_failed"
+            printf '%s\n' 'API36_AUTO_SMOKE_CLASSIFICATION=INFRA_BLOCKED reason=runtime_result_missing'
             exit 1
           fi
-          if [[ "${{ steps.api36_smoke.outcome }}" != "success" ]]; then
-            classification="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("classification", "INFRA_BLOCKED"))' "$result")"
-            echo "API36_AUTO_SMOKE_CLASSIFICATION=$classification"
-            exit 1
-          fi
-          classification="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("classification", "UNKNOWN"))' "$result")"
-          echo "API36_AUTO_SMOKE_CLASSIFICATION=$classification"
-          if [[ "$classification" != "AUTO_SMOKE_PASS" ]]; then
-            exit 1
-          fi
+          python3 - "$result" "$SOURCE_SHA" "${{ steps.api36_smoke.outcome }}" <<'PY'
+          import json, sys
+          path, expected_sha, smoke_outcome = sys.argv[1:]
+          try:
+              result = json.load(open(path, encoding='utf-8'))
+          except Exception as exc:
+              print(f'API36_AUTO_SMOKE_CLASSIFICATION=INFRA_BLOCKED reason=RUNTIME_RESULT_INVALID:{type(exc).__name__}:{exc}')
+              raise SystemExit(1)
+          classification = result.get('classification', 'UNKNOWN')
+          failures = []
+          if result.get('source_sha') != expected_sha:
+              failures.append('SOURCE_SHA_MISMATCH')
+          if smoke_outcome != 'success':
+              failures.append('SMOKE_RUNNER_STEP_NOT_SUCCESS')
+          for field in ('BUILD_PASS', 'KVM_READY', 'EMULATOR_BOOT_PASS', 'AUTO_SMOKE_PASS'):
+              if result.get(field) is not True:
+                  failures.append(f'{field}_NOT_TRUE')
+          if classification != 'AUTO_SMOKE_PASS':
+              failures.append('CLASSIFICATION_NOT_AUTO_SMOKE_PASS')
+          if result.get('DEVICE_QA_PENDING') is not True:
+              failures.append('DEVICE_QA_PENDING_NOT_TRUE')
+          if failures:
+              print(f"API36_AUTO_SMOKE_CLASSIFICATION={classification} reason={','.join(failures)}")
+              raise SystemExit(1)
+          print(f"API36_AUTO_SMOKE_CLASSIFICATION=AUTO_SMOKE_PASS source_sha={expected_sha}")
+          PY
 
   fish-optics-api36-runtime:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 316 }}
