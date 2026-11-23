@@ -253,3 +253,12 @@
 - Preflight-only run `45029788799` on that exact source completed successfully on `ubuntu-24.04`; fallback was skipped and the Android build was skipped by design. The summary reached `KVM_READY`.
 - Primary preflight report artifact: `api36-kvm-preflight-ubuntu-24.04-f0d8e1471627e15b6101cdf7168aa8b0e7427faf`, 533 bytes, artifact digest `sha256:97ed5a0039ee24770dcaf1784d8622eb86037bf0149633aaec289c3230993a5b`.
 - A full exact-head build plus API36 AUTO smoke is the next validation run; it will use the KVM-selected GitHub-hosted x64 runner and upload the exact-head APK pair and runtime evidence.
+
+## 2026-11-23 — PR #346 API36 AUTO false-pass audit checkpoint
+
+- Pre-checkpoint HEAD was `0acb593e258e1a752df0778807684fd442f40def`; the local branch is the existing PR #346 branch. The task remains Draft and no new PR is requested.
+- The user reports that Run `45032036762` emitted `INSTRUMENTATION_RESULT: shortMsg=Process crashed.` and `INSTRUMENTATION_CODE: 0` while the job reported success. The same user audit reports `lowmemorykiller Kill com.yujian.ai.uiv2`, RSS `670552kB`, swap `1257028kB`, and `reason=min watermark is breached and swap is low`.
+- GitHub Actions API/raw artifact retrieval is unavailable here; Run `45032036762`'s source SHA is `NOT_CONFIRMED`. These supplied facts invalidate the reported AUTO pass, but they are not independently replayed evidence. The failure guard returned `ALLOW_FIRST_ATTEMPT`; no durable failure record is written against an unverified run SHA.
+- The required Admission attempt on the pre-checkpoint source had static registry, feature, task, unified-contract structural validation and branch sync pass, with one unchanged historical `OPEN_GAP`; Work State validation failed because its `source_sha` was `d499a615bcaffe5ea37f8f1ff4e028af08af9e84` while CI changes already existed through `0acb593e258e1a752df0778807684fd442f40def`.
+- Updated only branch-local live state to the verifiable code baseline `0acb593e258e1a752df0778807684fd442f40def`, kept Work `RUNNING`, and recorded the smoke false-pass audit without promoting runtime status. Project Master State and Unified Contract validators pass; Unified Contract reports `structural_errors=0`, `open_gaps=1` for the unchanged historical pre-migration path.
+- No API36 smoke script, Android business code, model, or workflow has been changed at this checkpoint. Next: commit this state-only checkpoint, rerun minimal Admission, then implement fail-closed smoke validation, production business evidence, and hosted memory capture.

@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'PR #346 recognition cross-layer closure'
 state_control:
-  execution_baseline_sha: d499a615bcaffe5ea37f8f1ff4e028af08af9e84
+  execution_baseline_sha: 0acb593e258e1a752df0778807684fd442f40def
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 03db3692669847084d7e48fc3128f85cbf832af9
@@ -19,16 +19,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: d499a615bcaffe5ea37f8f1ff4e028af08af9e84
+    head_sha: 0acb593e258e1a752df0778807684fd442f40def
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: main
     base_sha: 03db3692669847084d7e48fc3128f85cbf832af9
-    head_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
+    head_sha: 0acb593e258e1a752df0778807684fd442f40def
     status: DRAFT_OPEN_UNMERGED
-    status_source: user task instruction and GitHub pull request page Draft badge; GitHub API unavailable
+    status_source: user instruction to keep PR #346 Draft; GitHub Actions API unavailable
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -75,43 +75,51 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: d499a615bcaffe5ea37f8f1ff4e028af08af9e84
-    admission: PASS
+    sha: 0acb593e258e1a752df0778807684fd442f40def
+    admission: PENDING_STATE_CHECKPOINT
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
       url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
       source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
-    build: NOT_RUN
+    build: PENDING_API36_SMOKE_FIX_SOURCE
     unit_tests: PASS_LOCAL_AFTER_VALIDATED_ASSET_BOOTSTRAP
     android_test_compile: PASS_COMPILE_ONLY
     lint: PENDING_EXACT_HEAD_CI
-    api36_emulator: BLOCKED_INFRA_LOCAL; GITHUB_HOSTED_EXACT_HEAD_JOB_PENDING
+    api36_emulator: RUN_450320_CRASH_REPORTED; EXACT_HEAD_RETRY_REQUIRED
     model_validation: PASS
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: d499a615bcaffe5ea37f8f1ff4e028af08af9e84
-  exact_head_apk: NOT_BUILT
+  source_head: 0acb593e258e1a752df0778807684fd442f40def
+  exact_head_apk: NOT_BUILT_FOR_API36_SMOKE_FIX_SOURCE
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
   input_video: 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: 285122.mp4 exceeds 32 MiB transfer limit; no video replay.'
   input_evidence_zip: /workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip
     (downloaded and archive integrity checked)
-  emulator_device_evidence: NOT_RUN; local API36 blocked by missing virtualization and read-only ADB home; hosted job pending
-    exact-head push.
+  emulator_device_evidence: RUN_450320_REPORTED_PROCESS_CRASHED; no AUTO PASS accepted; new hosted exact-head run pending.
 current_work:
   id: YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: d499a615bcaffe5ea37f8f1ff4e028af08af9e84
+  exact_head: 0acb593e258e1a752df0778807684fd442f40def
   status: RUNNING
   stage: G8_EXACT_HEAD_CI_AND_API36_SMOKE
   blockers:
   - 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: video exceeds 32 MiB transfer limit; ZIP logs/screenshots only.'
-  - 'API36_LOCAL_EMULATOR_BLOCKED_INFRA: missing KVM/VMX/SVM and ADB home is read-only; hosted exact-head job pending.'
-  - 'EXACT_HEAD_CI_PENDING: no current-source GitHub run or final APK yet.'
+  - 'API36_LOCAL_EMULATOR_BLOCKED_INFRA: missing KVM/VMX/SVM; use hosted exact-head runner.'
+  - 'API36_FALSE_PASS_AUDIT: Run 45032036762 was reported with Process crashed and final code 0; source SHA is not confirmed.'
+  - 'EXACT_HEAD_REVALIDATION_PENDING: fail-closed code and exact-source hosted API36 AUTO run are not yet complete.'
 blockers:
+- id: API36-AUTO-SMOKE-001
+  severity: P0
+  area: G8
+  status: OPEN
+  condition: User reports Run 45032036762 emitted Process crashed and INSTRUMENTATION_CODE 0 while smoke reported success; source SHA and raw artifact are not independently available here.
+  affected_gate: Exact-source production AUTO result validity and Stage10-13.5 runtime evidence.
+  unblock_condition: Fail-closed parser, three passing parser tests, and a new hosted API36 run whose instrumentation and business contract both complete.
+  independent_work_may_continue: true
 - id: EVIDENCE-INPUT-001
   severity: P0
   area: G0
@@ -171,13 +179,14 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-22T12:51:54Z'
-  note: Minimal current-state Admission passed on source d499a615bcaffe5ea37f8f1ff4e028af08af9e84. Unified Contract reported
-    structural_errors=0 and one historical OPEN_GAP, which is non-blocking and unchanged. Local eight-module tests, model
-    bootstrap, 26KF matrix and AndroidTest compile pass; exact-head hosted CI/API36 smoke and final APK remain pending.
+  last_updated_at: '2026-11-23T00:13:22Z'
+  note: Previous Admission passed on source d499a615bcaffe5ea37f8f1ff4e028af08af9e84. Unified Contract reported
+    structural_errors=0 and one unchanged historical OPEN_GAP. User audit of Run 45032036762 reports Process crashed,
+    INSTRUMENTATION_CODE 0 and a lowmemorykiller app kill; its source SHA and raw artifact are not independently available.
+    Do not accept its AUTO result. New fail-closed parser, memory evidence and exact-head hosted rerun are pending.
 agent_recovery:
   resume_order:
-  - Run the minimal current-state Admission check; leave the historical Registry OPEN_GAP unchanged.
+  - Re-run minimal Admission after the baseline checkpoint; leave the historical Registry OPEN_GAP unchanged.
   - 'Push the committed source and state checkpoint only to the existing PR #346 branch with the API36 smoke marker.'
   - Inspect exact-head Android CI and hosted API36 runtime artifacts; distinguish infrastructure and business failures.
   - Build and hash the final Debug APK only after all blocking gates pass; keep the MP4 and physical-device evidence limitations
