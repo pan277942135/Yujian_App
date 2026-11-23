@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'PR #346 recognition cross-layer closure'
 state_control:
-  execution_baseline_sha: 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637
+  execution_baseline_sha: bf40710da2592b7945b332deef373422517b6d30
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 03db3692669847084d7e48fc3128f85cbf832af9
@@ -19,14 +19,14 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637
+    head_sha: bf40710da2592b7945b332deef373422517b6d30
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: main
     base_sha: 03db3692669847084d7e48fc3128f85cbf832af9
-    head_sha: 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637
+    head_sha: bf40710da2592b7945b332deef373422517b6d30
     status: DRAFT_OPEN_UNMERGED
     status_source: user instruction to keep PR #346 Draft; GitHub Actions API unavailable
 phases:
@@ -75,49 +75,49 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637
-    admission: PENDING_CURRENT_CHECKPOINT
+    sha: bf40710da2592b7945b332deef373422517b6d30
+    admission: PASS_ON_7c_CHECKPOINT; UPDATED_STATE_CHECKPOINT_VALIDATION_PENDING
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
       url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
       source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
-    build: RUN_45098503851_BUILD_PASS_ON_7e9168d; ACTIVE_AVD_PATH_FIX_PENDING_EXACT_HEAD_REBUILD
-    unit_tests: RUN_45098503851_PASS_ON_7e9168d; THREE_FAIL_CLOSED_PARSER_TESTS_PASS_LOCALLY
-    android_test_compile: RUN_45098503851_PASS_ON_7e9168d; ACTIVE_AVD_PATH_FIX_EXACT_HEAD_BUILD_PENDING
-    lint: RUN_45098503851_PASS_ON_7e9168d; ACTIVE_AVD_PATH_FIX_EXACT_HEAD_BUILD_PENDING
-    api36_emulator: RUN_45098503851_KVM_READY_AND_API36_BOOT_PASS; INFRA_BLOCKED_BEFORE_INSTALL_OR_INSTRUMENTATION_BY_AVD_CONFIG_LOOKUP_MISSING
+    build: RUN_45101611854_BUILD_PASS_ON_7c497d65; PRELAUNCH_MEMORY_ENFORCEMENT_PENDING_EXACT_HEAD_REBUILD
+    unit_tests: RUN_45101611854_PASS_ON_7c497d65; THREE_FAIL_CLOSED_PARSER_TESTS_PASS_LOCALLY
+    android_test_compile: RUN_45101611854_PASS_ON_7c497d65; PRELAUNCH_MEMORY_ENFORCEMENT_EXACT_HEAD_BUILD_PENDING
+    lint: RUN_45101611854_PASS_ON_7c497d65; PRELAUNCH_MEMORY_ENFORCEMENT_EXACT_HEAD_BUILD_PENDING
+    api36_emulator: RUN_45101611854_KVM_READY_AND_API36_BOOT_PASS; INFRA_BLOCKED_BEFORE_INSTALL_OR_INSTRUMENTATION_BY_AVD_MEMORY_KEYS_MISSING
     model_validation: PASS
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637
-  exact_head_apk: NOT_BUILT_FOR_ACTIVE_AVD_PATH_FIX; Run_45098503851_pair_for_7e9168d_artifact_14785031685_sha256_12c4562612aae023b8b39d08099b052d88fcd252dc6242a57bbd4e7733a8f42b
+  source_head: bf40710da2592b7945b332deef373422517b6d30
+  exact_head_apk: NOT_BUILT_FOR_PRELAUNCH_MEMORY_FIX; Run_45101611854_pair_for_7c497d65efee1c4c67c619e165c9d8d610f056f3_artifact_14785983680_sha256_7f5bd0e5801cc2702f33bdf7f94aac9af1ec53fd0d009a94cafabac414a9ed41
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
   input_video: 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: 285122.mp4 exceeds 32 MiB transfer limit; no video replay.'
   input_evidence_zip: /workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip
     (downloaded and archive integrity checked)
-  emulator_device_evidence: RUN_45098503851_KVM_READY_API36_BOOT_PASS; config guard exited before install/instrumentation because the script did not locate the action-managed AVD; artifact 14784993115 sha256 225a10f1622443f96199f71f7b6106febd207202d0d682bfb0a16efa7993f7c5 contains boot memory/config diagnostics but its contents are inaccessible here. Source fix 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637 reads $HOME/.android/avd and the exact-head rerun is pending.
+  emulator_device_evidence: RUN_45101611854_KVM_READY_API36_BOOT_PASS; AVD config guard reported missing memory keys before install/instrumentation despite active AVD test and standard ANDROID_AVD_HOME; runtime artifact 14786058616 sha256 fac00685d8a23e9b7c7d4313102015a880392a8611ed0e77463594eb5e6d54f4 is uploaded but inaccessible here. Source fix bf40710da2592b7945b332deef373422517b6d30 writes/prints 4096M and 512M before emulator launch and verifies the active AVD config; exact-head rerun pending.
 current_work:
   id: YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637
+  exact_head: bf40710da2592b7945b332deef373422517b6d30
   status: RUNNING
   stage: G8_EXACT_HEAD_CI_AND_API36_SMOKE
   blockers:
   - 'REAL_DEVICE_EVIDENCE_UNAVAILABLE: video exceeds 32 MiB transfer limit; ZIP logs/screenshots only.'
   - 'API36_LOCAL_EMULATOR_BLOCKED_INFRA: missing KVM/VMX/SVM; use hosted exact-head runner.'
   - 'API36_FALSE_PASS_AUDIT: Run 45032036762 was reported with Process crashed and final code 0; no PASS is accepted for that run.'
-  - 'API36_AVD_CONFIG_LOOKUP_MISSING: Run 45098503851 passed KVM, host-memory headroom and API36 boot but exited before install/instrumentation because the script did not find the action-managed AVD config under the job-level ANDROID_AVD_HOME override. Source 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637 reads $HOME/.android/avd and records path diagnostics; actual RAM/heap values remain unconfirmed until the exact-head rerun.'
-  - 'EXACT_HEAD_REVALIDATION_PENDING: Run 45098503851 produced a successful Pair only for SHA 7e9168d; rebuild and rerun AUTO for source 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637.'
+  - 'API36_AVD_MEMORY_KEYS_MISSING: Run 45101611854 passed KVM, host-memory headroom, API36 boot and Pair verification but exited before install/instrumentation with both memory keys missing; the annotation confirms ANDROID_AVD_HOME=/home/runner/.android/avd and active AVD test. Source bf40710da2592b7945b332deef373422517b6d30 writes the settings in the pre-launch hook and reads the active config; actual values remain unconfirmed until rerun.'
+  - 'EXACT_HEAD_REVALIDATION_PENDING: Run 45101611854 produced a successful Pair only for SHA 7c497d65; rebuild and rerun AUTO for source bf40710da2592b7945b332deef373422517b6d30.'
 blockers:
 - id: API36-AUTO-SMOKE-001
   severity: P0
   area: G8
   status: OPEN
-  condition: Run 45032036762 was reported with Process crashed and INSTRUMENTATION_CODE 0; fail-closed validation rejects it. Run 45098503851 passed Build/KVM/host-memory/API36 boot/exact Pair verification, then stopped before APK install/Instrumentation because the AVD config lookup returned missing. Source 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637 removes the job-level AVD_HOME override and reads $HOME/.android/avd; exact-head rebuild and rerun are pending.
+  condition: Run 45032036762 was reported with Process crashed and INSTRUMENTATION_CODE 0; fail-closed validation rejects it. Run 45101611854 passed Build/KVM/host-memory/API36 boot/exact Pair verification, then stopped before APK install/Instrumentation because memory keys were missing despite annotation showing the standard AVD home and active AVD test. Source bf40710da2592b7945b332deef373422517b6d30 writes/prints the memory config before emulator launch and reads it directly; exact-head rebuild and rerun are pending.
   affected_gate: Exact-source production AUTO result validity and Stage10-13.5 runtime evidence.
   unblock_condition: New marked exact-head hosted build passes; KVM and memory preflight plus API36 boot pass; AUTO instrumentation and all business evidence validate from the same APK Pair. Preserve the current INFRA_BLOCKED result and do not promote it to PASS.
   independent_work_may_continue: true
@@ -139,11 +139,11 @@ blockers:
   affected_gate: Current CI/check-run and artifact discovery
   unblock_condition: Use an authorized GitHub API route or exact-head workflow evidence available through the web UI.
   independent_work_may_continue: true
-- id: API36-AVD-CONFIG-PATH-001
+- id: API36-AVD-MEMORY-ENFORCEMENT-001
   severity: P0
   area: G8
   status: OPEN
-  condition: Run 45098503851 booted API36 but exited before APK install/instrumentation because the script looked for the active AVD config in a different home directory. Source 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637 reads $HOME/.android/avd; actual RAM/heap and workload values remain unconfirmed until the exact-head rerun.
+  condition: Run 45101611854 booted API36 but exited before APK install/instrumentation with both memory keys missing; annotation confirmed ANDROID_AVD_HOME=/home/runner/.android/avd and active AVD test. Source bf40710da2592b7945b332deef373422517b6d30 explicitly writes and verifies hw.ramSize=4096M and hw.heapSize=512M before launch; actual settings/workload remain unconfirmed until the exact-head rerun.
   affected_gate: API36 Smoke proceeds to APK installation, production Instrumentation and runtime memory collection.
   unblock_condition: Marked exact-head run confirms hw.ramSize=4096M and hw.heapSize=512M from the emitted values, then completes and validates production AUTO evidence.
   independent_work_may_continue: true
@@ -187,8 +187,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-23T02:40:09Z'
-  note: Run 45098503851 for 7e9168d built and uploaded an exact-head APK Pair, passed KVM/host-memory/API36 boot, then stopped before install/instrumentation because the AVD config lookup returned missing. Runtime evidence artifact 14784993115 has SHA256 225a10f1622443f96199f71f7b6106febd207202d0d682bfb0a16efa7993f7c5; contents are not downloadable here. Source 7d9a546ac4c8f6d1bd2a8027eac8e294702b0637 reads the android-emulator-runner AVD home; local shell, YAML and 3/3 parser checks pass. Admission is pending the marked state checkpoint and the exact-head rebuild. Run 45032036762 remains rejected as a false PASS.
+  last_updated_at: '2026-11-23T03:02:14Z'
+  note: Run 45101611854 for 7c497d65 built and uploaded an exact-head APK Pair, passed KVM/host-memory/API36 boot, then stopped before install/instrumentation with RAM/heap keys missing; annotation showed the standard AVD home and active test AVD. Runtime artifact 14786058616 SHA256 fac00685d8a23e9b7c7d4313102015a880392a8611ed0e77463594eb5e6d54f4 is uploaded but not downloadable here. Source bf40710da2592b7945b332deef373422517b6d30 explicitly writes/prints the values before launch and reads active config. Admission passed on the 7c497d65 checkpoint; exact-head rebuild pending. Run 45032036762 remains rejected as a false PASS.
 agent_recovery:
   resume_order:
   - Re-run minimal Admission after the baseline checkpoint; leave the historical Registry OPEN_GAP unchanged.
