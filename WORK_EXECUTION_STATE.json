@@ -12,8 +12,8 @@
   "stage": "G8_EXACT_HEAD_CI_AND_API36_SMOKE",
   "status": "RUNNING",
   "source_sha": "dfcd04b020a3e8efd32f09180850846eb5476e5d",
-  "checkpoint_updated_at": "2026-11-23T01:00:23Z",
-  "next_action": "Run current-state Admission, checkpoint that result, then push the final state-only checkpoint with the API36 smoke marker to the existing PR #346 branch. Inspect exact-HEAD build, hosted KVM/memory, API36 runtime artifacts and APK provenance.",
+  "checkpoint_updated_at": "2026-11-23T01:03:49Z",
+  "next_action": "Push the marked state-only checkpoint to the existing PR #346 branch. Inspect the exact-HEAD build, KVM/host memory preflight, API36 emulator and AUTO evidence; do not accept PASS without all required artifacts.",
   "dependencies": [
     "P5-02"
   ],
@@ -34,7 +34,7 @@
     "previous_admission_attempt": "WP2 state mapping rejected by WORK_EXECUTION_STATE current-scope check on historical Registry OPEN_GAP; current Work now maps to the canonical Stage10 root-cause task per user steering",
     "user_supplied_failure_facts": "Task prose is not device evidence; inspect the ZIP records directly before promoting any fact",
     "archive_integrity": "unzip -t passed for the uploaded evidence ZIP",
-    "admission": "CONTROL_PLANE_ADMISSION=PASS on local source d499a615bcaffe5ea37f8f1ff4e028af08af9e84; Unified Contract structural_errors=0, open_gaps=1 (historical moved RecognitionResultScreen path, explicitly non-blocking).",
+    "admission": "CONTROL_PLANE_ADMISSION=PASS at state checkpoint 7d4882a9432ec247948cb32ecd26618541a86f64; all six static/sync/state gates pass. Unified Contract structural_errors=0; one unchanged historical OPEN_GAP is non-blocking.",
     "runtime_capability": "Temurin JDK 21, Android SDK and Gradle 9.3.1 present; emulator package and /dev/kvm absent",
     "local_source_commit": "d499a615bcaffe5ea37f8f1ff4e028af08af9e84",
     "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
@@ -47,7 +47,7 @@
     "exact_head_apk": "NOT_BUILT_FOR_FAIL_CLOSED_SOURCE; produce only through the final exact-HEAD GitHub Actions build.",
     "local_sdk_state": "Tracked local.properties restored exactly; builds used ANDROID_HOME environment variables and did not persist SDK path edits.",
     "api36_false_positive_audit": "User supplied Run 45032036762 facts: INSTRUMENTATION_RESULT shortMsg=Process crashed; INSTRUMENTATION_CODE=0; lowmemorykiller reported Kill com.yujian.ai.uiv2 with rss=670552kB, swap=1257028kB and min-watermark/swap-low reason. Source SHA/raw artifact remain NOT_CONFIRMED; facts were not independently replayed.",
-    "current_admission_attempt": "Source implementation committed at dfcd04b020a3e8efd32f09180850846eb5476e5d. Branch-local state now points at this code SHA; rerun minimal Admission after the state-only checkpoint is committed.",
+    "current_admission_attempt": "CONTROL_PLANE_ADMISSION=PASS at state checkpoint 7d4882a9432ec247948cb32ecd26618541a86f64, with code source_sha dfcd04b020a3e8efd32f09180850846eb5476e5d. No Registry/validator edits; the single historical OPEN_GAP is unchanged. The final marker commit will only update branch-local state/log files.",
     "code_implementation_commit": "dfcd04b020a3e8efd32f09180850846eb5476e5d",
     "fail_closed_parser_tests": "3/3 PASS: normal success accepted; Process crashed with exit 0 rejected; missing target completion rejected.",
     "local_script_validation": "bash -n PASS; Android workflow YAML parse PASS; inline Python syntax PASS; git diff --check PASS; memory analyzer fixture PASS.",

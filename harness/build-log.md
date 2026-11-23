@@ -270,3 +270,8 @@
 - The requested script tests pass 3/3. Shell syntax, workflow YAML, inline Python, and diff checks pass. The memory analyzer fixture records separate encoder/decoder timings, RSS/PSS/Swap and LMK classification correctly.
 - API36 AVD requests 4096M RAM and 512M VM heap; KVM preflight and smoke require 5 GiB host `MemAvailable`. Runtime evidence collection includes host/emulator meminfo, dumpsys PSS/Native Heap, process RSS/Swap, GC/LMK, actual screenshots/video, timeline/navigation/geometry/RETURN/handoff reports, and SHA-256 hashes. A single workload is explicitly insufficient to diagnose a true memory leak.
 - The modified AndroidTest source has not been compiled or run locally. No local APK or emulator run occurred. The marked hosted exact-HEAD build, KVM check, API36 AUTO run and APK Pair are pending; Run `45032036762` is not accepted as PASS.
+
+### Minimal Admission after fail-closed implementation
+
+- `CONTROL_PLANE_ADMISSION=PASS` at state checkpoint `7d4882a9432ec247948cb32ecd26618541a86f64`. Control Plane Registry, Feature Matrix, Phase/Task State Machine, Unified Contract, Control Plane Sync, Project Master State and Work Execution State all pass. Unified Contract reports `structural_errors=0` and one unchanged historical OPEN_GAP for the pre-migration `RecognitionResultScreen.kt` path; it is not blocking.
+- The final marker checkpoint changes only branch-local Work state/log files; the fail-closed implementation source remains `dfcd04b020a3e8efd32f09180850846eb5476e5d`. Pushing that checkpoint to the existing PR branch will trigger exact-HEAD build and API36 smoke.
