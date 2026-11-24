@@ -64,8 +64,8 @@
     },
     {
       "path": "CONTRACT_FREEZE_REPORT.md",
-      "sizeBytes": 4108,
-      "sha256": "b46e1af84ad4dae08018e44ab485892c886b71e0ab2ee39d0bb1bc5aa15533bc"
+      "sizeBytes": 4358,
+      "sha256": "a615897434c2e1836e43f4259a523586f28d5e546fd4176b19bf995e30280c1a"
     },
     {
       "path": "CONTRACT_SOURCE_INVENTORY.md",
@@ -88,10 +88,12 @@
     "repository": "pan277942135/Yujian_App",
     "targetPullRequest": 346,
     "targetBranch": "fix/26kf-path-boundary-and-fish-gate-v1",
-    "parentHeadSha": "0acfa98afe96bb04768c8304b81cd5e1456b63d9",
     "parentTreeSha": "0f05a106b90d8d9e0e90320031b3e1bf98f68a34",
     "sourceArchiveSha256": "b802e80a6640eaf7d1b6410cec79aa032682e6a5b51262e24c5742c94f85b07b",
     "existingCanonicalPath": "ABSENT",
-    "commitMode": "EXACT_PARENT_FAST_FORWARD_EXPECTED_SHA"
+    "commitMode": "EXACT_PARENT_FAST_FORWARD_EXPECTED_SHA",
+    "freezeBaseHeadSha": "0acfa98afe96bb04768c8304b81cd5e1456b63d9",
+    "firstDocumentationCommitSha": "f4d912c55c8625a069886c9b1cbc68d47f73440b",
+    "registryIntegrityFollowupCommitSha": "124fca26623c9a91e49bfd8ce0ef95b4bce5511e"
   }
 }
