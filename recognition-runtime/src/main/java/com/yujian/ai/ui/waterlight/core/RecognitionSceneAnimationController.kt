@@ -63,8 +63,8 @@ class RecognitionSceneAnimationController(
         private set
 
     private var identity: RecognitionSceneIdentity? = null
-    private var photoFirstFramePresented = false
-    private var firstFramePresentedTimestampMs: Long? = null
+    private var photoFirstFrameCommitted = false
+    private var firstFrameCommittedTimestampMs: Long? = null
     private var sceneStartedAtMs = UNSET
     private var sceneElapsedBeforePauseMs = 0L
     private var sceneClockStartedAtMs: Long? = null
@@ -75,8 +75,6 @@ class RecognitionSceneAnimationController(
     private var diagnosticAuto = false
     private var autoElapsedBeforePauseMs = 0L
     private var autoStartedAtMs: Long? = null
-    private var geometryGateStartedAtMs: Long? = null
-    private var geometryFrozenElapsedMs = 0L
     private var resultGeometryVersions: Set<Long> = emptySet()
     private var eventSequence = 0L
     private var lastAcceptedEventSequence = 0L
@@ -103,7 +101,7 @@ class RecognitionSceneAnimationController(
     fun setStageEventObserver(observer: ((RecognitionSceneStageEvent) -> Unit)?) {
         stageEventObserver = observer
     }
-    fun firstFramePresentedTimestampMs(): Long? = firstFramePresentedTimestampMs
+    fun firstFrameCommittedTimestampMs(): Long? = firstFrameCommittedTimestampMs
     fun resultGeometryVersionsSnapshot(): Set<Long> = resultGeometryVersions.toSet()
     fun resultGeometryIsReady(): Boolean = resultGeometryState == SceneGeometryState.READY
     fun sceneComplete(): Boolean = RecognitionSceneCompletionContract.isComplete(
@@ -151,7 +149,6 @@ class RecognitionSceneAnimationController(
     private var residueSettleComplete = false
     private var resultGeometryState = SceneGeometryState.PENDING
     private var residueRenderReceipt: RecognitionResidueRenderReceipt? = null
-    private var visualCheckpointCapturePendingStage: RecognitionSceneStage? = null
     private var failed = false
     var lastRejectedEnergyEvent: EnergyEventRejectionDiagnostic? = null
         private set
@@ -182,8 +179,7 @@ class RecognitionSceneAnimationController(
                 failed -> SceneRunState.FAILED
                 sceneComplete() -> SceneRunState.COMPLETE
                 paused -> SceneRunState.PAUSED
-                geometryGateStartedAtMs != null -> SceneRunState.WAITING
-                !photoFirstFramePresented -> SceneRunState.WAITING
+                !photoFirstFrameCommitted -> SceneRunState.WAITING
                 mode == ScenePlaybackMode.AUTO && waitingReason() != null -> SceneRunState.WAITING
                 else -> SceneRunState.RUNNING
             },
@@ -198,8 +194,8 @@ class RecognitionSceneAnimationController(
     ) {
         this.identity = identity
         resetClockState(nowMs)
-        photoFirstFramePresented = false
-        firstFramePresentedTimestampMs = null
+        photoFirstFrameCommitted = false
+        firstFrameCommittedTimestampMs = null
         sceneStartedAtMs = UNSET
         sceneElapsedBeforePauseMs = 0L
         sceneClockStartedAtMs = null
@@ -209,47 +205,44 @@ class RecognitionSceneAnimationController(
         paused = false
         previewCompleted = false
         diagnosticAuto = false
-        visualCheckpointCapturePendingStage = null
     }
 
     /** Compatibility reset for deterministic unit fixtures; production uses beginNewSession. */
     fun reset(nowMs: Long) {
         identity = null
         resetClockState(nowMs)
-        photoFirstFramePresented = true
-        firstFramePresentedTimestampMs = nowMs
+        photoFirstFrameCommitted = true
+        firstFrameCommittedTimestampMs = nowMs
         sceneStartedAtMs = nowMs
         sceneClockStartedAtMs = nowMs.takeIf { !paused }
         stageStartedAtMs = nowMs
         mode = ScenePlaybackMode.AUTO
-        visualCheckpointCapturePendingStage = null
     }
 
     fun cancelSession() {
         identity = null
         resetClockState(0L)
-        photoFirstFramePresented = false
-        firstFramePresentedTimestampMs = null
+        photoFirstFrameCommitted = false
+        firstFrameCommittedTimestampMs = null
         sceneStartedAtMs = UNSET
         stageStartedAtMs = UNSET
         mode = ScenePlaybackMode.AUTO
-        visualCheckpointCapturePendingStage = null
     }
 
-    /** PHOTO_STABLE and the scene clock start only after the current source photo is presented. */
-    fun markPhotoFirstFramePresented(
+    /** Starts the scene clock after Android commits the current source-photo frame to its surface. */
+    fun markPhotoFirstFrameCommitted(
         currentIdentity: RecognitionSceneIdentity,
         nowMs: Long,
     ): Boolean {
-        if (!isCurrent(currentIdentity) || photoFirstFramePresented) return false
-        photoFirstFramePresented = true
-        firstFramePresentedTimestampMs = nowMs
+        if (!isCurrent(currentIdentity) || photoFirstFrameCommitted) return false
+        photoFirstFrameCommitted = true
+        firstFrameCommittedTimestampMs = nowMs
         sceneStartedAtMs = nowMs
         stageStartedAtMs = nowMs
         stageGateWaitStartedAtMs = null
         stageGateWaitReason = null
         previewStartedAtMs = nowMs.takeIf { mode == ScenePlaybackMode.MANUAL && !paused }
-        if (!paused && geometryGateStartedAtMs == null) sceneClockStartedAtMs = nowMs
+        if (!paused) sceneClockStartedAtMs = nowMs
         bumpEventSequence()
         emitStageEvent(
             action = RecognitionSceneStageEventAction.ENTERED,
@@ -260,6 +253,13 @@ class RecognitionSceneAnimationController(
         )
         return true
     }
+
+    /** Compatibility alias for older deterministic fixtures; production calls the commit API. */
+    @Deprecated("Use markPhotoFirstFrameCommitted; draw submission is not physical presentation")
+    fun markPhotoFirstFramePresented(
+        currentIdentity: RecognitionSceneIdentity,
+        nowMs: Long,
+    ): Boolean = markPhotoFirstFrameCommitted(currentIdentity, nowMs)
 
     /** Prepare 01/13 without starting its local 3s until the real photo frame arrives. */
     fun prepareInitialStepPreview() {
@@ -272,8 +272,6 @@ class RecognitionSceneAnimationController(
         diagnosticAuto = false
         autoStartedAtMs = null
         autoElapsedBeforePauseMs = 0L
-        geometryGateStartedAtMs = null
-        geometryFrozenElapsedMs = 0L
         resultGeometryVersions = emptySet()
         sceneClockStartedAtMs = null
         bumpEventSequence()
@@ -281,7 +279,7 @@ class RecognitionSceneAnimationController(
 
     fun startPreparedStepPreview(nowMs: Long) {
         if (mode != ScenePlaybackMode.MANUAL || paused || previewCompleted || previewStartedAtMs != null) return
-        if (!photoFirstFramePresented) return
+        if (!photoFirstFrameCommitted) return
         previewStartedAtMs = nowMs
         if (sceneStartedAtMs == UNSET) sceneStartedAtMs = nowMs
         if (stageStartedAtMs == UNSET) stageStartedAtMs = nowMs
@@ -305,7 +303,7 @@ class RecognitionSceneAnimationController(
             RecognitionPhase.FAILURE -> failed = true
             RecognitionPhase.CAPTURED -> Unit
         }
-        if (stageStartedAtMs == UNSET && photoFirstFramePresented) stageStartedAtMs = nowMs
+        if (stageStartedAtMs == UNSET && photoFirstFrameCommitted) stageStartedAtMs = nowMs
     }
 
     fun onDetectorTargetAvailable(ready: Boolean, currentIdentity: RecognitionSceneIdentity? = null) {
@@ -654,7 +652,7 @@ class RecognitionSceneAnimationController(
                 glyphAvailable && glyphRevealComplete
             ResultHandoffSubstage.PHOTO_SETTLE -> currentStage == RecognitionSceneStage.RESIDUE_SETTLE &&
                 event.stage == RecognitionSceneStage.RESIDUE_SETTLE && event.progress >= .999f
-            ResultHandoffSubstage.RESULT_SCENE_HANDOFF -> photoFirstFramePresented &&
+            ResultHandoffSubstage.RESULT_SCENE_HANDOFF -> photoFirstFrameCommitted &&
                 currentStage == RecognitionSceneStage.RESIDUE_SETTLE && event.stage == RecognitionSceneStage.RESIDUE_SETTLE &&
                 ResultHandoffSubstage.PHOTO_SETTLE in completedResultHandoffSubstages
             ResultHandoffSubstage.RESULT_INFO_ARRIVAL ->
@@ -701,7 +699,7 @@ class RecognitionSceneAnimationController(
         return RecognitionResultHandoffReceipt(true, resultSceneStable = resultSceneStable)
     }
 
-    /** Set a geometry gate independently from user pause. Late geometry resumes from the held offset. */
+    /** Update asynchronous Result geometry without changing recognition playback or its SceneClock. */
     fun setResultGeometryState(
         state: SceneGeometryState,
         nowMs: Long,
@@ -711,40 +709,10 @@ class RecognitionSceneAnimationController(
         if (!isCurrent(currentIdentity)) return
         val acceptedVersions = geometryVersions.takeIf { state == SceneGeometryState.READY }.orEmpty()
         val versionChanged = state == SceneGeometryState.READY && resultGeometryVersions != acceptedVersions
-        if (state == resultGeometryState && !versionChanged &&
-            (state != SceneGeometryState.PENDING || geometryGateStartedAtMs != null)
-        ) return
-        when (state) {
-            SceneGeometryState.PENDING -> {
-                resultGeometryVersions = emptySet()
-                if (currentStage == RecognitionSceneStage.ORB_RETURN) {
-                    orbReturnRenderReceipt = null
-                    orbReturnComplete = false
-                }
-                if (geometryGateStartedAtMs == null) {
-                    geometryFrozenElapsedMs = stageElapsedMs(nowMs)
-                    geometryGateStartedAtMs = nowMs
-                    stopSceneClock(nowMs)
-                }
-            }
-            SceneGeometryState.READY,
-            SceneGeometryState.INVALID -> {
-                if (versionChanged && currentStage == RecognitionSceneStage.ORB_RETURN) {
-                    orbReturnRenderReceipt = null
-                    orbReturnComplete = false
-                }
-                resultGeometryVersions = acceptedVersions
-                val startedAt = geometryGateStartedAtMs
-                if (startedAt != null) {
-                    val heldFor = (nowMs - startedAt).coerceAtLeast(0L)
-                    stageStartedAtMs = stageStartedAtMs.takeIf { it != UNSET }?.plus(heldFor) ?: UNSET
-                    previewStartedAtMs = previewStartedAtMs?.plus(heldFor)
-                    autoStartedAtMs = autoStartedAtMs?.plus(heldFor)
-                    geometryGateStartedAtMs = null
-                    if (!paused && photoFirstFramePresented) startSceneClock(nowMs)
-                }
-            }
-        }
+        if (state == resultGeometryState && !versionChanged) return
+        // Result geometry is asynchronous presentation data. It cannot freeze or extend the
+        // recognition SceneClock, nor invalidate a Processing-path RETURN receipt.
+        resultGeometryVersions = acceptedVersions
         resultGeometryState = state
     }
 
@@ -785,10 +753,9 @@ class RecognitionSceneAnimationController(
             event.referenceMs != frame.opticalReferenceElapsedMs ||
             event.monotonicTimestampMs < lastAcceptedEventTimestampMs
         ) return reject(EnergyEventRejectionReason.EVENT_TIMESTAMP_MISMATCH)
-        if (event.geometryVersion != frame.geometryVersion ||
-            (frame.stage.ordinal >= RecognitionSceneStage.ORB_RETURN.ordinal &&
-                (resultGeometryState != SceneGeometryState.READY || event.geometryVersion !in resultGeometryVersions))
-        ) return reject(EnergyEventRejectionReason.EVENT_GEOMETRY_MISMATCH)
+        if (event.geometryVersion != frame.geometryVersion) {
+            return reject(EnergyEventRejectionReason.EVENT_GEOMETRY_MISMATCH)
+        }
         if (event.pathId.isNullOrBlank() || event.renderStatus in setOf("PENDING", "PATH_PENDING")) {
             return reject(EnergyEventRejectionReason.EVENT_PATH_PENDING)
         }
@@ -1024,10 +991,7 @@ class RecognitionSceneAnimationController(
         receipt: RecognitionOrbReturnRenderReceipt,
         currentIdentity: RecognitionSceneIdentity? = null,
     ): Boolean {
-        if (!isCurrent(currentIdentity) || currentStage != RecognitionSceneStage.ORB_RETURN ||
-            resultGeometryState != SceneGeometryState.READY ||
-            receipt.resultGeometryVersion !in resultGeometryVersions
-        ) return false
+        if (!isCurrent(currentIdentity) || currentStage != RecognitionSceneStage.ORB_RETURN) return false
         val active = identity ?: return false
         if (!RecognitionOrbReturnRenderContract.isComplete(
                 identity = active,
@@ -1052,22 +1016,6 @@ class RecognitionSceneAnimationController(
 
     fun orbReturnComplete(): Boolean = orbReturnComplete
 
-    /** Holds the AUTO checkpoint stage until PixelCopy has copied its committed window frame. */
-    fun setVisualCheckpointCapturePending(
-        stage: RecognitionSceneStage,
-        pending: Boolean,
-        currentIdentity: RecognitionSceneIdentity? = null,
-    ): Boolean {
-        if (!isCurrent(currentIdentity)) return false
-        if (pending) {
-            if (currentStage != stage) return false
-            visualCheckpointCapturePendingStage = stage
-        } else if (visualCheckpointCapturePendingStage == stage) {
-            visualCheckpointCapturePendingStage = null
-        }
-        return true
-    }
-
     /** Samples and advances at most one event-gated stage. MANUAL never advances here. */
     fun currentSceneStage(
         nowMs: Long,
@@ -1080,8 +1028,7 @@ class RecognitionSceneAnimationController(
             updatePreviewCompletion(nowMs)
             return currentStage
         }
-        if (!photoFirstFramePresented || paused || geometryGateStartedAtMs != null || failed) return currentStage
-        if (visualCheckpointCapturePendingStage == currentStage) return currentStage
+        if (!photoFirstFrameCommitted || paused || failed) return currentStage
         val elapsed = stageElapsedMs(nowMs)
         val progress = stageProgress(nowMs)
         val required = if (diagnosticAuto) maxOf(DIAGNOSTIC_STEP_DURATION_MS, minimum(currentStage)) else minimum(currentStage)
@@ -1136,7 +1083,6 @@ class RecognitionSceneAnimationController(
     fun phaseElapsedMs(nowMs: Long): Long = stageElapsedMs(nowMs)
 
     fun stageElapsedMs(nowMs: Long): Long {
-        if (geometryGateStartedAtMs != null) return geometryFrozenElapsedMs.coerceAtLeast(0L)
         if (mode == ScenePlaybackMode.MANUAL) return previewElapsedMsWithoutUpdate(nowMs)
         if (diagnosticAuto) return autoStageElapsedMs(nowMs)
         if (paused) return stageElapsedBeforePauseMs
@@ -1178,7 +1124,7 @@ class RecognitionSceneAnimationController(
             stageElapsedMs = elapsed,
             stageProgress = progress,
             playbackMode = mode,
-            paused = paused || geometryGateStartedAtMs != null,
+            paused = paused,
             reducedMotion = reducedMotion,
             modelGates = gates,
             eventSequence = eventSequence,
@@ -1201,7 +1147,7 @@ class RecognitionSceneAnimationController(
     fun fishPathSnapshotReady(): Boolean = fishPathSnapshot != null
 
     /** Result can mount at Stage 10; Result geometry, Glyph, RETURN render and event gates complete there. */
-    fun resultVisualReady(nowMs: Long): Boolean = !failed && photoFirstFramePresented &&
+    fun resultVisualReady(nowMs: Long): Boolean = !failed && photoFirstFrameCommitted &&
         currentStage == RecognitionSceneStage.ORB_RETURN && classifierReady && slimSamTerminal &&
         revealDecisionReady && orbAnchorReady &&
         (!maskTrusted || revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY ||
@@ -1213,7 +1159,7 @@ class RecognitionSceneAnimationController(
         val missing = mutableListOf<String>()
         fun requireGate(name: String, ready: Boolean) { if (!ready) missing += name }
         when (currentStage) {
-            RecognitionSceneStage.PHOTO_STABLE -> requireGate("photoFirstFramePresented", photoFirstFramePresented)
+            RecognitionSceneStage.PHOTO_STABLE -> requireGate("photoFirstFrameCommitted", photoFirstFrameCommitted)
             RecognitionSceneStage.ORB_WAKE -> requireGate("orbAnchorReady", orbAnchorReady)
             RecognitionSceneStage.ORB_RELEASE -> {
                 requireGate("releasePathReady", releasePathReady); requireGate("orbAnchorReady", orbAnchorReady)
@@ -1257,8 +1203,6 @@ class RecognitionSceneAnimationController(
                             revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY || fishPathSnapshot != null)
                         requireGate("orbReturnRenderReceiptReady", orbReturnRenderReceipt != null)
                         requireGate("orbReturnComplete", orbReturnComplete); requireGate("orbAnchorReady", orbAnchorReady)
-                        requireGate("glyphAvailable", glyphAvailable)
-                        requireGate("resultGeometryReady", resultGeometryState == SceneGeometryState.READY)
                     }
                     RecognitionSceneStage.ORB_TO_NAME -> {
                         requireGate("orbToGlyphComplete", orbToGlyphComplete); requireGate("glyphAvailable", glyphAvailable)
@@ -1314,17 +1258,17 @@ class RecognitionSceneAnimationController(
         paused = !startImmediately
         previewCompleted = false
         previewElapsedBeforePauseMs = 0L
-        previewStartedAtMs = nowMs.takeIf { startImmediately && photoFirstFramePresented }
-        if (startImmediately && photoFirstFramePresented && geometryGateStartedAtMs == null) startSceneClock(nowMs)
+        previewStartedAtMs = nowMs.takeIf { startImmediately && photoFirstFrameCommitted }
+        if (startImmediately && photoFirstFrameCommitted) startSceneClock(nowMs)
         diagnosticAuto = false
         autoStartedAtMs = null
         autoElapsedBeforePauseMs = 0L
-        if (photoFirstFramePresented && stageStartedAtMs == UNSET) stageStartedAtMs = nowMs
+        if (photoFirstFrameCommitted && stageStartedAtMs == UNSET) stageStartedAtMs = nowMs
         bumpEventSequence()
     }
 
     fun advanceToNextStage(nowMs: Long): RecognitionSceneStage? {
-        if (mode != ScenePlaybackMode.MANUAL || !photoFirstFramePresented ||
+        if (mode != ScenePlaybackMode.MANUAL || !photoFirstFrameCommitted ||
             currentStage == RecognitionSceneStage.entries.last()
         ) return null
         val next = RecognitionSceneStage.entries[currentStage.ordinal + 1]
@@ -1333,7 +1277,7 @@ class RecognitionSceneAnimationController(
     }
 
     fun returnToPreviousStage(nowMs: Long): RecognitionSceneStage? {
-        if (mode != ScenePlaybackMode.MANUAL || !photoFirstFramePresented ||
+        if (mode != ScenePlaybackMode.MANUAL || !photoFirstFrameCommitted ||
             currentStage == RecognitionSceneStage.entries.first()
         ) return null
         val previous = RecognitionSceneStage.entries[currentStage.ordinal - 1]
@@ -1364,19 +1308,11 @@ class RecognitionSceneAnimationController(
     fun pause(@Suppress("UNUSED_PARAMETER") authoritativeReferenceMs: Long, nowMs: Long) {
         if (paused) return
         if (mode == ScenePlaybackMode.MANUAL) {
-            previewElapsedBeforePauseMs = (if (geometryGateStartedAtMs != null) {
-                geometryFrozenElapsedMs
-            } else {
-                previewElapsedMsWithoutUpdate(nowMs)
-            }).coerceIn(0L, DIAGNOSTIC_STEP_DURATION_MS)
+            previewElapsedBeforePauseMs = previewElapsedMsWithoutUpdate(nowMs)
             previewStartedAtMs = null
             previewCompleted = previewElapsedBeforePauseMs >= DIAGNOSTIC_STEP_DURATION_MS
         } else if (diagnosticAuto) {
-            autoElapsedBeforePauseMs = (if (geometryGateStartedAtMs != null) {
-                geometryFrozenElapsedMs
-            } else {
-                autoStageElapsedMs(nowMs)
-            }).coerceAtMost(DIAGNOSTIC_STEP_DURATION_MS)
+            autoElapsedBeforePauseMs = autoStageElapsedMs(nowMs).coerceAtMost(DIAGNOSTIC_STEP_DURATION_MS)
             autoStartedAtMs = null
         } else {
             stageElapsedBeforePauseMs = stageElapsedMs(nowMs)
@@ -1392,7 +1328,7 @@ class RecognitionSceneAnimationController(
         else if (diagnosticAuto) autoStartedAtMs = nowMs
         else stageStartedAtMs = nowMs - stageElapsedBeforePauseMs
         paused = false
-        if (geometryGateStartedAtMs == null) startSceneClock(nowMs)
+        startSceneClock(nowMs)
     }
 
     fun playAuto(authoritativeReferenceMs: Long, nowMs: Long) = playProductionTimeline(authoritativeReferenceMs, nowMs)
@@ -1408,8 +1344,8 @@ class RecognitionSceneAnimationController(
         previewStartedAtMs = null
         previewElapsedBeforePauseMs = 0L
         stageElapsedBeforePauseMs = elapsed
-        stageStartedAtMs = if (photoFirstFramePresented) nowMs - elapsed else UNSET
-        if (photoFirstFramePresented) startSceneClock(nowMs)
+        stageStartedAtMs = if (photoFirstFrameCommitted) nowMs - elapsed else UNSET
+        if (photoFirstFrameCommitted) startSceneClock(nowMs)
         autoStartedAtMs = null
         autoElapsedBeforePauseMs = 0L
     }
@@ -1424,22 +1360,22 @@ class RecognitionSceneAnimationController(
         previewStartedAtMs = null
         previewElapsedBeforePauseMs = 0L
         autoElapsedBeforePauseMs = elapsed
-        autoStartedAtMs = nowMs.takeIf { photoFirstFramePresented }
-        if (photoFirstFramePresented) startSceneClock(nowMs)
+        autoStartedAtMs = nowMs.takeIf { photoFirstFrameCommitted }
+        if (photoFirstFrameCommitted) startSceneClock(nowMs)
     }
 
     fun switchToStepDiagnostic(@Suppress("UNUSED_PARAMETER") authoritativeReferenceMs: Long, nowMs: Long) {
         val progress = stageProgress(nowMs)
-        beginStepPreview(currentStage, nowMs, startImmediately = photoFirstFramePresented)
+        beginStepPreview(currentStage, nowMs, startImmediately = photoFirstFrameCommitted)
         previewElapsedBeforePauseMs = (progress * DIAGNOSTIC_STEP_DURATION_MS).toLong()
     }
 
-    /** Compatibility hook; Result geometry now uses setResultGeometryState so USER_PAUSE is preserved. */
+    /** Compatibility no-op; Result geometry never controls the recognition SceneClock. */
+    @Deprecated("Result geometry must not control SceneClock")
     fun holdCurrentPreviewAtStart() {
-        setResultGeometryState(SceneGeometryState.PENDING, lastNowMs)
     }
 
-    fun canControl(): Boolean = photoFirstFramePresented
+    fun canControl(): Boolean = photoFirstFrameCommitted
 
     fun sceneElapsedMs(nowMs: Long): Long {
         val startedAt = sceneClockStartedAtMs ?: return sceneElapsedBeforePauseMs.coerceAtLeast(0L)
@@ -1447,7 +1383,7 @@ class RecognitionSceneAnimationController(
     }
 
     private fun canAdvance(stage: RecognitionSceneStage, successfulRevealAllowed: Boolean): Boolean = when (stage) {
-        RecognitionSceneStage.PHOTO_STABLE -> photoFirstFramePresented
+        RecognitionSceneStage.PHOTO_STABLE -> photoFirstFrameCommitted
         RecognitionSceneStage.ORB_WAKE -> orbAnchorReady
         RecognitionSceneStage.ORB_RELEASE -> releasePathReady && orbAnchorReady && photoTransformReady
         RecognitionSceneStage.PERIMETER_ARRIVAL -> detectorReady && photoTransformReady &&
@@ -1470,8 +1406,7 @@ class RecognitionSceneAnimationController(
         RecognitionSceneStage.ORB_RETURN -> successfulRevealAllowed &&
             revealDecisionState in setOf(RecognitionRevealDecisionState.FISH_FOCUS_READY, RecognitionRevealDecisionState.ORB_ONLY_READY) &&
             (!maskTrusted || revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY || fishPathSnapshot != null) &&
-            orbReturnRenderReceipt != null && orbReturnComplete && orbAnchorReady && glyphAvailable &&
-            resultGeometryState == SceneGeometryState.READY
+            orbReturnRenderReceipt != null && orbReturnComplete && orbAnchorReady
         RecognitionSceneStage.ORB_TO_NAME -> successfulRevealAllowed &&
             revealDecisionState in setOf(RecognitionRevealDecisionState.FISH_FOCUS_READY, RecognitionRevealDecisionState.ORB_ONLY_READY) &&
             orbToGlyphComplete && glyphAvailable
@@ -1485,7 +1420,7 @@ class RecognitionSceneAnimationController(
     }
 
     private fun stageEventComplete(stage: RecognitionSceneStage): Boolean = when (stage) {
-        RecognitionSceneStage.PHOTO_STABLE -> photoFirstFramePresented
+        RecognitionSceneStage.PHOTO_STABLE -> photoFirstFrameCommitted
         RecognitionSceneStage.ORB_WAKE -> orbAnchorReady
         RecognitionSceneStage.ORB_RELEASE -> releasePathReady
         RecognitionSceneStage.PERIMETER_ARRIVAL -> perimeterArrivalPathReady && perimeterArrivalPresented
@@ -1527,11 +1462,7 @@ class RecognitionSceneAnimationController(
 
     private fun waitingReason(): String? {
         if (failed) return "MODEL_OR_ATTEMPT_FAILED"
-        if (!photoFirstFramePresented) return "WAITING_FOR_PHOTO_FIRST_FRAME"
-        if (geometryGateStartedAtMs != null) return "WAITING_FOR_RESULT_GEOMETRY"
-        if (currentStage.ordinal >= RecognitionSceneStage.ORB_RETURN.ordinal && resultGeometryState == SceneGeometryState.INVALID) {
-            return "RESULT_GEOMETRY_INVALID"
-        }
+        if (!photoFirstFrameCommitted) return "WAITING_FOR_PHOTO_FIRST_FRAME"
         if (mode == ScenePlaybackMode.MANUAL) return when (currentStage) {
             RecognitionSceneStage.PHOTO_STABLE -> null
             RecognitionSceneStage.ORB_WAKE -> if (!orbAnchorReady) "WAITING_FOR_ORB_ANCHOR" else null
@@ -1635,7 +1566,7 @@ class RecognitionSceneAnimationController(
                         !fishContactPathReady -> "WAITING_FOR_MASK_BOUND_PSTAR_ABSORB_EVENT"
                         else -> "MASK_GEOMETRY_INVALID"
                     }
-                    RecognitionSceneStage.ORB_RETURN -> "WAITING_FOR_RETURN_EVENT_OR_RESULT_GEOMETRY"
+                    RecognitionSceneStage.ORB_RETURN -> "WAITING_FOR_RETURN_RENDER_RECEIPT_OR_COMPLETION"
                     RecognitionSceneStage.ORB_TO_NAME -> "WAITING_FOR_ORB_TO_GLYPH_COMPLETION"
                     RecognitionSceneStage.SPECIES_NAME_REVEAL -> "WAITING_FOR_GLYPH_REVEAL_COMPLETION"
                     RecognitionSceneStage.RESIDUE_SETTLE -> "WAITING_FOR_RESIDUE_SETTLE_COMPLETION"
@@ -1699,8 +1630,6 @@ class RecognitionSceneAnimationController(
         diagnosticAuto = false
         autoElapsedBeforePauseMs = 0L
         autoStartedAtMs = null
-        geometryGateStartedAtMs = null
-        geometryFrozenElapsedMs = 0L
         resultGeometryVersions = emptySet()
         stageStartedAtMs = nowMs
         sceneStartedAtMs = nowMs
@@ -1838,14 +1767,14 @@ class RecognitionSceneAnimationController(
     }
 
     private fun startSceneClock(nowMs: Long) {
-        if (photoFirstFramePresented && sceneClockStartedAtMs == null && geometryGateStartedAtMs == null && !paused) {
+        if (photoFirstFrameCommitted && sceneClockStartedAtMs == null && !paused) {
             sceneClockStartedAtMs = nowMs
         }
     }
 
     private fun updatePreviewCompletion(nowMs: Long) {
         lastNowMs = nowMs
-        if (mode != ScenePlaybackMode.MANUAL || paused || previewCompleted || previewStartedAtMs == null || geometryGateStartedAtMs != null) return
+        if (mode != ScenePlaybackMode.MANUAL || paused || previewCompleted || previewStartedAtMs == null) return
         if (previewElapsedMsWithoutUpdate(nowMs) >= DIAGNOSTIC_STEP_DURATION_MS) {
             previewElapsedBeforePauseMs = DIAGNOSTIC_STEP_DURATION_MS
             previewStartedAtMs = null
@@ -1857,14 +1786,14 @@ class RecognitionSceneAnimationController(
 
     private fun autoStageElapsedMs(nowMs: Long): Long {
         lastNowMs = nowMs
-        if (geometryGateStartedAtMs != null || paused) return autoElapsedBeforePauseMs
+        if (paused) return autoElapsedBeforePauseMs
         val startedAt = autoStartedAtMs ?: return autoElapsedBeforePauseMs
         return (autoElapsedBeforePauseMs + (nowMs - startedAt).coerceAtLeast(0L)).coerceAtLeast(0L)
     }
 
     private fun previewElapsedMsWithoutUpdate(nowMs: Long): Long {
         lastNowMs = nowMs
-        if (mode != ScenePlaybackMode.MANUAL || paused || previewCompleted || geometryGateStartedAtMs != null) {
+        if (mode != ScenePlaybackMode.MANUAL || paused || previewCompleted) {
             return previewElapsedBeforePauseMs.coerceIn(0L, DIAGNOSTIC_STEP_DURATION_MS)
         }
         val startedAt = previewStartedAtMs ?: return previewElapsedBeforePauseMs.coerceIn(0L, DIAGNOSTIC_STEP_DURATION_MS)

@@ -15,6 +15,25 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecognitionEvidenceZipExporterTest {
+    @Test
+    fun unavailableEvidenceIsDeclaredInsteadOfSynthesizedAsEmptyFiles() {
+        val root = java.nio.file.Files.createTempDirectory("yujian-evidence-availability").toFile()
+        val logs = File(root, "logs").apply { mkdirs() }
+        val reports = File(root, "reports").apply { mkdirs() }
+        val emptyEvents = File(logs, "model_inference.jsonl").apply { writeText("") }
+        try {
+            val degraded = RecognitionEvidenceZipExporter.writeEvidenceAvailability(logs, reports)
+            val availability = JSONObject(File(reports, "evidence_availability.json").readText())
+            assertEquals("NOT_RUN", availability.getJSONObject("files").getJSONObject("logs/model_inference.jsonl").getString("status"))
+            assertEquals("UNAVAILABLE", availability.getJSONObject("files").getJSONObject("reports/model_summary.json").getString("status"))
+            assertTrue(degraded.any { it.contains("logs/model_inference.jsonl") })
+            assertTrue(!emptyEvents.exists())
+            assertTrue(!File(reports, "model_summary.json").exists())
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
     @Test fun archiveCopyPreservesBytesForDocumentProvider() {
         val bytes = ByteArray(140_000) { it.toByte() }
         val output = ByteArrayOutputStream()
@@ -31,7 +50,7 @@ class RecognitionEvidenceZipExporterTest {
         RecognitionEvidenceZipExporter.copyArchive(byteArrayOf(1, 2).inputStream(), output)
     }
     @Test fun archiveContainsExactlyTheHashedFilesAndMatchingManifest() {
-        val content = "events\n".toByteArray()
+        val content = "{\"schemaVersion\":1,\"sequence\":1,\"eventType\":\"test\"}\n".toByteArray()
         val manifest = "{\"schemaVersion\":1}\n".toByteArray()
         val archive = createArchive(content, manifest)
 
@@ -45,7 +64,7 @@ class RecognitionEvidenceZipExporterTest {
 
     @Test(expected = IllegalStateException::class)
     fun archiveRejectsAChangedManifest() {
-        val content = "events\n".toByteArray()
+        val content = "{\"schemaVersion\":1,\"sequence\":1,\"eventType\":\"test\"}\n".toByteArray()
         val manifest = "{\"schemaVersion\":1}\n".toByteArray()
         val archive = createArchive(content, manifest)
         RecognitionEvidenceArchiveVerifier.verify(
@@ -57,7 +76,7 @@ class RecognitionEvidenceZipExporterTest {
 
     @Test(expected = IllegalStateException::class)
     fun archiveRejectsAChangedFileHash() {
-        val content = "events\n".toByteArray()
+        val content = "{\"schemaVersion\":1,\"sequence\":1,\"eventType\":\"test\"}\n".toByteArray()
         val manifest = "{\"schemaVersion\":1}\n".toByteArray()
         val archive = createArchive(content, manifest)
         RecognitionEvidenceArchiveVerifier.verify(
@@ -103,7 +122,10 @@ class RecognitionEvidenceZipExporterTest {
             File(snapshot, "frames/26kf_checkpoint_index.json").writeText(checkpointIndex.toString(), Charsets.UTF_8)
             File(snapshot, "logs/recognition_events.jsonl").apply {
                 parentFile?.mkdirs()
-                writeText("{\"event\":\"checkpoint-index-retained\"}\n", Charsets.UTF_8)
+                writeText(
+                    "{\"schemaVersion\":1,\"sequence\":1,\"eventType\":\"checkpoint-index-retained\"}\n",
+                    Charsets.UTF_8,
+                )
             }
             val budgetDegradedReasons = mutableListOf<String>()
             val budgetOutcome = RecognitionEvidenceZipExporter.applyStandardFrameBudget(
@@ -244,7 +266,10 @@ class RecognitionEvidenceZipExporterTest {
         val writerThread = Thread {
             var idx = 0
             while (keepWriting.get()) {
-                sink.recordRawLine("recognition_events.jsonl", """{"seq":${++idx}}""")
+                sink.recordRawLine(
+                    "recognition_events.jsonl",
+                    """{"schemaVersion":1,"sequence":${++idx},"eventType":"test"}""",
+                )
                 Thread.sleep(1L)
             }
         }.apply { start() }

@@ -52,6 +52,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.input.KeyboardType
@@ -75,6 +76,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultInfoRenderReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultStableRenderReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultStableRenderContract
+import com.yujian.ai.ui.recognition.reveal.RecognitionFramePresentedReceipt
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_CONSUMER
 import com.yujian.ai.ui.recognition.reveal.RECOGNITION_RESULT_HANDOFF_EVENT_PRODUCER
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffReceipt
@@ -83,6 +85,7 @@ import com.yujian.ai.ui.recognition.reveal.ResultStableReadiness
 import com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporter
 import com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorder
 import com.yujian.ai.ui.recognition.diagnostics.recognitionEvidenceWindow
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionAndroidFramePresentation
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.catches.CatchSaveMetadataParser
 import com.yujian.ai.feedback.FeedbackDraft
@@ -171,6 +174,7 @@ fun RecognitionResultScreen(
     onResultHandoffEvent: (RecognitionResultHandoffEvent) -> RecognitionResultHandoffReceipt = {
         RecognitionResultHandoffReceipt(false, "HANDOFF_EVENT_CONSUMER_UNAVAILABLE")
     },
+    onResultHostGeometryState: (ready: Boolean, failureCode: String?) -> Unit = { _, _ -> },
     recognitionEvidenceRecorder: RecognitionSessionEvidenceRecorder? = null,
     /** Injects one semantic frame in tests; production reads the shared scene controller. */
     sceneFrameOverrideForTest: RecognitionSceneFrame? = null,
@@ -215,6 +219,7 @@ fun RecognitionResultScreen(
     val latestRevealFinished = rememberUpdatedState(onRevealFinished)
     var diagnosticNowMs by remember(revealHandoff?.key) { mutableLongStateOf(SystemClock.uptimeMillis()) }
     val resultFirstFrameCallbackPosted = remember(image?.imageId) { AtomicBoolean(false) }
+    val resultFirstDrawPassSequence = remember(image?.imageId) { AtomicLong(0L) }
     val resultFrameHandler = remember { Handler(Looper.getMainLooper()) }
     DisposableEffect(resultFrameHandler) {
         onDispose { resultFrameHandler.removeCallbacksAndMessages(null) }
@@ -292,6 +297,7 @@ fun RecognitionResultScreen(
     var resolvingLocation by remember(prediction) { mutableStateOf(false) }
     var locationError by remember(prediction) { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    val resultView = LocalView.current
     val scope = rememberCoroutineScope()
     var evidenceExportStatus by remember(revealHandoff?.key) { mutableStateOf("READY") }
     var evidenceExportError by remember(revealHandoff?.key) { mutableStateOf<String?>(null) }
@@ -387,6 +393,7 @@ fun RecognitionResultScreen(
             onGlyphReadinessChanged = { glyphReadinessState = it },
             onDiagnosticNowMs = { diagnosticNowMs = it },
             onResultInfoEntranceStarted = { resultInfoEntranceStartedAtUptimeMs = it },
+            onResultHostGeometryState = onResultHostGeometryState,
         ),
     )
     val bbox = revealRuntime.bbox
@@ -439,14 +446,11 @@ fun RecognitionResultScreen(
         saveRequested = true
         requestedSaveDestination = destination
         lastSaveDestination = destination
-        latestEvidenceResultFrame.value?.let { frame ->
-            recognitionEvidenceRecorder?.requestCheckpointCapture(
-                checkpointId = "KF25",
-                stage = frame.stage,
-                eventSequence = frame.eventSequence,
-                eventType = "SAVE_ENTRY_TAP",
-            )
-        }
+        val evidenceFrame = latestEvidenceResultFrame.value
+        recognitionEvidenceRecorder?.requestSaveCheckpointCapture(
+            stage = evidenceFrame?.stage,
+            eventSequence = evidenceFrame?.eventSequence,
+        )
         val corrected = selectedKey != prediction.top1.speciesKey
         val detector = productionResult?.assessment?.primary?.let {
             JSONObject().put("confidence", it.confidence.toDouble()).put("box", JSONObject()
@@ -601,7 +605,7 @@ fun RecognitionResultScreen(
             }
             val evidenceFrame = latestEvidenceResultFrame.value
             if (evidenceFrame != null) {
-                recognitionEvidenceRecorder?.onFramePresented(
+                recognitionEvidenceRecorder?.onDrawSubmitted(
                     window = recognitionEvidenceWindow(context),
                     frame = evidenceFrame,
                     latestFrame = { latestEvidenceResultFrame.value },
@@ -612,48 +616,99 @@ fun RecognitionResultScreen(
             val handoff = revealHandoff
             val frameImageId = image?.imageId
             if (resultFirstFrameCallbackPosted.compareAndSet(false, true)) {
-                resultFrameHandler.post {
-                    if (latestImageId.value == frameImageId && resultFirstPresentedAtMs.value == null) {
-                        val presentedAtMs = SystemClock.uptimeMillis()
-                        resultFirstPresentedAtMs.value = presentedAtMs
-                        latestEvidenceResultFrame.value?.let { frame ->
-                            recognitionEvidenceRecorder?.recordResultFirstPresented(
-                                sceneElapsedMs = frame.sceneElapsedMs,
-                                geometryVersion = frame.geometryVersion,
-                                resultIdentity = resultSnapshot?.glyphSpeciesKey ?: prediction.top1.speciesKey,
-                            )
-                        }
-                        if (handoff == null) {
-                            revealStartAllowed.value = false
-                            Log.i(
-                                "RecognitionReveal",
-                                "RESULT_FIRST_PRESENTED image=${frameImageId.orEmpty()} uptimeMs=$presentedAtMs rr09Started=false reason=HANDOFF_NOT_READY",
-                            )
-                        } else {
-                            val sameHandoff = latestRevealKey.value == handoff.key
-                            val eligible = visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL ||
-                                visualHandoff?.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY
-                            if (sameHandoff && eligible) {
-                                Log.i(
-                                    "RecognitionReveal",
-                                    "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} photoSha256=${handoff.photoSourceIdentity.substringAfterLast("sha256=")} uptimeMs=$presentedAtMs geometryReady=$resultGeometryReady hero=${heroSnapshot?.boundsInWindow} crop=${heroSnapshot?.cropRect} root=${rootBounds}",
-                                )
-                            } else {
-                                val reason = when {
-                                    !sameHandoff -> "HANDOFF_CHANGED_BEFORE_FIRST_FRAME"
-                                    revealAlreadyPlayed -> "ALREADY_PLAYED"
-                                    !eligible -> "INELIGIBLE"
-                                    revealMotionPolicy.reduceMotion -> "REDUCE_MOTION"
-                                    else -> "STATIC_OR_INELIGIBLE"
+                val snapshotPayload = resultSnapshot?.committedPayload
+                val requestFrame = latestEvidenceResultFrame.value
+                if (snapshotPayload == null || requestFrame == null) {
+                    resultFirstFrameCallbackPosted.set(false)
+                } else {
+                    val firstDrawPassSequence = resultFirstDrawPassSequence.incrementAndGet()
+                    RecognitionAndroidFramePresentation.requestNextFrame(
+                        view = resultView,
+                        timeoutMs = 1_500L,
+                        onFrameCommitted = { _, _ -> Unit },
+                        onFramePresented = { signal ->
+                            resultFrameHandler.post {
+                                val evidenceFrame = latestEvidenceResultFrame.value
+                                val identityIsCurrent = latestImageId.value == frameImageId &&
+                                    (handoff == null || latestRevealKey.value == handoff.key)
+                                if (!identityIsCurrent || resultFirstPresentedAtMs.value != null ||
+                                    evidenceFrame == null || resultSnapshot?.committedPayload != snapshotPayload
+                                ) return@post
+                                val checkpointId = when (evidenceFrame.resultHandoffSubstage) {
+                                    ResultHandoffSubstage.NAME_STABLE -> "KF20"
+                                    ResultHandoffSubstage.PHOTO_SETTLE -> "KF21"
+                                    ResultHandoffSubstage.RESULT_SCENE_HANDOFF -> "KF22"
+                                    ResultHandoffSubstage.RESULT_INFO_ARRIVAL -> "KF23"
+                                    ResultHandoffSubstage.RESULT_SCENE_STABLE -> "KF24"
+                                    null -> "RESULT_HOST_FIRST_FRAME"
                                 }
-                                Log.i(
-                                    "RecognitionReveal",
-                                    "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} uptimeMs=$presentedAtMs rr09Started=false reason=$reason",
+                                val receipt = RecognitionFramePresentedReceipt(
+                                    identity = resultSceneIdentity,
+                                    snapshotId = snapshotPayload.snapshotId,
+                                    snapshotContentHash = snapshotPayload.contentHash,
+                                    renderer = "RESULT_HOST",
+                                    stage = evidenceFrame.stage,
+                                    checkpointId = checkpointId,
+                                    frameSequence = signal.frameSequence,
+                                    geometryVersion = evidenceFrame.geometryVersion,
+                                    drawPassSequence = firstDrawPassSequence,
+                                    presentFenceSignalTimeNanos = signal.presentFenceSignalTimeNanos,
+                                    observedAtUptimeMs = signal.observedPresentedAtUptimeMs,
                                 )
-                                latestRevealFinished.value.invoke(handoff.key)
+                                if (!receipt.isValid() || recognitionEvidenceRecorder?.recordFramePresented(receipt) == false) {
+                                    return@post
+                                }
+                                val presentedAtMs = receipt.observedAtUptimeMs
+                                resultFirstPresentedAtMs.value = presentedAtMs
+                                recognitionEvidenceRecorder?.recordResultFirstPresented(
+                                    sceneElapsedMs = evidenceFrame.sceneElapsedMs,
+                                    geometryVersion = evidenceFrame.geometryVersion,
+                                    resultIdentity = resultSnapshot.glyphSpeciesKey,
+                                )
+                                if (handoff == null) {
+                                    revealStartAllowed.value = false
+                                    Log.i(
+                                        "RecognitionReveal",
+                                        "RESULT_FIRST_PRESENTED image=${frameImageId.orEmpty()} uptimeMs=$presentedAtMs rr09Started=false reason=HANDOFF_NOT_READY",
+                                    )
+                                } else {
+                                    val sameHandoff = latestRevealKey.value == handoff.key
+                                    val eligible = visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL ||
+                                        visualHandoff?.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY
+                                    if (sameHandoff && eligible) {
+                                        Log.i(
+                                            "RecognitionReveal",
+                                            "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} photoSha256=${handoff.photoSourceIdentity.substringAfterLast("sha256=")} uptimeMs=$presentedAtMs geometryReady=$resultGeometryReady hero=${heroSnapshot?.boundsInWindow} crop=${heroSnapshot?.cropRect} root=${rootBounds}",
+                                        )
+                                    } else {
+                                        val reason = when {
+                                            !sameHandoff -> "HANDOFF_CHANGED_BEFORE_FIRST_FRAME"
+                                            revealAlreadyPlayed -> "ALREADY_PLAYED"
+                                            !eligible -> "INELIGIBLE"
+                                            revealMotionPolicy.reduceMotion -> "REDUCE_MOTION"
+                                            else -> "STATIC_OR_INELIGIBLE"
+                                        }
+                                        Log.i(
+                                            "RecognitionReveal",
+                                            "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} uptimeMs=$presentedAtMs rr09Started=false reason=$reason",
+                                        )
+                                        latestRevealFinished.value.invoke(handoff.key)
+                                    }
+                                }
                             }
-                        }
-                    }
+                        },
+                        onPresentationUnavailable = { frameSequence, reason ->
+                            recognitionEvidenceRecorder?.recordGateDiagnostic(
+                                "FRAME_PRESENTATION_UNAVAILABLE",
+                                mapOf(
+                                    "renderer" to "RESULT_HOST",
+                                    "stage" to latestEvidenceResultFrame.value?.stage?.name,
+                                    "frameSequence" to frameSequence,
+                                    "reason" to reason,
+                                ),
+                            )
+                        },
+                    )
                 }
             }
         }.onGloballyPositioned { coordinates ->
@@ -728,6 +783,7 @@ fun RecognitionResultScreen(
                     diagnosticFrame = diagnosticFrame,
                     sceneFrameOverrideForTest = sceneFrameOverrideForTest,
                     photoTransitionGeometry = photoTransitionGeometry,
+                    fallbackReturnPathSegments = revealRuntime.fallbackReturnPathSegments,
                     presentedHandoff = presentedHandoff,
                     revealFrameState = revealFrameState,
                     revealMotionPolicy = revealMotionPolicy,

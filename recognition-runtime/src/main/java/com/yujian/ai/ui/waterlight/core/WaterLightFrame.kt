@@ -1,5 +1,6 @@
 package com.yujian.ai.ui.waterlight.core
 
+import com.yujian.ai.recognition.domain.PhotoIdentity
 
 /** Generic WaterLight lifecycle; recognition business phases are mapped at the screen adapter. */
 enum class WaterLightPhase { IDLE, PHOTO_ENTRY, PROCESSING, HANDOFF, RESIDUE, SETTLED }
@@ -26,6 +27,7 @@ data class WaterLightFrame(
     val sceneStageOverride: RecognitionSceneStage? = null,
     val sceneStageElapsedMsOverride: Long? = null,
     val sceneStageProgressOverride: Float? = null,
+    val photoIdentity: PhotoIdentity? = null,
 ) {
     init {
         require(elapsedMs >= 0 && opticalReferenceElapsedMs >= 0)
@@ -43,6 +45,7 @@ data class WaterLightFrame(
             imageId = imageId,
             photoSha256 = photoSha256,
             photoContentVersion = photoContentVersion,
+            photoIdentity = photoIdentity,
         )
         sceneFrameOverride?.takeIf {
             it.identity == identity && it.geometryVersion == geometryVersion

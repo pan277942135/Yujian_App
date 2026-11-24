@@ -129,7 +129,10 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
 
     private val session: OrtSession get() = sessionLazy.value
 
-    suspend fun detect(bitmap: Bitmap): DetectorRun = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+    suspend fun detect(
+        bitmap: Bitmap,
+        deadline: RecognitionAttemptDeadline? = null,
+    ): DetectorRun = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
         require(bitmap.width > 0 && bitmap.height > 0) { "鱼体检测输入图片尺寸无效" }
         val started = System.nanoTime()
         val model = verifiedModel
@@ -138,7 +141,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         fun evaluate(orientation: DetectorOrientationAttempt): Pair<DetectorRun, FishInputAssessment> {
             val attemptBitmap = orientBitmap(bitmap, orientation)
             val attemptRun = try {
-                detectOnce(attemptBitmap, model)
+                detectOnce(attemptBitmap, model, deadline)
             } finally {
                 if (attemptBitmap !== bitmap && !attemptBitmap.isRecycled) attemptBitmap.recycle()
             }
@@ -204,14 +207,20 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         )
     }
 
-    private fun detectOnce(bitmap: Bitmap, model: VerifiedModel): DetectorRun {
+    private fun detectOnce(
+        bitmap: Bitmap,
+        model: VerifiedModel,
+        deadline: RecognitionAttemptDeadline?,
+    ): DetectorRun {
         val attemptStarted = System.nanoTime()
         val prepared = prepareInput(bitmap, model.inputSize)
         val shape = longArrayOf(1, 3, model.inputSize.toLong(), model.inputSize.toLong())
 
         var outputShape = emptyList<Int>()
         val rows = OnnxTensor.createTensor(environment, prepared.buffer.asFloatBuffer(), shape).use { tensor ->
-            session.run(mapOf(model.inputName to tensor)).use { result ->
+            RecognitionOrtNativeRun.run(deadline) { runOptions ->
+                session.run(mapOf(model.inputName to tensor), runOptions)
+            }.use { result ->
                 val output = result[0] as? OnnxTensor
                     ?: error("DET_FISH_v0.1 输出不是 FLOAT tensor")
                 outputShape = output.info.shape.map { it.toInt() }

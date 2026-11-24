@@ -64,9 +64,13 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
             RecognitionModelWatchdog.execute(
                 modelName = "DETECTOR",
                 identity = modelIdentity,
-            ) { detector.detect(bitmap) }
+            ) { detector.detect(bitmap, modelIdentity?.attemptDeadline) }
         } catch (cancelled: CancellationException) {
             throw cancelled
+        } catch (timeout: RecognitionAttemptNativeTimeoutException) {
+            val failure = RecognitionStageFailureException(RecognitionFailureCode.DETECTOR_TIMEOUT, timeout)
+            onDiagnostic("DETECTOR_FAIL", "DETECTOR", "FAIL", mapOf("failure_code" to failure.failureCode.name), failure)
+            throw failure
         } catch (failure: RecognitionStageFailureException) {
             onDiagnostic("DETECTOR_FAIL", "DETECTOR", "FAIL", mapOf("failure_code" to failure.failureCode.name), failure)
             throw failure
@@ -163,9 +167,11 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 RecognitionModelWatchdog.execute(
                     modelName = "CLASSIFIER",
                     identity = modelIdentity,
-                ) { classifier.recognize(crop, traceContext) }
+                ) { classifier.recognize(crop, traceContext, modelIdentity?.attemptDeadline) }
             } catch (cancelled: CancellationException) {
                 throw cancelled
+            } catch (timeout: RecognitionAttemptNativeTimeoutException) {
+                throw RecognitionStageFailureException(RecognitionFailureCode.CLASSIFIER_TIMEOUT, timeout)
             } catch (failure: RecognitionStageFailureException) {
                 throw failure
             } catch (error: Throwable) {

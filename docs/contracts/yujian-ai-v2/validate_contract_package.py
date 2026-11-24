@@ -13,6 +13,39 @@ EXPECTED_IDS = [
     "YUJIAN_RESULT_HANDOFF_CONTRACT_V1",
     "YUJIAN_RUNTIME_EVIDENCE_CONTRACT_V1",
 ]
+EXPECTED_CORE_SHA256 = {
+    "YUJIAN_RECOGNITION_RUNTIME_CONTRACT_V1": "a6b27578a9a6c96b0ba4dd6595eea5faa11602611b55d46d4117d3c5bc97a80e",
+    "YUJIAN_RECOGNITION_RESULT_SNAPSHOT_CONTRACT_V1": "125ed4f09ef278a45de41f44ddcddd32a235a3d15f0bfb6dfd2fa944a7f83442",
+    "YUJIAN_REVEAL_TIMELINE_CONTRACT_V1": "960d90154cd6d1b159582203836cad44fabe19c5ff23559bf6be575683920a87",
+    "YUJIAN_ORB_TO_GLYPH_RENDERING_CONTRACT_V1": "84e2a65289b9850423fb3e75edf73266c47f7db0e21ead7aaa3479324467cb50",
+    "YUJIAN_RESULT_HANDOFF_CONTRACT_V1": "c1f89229b0f523492f2b8446286d3ea84d73aca39d11ce2627617c4f328e9b42",
+    "YUJIAN_RUNTIME_EVIDENCE_CONTRACT_V1": "38fbe6b619e270bba9c7b730c1d306446aa8997fb1061fb2c49b06979700025c",
+}
+EXPECTED_POLICY_GATES = [
+    ("PHOTO_FIRST_FRAME", 3000, 2, 3000, "Yes"),
+    ("PROCESSING_GEOMETRY", 2000, 1, 2000, "Yes"),
+    ("ORB_ANCHOR", 1500, 1, 1500, "Yes"),
+    ("RELEASE_RENDER", 1500, 2, 1500, "Yes"),
+    ("PERIMETER_ARRIVAL_RENDER", 1500, 2, 1500, "Yes"),
+    ("REVEAL_DECISION", 1000, 0, 1000, "Yes"),
+    ("MASK_CONTOUR_PSTAR", 2000, 0, 2000, "Yes"),
+    ("PATH_BOUND", 2000, 1, 2000, "Yes"),
+    ("ORB_ONLY_RETURN_PATH", 1500, 1, 1500, "Yes"),
+    ("CONTOUR_RENDER", 1500, 2, 1500, "Yes"),
+    ("FISH_GOLD_RENDER", 1500, 2, 1500, "Yes"),
+    ("RETURN_RENDER", 2000, 2, 2000, "Yes"),
+    ("GLYPH_PATH", 2500, 1, 2500, "Yes"),
+    ("ORB_TO_GLYPH_RENDER", 2000, 2, 2000, "Yes"),
+    ("GLYPH_REVEAL_NAME_STABLE", 2000, 2, 2000, "Yes"),
+    ("RESULT_HOST_GEOMETRY", 3000, 2, 3000, "Yes"),
+    ("PHOTO_SETTLE", 2000, 1, 2000, "Yes"),
+    ("HANDOFF_ACK", 1000, 0, 1000, "Yes"),
+    ("SCENE_OWNER_TRANSFER", 1000, 0, 1000, "Yes"),
+    ("RESULT_INFO_ARRIVAL", 1500, 1, 1500, "Yes"),
+    ("RESULT_SCENE_STABLE", 2000, 1, 2000, "Yes"),
+    ("RESIDUE_SETTLE_RENDER", 1500, 2, 1500, "Yes"),
+    ("PIXELCOPY_CAPTURE", 1500, 0, 0, "No"),
+]
 EXPECTED_SUBSTAGES = [
     "13.1 NAME_STABLE", "13.2 PHOTO_SETTLE", "13.3 RESULT_SCENE_HANDOFF",
     "13.4 RESULT_INFO_ARRIVAL", "13.5 RESULT_SCENE_STABLE",
@@ -53,12 +86,37 @@ require(len(ids) == len(set(ids)) == 6, "Registry must contain six unique Contra
 for c in contracts:
     require(c.get("version") == "1.0.0", f"Contract version mismatch: {c.get('id')}")
     require(c.get("status") == "FROZEN_SPECIFICATION", f"Contract status mismatch: {c.get('id')}")
+    require(c.get("sha256") == EXPECTED_CORE_SHA256.get(c.get("id")), f"Frozen core SHA changed: {c.get('id')}")
     f = ROOT / str(c.get("file", ""))
     require(f.is_file(), f"Registry contract file missing: {f.name}")
     if f.is_file():
         require(c.get("id") in f.read_text(encoding="utf-8"), f"Contract ID absent from {f.name}")
         require(c.get("sha256") == sha(f), f"Registry contract SHA mismatch: {f.name}")
 ok("Registry: six unique Contract IDs, V1.0.0 and files present")
+
+policies = registry.get("supportingPolicies", [])
+require(len(policies) == 1, f"Expected one supporting policy, found {len(policies)}")
+policy = policies[0] if policies else {}
+require(policy.get("id") == "YUJIAN_NON_MODEL_GATE_DEADLINE_POLICY_V1", "Gate policy ID missing or misregistered")
+require(policy.get("version") == "1.0.0" and policy.get("status") == "FROZEN_SPECIFICATION",
+        "Gate policy version/status mismatch")
+policy_path = ROOT / str(policy.get("file", ""))
+require(policy_path.is_file(), "Gate supporting policy file missing")
+if policy_path.is_file():
+    require(policy.get("sha256") == sha(policy_path), "Gate policy registry SHA mismatch")
+    policy_text = policy_path.read_text(encoding="utf-8")
+    table = re.findall(
+        r"^\|\s*`([A-Z_]+)`\s*\|\s*([\d,]+)\s*\|\s*(\d+)\s*\|\s*([\d,]+)\s*\|\s*(Yes|No)\s*\|",
+        policy_text,
+        re.M,
+    )
+    parsed = [(name, int(timeout.replace(",", "")), int(retries), int(cumulative.replace(",", "")), counts)
+              for name, timeout, retries, cumulative, counts in table]
+    require(parsed == EXPECTED_POLICY_GATES, f"Frozen Gate table mismatch: {parsed}")
+    require(all(token in policy_text for token in ["6,000 ms", "60,000 ms", "3,000 ms", "10,000 ms", "1,500 ms"]),
+            "Frozen global Gate timing values are missing")
+require("YUJIAN_NON_MODEL_GATE_DEADLINE_POLICY_V1" not in ids, "Supporting policy must not be added as a seventh core contract")
+ok("Supporting policy: one separately registered frozen policy; 23 exact Gate rows; core hashes unchanged")
 
 # Timeline: exact 13 stage rows and sum.
 timeline = (ROOT / "04_REVEAL_TIMELINE_CONTRACT_V1.md").read_text(encoding="utf-8")
@@ -114,6 +172,10 @@ for item in manifest_files:
         require(sha(path) == item.get("sha256"), f"Manifest SHA mismatch: {path.name}")
 require("CONTRACT_MANIFEST.json" not in manifest_paths and "SHA256SUMS" not in manifest_paths, "Manifest must not self-reference or include SHA256SUMS")
 ok(f"Manifest: {len(manifest_files)} files, size and SHA256 match")
+manifest_policies = manifest.get("supportingPolicies", [])
+require(manifest_policies == policies, "Manifest and Registry supportingPolicies differ")
+require(any(item.get("path") == policy.get("file") for item in manifest_files), "Manifest does not include Gate policy file")
+ok("Manifest: supporting policy metadata matches Registry and policy file is hashed")
 
 sum_file = ROOT / "SHA256SUMS"
 entries = []

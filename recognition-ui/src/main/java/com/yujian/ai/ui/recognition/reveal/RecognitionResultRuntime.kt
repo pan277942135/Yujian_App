@@ -148,4 +148,5 @@ data class RecognitionResultSnapshot(
     val handoffState: RecognitionResultHandoffState,
     val resultDataReady: Boolean,
     val resultSceneStable: Boolean,
+    val committedPayload: com.yujian.ai.recognition.domain.RecognitionResultSnapshot,
 )

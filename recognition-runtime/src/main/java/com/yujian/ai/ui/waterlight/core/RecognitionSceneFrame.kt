@@ -2,6 +2,7 @@ package com.yujian.ai.ui.waterlight.core
 
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffContract
 import com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage
+import com.yujian.ai.recognition.domain.PhotoIdentity
 
 /** Semantic scene states. Durations are local minimum visibility targets, never a global timeline. */
 enum class RecognitionSceneStage(val minimumVisibleMs: Long, val displayName: String) {
@@ -72,7 +73,14 @@ data class RecognitionSceneIdentity(
     val imageId: String,
     val photoSha256: String?,
     val photoContentVersion: Long,
-)
+    val photoIdentity: PhotoIdentity? = null,
+) {
+    fun photoIdentityMatchesFields(): Boolean = photoIdentity == null || (
+        photoIdentity.isValid() && photoIdentity.photoId == imageId &&
+            photoIdentity.canonicalPixelSha256 == photoSha256 &&
+            photoIdentity.photoContentVersion == photoContentVersion
+        )
+}
 
 /** Receipt emitted only after the final trusted Mask contour and Gold layers were drawn. */
 data class RecognitionFishGoldRenderReceipt(
@@ -333,7 +341,8 @@ data class RecognitionSceneFrame(
 
     val isIdentityValid: Boolean get() = identity.sessionId.isNotBlank() &&
         identity.attemptId.isNotBlank() && identity.imageId.isNotBlank() &&
-        !identity.photoSha256.isNullOrBlank() && identity.photoContentVersion >= 0L
+        !identity.photoSha256.isNullOrBlank() && identity.photoContentVersion >= 0L &&
+        identity.photoIdentityMatchesFields()
 }
 
 /** Stateless projection only: stage identity and local progress must be supplied by the controller. */

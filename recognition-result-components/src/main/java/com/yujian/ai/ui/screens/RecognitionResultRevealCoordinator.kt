@@ -36,10 +36,12 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometry
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolver
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealCubicPath
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHeroSnapshot
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometry
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealReturnPathProjector
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffContract
@@ -110,12 +112,14 @@ data class RecognitionResultRevealCoordinatorInput(
     val onGlyphReadinessChanged: (RecognitionGlyphReadiness) -> Unit,
     val onDiagnosticNowMs: (Long) -> Unit,
     val onResultInfoEntranceStarted: (Long) -> Unit,
+    val onResultHostGeometryState: (ready: Boolean, failureCode: String?) -> Unit,
 )
 
 data class RecognitionResultRevealCoordinatorState(
     val bbox: FishPhotoBoundingBox?,
     val primaryFishAmbiguous: Boolean,
     val photoTransitionGeometry: RecognitionRevealPhotoGeometry?,
+    val fallbackReturnPathSegments: List<RecognitionRevealCubicPath>,
     val revealGeometry: RecognitionRevealGeometry?,
     val visualHandoff: RecognitionRevealHandoff?,
     val revealPhotoIdentityMatches: Boolean,
@@ -218,12 +222,17 @@ fun RecognitionResultRevealCoordinator(
         heroSnapshot?.cropRect,
         rootBounds,
     ) {
-        if (decisionHandoff == null || heroSnapshot == null || rootBounds == null) null
-        else RecognitionRevealGeometryResolver.resolvePhoto(
-            handoff = decisionHandoff,
-            hero = requireNotNull(heroSnapshot),
-            rootBoundsInWindow = requireNotNull(rootBounds),
-        )
+        when {
+            decisionHandoff == null || rootBounds == null -> null
+            heroSnapshot == null || !heroSnapshot.renderReady -> RecognitionRevealGeometryResolver.resolveProcessingOnly(
+                decisionHandoff, requireNotNull(rootBounds),
+            )
+            else -> RecognitionRevealGeometryResolver.resolvePhoto(
+                handoff = decisionHandoff,
+                hero = requireNotNull(heroSnapshot),
+                rootBoundsInWindow = requireNotNull(rootBounds),
+            )
+        }
     }
     val revealGeometryResolution = remember(
         decisionHandoff,
@@ -267,6 +276,22 @@ fun RecognitionResultRevealCoordinator(
         }
     }
     val visualHandoff = decisionHandoff
+    val fallbackReturnPathSegments = remember(visualHandoff, rootBounds) {
+        val handoff = visualHandoff ?: return@remember emptyList()
+        val root = rootBounds ?: return@remember emptyList()
+        when {
+            handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL -> {
+                val snapshot = handoff.fishPathSnapshot ?: return@remember emptyList()
+                RecognitionRevealReturnPathProjector.project(handoff, snapshot, root)?.segments.orEmpty()
+            }
+            handoff.revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY -> {
+                val snapshot = handoff.orbOnlyReturnPathSnapshot ?: return@remember emptyList()
+                RecognitionRevealReturnPathProjector.projectOrbOnly(handoff, snapshot, root)
+                    ?.let(::listOf).orEmpty()
+            }
+            else -> emptyList()
+        }
+    }
     val revealPhotoIdentityMatches = revealHandoff != null && image != null &&
         image.imageId == revealHandoff.imageId &&
         image.bitmap.width == revealHandoff.normalizedSourceWidth &&
@@ -293,13 +318,14 @@ fun RecognitionResultRevealCoordinator(
     val diagnosticUiAvailable = false
     val diagnosticManualActive = diagnosticUiAvailable &&
         diagnosticPlaybackController?.mode == ScenePlaybackMode.MANUAL
-    val resultSceneIdentity = remember(visualHandoff?.key, image?.imageId, image?.bitmap?.generationId) {
+    val resultSceneIdentity = remember(visualHandoff?.key, image?.imageId, image?.photoIdentity) {
         RecognitionSceneIdentity(
             sessionId = visualHandoff?.key?.recognitionSessionId.orEmpty(),
             attemptId = visualHandoff?.key?.recognitionAttemptId.orEmpty(),
             imageId = image?.imageId.orEmpty(),
             photoSha256 = image?.photoSha256,
-            photoContentVersion = image?.bitmap?.generationId?.toLong()?.coerceAtLeast(0L) ?: 0L,
+            photoContentVersion = image?.photoIdentity?.photoContentVersion ?: 0L,
+            photoIdentity = image?.photoIdentity,
         )
     }
     val resultSceneStage = sceneFrameOverrideForTest?.stage
@@ -566,6 +592,10 @@ fun RecognitionResultRevealCoordinator(
             resultSceneIdentity,
             geometryVersions = resultGeometryVersions.takeIf { state == SceneGeometryState.READY }.orEmpty(),
         )
+        input.onResultHostGeometryState(
+            resultGeometryReady,
+            "RESULT_HOST_GEOMETRY_INVALID".takeIf { geometryInvalid },
+        )
         input.onDiagnosticNowMs(SystemClock.uptimeMillis())
     }
     DisposableEffect(diagnosticPlaybackController, revealHandoff?.key, resultSceneIdentity) {
@@ -590,7 +620,7 @@ fun RecognitionResultRevealCoordinator(
             revealClaimResolved = true
         }
     }
-    val revealPresentationReady = resultFirstPresentedAtMs != null && resultGeometryReady &&
+    val revealPresentationReady = resultFirstPresentedAtMs != null && photoTransitionGeometry != null &&
         (revealMotionPolicy.reduceMotion || revealStartAllowed || revealAlreadyPlayed)
     val revealPending = visualHandoff?.eligibility in setOf(RecognitionRevealEligibility.FULL_REVEAL, RecognitionRevealEligibility.TITLE_FADE_ONLY) &&
         uiState == RecognitionUiState.RESULT_HIGH && !revealAlreadyPlayed && !geometryInvalid &&
@@ -749,6 +779,7 @@ fun RecognitionResultRevealCoordinator(
         bbox = bbox,
         primaryFishAmbiguous = primaryFishAmbiguous,
         photoTransitionGeometry = photoTransitionGeometry,
+        fallbackReturnPathSegments = fallbackReturnPathSegments,
         revealGeometry = revealGeometry,
         visualHandoff = visualHandoff,
         revealPhotoIdentityMatches = revealPhotoIdentityMatches,

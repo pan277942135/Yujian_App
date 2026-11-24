@@ -68,3 +68,11 @@ These implementation and test files are not deleted, moved, or modified. The con
 - Existing design/page-level files remain in the repository as historical or subordinate references. Their contents are not silently rewritten.
 - Existing implementation sources and tests are not superseded by documentation; their conformance must be assessed in a separate implementation work item.
 - This inventory is a source/provenance classification, not a source-code audit or device acceptance report.
+
+## 6. Supporting policies
+
+| Policy ID | Canonical file | Version / status | Authority |
+|---|---|---|---|
+| `YUJIAN_NON_MODEL_GATE_DEADLINE_POLICY_V1` | `12_NON_MODEL_GATE_DEADLINE_POLICY_V1.md` | `1.0.0` / `FROZEN_SPECIFICATION` | User-supplied Work supplement A; separately registered under `supportingPolicies`, outside the six-core `contracts` list |
+
+The policy freezes 23 non-model Gate values and timer boundaries. It supplements the six core contracts without changing their content or hashes.

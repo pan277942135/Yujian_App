@@ -74,6 +74,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
@@ -104,11 +105,13 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionResultSnapshot
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathDescriptor
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathInspector
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionFramePresentedReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadinessContract
 import com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultInfoRenderReceipt
 import com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorder
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionAndroidFramePresentation
 import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
@@ -146,6 +149,7 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometry
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealCubicPath
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealOpticalOverlay
@@ -175,6 +179,7 @@ data class RecognitionResultOpticalLayerModel(
     val diagnosticFrame: RecognitionSceneFrame?,
     val sceneFrameOverrideForTest: RecognitionSceneFrame?,
     val photoTransitionGeometry: RecognitionRevealPhotoGeometry?,
+    val fallbackReturnPathSegments: List<RecognitionRevealCubicPath>,
     val presentedHandoff: RecognitionRevealHandoff?,
     val revealFrameState: State<RecognitionRevealFrame>,
     val revealMotionPolicy: RecognitionRevealMotionPolicy,
@@ -240,7 +245,8 @@ fun RecognitionResultOpticalLayer(
             geometryVersion = geometryVersion,
             attemptId = presentedHandoff?.key?.recognitionAttemptId.orEmpty(),
             imageId = image?.imageId.orEmpty(),
-            photoContentVersion = resultPhoto?.generationId?.toLong() ?: 0L,
+            photoContentVersion = image?.photoIdentity?.photoContentVersion ?: 0L,
+            photoIdentity = image?.photoIdentity,
             eventSequence = resultSceneFrame?.eventSequence ?: 0L,
             sceneFrameOverride = resultSceneFrame,
             sceneStageOverride = resultSceneFrame?.stage,
@@ -263,7 +269,7 @@ fun RecognitionResultOpticalLayer(
             RecognitionRevealPhase.RESIDUE_SETTLE -> revealGeometry?.glyphResiduePathLocal
             RecognitionRevealPhase.COMPLETE -> null
         }
-        val resultPathGeometry = activeEnergyCurve?.let { curve ->
+        val resultPathGeometry = (activeEnergyCurve ?: fallbackReturnPathSegments.firstOrNull())?.let { curve ->
             WaterLightPathGeometry(
                 start = WaterLightPathPoint(curve.start.x, curve.start.y),
                 control1 = WaterLightPathPoint(curve.control1.x, curve.control1.y),
@@ -442,6 +448,7 @@ fun RecognitionResultOpticalLayer(
             handoff = presentedHandoff,
             photoGeometry = photoTransitionGeometry,
             geometry = revealGeometry,
+            fallbackOrbReturnPathSegments = fallbackReturnPathSegments,
             frameState = revealFrameState,
             holdPhotoUntilHeroReady = !heroRenderReady,
             material = resultHost.material,
@@ -491,7 +498,6 @@ fun RecognitionResultOpticalLayer(
             val stage = diagnosticStage
             val reference = diagnosticReferenceMs ?: 0L
             val stepStatus = when {
-                diagnosticFrame?.modelGates?.waitingReason == "WAITING_FOR_RESULT_GEOMETRY" -> "等待 Result / Orb / Glyph 几何"
                 diagnosticFrame?.modelGates?.waitingReason == "WAITING_FOR_REAL_CLASSIFIER_GLYPH" -> "等待真实鱼种 Glyph"
                 diagnosticFrame?.modelGates?.waitingReason != null -> "等待：${diagnosticFrame?.modelGates?.waitingReason}"
                 !revealStartReady && diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC -> "等待 Result 几何"
@@ -644,6 +650,7 @@ fun RecognitionResultDecisionContent(
     actions: RecognitionResultDecisionContentActions,
 ) {
     val sideMargin = model.geometry.horizontalMarginDp.dp
+    val resultView = LocalView.current
     with(model) {
                 when (uiState) {
                     RecognitionUiState.RESULT_HIGH -> {
@@ -662,6 +669,50 @@ fun RecognitionResultDecisionContent(
                             onTitleBounds = actions.onTitleBounds,
                             glyphSceneIdentity = resultSceneIdentity,
                             glyphSpeciesKey = prediction.top1.speciesKey,
+                            glyphSnapshotId = resultSnapshot?.committedPayload?.snapshotId,
+                            glyphSnapshotContentHash = resultSnapshot?.committedPayload?.contentHash,
+                            glyphView = resultView,
+                            onGlyphDrawSubmitted = { receipt ->
+                                recognitionEvidenceRecorder?.recordGlyphDrawSubmitted(receipt) ?: true
+                            },
+                            onGlyphFramePresented = { drawReceipt, frameReceipt ->
+                                val descriptor = glyphReadinessState.descriptor
+                                val receiptMatches = descriptor != null &&
+                                    drawReceipt.identity == resultSceneIdentity &&
+                                    drawReceipt.pathId == descriptor.pathId &&
+                                    drawReceipt.geometryVersion == descriptor.geometryVersion &&
+                                    drawReceipt.snapshotId == resultSnapshot?.committedPayload?.snapshotId &&
+                                    drawReceipt.snapshotContentHash == resultSnapshot?.committedPayload?.contentHash &&
+                                    frameReceipt.identity == drawReceipt.identity &&
+                                    frameReceipt.snapshotId == drawReceipt.snapshotId &&
+                                    frameReceipt.snapshotContentHash == drawReceipt.snapshotContentHash &&
+                                    frameReceipt.drawPassSequence == drawReceipt.drawPassSequence &&
+                                    frameReceipt.geometryVersion == drawReceipt.geometryVersion
+                                if (!receiptMatches || descriptor == null) {
+                                    false
+                                } else {
+                                    val evidenceAccepted = recognitionEvidenceRecorder?.recordFramePresented(frameReceipt) ?: true
+                                    if (!evidenceAccepted) {
+                                        false
+                                    } else {
+                                        val readiness = glyphReadinessState.copy(
+                                            glyphRevealRendered = true,
+                                            nameStable = false,
+                                            renderReceipt = drawReceipt,
+                                            framePresentedReceipt = frameReceipt,
+                                        )
+                                        if (RecognitionGlyphReadinessContract.isRendered(
+                                                resultSceneIdentity, descriptor.speciesKey, descriptor.speciesName, readiness,
+                                            )
+                                        ) {
+                                            val accepted = diagnosticPlaybackController?.onGlyphRevealRendered(readiness, resultSceneIdentity)
+                                                ?: true
+                                            if (accepted) actions.onGlyphReadinessChanged(readiness)
+                                            accepted
+                                        } else false
+                                    }
+                                }
+                            },
                             onGlyphPathReady = { descriptor ->
                                 val expectedName = resultSpeciesDisplayName(prediction.top1.speciesName)
                                 val speciesResultReady = resultSnapshot != null && resultSnapshot.key == revealHandoff?.key &&
@@ -678,28 +729,6 @@ fun RecognitionResultDecisionContent(
                                 )
                                 actions.onGlyphReadinessChanged(readiness)
                                 diagnosticPlaybackController?.onGlyphPathReady(readiness, resultSceneIdentity)
-                            },
-                            onGlyphRevealRendered = { receipt ->
-                                val descriptor = glyphReadinessState.descriptor
-                                if (descriptor != null && receipt.identity == resultSceneIdentity &&
-                                    receipt.pathId == descriptor.pathId &&
-                                    receipt.geometryVersion == descriptor.geometryVersion
-                                ) {
-                                    val readiness = glyphReadinessState.copy(
-                                        glyphRevealRendered = true,
-                                        nameStable = false,
-                                        renderReceipt = receipt,
-                                    )
-                                    if (RecognitionGlyphReadinessContract.isRendered(
-                                            resultSceneIdentity, descriptor.speciesKey, descriptor.speciesName, readiness,
-                                        )
-                                    ) {
-                                        val accepted = diagnosticPlaybackController?.onGlyphRevealRendered(readiness, resultSceneIdentity)
-                                            ?: true
-                                        if (accepted) actions.onGlyphReadinessChanged(readiness)
-                                        accepted
-                                    } else false
-                                } else false
                             },
                             onChange = { actions.openSpeciesSelector() },
                         )
@@ -1005,8 +1034,12 @@ private fun SpeciesIdentityRow(
     onTitleBounds: ((RecognitionRevealWindowRect) -> Unit)? = null,
     glyphSceneIdentity: RecognitionSceneIdentity? = null,
     glyphSpeciesKey: String? = null,
+    glyphSnapshotId: String? = null,
+    glyphSnapshotContentHash: String? = null,
+    glyphView: android.view.View? = null,
     onGlyphPathReady: ((RecognitionGlyphPathDescriptor?) -> Unit)? = null,
-    onGlyphRevealRendered: ((RecognitionGlyphDrawReceipt) -> Boolean)? = null,
+    onGlyphDrawSubmitted: ((RecognitionGlyphDrawReceipt) -> Boolean)? = null,
+    onGlyphFramePresented: ((RecognitionGlyphDrawReceipt, RecognitionFramePresentedReceipt) -> Boolean)? = null,
     onChange: () -> Unit,
 ) {
     val compactTitle = widthDp <= 359
@@ -1017,22 +1050,30 @@ private fun SpeciesIdentityRow(
     val speciesDisplayName = resultSpeciesDisplayName(speciesName)
     var speciesGlyphPath by remember(
         speciesDisplayName, compactTitle, widthDp, glyphSceneIdentity, glyphSpeciesKey,
+        glyphSnapshotId, glyphSnapshotContentHash,
     ) { mutableStateOf<android.graphics.Path?>(null) }
     var speciesGlyphDescriptor by remember(
         speciesDisplayName, compactTitle, widthDp, glyphSceneIdentity, glyphSpeciesKey,
+        glyphSnapshotId, glyphSnapshotContentHash,
     ) { mutableStateOf<RecognitionGlyphPathDescriptor?>(null) }
     val glyphDrawReceiptAccepted = remember(
         speciesDisplayName, compactTitle, widthDp, glyphSceneIdentity, glyphSpeciesKey,
+        glyphSnapshotId, glyphSnapshotContentHash,
     ) { AtomicBoolean(false) }
     val glyphDrawReceiptInFlight = remember(
         speciesDisplayName, compactTitle, widthDp, glyphSceneIdentity, glyphSpeciesKey,
+        glyphSnapshotId, glyphSnapshotContentHash,
     ) { AtomicBoolean(false) }
     val glyphReveal = remember(glyphSceneIdentity, glyphSpeciesKey, speciesDisplayName) {
         SpeciesNameReveal()
     }
     val glyphReceiptHandler = remember { Handler(Looper.getMainLooper()) }
-    val latestOnGlyphRevealRendered = rememberUpdatedState(onGlyphRevealRendered)
-    DisposableEffect(glyphReceiptHandler, speciesDisplayName, compactTitle, widthDp, glyphSceneIdentity, glyphSpeciesKey) {
+    val latestOnGlyphDrawSubmitted = rememberUpdatedState(onGlyphDrawSubmitted)
+    val latestOnGlyphFramePresented = rememberUpdatedState(onGlyphFramePresented)
+    DisposableEffect(
+        glyphReceiptHandler, speciesDisplayName, compactTitle, widthDp, glyphSceneIdentity,
+        glyphSpeciesKey, glyphSnapshotId, glyphSnapshotContentHash,
+    ) {
         onDispose { glyphReceiptHandler.removeCallbacksAndMessages(null) }
     }
     val showScientificName = !holdNameUntilHandoff && (revealFrame == null ||
@@ -1085,14 +1126,47 @@ private fun SpeciesIdentityRow(
                                     fillPathDrawn = drawResult.fillPathDrawn,
                                     contourPathDrawn = drawResult.contourPathDrawn,
                                     drawPassSequence = drawResult.drawPassSequence,
+                                    snapshotId = glyphSnapshotId,
+                                    snapshotContentHash = glyphSnapshotContentHash,
                                 )
-                                glyphReceiptHandler.post {
-                                    val accepted = try {
-                                        latestOnGlyphRevealRendered.value?.invoke(receipt) == true
-                                    } finally {
-                                        glyphDrawReceiptInFlight.set(false)
-                                    }
-                                    if (accepted) glyphDrawReceiptAccepted.set(true)
+                                val drawSubmissionAccepted = latestOnGlyphDrawSubmitted.value?.invoke(receipt) == true
+                                val targetView = glyphView
+                                if (!drawSubmissionAccepted || targetView == null || glyphSnapshotId.isNullOrBlank() ||
+                                    glyphSnapshotContentHash?.matches(Regex("(?i)^[a-f0-9]{64}$")) != true
+                                ) {
+                                    glyphDrawReceiptInFlight.set(false)
+                                } else {
+                                    RecognitionAndroidFramePresentation.requestNextFrame(
+                                        view = targetView,
+                                        timeoutMs = 2_000L,
+                                        onFrameCommitted = { _, _ -> Unit },
+                                        onFramePresented = { signal ->
+                                            val frameReceipt = RecognitionFramePresentedReceipt(
+                                                identity = descriptor.identity,
+                                                snapshotId = glyphSnapshotId,
+                                                snapshotContentHash = glyphSnapshotContentHash,
+                                                renderer = "COMPOSE_TEXT_GLYPH",
+                                                stage = RecognitionSceneStage.SPECIES_NAME_REVEAL,
+                                                checkpointId = "KF18",
+                                                frameSequence = signal.frameSequence,
+                                                geometryVersion = descriptor.geometryVersion,
+                                                drawPassSequence = receipt.drawPassSequence,
+                                                presentFenceSignalTimeNanos = signal.presentFenceSignalTimeNanos,
+                                                observedAtUptimeMs = signal.observedPresentedAtUptimeMs,
+                                            )
+                                            glyphReceiptHandler.post {
+                                                val accepted = try {
+                                                    latestOnGlyphFramePresented.value?.invoke(receipt, frameReceipt) == true
+                                                } finally {
+                                                    glyphDrawReceiptInFlight.set(false)
+                                                }
+                                                if (accepted) glyphDrawReceiptAccepted.set(true)
+                                            }
+                                        },
+                                        onPresentationUnavailable = { _, _ ->
+                                            glyphReceiptHandler.post { glyphDrawReceiptInFlight.set(false) }
+                                        },
+                                    )
                                 }
                             }
                         }

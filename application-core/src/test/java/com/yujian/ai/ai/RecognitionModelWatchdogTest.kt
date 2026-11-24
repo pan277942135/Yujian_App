@@ -5,6 +5,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -27,7 +28,9 @@ class RecognitionModelWatchdogTest {
 
         assertEquals("species", value)
         assertTrue(records.first().contains("MODEL_START model=CLASSIFIER"))
-        assertTrue(records.first().contains("session=session-1 attempt=attempt-2 image=image-3 sha256=sha-4"))
+        assertTrue(records.first().contains(
+            "session=session-1 attempt=attempt-2 image=image-3 canonical_sha256=sha-4 source_sha256=unknown",
+        ))
         assertTrue(records.last().contains("duration_ms=45 outcome=READY"))
     }
 
@@ -46,11 +49,28 @@ class RecognitionModelWatchdogTest {
 
         yield()
         assertTrue(task.isActive)
-        assertEquals(1, records.size)
-        assertTrue(records.single().contains("MODEL_START model=SLIMSAM"))
+        assertEquals(2, records.size)
+        assertTrue(records.first().contains("MODEL_START model=SLIMSAM"))
+        assertTrue(records.last().contains("MODEL_MEMORY_PROFILE model=SLIMSAM"))
 
         realModelResult.complete("trusted-mask")
         assertEquals("trusted-mask", task.await())
         assertTrue(records.last().contains("outcome=READY"))
+    }
+
+    @Test
+    fun everyModelInvocationGetsAUniqueInferenceId() = runBlocking {
+        val starts = mutableListOf<String>()
+        repeat(2) {
+            RecognitionModelWatchdog.execute(
+                modelName = "ENCODER",
+                identity = null,
+                nowMs = { 20L },
+                log = { if (it.startsWith("MODEL_START")) starts += it },
+            ) { "embedding" }
+        }
+        val ids = starts.map { line -> Regex("inference_id=([^ ]+)").find(line)?.groupValues?.get(1) }
+        assertEquals(2, ids.size)
+        assertNotEquals(ids[0], ids[1])
     }
 }

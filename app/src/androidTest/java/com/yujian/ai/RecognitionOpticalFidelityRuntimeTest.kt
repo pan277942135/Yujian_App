@@ -117,7 +117,7 @@ class RecognitionOpticalFidelityRuntimeTest {
         )
         val classificationStarted = CountDownLatch(1)
         val classifyingMotionPresented = CountDownLatch(1)
-        val photoFirstFramePresented = CountDownLatch(1)
+        val photoFirstFrameCommitted = CountDownLatch(1)
         val unexpectedResultCount = AtomicInteger(0)
         val fullMotionSampleCount = AtomicInteger(0)
         val liteMotionSampleCount = AtomicInteger(0)
@@ -204,9 +204,9 @@ class RecognitionOpticalFidelityRuntimeTest {
                                 }
                             }
                         },
-                        onPhotoFramePresented = { uptimeMs ->
-                            Log.i(LOG_TAG, "Milestone: photo-first-frame-presented uptime_ms=$uptimeMs")
-                            photoFirstFramePresented.countDown()
+                        onPhotoFrameCommitted = { uptimeMs ->
+                            Log.i(LOG_TAG, "Milestone: photo-first-frame-committed uptime_ms=$uptimeMs")
+                            photoFirstFrameCommitted.countDown()
                         },
                     )
                 }
@@ -222,8 +222,8 @@ class RecognitionOpticalFidelityRuntimeTest {
         )
         Log.i(LOG_TAG, "Milestone: test-only-classifying-projection-rendered")
         assertTrue(
-            "production PhotoSession did not present its first photo frame",
-            photoFirstFramePresented.await(8, TimeUnit.SECONDS),
+            "production PhotoSession did not commit its first photo frame",
+            photoFirstFrameCommitted.await(8, TimeUnit.SECONDS),
         )
 
         val refreshRateHz = refreshRate.get()
@@ -279,7 +279,7 @@ class RecognitionOpticalFidelityRuntimeTest {
                 .put(profileMetrics("LITE", liteFrames, liteMotionSampleCount.get(), refreshRateHz, liteDroppedFrames.get())))
             .put("presented_phases", JSONArray(presentedSnapshot))
             .put("result_ready", false)
-            .put("photo_first_frame_presented", photoFirstFramePresented.count == 0L)
+            .put("photo_first_frame_committed", photoFirstFrameCommitted.count == 0L)
             .put("frame_metrics_callback_counts", JSONObject()
                 .put("FULL", fullFrameCallbackCount.get())
                 .put("LITE", liteFrameCallbackCount.get()))

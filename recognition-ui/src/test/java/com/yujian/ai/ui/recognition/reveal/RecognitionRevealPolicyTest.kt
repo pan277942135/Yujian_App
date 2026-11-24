@@ -240,7 +240,7 @@ class RecognitionRevealPolicyTest {
     }
 
     @Test
-    fun rr09RequiresReadyGeometryOnTheFirstResultFrame() {
+    fun rr09StartsStageTenFromProcessingGeometryWithoutWaitingForResultOrGlyphGeometry() {
         fun canStart(
             eligibility: RecognitionRevealEligibility = RecognitionRevealEligibility.FULL_REVEAL,
             photoGeometry: Boolean = true,
@@ -259,11 +259,11 @@ class RecognitionRevealPolicyTest {
         )
 
         assertTrue(canStart())
-        assertFalse(canStart(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY, revealGeometry = false))
+        assertTrue(canStart(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY, revealGeometry = false))
         assertFalse(canStart(photoGeometry = false))
-        assertFalse(canStart(hero = false))
-        assertFalse(canStart(title = false))
-        assertFalse(canStart(revealGeometry = false))
+        assertTrue(canStart(hero = false))
+        assertTrue(canStart(title = false))
+        assertTrue(canStart(revealGeometry = false))
         assertFalse(canStart(reduceMotion = true))
         assertFalse(canStart(eligibility = RecognitionRevealEligibility.PHOTO_ONLY))
         assertFalse(canStart(eligibility = RecognitionRevealEligibility.STATIC_RESULT))

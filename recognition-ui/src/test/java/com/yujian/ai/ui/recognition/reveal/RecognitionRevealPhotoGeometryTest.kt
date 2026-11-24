@@ -44,6 +44,16 @@ class RecognitionRevealPhotoGeometryTest {
     private val root = RecognitionRevealWindowRect(0f, 0f, 800f, 1400f)
 
     @Test
+    fun processingViewportFallbackExistsBeforeResultHeroOrTitleLayout() {
+        val fallback = RecognitionRevealGeometryResolver.resolveProcessingOnly(handoff, root)
+
+        assertNotNull(fallback)
+        assertEquals(requireNotNull(fallback).processingStartMatrix, fallback.heroEndMatrix)
+        assertEquals(handoff.processingPhotoViewportBounds, fallback.heroPhotoClip)
+        assertEquals(DisplayPoint(root.left, root.top), fallback.rootWindowOrigin)
+    }
+
+    @Test
     fun yellowFishCropResolvesPhotoGeometryBeforeAndAfterHeroRasterCallback() {
         val heroBounds = RecognitionRevealWindowRect(100f, 600f, 422f, 810f)
         val crop = NormalizedSourceRect(0f, .00684f, 1f, .98433f)

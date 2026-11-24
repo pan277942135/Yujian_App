@@ -271,6 +271,40 @@ data class RecognitionRevealPhotoGeometryResolution(
 )
 
 object RecognitionRevealGeometryResolver {
+    /**
+     * Processing-host fallback used while Result Hero/title geometry is still measuring. It pins
+     * both endpoints to the real Processing viewport, allowing Stage10 RETURN to finish without
+     * waiting for Result layout or a GlyphPath. The later Hero geometry may take over independently.
+     */
+    fun resolveProcessingOnly(
+        handoff: RecognitionRevealHandoff,
+        rootBoundsInWindow: RecognitionRevealWindowRect,
+    ): RecognitionRevealPhotoGeometry? {
+        val processingBounds = handoff.processingPhotoViewportBounds ?: return null
+        val processingTransform = handoff.processingPhotoTransform ?: return null
+        if (!rootBoundsInWindow.isValid() || !processingBounds.isValid() || handoff.imageId.isBlank() ||
+            handoff.normalizedSourceWidth <= 0 || handoff.normalizedSourceHeight <= 0 ||
+            processingTransform.sourceWidthPx != handoff.normalizedSourceWidth ||
+            processingTransform.sourceHeightPx != handoff.normalizedSourceHeight ||
+            processingTransform.viewportWidthPx <= 0f || processingTransform.viewportHeightPx <= 0f
+        ) return null
+        val matrix = sourceMatrix(processingTransform, processingBounds, rootBoundsInWindow)
+        val clip = handoff.processingPhotoClipBoundsInWindow
+            ?.takeIf(RecognitionRevealWindowRect::isValid) ?: processingBounds
+        return RecognitionRevealPhotoGeometry(
+            rootWindowOrigin = DisplayPoint(rootBoundsInWindow.left, rootBoundsInWindow.top),
+            sourceWidth = handoff.normalizedSourceWidth,
+            sourceHeight = handoff.normalizedSourceHeight,
+            processingStartMatrix = matrix,
+            heroEndMatrix = matrix,
+            processingPhotoClip = clip,
+            processingPhotoCornerRadiusPx = handoff.processingPhotoCornerRadiusPx
+                .takeIf { it.isFinite() && it >= 0f } ?: 0f,
+            heroPhotoClip = processingBounds,
+            heroSourceTransform = processingTransform,
+        )
+    }
+
     fun resolvePhoto(
         handoff: RecognitionRevealHandoff,
         hero: RecognitionRevealHeroSnapshot,

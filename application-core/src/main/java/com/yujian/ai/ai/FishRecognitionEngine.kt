@@ -241,7 +241,11 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
     suspend fun recognize(
         bitmap: Bitmap,
         pipelineContext: InferenceTrace.PipelineContext? = null,
+        deadline: RecognitionAttemptDeadline? = null,
     ): RecognitionPrediction = withContext(Dispatchers.Default) {
+        if (deadline?.isExpired(android.os.SystemClock.uptimeMillis()) == true) {
+            throw RecognitionAttemptNativeTimeoutException("CLASSIFIER deadline expired before native submission")
+        }
         val started = System.nanoTime()
         val inputTensor = interpreter.getInputTensor(0)
         val inputShape = inputTensor.shape()
@@ -275,6 +279,11 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
 
         val output = ByteBuffer.allocateDirect(count * 4).order(ByteOrder.nativeOrder())
         interpreter.run(input.buffer, output)
+        if (deadline?.isExpired(android.os.SystemClock.uptimeMillis()) == true) {
+            throw RecognitionAttemptNativeTimeoutException(
+                "CLASSIFIER native run returned after the shared deadline; result discarded",
+            )
+        }
         output.rewind()
         val logits = FloatArray(count) { output.float }
         val probabilities = softmax(logits)
@@ -409,7 +418,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         MessageDigest.getInstance("SHA-256").digest(this).joinToString("") { "%02x".format(it) }
 
     companion object {
-        private const val FROZEN_CLASSIFIER_SHA256 = "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18"
+        const val FROZEN_CLASSIFIER_SHA256 = "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18"
         const val MODEL_FILE = "fish_classifier.tflite"
         const val MODEL_METADATA_FILE = "fish_classifier_v0_2.metadata.json"
         const val MODEL_CLASS_MAP_FILE = "class_map.json"

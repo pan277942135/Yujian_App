@@ -5,6 +5,7 @@ import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
+import com.yujian.ai.recognition.domain.PhotoIdentity
 import com.yujian.ai.ui.identify.DisplayPoint
 import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
@@ -70,6 +71,7 @@ data class RecognitionSubjectGeometrySnapshot(
     val maskVersion: Long = 0L,
     /** SHA-256 of the exact cleaned transparent PNG from which this contour was derived. */
     val maskSha256: String = "",
+    val photoIdentity: PhotoIdentity? = null,
 )
 
 data class RecognitionProcessingPhotoSnapshot(
@@ -87,6 +89,7 @@ data class RecognitionProcessingPhotoSnapshot(
     val contactPointMaskSha256: String = "",
     val contactPointMaskVersion: Long = -1L,
     val contactPointGeometryVersion: Long = 0L,
+    val photoIdentity: PhotoIdentity? = null,
 )
 
 data class RecognitionRevealHandoff(
@@ -127,6 +130,8 @@ data class RecognitionRevealHandoff(
     val captureTimestampEpochMs: Long = 0L,
     val captureTimestampSource: String = "UNKNOWN",
     val photoContentVersion: Long = 0L,
+    val photoIdentity: PhotoIdentity? = null,
+    val recognitionSnapshotId: String = "",
 )
 
 object RecognitionRevealHandoffFactory {
@@ -144,6 +149,7 @@ object RecognitionRevealHandoffFactory {
         orbOnlyReturnPathSnapshot: RecognitionOrbOnlyReturnPathSnapshot? = null,
         pStarPathTerminalUnavailable: Boolean = false,
         frozenRevealDecision: RecognitionRevealDecisionState? = null,
+        recognitionSnapshotId: String = "",
     ): RecognitionRevealHandoff {
         val key = RecognitionRevealKey(recognitionSessionId, recognitionAttemptId)
         val primary = result.assessment.primary
@@ -164,6 +170,7 @@ object RecognitionRevealHandoffFactory {
         val maskTrusted = geometryTrust == RecognitionGeometryTrustState.TRUSTED_MASK
         val photo = processingPhoto?.takeIf {
             it.imageId == image.imageId &&
+                (it.photoIdentity == null || it.photoIdentity == image.photoIdentity) &&
                 it.viewportBoundsInWindow.isValid() &&
                 it.sourceToViewport.sourceWidthPx == image.bitmap.width &&
                 it.sourceToViewport.sourceHeightPx == image.bitmap.height
@@ -209,7 +216,8 @@ object RecognitionRevealHandoffFactory {
             maskTrusted && snapshot.isValid() &&
                 snapshot.sessionId == recognitionSessionId && snapshot.attemptId == recognitionAttemptId &&
                 snapshot.imageId == image.imageId && snapshot.photoSha256 == image.photoSha256 &&
-                snapshot.photoContentVersion == image.bitmap.generationId.toLong().coerceAtLeast(0L) &&
+                snapshot.photoContentVersion == (image.photoIdentity?.photoContentVersion ?: 0L) &&
+                snapshot.photoIdentity == image.photoIdentity &&
                 snapshot.maskSha256 == subject?.maskSha256 && snapshot.maskVersion == subject?.maskVersion &&
                 snapshot.geometryVersion > 0L && snapshot.geometryVersion == photo?.contactPointGeometryVersion &&
                 snapshot.fishPathGeometry.end == photo?.sourceToViewport?.mapNormalized(
@@ -242,7 +250,8 @@ object RecognitionRevealHandoffFactory {
             decision == RecognitionRevealDecisionState.ORB_ONLY_READY && route.isValid() &&
                 route.sessionId == recognitionSessionId && route.attemptId == recognitionAttemptId &&
                 route.imageId == image.imageId && route.photoSha256 == image.photoSha256 &&
-                route.photoContentVersion == image.bitmap.generationId.toLong().coerceAtLeast(0L)
+                route.photoContentVersion == (image.photoIdentity?.photoContentVersion ?: 0L) &&
+                route.photoIdentity == image.photoIdentity
         }
         val eligibility = RecognitionRevealPolicy.eligibility(
             resultReady = result.ready,
@@ -288,7 +297,9 @@ object RecognitionRevealHandoffFactory {
             orbOnlyReturnPathSnapshot = validOrbOnlyReturnPath,
             captureTimestampEpochMs = image.captureTimestampEpochMs,
             captureTimestampSource = image.captureTimestampSource,
-            photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),
+            photoContentVersion = image.photoIdentity?.photoContentVersion ?: 0L,
+            photoIdentity = image.photoIdentity,
+            recognitionSnapshotId = recognitionSnapshotId,
         )
     }
 

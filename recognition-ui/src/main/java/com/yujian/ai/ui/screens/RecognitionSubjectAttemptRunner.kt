@@ -75,6 +75,8 @@ class RecognitionSubjectAttemptRunner(
                             attemptId = attemptId,
                             imageId = selected.imageId,
                             photoSha256 = selected.photoSha256,
+                            photoIdentity = selected.photoIdentity,
+                            attemptDeadline = deadline,
                         ),
                     ) { engine.generate(selected, box, sessionId, attemptId) }
                 }
@@ -141,6 +143,7 @@ class RecognitionSubjectAttemptRunner(
         val metadata = result.geometry ?: return null
         if (!metadata.matches(sessionId, attemptId, image.imageId, image.photoSha256,
                 image.bitmap.width, image.bitmap.height)) return null
+        if (image.photoIdentity != null && metadata.photoIdentity != image.photoIdentity) return null
         val maskFile = java.io.File(result.bitmapPath ?: return null)
         val actualMaskSha256 = RecognitionMaskIntegrity.sha256File(maskFile) ?: return null
         if (!RecognitionMaskIntegrity.matches(result.maskSha256, metadata.maskSha256, actualMaskSha256)) return null
@@ -164,6 +167,7 @@ class RecognitionSubjectAttemptRunner(
                 expectedMaskSize = result.expectedMaskSize,
                 maskVersion = RecognitionMaskIntegrity.versionFromSha256(actualMaskSha256),
                 maskSha256 = result.maskSha256,
+                photoIdentity = image.photoIdentity,
             )
             return geometry.takeIf {
                 RecognitionRevealPolicy.geometryTrust(box, it, image.imageId, image.bitmap.width,

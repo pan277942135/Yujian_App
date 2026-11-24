@@ -124,6 +124,14 @@ import com.yujian.ai.ui.screens.RecognitionSubjectAttemptRunner
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStageEvent
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStageEventAction
+import com.yujian.ai.ui.waterlight.core.RecognitionGateDeadlinePolicyV1
+import com.yujian.ai.ui.waterlight.core.RecognitionGateDeadlineTracker
+import com.yujian.ai.ui.waterlight.core.RecognitionGateEvent
+import com.yujian.ai.ui.waterlight.core.RecognitionGateId
+import com.yujian.ai.ui.waterlight.core.RecognitionGateIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionGateRunStatus
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.home.CatchArchiveState
 import com.yujian.ai.ui.home.HomeState
@@ -140,11 +148,14 @@ import com.yujian.ai.ui.theme.WarmBackground
 import com.yujian.ai.ui.theme.WaterTeal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 
 
 @Suppress("UnusedMaterial3ScaffoldPaddingParameter")
@@ -181,10 +192,6 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
     val feedbackRepository = remember { FeedbackRepository(context) }
     val inferenceRecorder = remember { InferenceRecorder(context) }
     val recognitionEvidenceRecorder = remember(context) { RecognitionSessionEvidenceRecorder(context) }
-    DisposableEffect(diagnosticPlaybackController, recognitionEvidenceRecorder) {
-        diagnosticPlaybackController.setStageEventObserver(recognitionEvidenceRecorder::recordStageEvent)
-        onDispose { diagnosticPlaybackController.setStageEventObserver(null) }
-    }
     val fishKnowledgeRepository = remember { FishKnowledgeRepository() }
     var session by remember { mutableStateOf(sessionManager.current()) }
     var authLoading by remember { mutableStateOf(false) }
@@ -229,6 +236,170 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
     var inferenceAsset by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.inferenceAsset) }
     var activeRecognitionAttemptId by remember(revealSessionStore) {
         mutableStateOf(revealSessionStore.snapshot?.recognitionAttemptId)
+    }
+    val gateDeadlineTracker = remember(activeRecognitionAttemptId) {
+        activeRecognitionAttemptId?.let(::RecognitionGateDeadlineTracker)
+    }
+    val gateDeadlineWake = remember(gateDeadlineTracker) { Channel<Unit>(Channel.CONFLATED) }
+    val gateEventSequence = remember(gateDeadlineTracker) { AtomicLong(0L) }
+    fun gateIdentity(): RecognitionGateIdentity? {
+        val attemptId = activeRecognitionAttemptId ?: return null
+        val image = sessionImage
+        val committed = revealSessionStore.snapshot?.committedResultSnapshot
+        return RecognitionGateIdentity(
+            attemptId = attemptId,
+            photoIdentityHash = image?.photoIdentity?.canonicalPixelSha256,
+            snapshotId = committed?.snapshotId,
+            snapshotContentHash = committed?.contentHash,
+        )
+    }
+    fun armRecognitionGate(gateId: RecognitionGateId, blocksAutoPlayback: Boolean = true): Boolean {
+        val tracker = gateDeadlineTracker ?: return false
+        val identity = gateIdentity() ?: return false
+        val spec = RecognitionGateDeadlinePolicyV1.spec(gateId)
+        val sequence = gateEventSequence.incrementAndGet()
+        val started = tracker.armOnce(
+            gateId = gateId,
+            nowUptimeMs = SystemClock.uptimeMillis(),
+            identity = identity,
+            startEvent = RecognitionGateEvent(spec.startEvent, sequence, identity),
+            blocksAutoPlayback = blocksAutoPlayback,
+        ) != null
+        gateDeadlineWake.trySend(Unit)
+        return started
+    }
+    fun satisfyRecognitionGate(gateId: RecognitionGateId): Boolean {
+        val tracker = gateDeadlineTracker ?: return false
+        val identity = gateIdentity() ?: return false
+        val current = tracker.snapshot(SystemClock.uptimeMillis()).gates[gateId] ?: return false
+        if (current.status !in setOf(RecognitionGateRunStatus.WAITING, RecognitionGateRunStatus.RETRYING)) return false
+        val spec = RecognitionGateDeadlinePolicyV1.spec(gateId)
+        val accepted = tracker.markSatisfied(
+            gateId,
+            RecognitionGateEvent(spec.successEvent, gateEventSequence.incrementAndGet(), identity),
+            SystemClock.uptimeMillis(),
+        )
+        gateDeadlineWake.trySend(Unit)
+        return accepted
+    }
+    fun failRecognitionGate(gateId: RecognitionGateId, failureCode: String): Boolean {
+        val tracker = gateDeadlineTracker ?: return false
+        val identity = gateIdentity() ?: return false
+        val accepted = tracker.markFailed(
+            gateId,
+            failureCode,
+            RecognitionGateEvent(failureCode, gateEventSequence.incrementAndGet(), identity),
+            SystemClock.uptimeMillis(),
+        )
+        gateDeadlineWake.trySend(Unit)
+        return accepted
+    }
+    DisposableEffect(gateDeadlineWake) {
+        onDispose { gateDeadlineWake.close() }
+    }
+    LaunchedEffect(gateDeadlineTracker, gateDeadlineWake, recognitionEvidenceRecorder) {
+        val tracker = gateDeadlineTracker ?: return@LaunchedEffect
+        var recordedFailureId: String? = null
+        while (true) {
+            val now = SystemClock.uptimeMillis()
+            tracker.evaluateTimeouts(now)
+            val status = tracker.snapshot(now)
+            val failure = status.firstFailure
+            if (failure != null) {
+                val failureId = "${failure.attemptId}:${failure.eventSequence}:${failure.failureCode}"
+                if (recordedFailureId != failureId) {
+                    recordedFailureId = failureId
+                    recognitionEvidenceRecorder.recordGateDiagnostic(
+                        "FIRST_FAILURE",
+                        mapOf(
+                            "attemptId" to failure.attemptId,
+                            "gateId" to failure.gateId?.name,
+                            "failureCategory" to failure.failureCategory,
+                            "failureCode" to failure.failureCode,
+                            "eventSequence" to failure.eventSequence,
+                            "timestampUptimeMs" to failure.timestampUptimeMs,
+                            "expected" to failure.expected,
+                            "actual" to failure.actual,
+                            "blockedDownstream" to failure.blockedDownstream.map { it.name },
+                        ),
+                    )
+                }
+            }
+            val deadline = tracker.nextDeadlineUptimeMs()
+            if (deadline == null) {
+                gateDeadlineWake.receive()
+            } else {
+                val waitMs = (deadline - SystemClock.uptimeMillis()).coerceAtLeast(1L)
+                withTimeoutOrNull(waitMs) { gateDeadlineWake.receive() }
+            }
+        }
+    }
+    DisposableEffect(diagnosticPlaybackController, recognitionEvidenceRecorder, gateDeadlineTracker) {
+        fun onGateStageEvent(event: RecognitionSceneStageEvent) {
+            recognitionEvidenceRecorder.recordStageEvent(event)
+            val tracker = gateDeadlineTracker ?: return
+            val activeAttempt = activeRecognitionAttemptId ?: return
+            if (event.attemptId != activeAttempt) return
+            val now = SystemClock.uptimeMillis()
+            val modelsRunning = event.modelGates.detector.name == "WAITING" ||
+                event.modelGates.classifier.name == "WAITING" || event.modelGates.slimSam.name == "PENDING"
+            tracker.setRuntimeContext(
+                nowUptimeMs = now,
+                autoPlayback = event.playbackMode.name == "AUTO",
+                modelRunning = modelsRunning,
+            )
+            val identity = gateIdentity() ?: return
+            fun stageGate(gate: RecognitionGateId, eventName: String, success: Boolean) {
+                val spec = RecognitionGateDeadlinePolicyV1.spec(gate)
+                if (success) {
+                    val active = tracker.snapshot(now).gates[gate]?.status in
+                        setOf(RecognitionGateRunStatus.WAITING, RecognitionGateRunStatus.RETRYING)
+                    if (active) tracker.markSatisfied(
+                        gate,
+                        RecognitionGateEvent(spec.successEvent, gateEventSequence.incrementAndGet(), identity),
+                        now,
+                    )
+                } else {
+                    tracker.armOnce(
+                        gate,
+                        now,
+                        identity,
+                        RecognitionGateEvent(spec.startEvent, gateEventSequence.incrementAndGet(), identity),
+                        blocksAutoPlayback = true,
+                    )
+                }
+                gateDeadlineWake.trySend(Unit)
+            }
+            when (event.action) {
+                RecognitionSceneStageEventAction.ENTERED -> when (event.stage) {
+                    RecognitionSceneStage.PHOTO_STABLE -> stageGate(RecognitionGateId.PHOTO_FIRST_FRAME, "PHOTO_STABLE", false)
+                    RecognitionSceneStage.ORB_WAKE -> stageGate(RecognitionGateId.ORB_ANCHOR, "ORB_WAKE", false)
+                    RecognitionSceneStage.ORB_RELEASE -> stageGate(RecognitionGateId.RELEASE_RENDER, "ORB_RELEASE", false)
+                    RecognitionSceneStage.PERIMETER_ARRIVAL -> stageGate(RecognitionGateId.PERIMETER_ARRIVAL_RENDER, "PERIMETER_ARRIVAL", false)
+                    RecognitionSceneStage.CONTOUR_A -> stageGate(RecognitionGateId.CONTOUR_RENDER, "CONTOUR_RENDER", false)
+                    RecognitionSceneStage.FISH_GOLD_PEAK -> stageGate(RecognitionGateId.FISH_GOLD_RENDER, "KF13", false)
+                    RecognitionSceneStage.ORB_RETURN -> stageGate(RecognitionGateId.RETURN_RENDER, "KF14", false)
+                    RecognitionSceneStage.ORB_TO_NAME -> stageGate(RecognitionGateId.ORB_TO_GLYPH_RENDER, "KF15", false)
+                    RecognitionSceneStage.SPECIES_NAME_REVEAL -> stageGate(RecognitionGateId.GLYPH_REVEAL_NAME_STABLE, "KF18", false)
+                    RecognitionSceneStage.RESIDUE_SETTLE -> stageGate(RecognitionGateId.RESIDUE_SETTLE_RENDER, "RESIDUE", false)
+                    else -> Unit
+                }
+                RecognitionSceneStageEventAction.EXITED -> when (event.stage) {
+                    RecognitionSceneStage.ORB_WAKE -> stageGate(RecognitionGateId.ORB_ANCHOR, "ORB_WAKE_COMPLETE", true)
+                    RecognitionSceneStage.ORB_RELEASE -> stageGate(RecognitionGateId.RELEASE_RENDER, "ORB_RELEASE_COMPLETE", true)
+                    RecognitionSceneStage.PERIMETER_ARRIVAL -> stageGate(RecognitionGateId.PERIMETER_ARRIVAL_RENDER, "PERIMETER_COMPLETE", true)
+                    RecognitionSceneStage.CONTOUR_C -> stageGate(RecognitionGateId.CONTOUR_RENDER, "CONTOURS_COMPLETE", true)
+                    RecognitionSceneStage.FISH_GOLD_PEAK -> stageGate(RecognitionGateId.FISH_GOLD_RENDER, "KF13_COMPLETE", true)
+                    RecognitionSceneStage.ORB_RETURN -> stageGate(RecognitionGateId.RETURN_RENDER, "KF14_COMPLETE", true)
+                    RecognitionSceneStage.ORB_TO_NAME -> stageGate(RecognitionGateId.ORB_TO_GLYPH_RENDER, "KF15_COMPLETE", true)
+                    RecognitionSceneStage.SPECIES_NAME_REVEAL -> stageGate(RecognitionGateId.GLYPH_REVEAL_NAME_STABLE, "KF18_COMPLETE", true)
+                    else -> Unit
+                }
+                RecognitionSceneStageEventAction.BLOCKED -> Unit
+            }
+        }
+        diagnosticPlaybackController.setStageEventObserver(::onGateStageEvent)
+        onDispose { diagnosticPlaybackController.setStageEventObserver(null) }
     }
     val recognitionAttemptDeadline = remember(recognitionSessionId, activeRecognitionAttemptId) {
         activeRecognitionAttemptId?.let { RecognitionAttemptDeadline(SystemClock.uptimeMillis()) }
@@ -349,6 +520,18 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
 
     fun recordFishPathSessionStoreBinding(phase: String, key: RecognitionRevealKey) {
         val boundState = revealSessionStore.snapshot?.takeIf { it.matches(key) } ?: return
+        if (boundState.fishPathSnapshotBindingState.name == "BOUND") {
+            satisfyRecognitionGate(RecognitionGateId.MASK_CONTOUR_PSTAR)
+            satisfyRecognitionGate(RecognitionGateId.PATH_BOUND)
+        }
+        if (boundState.revealDecision in setOf(
+                RecognitionRevealDecisionState.FISH_FOCUS_READY,
+                RecognitionRevealDecisionState.ORB_ONLY_READY,
+            )
+        ) {
+            armRecognitionGate(RecognitionGateId.REVEAL_DECISION)
+            satisfyRecognitionGate(RecognitionGateId.REVEAL_DECISION)
+        }
         val payload = linkedMapOf<String, Any?>(
             "phase" to phase,
             "sessionStoreState" to boundState.fishPathSnapshotBindingState.name,
@@ -401,7 +584,8 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                 attemptId = requireNotNull(activeRecognitionAttemptId),
                 imageId = selected.imageId,
                 photoSha256 = selected.photoSha256,
-                photoContentVersion = selected.bitmap.generationId.toLong().coerceAtLeast(0L),
+                photoContentVersion = selected.photoIdentity?.photoContentVersion ?: 0L,
+                photoIdentity = selected.photoIdentity,
             ),
             debugBuild = BuildConfig.DEBUG && !productionAutoPlayback,
             nowMs = SystemClock.uptimeMillis(),
@@ -1085,6 +1269,8 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                     attemptId = attemptId,
                                     imageId = selected.imageId,
                                     photoSha256 = selected.photoSha256,
+                                    photoIdentity = selected.photoIdentity,
+                                    attemptDeadline = recognitionAttemptDeadline,
                                 ),
                                 onDiagnostic = { name, stage, status, details, error ->
                                     recognitionDiagnostics.event(name, stage, status, details, error)
@@ -1171,6 +1357,8 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                     attemptId = attemptId.orEmpty(),
                                     imageId = selected.imageId,
                                     photoSha256 = selected.photoSha256,
+                                    photoIdentity = selected.photoIdentity,
+                                    attemptDeadline = recognitionAttemptDeadline,
                                 ),
                             )
                         },
@@ -1184,12 +1372,20 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                 result = result,
                             )
                         },
+                        onPhotoFrameRequested = { armRecognitionGate(RecognitionGateId.PHOTO_FIRST_FRAME) },
+                        onPhotoFrameCommitted = { satisfyRecognitionGate(RecognitionGateId.PHOTO_FIRST_FRAME) },
                         onSubjectGeometry = { resolvedSubject, geometry ->
                             val sessionId = recognitionSessionId
                             if (sessionId != null && attemptId != null &&
                                 activeRecognitionAttemptId == attemptId && sessionImage != null &&
                                 (geometry == null || sessionImage?.imageId == geometry.imageId)
                             ) {
+                                if (resolvedSubject.status != SubjectStatus.PROCESSING) {
+                                    armRecognitionGate(RecognitionGateId.MASK_CONTOUR_PSTAR)
+                                    if (resolvedSubject.status != SubjectStatus.READY) {
+                                        satisfyRecognitionGate(RecognitionGateId.MASK_CONTOUR_PSTAR)
+                                    }
+                                }
                                 subjectResult = resolvedSubject
                                 revealSessionStore.updateSubject(
                                     RecognitionRevealKey(sessionId, attemptId),
@@ -1220,6 +1416,7 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                 sessionImage?.imageId == pathSnapshot.imageId &&
                                 sessionImage?.photoSha256 == pathSnapshot.photoSha256
                             ) {
+                                armRecognitionGate(RecognitionGateId.PATH_BOUND)
                                 val accepted = revealSessionStore.updateFishPathSnapshot(
                                     RecognitionRevealKey(sessionId, attemptId), pathSnapshot,
                                 )
@@ -1248,12 +1445,14 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                 activeImage.imageId == routeSnapshot.imageId &&
                                 activeImage.photoSha256 == routeSnapshot.photoSha256
                             ) {
+                                armRecognitionGate(RecognitionGateId.ORB_ONLY_RETURN_PATH)
                                 val identity = com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity(
                                     sessionId = sessionId,
                                     attemptId = activeAttempt,
                                     imageId = activeImage.imageId,
                                     photoSha256 = activeImage.photoSha256,
-                                    photoContentVersion = activeImage.bitmap.generationId.toLong().coerceAtLeast(0L),
+                                    photoContentVersion = activeImage.photoIdentity?.photoContentVersion ?: 0L,
+                                    photoIdentity = activeImage.photoIdentity,
                                 )
                                 val controllerAccepted = diagnosticPlaybackController.onOrbOnlyReturnPathAvailable(
                                     routeSnapshot,
@@ -1263,6 +1462,9 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                     RecognitionRevealKey(sessionId, activeAttempt),
                                     routeSnapshot,
                                 )
+                                if (storeAccepted && controllerAccepted) {
+                                    satisfyRecognitionGate(RecognitionGateId.ORB_ONLY_RETURN_PATH)
+                                }
                                 android.util.Log.i(
                                     "RecognitionRevealHandoff",
                                     "ORB_ONLY_RETURN_PATH session=$sessionId attempt=$activeAttempt " +
@@ -1364,6 +1566,12 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                     } else null
                     val resultSnapshot = resultKey?.let(revealSessionStore::resultSnapshot)
                     val revealHandoff = resultSnapshot?.handoff
+                    LaunchedEffect(resultSnapshot?.key, gateDeadlineTracker) {
+                        if (resultSnapshot != null) {
+                            armRecognitionGate(RecognitionGateId.RESULT_HOST_GEOMETRY, blocksAutoPlayback = false)
+                            armRecognitionGate(RecognitionGateId.HANDOFF_ACK)
+                        }
+                    }
                     LaunchedEffect(resultSnapshot?.key) {
                         val attachedSnapshot = resultSnapshot ?: return@LaunchedEffect
                         val attached = revealSessionStore.markResultAttached(
@@ -1440,15 +1648,34 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                             initialResultHandoffEventSequence = resultSnapshot.handoffState.lastEventSequence,
                             initialResultHandoffEventTimestampMs = resultSnapshot.handoffState.lastEventTimestampMs,
                             onResultHandoffEvent = { event ->
+                                val gateForSubstage = when (event.substage) {
+                                    com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage.PHOTO_SETTLE -> RecognitionGateId.PHOTO_SETTLE
+                                    com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage.RESULT_SCENE_HANDOFF -> RecognitionGateId.HANDOFF_ACK
+                                    com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage.RESULT_INFO_ARRIVAL -> RecognitionGateId.RESULT_INFO_ARRIVAL
+                                    com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage.RESULT_SCENE_STABLE -> RecognitionGateId.RESULT_SCENE_STABLE
+                                    com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage.NAME_STABLE -> RecognitionGateId.GLYPH_REVEAL_NAME_STABLE
+                                }
+                                armRecognitionGate(gateForSubstage)
                                 val receipt = RecognitionResultHandoffConsumer.consume(
                                     key = resultSnapshot.key,
                                     event = event,
                                     store = revealSessionStore,
                                     controller = diagnosticPlaybackController,
                                 )
+                                if (receipt.accepted) {
+                                    satisfyRecognitionGate(gateForSubstage)
+                                    if (event.substage == com.yujian.ai.ui.recognition.reveal.ResultHandoffSubstage.RESULT_SCENE_HANDOFF) {
+                                        armRecognitionGate(RecognitionGateId.SCENE_OWNER_TRANSFER)
+                                        satisfyRecognitionGate(RecognitionGateId.SCENE_OWNER_TRANSFER)
+                                    }
+                                }
                                 recognitionEvidenceRecorder.recordResultHandoff(event, receipt.accepted, receipt.rejectionReason)
                                 recognitionEvidenceRecorder.recordStageTimeline(diagnosticPlaybackController.stageTimelineSnapshot())
                                 receipt
+                            },
+                            onResultHostGeometryState = { ready, failureCode ->
+                                if (ready) satisfyRecognitionGate(RecognitionGateId.RESULT_HOST_GEOMETRY)
+                                else if (failureCode != null) failRecognitionGate(RecognitionGateId.RESULT_HOST_GEOMETRY, failureCode)
                             },
                             diagnosticPlaybackController = diagnosticPlaybackController,
                             diagnosticDisplayMode = diagnosticDisplayMode,

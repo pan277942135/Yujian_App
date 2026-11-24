@@ -2,6 +2,7 @@ package com.yujian.ai.ai.subject
 
 import android.graphics.Matrix
 import android.graphics.Rect
+import com.yujian.ai.recognition.domain.PhotoIdentity
 
 enum class FishSubjectQuality { GOOD, WARNING, INVALID }
 
@@ -57,10 +58,14 @@ data class MaskGeometryMetadata(
     val modelSha256: String,
     /** SHA-256 of the emitted transparent PNG after mask cleanup. */
     val maskSha256: String = "",
+    val photoIdentity: PhotoIdentity? = null,
 ) {
     fun matches(session: String, attempt: String, image: String, sha: String, width: Int, height: Int): Boolean =
         sessionId == session && attemptId == attempt && imageId == image &&
             photoSha256 == sha && canonicalWidth == width && canonicalHeight == height &&
+            (photoIdentity == null || photoIdentity.photoId == image) &&
+            (photoIdentity == null || photoIdentity.canonicalPixelSha256 == sha) &&
+            (photoIdentity == null || (photoIdentity.width == width && photoIdentity.height == height)) &&
             roiPx.left >= 0 && roiPx.top >= 0 && roiPx.right <= width && roiPx.bottom <= height &&
             roiPx.width() > 0 && roiPx.height() > 0
 

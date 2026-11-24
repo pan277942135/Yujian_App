@@ -3,6 +3,7 @@ package com.yujian.ai.ui.recognition.reveal
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.graphics.Matrix
+import android.graphics.Path
 import android.graphics.Paint as AndroidPaint
 import android.graphics.PathMeasure
 import android.graphics.LinearGradient
@@ -58,6 +59,7 @@ fun RecognitionRevealOpticalOverlay(
     handoff: RecognitionRevealHandoff?,
     photoGeometry: RecognitionRevealPhotoGeometry?,
     geometry: RecognitionRevealGeometry?,
+    fallbackOrbReturnPathSegments: List<RecognitionRevealCubicPath> = emptyList(),
     frameState: State<RecognitionRevealFrame>,
     holdPhotoUntilHeroReady: Boolean,
     material: WaterLightMaterialProfile = WaterLightMaterialProfile.HANDOFF,
@@ -87,20 +89,36 @@ fun RecognitionRevealOpticalOverlay(
         else Modifier,
     )
 
-    val orbReturnMeasure = remember(activeRevealGeometry) {
-        (activeRevealGeometry?.fullReturnPathLocal
-            ?: activeRevealGeometry?.orbReturnPathLocal?.toPath())?.let { PathMeasure(it, false) }
+    val activeReturnSegments = activeRevealGeometry?.returnPathSegments
+        ?.takeIf { it.size == 3 }
+        ?: fallbackOrbReturnPathSegments
+    val orbReturnPath = remember(activeRevealGeometry, fallbackOrbReturnPathSegments) {
+        when {
+            activeReturnSegments.size == 3 -> Path().apply {
+                val first = activeReturnSegments.first()
+                moveTo(first.start.x, first.start.y)
+                activeReturnSegments.forEach { segment ->
+                    cubicTo(segment.control1.x, segment.control1.y, segment.control2.x, segment.control2.y,
+                        segment.end.x, segment.end.y)
+                }
+            }
+            activeReturnSegments.size == 1 -> activeReturnSegments.single().toPath()
+            else -> activeRevealGeometry?.orbReturnPathLocal?.toPath()
+        }
     }
+    val orbReturnMeasure = remember(orbReturnPath) { orbReturnPath?.let { PathMeasure(it, false) } }
     val returnPathCoverage = remember(
         handoff.key,
         sceneIdentity,
         waterLightFrame?.geometryVersion,
-        activeRevealGeometry?.returnPathSegments,
+        activeReturnSegments,
         activeRevealGeometry?.orbReturnPathLocal,
     ) {
-        val segments = activeRevealGeometry?.returnPathSegments.orEmpty()
+        val segments = activeReturnSegments
         val segmentLengths = if (segments.size == 3) {
             segments.map { PathMeasure(it.toPath(), false).length }
+        } else if (segments.size == 1) {
+            listOf(PathMeasure(segments.single().toPath(), false).length)
         } else {
             activeRevealGeometry?.orbReturnPathLocal?.toPath()
                 ?.let { listOf(PathMeasure(it, false).length) }.orEmpty()
@@ -229,13 +247,13 @@ fun RecognitionRevealOpticalOverlay(
     val residueReceiptHandler = remember { Handler(Looper.getMainLooper()) }
     val latestOnResidueRenderComplete = androidx.compose.runtime.rememberUpdatedState(onResidueRenderComplete)
     val orbReturnReceiptAccepted = remember(
-        handoff.key, sceneIdentity, waterLightFrame?.geometryVersion, activeRevealGeometry?.returnPathSegments,
+        handoff.key, sceneIdentity, waterLightFrame?.geometryVersion, activeReturnSegments,
     ) { AtomicBoolean(false) }
     val orbReturnReceiptInFlight = remember(
-        handoff.key, sceneIdentity, waterLightFrame?.geometryVersion, activeRevealGeometry?.returnPathSegments,
+        handoff.key, sceneIdentity, waterLightFrame?.geometryVersion, activeReturnSegments,
     ) { AtomicBoolean(false) }
     val orbReturnReceiptHandler = remember(
-        handoff.key, sceneIdentity, waterLightFrame?.geometryVersion, activeRevealGeometry?.returnPathSegments,
+        handoff.key, sceneIdentity, waterLightFrame?.geometryVersion, activeReturnSegments,
     ) { Handler(Looper.getMainLooper()) }
     val latestOnOrbReturnRenderComplete = androidx.compose.runtime.rememberUpdatedState(onOrbReturnRenderComplete)
     androidx.compose.runtime.DisposableEffect(residueReceiptHandler, handoff.key, sceneIdentity) {
@@ -243,7 +261,7 @@ fun RecognitionRevealOpticalOverlay(
     }
     androidx.compose.runtime.DisposableEffect(
         orbReturnReceiptHandler, handoff.key, sceneIdentity,
-        waterLightFrame?.geometryVersion, activeRevealGeometry?.returnPathSegments,
+        waterLightFrame?.geometryVersion, activeReturnSegments,
     ) {
         onDispose { orbReturnReceiptHandler.removeCallbacksAndMessages(null) }
     }
@@ -401,8 +419,7 @@ fun RecognitionRevealOpticalOverlay(
             )
 
             // V4: fish energy starts returning while the photo continuity morph runs during 0–200 ms.
-            if (activeRevealGeometry != null && orbReturnMeasure != null &&
-                frame.stage == RecognitionSceneStage.ORB_RETURN
+            if (orbReturnMeasure != null && frame.stage == RecognitionSceneStage.ORB_RETURN
             ) {
                 val progress = frame.transferProgress.coerceIn(0f, 1f)
                 val headDistance = orbReturnMeasure.length * progress
@@ -601,13 +618,14 @@ fun RecognitionRevealOpticalOverlay(
         onDispose { orbCoreDissolveHandler.removeCallbacksAndMessages(null) }
     }
     val orbCenter = handoff.processingOrbCenterInWindow?.let { anchor ->
-        activeRevealGeometry?.rootWindowOrigin?.let { origin ->
+        (activeRevealGeometry?.rootWindowOrigin ?: activePhotoGeometry.rootWindowOrigin).let { origin ->
             (anchor.x - origin.x) to (anchor.y - origin.y)
         }
     }
     val orbDiameterPx = handoff.processingOrbCoreDiameterPx
-    if (frame.drawOpticalLayer && activeRevealGeometry != null && orbCenter != null && orbDiameterPx > 1f &&
-        frame.stage in setOf(RecognitionSceneStage.ORB_RETURN, RecognitionSceneStage.ORB_TO_NAME)
+    if (frame.drawOpticalLayer && orbCenter != null && orbDiameterPx > 1f &&
+        (frame.stage == RecognitionSceneStage.ORB_RETURN ||
+            frame.stage == RecognitionSceneStage.ORB_TO_NAME && activeRevealGeometry != null)
     ) {
         val coreSize = with(density) { orbDiameterPx.toDp() }
         val outerSizePx = with(density) { (coreSize + 28.dp).toPx() }

@@ -82,34 +82,48 @@ internal fun Throwable.slimSamFailureDetails(): SlimSamFailureDetails {
 
 /** Stable single-photo cache identity. Bitmap object identity is intentionally not part of the key. */
 internal data class SlimSamEmbeddingCacheKey(
-    val photoSha256: String,
+    val canonicalPixelSha256: String,
     val width: Int,
     val height: Int,
-    val modelVersion: String,
-    val preprocessingVersion: String,
+    val encoderModelSha256: String,
+    val preprocessVersion: String,
+    val inputSchemaHash: String,
+    val inputShape: List<Int>,
 ) {
     companion object {
         fun create(
-            photoSha256: String,
+            canonicalPixelSha256: String,
             width: Int,
             height: Int,
-            modelVersion: String,
-            preprocessingVersion: String,
+            encoderModelSha256: String,
+            preprocessVersion: String,
+            inputSchemaHash: String,
+            inputShape: List<Int>,
         ) = SlimSamEmbeddingCacheKey(
-            photoSha256 = photoSha256,
+            canonicalPixelSha256 = canonicalPixelSha256,
             width = width,
             height = height,
-            modelVersion = modelVersion,
-            preprocessingVersion = preprocessingVersion,
+            encoderModelSha256 = encoderModelSha256,
+            preprocessVersion = preprocessVersion,
+            inputSchemaHash = inputSchemaHash,
+            inputShape = java.util.Collections.unmodifiableList(ArrayList(inputShape)),
         )
     }
 }
 
 /** Keeps one active embedding and rejects a late write from a replaced photo/attempt. */
 internal class SlimSamEmbeddingCache<T> {
+    class Lease<T> internal constructor(val value: T, private val releaseAction: () -> Unit) : AutoCloseable {
+        private val released = java.util.concurrent.atomic.AtomicBoolean(false)
+        override fun close() {
+            if (released.compareAndSet(false, true)) releaseAction()
+        }
+    }
+
     private var activeKey: SlimSamEmbeddingCacheKey? = null
     private var cachedKey: SlimSamEmbeddingCacheKey? = null
     private var cachedValue: T? = null
+    private var activeLeaseCount: Int = 0
 
     @Synchronized
     fun activate(key: SlimSamEmbeddingCacheKey) {
@@ -122,6 +136,14 @@ internal class SlimSamEmbeddingCache<T> {
     @Synchronized
     fun get(key: SlimSamEmbeddingCacheKey): T? =
         cachedValue?.takeIf { activeKey == key && cachedKey == key }
+
+    @Synchronized
+    fun lease(value: T): Lease<T> {
+        activeLeaseCount += 1
+        return Lease(value) {
+            synchronized(this) { activeLeaseCount = (activeLeaseCount - 1).coerceAtLeast(0) }
+        }
+    }
 
     @Synchronized
     fun putIfActive(key: SlimSamEmbeddingCacheKey, value: T): Boolean {
@@ -140,4 +162,7 @@ internal class SlimSamEmbeddingCache<T> {
 
     @Synchronized
     fun hasValue(): Boolean = cachedValue != null
+
+    @Synchronized
+    fun activeLeases(): Int = activeLeaseCount
 }

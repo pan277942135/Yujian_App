@@ -12,7 +12,10 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 
 /** Pure trust and eligibility rules shared by production handoff and unit tests. */
 object RecognitionRevealPolicy {
-    /** Orb return is eligible only after the real Result and Orb/Photo/Glyph geometry are ready. */
+    /**
+     * Starts the shared timeline as soon as the identity-bound Processing photo geometry is ready.
+     * Result Hero/title geometry and GlyphPath have independent Gates and cannot hold Stage10.
+     */
     fun canStartOnFirstResultFrame(
         eligibility: RecognitionRevealEligibility,
         photoIdentityMatches: Boolean,
@@ -22,14 +25,12 @@ object RecognitionRevealPolicy {
         revealGeometryReady: Boolean,
         reduceMotion: Boolean,
     ): Boolean {
-        if (reduceMotion || !photoIdentityMatches || !photoGeometryReady || !heroReady || !titleBoundsReady) {
+        if (reduceMotion || !photoIdentityMatches || !photoGeometryReady) {
             return false
         }
         return when (eligibility) {
-            RecognitionRevealEligibility.FULL_REVEAL -> revealGeometryReady
-            // Orb-only still needs real Orb/photo/title geometry for the energy
-            // return and glyph formation. It only omits the fish contour.
-            RecognitionRevealEligibility.TITLE_FADE_ONLY -> revealGeometryReady
+            RecognitionRevealEligibility.FULL_REVEAL,
+            RecognitionRevealEligibility.TITLE_FADE_ONLY -> true
             RecognitionRevealEligibility.PHOTO_ONLY,
             RecognitionRevealEligibility.STATIC_RESULT -> false
         }

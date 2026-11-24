@@ -35,7 +35,9 @@ class FishSubjectPreviewEngine(
         sessionId: String,
         attemptId: String,
     ): FishSubjectResult = generationMutex.withLock {
-        val identity = RecognitionModelIdentity(sessionId, attemptId, selected.imageId, selected.photoSha256)
+        val identity = RecognitionModelIdentity(
+            sessionId, attemptId, selected.imageId, selected.photoSha256, selected.photoIdentity,
+        )
         runtime.generate(selected, detectorBbox, identity)
     }
 

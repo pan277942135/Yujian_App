@@ -29,6 +29,7 @@
 | `10_CONTRACT_REGISTRY.json` | 机器可读合同注册表 |
 | `CONTRACT_MANIFEST.json` | 文件清单、版本、范围和逐文件 SHA256 |
 | `11_CHANGELOG.md` | 冲突裁决和版本变更记录 |
+| `12_NON_MODEL_GATE_DEADLINE_POLICY_V1.md` | 独立补充策略：23 个非模型 Gate Deadline、重试和 Attempt 阻塞预算 |
 | `CONTRACT_SOURCE_INVENTORY.md` | 归档源、远端既有规范/实现参考及 legacy 状态清单 |
 | `CONTRACT_FREEZE_REPORT.md` | 本次仓库落盘、静态校验与 Exact-HEAD 提交记录 |
 | `validate_contract_package.py` | 可重复执行的合同包静态校验器 |
@@ -42,6 +43,10 @@
 - `DEVICE_RUNTIME_STATUS`: NOT_RUN
 - `VISUAL_ACCEPTANCE_STATUS`: NOT_RUN
 - `APK_DELIVERY_STATUS`: NOT_IN_SCOPE
+
+## Supporting policy
+
+`YUJIAN_NON_MODEL_GATE_DEADLINE_POLICY_V1` V1.0.0 is registered under `supportingPolicies`. It is a frozen supporting policy, not a seventh core contract. It retains the six core Contract IDs, versions, statuses, and SHA256 values unchanged. Its Gate numbers come from the user-supplied frozen supplement A.
 
 ## 唯一关键规则
 

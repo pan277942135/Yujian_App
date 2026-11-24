@@ -22,6 +22,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphBounds
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathDescriptor
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionFramePresentedReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
 import com.yujian.ai.ui.recognition.reveal.RecognitionOrbCoreDissolveReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
@@ -75,19 +76,16 @@ class RecognitionVisualStateControllerTest {
     }
 
     @Test
-    fun autoCheckpointStageWaitsForItsPixelCopyBeforeAdvancing() {
+    fun evidenceCaptureHasNoSceneClockControlHook() {
         val controller = SceneMotionCoordinator()
         controller.beginNewSession(identity, debugBuild = false, nowMs = 0L)
         assertTrue(controller.markPhotoFirstFramePresented(identity, 0L))
         controller.onOrbAnchorAvailable(true, identity)
-        assertEquals(RecognitionSceneStage.ORB_WAKE, controller.currentSceneStage(1_000L))
-
-        assertTrue(controller.setVisualCheckpointCapturePending(RecognitionSceneStage.ORB_WAKE, true, identity))
-        assertFalse(controller.setVisualCheckpointCapturePending(RecognitionSceneStage.ORB_RELEASE, true, identity))
-        assertEquals(RecognitionSceneStage.ORB_WAKE, controller.currentSceneStage(5_000L))
-
-        assertTrue(controller.setVisualCheckpointCapturePending(RecognitionSceneStage.ORB_WAKE, false, identity))
-        assertEquals(RecognitionSceneStage.ORB_RELEASE, controller.currentSceneStage(5_001L))
+        val beforeCaptureWindow = controller.sceneElapsedMs(1_000L)
+        val afterCaptureWindow = controller.sceneElapsedMs(5_000L)
+        assertEquals(1_000L, beforeCaptureWindow)
+        assertEquals(5_000L, afterCaptureWindow)
+        assertTrue(afterCaptureWindow > beforeCaptureWindow)
     }
 
     @Test fun previousAndReplayTouchOnlyTheSelectedManualStage() {
@@ -135,15 +133,15 @@ class RecognitionVisualStateControllerTest {
         assertEquals(500L, controller.stageElapsedMs(700L))
 
         controller.setResultGeometryState(SceneGeometryState.PENDING, 700L, identity)
-        assertEquals(500L, controller.stageElapsedMs(2_000L))
+        assertEquals(1_800L, controller.stageElapsedMs(2_000L))
         controller.pause(0L, 2_000L)
         controller.setResultGeometryState(SceneGeometryState.READY, 5_000L, identity)
-        assertEquals(500L, controller.stageElapsedMs(6_000L))
+        assertEquals(1_800L, controller.stageElapsedMs(6_000L))
         assertTrue(controller.paused)
         assertEquals(SceneGeometryState.READY, controller.modelGates.geometry)
 
         controller.resume(0L, 6_000L)
-        assertEquals(750L, controller.stageElapsedMs(6_250L))
+        assertEquals(2_050L, controller.stageElapsedMs(6_250L))
     }
 
     @Test fun geometryGatePreservesDiagnosticAutoProgressWhenPausedBeforeLateRecovery() {
@@ -154,13 +152,14 @@ class RecognitionVisualStateControllerTest {
         controller.playDiagnosticAuto(0L, 700L)
         controller.setResultGeometryState(SceneGeometryState.PENDING, 700L, identity)
 
+        val elapsedAtPause = controller.stageElapsedMs(2_000L)
         controller.pause(0L, 2_000L)
         controller.setResultGeometryState(SceneGeometryState.READY, 5_000L, identity)
-        assertEquals(500L, controller.stageElapsedMs(6_000L))
+        assertEquals(elapsedAtPause, controller.stageElapsedMs(6_000L))
         assertTrue(controller.paused)
 
         controller.resume(0L, 6_000L)
-        assertEquals(750L, controller.stageElapsedMs(6_250L))
+        assertEquals(elapsedAtPause + 250L, controller.stageElapsedMs(6_250L))
     }
 
     @Test fun handoffIsValidOnlyAtExactStageTenAfterClassifierMaskJoinAndOrbAnchor() {
@@ -255,14 +254,14 @@ class RecognitionVisualStateControllerTest {
         assertEquals(null, controller.advanceToNextStage(30_000L))
     }
 
-    @Test fun explicitInvalidResultGeometryIsNotReportedAsReady() {
+    @Test fun invalidResultGeometryCannotPauseOrBlockTheRecognitionStageClock() {
         val controller = SceneMotionCoordinator()
         controller.beginNewSession(identity, debugBuild = true, nowMs = 0L)
         controller.markPhotoFirstFramePresented(identity, 100L)
         controller.beginStepPreview(RecognitionSceneStage.ORB_RETURN, 200L)
         controller.setResultGeometryState(SceneGeometryState.INVALID, 600L, identity)
         assertEquals(SceneGeometryState.INVALID, controller.modelGates.geometry)
-        assertEquals("RESULT_GEOMETRY_INVALID", controller.modelGates.waitingReason)
+        assertFalse(controller.modelGates.waitingReason == "RESULT_GEOMETRY_INVALID")
         assertFalse(controller.resultVisualReady(700L))
     }
 
@@ -306,7 +305,7 @@ class RecognitionVisualStateControllerTest {
         assertEquals(RecognitionSceneStage.CONTOUR_B, controller.currentStage)
     }
 
-    @Test fun oldResultGeometryVersionCannotCompleteAnOrbReturnEvent() {
+    @Test fun stageTenReturnReceiptIsAcceptedWhileResultGeometryAndGlyphArePending() {
         val controller = SceneMotionCoordinator()
         controller.beginNewSession(identity, debugBuild = true, nowMs = 0L)
         controller.markPhotoFirstFramePresented(identity, 100L)
@@ -322,7 +321,7 @@ class RecognitionVisualStateControllerTest {
         controller.onRevealDecisionReady(identity)
         controller.onOrbAnchorAvailable(true, identity)
         controller.beginStepPreview(RecognitionSceneStage.ORB_RETURN, 200L)
-        controller.setResultGeometryState(SceneGeometryState.READY, 200L, identity, setOf(100L))
+        controller.setResultGeometryState(SceneGeometryState.PENDING, 200L, identity)
 
         // recordEnergyEvent only accepts a stage-complete sample, not an arbitrary mid-stage frame.
         val firstFrame = controller.currentFrame(identity, 3_200L, 100L)
@@ -405,8 +404,11 @@ class RecognitionVisualStateControllerTest {
                 referenceMs = frameAfterReceipt.opticalReferenceElapsedMs,
             ),
         ))
+        val unmet = controller.gateSnapshot(3_202L)["unmetConditions"] as List<*>
+        assertFalse("resultGeometryReady" in unmet)
+        assertFalse("glyphAvailable" in unmet)
+        assertEquals(SceneGeometryState.PENDING, controller.modelGates.geometry)
 
-        controller.setResultGeometryState(SceneGeometryState.READY, 3_201L, identity, setOf(200L))
         val nextFrame = controller.currentFrame(identity, 3_202L, 100L)
         assertFalse(controller.recordEnergyEvent(
             nextFrame,
@@ -644,7 +646,7 @@ class RecognitionVisualStateControllerTest {
         val geometryPendingResult = controller.recordEnergyEventWithReason(pendingScene, fallbackReturn)
         assertFalse(geometryPendingResult.accepted)
         assertEquals(
-            com.yujian.ai.ui.waterlight.core.EnergyEventRejectionReason.EVENT_GEOMETRY_MISMATCH,
+            com.yujian.ai.ui.waterlight.core.EnergyEventRejectionReason.EVENT_RETURN_RENDER_RECEIPT_MISSING,
             geometryPendingResult.rejectionReason,
         )
 
@@ -813,7 +815,23 @@ class RecognitionVisualStateControllerTest {
             contourPathDrawn = true,
             drawPassSequence = 1L,
         )
-        val rendered = pathReady.copy(glyphRevealRendered = true, renderReceipt = receipt)
+        val rendered = pathReady.copy(
+            glyphRevealRendered = true,
+            renderReceipt = receipt,
+            framePresentedReceipt = RecognitionFramePresentedReceipt(
+                identity = identity,
+                snapshotId = null,
+                snapshotContentHash = null,
+                renderer = "COMPOSE_TEXT_GLYPH",
+                stage = RecognitionSceneStage.SPECIES_NAME_REVEAL,
+                checkpointId = "KF18",
+                frameSequence = 1L,
+                geometryVersion = descriptor.geometryVersion,
+                drawPassSequence = receipt.drawPassSequence,
+                presentFenceSignalTimeNanos = 1L,
+                observedAtUptimeMs = 1L,
+            ),
+        )
         controller.onGlyphRevealRendered(rendered, identity)
         val event = RecognitionResultHandoffEvent(
             identity = identity,

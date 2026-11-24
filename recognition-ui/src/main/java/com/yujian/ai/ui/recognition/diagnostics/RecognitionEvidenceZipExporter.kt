@@ -142,7 +142,7 @@ object RecognitionEvidenceZipExporter {
             File(stagingDir, "build_info.json").writeText(buildInfo.toString(2), Charsets.UTF_8)
             val deviceInfo = deviceInfoJson(context)
             File(stagingDir, "device_info.json").writeText(deviceInfo.toString(2), Charsets.UTF_8)
-            val uniqueDegraded = degradedReasons.distinct()
+            val reportDegraded = degradedReasons.distinct()
             writeSummaryReports(
                 context = context,
                 attemptDirectory = stagingDir,
@@ -150,7 +150,7 @@ object RecognitionEvidenceZipExporter {
                 captureIndex = captureIndex,
                 checkpointIndex = checkpointIndex,
                 queue = snapshot.queueDiagnostics,
-                degradedReasons = uniqueDegraded,
+                degradedReasons = reportDegraded,
             )
             val resultEvidenceStatus = RecognitionEvidenceResultStatusPolicy.fromStatus(
                 summary.optString("resultEvidenceStatus", "RESULT_EVIDENCE_NOT_AVAILABLE"),
@@ -160,7 +160,20 @@ object RecognitionEvidenceZipExporter {
                 Charsets.UTF_8,
             )
 
-            ensureExpectedFiles(logsFolder, reportsFolder)
+            val unavailableEvidence = writeEvidenceAvailability(logsFolder, reportsFolder)
+            val uniqueDegraded = (reportDegraded + unavailableEvidence).distinct()
+            if (unavailableEvidence.isNotEmpty()) {
+                val integrityFile = File(reportsFolder, "capture_integrity.json")
+                val integrity = JSONObject(integrityFile.readText(Charsets.UTF_8))
+                integrity.put("degradedReasons", JSONArray(uniqueDegraded))
+                    .put("incompleteReasons", JSONArray(
+                        (integrity.optJSONArray("incompleteReasons")?.toString()?.let(::JSONArray)?.let { array ->
+                            (0 until array.length()).mapNotNull { array.optString(it).takeIf(String::isNotBlank) }
+                        }.orEmpty() + unavailableEvidence).distinct(),
+                    ))
+                integrityFile.writeText(integrity.toString(2), Charsets.UTF_8)
+                writeEvidenceAvailability(logsFolder, reportsFolder)
+            }
             val filesBeforeManifest = listFiles(stagingDir).filter { it.name != "manifest.json" }
             val integrityStatus = if (uniqueDegraded.isNotEmpty() ||
                 evidenceStatus(summary, captureIndex, checkpointIndex, snapshot.queueDiagnostics, filesBeforeManifest) != "COMPLETE"
@@ -199,7 +212,7 @@ object RecognitionEvidenceZipExporter {
                     .put("screenshotFailureCount", summary.optInt("screenshotFailureCount"))
                     .put("retainedScreenshotCount", successfulFrames.size)
                     .put("droppedSampleCaptureCount", summary.optLong("droppedSampleCaptureCount") + budgetOutcome.droppedSampleCount)
-                    .put("screenshotEncoding", summary.optString("screenshotEncoding", "WEBP_Q92"))
+                    .put("screenshotEncoding", summary.optString("screenshotEncoding", "CHECKPOINT_PNG_MOTION_WEBP_Q90"))
                     .put("checkpointIndex", "frames/26kf_checkpoint_index.json")
                     .put("captureIndex", "frames/frame_index.json")
                     .put("checkpointCount", checkpointIndex.length())
@@ -462,7 +475,7 @@ object RecognitionEvidenceZipExporter {
                 .put("checkpointNotReachedCount", checkpointStatusCount(checkpointIndex, "NOT_REACHED"))
                 .put("checkpointCaptureFailedCount", checkpointStatusCount(checkpointIndex, "CAPTURE_FAILED"))
                 .put("droppedSampleCaptureCount", summary.optLong("droppedSampleCaptureCount"))
-                .put("screenshotEncoding", summary.optString("screenshotEncoding", "WEBP_Q92"))
+                .put("screenshotEncoding", summary.optString("screenshotEncoding", "CHECKPOINT_PNG_MOTION_WEBP_Q90"))
                 .put("droppedCriticalEventCount", queue.droppedCriticalEvents)
                 .put("droppedSampleEventCount", queue.droppedSampleEvents)
                 .put("writeFailures", queue.writeFailures)
@@ -532,16 +545,50 @@ object RecognitionEvidenceZipExporter {
         return if (failures.isEmpty()) "COMPLETE" else "EVIDENCE_INCOMPLETE"
     }
 
-    private fun ensureExpectedFiles(logs: File, reports: File) {
-        listOf(
-            "recognition_events.jsonl", "orb_render_trace.jsonl", "model_inference.jsonl", "mask_runtime.jsonl",
-            "waterlight_paths.jsonl", "result_handoff.jsonl", "stage_timeline.jsonl", "logcat.txt",
-        ).forEach { name -> File(logs, name).takeIf { !it.exists() }?.writeText("", Charsets.UTF_8) }
-        listOf(
-            "model_summary.json", "r03_rotation_summary.json", "r06_summary.json",
-            "resident_lifecycle_summary.json", "task_energy_summary.json", "capture_integrity.json",
-            "result_evidence_status.json",
-        ).forEach { name -> File(reports, name).takeIf { !it.exists() }?.writeText("{}\n", Charsets.UTF_8) }
+    internal fun writeEvidenceAvailability(logs: File, reports: File): List<String> {
+        val expected = buildList {
+            listOf(
+                "recognition_events.jsonl", "orb_render_trace.jsonl", "model_inference.jsonl", "mask_runtime.jsonl",
+                "waterlight_paths.jsonl", "result_handoff.jsonl", "stage_timeline.jsonl", "logcat.txt",
+            ).forEach { add("logs/$it" to File(logs, it)) }
+            listOf(
+                "model_summary.json", "r03_rotation_summary.json", "r06_summary.json",
+                "resident_lifecycle_summary.json", "task_energy_summary.json", "capture_integrity.json",
+                "result_evidence_status.json",
+            ).forEach { add("reports/$it" to File(reports, it)) }
+        }
+        val statuses = JSONObject()
+        val unavailable = mutableListOf<String>()
+        expected.forEach { (relativePath, file) ->
+            val jsonLines = relativePath.endsWith(".jsonl")
+            val available = file.isFile && (file.length() > 0L || relativePath == "logs/logcat.txt")
+            val status = when {
+                available -> "AVAILABLE"
+                jsonLines -> "NOT_RUN"
+                else -> "UNAVAILABLE"
+            }
+            val reason = when {
+                available -> JSONObject.NULL
+                file.isFile -> "NO_EVENTS_RECORDED"
+                else -> "FILE_NOT_CREATED"
+            }
+            if (!available) {
+                unavailable += "EVIDENCE_${status}:$relativePath:$reason"
+                // Empty JSONL files in the export snapshot are not evidence. The active Attempt
+                // directory remains untouched; only this temporary archive staging copy is cleaned.
+                if (jsonLines && file.isFile && file.length() == 0L) file.delete()
+            }
+            statuses.put(relativePath, JSONObject()
+                .put("status", status)
+                .put("reason", reason)
+                .put("sizeBytes", file.takeIf(File::isFile)?.length() ?: 0L))
+        }
+        reports.mkdirs()
+        File(reports, "evidence_availability.json").writeText(
+            JSONObject().put("schemaVersion", 1).put("files", statuses).toString(2),
+            Charsets.UTF_8,
+        )
+        return unavailable
     }
 
     private fun checkpointStatusCount(index: JSONArray, status: String): Int = (0 until index.length())

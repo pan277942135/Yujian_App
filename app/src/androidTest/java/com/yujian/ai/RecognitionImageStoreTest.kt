@@ -4,11 +4,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.core.content.FileProvider
+import androidx.exifinterface.media.ExifInterface
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.yujian.ai.media.RecognitionImageStore
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -57,6 +59,40 @@ class RecognitionImageStoreTest {
             cameraInput.delete()
             galleryInput.delete()
             normalizedOutputs.forEach { it.delete() }
+        }
+    }
+
+    @Test
+    fun sourceByteHashAndCanonicalModelPixelHashRemainDistinct() = runBlocking {
+        val bitmap = Bitmap.createBitmap(64, 48, Bitmap.Config.ARGB_8888).apply {
+            eraseColor(android.graphics.Color.rgb(28, 94, 112))
+        }
+        val lowQuality = File(context.cacheDir, "camera/identity-low-quality.jpg")
+        val highQuality = File(context.cacheDir, "camera/identity-high-quality.jpg")
+        val normalized = mutableListOf<File>()
+        try {
+            lowQuality.parentFile?.mkdirs()
+            lowQuality.outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.JPEG, 40, it)) }
+            highQuality.outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.JPEG, 96, it)) }
+
+            val first = RecognitionImageStore.normalizeCameraFile(context, lowQuality)
+            val second = RecognitionImageStore.normalizeCameraFile(context, highQuality)
+            normalized += File(first.filePath)
+            normalized += File(second.filePath)
+            val firstIdentity = requireNotNull(first.photoIdentity)
+            val secondIdentity = requireNotNull(second.photoIdentity)
+
+            assertNotEquals(firstIdentity.sourceBytesSha256, secondIdentity.sourceBytesSha256)
+            assertEquals(firstIdentity.canonicalPixelSha256, secondIdentity.canonicalPixelSha256)
+            assertEquals(firstIdentity.canonicalPixelSha256, first.photoSha256)
+            assertNotEquals(firstIdentity.sourceBytesSha256, firstIdentity.canonicalPixelSha256)
+            assertEquals(ExifInterface.ORIENTATION_NORMAL, firstIdentity.sourceOrientation)
+            assertTrue(firstIdentity.isValid())
+        } finally {
+            bitmap.recycle()
+            lowQuality.delete()
+            highQuality.delete()
+            normalized.forEach { it.delete() }
         }
     }
 

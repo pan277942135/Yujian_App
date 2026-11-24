@@ -29,6 +29,7 @@ class WaterLightHostBinding(
             imageId = frame.imageId,
             photoSha256 = frame.photoSha256,
             photoContentVersion = frame.photoContentVersion,
+            photoIdentity = frame.photoIdentity,
         )
         val override = frame.sceneFrameOverride
         return when {
@@ -58,6 +59,7 @@ class WaterLightHostBinding(
         if (reason !in SAFE_SOURCE_CORE_FALLBACK_REASONS) return false
         val identity = RecognitionSceneIdentity(
             frame.sessionId, frame.attemptId, frame.imageId, frame.photoSha256, frame.photoContentVersion,
+            frame.photoIdentity,
         )
         return expectedIdentity.sessionId.isNotBlank() && expectedIdentity.attemptId.isNotBlank() &&
             expectedIdentity.imageId.isNotBlank() && !expectedIdentity.photoSha256.isNullOrBlank() &&

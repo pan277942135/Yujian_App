@@ -3,9 +3,6 @@ package com.yujian.ai.ui.screens
 import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.view.Choreographer
-import android.os.Handler
-import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -194,6 +191,9 @@ import com.yujian.ai.ui.recognition.interpolateRecognitionPhotoTransform
 import com.yujian.ai.ui.recognition.RecognitionStepDiagnosticControls
 import com.yujian.ai.ui.recognition.OrbStage02VisualEvidenceExport
 import com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorder
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionAndroidFramePresentation
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionPlatformFrameSignal
+import com.yujian.ai.ui.recognition.reveal.RecognitionFramePresentedReceipt
 import com.yujian.ai.ui.recognition.diagnostics.recognitionEvidenceWindow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
@@ -246,6 +246,8 @@ fun RecognizingScreen(
     recognitionAttemptDeadline: RecognitionAttemptDeadline? = null,
     prepareSubject: (suspend (SelectedImage) -> Unit)? = null,
     onSlimSamTiming: SlimSamTimingCallback = { _, _, _, _, _, _ -> },
+    onPhotoFrameRequested: (() -> Unit)? = null,
+    onPhotoFrameCommitted: ((Long) -> Unit)? = null,
     onFinishedAccepted: (ProductionRecognitionResult) -> Boolean = { true },
 ) = RecognitionProcessingScene(
     image, onBack, recognize, generateSubject, onFinished, onFailure,
@@ -266,6 +268,8 @@ fun RecognizingScreen(
     recognitionAttemptDeadline = recognitionAttemptDeadline,
     prepareSubject = prepareSubject,
     onSlimSamTiming = onSlimSamTiming,
+    onPhotoFrameRequested = onPhotoFrameRequested,
+    onPhotoFrameCommitted = onPhotoFrameCommitted,
     onFinishedAccepted = onFinishedAccepted,
 )
 
@@ -297,7 +301,8 @@ fun RecognitionProcessingScene(
     recognitionAttemptDeadline: RecognitionAttemptDeadline? = null,
     prepareSubject: (suspend (SelectedImage) -> Unit)? = null,
     onSlimSamTiming: SlimSamTimingCallback = { _, _, _, _, _, _ -> },
-    onPhotoFramePresented: ((Long) -> Unit)? = null,
+    onPhotoFrameRequested: (() -> Unit)? = null,
+    onPhotoFrameCommitted: ((Long) -> Unit)? = null,
     onFinishedAccepted: (ProductionRecognitionResult) -> Boolean = { true },
 ) {
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
@@ -318,7 +323,8 @@ fun RecognitionProcessingScene(
     val phasePresentedCallback by rememberUpdatedState(onVisualPhasePresented)
     val prepareSubjectCallback = rememberUpdatedState(prepareSubject)
     val slimSamTimingCallback = rememberUpdatedState(onSlimSamTiming)
-    val photoFramePresentedCallback = rememberUpdatedState(onPhotoFramePresented)
+    val photoFrameCommittedCallback = rememberUpdatedState(onPhotoFrameCommitted)
+    val photoFrameRequestedCallback = rememberUpdatedState(onPhotoFrameRequested)
     val fishPathSnapshotCallback = rememberUpdatedState(onFishPathSnapshot)
     val orbOnlyReturnPathSnapshotCallback = rememberUpdatedState(onOrbOnlyReturnPathSnapshot)
     val sceneKey = remember(
@@ -410,7 +416,7 @@ fun RecognitionProcessingScene(
     var pipelineError by remember(sceneKey) { mutableStateOf<Throwable?>(null) }
     var delivered by remember(sceneKey) { mutableStateOf(false) }
     var deliveryInProgress by remember(sceneKey) { mutableStateOf(false) }
-    var photoPresentedAtMs by remember(sceneKey) { mutableStateOf<Long?>(null) }
+    var photoFrameCommittedAtMs by remember(sceneKey) { mutableStateOf<Long?>(null) }
     var photoGeometryVersion by remember(sceneKey) { mutableLongStateOf(0L) }
     var visualNowMs by remember(sceneKey) { mutableStateOf(0L) }
     // The controller injected by YujianApp owns playback, stage identity, gates and
@@ -422,10 +428,11 @@ fun RecognitionProcessingScene(
             attemptId = recognitionAttemptId.orEmpty(),
             imageId = image?.imageId.orEmpty(),
             photoSha256 = image?.photoSha256,
-            photoContentVersion = image?.bitmap?.generationId?.toLong()?.coerceAtLeast(0L) ?: 0L,
+            photoContentVersion = image?.photoIdentity?.photoContentVersion ?: 0L,
+            photoIdentity = image?.photoIdentity,
         )
     }
-    val latestPhotoPresentedAtMs by rememberUpdatedState(photoPresentedAtMs)
+    val latestPhotoPresentedAtMs by rememberUpdatedState(photoFrameCommittedAtMs)
     val currentFinishedResult = rememberUpdatedState(finishedResult)
     val currentPipelineError = rememberUpdatedState(pipelineError)
     val currentSubjectStatus = rememberUpdatedState(subjectResult.status)
@@ -442,6 +449,7 @@ fun RecognitionProcessingScene(
                 attemptId = sceneIdentity.attemptId,
                 imageId = sceneIdentity.imageId,
                 photoSha256 = sceneIdentity.photoSha256.orEmpty(),
+                photoIdentity = sceneIdentity.photoIdentity,
             ),
             stage,
             event,
@@ -537,7 +545,7 @@ fun RecognitionProcessingScene(
     }
 
     LaunchedEffect(
-        sceneKey, photoPresentedAtMs, assessment?.primary?.box, finishedResult, subjectResult.status,
+        sceneKey, photoFrameCommittedAtMs, assessment?.primary?.box, finishedResult, subjectResult.status,
         subjectResult.maskSha256, subjectBitmap?.generationId, trustedSubjectMask, contour,
         processingPhotoSnapshotForReveal, photoGeometryVersion,
     ) {
@@ -914,6 +922,7 @@ fun RecognitionProcessingScene(
                 expectedMaskSize = result.expectedMaskSize,
                 maskVersion = RecognitionMaskIntegrity.versionFromSha256(result.maskSha256),
                 maskSha256 = result.maskSha256,
+                photoIdentity = selected.photoIdentity,
             ) else null
             val trustStartedNs = SystemClock.elapsedRealtimeNanos()
             recordSlimSamTiming("MASK_TRUST_GATE", "MASK_TRUST_GATE_START", trustStartedNs, trustStartedNs, "STARTED")
@@ -1021,9 +1030,9 @@ fun RecognitionProcessingScene(
         }
     }
 
-    LaunchedEffect(sceneKey, photoPresentedAtMs) {
+    LaunchedEffect(sceneKey, photoFrameCommittedAtMs) {
         val selected = image ?: return@LaunchedEffect
-        val startedAtMs = photoPresentedAtMs ?: return@LaunchedEffect
+        val startedAtMs = photoFrameCommittedAtMs ?: return@LaunchedEffect
         visualPhase = RecognitionPhase.CAPTURED
         productionSceneStage = RecognitionSceneStage.PHOTO_STABLE
         productionStageElapsedMs = 0L
@@ -1240,7 +1249,7 @@ fun RecognitionProcessingScene(
 
     // A real MEDIUM/LOW classifier result is a completed business outcome. Route it
     // through the normal Result transaction without advancing or fabricating visual stages.
-    LaunchedEffect(sceneKey, finishedResult, revealDecision, photoPresentedAtMs, delivered, displayMode) {
+    LaunchedEffect(sceneKey, finishedResult, revealDecision, photoFrameCommittedAtMs, delivered, displayMode) {
         if (manualStepDiagnosticState.value || delivered || deliveryInProgress) return@LaunchedEffect
         val result = finishedResult ?: return@LaunchedEffect
         if (!result.ready || revealDecision != RecognitionRevealDecisionState.STATIC_RESULT) return@LaunchedEffect
@@ -1250,11 +1259,11 @@ fun RecognitionProcessingScene(
     // The visual clock must remain stable while the real detector/classifier advances.
     // realPhase is intentionally NOT a LaunchedEffect key: restarting this loop on every
     // progress callback can cancel the presentation before it reaches RESULT.
-    LaunchedEffect(sceneKey, phaseOverride, photoPresentedAtMs, displayMode, diagnosticReturnRevision) {
+    LaunchedEffect(sceneKey, phaseOverride, photoFrameCommittedAtMs, displayMode, diagnosticReturnRevision) {
         if (stepDiagnosticActive && playbackController.mode == ScenePlaybackMode.MANUAL &&
             finishedResult?.ready == true
         ) delivered = false
-        if (photoPresentedAtMs == null && phaseOverride == null) return@LaunchedEffect
+        if (photoFrameCommittedAtMs == null && phaseOverride == null) return@LaunchedEffect
         var lastGateReason: String? = null
         var lastGateLogMs = 0L
         var stalledStage: RecognitionSceneStage? = null
@@ -1351,11 +1360,11 @@ fun RecognitionProcessingScene(
     val processingElapsedMs = if (deterministicMotion) {
         visualClockMs.coerceAtLeast(0L)
     } else {
-        photoPresentedAtMs?.let { (visualClockMs - it).coerceAtLeast(0L) } ?: 0L
+        photoFrameCommittedAtMs?.let { (visualClockMs - it).coerceAtLeast(0L) } ?: 0L
     }
     val authoritativeOpticalReferenceElapsedMs = when {
         deterministicMotion || phaseOverride != null -> visualClockMs.coerceAtLeast(0L)
-        photoPresentedAtMs == null -> 0L
+        photoFrameCommittedAtMs == null -> 0L
         else -> controller.opticalReferenceElapsedMs(
             visualNowMs,
             trustedMask = trustedSubjectMask,
@@ -1395,7 +1404,7 @@ fun RecognitionProcessingScene(
     LaunchedEffect(sceneKey, orbStage) {
         Log.i(LOG_TAG, "ORB_STAGE image=${image?.imageId} sha256=${image?.photoSha256} stage=$orbStage elapsed_ms=$entranceElapsedMs")
     }
-    val authoritativeSceneFrame = if (!deterministicMotion && phaseOverride == null && photoPresentedAtMs != null) {
+    val authoritativeSceneFrame = if (!deterministicMotion && phaseOverride == null && photoFrameCommittedAtMs != null) {
         controller.currentFrame(sceneIdentity, visualNowMs, photoGeometryVersion, motionPolicy.reduceMotion)
     } else null
     val sceneBaseFrame = WaterLightFrame(
@@ -1405,11 +1414,12 @@ fun RecognitionProcessingScene(
         reducedMotion = motionPolicy.reduceMotion,
         geometryVersion = photoGeometryVersion,
         attemptId = recognitionAttemptId.orEmpty(), imageId = image?.imageId.orEmpty(),
-        photoContentVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
+        photoContentVersion = image?.photoIdentity?.photoContentVersion ?: 0L,
         playbackMode = playbackMode,
         playbackPaused = playbackPaused,
         eventSequence = authoritativeSceneFrame?.eventSequence ?: 0L,
         sceneFrameOverride = authoritativeSceneFrame,
+        photoIdentity = image?.photoIdentity,
         sceneStageOverride = if (stepDiagnosticActive || phaseOverride != null || deterministicMotion) null else productionSceneStage,
         sceneStageElapsedMsOverride = if (stepDiagnosticActive || phaseOverride != null || deterministicMotion) null else productionStageElapsedMs,
         sceneStageProgressOverride = if (stepDiagnosticActive || phaseOverride != null || deterministicMotion) null else productionStageProgress,
@@ -1625,7 +1635,6 @@ fun RecognitionProcessingScene(
     val diagnosticStageStatus = diagnosticSceneFrame.modelGates.waitingReason?.let { reason ->
         when (reason) {
             "WAITING_FOR_PHOTO_FIRST_FRAME" -> "等待照片真实首帧呈现"
-            "WAITING_FOR_RESULT_GEOMETRY" -> "等待 Result / Orb / Glyph 几何"
             "RESULT_GEOMETRY_INVALID" -> "Result 几何无效 · 揭晓已静态降级"
             "WAITING_FOR_MODEL_JOIN" -> "等待 Classifier 与 SlimSAM 汇合"
             "WAITING_FOR_TRUSTED_MASK" -> "等待可信鱼体 Mask"
@@ -1641,7 +1650,7 @@ fun RecognitionProcessingScene(
             "WAITING_FOR_PSTAR_PATH_UNAVAILABLE" -> "等待真实 Mask 绑定 P* 路径"
             "WAITING_FOR_CLASSIFIER_AND_SLIMSAM_TERMINAL_JOIN" -> "等待 Classifier 与 SlimSAM 终态"
             "WAITING_FOR_TRUSTED_MASK_AND_CONTOUR" -> "等待可信 Mask 和真实轮廓"
-            "WAITING_FOR_RETURN_EVENT_OR_RESULT_GEOMETRY" -> "等待真实回馈事件与 Result 几何"
+            "WAITING_FOR_RETURN_RENDER_RECEIPT_OR_COMPLETION" -> "等待 RETURN 渲染回执与完成"
             "WAITING_FOR_ORB_TO_GLYPH_COMPLETION" -> "等待原始 Orb 向 Glyph 完成转换"
             "WAITING_FOR_GLYPH_REVEAL_COMPLETION" -> "等待真实鱼种名称揭晓完成"
             "WAITING_FOR_RESIDUE_SETTLE_COMPLETION" -> "等待水光余辉收束完成"
@@ -1679,8 +1688,8 @@ fun RecognitionProcessingScene(
     val successfulRevealAllowed = finishedResult?.let { result ->
         result.ready && resolveRecognitionUiState(result) == RecognitionUiState.RESULT_HIGH
     } == true
-    LaunchedEffect(sceneKey, diagnosticSceneFrame.stage, playbackRevision, photoPresentedAtMs, playbackController.previewCompleted) {
-        if (diagnosticUiAvailable && photoPresentedAtMs != null) Log.i(
+    LaunchedEffect(sceneKey, diagnosticSceneFrame.stage, playbackRevision, photoFrameCommittedAtMs, playbackController.previewCompleted) {
+        if (diagnosticUiAvailable && photoFrameCommittedAtMs != null) Log.i(
             LOG_TAG,
             "DIAGNOSTIC_PRESENT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
                 "image=${image?.imageId.orEmpty()} sha256=${image?.photoSha256.orEmpty()} " +
@@ -1712,7 +1721,7 @@ fun RecognitionProcessingScene(
     val phaseElapsedMs = when {
         stepDiagnosticActive -> diagnosticSceneFrame.stageElapsedMs
         phaseOverride != null -> 1_000L
-        photoPresentedAtMs == null -> 0L
+        photoFrameCommittedAtMs == null -> 0L
         else -> controller.stageElapsedMs(visualNowMs)
     }
     val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
@@ -1768,14 +1777,11 @@ fun RecognitionProcessingScene(
         Modifier.fillMaxSize()
             .drawWithContent {
                 drawContent()
-                recognitionEvidenceRecorder?.onFramePresented(
+                recognitionEvidenceRecorder?.onDrawSubmitted(
                     window = evidenceWindow,
                     frame = waterLightFrame.sceneFrame,
                     latestFrame = { latestEvidenceSceneFrame.value },
                     allowPixelCopyCapture = BuildConfig.DEBUG,
-                    onCheckpointCaptureGateChanged = { stage, pending ->
-                        controller.setVisualCheckpointCapturePending(stage, pending, sceneIdentity)
-                    },
                 )
             }
             .onGloballyPositioned { rootOrigin = it.boundsInWindow().topLeft },
@@ -2243,18 +2249,50 @@ fun RecognitionProcessingScene(
                 controller.onPhotoTransformAvailable(it != 0L, sceneIdentity, geometryVersion = it)
             },
             modifier = Modifier.fillMaxSize(),
-            processingClockStarted = photoPresentedAtMs != null || deterministicMotion,
+            processingClockStarted = photoFrameCommittedAtMs != null || deterministicMotion,
             recognitionSessionId = recognitionSessionId.orEmpty(),
             recognitionAttemptId = recognitionAttemptId.orEmpty(),
             imageId = image.imageId,
             photoSha256 = image.photoSha256,
-            photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),
+            photoContentVersion = image.photoIdentity?.photoContentVersion ?: 0L,
+            photoIdentity = image.photoIdentity,
             maskSha256 = subjectResult?.maskSha256.orEmpty(),
             maskVersion = subjectBitmap?.let { RecognitionMaskIntegrity.versionFromSha256(subjectResult.maskSha256) } ?: -1L,
             activeFishPathId = pStarPathId,
             maskRevealProgress = maskContourRevealProgress,
             trustedMask = trustedSubjectMask,
             stage045GlPresented = stage045GlPresented,
+            onPlatformFramePresented = { signal ->
+                val activeGeometryVersion = maxOf(waterLightFrame.geometryVersion, photoGeometryVersion)
+                if (activeGeometryVersion > 0L) {
+                    recognitionEvidenceRecorder?.recordFramePresented(
+                        RecognitionFramePresentedReceipt(
+                            identity = sceneIdentity,
+                            snapshotId = null,
+                            snapshotContentHash = null,
+                            renderer = "RECOGNITION_PHOTO_CANVAS",
+                            stage = RecognitionSceneStage.PHOTO_STABLE,
+                            checkpointId = "KF02",
+                            frameSequence = signal.frameSequence,
+                            geometryVersion = activeGeometryVersion,
+                            drawPassSequence = signal.frameSequence,
+                            presentFenceSignalTimeNanos = signal.presentFenceSignalTimeNanos,
+                            observedAtUptimeMs = signal.observedPresentedAtUptimeMs,
+                        ),
+                    )
+                } else {
+                    recognitionEvidenceRecorder?.recordGateDiagnostic(
+                        "FRAME_PRESENTATION_RECEIPT_REJECTED",
+                        mapOf("attemptId" to sceneIdentity.attemptId, "reason" to "PHOTO_GEOMETRY_UNAVAILABLE"),
+                    )
+                }
+            },
+            onPlatformFramePresentationUnavailable = { sequence, reason ->
+                recognitionEvidenceRecorder?.recordGateDiagnostic(
+                    "FRAME_PRESENTATION_UNAVAILABLE",
+                    mapOf("attemptId" to sceneIdentity.attemptId, "frameSequence" to sequence, "reason" to reason),
+                )
+            },
             onGoldRenderComplete = { receipt -> controller.onFishGoldRenderComplete(receipt, sceneIdentity) },
             onContourRenderComplete = { receipt -> controller.onContourRenderComplete(receipt, sceneIdentity) },
             onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx, actualOrbCenter, orbCoreDiameterPx, contactPointSource, contactMaskSha256, contactMaskVersion, contactGeometryVersion ->
@@ -2279,23 +2317,25 @@ fun RecognitionProcessingScene(
                         contactPointMaskSha256 = contactMaskSha256,
                         contactPointMaskVersion = contactMaskVersion,
                         contactPointGeometryVersion = contactGeometryVersion,
+                        photoIdentity = image.photoIdentity,
                     )
                 processingPhotoSnapshotForReveal = processingSnapshot
                 onProcessingPhotoSnapshot(processingSnapshot)
             },
-            onPhotoFirstFramePresented = { presentedAtMs ->
-                if (photoPresentedAtMs == null) {
+            onPhotoFrameCommitted = { committedAtMs ->
+                if (photoFrameCommittedAtMs == null) {
                     Log.i(
                         LOG_TAG,
-                        "PHOTO_FIRST_FRAME_PRESENTED session=${recognitionSessionId.orEmpty()} " +
-                            "attempt=${recognitionAttemptId.orEmpty()} image=${image.imageId} uptime_ms=$presentedAtMs",
+                        "PHOTO_FRAME_COMMITTED session=${recognitionSessionId.orEmpty()} " +
+                            "attempt=${recognitionAttemptId.orEmpty()} image=${image.imageId} uptime_ms=$committedAtMs",
                     )
-                    photoPresentedAtMs = presentedAtMs
-                    photoFramePresentedCallback.value?.invoke(presentedAtMs)
-                    controller.markPhotoFirstFramePresented(sceneIdentity, presentedAtMs)
+                    photoFrameCommittedAtMs = committedAtMs
+                    photoFrameCommittedCallback.value?.invoke(committedAtMs)
+                    controller.markPhotoFirstFrameCommitted(sceneIdentity, committedAtMs)
                     if (diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) playbackRevision++
                 }
             },
+            onPhotoFrameRequested = { photoFrameRequestedCallback.value?.invoke() },
         )
         if (image != null && photoFlowPlan != null && producerOrbGeometry != null) {
             Stage045EnergyStreamGlOverlay(
@@ -2953,13 +2993,17 @@ private fun RecognitionPhoto(
         Long,
         Long,
     ) -> Unit,
-    onPhotoFirstFramePresented: (Long) -> Unit,
+    onPhotoFrameRequested: () -> Unit,
+    onPhotoFrameCommitted: (Long) -> Unit,
+    onPlatformFramePresented: (RecognitionPlatformFrameSignal) -> Unit = {},
+    onPlatformFramePresentationUnavailable: (Long, String) -> Unit = { _, _ -> },
     processingClockStarted: Boolean,
     recognitionSessionId: String,
     recognitionAttemptId: String,
     imageId: String,
     photoSha256: String,
     photoContentVersion: Long,
+    photoIdentity: com.yujian.ai.recognition.domain.PhotoIdentity? = null,
     maskSha256: String,
     maskVersion: Long,
     activeFishPathId: String?,
@@ -2986,6 +3030,7 @@ private fun RecognitionPhoto(
                 host, WaterLightMaterialProfile.forHost(host), waterLightEngine,
                 RecognitionSceneIdentity(
                     recognitionSessionId, recognitionAttemptId, imageId, photoSha256, photoContentVersion,
+                    photoIdentity,
                 ),
             )
         }
@@ -3015,12 +3060,9 @@ private fun RecognitionPhoto(
         !waterLightFrame.reducedMotion && !motionPolicy.lowPerformance
     val photoImage = remember(bitmap) { bitmap.asImageBitmap() }
     val reportedFirstFrame = remember(bitmap, motionSessionKey) { AtomicBoolean(false) }
-    val firstFrameCallback by rememberUpdatedState(onPhotoFirstFramePresented)
+    val firstFrameCallback by rememberUpdatedState(onPhotoFrameCommitted)
     val photoSnapshotCallback by rememberUpdatedState(onProcessingPhotoSnapshot)
-    val mainHandler = remember { Handler(Looper.getMainLooper()) }
-    DisposableEffect(mainHandler) {
-        onDispose { mainHandler.removeCallbacksAndMessages(null) }
-    }
+    val platformFrameView = LocalView.current
     val density = LocalDensity.current
     val viewportWidthPx = photoFlowPlan.targetTransform.viewportWidthPx.coerceAtLeast(1f)
     val viewportHeightPx = photoFlowPlan.targetTransform.viewportHeightPx.coerceAtLeast(1f)
@@ -3087,12 +3129,17 @@ private fun RecognitionPhoto(
                 Modifier.fillMaxSize().drawWithContent {
                     drawContent()
                     if (reportedFirstFrame.compareAndSet(false, true)) {
-                        // The first frame containing the real PhotoSession starts the sole scene clock.
-                        mainHandler.post {
-                            Choreographer.getInstance().postFrameCallback {
-                                val presentedAtMs = recognitionMonotonicNowMs()
-                                firstFrameCallback(presentedAtMs)
-                            }
+                        // Ask Android for the next root-surface commit; Choreographer/draw alone
+                        // never stand in for a submitted or physically presented frame.
+                        platformFrameView.post {
+                            onPhotoFrameRequested()
+                            RecognitionAndroidFramePresentation.requestNextFrame(
+                                view = platformFrameView,
+                                timeoutMs = 3_000L,
+                                onFrameCommitted = { _, committedAt -> firstFrameCallback(committedAt) },
+                                onFramePresented = onPlatformFramePresented,
+                                onPresentationUnavailable = onPlatformFramePresentationUnavailable,
+                            )
                         }
                     }
                 },

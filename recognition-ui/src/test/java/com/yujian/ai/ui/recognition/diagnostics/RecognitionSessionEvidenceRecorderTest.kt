@@ -179,18 +179,20 @@ class RecognitionSessionEvidenceRecorderTest {
             listOf(RecognitionEvidenceStageSnapshot("ORB_RETURN", "NOT_REACHED")),
         )
         val optionalSaveNotTapped = RecognitionEvidenceCapturePolicy.checkpointStatusAfterExport(
-            RecognitionEvidenceCheckpointSnapshot("KF25", "RESIDUE_SETTLE", "NOT_REACHED"),
+            RecognitionEvidenceCheckpointSnapshot("KF25", "RESIDUE_SETTLE", "NOT_APPLICABLE", "USER_SAVE_NOT_REQUESTED"),
             listOf(RecognitionEvidenceStageSnapshot("RESIDUE_SETTLE", "COMPLETED")),
         )
         assertEquals("MISSING", blocked.status)
         assertEquals("CHECKPOINT_EVENT_OR_PRESENTED_FRAME_NOT_OBSERVED", blocked.reason)
         assertEquals("NOT_REACHED", notReached.status)
-        assertEquals("NOT_REACHED", optionalSaveNotTapped.status)
+        assertEquals("NOT_APPLICABLE", optionalSaveNotTapped.status)
+        assertEquals("NOT_APPLICABLE", RecognitionEvidenceCapturePolicy.initialCheckpointStatus("KF25"))
+        assertEquals("USER_SAVE_NOT_REQUESTED", RecognitionEvidenceCapturePolicy.initialCheckpointReason("KF25"))
     }
 
     @Test fun standardCheckpointAndMotionEncodingPreserveFullResolutionPolicy() {
         assertEquals(
-            RecognitionEvidenceScreenshotEncoding("WEBP", 92, "image/webp"),
+            RecognitionEvidenceScreenshotEncoding("PNG", null, "image/png"),
             RecognitionEvidenceCapturePolicy.screenshotEncoding("VISUAL_CHECKPOINT", lossless = false),
         )
         assertEquals(

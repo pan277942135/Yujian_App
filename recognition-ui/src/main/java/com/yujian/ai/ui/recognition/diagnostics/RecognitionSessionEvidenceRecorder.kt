@@ -17,6 +17,8 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStageEvent
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStageEventAction
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStageTraceEntry
+import com.yujian.ai.ui.recognition.reveal.RecognitionFramePresentedReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionResultHandoffEvent
 import org.json.JSONArray
 import org.json.JSONObject
@@ -106,10 +108,8 @@ class RecognitionSessionEvidenceRecorder(
                     id = checkpointId,
                     stage = RecognitionEvidenceCapturePolicy.checkpointStage(checkpointId)?.name
                         ?: if (checkpointId == "KF00") "HOME" else "IDENTIFY",
-                    status = "NOT_REACHED",
-                    reason = if (checkpointId == "KF00" || checkpointId == "KF01") {
-                        "OUTSIDE_ACTIVE_ATTEMPT_CAPTURE_WINDOW"
-                    } else null,
+                    status = RecognitionEvidenceCapturePolicy.initialCheckpointStatus(checkpointId),
+                    reason = RecognitionEvidenceCapturePolicy.initialCheckpointReason(checkpointId),
                 )
             }
             pendingVisualCheckpoints.clear()
@@ -478,6 +478,70 @@ class RecognitionSessionEvidenceRecorder(
         record(type, "recognition_events.jsonl", payload, RecognitionEvidencePriority.CRITICAL)
     }
 
+    /** Stores a platform presentation-fence receipt only for the active Attempt identity. */
+    fun recordFramePresented(receipt: RecognitionFramePresentedReceipt): Boolean {
+        val identityMatches = synchronized(lock) { activeIdentity?.matches(receipt.identity) == true }
+        val accepted = identityMatches && receipt.isValid()
+        recordGateDiagnostic(
+            if (accepted) "FRAME_PRESENTED" else "FRAME_PRESENTATION_RECEIPT_REJECTED",
+            mapOf(
+                "receiptAccepted" to accepted,
+                "rejectionReason" to when {
+                    !identityMatches -> "SCENE_IDENTITY_NOT_ACTIVE"
+                    !receipt.isValid() -> "INVALID_PRESENT_FENCE_RECEIPT"
+                    else -> null
+                },
+                "attemptId" to receipt.identity.attemptId,
+                "imageId" to receipt.identity.imageId,
+                "photoSha256" to receipt.identity.photoSha256,
+                "snapshotId" to receipt.snapshotId,
+                "snapshotContentHash" to receipt.snapshotContentHash,
+                "renderer" to receipt.renderer,
+                "stage" to receipt.stage.name,
+                "checkpointId" to receipt.checkpointId,
+                "frameSequence" to receipt.frameSequence,
+                "geometryVersion" to receipt.geometryVersion,
+                "drawPassSequence" to receipt.drawPassSequence,
+                "presentFenceSignalTimeNanos" to receipt.presentFenceSignalTimeNanos,
+                "observedAtUptimeMs" to receipt.observedAtUptimeMs,
+            ),
+        )
+        return accepted
+    }
+
+    /** Records a Compose Glyph draw submission without treating it as a visible platform frame. */
+    fun recordGlyphDrawSubmitted(receipt: RecognitionGlyphDrawReceipt): Boolean {
+        val identityMatches = synchronized(lock) { activeIdentity?.matches(receipt.identity) == true }
+        val snapshotValid = (receipt.snapshotId == null && receipt.snapshotContentHash == null) ||
+            (!receipt.snapshotId.isNullOrBlank() &&
+                receipt.snapshotContentHash?.matches(Regex("(?i)^[a-f0-9]{64}$")) == true)
+        val accepted = identityMatches && snapshotValid && receipt.speciesKey.isNotBlank() &&
+            receipt.speciesName.isNotBlank() && receipt.pathId.isNotBlank() && receipt.geometryVersion > 0L &&
+            receipt.renderedProgress.isFinite() && receipt.renderedProgress >= .999f &&
+            receipt.fillPathDrawn && receipt.contourPathDrawn && receipt.drawPassSequence > 0L
+        recordGateDiagnostic(
+            if (accepted) "DRAW_SUBMITTED" else "DRAW_SUBMISSION_REJECTED",
+            mapOf(
+                "receiptAccepted" to accepted,
+                "attemptId" to receipt.identity.attemptId,
+                "imageId" to receipt.identity.imageId,
+                "snapshotId" to receipt.snapshotId,
+                "snapshotContentHash" to receipt.snapshotContentHash,
+                "renderer" to "COMPOSE_TEXT_GLYPH",
+                "stage" to RecognitionSceneStage.SPECIES_NAME_REVEAL.name,
+                "checkpointId" to "KF18",
+                "geometryVersion" to receipt.geometryVersion,
+                "drawPassSequence" to receipt.drawPassSequence,
+                "rejectionReason" to when {
+                    !identityMatches -> "SCENE_IDENTITY_NOT_ACTIVE"
+                    !snapshotValid -> "SNAPSHOT_IDENTITY_INVALID"
+                    else -> "GLYPH_DRAW_RECEIPT_INVALID"
+                },
+            ),
+        )
+        return accepted
+    }
+
     /** Records the repository outcome for the KF25 save tap without exporting the raw record id. */
     fun recordSaveOutcome(
         stage: RecognitionSceneStage,
@@ -556,20 +620,30 @@ class RecognitionSessionEvidenceRecorder(
         heartbeat(frame.stage, frame.sceneElapsedMs, waiting)
     }
 
-    /** Called from drawWithContent after the actual Compose frame has been submitted. */
-    fun onFramePresented(
+    /** Called after drawWithContent; starts independent evidence capture without claiming presentation. */
+    fun onDrawSubmitted(
         window: Window?,
         frame: RecognitionSceneFrame,
         latestFrame: () -> RecognitionSceneFrame?,
         resultSceneStable: Boolean = false,
         allowPixelCopyCapture: Boolean = false,
-        onCheckpointCaptureGateChanged: ((RecognitionSceneStage, Boolean) -> Unit)? = null,
     ) {
         if (!allowPixelCopyCapture || window == null || frame.geometryVersion <= 0L) return
         val isCurrentFrame = synchronized(lock) {
             activeIdentity?.matches(frame.identity) == true && pixelCopySuspendedReason == null
         }
         if (!isCurrentFrame) return
+        recordGateDiagnostic(
+            "DRAW_SUBMITTED",
+            mapOf(
+                "attemptId" to frame.identity.attemptId,
+                "imageId" to frame.identity.imageId,
+                "renderer" to "RECOGNITION_SCENE_LAYER",
+                "stage" to frame.stage.name,
+                "geometryVersion" to frame.geometryVersion,
+                "sceneEventSequence" to frame.eventSequence,
+            ),
+        )
         synchronized(lock) {
             latestGeometryVersion = frame.geometryVersion
             latestSceneElapsedMs = maxOf(latestSceneElapsedMs, frame.sceneElapsedMs)
@@ -580,7 +654,6 @@ class RecognitionSessionEvidenceRecorder(
             pendingVisualCheckpoints.firstOrNull { it.stage == frame.stage }
         }
         if (readyCheckpoint != null) {
-            onCheckpointCaptureGateChanged?.invoke(frame.stage, true)
             val handled = requestCapture(
                 window = window,
                 frame = frame,
@@ -589,7 +662,6 @@ class RecognitionSessionEvidenceRecorder(
                 directoryName = "checkpoints",
                 priority = "KEY",
                 checkpointId = readyCheckpoint.id,
-                onPixelCopyCompleted = { onCheckpointCaptureGateChanged?.invoke(frame.stage, false) },
             )
             if (handled) synchronized(lock) {
                 pendingVisualCheckpoints.removeAll { it.id == readyCheckpoint.id }
@@ -843,7 +915,7 @@ class RecognitionSessionEvidenceRecorder(
             .put("screenshotSuccessCount", screenshotSuccessCount)
             .put("screenshotFailureCount", screenshotFailureCount)
             .put("droppedSampleCaptureCount", droppedSampleCaptureCount)
-            .put("screenshotEncoding", if (losslessVisualEvidence) "PNG_LOSSLESS" else "WEBP_Q92")
+            .put("screenshotEncoding", if (losslessVisualEvidence) "PNG_LOSSLESS" else "CHECKPOINT_PNG_MOTION_WEBP_Q90")
             .put("checkpointCount", checkpointStatuses.size)
             .put("checkpointCapturedCount", checkpointStatuses.values.count { it.status == "CAPTURED" })
             .put("checkpointMissingCount", checkpointStatuses.values.count { it.status == "MISSING" })
@@ -870,6 +942,35 @@ class RecognitionSessionEvidenceRecorder(
     fun captureIndexJson(): JSONArray = synchronized(lock) { JSONArray(captureRows.map { JSONObject(it.toString()) }) }
 
     fun checkpointIndexJson(): JSONArray = synchronized(lock) { checkpointIndexJsonLocked() }
+
+    /** KF25 is an optional save action; without a user tap it stays NOT_APPLICABLE. */
+    fun requestSaveCheckpointCapture(
+        stage: RecognitionSceneStage?,
+        eventSequence: Long?,
+    ): Boolean {
+        val prepared = synchronized(lock) {
+            val current = checkpointStatuses["KF25"] ?: return@synchronized false
+            if (current.status == "NOT_APPLICABLE") {
+                checkpointStatuses["KF25"] = current.copy(status = "NOT_REACHED", reason = null)
+            }
+            checkpointStatuses["KF25"]?.status in setOf("NOT_REACHED", "PENDING", "CAPTURE_REQUESTED", "CAPTURED")
+        }
+        if (!prepared) return false
+        if (stage == null || eventSequence == null) {
+            synchronized(lock) { markCheckpointCaptureFailedLocked("KF25", "SAVE_ACTION_WITHOUT_PRESENTED_FRAME") }
+            recordGateDiagnostic("SAVE_ENTRY_CAPTURE_FAILED", mapOf(
+                "checkpointId" to "KF25",
+                "reason" to "SAVE_ACTION_WITHOUT_PRESENTED_FRAME",
+            ))
+            return false
+        }
+        return requestCheckpointCapture(
+            checkpointId = "KF25",
+            stage = stage,
+            eventSequence = eventSequence,
+            eventType = "SAVE_ENTRY_TAP",
+        )
+    }
 
     /** Arms a post-draw screenshot for a true UI checkpoint such as the Result save action. */
     fun requestCheckpointCapture(
@@ -900,7 +1001,7 @@ class RecognitionSessionEvidenceRecorder(
                     "stage" to stage.name,
                     "expectedCaptureStage" to expectedStage.name,
                     "eventSequence" to eventSequence,
-                    "captureAfterDraw" to true,
+                    "captureAfterDrawSubmission" to true,
                 ),
                 generation = activeGeneration,
             )
@@ -925,7 +1026,7 @@ class RecognitionSessionEvidenceRecorder(
                     "checkpointId" to signal.id,
                     "stage" to signal.stage.name,
                     "eventSequence" to signal.eventSequence,
-                    "framePresentedAfterDraw" to true,
+                    "drawSubmitted" to true,
                 ),
                 generation = activeGeneration,
             )
@@ -1017,13 +1118,11 @@ class RecognitionSessionEvidenceRecorder(
         directoryName: String,
         priority: String,
         checkpointId: String? = null,
-        onPixelCopyCompleted: (() -> Unit)? = null,
     ): Boolean {
         val setup = synchronized(lock) {
             if (activeIdentity?.matches(frame.identity) != true) null
             else activeAttempt?.let { it to activeGeneration }
         } ?: run {
-            onPixelCopyCompleted?.invoke()
             return false
         }
         val attempt = setup.first
@@ -1033,7 +1132,6 @@ class RecognitionSessionEvidenceRecorder(
         val requestTimestamp = SystemClock.uptimeMillis()
         synchronized(lock) {
             if (generation != activeGeneration) {
-                onPixelCopyCompleted?.invoke()
                 return false
             }
             if (pixelCopySuspendedReason != null || pixelCopyInFlight ||
@@ -1048,7 +1146,6 @@ class RecognitionSessionEvidenceRecorder(
                         )
                     }
                     pendingVisualCheckpoints.removeAll { it.id == checkpointId }
-                    onPixelCopyCompleted?.invoke()
                 }
                 return false
             }
@@ -1065,7 +1162,6 @@ class RecognitionSessionEvidenceRecorder(
                     mapOf("captureId" to captureId, "stage" to frame.stage.name, "checkpointId" to checkpointId),
                     generation = generation,
                 )
-                onPixelCopyCompleted?.invoke()
                 // The request is terminally accounted for. Tell the caller not to retry
                 // this same checkpoint or blocked-stage frame on every subsequent draw.
                 return true
@@ -1098,7 +1194,6 @@ class RecognitionSessionEvidenceRecorder(
             ),
         )
         RecognitionPixelCopyCapture.request(window, frame, latestFrame) { result ->
-            onPixelCopyCompleted?.invoke()
             synchronized(lock) {
                 if (generation == activeGeneration) {
                     pixelCopyInFlight = false

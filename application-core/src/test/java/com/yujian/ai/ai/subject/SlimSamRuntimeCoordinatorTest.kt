@@ -102,25 +102,31 @@ class SlimSamRuntimeCoordinatorTest {
     @Test
     fun embeddingCacheIdentityUsesPhotoContentGeometryAndModelContracts() {
         val samePhoto = SlimSamEmbeddingCacheKey.create(
-            photoSha256 = "photo-a",
+            canonicalPixelSha256 = "a".repeat(64),
             width = 1200,
             height = 800,
-            modelVersion = "vision+decoder-v1",
-            preprocessingVersion = "rgb1024-pad-v1",
+            encoderModelSha256 = "b".repeat(64),
+            preprocessVersion = "rgb1024-pad-v1",
+            inputSchemaHash = "c".repeat(64),
+            inputShape = listOf(1, 3, 1024, 1024),
         )
         val decodedAgain = SlimSamEmbeddingCacheKey.create(
-            photoSha256 = "photo-a",
+            canonicalPixelSha256 = "a".repeat(64),
             width = 1200,
             height = 800,
-            modelVersion = "vision+decoder-v1",
-            preprocessingVersion = "rgb1024-pad-v1",
+            encoderModelSha256 = "b".repeat(64),
+            preprocessVersion = "rgb1024-pad-v1",
+            inputSchemaHash = "c".repeat(64),
+            inputShape = listOf(1, 3, 1024, 1024),
         )
 
         assertEquals(samePhoto, decodedAgain)
-        assertFalse(samePhoto == decodedAgain.copy(photoSha256 = "photo-b"))
+        assertFalse(samePhoto == decodedAgain.copy(canonicalPixelSha256 = "d".repeat(64)))
         assertFalse(samePhoto == decodedAgain.copy(width = 1199))
-        assertFalse(samePhoto == decodedAgain.copy(modelVersion = "vision+decoder-v2"))
-        assertFalse(samePhoto == decodedAgain.copy(preprocessingVersion = "rgb1024-pad-v2"))
+        assertFalse(samePhoto == decodedAgain.copy(encoderModelSha256 = "e".repeat(64)))
+        assertFalse(samePhoto == decodedAgain.copy(preprocessVersion = "rgb1024-pad-v2"))
+        assertFalse(samePhoto == decodedAgain.copy(inputSchemaHash = "f".repeat(64)))
+        assertFalse(samePhoto == decodedAgain.copy(inputShape = listOf(1, 3, 512, 512)))
     }
 
     @Test
@@ -150,11 +156,31 @@ class SlimSamRuntimeCoordinatorTest {
         assertNull(cache.get(newPhoto))
     }
 
+    @Test
+    fun embeddingLeaseRetainsValueUntilDecoderReleasesIt() {
+        val cache = SlimSamEmbeddingCache<String>()
+        val oldPhoto = key("photo-old")
+        val newPhoto = key("photo-new")
+        cache.activate(oldPhoto)
+        assertTrue(cache.putIfActive(oldPhoto, "old embedding"))
+        val lease = cache.lease(requireNotNull(cache.get(oldPhoto)))
+
+        cache.activate(newPhoto)
+
+        assertEquals("old embedding", lease.value)
+        assertEquals(1, cache.activeLeases())
+        lease.close()
+        assertEquals(0, cache.activeLeases())
+        assertNull(cache.get(oldPhoto))
+    }
+
     private fun key(sha: String) = SlimSamEmbeddingCacheKey.create(
-        photoSha256 = sha,
+        canonicalPixelSha256 = sha,
         width = 1200,
         height = 800,
-        modelVersion = "vision+decoder-v1",
-        preprocessingVersion = "rgb1024-pad-v1",
+        encoderModelSha256 = "b".repeat(64),
+        preprocessVersion = "rgb1024-pad-v1",
+        inputSchemaHash = "c".repeat(64),
+        inputShape = listOf(1, 3, 1024, 1024),
     )
 }

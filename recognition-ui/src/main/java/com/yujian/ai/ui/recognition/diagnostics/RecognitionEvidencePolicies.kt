@@ -149,6 +149,14 @@ internal object RecognitionEvidenceCapturePolicy {
 
     fun checkpointStage(id: String): RecognitionSceneStage? = checkpointStages[id]
 
+    fun initialCheckpointStatus(id: String): String = if (id == "KF25") "NOT_APPLICABLE" else "NOT_REACHED"
+
+    fun initialCheckpointReason(id: String): String? = when (id) {
+        "KF00", "KF01" -> "OUTSIDE_ACTIVE_ATTEMPT_CAPTURE_WINDOW"
+        "KF25" -> "USER_SAVE_NOT_REQUESTED"
+        else -> null
+    }
+
     fun shouldQueueCheckpoint(status: String): Boolean = status == "NOT_REACHED"
 
     fun isFirstBlockedFrame(frame: RecognitionSceneFrame, alreadyCaptured: Boolean): Boolean =
@@ -171,9 +179,8 @@ internal object RecognitionEvidenceCapturePolicy {
     }
 
     fun screenshotEncoding(captureType: String, lossless: Boolean): RecognitionEvidenceScreenshotEncoding = when {
-        lossless || captureType == "GATE_BLOCKED" -> RecognitionEvidenceScreenshotEncoding("PNG", null, "image/png")
-        captureType == "MOTION_SAMPLE" -> RecognitionEvidenceScreenshotEncoding("WEBP", 90, "image/webp")
-        else -> RecognitionEvidenceScreenshotEncoding("WEBP", 92, "image/webp")
+        lossless || captureType != "MOTION_SAMPLE" -> RecognitionEvidenceScreenshotEncoding("PNG", null, "image/png")
+        else -> RecognitionEvidenceScreenshotEncoding("WEBP", 90, "image/webp")
     }
 
     fun sameSceneIdentityAndGeometry(

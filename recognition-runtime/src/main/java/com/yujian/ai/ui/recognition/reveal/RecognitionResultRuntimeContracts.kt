@@ -201,7 +201,47 @@ data class RecognitionGlyphDrawReceipt(
     val fillPathDrawn: Boolean,
     val contourPathDrawn: Boolean,
     val drawPassSequence: Long,
+    val snapshotId: String? = null,
+    val snapshotContentHash: String? = null,
 )
+
+/** SurfaceFlinger presentation fence correlated to an Android window frame and optional Snapshot. */
+data class RecognitionFramePresentedReceipt(
+    val identity: RecognitionSceneIdentity,
+    val snapshotId: String?,
+    val snapshotContentHash: String?,
+    val renderer: String,
+    val stage: RecognitionSceneStage,
+    val checkpointId: String,
+    val frameSequence: Long,
+    val geometryVersion: Long,
+    val drawPassSequence: Long,
+    val presentFenceSignalTimeNanos: Long,
+    val observedAtUptimeMs: Long,
+) {
+    fun isValid(): Boolean = identity.sessionId.isNotBlank() && identity.attemptId.isNotBlank() &&
+        identity.imageId.isNotBlank() && renderer.isNotBlank() && checkpointId.isNotBlank() &&
+        frameSequence > 0L && geometryVersion > 0L && presentFenceSignalTimeNanos > 0L &&
+        observedAtUptimeMs > 0L && drawPassSequence > 0L &&
+        ((snapshotId == null && snapshotContentHash == null) ||
+            (!snapshotId.isNullOrBlank() && snapshotContentHash?.matches(Regex("(?i)^[a-f0-9]{64}$")) == true))
+
+    fun matches(
+        expectedIdentity: RecognitionSceneIdentity,
+        expectedSnapshotId: String?,
+        expectedSnapshotContentHash: String?,
+        expectedRenderer: String,
+        expectedStage: RecognitionSceneStage,
+        expectedCheckpointId: String,
+        expectedFrameSequence: Long? = null,
+        expectedGeometryVersion: Long,
+        expectedDrawPassSequence: Long,
+    ): Boolean = isValid() && identity == expectedIdentity && snapshotId == expectedSnapshotId &&
+        snapshotContentHash == expectedSnapshotContentHash && renderer == expectedRenderer &&
+        stage == expectedStage && checkpointId == expectedCheckpointId &&
+        (expectedFrameSequence == null || frameSequence == expectedFrameSequence) &&
+        geometryVersion == expectedGeometryVersion && drawPassSequence == expectedDrawPassSequence
+}
 
 data class RecognitionGlyphReadiness(
     val speciesResultReady: Boolean = false,
@@ -210,6 +250,7 @@ data class RecognitionGlyphReadiness(
     val nameStable: Boolean = false,
     val descriptor: RecognitionGlyphPathDescriptor? = null,
     val renderReceipt: RecognitionGlyphDrawReceipt? = null,
+    val framePresentedReceipt: RecognitionFramePresentedReceipt? = null,
 )
 
 object RecognitionGlyphReadinessContract {
@@ -235,7 +276,18 @@ object RecognitionGlyphReadinessContract {
         if (!isPathReady(identity, speciesKey, speciesName, readiness) || !readiness.glyphRevealRendered) return false
         val descriptor = readiness.descriptor ?: return false
         val receipt = readiness.renderReceipt ?: return false
-        return receipt.identity == identity && receipt.speciesKey == speciesKey &&
+        val frameReceipt = readiness.framePresentedReceipt ?: return false
+        return frameReceipt.matches(
+            expectedIdentity = identity,
+            expectedSnapshotId = receipt.snapshotId,
+            expectedSnapshotContentHash = receipt.snapshotContentHash,
+            expectedRenderer = "COMPOSE_TEXT_GLYPH",
+            expectedStage = RecognitionSceneStage.SPECIES_NAME_REVEAL,
+            expectedCheckpointId = "KF18",
+            expectedGeometryVersion = descriptor.geometryVersion,
+            expectedDrawPassSequence = receipt.drawPassSequence,
+        ) &&
+            receipt.identity == identity && receipt.speciesKey == speciesKey &&
             receipt.speciesName == speciesName && receipt.pathId == descriptor.pathId &&
             receipt.geometryVersion == descriptor.geometryVersion &&
             receipt.renderedProgress.isFinite() && receipt.renderedProgress >= .999f &&

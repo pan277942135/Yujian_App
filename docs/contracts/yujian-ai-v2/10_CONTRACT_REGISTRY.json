@@ -103,5 +103,16 @@
     "taskEnergyCount": "reference-and-runtime-derived-not-fixed-to-five"
   },
   "targetBranch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "parentHeadSha": "0acfa98afe96bb04768c8304b81cd5e1456b63d9"
+  "parentHeadSha": "0acfa98afe96bb04768c8304b81cd5e1456b63d9",
+  "supportingPolicies": [
+    {
+      "id": "YUJIAN_NON_MODEL_GATE_DEADLINE_POLICY_V1",
+      "version": "1.0.0",
+      "file": "12_NON_MODEL_GATE_DEADLINE_POLICY_V1.md",
+      "owner": "scene-timeline",
+      "status": "FROZEN_SPECIFICATION",
+      "sha256": "49b3bf8de8244a169d7779647cd24c08063d3427d62de95f5d139fe932b08d93",
+      "authority": "User-supplied Work supplement A"
+    }
+  ]
 }

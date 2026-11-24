@@ -25,3 +25,9 @@
 - Added `CONTRACT_SOURCE_INVENTORY.md`, `CONTRACT_FREEZE_REPORT.md`, and `validate_contract_package.py` for repository provenance and repeatable static validation.
 - Added per-contract `status` and content `sha256` to Registry entries; regenerated `CONTRACT_MANIFEST.json` and `SHA256SUMS` to cover the complete repository directory. The source archive SHA-256 is recorded in the freeze report.
 - Existing design/runtime/evidence documents remain in place; their V2 core-contract status is classified in the source inventory. No production implementation was changed.
+
+## Supporting policy — 2026-11-24
+
+- Added `YUJIAN_NON_MODEL_GATE_DEADLINE_POLICY_V1` V1.0.0 as a frozen supporting policy with 23 Gates, exact user-frozen timeouts/retry counts, start/success events, failure codes, and interval-union accounting.
+- Registered the policy separately from the six core contracts. The six core contract bodies, versions, statuses, and SHA256 values remain unchanged.
+- Policy and validator metadata were added to the repository package inventory and checksums.

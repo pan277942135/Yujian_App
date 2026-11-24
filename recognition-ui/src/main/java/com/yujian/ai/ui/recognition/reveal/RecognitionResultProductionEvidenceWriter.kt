@@ -120,10 +120,12 @@ object RecognitionResultProductionEvidenceWriter {
             .put("recognitionAttemptId", key.recognitionAttemptId)
             .put("imageId", snapshot.image.imageId)
             .put("photoSha256", snapshot.image.photoSha256)
-            .put("photoContentVersion", snapshot.image.bitmap.generationId.toLong().coerceAtLeast(0L))
+            .put("photoContentVersion", snapshot.image.photoIdentity?.photoContentVersion ?: 0L)
+            .put("sourceBytesSha256", snapshot.image.photoIdentity?.sourceBytesSha256)
+            .put("canonicalPixelSha256", snapshot.image.photoIdentity?.canonicalPixelSha256)
         writeJson(output, "runtime_matrix.json", JSONObject()
             .put("identity", identityJson)
-            .put("firstFramePresentedTimestampMs", controller.firstFramePresentedTimestampMs() ?: JSONObject.NULL)
+            .put("firstFrameCommittedTimestampMs", controller.firstFrameCommittedTimestampMs() ?: JSONObject.NULL)
             .put("stageCount", timeline.size)
             .put("stageSequence", JSONArray().apply { expectedStages.forEach { put(it.name) } })
             .put("requiredAnimationBudgetMs", timeline.sumOf { it.requiredDurationMs })
@@ -210,9 +212,9 @@ object RecognitionResultProductionEvidenceWriter {
             "T08_PATH_LEDGER" to (pathPass to "path_identity_trace.json"),
             "T09_RETURN" to ((returnEvent != null && pathPass) to "return_event_trace.json"),
             "T10_SHARED_CONTROLLER" to ((resultGeometryPass && substagePass) to "stage_timeline.json"),
-            "T11_CLOCK" to ((controller.firstFramePresentedTimestampMs() != null &&
-                timeline.firstOrNull()?.stageStartTimestampMs == controller.firstFramePresentedTimestampMs() &&
-                state.resultStableTimestampMs?.let { it > (controller.firstFramePresentedTimestampMs() ?: Long.MAX_VALUE) } == true) to "stage_timeline.json"),
+            "T11_CLOCK" to ((controller.firstFrameCommittedTimestampMs() != null &&
+                timeline.firstOrNull()?.stageStartTimestampMs == controller.firstFrameCommittedTimestampMs() &&
+                state.resultStableTimestampMs?.let { it > (controller.firstFrameCommittedTimestampMs() ?: Long.MAX_VALUE) } == true) to "stage_timeline.json"),
             "T12_MODEL_GATE" to ((snapshot.productionResult.ready && subject.status.name == "READY") to "result_stability_report.json"),
             "T13_60S_DEADLINE" to (false to "REQUIRES_TIMEOUT_PATH_TEST"),
             "T14_STAGE_SEQUENCE" to (timelineSequencePass to "runtime_matrix.json"),

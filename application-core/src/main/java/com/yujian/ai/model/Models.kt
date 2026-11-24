@@ -1,6 +1,7 @@
 package com.yujian.ai.model
 
 import android.graphics.Bitmap
+import com.yujian.ai.recognition.domain.PhotoIdentity
 import java.util.UUID
 
 data class FishSpecies(
@@ -25,7 +26,7 @@ data class SelectedImage(
     val imageId: String = "yj_img_${UUID.randomUUID()}",
     /** EXIF rotation applied before detection; bitmap coordinates are the normalized source space. */
     val sourceOrientationDegrees: Int = 0,
-    /** SHA-256 of the normalized persisted JPEG, computed once when the photo is stored. */
+    /** Compatibility alias for canonicalPixelSha256. Never use this as the encoded source-byte hash. */
     val photoSha256: String = "",
     /** Measured presentation geometry only; never used as model/crop input. */
     val capturePresentation: CapturePresentation? = null,
@@ -35,7 +36,18 @@ data class SelectedImage(
     val captureTimestampEpochMs: Long = System.currentTimeMillis(),
     /** CAMERA_CAPTURE_CALLBACK, EXIF_DATETIME_ORIGINAL, or SYSTEM_INGESTION. */
     val captureTimestampSource: String = "SYSTEM_INGESTION",
-)
+    /** Immutable dual-hash identity created from the original source bytes and model-input pixels. */
+    val photoIdentity: PhotoIdentity? = null,
+) {
+    init {
+        require(photoIdentity == null || photoIdentity.isValid())
+        require(photoIdentity == null || photoIdentity.photoId == imageId)
+        require(photoIdentity == null || photoSha256.isBlank() || photoSha256 == photoIdentity.canonicalPixelSha256)
+    }
+
+    val canonicalPixelSha256: String
+        get() = photoIdentity?.canonicalPixelSha256 ?: photoSha256
+}
 
 data class CapturePresentation(
     val previewLeft: Float,

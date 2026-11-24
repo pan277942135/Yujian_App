@@ -8,6 +8,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPathGeometry
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphBounds
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionFramePresentedReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathDescriptor
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
 import com.yujian.ai.ui.recognition.reveal.RecognitionOrbCoreDissolveReceipt
@@ -250,6 +251,19 @@ class Stage04ArrivalPathWithoutMaskTest {
                 fillPathDrawn = true,
                 contourPathDrawn = true,
                 drawPassSequence = 3L,
+            ),
+            framePresentedReceipt = RecognitionFramePresentedReceipt(
+                identity = fixture.identity,
+                snapshotId = null,
+                snapshotContentHash = null,
+                renderer = "COMPOSE_TEXT_GLYPH",
+                stage = RecognitionSceneStage.SPECIES_NAME_REVEAL,
+                checkpointId = "KF18",
+                frameSequence = 1L,
+                geometryVersion = glyphDescriptor.geometryVersion,
+                drawPassSequence = 3L,
+                presentFenceSignalTimeNanos = 1L,
+                observedAtUptimeMs = 1L,
             ),
         )
         assertTrue(fixture.controller.onGlyphRevealRendered(renderedGlyph, fixture.identity))

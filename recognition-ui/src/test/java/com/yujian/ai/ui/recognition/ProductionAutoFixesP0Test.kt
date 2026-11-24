@@ -5,6 +5,7 @@ import com.yujian.ai.ui.recognition.diagnostics.RecognitionPixelCopyCapture
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphBounds
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphDrawReceipt
+import com.yujian.ai.ui.recognition.reveal.RecognitionFramePresentedReceipt
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphPathDescriptor
 import com.yujian.ai.ui.recognition.reveal.RecognitionGlyphReadiness
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
@@ -255,7 +256,23 @@ class ProductionAutoFixesP0Test {
             contourPathDrawn = true,
             drawPassSequence = 1L,
         )
-        val rendered = pathReady.copy(glyphRevealRendered = true, renderReceipt = receipt)
+        val rendered = pathReady.copy(
+            glyphRevealRendered = true,
+            renderReceipt = receipt,
+            framePresentedReceipt = RecognitionFramePresentedReceipt(
+                identity = identity,
+                snapshotId = null,
+                snapshotContentHash = null,
+                renderer = "COMPOSE_TEXT_GLYPH",
+                stage = RecognitionSceneStage.SPECIES_NAME_REVEAL,
+                checkpointId = "KF18",
+                frameSequence = 1L,
+                geometryVersion = descriptor.geometryVersion,
+                drawPassSequence = receipt.drawPassSequence,
+                presentFenceSignalTimeNanos = 1L,
+                observedAtUptimeMs = 1L,
+            ),
+        )
 
         // Rejected in ORB_TO_NAME so caller can retry cleanly when Stage 12 begins
         assertFalse(controller.onGlyphRevealRendered(rendered, identity))
