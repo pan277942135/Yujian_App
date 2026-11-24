@@ -56,7 +56,7 @@
 
 ## 冻结方式
 
-本包冻结为一套规范基线。仓库中的正式冻结仍须由 CodeX 按 `08_CODEX_CONTRACT_FREEZE_WORK_V1.md` 执行：写入 canonical path、校验 Schema、生成 Manifest/Registry/SHA256，并提交到现有 PR #346 分支。不得因此改动生产 Runtime、Renderer、模型或业务状态机。
+本包已按 `08_CODEX_CONTRACT_FREEZE_WORK_V1.md` 完成仓库正式冻结：六份合同已写入 PR #346 的 canonical path，Registry/Manifest/SHA256 已生成并通过静态校验，文档提交已关联现有 PR 分支。`08_CODEX_CONTRACT_FREEZE_WORK_V1.md` 保留为本次执行的规范指令与审计记录。冻结仅覆盖规范层，不代表生产 Runtime、Renderer、模型或业务状态机已实现符合性。具体提交链和验收边界见 `CONTRACT_FREEZE_REPORT.md`。
 
 
 ## Repository integration

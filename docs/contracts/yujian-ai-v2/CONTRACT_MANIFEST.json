@@ -74,8 +74,8 @@
     },
     {
       "path": "README.md",
-      "sizeBytes": 4068,
-      "sha256": "2678ca4fbce93512dc750923dec207f61094ba76d1497b4b55dec23853c821a5"
+      "sizeBytes": 4250,
+      "sha256": "c3b5f2fa9164a2c0835bb55bfc36ed4989e466eaaa1ed409a46686b2cd579499"
     },
     {
       "path": "validate_contract_package.py",
