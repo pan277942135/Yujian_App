@@ -316,3 +316,12 @@
 - Classifier, Detector, and SlimSAM encoder/decoder packaged model hashes passed verification. Local `/dev/kvm`, `adb`, and `emulator` are absent. A marked push triggered hosted validation, but the GitHub API query returned HTTP 403; KVM boot, AUTO, memory/LMK capture, and Stage10–13.5 device outcomes remain unconfirmed.
 - Fixture A ZIP is historical evidence at source SHA `3eb481c1f2ca4053fc58f87729f923fb70ef7f50`; it was not replayed against this source. Fixture B is absent and the MP4 transfer exceeds 32 MiB. No real-device replay is claimed.
 - This record accompanies a minimal branch-local dynamic-state checkpoint only. Static Registry/validator files are unchanged; the historical RecognitionResultScreen path remains a non-blocking `OPEN_GAP`.
+
+
+## 2026-11-24 — P0 17-findings remediation intake and baseline reconciliation
+
+- Requested Work: `YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1`. The existing PR #346 remains the only product branch; no new PR, merge, or Main modification was made. Live GitHub metadata confirms state DRAFT, head `babd6b3ad31ee02f70d74738a27d7f14cc6b5e10`, and base branch `fix/det-fish-v03-main-runtime-closure` at `6ec43662ef76c6ffee8530148098649496ab7fb1`. `refs/heads/fix/26kf-path-boundary-and-fish-gate-v1` and `refs/pull/346/head` agree.
+- The six frozen core contract hashes match the task's expected values. Existing audit inputs were read from the separately uploaded audit branch; the PR branch itself does not contain that audit archive. No contract or product source was modified in this intake checkpoint.
+- Initial `CONTROL_PLANE_ADMISSION` on `babd6b3ad31ee02f70d74738a27d7f14cc6b5e10` had static registry, feature matrix, phase/task, unified-contract structure, and sync pass (with one pre-existing non-blocking OPEN_GAP), but Project/Work state failed because it still recorded source `26f1b63...` and a stale PR base (`main@03db...`).
+- Branch-local state is reconciled to the observed PR metadata and source baseline while preserving prior V5 evidence/failures. The task attachment references a “second-part Gate timeout table” but contains no numeric table. This remains an open blocker for freezing Gate values; no values are inferred.
+- No product code or tests were changed/run in this intake checkpoint. Next: commit this state-only checkpoint, rerun Admission, then proceed with independent source-confirmed issues.
