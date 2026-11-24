@@ -54,18 +54,18 @@
     },
     {
       "path": "10_CONTRACT_REGISTRY.json",
-      "sizeBytes": 2765,
-      "sha256": "d4908d84183722c6811b91308e2fc189928b4a052b8feb00ef51c22a6abf11c1"
+      "sizeBytes": 3633,
+      "sha256": "2c9aa325f7d4d81832fafd368633c5a3795a67dff605bed2c99603d9bc047408"
     },
     {
       "path": "11_CHANGELOG.md",
-      "sizeBytes": 1800,
-      "sha256": "eb36826b7ca3319bb1cf24f2450d182d3c2149756716b1873945a5361650b781"
+      "sizeBytes": 1870,
+      "sha256": "6577185cffbb277cda7324a8a356cb0ca289da9a3a04d6eb29a1ada0b50ad901"
     },
     {
       "path": "CONTRACT_FREEZE_REPORT.md",
-      "sizeBytes": 4060,
-      "sha256": "ccd275dc0d56abd634241e9e6a6fbb1767555f50b5beee98bcd8e7baa06e5072"
+      "sizeBytes": 4108,
+      "sha256": "b46e1af84ad4dae08018e44ab485892c886b71e0ab2ee39d0bb1bc5aa15533bc"
     },
     {
       "path": "CONTRACT_SOURCE_INVENTORY.md",
@@ -79,8 +79,8 @@
     },
     {
       "path": "validate_contract_package.py",
-      "sizeBytes": 7960,
-      "sha256": "bd93c88661113a9b62d1aa2228536e4e2ee8a88cf7ff33a6a02d37b72c0a021a"
+      "sizeBytes": 8155,
+      "sha256": "68b9e8281d1fe736c0e9db5a03bbb12e694d58e19c9d1d75efee55f6d612cc56"
     }
   ],
   "repositoryIntegration": {

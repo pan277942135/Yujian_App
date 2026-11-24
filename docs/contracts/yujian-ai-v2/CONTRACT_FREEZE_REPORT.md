@@ -39,7 +39,7 @@ No existing repository file is overwritten. Existing related docs and implementa
 
 ## 3. Static validation
 
-The repository validator checks: Markdown non-empty and local links; JSON parsing; six unique Contract IDs and V1.0.0 versions; exact KF00–KF25 matrix; exactly 13 top-level stages and 6000ms active presentation budget; independent 60,000ms model dependency deadline; ordered Stage13.1–13.5; FULL_REVEAL/ORB_ONLY gates; immutable Snapshot/independent Result Geometry; five Resident IDs separated from Task Energy; Evidence read-only/non-producer rule; 19 unique acceptance matrix rows; Manifest and SHA256 consistency.
+The repository validator checks: Markdown non-empty and local links; JSON parsing; six unique Contract IDs, V1.0.0 versions, per-entry frozen status and exact contract SHA256; exact KF00–KF25 matrix; exactly 13 top-level stages and 6000ms active presentation budget; independent 60,000ms model dependency deadline; ordered Stage13.1–13.5; FULL_REVEAL/ORB_ONLY gates; immutable Snapshot/independent Result Geometry; five Resident IDs separated from Task Energy; Evidence read-only/non-producer rule; 19 unique acceptance matrix rows; Manifest and SHA256 consistency.
 
 Validation is executed against the exact staged payload before creating Git objects. A whitespace/error check is also run against every added file. The commit operation uses GitHub Git Data API because this execution environment does not hold a local clone; the resulting commit's parent and branch-ref lease are independently verified after creation.
 

@@ -52,9 +52,12 @@ require(ids == EXPECTED_IDS, f"Registry IDs/order mismatch: {ids}")
 require(len(ids) == len(set(ids)) == 6, "Registry must contain six unique Contract IDs")
 for c in contracts:
     require(c.get("version") == "1.0.0", f"Contract version mismatch: {c.get('id')}")
+    require(c.get("status") == "FROZEN_SPECIFICATION", f"Contract status mismatch: {c.get('id')}")
     f = ROOT / str(c.get("file", ""))
     require(f.is_file(), f"Registry contract file missing: {f.name}")
-    if f.is_file(): require(c.get("id") in f.read_text(encoding="utf-8"), f"Contract ID absent from {f.name}")
+    if f.is_file():
+        require(c.get("id") in f.read_text(encoding="utf-8"), f"Contract ID absent from {f.name}")
+        require(c.get("sha256") == sha(f), f"Registry contract SHA mismatch: {f.name}")
 ok("Registry: six unique Contract IDs, V1.0.0 and files present")
 
 # Timeline: exact 13 stage rows and sum.

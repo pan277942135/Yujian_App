@@ -23,5 +23,5 @@
 - Imported the six V1.0.0 core contracts and their cross-contract review from the verified frozen archive into `docs/contracts/yujian-ai-v2/`.
 - Preserved the six contract bodies from the archive; only trailing-space Markdown hard breaks were normalized to explicit backslash hard breaks so `git diff --check` is clean.
 - Added `CONTRACT_SOURCE_INVENTORY.md`, `CONTRACT_FREEZE_REPORT.md`, and `validate_contract_package.py` for repository provenance and repeatable static validation.
-- Regenerated `CONTRACT_MANIFEST.json` and `SHA256SUMS` to cover the complete repository directory. The source archive SHA-256 is recorded in the freeze report.
+- Added per-contract `status` and content `sha256` to Registry entries; regenerated `CONTRACT_MANIFEST.json` and `SHA256SUMS` to cover the complete repository directory. The source archive SHA-256 is recorded in the freeze report.
 - Existing design/runtime/evidence documents remain in place; their V2 core-contract status is classified in the source inventory. No production implementation was changed.
