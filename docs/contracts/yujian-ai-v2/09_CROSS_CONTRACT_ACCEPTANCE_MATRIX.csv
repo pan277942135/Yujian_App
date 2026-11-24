@@ -1,0 +1,20 @@
+ID,Owner Contract,Producer,Consumer,Canonical Identity,Required Receipt/Event,Acceptance Gate
+A01,Recognition Runtime,Model Runtime Manager,Recognition Attempt Coordinator,recognitionSessionId+attemptId+photoId+modelIdentity,ModelSessionReady,MODEL_SESSION_READY
+A02,Recognition Runtime,Detector,Classifier+Vision Encoder+Mask Prompt,photoId+canonicalPixelSha256+detectorModelIdentity,DetectorResult,DETECTOR_OUTPUT_VALID
+A03,Recognition Runtime,Vision Encoder,Mask Decoder,photoId+canonicalPixelSha256+encoderModelIdentity+embeddingHash,EmbeddingReady,ENCODER_OUTPUT_VALID
+A04,Recognition Runtime,Mask Decoder,Snapshot/Geometry Pipeline,attemptId+photoId+maskIdentity,MaskOutputReceipt,MASK_OUTPUT_VALID
+A05,Snapshot,Contour Extractor,Path Ledger,attemptId+photoId+maskId+geometryVersion,ContourReceipt,CONTOUR_TRUSTED
+A06,Snapshot,Path Ledger+Scene Controller,Snapshot Store,attemptId+photoId+maskId+geometryVersion+fishPathId,FishPathSnapshot,PATH_SNAPSHOT_ACCEPTED
+A07,Snapshot,Snapshot Committer,Timeline/Orb-Glyph/Handoff,attemptId+photoId+snapshotId+contentHash,RecognitionResultSnapshot,SNAPSHOT_COMMITTED
+A08,Timeline,Scene Controller,All Renderers,sceneClock+motionClock+stageId+kfId,Stage/KF Event,STAGE_KF_ORDER_VALID
+A09,Orb-to-Glyph,GlyphPathProvider,Orb/Glyph Renderer,attemptId+snapshotId+speciesKey+glyphPathId,GlyphPathSnapshot,GLYPH_PATH_PREPARED
+A10,Orb-to-Glyph,Orb/Glyph Renderer,Timeline/Handoff,attemptId+snapshotId+glyphPathId+geometryVersion,RenderReceipt+NameStableReceipt,NAME_STABLE
+A11,Result Handoff,Result Host Geometry Resolver,Photo Settle Renderer,attemptId+snapshotId+photoId+geometryVersion,ResultGeometryReceipt,RESULT_GEOMETRY_READY
+A12,Result Handoff,Processing Handoff Producer,Result Handoff Consumer,attemptId+snapshotId+handoffId,HandoffEnvelope+ConsumerAck,HANDOFF_ACCEPTED
+A13,Result Handoff,Result UI,Scene Controller,attemptId+snapshotId+photoId+glyphPathId,PhotoSettle+InfoArrival+StableReceipts,RESULT_SCENE_STABLE
+A14,Runtime Evidence,Evidence Event Producers,Event Journal,all identity keys+monotonic timestamp,RuntimeEvidenceEvent,EVIDENCE_EVENT_VALID
+A15,Runtime Evidence,Native Profiler+ORT Profiler,Independent Validator,attemptId+inferenceId+modelSessionId,NativeMemoryProfile+ORTProfile,NATIVE_PROFILE_VALID
+A16,Runtime Evidence,PixelCopy,Independent Validator,attemptId+snapshotId+kfId+frameSequence,PixelCopy PNG+Index,PIXELCOPY_VALID
+A17,Runtime Evidence,Device Screen Recorder,Independent Validator,attemptId+snapshotId+videoPTS+KF index,OrbToGlyph MP4,VIDEO_VALID
+A18,Runtime Evidence,ZIP Exporter,Independent Validator,evidenceSessionId+packageId+manifestHash,Evidence ZIP+SHA256,EVIDENCE_ARCHIVE_PASS
+A19,Runtime Evidence,AUTO Runner,Independent Validator,exactApkSha+modelSha+attemptId,Acceptance Matrix,FULL_FLOW_ACCEPTED
