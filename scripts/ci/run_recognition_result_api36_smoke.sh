@@ -11,6 +11,9 @@ test_class="com.yujian.ai.RecognitionRevealProductionRuntimeTest"
 test_method="realNightCatchHandoffDrivesTheNativeResultReveal"
 result_classification="INFRA_BLOCKED"
 failure_reason="SMOKE_NOT_STARTED"
+current_phase="INITIALIZATION"
+phase_pending_failure_reason="SMOKE_NOT_STARTED"
+failure_phase="INITIALIZATION"
 instrumentation_attempted=false
 test_started=false
 adb_ready=false
@@ -29,45 +32,118 @@ post_screenshot_pull_status=not_run
 
 mkdir -p "$evidence_dir/screenshots" "$evidence_dir/business-events"
 
+enter_phase() {
+  current_phase="$1"
+  phase_pending_failure_reason="$2"
+  failure_reason="$phase_pending_failure_reason"
+  failure_phase="$current_phase"
+}
+
+run_optional_diagnostic() {
+  local label="$1"
+  shift
+  local capture_file=""
+  if [[ "${1:-}" == "--capture-to" ]]; then
+    capture_file="$2"
+    shift 2
+  fi
+
+  local command_repr
+  printf -v command_repr '%q ' "$@"
+  local log_fd
+  local snapshot_file="$diagnostic_snapshot_file"
+  if ! exec {log_fd}>>"$snapshot_file"; then
+    printf 'optional diagnostic log is not writable: %s\n' "$snapshot_file" >&2
+    return 1
+  fi
+  if ! printf '\n--- OPTIONAL_DIAGNOSTIC phase=%s label=%s command=%s ---\n' \
+      "$current_phase" "$label" "$command_repr" >&"$log_fd"; then
+    exec {log_fd}>&-
+    return 1
+  fi
+
+  local -a pipeline_status=()
+  if [[ -n "$capture_file" ]]; then
+    if "$@" 2>&1 | tee -a "$snapshot_file" "$capture_file" >/dev/null; then
+      pipeline_status=("${PIPESTATUS[@]}")
+    else
+      pipeline_status=("${PIPESTATUS[@]}")
+    fi
+  else
+    if "$@" 2>&1 | tee -a "$snapshot_file" >/dev/null; then
+      pipeline_status=("${PIPESTATUS[@]}")
+    else
+      pipeline_status=("${PIPESTATUS[@]}")
+    fi
+  fi
+
+  local diagnostic_rc="${pipeline_status[0]:-125}"
+  local tee_rc="${pipeline_status[1]:-125}"
+  if ! printf 'diagnostic_exit_code=%s\n' "$diagnostic_rc" >&"$log_fd"; then
+    exec {log_fd}>&-
+    return 1
+  fi
+  exec {log_fd}>&-
+  if [[ "$tee_rc" -ne 0 ]]; then
+    printf 'optional diagnostic evidence write failed: %s (tee exit %s)\n' \
+      "$snapshot_file" "$tee_rc" >&2
+    return 1
+  fi
+  return 0
+}
+
 capture_memory_snapshot() {
   local label="$1"
-  {
+  local diagnostic_snapshot_file="$evidence_dir/host-memory-snapshots.txt"
+  if ! {
     printf '\n===== HOST_MEMORY_SNAPSHOT %s %s =====\n' "$label" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    cat /proc/meminfo 2>&1
-    cat /proc/swaps 2>&1
-    cat /proc/pressure/memory 2>&1
-    grep -E '^(oom_kill|pgmajfault|pswpin|pswpout) ' /proc/vmstat 2>&1
-    for cgroup_file in /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory.events; do
-      if [[ -r "$cgroup_file" ]]; then
-        printf '\n--- %s ---\n' "$cgroup_file"
-        cat "$cgroup_file"
-      fi
-    done
-  } >> "$evidence_dir/host-memory-snapshots.txt"
+  } >> "$diagnostic_snapshot_file"; then
+    return 1
+  fi
+  run_optional_diagnostic 'host /proc/meminfo' cat /proc/meminfo || return $?
+  run_optional_diagnostic 'host /proc/swaps' cat /proc/swaps || return $?
+  run_optional_diagnostic 'host /proc/pressure/memory' cat /proc/pressure/memory || return $?
+  run_optional_diagnostic 'host /proc/vmstat' grep -E '^(oom_kill|pgmajfault|pswpin|pswpout) ' /proc/vmstat || return $?
+  for cgroup_file in /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory.events; do
+    if [[ -r "$cgroup_file" ]]; then
+      run_optional_diagnostic "host $cgroup_file" cat "$cgroup_file" || return $?
+    fi
+  done
 
   [[ "$adb_ready" == true ]] || return 0
-  {
+  diagnostic_snapshot_file="$evidence_dir/emulator-memory-snapshots.txt"
+  if ! {
     printf '\n===== EMULATOR_MEMORY_SNAPSHOT %s %s =====\n' "$label" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    adb shell cat /proc/meminfo 2>&1
-    adb shell cat /proc/swaps 2>&1
-    printf '\n--- /proc/uptime ---\n'
-    adb shell cat /proc/uptime 2>&1
-    adb shell cat /proc/pressure/memory 2>&1
-    adb shell "grep -E '^(oom_kill|pgmajfault|pswpin|pswpout) ' /proc/vmstat" 2>&1
-    adb shell getprop 2>&1 | grep -E 'dalvik.vm.(heap|growth)|ro.config.low_ram' || true
-    printf '\n--- dumpsys meminfo %s ---\n' "$app_package"
-    adb shell dumpsys meminfo "$app_package" 2>&1
-    local app_pid
-    app_pid="$(adb shell pidof "$app_package" 2>/dev/null | tr -d '\r' | awk '{print $1}')"
-    if [[ "$app_pid" =~ ^[0-9]+$ ]]; then
-      printf '\n--- app process status pid=%s ---\n' "$app_pid"
-      adb shell "grep -E '^(Name|VmPeak|VmSize|VmHWM|VmRSS|VmSwap|RssAnon|RssFile|RssShmem):' /proc/$app_pid/status" 2>&1
-    else
-      printf 'app_process_status=NOT_RUNNING pid=%s\n' "${app_pid:-none}"
-    fi
-    printf '\n--- activity low-memory state ---\n'
-    adb shell dumpsys activity lmk 2>&1
-  } >> "$evidence_dir/emulator-memory-snapshots.txt"
+  } >> "$diagnostic_snapshot_file"; then
+    return 1
+  fi
+  run_optional_diagnostic 'emulator /proc/meminfo' adb shell cat /proc/meminfo || return $?
+  run_optional_diagnostic 'emulator /proc/swaps' adb shell cat /proc/swaps || return $?
+  run_optional_diagnostic 'emulator /proc/uptime' adb shell cat /proc/uptime || return $?
+  run_optional_diagnostic 'emulator /proc/pressure/memory' adb shell cat /proc/pressure/memory || return $?
+  run_optional_diagnostic 'emulator /proc/vmstat' adb shell "grep -E '^(oom_kill|pgmajfault|pswpin|pswpout) ' /proc/vmstat" || return $?
+  run_optional_diagnostic 'emulator Dalvik heap properties' bash -o pipefail -c \
+    'adb shell getprop | grep -E "dalvik.vm.(heap|growth)|ro.config.low_ram"' || return $?
+  run_optional_diagnostic "emulator dumpsys meminfo $app_package" adb shell dumpsys meminfo "$app_package" || return $?
+  local pid_capture_file
+  if ! pid_capture_file="$(mktemp "$evidence_dir/app-pid.XXXXXX")"; then
+    return 1
+  fi
+  run_optional_diagnostic 'emulator app pidof' --capture-to "$pid_capture_file" \
+    adb shell pidof "$app_package" || return $?
+  local app_pid
+  if ! app_pid="$(awk '{ gsub(/\r/, ""); if ($0 ~ /^[0-9]+$/) { print $1; exit } }' "$pid_capture_file")"; then
+    rm -f "$pid_capture_file"
+    return 1
+  fi
+  rm -f "$pid_capture_file" || return $?
+  if [[ "$app_pid" =~ ^[0-9]+$ ]]; then
+    run_optional_diagnostic "emulator app /proc/$app_pid/status" adb shell \
+      "grep -E '^(Name|VmPeak|VmSize|VmHWM|VmRSS|VmSwap|RssAnon|RssFile|RssShmem):' /proc/$app_pid/status" || return $?
+  else
+    printf 'app_process_status=NOT_RUNNING pid=%s\n' "${app_pid:-none}" >> "$diagnostic_snapshot_file" || return $?
+  fi
+  run_optional_diagnostic 'emulator dumpsys activity lmk' adb shell dumpsys activity lmk || return $?
 }
 
 pull_private_evidence() {
@@ -97,6 +173,10 @@ finish() {
   local rc=$?
   trap - EXIT
   set +e
+  if [[ "$rc" -ne 0 && "$failure_reason" == "SMOKE_NOT_STARTED" ]]; then
+    failure_reason="$phase_pending_failure_reason"
+    failure_phase="$current_phase"
+  fi
   if [[ -n "$memory_sampler_pid" ]]; then
     kill "$memory_sampler_pid" 2>/dev/null
     wait "$memory_sampler_pid" 2>/dev/null
@@ -106,7 +186,12 @@ finish() {
     wait "$logcat_pid" 2>/dev/null
   fi
   if [[ "$adb_ready" == true ]]; then
-    capture_memory_snapshot final
+    if ! capture_memory_snapshot final; then
+      result_classification=INFRA_BLOCKED
+      failure_reason="MEMORY_DIAGNOSTIC_EVIDENCE_WRITE_FAILED"
+      failure_phase="$current_phase"
+      rc=1
+    fi
     adb shell 'pidof screenrecord >/dev/null 2>&1 && kill -INT $(pidof screenrecord)' \
       > "$evidence_dir/screenrecord-stop.log" 2>&1
     if [[ -n "$screenrecord_pid" ]]; then
@@ -266,6 +351,7 @@ PY
       if [[ ! -s "$required_evidence" ]]; then
         result_classification=INFRA_BLOCKED
         failure_reason="REQUIRED_RUNTIME_EVIDENCE_MISSING:${required_evidence#"$evidence_dir"/}"
+        failure_phase="EVIDENCE_FINALIZATION"
         rc=1
         break
       fi
@@ -274,18 +360,19 @@ PY
           "$post_screenshot_pull_status" != 0 ]]; then
       result_classification=INFRA_BLOCKED
       failure_reason="SCREENRECORD_OR_SCREENSHOT_CAPTURE_FAILED:video=$video_pull_status:screenrecord=$screenrecord_exit_status:pre=$pre_screenshot_pull_status:post=$post_screenshot_pull_status"
+      failure_phase="EVIDENCE_FINALIZATION"
       rc=1
     fi
   fi
 
   python3 - "$evidence_dir/runtime-result.json" "$source_sha" "$result_classification" \
     "$failure_reason" "$rc" "$instrument_status" "$instrumentation_timed_out" "$test_started" \
-    "$instrumentation_attempted" "$adb_ready" "$emulator_boot_pass" "${BUILD_PASS:-false}" \
+    "$failure_phase" "$instrumentation_attempted" "$adb_ready" "$emulator_boot_pass" "${BUILD_PASS:-false}" \
     "${KVM_READY:-false}" "$validation_reason" "$slimsam_validation_reason" "$apk_dir" "$screenrecord_exit_status" \
     "$video_pull_status" "$pre_screenshot_pull_status" "$post_screenshot_pull_status" <<'PY'
 import hashlib, json, pathlib, sys, time
 (path, source_sha, classification, reason, exit_code, instrument_status, timed_out,
- test_started, attempted, adb_ready, emulator_boot_pass, build_pass, kvm_ready,
+ test_started, failure_phase, attempted, adb_ready, emulator_boot_pass, build_pass, kvm_ready,
  validation_reason, slimsam_validation_reason, apk_dir, screenrecord_exit_status, video_pull_status,
  pre_screenshot_pull_status, post_screenshot_pull_status) = sys.argv[1:]
 def sha256_file(name):
@@ -304,6 +391,7 @@ result = {
     'test': 'com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal',
     'classification': classification,
     'failure_reason': reason,
+    'failure_phase': failure_phase,
     'validation_reason': validation_reason,
     'slimsam_validation_reason': slimsam_validation_reason,
     'instrumentation_started': test_started == 'true',
@@ -401,7 +489,11 @@ adb shell cat /proc/swaps > "$evidence_dir/emulator-swaps-before.txt" 2>&1
 adb shell getprop > "$evidence_dir/emulator-properties-before.txt" 2>&1
 adb shell getprop | grep -E 'dalvik.vm.(heap|growth)|ro.config.low_ram' \
   > "$evidence_dir/emulator-heap-properties.txt" 2>&1 || true
-capture_memory_snapshot before_install
+if ! capture_memory_snapshot before_install; then
+  failure_reason="MEMORY_DIAGNOSTIC_EVIDENCE_WRITE_FAILED"
+  failure_phase="$current_phase"
+  exit 21
+fi
 
 # android-emulator-runner writes these AVD properties directly. Normalize
 # optional units and whitespace because AVD Manager versions vary in formatting.
@@ -433,7 +525,11 @@ adb shell screencap -p /sdcard/Download/recognition-result-api36-pre-smoke.png \
 adb pull /sdcard/Download/recognition-result-api36-pre-smoke.png \
   "$evidence_dir/screenshots/pre-smoke.png" > "$evidence_dir/screenshot-pre-pull.log" 2>&1
 pre_screenshot_pull_status=$?
-capture_memory_snapshot after_install
+if ! capture_memory_snapshot after_install; then
+  failure_reason="MEMORY_DIAGNOSTIC_EVIDENCE_WRITE_FAILED"
+  failure_phase="$current_phase"
+  exit 21
+fi
 
 adb logcat -b all -c
 adb shell rm -f /sdcard/Download/recognition-result-api36.mp4 \
@@ -446,7 +542,7 @@ adb shell screenrecord --time-limit 300 /sdcard/Download/recognition-result-api3
 screenrecord_pid=$!
 sleep 2
 
-failure_reason="APP_STARTUP_DID_NOT_COMPLETE"
+enter_phase APP_STARTUP APP_STARTUP_DID_NOT_COMPLETE
 set +e
 timeout 60s adb shell am start -W -n "$app_package/com.yujian.ai.MainActivity" \
   > "$evidence_dir/app-startup.txt" 2>&1
@@ -457,6 +553,7 @@ if [[ "$app_start_status" -ne 0 ]] || ! grep -Fq 'Status: ok' "$evidence_dir/app
   failure_reason="APP_STARTUP_FAILED:status=$app_start_status"
   exit 42
 fi
+enter_phase APP_FIRST_FRAME APP_FIRST_FRAME_EVENT_MISSING
 first_frame_seen=false
 for attempt in $(seq 1 30); do
   if adb logcat -d -s SlimSamTiming:I 2>/dev/null | grep -Fq 'event=APP_FIRST_FRAME'; then
@@ -470,22 +567,35 @@ if [[ "$first_frame_seen" != true ]]; then
   failure_reason="APP_FIRST_FRAME_EVENT_MISSING"
   exit 43
 fi
+enter_phase POST_FIRST_FRAME_DIAGNOSTICS POST_FIRST_FRAME_SETUP_DID_NOT_COMPLETE
 adb shell screencap -p /sdcard/Download/recognition-result-api36-app-first-frame.png \
   > "$evidence_dir/app-first-frame-screencap.log" 2>&1
 adb pull /sdcard/Download/recognition-result-api36-app-first-frame.png \
   "$evidence_dir/screenshots/app-first-frame.png" > "$evidence_dir/app-first-frame-pull.log" 2>&1
-capture_memory_snapshot after_app_first_frame
+if ! capture_memory_snapshot after_app_first_frame; then
+  failure_reason="MEMORY_DIAGNOSTIC_EVIDENCE_WRITE_FAILED"
+  failure_phase="$current_phase"
+  exit 44
+fi
 
+memory_sampler_stop_file="$evidence_dir/memory-sampler-stop"
+if ! rm -f "$memory_sampler_stop_file"; then
+  failure_reason="MEMORY_DIAGNOSTIC_EVIDENCE_WRITE_FAILED"
+  failure_phase="$current_phase"
+  exit 44
+fi
 (
-  while true; do
-    capture_memory_snapshot "during_$(date -u +%H%M%S)"
+  while [[ ! -e "$memory_sampler_stop_file" ]]; do
+    if ! capture_memory_snapshot "during_$(date -u +%H%M%S)"; then
+      exit 1
+    fi
     sleep 10
   done
 ) &
 memory_sampler_pid=$!
 
 instrumentation_attempted=true
-failure_reason="INSTRUMENTATION_DID_NOT_COMPLETE"
+enter_phase INSTRUMENTATION INSTRUMENTATION_DID_NOT_COMPLETE
 set +e
 timeout 1200s adb shell am instrument -w -r \
   -e class "$test_class#$test_method" \
@@ -496,9 +606,22 @@ if [[ "$instrument_status" -eq 124 || "$instrument_status" -eq 137 ]]; then
   instrumentation_timed_out=true
 fi
 if [[ -n "$memory_sampler_pid" ]]; then
-  kill "$memory_sampler_pid" 2>/dev/null || true
-  wait "$memory_sampler_pid" 2>/dev/null || true
+  if ! : > "$memory_sampler_stop_file"; then
+    failure_reason="MEMORY_DIAGNOSTIC_EVIDENCE_WRITE_FAILED"
+    failure_phase="POST_FIRST_FRAME_DIAGNOSTICS"
+    exit 44
+  fi
+  if wait "$memory_sampler_pid" 2>/dev/null; then
+    memory_sampler_status=0
+  else
+    memory_sampler_status=$?
+  fi
   memory_sampler_pid=""
+  if [[ "$memory_sampler_status" -ne 0 ]]; then
+    failure_reason="MEMORY_DIAGNOSTIC_EVIDENCE_WRITE_FAILED"
+    failure_phase="POST_FIRST_FRAME_DIAGNOSTICS"
+    exit 44
+  fi
 fi
 if [[ -n "$logcat_pid" ]]; then
   kill "$logcat_pid" 2>/dev/null || true
@@ -511,6 +634,7 @@ if grep -Fq "INSTRUMENTATION_STATUS: test=$test_method" "$evidence_dir/instrumen
 fi
 
 # Pull the app-private trace before applying the verdict so crashes retain partial evidence.
+enter_phase BUSINESS_VALIDATION BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE
 pull_private_evidence
 python3 - "$evidence_dir/instrumentation.log" "$evidence_dir/instrumentation_results.xml" <<'PY'
 import pathlib, re, sys, xml.etree.ElementTree as ET
@@ -554,6 +678,7 @@ printf '%s\n' "$validation_output" | tee "$evidence_dir/business-integrity-repor
 validation_reason="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("reason", "VALIDATOR_OUTPUT_INVALID"))' <<< "$validation_output" 2>/dev/null || printf '%s' 'VALIDATOR_OUTPUT_INVALID')"
 
 slimsam_evidence_dir="$evidence_dir/business-events/YuJian_SlimSAM_Preload_Evidence"
+enter_phase SLIMSAM_VALIDATION SLIMSAM_EVIDENCE_VALIDATION_DID_NOT_COMPLETE
 set +e
 slimsam_validation_output="$(python3 scripts/ci/validate_slimsam_preload_evidence.py --evidence-dir "$slimsam_evidence_dir" 2>&1)"
 slimsam_validation_status=$?
@@ -571,20 +696,28 @@ if grep -Eiq '(lowmemorykiller|lmkd|am_kill|am_proc_died).*(com\.yujian\.ai\.uiv
     "$evidence_dir/instrumentation.log" "$evidence_dir/logcat-pre-verdict.txt" "$evidence_dir/logcat-live.txt" "$evidence_dir/emulator-memory-snapshots.txt"; then
   result_classification="RESOURCE_EXHAUSTED"
   failure_reason="APP_PROCESS_KILLED_BY_LOW_MEMORY_MANAGER"
+  failure_phase="INSTRUMENTATION"
 elif [[ "$validation_status" -eq 0 && "$validation_reason" == "NONE" ]]; then
   result_classification="AUTO_SMOKE_PASS"
-  failure_reason="NONE"
+  enter_phase COMPLETE NONE
   printf 'AUTO_SMOKE_PASS source_sha=%s\n' "$source_sha"
   exit 0
 elif [[ "$instrumentation_attempted" == true && "$test_started" == true ]]; then
   result_classification="BUSINESS_LOGIC_FAILURE"
   failure_reason="$validation_reason"
+  if [[ "$validation_reason" == SLIMSAM_RUNTIME_EVIDENCE_INVALID:* ]]; then
+    failure_phase="SLIMSAM_VALIDATION"
+  else
+    failure_phase="BUSINESS_VALIDATION"
+  fi
 elif grep -Eiq 'device offline|device not found|no devices/emulators|unable to connect|instrumentation .*not found|INSTRUMENTATION_FAILED' \
     "$evidence_dir/instrumentation.log" "$evidence_dir/test-apk-install.log" 2>/dev/null; then
   result_classification="INFRA_BLOCKED"
   failure_reason="ANDROID_TEST_RUNNER_OR_ADB_INFRA_FAILURE:$validation_reason"
+  failure_phase="INSTRUMENTATION"
 elif [[ "$instrumentation_attempted" == true ]]; then
   result_classification="BUSINESS_LOGIC_FAILURE"
   failure_reason="$validation_reason"
+  failure_phase="BUSINESS_VALIDATION"
 fi
 exit 50
