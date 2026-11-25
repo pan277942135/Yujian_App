@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'PR #346 six-contract remediation of 17 audited findings; Gate Deadline, Stage10–13.5 and Exact-HEAD APK (YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1)'
 state_control:
-  execution_baseline_sha: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+  execution_baseline_sha: 316de1b705fb54ee7d6e2114259ec1f87773aedf
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
@@ -18,16 +18,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+    head_sha: 316de1b705fb54ee7d6e2114259ec1f87773aedf
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: fix/det-fish-v03-main-runtime-closure
     base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
-    head_sha: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+    head_sha: 316de1b705fb54ee7d6e2114259ec1f87773aedf
     status: DRAFT_OPEN_UNMERGED
-    status_source: GitHub PR page metadata verified on 2026-11-24; state DRAFT, closedTime null, mergedTime null; head matches refs/heads and refs/pull/346; no PR mutation performed.
+    status_source: Draft/open status last verified 2026-11-24. On 2026-11-25, git ls-remote verified branch and refs/pull/346/head both at 316de1b; PR page status was not re-queried in this checkpoint.
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -74,15 +74,15 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
-    admission: Initial admission at this source failed on stale dynamic state; state-only reconciliation checkpoint and a fresh admission run are required. No historical result is promoted.
+    sha: 316de1b705fb54ee7d6e2114259ec1f87773aedf
+    admission: Fresh dynamic Admission for this 316de1b baseline is pending on the state-only checkpoint; no historical result is promoted.
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
       url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
       source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
     build: Pending final marked checkpoint build from the final branch head
-    unit_tests: NOT_RUN_FOR_BABD6B3; previous 542-case result is historical at the recorded 6102640 source and must be rerun for this work.
+    unit_tests: NOT_RUN_FOR_316DE1B; previous test results are historical and must be rerun for the integrated P0 source.
     android_test_compile: HISTORICAL_PASS_AT_6102640; not revalidated at this work baseline.
     lint: V5_LINT_NOT_RUN
     api36_emulator: PENDING current source; local /dev/kvm, adb, and emulator are absent. Do not claim current-source KVM, boot, or AUTO PASS before the hosted marked run completes
@@ -91,7 +91,7 @@ runtime_gates:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+  source_head: 316de1b705fb54ee7d6e2114259ec1f87773aedf
   exact_head_apk: 'PENDING: rebuild from the final source commit; prior APKs are historical and must not be delivered.'
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
   input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
@@ -102,11 +102,11 @@ current_work:
   id: YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+  exact_head: 316de1b705fb54ee7d6e2114259ec1f87773aedf
   status: RUNNING
   stage: G0_BASELINE_RECONCILED_ADMISSION_RETRY
-  requested_task_id: YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1
-  requested_task_title: 'YuJian 六大合同 17 项问题集中整改、Gate Deadline 冻结、Stage10–13.5 完整闭环与 Exact-HEAD Debug APK V1'
+  requested_task_id: YUJIAN_P0_2_STATE_RECONCILIATION_AND_GITHUB_PUSH_V6
+  requested_task_title: 'P0 State-only Admission Reconciliation × P0-2 Native 修复集成 × GitHub 双阶段推送 V6'
   blockers:
   - 'API36_CURRENT_SOURCE_PENDING: local /dev/kvm, adb, and emulator are absent; hosted KVM/AUTO run required.'
   - 'SLIMSAM_PERFORMANCE_AFTER_NOT_RUN: same-device post-fix run is pending.'
@@ -172,8 +172,12 @@ next_actions:
   action: Deterministic regressions and corresponding fixes completed for tensor metadata, crop/geometry, SessionStore races, Stage10 handoff, and Glyph/13.5 event order.
 - id: G0-03
   owner: Codex
+  status: COMPLETED
+  action: Commit a state-only reconciliation for the independently verified PR #346 head/base 316de1b705fb54ee7d6e2114259ec1f87773aedf; preserve P0 source changes separately.
+- id: G0-04
+  owner: Codex
   status: READY
-  action: Commit a state-only reconciliation for the verified PR #346 head/base, then rerun Control Plane Admission before product edits.
+  action: After the state-only checkpoint is pushed, rerun CONTROL_PLANE_ADMISSION and record the actual result before P0 tests.
 - id: G8-01
   owner: Codex
   status: READY
@@ -184,8 +188,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-23T18:31:00Z'
-  note: 'Reconciled PR #346 from live GitHub metadata: base fix/det-fish-v03-main-runtime-closure@6ec43662ef76c6ffee8530148098649496ab7fb1, Draft head babd6b3ad31ee02f70d74738a27d7f14cc6b5e10; six frozen core contract hashes verified. Initial admission failed on stale dynamic state. New requested task YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1 is active. No product code/tests changed or run; missing Gate timeout table remains an open blocker. Earlier V5 evidence remains historical.'
+  last_updated_at: '2026-11-25T07:09:45Z'
+  note: '2026-11-25 state-only V6 reconciliation: remote branch and refs/pull/346/head both verified at 316de1b705fb54ee7d6e2114259ec1f87773aedf; PR page status last verified 2026-11-24. Execution baseline and live head pointers updated; prior evidence and blockers retained. No source changes are part of this state commit; the P0 integration patch remains separate and untested. Fresh Admission is pending; no tests, build, or runtime status is promoted.'
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; no Admission PASS is claimed for this source commit.

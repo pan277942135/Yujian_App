@@ -11,7 +11,7 @@
     "GATE_DEADLINE_TABLE_MISSING: attachment says a second-part timeout table is the only numeric authority but includes no values. Gate constants remain unspecified; independent non-numeric work can continue."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-24T11:08:39Z",
+  "checkpoint_updated_at": "2026-11-25T07:09:45Z",
   "control_plane_revision": "03db3692669847084d7e48fc3128f85cbf832af9",
   "dependencies": [
     "P5-02"
@@ -103,7 +103,9 @@
     "input_evidence_zip": "/workspace/Yujian_App/artifacts/26kf_visual_reference_v1/inputs/YuJian_Recognition_Evidence_eac685c91965.zip; 16,204,260 bytes; SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; integrity entries independently verified.",
     "previous_task_spec": "/workspace/attachments/c9f1a71a-fd89-4cba-b20d-5eb1ac9c338d/已粘贴的文本.txt",
     "task_scope_blocker": "GATE_DEADLINE_TABLE_MISSING: attachment says a second-part timeout table is the only numeric authority but includes no values. Gate constants remain unspecified; independent non-numeric work can continue.",
-    "previous_v5_status": "Preserved from existing state and build log: prior V5/API36 failures and historical test/APK evidence remain scoped to their recorded source SHAs; no current-source PASS is inferred."
+    "previous_v5_status": "Preserved from existing state and build log: prior V5/API36 failures and historical test/APK evidence remain scoped to their recorded source SHAs; no current-source PASS is inferred.",
+    "v6_state_reconciliation": "2026-11-25T07:09:45Z: git fetch origin and git ls-remote independently confirmed refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head both at 316de1b705fb54ee7d6e2114259ec1f87773aedf. This source_sha records the actual remote implementation baseline before the P0-2 patch. The 9-file P0 integration patch is separately staged in the isolated worktree and excluded from the state commit. No tests, build, or runtime validation are claimed at this baseline; Admission on the state-only checkpoint is pending.",
+    "prior_state_update_note": "Source commit 26f1b63bc6946fdda681de500873a1e09bfe2a5f contains the V5 SessionStore, event envelope, SlimSAM failure diagnostics and evidence inventory. Six part hashes and reconstructed frozen ZIP SHA verify; 542 JUnit tests and AndroidTest compile pass. Current-source hosted AUTO, post-fix visual/performance, and Huawei device validation remain pending."
   },
   "execution_v2": {
     "issues": {
@@ -136,19 +138,19 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Commit this state-only reconciliation, rerun Control Plane Admission, then trace PhotoIdentity and snapshot production paths before source edits.",
+  "next_action": "Run CONTROL_PLANE_ADMISSION on this state-only checkpoint; run P0-2 tests only after Admission passes.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
-  "stage": "G0_BASELINE_RECONCILED_ADMISSION_RETRY",
+  "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+  "stage": "G0_STATE_RECONCILIATION_ADMISSION_RETRY",
   "status": "RUNNING",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
   "work_id": "YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1",
   "current_work": {
-    "exact_head": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+    "exact_head": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
     "status": "RUNNING",
-    "stage": "G0_BASELINE_RECONCILED_ADMISSION_RETRY",
+    "stage": "G0_STATE_RECONCILIATION_ADMISSION_RETRY",
     "blockers": [
       "API36_CURRENT_SOURCE_PENDING: local host has no /dev/kvm, adb, or emulator; hosted x64 workflow must run.",
       "SLIMSAM_PERFORMANCE_AFTER_NOT_RUN: no post-fix measurement on the same Huawei device, image, and model.",
@@ -157,12 +159,12 @@
       "GATE_DEADLINE_TABLE_MISSING: attachment says a second-part timeout table is the only numeric authority but includes no values. Gate constants remain unspecified; independent non-numeric work can continue."
     ],
     "id": "YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1",
-    "task_id": "YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1",
-    "requested_task_id": "YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1",
-    "requested_task_title": "YuJian 六大合同 17 项问题集中整改、Gate Deadline 冻结、Stage10–13.5 完整闭环与 Exact-HEAD Debug APK V1"
+    "task_id": "YUJIAN_P0_2_STATE_RECONCILIATION_AND_GITHUB_PUSH_V6",
+    "requested_task_id": "YUJIAN_P0_2_STATE_RECONCILIATION_AND_GITHUB_PUSH_V6",
+    "requested_task_title": "P0 State-only Admission Reconciliation × P0-2 Native 修复集成 × GitHub 双阶段推送 V6"
   },
   "state_update": {
-    "last_updated_at": "2026-11-23T18:31:00Z",
-    "note": "Source commit 26f1b63bc6946fdda681de500873a1e09bfe2a5f contains the V5 SessionStore, event envelope, SlimSAM failure diagnostics and evidence inventory. Six part hashes and reconstructed frozen ZIP SHA verify; 542 JUnit tests and AndroidTest compile pass. Current-source hosted AUTO, post-fix visual/performance, and Huawei device validation remain pending."
+    "last_updated_at": "2026-11-25T07:09:45Z",
+    "note": "V6 state-only reconciliation: branch and PR refs agree at source baseline 316de1b705fb54ee7d6e2114259ec1f87773aedf. P0 patch remains separately staged and is not part of this checkpoint. No tests/build/runtime PASS is claimed; fresh Admission is pending after push."
   }
 }

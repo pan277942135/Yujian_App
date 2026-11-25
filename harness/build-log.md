@@ -325,3 +325,11 @@
 - Initial `CONTROL_PLANE_ADMISSION` on `babd6b3ad31ee02f70d74738a27d7f14cc6b5e10` had static registry, feature matrix, phase/task, unified-contract structure, and sync pass (with one pre-existing non-blocking OPEN_GAP), but Project/Work state failed because it still recorded source `26f1b63...` and a stale PR base (`main@03db...`).
 - Branch-local state is reconciled to the observed PR metadata and source baseline while preserving prior V5 evidence/failures. The task attachment references a “second-part Gate timeout table” but contains no numeric table. This remains an open blocker for freezing Gate values; no values are inferred.
 - No product code or tests were changed/run in this intake checkpoint. Next: commit this state-only checkpoint, rerun Admission, then proceed with independent source-confirmed issues.
+
+
+## 2026-11-25 — P0-2 V6 state-only Admission reconciliation
+
+- `git fetch origin` and `git ls-remote` verified `refs/heads/fix/26kf-path-boundary-and-fish-gate-v1` and `refs/pull/346/head` both at `316de1b705fb54ee7d6e2114259ec1f87773aedf`. PR page status was not re-queried; the last recorded Draft/open check is from 2026-11-24.
+- Updated only branch-local live state pointers to the verified `316de1b` source baseline and the active V6 checkpoint. Existing task history, blockers, runtime failures, and historical Registry OPEN_GAP remain intact.
+- The separate P0 integration patch is preserved in `/tmp/yujian-p0-2-integrated-v6.patch` (SHA256 `37ebcbdeb8b777ba67a85d2c9bff780622abaf136f6dfb2453b24f760f415ab7`), covers the original nine source/test files, and is excluded from this state-only change.
+- No unit tests, build, emulator run, APK, or business PASS is claimed at source `316de1b705fb54ee7d6e2114259ec1f87773aedf`. Fresh CONTROL_PLANE_ADMISSION on the committed and pushed state checkpoint is pending.
