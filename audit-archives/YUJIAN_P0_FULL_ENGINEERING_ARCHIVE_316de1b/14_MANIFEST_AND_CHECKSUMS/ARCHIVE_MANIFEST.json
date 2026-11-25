@@ -9042,17 +9042,17 @@
   "index_file_count": 3,
   "inventory_row_count": 698,
   "missing_or_excluded_count": 62,
-  "archive_inventory_sha256": "5beef61619c81ce02dafdcab31205d94c30c15e04364be93c4bec6650c2ffd43",
+  "archive_inventory_sha256": "d0c7f73c1d8ebd71b040c4c1924ee1bf2a506b4b7a337c07de1dbc61f4996379",
   "archive_completion_status": "PARTIAL",
   "verified_base_commit": "c2543a5dc2ae3ee174c62528a373b42c5c51155a",
   "remote_readback": {
-    "verified_commit": "c2543a5dc2ae3ee174c62528a373b42c5c51155a",
+    "verified_commit": "ef4f4140d4e3017b77eda2d0745d032c55dd2bba",
     "archive_directory_files_read_back": 634,
     "zip_and_sidecar_read_back": 2,
     "all_remote_sha256_match_local": true,
     "zip_download_crc_pass": true,
     "feature_branch_and_pr_head_unchanged": true,
     "main_unchanged": true,
-    "note": "Final index/ZIP commit is re-read after push; this record captures successful readback of the initial archive payload commit."
+    "note": "All directory files, ZIP and sidecar were SHA256-compared to the prior remote commit; the ZIP was downloaded and CRC-checked. This commit refreshes only index links and the regenerated ZIP, followed by another complete remote readback."
   }
 }
