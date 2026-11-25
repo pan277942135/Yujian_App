@@ -3,6 +3,7 @@ package com.yujian.ai.ai.subject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 
 /** Serializes process startup and first-use requests around one bounded Session initialization. */
 internal class SlimSamInitializationGate(
@@ -126,11 +127,13 @@ internal class SlimSamEmbeddingCache<T> {
     private var activeLeaseCount: Int = 0
 
     @Synchronized
-    fun activate(key: SlimSamEmbeddingCacheKey) {
-        if (activeKey == key) return
+    fun activate(key: SlimSamEmbeddingCacheKey): Boolean {
+        if (activeKey == key) return false
+        val evicted = cachedValue != null
         activeKey = key
         cachedKey = null
         cachedValue = null
+        return evicted
     }
 
     @Synchronized
@@ -165,4 +168,51 @@ internal class SlimSamEmbeddingCache<T> {
 
     @Synchronized
     fun activeLeases(): Int = activeLeaseCount
+}
+
+/** Coalesces concurrent Encoder requests by the complete photo/model/preprocessing cache identity. */
+internal class SlimSamEmbeddingSingleFlight<K : Any, V> {
+    private class Flight<V>(val result: CompletableDeferred<V>) {
+        var waiterCount: Int = 0
+    }
+
+    private val lock = Any()
+    private val inFlight = HashMap<K, Flight<V>>()
+
+    suspend fun run(key: K, compute: suspend () -> V): V {
+        val (flight, owner) = synchronized(lock) {
+            val existing = inFlight[key]
+            if (existing != null) {
+                existing.waiterCount += 1
+                existing to false
+            } else {
+                Flight<V>(CompletableDeferred<V>()).also { inFlight[key] = it } to true
+            }
+        }
+
+        if (!owner) {
+            return try {
+                flight.result.await()
+            } finally {
+                synchronized(lock) {
+                    if (inFlight[key] === flight) flight.waiterCount = (flight.waiterCount - 1).coerceAtLeast(0)
+                }
+            }
+        }
+
+        try {
+            val value = compute()
+            flight.result.complete(value)
+            return value
+        } catch (error: Throwable) {
+            flight.result.completeExceptionally(error)
+            throw error
+        } finally {
+            synchronized(lock) {
+                if (inFlight[key] === flight) inFlight.remove(key)
+            }
+        }
+    }
+
+    fun waiterCount(key: K): Int = synchronized(lock) { inFlight[key]?.waiterCount ?: 0 }
 }

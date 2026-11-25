@@ -4,8 +4,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -172,6 +175,51 @@ class SlimSamRuntimeCoordinatorTest {
         lease.close()
         assertEquals(0, cache.activeLeases())
         assertNull(cache.get(oldPhoto))
+    }
+
+    @Test
+    fun samePhotoRequestsShareOneInFlightEmbeddingComputation() = runBlocking {
+        val singleFlight = SlimSamEmbeddingSingleFlight<String, String>()
+        val computeCount = AtomicInteger()
+        val computationStarted = CompletableDeferred<Unit>()
+        val allowCompletion = CompletableDeferred<Unit>()
+
+        val producer = async(Dispatchers.Default) {
+            singleFlight.run("photo-a") {
+                computeCount.incrementAndGet()
+                computationStarted.complete(Unit)
+                allowCompletion.await()
+                "embedding-a"
+            }
+        }
+        computationStarted.await()
+        val waiter = async(Dispatchers.Default) {
+            singleFlight.run("photo-a") {
+                computeCount.incrementAndGet()
+                "duplicate-embedding"
+            }
+        }
+        withTimeout(2_000) {
+            while (singleFlight.waiterCount("photo-a") == 0) yield()
+        }
+        allowCompletion.complete(Unit)
+
+        assertEquals("embedding-a", producer.await())
+        assertEquals("embedding-a", waiter.await())
+        assertEquals(1, computeCount.get())
+    }
+
+    @Test
+    fun failedEmbeddingFlightIsRemovedSoAReplacementAttemptCanRetry() = runBlocking {
+        val singleFlight = SlimSamEmbeddingSingleFlight<String, String>()
+
+        val failure = runCatching {
+            singleFlight.run("photo-a") { error("encoder failed") }
+        }.exceptionOrNull()
+        val retry = singleFlight.run("photo-a") { "embedding-retry" }
+
+        assertTrue(failure is IllegalStateException)
+        assertEquals("embedding-retry", retry)
     }
 
     private fun key(sha: String) = SlimSamEmbeddingCacheKey.create(

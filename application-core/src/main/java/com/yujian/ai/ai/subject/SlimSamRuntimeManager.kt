@@ -61,6 +61,20 @@ data class SlimSamRuntimeEvent(
     val imageId: String = "",
     val photoSha256: String = "",
     val modelVersion: String = SlimSamSegmenter.MODEL_VERSION,
+    val modelSha256: String? = null,
+    val ortVersion: String = SlimSamSegmenter.ORT_VERSION,
+    val runOptionsId: String? = null,
+    val activeNativeRunCount: Int? = null,
+    val nodeName: String? = null,
+    val executionBoundary: String? = null,
+    val knownTensorInputBytes: Long? = null,
+    val androidNativeHeapAllocatedBytes: Long? = null,
+    val androidNativeHeapSizeBytes: Long? = null,
+    val androidNativeHeapFreeBytes: Long? = null,
+    val androidProcessPssKb: Long? = null,
+    val androidProcessRssKb: Long? = null,
+    val ortArenaReservedBytes: Long? = null,
+    val memorySampleUptimeNs: Long? = null,
     val stageName: String,
     val eventName: String,
     val startUptimeNs: Long,
@@ -175,10 +189,14 @@ class SlimSamRuntimeManager(
         awaitReady()
         activeOperations.incrementAndGet()
         val waitStartedNs = SystemClock.elapsedRealtimeNanos()
+        var mutexAcquired = false
         recordPhoto(identity, "EMBEDDING_TASK_WAIT", "EMBEDDING_TASK_WAIT_START", waitStartedNs, waitStartedNs, "STARTED")
+        recordPhoto(identity, "RUNTIME_MUTEX", "MUTEX_WAIT_START", waitStartedNs, waitStartedNs, "WAITING")
         try {
             operationMutex.withLock {
+                mutexAcquired = true
                 val acquiredNs = SystemClock.elapsedRealtimeNanos()
+                recordPhoto(identity, "RUNTIME_MUTEX", "MUTEX_ACQUIRED", waitStartedNs, acquiredNs, "ACQUIRED")
                 recordPhoto(identity, "EMBEDDING_TASK_WAIT", "EMBEDDING_TASK_WAIT_END", waitStartedNs, acquiredNs, "READY_TO_RUN")
                 recordPhoto(identity, "PHOTO_SELECTED", "PHOTO_SELECTED", acquiredNs, acquiredNs, "STABLE")
                 withContext(Dispatchers.Default) {
@@ -190,6 +208,9 @@ class SlimSamRuntimeManager(
                 }
             }
         } finally {
+            val releasedNs = SystemClock.elapsedRealtimeNanos()
+            recordPhoto(identity, "RUNTIME_MUTEX", "MUTEX_RELEASED", releasedNs, releasedNs,
+                if (mutexAcquired) "RELEASED" else "CANCELLED_BEFORE_ACQUIRE")
             activeOperations.decrementAndGet()
         }
     }
@@ -202,10 +223,14 @@ class SlimSamRuntimeManager(
         awaitReady()
         activeOperations.incrementAndGet()
         val bboxWaitStartedNs = SystemClock.elapsedRealtimeNanos()
+        var mutexAcquired = false
         recordPhoto(identity, "BBOX_WAIT", "BBOX_WAIT_START", bboxWaitStartedNs, bboxWaitStartedNs, "WAITING_FOR_EMBEDDING_SLOT")
+        recordPhoto(identity, "RUNTIME_MUTEX", "MUTEX_WAIT_START", bboxWaitStartedNs, bboxWaitStartedNs, "WAITING")
         try {
             return operationMutex.withLock {
+                mutexAcquired = true
                 val bboxReadyNs = SystemClock.elapsedRealtimeNanos()
+                recordPhoto(identity, "RUNTIME_MUTEX", "MUTEX_ACQUIRED", bboxWaitStartedNs, bboxReadyNs, "ACQUIRED")
                 recordPhoto(identity, "BBOX_WAIT", "BBOX_WAIT_END", bboxWaitStartedNs, bboxReadyNs, "EMBEDDING_SLOT_READY")
                 withContext(Dispatchers.Default) {
                     requireNotNull(segmenter).segment(
@@ -220,6 +245,9 @@ class SlimSamRuntimeManager(
                 }
             }
         } finally {
+            val releasedNs = SystemClock.elapsedRealtimeNanos()
+            recordPhoto(identity, "RUNTIME_MUTEX", "MUTEX_RELEASED", releasedNs, releasedNs,
+                if (mutexAcquired) "RELEASED" else "CANCELLED_BEFORE_ACQUIRE")
             activeOperations.decrementAndGet()
         }
     }
@@ -232,8 +260,12 @@ class SlimSamRuntimeManager(
     ): FishSubjectResult {
         awaitReady()
         activeOperations.incrementAndGet()
+        var mutexAcquired = false
         try {
             return operationMutex.withLock {
+                mutexAcquired = true
+                val acquiredNs = SystemClock.elapsedRealtimeNanos()
+                recordPhoto(identity, "RUNTIME_MUTEX", "MUTEX_ACQUIRED", acquiredNs, acquiredNs, "ACQUIRED")
                 withContext(Dispatchers.Default) {
                     requireNotNull(segmenter).segment(
                         source = source,
@@ -244,6 +276,9 @@ class SlimSamRuntimeManager(
                 }
             }
         } finally {
+            val releasedNs = SystemClock.elapsedRealtimeNanos()
+            recordPhoto(identity, "RUNTIME_MUTEX", "MUTEX_RELEASED", releasedNs, releasedNs,
+                if (mutexAcquired) "RELEASED" else "CANCELLED_BEFORE_ACQUIRE")
             activeOperations.decrementAndGet()
         }
     }
@@ -257,6 +292,8 @@ class SlimSamRuntimeManager(
             embeddingBufferBytes = stats?.embeddingBufferBytes ?: 0L,
             cachedPhotoCount = stats?.cachedPhotoCount ?: 0,
             intraOpThreads = stats?.intraOpThreads,
+            activeNativeRunCount = stats?.activeNativeRunCount ?: 0,
+            nativeSessionPoisoned = stats?.nativeSessionPoisoned ?: false,
         )
     }
 
@@ -501,9 +538,15 @@ class SlimSamRuntimeManager(
 
     private fun SlimSamRuntimeEvent.toLogLine(): String = buildString {
         append("event=$eventName stage=$stageName model=$modelVersion")
+        append(" modelSha256=$modelSha256 ortVersion=$ortVersion runOptionsId=$runOptionsId")
         append(" recognitionSessionId=$recognitionSessionId recognitionAttemptId=$recognitionAttemptId")
         append(" imageId=$imageId photoSha256=$photoSha256")
         append(" startUptimeNs=$startUptimeNs endUptimeNs=$endUptimeNs durationMs=$durationMs")
+        append(" activeNativeRunCount=$activeNativeRunCount")
+        append(" nativeHeapAllocatedBytes=$androidNativeHeapAllocatedBytes nativeHeapSizeBytes=$androidNativeHeapSizeBytes")
+        append(" nativeHeapFreeBytes=$androidNativeHeapFreeBytes processPssKb=$androidProcessPssKb processRssKb=$androidProcessRssKb")
+        append(" ortArenaReservedBytes=$ortArenaReservedBytes nodeName=$nodeName executionBoundary=$executionBoundary knownTensorInputBytes=$knownTensorInputBytes")
+        append(" memorySampleUptimeNs=$memorySampleUptimeNs")
         append(" threadName=$threadName result=$result errorCode=$errorCode")
         errorMessage?.let { append(" errorMessage=${it.take(512)}") }
         exceptionClass?.let { append(" exceptionClass=$it") }
@@ -526,6 +569,8 @@ internal data class SlimSamRuntimeStats(
     val intraOpThreads: Int,
     val embeddingBufferBytes: Long,
     val cachedPhotoCount: Int,
+    val activeNativeRunCount: Int,
+    val nativeSessionPoisoned: Boolean,
 )
 
 data class SlimSamRuntimeMetrics(
@@ -535,6 +580,8 @@ data class SlimSamRuntimeMetrics(
     val embeddingBufferBytes: Long,
     val cachedPhotoCount: Int,
     val intraOpThreads: Int?,
+    val activeNativeRunCount: Int,
+    val nativeSessionPoisoned: Boolean,
 )
 
 class SlimSamModelException(
