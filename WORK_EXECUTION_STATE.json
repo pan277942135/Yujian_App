@@ -9,17 +9,17 @@
     "FIXTURE_B_UNAVAILABLE: the named historical evidence ZIP is absent from current attachments/workspace; source regressions can run without claiming replay."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-25T07:57:54Z",
+  "checkpoint_updated_at": "2026-11-25T08:18:10Z",
   "control_plane_revision": "03db3692669847084d7e48fc3128f85cbf832af9",
   "current_work": {
     "blockers": [
-      "P0_2_HISTORY_UNAVAILABLE: commit 759e918332293a4ffaea479a57556386b7c41f1d is absent locally and origin rejected fetching the raw SHA; no cherry-pick/reset was performed, but exact historical preservation review remains unavailable.",
-      "ANDROID_TEST_COMPILE_BLOCKED: :app:assembleDebugAndroidTest could not resolve androidx.test.ext:junit:1.2.1, androidx.test:runner:1.6.2, or uiautomator:2.3.0 because dl.google.com DNS resolution failed.",
-      "LINT_BLOCKED: lint could not resolve com.android.tools.lint:lint-gradle:32.1.1 from dl.google.com due DNS failure.",
-      "DEVICE_RUNTIME_PENDING: this host has no /dev/kvm, adb, or emulator; no DEVICE_RUNTIME_VERIFIED or instrumentation execution is claimed.",
-      "EXACT_HEAD_CI_PENDING: source worktree has not yet been committed/pushed; hosted CI and API36 runtime evidence remain pending.",
-      "APK_DELIVERY_PENDING: final exact-HEAD Debug APK has not yet been built, verified, or uploaded.",
-      "FIXTURE_B_UNAVAILABLE: the named historical evidence ZIP is absent; no evidence replay is claimed."
+      "P0_2_ORIGINAL_OBJECT_UNAVAILABLE_BUT_INTEGRATION_PRESENT: remote commit 57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5 records original source 759e918332293a4ffaea479a57556386b7c41f1d, original parent babd6b3ad31ee02f70d74738a27d7f14cc6b5e10, and an integration patch; exact original commit object remains unavailable for direct tree comparison.",
+      "ANDROID_TEST_COMPILE_BLOCKED: :app:assembleDebugAndroidTest could not resolve AndroidX Test dependencies because dl.google.com DNS resolution failed.",
+      "LINT_BLOCKED: lint could not resolve com.android.tools.lint:lint-gradle:32.1.1 because dl.google.com DNS resolution failed.",
+      "DEVICE_RUNTIME_PENDING: no /dev/kvm, adb, or emulator is available locally; no DEVICE_RUNTIME_VERIFIED claim.",
+      "EXACT_HEAD_CI_PENDING: merged source has not been committed/pushed and hosted CI evidence is not available.",
+      "APK_DELIVERY_PENDING: merged exact-HEAD Debug APK has not been rebuilt or delivered.",
+      "FIXTURE_B_UNAVAILABLE: historical runtime fixture B is absent; no replay is claimed."
     ],
     "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
     "exact_head": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
@@ -27,9 +27,10 @@
     "phase": "P6",
     "requested_task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
     "requested_task_title": "Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery",
-    "stage": "G7_POST_CHANGE_VALIDATION_COMPLETE",
+    "stage": "G8_POST_MERGE_VALIDATION_PASS",
     "status": "RUNNING",
-    "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2"
+    "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
+    "current_validated_tree_note": "The merge working tree containing local implementation commit 5b1f28c2 and remote source 57ccf1b3 passed full JVM tests (604/604) and :app:compileReleaseKotlin; the merge commit/push and exact-HEAD APK remain pending."
   },
   "dependencies": [
     "P5-02"
@@ -78,12 +79,12 @@
     "business_runtime_outcome": "NOT_RUN on current source; current exact-head Stage10–13.5 production AUTO evidence required.",
     "code_implementation_commit": "6102640437041159abc519b00249b7aedff0bb03",
     "current_admission_attempt": "Second CONTROL_PLANE_ADMISSION on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 passed. Product source remains 316de1b705fb54ee7d6e2114259ec1f87773aedf. No production source changes or tests have run in this V2 Work yet.",
-    "current_source_changes": "Working-tree implementation: fail-closed 23-Gate control plane with receipt validation and timeout integration; producer-authored Stage045 GLES render receipts; independent contour receipts; model identities and input/output tensor receipts; PhotoIdentity propagation and embedding cache identity; Controller/Store PATH_BOUND prepare/commit/abort coordinator; snapshot commit safeguards; PixelCopy observational deadline; TFLite native-run serialization, timeout quarantine and lifecycle evidence. Exact source commit is pending.",
-    "debug_apk_build": "PENDING final checkpoint Exact-HEAD APK Pair build.",
+    "current_source_changes": "Commit 5b1f28c2 contains the pre-merge Gate Control Plane, model identities/receipts, atomic PATH_BOUND coordinator, contour receipts, Snapshot safeguards, and TFLite resource quarantine. Merge from remote 57ccf1b3 adds ONNX native lifecycle/memory management. SlimSAM model receipts and complete PhotoIdentity cache-key fields are being ported onto that lifecycle; post-merge validation is pending.",
+    "debug_apk_build": "PENDING final merged exact-HEAD APK build and verification.",
     "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
     "evidence_zip": "/workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip; 14,190,826 bytes; unzip -t passed; 33 recorded hash entries verified; extracted at /tmp/yujian-evidence-5344335",
-    "exact_head_apk": "PENDING final marked checkpoint build; previous 67f17f0 APK is stale and must not be delivered.",
-    "exact_head_ci": "PENDING: push final marked checkpoint on the existing PR #346 branch; inspect hosted Build/KVM/API36 results before any PASS declaration.",
+    "exact_head_apk": "PENDING final merged branch HEAD; no stale APK will be reported as current.",
+    "exact_head_ci": "PENDING_SAFE_PUSH: local PR branch merge commit is not yet created/pushed; hosted Build/KVM/API36 run has not been verified.",
     "fail_closed_parser_tests": "8/8 PASS: the three requested instrumentation cases plus finalizer exact-source/pass, runner-failure, boot-contradiction and malformed-memory fail-closed cases.",
     "final_api36_status": "PENDING current source. No current-source KVM/boot/AUTO PASS declared.",
     "final_head_ci_run": "Pending final marked push to existing PR #346 branch.",
@@ -133,8 +134,8 @@
     "local_source_commit": "7119089573515c4f5e0699b72d057cec592eee3b",
     "main_control_plane": "03db3692669847084d7e48fc3128f85cbf832af9",
     "model_asset_validation": "Model bootstrap and Detector/Classifer asset validation PASS; generated model snapshot uses the current source SHA during final build. Model bytes unchanged.",
-    "p0_2_history": "Requested commit 759e918332293a4ffaea479a57556386b7c41f1d is not present locally; git fetch origin <SHA> returned upload-pack not our ref. Historical change review remains unavailable; no cherry-pick/reset performed.",
-    "packaged_apk_verification": "PENDING final checkpoint APK verification.",
+    "p0_2_history": "Remote integration commit 57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5 explicitly records Original source commit 759e918332293a4ffaea479a57556386b7c41f1d, parent babd6b3ad31ee02f70d74738a27d7f14cc6b5e10, original patch-id d91bb6389f704615dcd14dbceaf0610d52cf399c, and integrated patch-id da593356225b0d71ccfdbf797267446dd962c77f. It adds SlimSamImagePreprocessor, SlimSamMemoryTelemetry, SlimSamNativeRunLifecycle and tests; modifies SlimSamRuntimeCoordinator, SlimSamRuntimeManager, SlimSamSegmenter and coordinator tests. Remote source is being merged. The original object itself is still not reachable for a direct file-level comparison.",
+    "packaged_apk_verification": "PENDING final merged exact-HEAD APK.",
     "performance_after": "NOT_RUN; no same-device post-fix run exists. Do not claim device performance improvement.",
     "performance_baseline": "Historical Huawei log interval: 12,557 ms from first SlimSAM PROCESSING to READY; internal encoder/decoder timing, memory and GC were not recorded in that archive.",
     "pr_status": "PR #346 state was last observed DRAFT/open/unmerged on 2026-11-24 at prior head babd6b3; current PR source ref is 316de1b. Live metadata has not been queried during this V2 intake; no PR mutation performed.",
@@ -142,12 +143,12 @@
     "previous_task_spec": "/workspace/attachments/c9f1a71a-fd89-4cba-b20d-5eb1ac9c338d/已粘贴的文本.txt",
     "previous_v5_status": "Preserved from existing state and build log: prior V5/API36 failures and historical test/APK evidence remain scoped to their recorded source SHAs; no current-source PASS is inferred.",
     "real_device_evidence": "YuJian_Recognition_Evidence_eac685c91965.zip SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; 302e51a0725b602704363f264b1c70dc.mp4 SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392. Both are Huawei CMS-AL20/API36 historical pre-fix evidence, not current-run proof.",
-    "remote_branch_and_pr_ref": "git ls-remote verified refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head both at 316de1b705fb54ee7d6e2114259ec1f87773aedf; main is 03db3692669847084d7e48fc3128f85cbf832af9; PR base branch remains 6ec43662ef76c6ffee8530148098649496ab7fb1.",
+    "remote_branch_and_pr_ref": "Fetched remote origin/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head at 57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5; main remains 03db3692669847084d7e48fc3128f85cbf832af9. Local source commit 5b1f28c2 is based on 316de1b and must merge with remote; no force push.",
     "requested_task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
     "requested_task_title": "Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery",
     "runtime_capability": "Local host has no /dev/kvm, adb, or emulator; API36 AUTO requires the existing hosted x64 workflow.",
     "runtime_evidence_scope": "Exact code source 6102640437041159abc519b00249b7aedff0bb03 KVM/build/AVD prelaunch gates passed, but production smoke returned exit 1 and enforcement failed. Raw runtime evidence artifact is uploaded, SHA recorded, and available on Run 45172732325 for authenticated inspection; this session cannot read the archive.",
-    "source_lock": "Local PR worktree and remote branch refs/pull/346/head are 316de1b705fb54ee7d6e2114259ec1f87773aedf; main is 03db3692669847084d7e48fc3128f85cbf832af9; PR base branch fix/det-fish-v03-main-runtime-closure is 6ec43662ef76c6ffee8530148098649496ab7fb1. Existing branch only; no PR status mutation.",
+    "source_lock": "Local product commit 5b1f28c2 based on 316de1b; fetched existing PR branch and refs/pull/346/head both at 57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5 before merge; main at 03db3692669847084d7e48fc3128f85cbf832af9. No force push, new PR, merge-to-Main, or Draft mutation.",
     "task_scope_blocker": "Prior V1 intake lacked the numeric Gate table; V2 user supplied it, and it matches the frozen formal Policy. This blocker is resolved.",
     "task_spec": "/workspace/attachments/b839fe2f-e829-4a32-b8db-11ab2146b68a/已粘贴的文本.txt",
     "unit_tests": "542 JUnit tests across eight configured module tasks; 0 failures, 0 errors, 0 skipped. The app suite passed after the standard model asset bootstrap.",
@@ -155,9 +156,16 @@
     "video_attachment": "302e51a0725b602704363f264b1c70dc.mp4 is available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; source evidence is historical/pre-fix.",
     "visual_status": "Reference inventory/tokens/mapping/ROIs and diagnostic-only comparisons for six historical captures are recorded under artifacts/26kf_visual_reference_v1. Current source visual acceptance NOT_RUN.",
     "workflow_failure_summary_fix": "Source 7119089573515c4f5e0699b72d057cec592eee3b moves summary/result enrichment into scripts/ci/finalize_recognition_result_api36_smoke.py; exact runtime source SHA is mandatory, Build/KVM/Boot/runner gates must agree with AUTO, contradictions force AUTO_SMOKE_PASS=false, evidence hashes and APK SHA-256 values are captured, and finalization exceptions produce INFRA_BLOCKED evidence.",
-    "post_change_unit_tests": {
+    "lint": {
+      "task": "lint",
+      "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS",
+      "failure": "Could not resolve com.android.tools.lint:lint-gradle:32.1.1; dl.google.com temporary name resolution failure.",
+      "evidence": "/tmp/yujian-build-diagnostics/final-lint.log"
+    },
+    "tflite_hard_termination": "HARD_NATIVE_TERMINATION_NOT_VERIFIED: synchronous TFLite 2.16.1 Interpreter.run cannot be reliably interrupted with the available API; old Attempt receipts are rejected, concurrent Interpreter runs are prevented, and native resources are quarantined until the call actually returns.",
+    "pre_merge_unit_tests": {
       "command": "Gradle 9.3.1 test --no-daemon",
-      "result": "BUILD SUCCESSFUL",
+      "result": "PASS_BEFORE_REMOTE_MERGE; NOT_POST_MERGE_EVIDENCE",
       "source_state": "current implementation worktree after PATH_BOUND idempotency hardening",
       "total": 593,
       "passed": 593,
@@ -176,18 +184,47 @@
       "delta_from_original_574": 19,
       "evidence": "114 Gradle JUnit XML reports under module build/test-results directories; final regression log /tmp/yujian-build-diagnostics/final2-unit-and-release.log"
     },
-    "post_change_release_compile": {
+    "pre_merge_release_compile": {
       "task": ":app:compileReleaseKotlin",
-      "result": "PASS",
+      "result": "PASS_BEFORE_REMOTE_MERGE; NOT_POST_MERGE_EVIDENCE",
       "evidence": "Final Gradle regression build completed BUILD SUCCESSFUL."
     },
-    "lint": {
-      "task": "lint",
-      "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS",
-      "failure": "Could not resolve com.android.tools.lint:lint-gradle:32.1.1; dl.google.com temporary name resolution failure.",
-      "evidence": "/tmp/yujian-build-diagnostics/final-lint.log"
+    "post_merge_unit_tests": {
+      "command": "Gradle 9.3.1 test --no-daemon (run with :app:compileReleaseKotlin)",
+      "result": "PASS",
+      "total": 604,
+      "passed": 604,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "modules": {
+        "app": 126,
+        "application-core": 78,
+        "recognition-domain": 8,
+        "recognition-result-ui": 20,
+        "recognition-runtime": 71,
+        "recognition-ui": 237,
+        "waterlight-renderer": 64
+      },
+      "source_tree": "Merged working tree: local implementation 5b1f28c2 plus remote branch head 57ccf1b3; all XML reports correspond to the successful post-merge run.",
+      "report_xml_count": 116,
+      "log": "/tmp/yujian-build-diagnostics/postmerge-full.log"
     },
-    "tflite_hard_termination": "HARD_NATIVE_TERMINATION_NOT_VERIFIED: synchronous TFLite 2.16.1 Interpreter.run cannot be reliably interrupted with the available API; old Attempt receipts are rejected, concurrent Interpreter runs are prevented, and native resources are quarantined until the call actually returns."
+    "post_merge_release_compile": {
+      "task": ":app:compileReleaseKotlin",
+      "result": "PASS",
+      "log": "/tmp/yujian-build-diagnostics/postmerge-full.log"
+    },
+    "post_merge_validation": "PASS: 604 JVM tests (0 failure/error/skip) and :app:compileReleaseKotlin. AndroidTest compile and lint remain blocked before source validation by dl.google.com DNS; local device runtime unavailable.",
+    "remote_merge_review": {
+      "remote_target_before_merge": "57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5",
+      "pull_346_head_before_merge": "57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5",
+      "main_head": "03db3692669847084d7e48fc3128f85cbf832af9",
+      "p0_2_original_commit": "759e918332293a4ffaea479a57556386b7c41f1d",
+      "original_commit_object_available": false,
+      "integration_provenance": "Remote commit 57ccf1b3 records original parent babd6b3ad31ee02f70d74738a27d7f14cc6b5e10 and patch ids original d91bb6389f704615dcd14dbceaf0610d52cf399c / integrated da593356225b0d71ccfdbf797267446dd962c77f; provenance metadata verified, direct file-level comparison against missing original object remains unavailable.",
+      "merge_commit": "PENDING"
+    }
   },
   "execution_v2": {
     "issues": {
@@ -363,15 +400,15 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Trace and fix production Gate authorization, model receipts and identities, atomic PATH_BOUND commit authority, Snapshot consumers, and Native resource lifetime.",
+  "next_action": "Complete and commit the no-force merge with remote PR-346 head 57ccf1b3, push only the existing PR branch, verify PR/source refs and main, then build and verify a Debug APK for the resulting exact HEAD.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
   "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
-  "stage": "G1_BASELINE_TESTS_COMPLETE",
+  "stage": "G8_POST_MERGE_VALIDATION_PASS",
   "state_update": {
-    "last_updated_at": "2026-11-25T07:57:54Z",
-    "note": "Production source changes for Gate Control Plane, recognition identity/model receipts, PATH_BOUND transaction, Stage045 GLES render receipts, and native TFLite quarantine have been made in the worktree. Final Gradle test and Release Kotlin compile pass: 593/593 JVM tests across seven modules, 0 failed/error/skipped; the original 574-test baseline remains present. AndroidTest compile and lint are blocked before source validation because dl.google.com DNS resolution fails. Source commit, push, exact-HEAD Debug APK and remote delivery verification remain pending."
+    "last_updated_at": "2026-11-25T08:18:10Z",
+    "note": "After merging the remote PR-346 head 57ccf1b into the implementation worktree, the full Gradle test task passed with 604/604 tests and :app:compileReleaseKotlin passed. AndroidTest compilation and lint remain blocked by dl.google.com DNS; device runtime is unavailable. The no-force merge commit, safe push, remote ref verification and final exact-HEAD Debug APK remain pending."
   },
   "status": "RUNNING",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",

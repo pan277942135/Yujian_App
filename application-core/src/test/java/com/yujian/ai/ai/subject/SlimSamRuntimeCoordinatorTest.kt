@@ -4,8 +4,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -102,18 +105,32 @@ class SlimSamRuntimeCoordinatorTest {
     @Test
     fun embeddingCacheIdentityUsesPhotoContentGeometryAndModelContracts() {
         val samePhoto = SlimSamEmbeddingCacheKey.create(
+            recognitionSessionId = "session-1",
+            attemptId = "attempt-1",
+            photoId = "photo-1",
+            sourceBytesSha256 = "0".repeat(64),
             canonicalPixelSha256 = "a".repeat(64),
             width = 1200,
             height = 800,
+            sourceOrientation = 6,
+            normalizationVersion = "photo-normalization-v1",
+            photoContentVersion = 3,
             encoderModelSha256 = "b".repeat(64),
             preprocessVersion = "rgb1024-pad-v1",
             inputSchemaHash = "c".repeat(64),
             inputShape = listOf(1, 3, 1024, 1024),
         )
         val decodedAgain = SlimSamEmbeddingCacheKey.create(
+            recognitionSessionId = "session-1",
+            attemptId = "attempt-1",
+            photoId = "photo-1",
+            sourceBytesSha256 = "0".repeat(64),
             canonicalPixelSha256 = "a".repeat(64),
             width = 1200,
             height = 800,
+            sourceOrientation = 6,
+            normalizationVersion = "photo-normalization-v1",
+            photoContentVersion = 3,
             encoderModelSha256 = "b".repeat(64),
             preprocessVersion = "rgb1024-pad-v1",
             inputSchemaHash = "c".repeat(64),
@@ -130,6 +147,10 @@ class SlimSamRuntimeCoordinatorTest {
         assertFalse(samePhoto == decodedAgain.copy(attemptId = "another-attempt"))
         assertFalse(samePhoto == decodedAgain.copy(recognitionSessionId = "another-session"))
         assertFalse(samePhoto == decodedAgain.copy(photoId = "another-photo-id"))
+        assertFalse(samePhoto == decodedAgain.copy(sourceBytesSha256 = "1".repeat(64)))
+        assertFalse(samePhoto == decodedAgain.copy(sourceOrientation = 1))
+        assertFalse(samePhoto == decodedAgain.copy(normalizationVersion = "photo-normalization-v2"))
+        assertFalse(samePhoto == decodedAgain.copy(photoContentVersion = 4))
     }
 
     @Test
@@ -175,6 +196,51 @@ class SlimSamRuntimeCoordinatorTest {
         lease.close()
         assertEquals(0, cache.activeLeases())
         assertNull(cache.get(oldPhoto))
+    }
+
+    @Test
+    fun samePhotoRequestsShareOneInFlightEmbeddingComputation() = runBlocking {
+        val singleFlight = SlimSamEmbeddingSingleFlight<String, String>()
+        val computeCount = AtomicInteger()
+        val computationStarted = CompletableDeferred<Unit>()
+        val allowCompletion = CompletableDeferred<Unit>()
+
+        val producer = async(Dispatchers.Default) {
+            singleFlight.run("photo-a") {
+                computeCount.incrementAndGet()
+                computationStarted.complete(Unit)
+                allowCompletion.await()
+                "embedding-a"
+            }
+        }
+        computationStarted.await()
+        val waiter = async(Dispatchers.Default) {
+            singleFlight.run("photo-a") {
+                computeCount.incrementAndGet()
+                "duplicate-embedding"
+            }
+        }
+        withTimeout(2_000) {
+            while (singleFlight.waiterCount("photo-a") == 0) yield()
+        }
+        allowCompletion.complete(Unit)
+
+        assertEquals("embedding-a", producer.await())
+        assertEquals("embedding-a", waiter.await())
+        assertEquals(1, computeCount.get())
+    }
+
+    @Test
+    fun failedEmbeddingFlightIsRemovedSoAReplacementAttemptCanRetry() = runBlocking {
+        val singleFlight = SlimSamEmbeddingSingleFlight<String, String>()
+
+        val failure = runCatching {
+            singleFlight.run("photo-a") { error("encoder failed") }
+        }.exceptionOrNull()
+        val retry = singleFlight.run("photo-a") { "embedding-retry" }
+
+        assertTrue(failure is IllegalStateException)
+        assertEquals("embedding-retry", retry)
     }
 
     private fun key(sha: String) = SlimSamEmbeddingCacheKey.create(

@@ -3,6 +3,7 @@ package com.yujian.ai.ai.subject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 
 /** Serializes process startup and first-use requests around one bounded Session initialization. */
 internal class SlimSamInitializationGate(
@@ -85,9 +86,13 @@ internal data class SlimSamEmbeddingCacheKey(
     val recognitionSessionId: String,
     val attemptId: String,
     val photoId: String,
+    val sourceBytesSha256: String,
     val canonicalPixelSha256: String,
     val width: Int,
     val height: Int,
+    val sourceOrientation: Int,
+    val normalizationVersion: String,
+    val photoContentVersion: Long,
     val encoderModelSha256: String,
     val preprocessVersion: String,
     val inputSchemaHash: String,
@@ -98,9 +103,13 @@ internal data class SlimSamEmbeddingCacheKey(
             recognitionSessionId: String = "UNSCOPED_PREWARM",
             attemptId: String = "UNSCOPED_PREWARM",
             photoId: String = "UNSCOPED_PREWARM",
+            sourceBytesSha256: String = "UNSCOPED_PREWARM",
             canonicalPixelSha256: String,
             width: Int,
             height: Int,
+            sourceOrientation: Int = 1,
+            normalizationVersion: String = "UNSCOPED_PREWARM",
+            photoContentVersion: Long = 0L,
             encoderModelSha256: String,
             preprocessVersion: String,
             inputSchemaHash: String,
@@ -109,9 +118,13 @@ internal data class SlimSamEmbeddingCacheKey(
             recognitionSessionId = recognitionSessionId,
             attemptId = attemptId,
             photoId = photoId,
+            sourceBytesSha256 = sourceBytesSha256,
             canonicalPixelSha256 = canonicalPixelSha256,
             width = width,
             height = height,
+            sourceOrientation = sourceOrientation,
+            normalizationVersion = normalizationVersion,
+            photoContentVersion = photoContentVersion,
             encoderModelSha256 = encoderModelSha256,
             preprocessVersion = preprocessVersion,
             inputSchemaHash = inputSchemaHash,
@@ -135,11 +148,13 @@ internal class SlimSamEmbeddingCache<T> {
     private var activeLeaseCount: Int = 0
 
     @Synchronized
-    fun activate(key: SlimSamEmbeddingCacheKey) {
-        if (activeKey == key) return
+    fun activate(key: SlimSamEmbeddingCacheKey): Boolean {
+        if (activeKey == key) return false
+        val evicted = cachedValue != null
         activeKey = key
         cachedKey = null
         cachedValue = null
+        return evicted
     }
 
     @Synchronized
@@ -177,4 +192,51 @@ internal class SlimSamEmbeddingCache<T> {
 
     @Synchronized
     fun activeLeases(): Int = activeLeaseCount
+}
+
+/** Coalesces concurrent Encoder requests by the complete photo/model/preprocessing cache identity. */
+internal class SlimSamEmbeddingSingleFlight<K : Any, V> {
+    private class Flight<V>(val result: CompletableDeferred<V>) {
+        var waiterCount: Int = 0
+    }
+
+    private val lock = Any()
+    private val inFlight = HashMap<K, Flight<V>>()
+
+    suspend fun run(key: K, compute: suspend () -> V): V {
+        val (flight, owner) = synchronized(lock) {
+            val existing = inFlight[key]
+            if (existing != null) {
+                existing.waiterCount += 1
+                existing to false
+            } else {
+                Flight<V>(CompletableDeferred<V>()).also { inFlight[key] = it } to true
+            }
+        }
+
+        if (!owner) {
+            return try {
+                flight.result.await()
+            } finally {
+                synchronized(lock) {
+                    if (inFlight[key] === flight) flight.waiterCount = (flight.waiterCount - 1).coerceAtLeast(0)
+                }
+            }
+        }
+
+        try {
+            val value = compute()
+            flight.result.complete(value)
+            return value
+        } catch (error: Throwable) {
+            flight.result.completeExceptionally(error)
+            throw error
+        } finally {
+            synchronized(lock) {
+                if (inFlight[key] === flight) inFlight.remove(key)
+            }
+        }
+    }
+
+    fun waiterCount(key: K): Int = synchronized(lock) { inFlight[key]?.waiterCount ?: 0 }
 }
