@@ -1,0 +1,13 @@
+{
+  "contract": "recognition_result_candidate_card",
+  "version": "V1.1",
+  "status": "FROZEN",
+  "scope": "MEDIUM_ONLY",
+  "container": "unified_candidate_glass_panel",
+  "states": ["DEFAULT", "SUGGESTED", "SELECTED", "PRESSED", "DISABLED", "FOCUS"],
+  "suggested": { "selected_automatically": false, "selection_requires_explicit_tap": true },
+  "selected": { "authority_token": "RESULT_MORNING_GOLD", "visual": "restrained" },
+  "selector_selected": { "authority_token": "WaterTeal", "hex": "#0F7A78" },
+  "layout": { "max_visible_candidates": 3, "horizontal": true, "carousel": false },
+  "prohibited": ["confidence_percentage", "rarity_ui", "automatic_switching", "medium_gold_in_species_selector"]
+}

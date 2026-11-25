@@ -1,0 +1,47 @@
+{
+  "repository": "pan277942135/Yujian_App",
+  "pr": 346,
+  "source_branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+  "source_commit": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+  "original_audit_commit": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+  "audit_branch_head": "b0c30c17769d7f816fbf003578626456ea2726ce",
+  "archive_branch": "archive/yujian-p0-full-engineering-316de1b",
+  "remote_refs": [
+    "b0c30c17769d7f816fbf003578626456ea2726ce\trefs/heads/audit/p0-conformance-babd6b3",
+    "316de1b705fb54ee7d6e2114259ec1f87773aedf\trefs/heads/fix/26kf-path-boundary-and-fish-gate-v1",
+    "03db3692669847084d7e48fc3128f85cbf832af9\trefs/heads/main"
+  ],
+  "worktrees": [
+    {
+      "path": "/workspace/Yujian_App_PR346",
+      "head": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+      "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+      "status": [
+        "?? audit-archives/"
+      ]
+    },
+    {
+      "path": "/workspace/Yujian_App",
+      "head": "03db3692669847084d7e48fc3128f85cbf832af9",
+      "branch": "work",
+      "status": []
+    },
+    {
+      "path": "/workspace/Yujian_App_AuditP0Branch",
+      "head": "b0c30c17769d7f816fbf003578626456ea2726ce",
+      "branch": "audit/p0-conformance-babd6b3",
+      "status": []
+    },
+    {
+      "path": "/workspace/Yujian_App_FullEngineeringArchive",
+      "head": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+      "branch": "archive/yujian-p0-full-engineering-316de1b",
+      "status": []
+    },
+    {
+      "path": "/workspace/Yujian_App_P0_2_android_validation",
+      "status": "NOT_PRESENT"
+    }
+  ],
+  "captured_at_utc": "2026-11-25T02:58:19.618416+00:00"
+}

@@ -1,0 +1,352 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/yujian-java-home -Djava.util.prefs.userRoot=/tmp/yujian-java-prefs -Djavax.net.ssl.trustStore=/tmp/yujian-jdk17/lib/security/cacerts -Djavax.net.ssl.trustStorePassword=[REDACTED] -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+> Task :recognition-domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :recognition-domain:compileKotlin UP-TO-DATE
+> Task :recognition-domain:compileJava NO-SOURCE
+> Task :recognition-domain:processResources NO-SOURCE
+> Task :recognition-domain:classes UP-TO-DATE
+> Task :recognition-domain:jar UP-TO-DATE
+> Task :recognition-domain:compileTestKotlin UP-TO-DATE
+> Task :recognition-domain:compileTestJava NO-SOURCE
+> Task :recognition-domain:processTestResources NO-SOURCE
+> Task :recognition-domain:testClasses UP-TO-DATE
+> Task :recognition-domain:test UP-TO-DATE
+> Task :recognition-runtime:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :recognition-runtime:compileKotlin UP-TO-DATE
+> Task :recognition-runtime:compileJava NO-SOURCE
+> Task :recognition-runtime:processResources NO-SOURCE
+> Task :recognition-runtime:classes UP-TO-DATE
+> Task :recognition-runtime:jar UP-TO-DATE
+> Task :recognition-runtime:compileTestKotlin UP-TO-DATE
+> Task :recognition-runtime:compileTestJava NO-SOURCE
+> Task :recognition-runtime:processTestResources NO-SOURCE
+> Task :recognition-runtime:testClasses UP-TO-DATE
+> Task :recognition-runtime:test UP-TO-DATE
+> Task :application-core:preBuild UP-TO-DATE
+> Task :application-core:preDebugBuild UP-TO-DATE
+> Task :application-core:generateDebugBuildConfig
+> Task :application-core:generateDebugResources UP-TO-DATE
+> Task :application-core:packageDebugResources UP-TO-DATE
+> Task :application-core:processDebugNavigationResources UP-TO-DATE
+> Task :application-core:parseDebugLocalResources UP-TO-DATE
+> Task :application-core:generateDebugRFile UP-TO-DATE
+> Task :application-core:javaPreCompileDebug UP-TO-DATE
+> Task :application-core:preDebugUnitTestBuild UP-TO-DATE
+> Task :application-core:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :application-core:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :waterlight-renderer:preBuild UP-TO-DATE
+> Task :waterlight-renderer:preDebugBuild UP-TO-DATE
+> Task :waterlight-renderer:generateDebugBuildConfig
+> Task :waterlight-renderer:generateDebugResources UP-TO-DATE
+> Task :waterlight-renderer:packageDebugResources UP-TO-DATE
+> Task :waterlight-renderer:processDebugNavigationResources UP-TO-DATE
+> Task :waterlight-renderer:parseDebugLocalResources UP-TO-DATE
+> Task :waterlight-renderer:generateDebugRFile UP-TO-DATE
+> Task :waterlight-renderer:javaPreCompileDebug UP-TO-DATE
+> Task :waterlight-renderer:preDebugUnitTestBuild UP-TO-DATE
+> Task :waterlight-renderer:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :waterlight-renderer:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :recognition-ui:preBuild UP-TO-DATE
+> Task :recognition-ui:preDebugBuild UP-TO-DATE
+> Task :recognition-ui:generateDebugBuildConfig
+> Task :recognition-ui:generateDebugResources UP-TO-DATE
+> Task :recognition-ui:packageDebugResources UP-TO-DATE
+> Task :recognition-ui:processDebugNavigationResources UP-TO-DATE
+> Task :recognition-ui:parseDebugLocalResources UP-TO-DATE
+> Task :recognition-ui:generateDebugRFile UP-TO-DATE
+> Task :recognition-ui:javaPreCompileDebug UP-TO-DATE
+> Task :recognition-ui:preDebugUnitTestBuild UP-TO-DATE
+> Task :recognition-ui:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :recognition-ui:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :recognition-result-components:preBuild UP-TO-DATE
+> Task :recognition-result-components:preDebugBuild UP-TO-DATE
+> Task :recognition-result-components:generateDebugResources UP-TO-DATE
+> Task :recognition-result-components:packageDebugResources UP-TO-DATE
+> Task :recognition-result-components:processDebugNavigationResources UP-TO-DATE
+> Task :recognition-result-components:parseDebugLocalResources UP-TO-DATE
+> Task :recognition-result-components:generateDebugRFile UP-TO-DATE
+> Task :recognition-result-components:javaPreCompileDebug UP-TO-DATE
+> Task :recognition-result-components:preDebugUnitTestBuild UP-TO-DATE
+> Task :recognition-result-components:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :recognition-result-components:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :recognition-result-ui:preBuild UP-TO-DATE
+> Task :recognition-result-ui:preDebugBuild UP-TO-DATE
+> Task :recognition-result-ui:generateDebugBuildConfig UP-TO-DATE
+> Task :recognition-result-ui:generateDebugResources UP-TO-DATE
+> Task :recognition-result-ui:packageDebugResources UP-TO-DATE
+> Task :recognition-result-ui:processDebugNavigationResources UP-TO-DATE
+> Task :recognition-result-ui:parseDebugLocalResources UP-TO-DATE
+> Task :recognition-result-ui:generateDebugRFile UP-TO-DATE
+> Task :recognition-result-ui:javaPreCompileDebug UP-TO-DATE
+> Task :recognition-result-ui:preDebugUnitTestBuild UP-TO-DATE
+> Task :recognition-result-ui:generateDebugUnitTestStubRFile UP-TO-DATE
+> Task :recognition-result-ui:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugBuildConfig
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:generateDebugRFile UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :application-core:writeDebugAarMetadata UP-TO-DATE
+> Task :recognition-result-components:writeDebugAarMetadata UP-TO-DATE
+> Task :recognition-result-ui:writeDebugAarMetadata UP-TO-DATE
+> Task :recognition-ui:writeDebugAarMetadata UP-TO-DATE
+> Task :waterlight-renderer:writeDebugAarMetadata UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :application-core:extractDeepLinksDebug UP-TO-DATE
+> Task :application-core:processDebugManifest UP-TO-DATE
+> Task :recognition-result-components:extractDeepLinksDebug UP-TO-DATE
+> Task :recognition-result-components:processDebugManifest UP-TO-DATE
+> Task :recognition-result-ui:extractDeepLinksDebug UP-TO-DATE
+> Task :recognition-result-ui:processDebugManifest UP-TO-DATE
+> Task :recognition-ui:extractDeepLinksDebug UP-TO-DATE
+> Task :recognition-ui:processDebugManifest UP-TO-DATE
+> Task :waterlight-renderer:extractDeepLinksDebug UP-TO-DATE
+> Task :waterlight-renderer:processDebugManifest UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :application-core:mapDebugSourceSetPaths UP-TO-DATE
+> Task :application-core:compileDebugLibraryResources UP-TO-DATE
+> Task :recognition-result-components:mapDebugSourceSetPaths UP-TO-DATE
+> Task :recognition-result-components:compileDebugLibraryResources UP-TO-DATE
+> Task :recognition-result-ui:mapDebugSourceSetPaths UP-TO-DATE
+> Task :recognition-result-ui:compileDebugLibraryResources UP-TO-DATE
+> Task :recognition-ui:mapDebugSourceSetPaths UP-TO-DATE
+> Task :recognition-ui:compileDebugLibraryResources UP-TO-DATE
+> Task :waterlight-renderer:mapDebugSourceSetPaths UP-TO-DATE
+> Task :waterlight-renderer:compileDebugLibraryResources UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+> Task :app:preDebugAndroidTestBuild SKIPPED
+> Task :app:processDebugAndroidTestManifest UP-TO-DATE
+> Task :app:generateDebugAndroidTestBuildConfig
+> Task :app:generateDebugAndroidTestResources UP-TO-DATE
+> Task :app:packageDebugAndroidTestResources UP-TO-DATE
+> Task :app:processDebugAndroidTestNavigationResources UP-TO-DATE
+> Task :app:parseDebugAndroidTestLocalResources UP-TO-DATE
+> Task :app:generateDebugAndroidTestRFile UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :application-core:generateDebugAssets UP-TO-DATE
+> Task :application-core:mergeDebugAssets UP-TO-DATE
+> Task :recognition-result-components:generateDebugAssets UP-TO-DATE
+> Task :recognition-result-components:mergeDebugAssets UP-TO-DATE
+> Task :recognition-result-ui:generateDebugAssets UP-TO-DATE
+> Task :recognition-result-ui:mergeDebugAssets UP-TO-DATE
+> Task :recognition-ui:generateDebugAssets UP-TO-DATE
+> Task :recognition-ui:mergeDebugAssets UP-TO-DATE
+> Task :waterlight-renderer:generateDebugAssets UP-TO-DATE
+> Task :waterlight-renderer:mergeDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+> Task :app:mergeExtDexDebug UP-TO-DATE
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+> Task :application-core:mergeDebugJniLibFolders UP-TO-DATE
+> Task :application-core:mergeDebugNativeLibs NO-SOURCE
+> Task :application-core:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :recognition-result-components:mergeDebugJniLibFolders UP-TO-DATE
+> Task :recognition-result-components:mergeDebugNativeLibs NO-SOURCE
+> Task :recognition-result-components:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :recognition-result-ui:mergeDebugJniLibFolders UP-TO-DATE
+> Task :recognition-result-ui:mergeDebugNativeLibs NO-SOURCE
+> Task :recognition-result-ui:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :recognition-ui:mergeDebugJniLibFolders UP-TO-DATE
+> Task :recognition-ui:mergeDebugNativeLibs NO-SOURCE
+> Task :recognition-ui:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :waterlight-renderer:mergeDebugJniLibFolders UP-TO-DATE
+> Task :waterlight-renderer:mergeDebugNativeLibs NO-SOURCE
+> Task :waterlight-renderer:copyDebugJniLibsProjectOnly UP-TO-DATE
+> Task :app:mergeDebugNativeLibs UP-TO-DATE
+> Task :app:stripDebugDebugSymbols UP-TO-DATE
+> Task :app:validateSigningDebug UP-TO-DATE
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+> Task :application-core:compileDebugKotlin
+> Task :waterlight-renderer:compileDebugKotlin
+
+> Task :application-core:compileDebugKotlin
+w: file:///workspace/Yujian_App_PR346/application-core/src/main/java/com/yujian/ai/ai/subject/SlimSamRuntimeManager.kt:277:58 'static field TRIM_MEMORY_RUNNING_CRITICAL: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/application-core/src/main/java/com/yujian/ai/ai/subject/SlimSamRuntimeManager.kt:278:58 'static field TRIM_MEMORY_COMPLETE: Int' is deprecated. Deprecated in Java.
+
+> Task :application-core:compileDebugJavaWithJavac
+> Task :application-core:processDebugJavaRes UP-TO-DATE
+> Task :application-core:bundleLibRuntimeToJarDebug
+> Task :application-core:bundleLibCompileToJarDebug
+> Task :waterlight-renderer:compileDebugJavaWithJavac
+> Task :waterlight-renderer:bundleLibRuntimeToJarDebug
+> Task :waterlight-renderer:processDebugJavaRes UP-TO-DATE
+> Task :waterlight-renderer:bundleLibCompileToJarDebug
+> Task :application-core:bundleLibRuntimeToDirDebug
+> Task :waterlight-renderer:bundleLibRuntimeToDirDebug
+> Task :application-core:compileDebugUnitTestKotlin
+> Task :application-core:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :application-core:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :application-core:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/yujian-java-home -Djava.util.prefs.userRoot=/tmp/yujian-java-prefs -Djavax.net.ssl.trustStore=/tmp/yujian-jdk17/lib/security/cacerts -Djavax.net.ssl.trustStorePassword=[REDACTED] -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+
+> Task :waterlight-renderer:compileDebugUnitTestKotlin
+> Task :recognition-ui:compileDebugKotlin
+> Task :waterlight-renderer:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :waterlight-renderer:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :waterlight-renderer:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/yujian-java-home -Djava.util.prefs.userRoot=/tmp/yujian-java-prefs -Djavax.net.ssl.trustStore=/tmp/yujian-jdk17/lib/security/cacerts -Djavax.net.ssl.trustStorePassword=[REDACTED] -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+
+> Task :waterlight-renderer:test
+
+> Task :recognition-ui:compileDebugKotlin
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/components/Common.kt:54:40 'val Icons.Rounded.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Rounded.ArrowBack.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianIconAction.kt:142:30 'val Icons.Rounded.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Rounded.ArrowBack.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassAssetRepository.kt:130:13 'field inDither: Boolean' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/fishguide/FishGuidePresentation.kt:193:58 Condition is always 'false'.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt:356:13 Condition is always 'true'.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionSessionEvidenceRecorder.kt:615:16 Condition is always 'true'.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/recognition/result/RecognitionLocationSearch.kt:167:29 'fun requestSingleUpdate(p0: String, p1: LocationListener, p2: Looper?): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionResultRuntime.kt:80:14 'fun computeBounds(p0: RectF, p1: Boolean): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealOpticalRenderer.kt:171:75 'fun computeBounds(p0: RectF, p1: Boolean): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/SpeciesNameReveal.kt:158:15 'fun computeBounds(p0: RectF, p1: Boolean): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt:3438:42 Condition is always 'true'.
+
+> Task :recognition-ui:compileDebugJavaWithJavac
+> Task :recognition-ui:processDebugJavaRes UP-TO-DATE
+> Task :recognition-ui:bundleLibCompileToJarDebug
+> Task :recognition-ui:bundleLibRuntimeToJarDebug
+> Task :recognition-ui:bundleLibRuntimeToDirDebug
+> Task :recognition-ui:compileDebugUnitTestKotlin
+> Task :recognition-result-components:compileDebugKotlin
+
+> Task :recognition-ui:compileDebugUnitTestKotlin
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/ProductionAutoFixesP0Test.kt:87:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/ProductionAutoFixesP0Test.kt:211:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/ProductionAutoFixesP0Test.kt:227:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/ProductionAutoFixesP0Test.kt:342:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:42:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:61:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:82:31 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:94:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:109:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:131:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:150:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:168:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:203:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:236:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:260:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:271:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:274:32 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:275:31 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:282:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:297:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:311:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:422:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:540:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:723:31 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt:767:31 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+
+> Task :recognition-ui:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :recognition-ui:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :recognition-ui:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/yujian-java-home -Djava.util.prefs.userRoot=/tmp/yujian-java-prefs -Djavax.net.ssl.trustStore=/tmp/yujian-jdk17/lib/security/cacerts -Djavax.net.ssl.trustStorePassword=[REDACTED] -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+
+> Task :recognition-result-components:compileDebugKotlin
+w: file:///workspace/Yujian_App_PR346/recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultComponents.kt:691:56 Condition is always 'false'.
+w: file:///workspace/Yujian_App_PR346/recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultComponents.kt:1189:43 'fun computeBounds(p0: RectF, p1: Boolean): Unit' is deprecated. Deprecated in Java.
+
+> Task :recognition-result-components:compileDebugJavaWithJavac NO-SOURCE
+> Task :recognition-result-components:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :recognition-result-components:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :recognition-result-components:compileDebugUnitTestKotlin NO-SOURCE
+> Task :recognition-result-components:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :recognition-result-components:processDebugJavaRes UP-TO-DATE
+> Task :recognition-result-components:processDebugUnitTestJavaRes NO-SOURCE
+> Task :recognition-result-components:testDebugUnitTest NO-SOURCE
+> Task :recognition-result-components:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :recognition-result-ui:compileDebugKotlin
+> Task :recognition-result-ui:compileDebugJavaWithJavac UP-TO-DATE
+> Task :recognition-result-ui:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :recognition-result-ui:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :recognition-result-ui:processDebugJavaRes UP-TO-DATE
+> Task :recognition-result-ui:bundleLibRuntimeToDirDebug UP-TO-DATE
+> Task :app:mergeLibDexDebug
+> Task :recognition-result-ui:compileDebugUnitTestKotlin
+> Task :recognition-result-ui:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :recognition-result-ui:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :recognition-result-ui:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/yujian-java-home -Djava.util.prefs.userRoot=/tmp/yujian-java-prefs -Djavax.net.ssl.trustStore=/tmp/yujian-jdk17/lib/security/cacerts -Djavax.net.ssl.trustStorePassword=[REDACTED] -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+
+> Task :app:compileDebugKotlin
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/MainActivity.kt:35:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/MainActivity.kt:36:16 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/MainActivity.kt:38:20 'var navigationBarDividerColor: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/designsystem/DesignSystemPreview.kt:65:13 'fun YuJianTopBar(title: String, modifier: Modifier = ..., onBack: (() -> Unit)? = ..., actions: @Composable() ComposableFunction1<RowScope, Unit> = ..., statusBarInset: Boolean = ...): Unit' is deprecated. Use YuJianTitleOnlyTopBar, YuJianBackTitleTopBar, or YuJianBackTitleActionsTopBar.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/home/CaptureHaptics.kt:13:73 'static field HAPTIC_FEEDBACK_ENABLED: String' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/home/CaptureHaptics.kt:34:29 'static field HAPTIC_FEEDBACK_ENABLED: String' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/home/GeminiHomeGeometryProbe.kt:103:18 This extension is shadowed by a member: 'fun translate(offset: Offset): Rect' defined in 'androidx/compose/ui/geometry/Rect'.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/recorddetail/FishMemoryCaptureScreen.kt:80:26 'val LocalLifecycleOwner: ProvidableCompositionLocal<LifecycleOwner>' is deprecated. Moved to lifecycle-runtime-compose library in androidx.lifecycle.compose package.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/recorddetail/FishMemoryCaptureScreen.kt:163:40 'val Icons.Rounded.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Rounded.ArrowBack.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt:386:53 'val Icons.Rounded.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Rounded.MenuBook.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt:757:40 'val Icons.Rounded.Logout: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Rounded.Logout.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt:112:20 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt:113:20 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt:115:24 'var navigationBarDividerColor: Int' is deprecated. Deprecated in Java.
+
+> Task :app:compileDebugJavaWithJavac
+> Task :app:processDebugJavaRes UP-TO-DATE
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:dexBuilderDebug
+> Task :app:mergeDebugGlobalSynthetics UP-TO-DATE
+> Task :app:mergeDebugJavaResource UP-TO-DATE
+> Task :app:mergeProjectDexDebug
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleDebug
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes UP-TO-DATE
+
+> Task :app:testDebugUnitTest
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/tmp/yujian-java-home -Djava.util.prefs.userRoot=/tmp/yujian-java-prefs -Djavax.net.ssl.trustStore=/tmp/yujian-jdk17/lib/security/cacerts -Djavax.net.ssl.trustStorePassword=[REDACTED] -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080
+
+> Task :app:compileDebugAndroidTestKotlin
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/LoginV2RuntimeTest.kt:79:29 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/LoginV2RuntimeTest.kt:80:29 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/LoginV2RuntimeTest.kt:448:42 'val Icons.Rounded.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Rounded.ArrowBack.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:139:29 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:148:28 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:151:28 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:166:22 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:188:27 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:199:18 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:273:46 'static fun obtain(p0: AccessibilityNodeInfo!): AccessibilityNodeInfo!' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:280:27 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:289:18 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:294:71 'static fun obtain(p0: AccessibilityNodeInfo!): AccessibilityNodeInfo!' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:299:25 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:304:25 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/PresentationSanitizationRuntimeTest.kt:308:20 'fun recycle(): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/RecognitionOpticalFidelityRuntimeTest.kt:166:52 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/RecognitionResultHandoffGuardrailRuntimeTest.kt:28:20 'fun markPhotoFirstFramePresented(currentIdentity: RecognitionSceneIdentity, nowMs: Long): Boolean' is deprecated. Use markPhotoFirstFrameCommitted; draw submission is not physical presentation.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/RecognitionRevealProductionRuntimeTest.kt:526:61 'static field TRIM_MEMORY_RUNNING_CRITICAL: Int' is deprecated. Deprecated in Java.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/ui/designsystem/DesignSystemComponentPreviewTest.kt:52:46 'val Icons.Rounded.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Rounded.ArrowBack.
+w: file:///workspace/Yujian_App_PR346/app/src/androidTest/java/com/yujian/ai/ui/recognition/reveal/SpeciesNameRevealRuntimeTest.kt:154:27 'fun computeBounds(p0: RectF, p1: Boolean): Unit' is deprecated. Deprecated in Java.
+
+BUILD SUCCESSFUL in 8m 28s
+185 actionable tasks: 41 executed, 144 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.3.1/userguide/configuration_cache_enabling.html

@@ -1,0 +1,348 @@
+{
+  "fixtureId": "FIXTURE_HUAWEI_EAC685C9_V1",
+  "schemaVersion": 1,
+  "source": {
+    "evidenceZip": "inputs/YuJian_Recognition_Evidence_eac685c91965.zip",
+    "evidenceZipBytes": 16204260,
+    "evidenceZipSha256": "f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275",
+    "sourceSha": "67f17f0eb6a80233438cb8b00111a55d6767a6d8",
+    "mp4": "inputs/302e51a0725b602704363f264b1c70dc.mp4",
+    "mp4Bytes": 8633990,
+    "mp4Sha256": "fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392",
+    "device": {
+      "manufacturer": "HUAWEI",
+      "model": "CMS-AL20",
+      "androidVersion": "16",
+      "apiLevel": 36,
+      "resolution": "1280x2832",
+      "density": 3.5
+    },
+    "manifestFileHashesVerified": 37,
+    "manifestFileHashFailures": 0
+  },
+  "identity": {
+    "sessionId": "60fe30f1-1de3-4b86-a1f8-7be42691bdac",
+    "attemptId": "28a04f6a-995b-4fe5-b5e6-8c46d490ea0c",
+    "imageId": "yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d",
+    "photoSha256": "6b0efaeecd4f1f250e5643645d59626b3d8c707fae005e37b06d2a7a243f6f3e",
+    "photoContentVersion": 292
+  },
+  "observedMask": {
+    "sha256": "4b554bb4a2af48d139c2b7994c342961a42e9a0abe92800e7e96f9f72d403de4",
+    "version": 339270510316287117,
+    "geometryVersion": 1437474289190970691,
+    "contourPointCount": 789,
+    "contourClosed": true,
+    "roiDimensions": "[716, 1440]",
+    "status": "READY",
+    "trusted": true
+  },
+  "path": {
+    "snapshotSha256": "dd95a3fdaf5142c80f99ab8fa711fd03c347c6fdde1e4b59d04b81a1a488f0a9",
+    "contentSha256": "dd95a3fdaf5142c80f99ab8fa711fd03c347c6fdde1e4b59d04b81a1a488f0a9",
+    "snapshotVersion": 0,
+    "modelVersion": "NOT_RECORDED_IN_DEVICE_EVIDENCE",
+    "pStarViewport": {
+      "x": 706.9337,
+      "y": 1747.5795
+    },
+    "pathId": "waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283",
+    "returnPathId": "waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283",
+    "maskSha256": "4b554bb4a2af48d139c2b7994c342961a42e9a0abe92800e7e96f9f72d403de4",
+    "maskVersion": 339270510316287117,
+    "geometryVersion": 1437474289190970691,
+    "pStarNormalizedSource": {
+      "x": 0.5604575,
+      "y": 0.9372829
+    },
+    "fishPathGeometry": {
+      "start": {
+        "x": 86.44,
+        "y": 1099.3315
+      },
+      "control1": {
+        "x": 222.61331,
+        "y": 1316.7976
+      },
+      "control2": {
+        "x": 495.63058,
+        "y": 1602.0266
+      },
+      "end": {
+        "x": 706.9337,
+        "y": 1747.5795
+      },
+      "coordinateSpace": "RECOGNITION_VIEWPORT_PX"
+    },
+    "perimeterBranch": {
+      "start": {
+        "x": 640.0,
+        "y": 1840.1599
+      },
+      "control1": {
+        "x": 526.65875,
+        "y": 1601.6023
+      },
+      "control2": {
+        "x": 283.09238,
+        "y": 1275.6377
+      },
+      "end": {
+        "x": 86.44,
+        "y": 1099.3315
+      },
+      "coordinateSpace": "RECOGNITION_VIEWPORT_PX"
+    },
+    "orbReleasePath": {
+      "start": {
+        "x": 640.0,
+        "y": 2113.16
+      },
+      "control1": {
+        "x": 672.76,
+        "y": 2036.72
+      },
+      "control2": {
+        "x": 672.76,
+        "y": 1916.5999
+      },
+      "end": {
+        "x": 640.0,
+        "y": 1840.1599
+      },
+      "coordinateSpace": "RECOGNITION_VIEWPORT_PX"
+    },
+    "returnPathSegments": [
+      {
+        "start": {
+          "x": 706.9337,
+          "y": 1747.5795
+        },
+        "control1": {
+          "x": 495.63058,
+          "y": 1602.0266
+        },
+        "control2": {
+          "x": 222.61331,
+          "y": 1316.7976
+        },
+        "end": {
+          "x": 86.44,
+          "y": 1099.3315
+        },
+        "coordinateSpace": "RECOGNITION_VIEWPORT_PX"
+      },
+      {
+        "start": {
+          "x": 86.44,
+          "y": 1099.3315
+        },
+        "control1": {
+          "x": 283.09238,
+          "y": 1275.6377
+        },
+        "control2": {
+          "x": 526.65875,
+          "y": 1601.6023
+        },
+        "end": {
+          "x": 640.0,
+          "y": 1840.1599
+        },
+        "coordinateSpace": "RECOGNITION_VIEWPORT_PX"
+      },
+      {
+        "start": {
+          "x": 640.0,
+          "y": 1840.1599
+        },
+        "control1": {
+          "x": 672.76,
+          "y": 1916.5999
+        },
+        "control2": {
+          "x": 672.76,
+          "y": 2036.72
+        },
+        "end": {
+          "x": 640.0,
+          "y": 2113.16
+        },
+        "coordinateSpace": "RECOGNITION_VIEWPORT_PX"
+      }
+    ],
+    "coordinateSpace": "RECOGNITION_VIEWPORT_PX",
+    "creationTimestampMonotonicMs": 427102030,
+    "creationEventSequence": 8
+  },
+  "bindingFailure": {
+    "pathReceivedEvent": 344,
+    "rejectEvent": 345,
+    "retryEvent": 346,
+    "state": "REJECTED_MASK",
+    "reason": "PATH_MASK_MISMATCH",
+    "identityHashesEqual": true,
+    "maskShaPrefixesEqual": true,
+    "maskVersionsEqual": true,
+    "photoGeometryVersion": 0,
+    "pathGeometryVersion": 1437474289190970691,
+    "pStarSourceExpected": "",
+    "pStarSourceActual": "0.5604575,0.9372829",
+    "pendingInputs": "",
+    "expectedMaskSha256Prefix": "4b554bb4a2af48d1",
+    "actualMaskSha256Prefix": "4b554bb4a2af48d1",
+    "expectedMaskVersion": "339270510316287117",
+    "actualMaskVersion": "339270510316287117"
+  },
+  "geometrySource": {
+    "photoSourceWidthHeight": "NOT_RECORDED_IN_DEVICE_EVIDENCE",
+    "testOnlyMapping": "Synthetic transform constructed solely so mapNormalized(logged P*) equals logged fishPathGeometry.end. It is not claimed to be the device transform.",
+    "testOnlySourceDimensionsPx": [
+      1000,
+      1000
+    ]
+  },
+  "blockedStage": {
+    "eventSequence": 582,
+    "stage": "ORB_RETURN",
+    "unmetConditions": "[orbReturnRenderReceiptReady, orbReturnComplete, glyphAvailable, resultGeometryReady]",
+    "resultGeometryState": "PENDING",
+    "controllerEventSequence": 14,
+    "lastAcceptedEventSequence": 8,
+    "lastRejectedEvent": "EnergyEventRejectionDiagnostic(event=EnergyEvent(sessionId=60fe30f1-1de3-4b86-a1f8-7be42691bdac, photoSha256=6b0efaeecd4f1f250e5643645d59626b3d8c707fae005e37b06d2a7a243f6f3e, source=PHOTO_PATH, target=FISH_CONTOUR, feedback=ABSORB, level=1.0, referenceMs=14962, geometryVersion=1437474289190970691, attemptId=28a04f6a-995b-4fe5-b5e6-8c46d490ea0c, imageId=yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d, photoContentVersion=292, pathId=waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283, pathGeometry=WaterLightPathGeometry(start=WaterLightPathPoint(x=86.44, y=1099.3315), control1=WaterLightPathPoint(x=222.61331, y=1316.7976), control2=WaterLightPathPoint(x=495.63058, y=1602.0266), end=WaterLightPathPoint(x=706.9337, y=1747.5795), coordinateSpace=RECOGNITION_VIEWPORT_PX), pathSegments=[], pathMaskSha256=4b554bb4a2af48d139c2b7994c342961a42e9a0abe92800e7e96f9f72d403de4, pathMaskVersion=339270510316287117, pathGeometryVersion=1437474289190970691, pathContactPointNormalizedSource=WaterLightPathPoint(x=0.5604575, y=0.9372829), eventSequence=12, monotonicTimestampMs=427103644, sourceHost=PHOTO_PATH, targetHost=FISH_CONTOUR, renderStatus=READY, stage=CONTOUR_C), reason=EVENT_STAGE_MISMATCH, stageProgress=1.0, modelGates=RecognitionSceneModelGates(detector=READY, classifier=READY, slimSam=TRUSTED, mask=TRUSTED, geometry=PENDING, runState=RUNNING, waitingReason=null))"
+  },
+  "rawEvents": {
+    "pathAccepted": {
+      "schemaVersion": 1,
+      "sequence": 344,
+      "timestampUptimeMs": 427102117,
+      "eventType": "FISH_PATH_SNAPSHOT_ACCEPTED",
+      "sessionIdHash": "eac685c919654e49ac9a1a3a6f63663623f95b3f265c51da999a962368941936",
+      "attemptIdHash": "0bc9b121754f71656bc6875ad0bf0fbbf0c07ab49c55ede8c00fce1cc8515912",
+      "imageIdHash": "ed853daff77eabd4b5c86d617f99d5da9b204feec989f9789710ec8b4d7dbeb0",
+      "fishPathId": "waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283",
+      "returnPathId": "waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283",
+      "maskSha256": "4b554bb4a2af48d139c2b7994c342961a42e9a0abe92800e7e96f9f72d403de4",
+      "maskVersion": 339270510316287117,
+      "geometryVersion": 1437474289190970691,
+      "pStarNormalizedSource": "[0.5604575, 0.9372829]",
+      "fishPathGeometry": "{start=[86.44, 1099.3315], control1=[222.61331, 1316.7976], control2=[495.63058, 1602.0266], end=[706.9337, 1747.5795], coordinateSpace=RECOGNITION_VIEWPORT_PX}",
+      "perimeterBranch": "{start=[640.0, 1840.1599], control1=[526.65875, 1601.6023], control2=[283.09238, 1275.6377], end=[86.44, 1099.3315], coordinateSpace=RECOGNITION_VIEWPORT_PX}",
+      "orbReleasePath": "{start=[640.0, 2113.16], control1=[672.76, 2036.72], control2=[672.76, 1916.5999], end=[640.0, 1840.1599], coordinateSpace=RECOGNITION_VIEWPORT_PX}",
+      "returnPathSegments": "[{start=[706.9337, 1747.5795], control1=[495.63058, 1602.0266], control2=[222.61331, 1316.7976], end=[86.44, 1099.3315], coordinateSpace=RECOGNITION_VIEWPORT_PX}, {start=[86.44, 1099.3315], control1=[283.09238, 1275.6377], control2=[526.65875, 1601.6023], end=[640.0, 1840.1599], coordinateSpace=RECOGNITION_VIEWPORT_PX}, {start=[640.0, 1840.1599], control1=[672.76, 1916.5999], control2=[672.76, 2036.72], end=[640.0, 2113.16], coordinateSpace=RECOGNITION_VIEWPORT_PX}]",
+      "sourceCoordinateSpace": "RECOGNITION_VIEWPORT_PX",
+      "creationTimestampMonotonicMs": 427102030,
+      "creationEventSequence": 8,
+      "valid": true,
+      "acceptedAfterEvent": "ABSORB",
+      "acceptedEventSequence": 8
+    },
+    "pathBindingRejected": {
+      "schemaVersion": 1,
+      "sequence": 345,
+      "timestampUptimeMs": 427102121,
+      "eventType": "FISH_PATH_SESSION_STORE_BINDING",
+      "phase": "PATH_SNAPSHOT",
+      "sessionStoreState": "REJECTED_MASK",
+      "revealDecision": "WAITING_PSTAR_PATH",
+      "pathBound": false,
+      "pathPending": false,
+      "state": "REJECTED_MASK",
+      "expectedIdentityHash": "ea221a7f464b1c02",
+      "actualIdentityHash": "ea221a7f464b1c02",
+      "expectedMaskSha256": "4b554bb4a2af48d1",
+      "actualMaskSha256": "4b554bb4a2af48d1",
+      "expectedMaskVersion": "339270510316287117",
+      "actualMaskVersion": "339270510316287117",
+      "processingGeometryVersion": "0",
+      "pathGeometryVersion": "1437474289190970691",
+      "pStarSourceExpected": "",
+      "pStarSourceActual": "0.5604575,0.9372829",
+      "pStarViewportExpected": "",
+      "fishPathEndpoint": "706.9337,1747.5795",
+      "pathId": "waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283",
+      "pendingInputs": "",
+      "handoffFrozen": "false",
+      "producerSnapshotSha256": "dd95a3fdaf5142c80f99ab8fa711fd03c347c6fdde1e4b59d04b81a1a488f0a9",
+      "snapshotContentSha256": "dd95a3fdaf5142c80f99ab8fa711fd03c347c6fdde1e4b59d04b81a1a488f0a9",
+      "snapshotPathId": "waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283",
+      "snapshotReceivedAtUptimeMs": "427102118",
+      "pendingReason": "PATH_MASK_MISMATCH"
+    },
+    "photoCallbackRetryRejected": {
+      "schemaVersion": 1,
+      "sequence": 346,
+      "timestampUptimeMs": 427102122,
+      "eventType": "FISH_PATH_SESSION_STORE_BINDING",
+      "phase": "PROCESSING_PHOTO",
+      "sessionStoreState": "REJECTED_MASK",
+      "revealDecision": "WAITING_PSTAR_PATH",
+      "pathBound": false,
+      "pathPending": false,
+      "state": "REJECTED_MASK",
+      "expectedIdentityHash": "ea221a7f464b1c02",
+      "actualIdentityHash": "ea221a7f464b1c02",
+      "expectedMaskSha256": "4b554bb4a2af48d1",
+      "actualMaskSha256": "4b554bb4a2af48d1",
+      "expectedMaskVersion": "339270510316287117",
+      "actualMaskVersion": "339270510316287117",
+      "processingGeometryVersion": "0",
+      "pathGeometryVersion": "1437474289190970691",
+      "pStarSourceExpected": "",
+      "pStarSourceActual": "0.5604575,0.9372829",
+      "pStarViewportExpected": "",
+      "fishPathEndpoint": "706.9337,1747.5795",
+      "pathId": "waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283",
+      "pendingInputs": "",
+      "handoffFrozen": "false",
+      "producerSnapshotSha256": "dd95a3fdaf5142c80f99ab8fa711fd03c347c6fdde1e4b59d04b81a1a488f0a9",
+      "snapshotContentSha256": "dd95a3fdaf5142c80f99ab8fa711fd03c347c6fdde1e4b59d04b81a1a488f0a9",
+      "snapshotPathId": "waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283",
+      "snapshotReceivedAtUptimeMs": "427102118",
+      "pendingReason": "PATH_MASK_MISMATCH"
+    },
+    "gateStall": {
+      "schemaVersion": 1,
+      "sequence": 582,
+      "timestampUptimeMs": 427112854,
+      "eventType": "STAGE_GATE_STALL",
+      "stage": "ORB_RETURN",
+      "stageElapsedMs": 8160,
+      "sceneElapsedMs": 24132,
+      "minVisibleMs": 350,
+      "modelTerminal": true,
+      "classifierReady": true,
+      "slimSamTerminal": true,
+      "revealDecisionReady": true,
+      "revealDecisionState": "FISH_FOCUS_READY",
+      "maskTrusted": true,
+      "contourValid": true,
+      "contourClosed": true,
+      "photoGeometryVersion": 1437474289190970691,
+      "maskGeometryVersion": 1437474289190970691,
+      "maskSha256": "4b554bb4a2af48d139c2b7994c342961a42e9a0abe92800e7e96f9f72d403de4",
+      "maskVersion": 339270510316287117,
+      "fishContactPathReady": true,
+      "fishPathSnapshotReady": true,
+      "fishPathId": "waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283",
+      "fishGoldComplete": true,
+      "orbReturnComplete": false,
+      "orbAnchorReady": true,
+      "glyphAvailable": false,
+      "orbToGlyphComplete": false,
+      "glyphRevealComplete": false,
+      "residueSettleComplete": false,
+      "resultGeometryState": "PENDING",
+      "eventSequence": 14,
+      "lastAcceptedEventSequence": 8,
+      "lastRejectedEvent": "EnergyEventRejectionDiagnostic(event=EnergyEvent(sessionId=60fe30f1-1de3-4b86-a1f8-7be42691bdac, photoSha256=6b0efaeecd4f1f250e5643645d59626b3d8c707fae005e37b06d2a7a243f6f3e, source=PHOTO_PATH, target=FISH_CONTOUR, feedback=ABSORB, level=1.0, referenceMs=14962, geometryVersion=1437474289190970691, attemptId=28a04f6a-995b-4fe5-b5e6-8c46d490ea0c, imageId=yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d, photoContentVersion=292, pathId=waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283, pathGeometry=WaterLightPathGeometry(start=WaterLightPathPoint(x=86.44, y=1099.3315), control1=WaterLightPathPoint(x=222.61331, y=1316.7976), control2=WaterLightPathPoint(x=495.63058, y=1602.0266), end=WaterLightPathPoint(x=706.9337, y=1747.5795), coordinateSpace=RECOGNITION_VIEWPORT_PX), pathSegments=[], pathMaskSha256=4b554bb4a2af48d139c2b7994c342961a42e9a0abe92800e7e96f9f72d403de4, pathMaskVersion=339270510316287117, pathGeometryVersion=1437474289190970691, pathContactPointNormalizedSource=WaterLightPathPoint(x=0.5604575, y=0.9372829), eventSequence=12, monotonicTimestampMs=427103644, sourceHost=PHOTO_PATH, targetHost=FISH_CONTOUR, renderStatus=READY, stage=CONTOUR_C), reason=EVENT_STAGE_MISMATCH, stageProgress=1.0, modelGates=RecognitionSceneModelGates(detector=READY, classifier=READY, slimSam=TRUSTED, mask=TRUSTED, geometry=PENDING, runState=RUNNING, waitingReason=null))",
+      "unmetConditions": "[orbReturnRenderReceiptReady, orbReturnComplete, glyphAvailable, resultGeometryReady]",
+      "lastAcceptedEvent": "EnergyEvent(sessionId=60fe30f1-1de3-4b86-a1f8-7be42691bdac, photoSha256=6b0efaeecd4f1f250e5643645d59626b3d8c707fae005e37b06d2a7a243f6f3e, source=PHOTO_PATH, target=FISH_CONTOUR, feedback=ABSORB, level=0.25, referenceMs=13348, geometryVersion=1437474289190970691, attemptId=28a04f6a-995b-4fe5-b5e6-8c46d490ea0c, imageId=yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d, photoContentVersion=292, pathId=waterlight:60fe30f1-1de3-4b86-a1f8-7be42691bdac:28a04f6a-995b-4fe5-b5e6-8c46d490ea0c:yj_img_2dcc801e-8418-4880-ac3a-e151a4d42d0d:292:1437474289190970691:mask:4b554bb4a2af48d1:339270510316287117:0.560458:0.937283, pathGeometry=WaterLightPathGeometry(start=WaterLightPathPoint(x=86.44, y=1099.3315), control1=WaterLightPathPoint(x=222.61331, y=1316.7976), control2=WaterLightPathPoint(x=495.63058, y=1602.0266), end=WaterLightPathPoint(x=706.9337, y=1747.5795), coordinateSpace=RECOGNITION_VIEWPORT_PX), pathSegments=[], pathMaskSha256=4b554bb4a2af48d139c2b7994c342961a42e9a0abe92800e7e96f9f72d403de4, pathMaskVersion=339270510316287117, pathGeometryVersion=1437474289190970691, pathContactPointNormalizedSource=WaterLightPathPoint(x=0.5604575, y=0.9372829), eventSequence=8, monotonicTimestampMs=427102030, sourceHost=PHOTO_PATH, targetHost=FISH_CONTOUR, renderStatus=READY, stage=PATH_TO_FISH)"
+    }
+  },
+  "expectation": "Before fix the real immutable three-segment path remains RECEIVED_PENDING while Processing Photo mask SHA/version, positive geometry version, and P* are absent. After those exact identity inputs arrive, the same path binds BOUND. Mismatching non-empty SHA/version and positive differing geometry still reject.",
+  "limitations": [
+    "Device package does not record the original photo width/height or full Processing Photo transform; the unit-test projection is synthetic and is not device evidence.",
+    "The fixture replays the actual SessionStore join inputs and path geometry, not a full device pixel or model replay."
+  ]
+}

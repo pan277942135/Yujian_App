@@ -1,0 +1,1308 @@
+{
+  "schema_version": "1.0",
+  "task_id": "YUJIAN_FIRST_USE_GUIDE_PREDEV_CONTRACT_ASSETS_RESPONSIVE_FREEZE_V1",
+  "measurement_status": "VISIBLE_GEOMETRY_MEASURED; FLATTENED_STYLE_AND_LAYER_SEPARATION_NOT_RECOVERABLE",
+  "source_rule": "Only the registered Frozen PNGs are geometry inputs; no screenshots were rescaled, cropped into runtime assets or overwritten.",
+  "measurement_tool": "scripts/measure_first_use_camera_guide_geometry.py",
+  "pages": {
+    "p01": {
+      "page_id": "p01",
+      "source_path": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+      "source_sha256": "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50",
+      "source_dimensions_px": {
+        "width": 941,
+        "height": 1671
+      },
+      "coordinate_system": "native_frozen_png_pixels; origin top-left; x right; y down; bbox half-open",
+      "outer_page_orientation": "portrait_reference_artboard; runtime_viewport_orientation_is_responsive",
+      "camera_capture_orientation": "portrait",
+      "fish_orientation": "horizontal",
+      "card_edge_evidence": {
+        "row_edge_peak_top": 1074,
+        "row_edge_peak_bottom": 1246,
+        "column_edge_peaks": [
+          57,
+          323,
+          354,
+          604,
+          635,
+          884
+        ]
+      },
+      "components": {
+        "guide.background": {
+          "bbox_px": {
+            "x": 0,
+            "y": 0,
+            "width": 941,
+            "height": 1671
+          },
+          "bbox_normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "exact_png_canvas_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.overlay": {
+          "bbox_px": {
+            "x": 0,
+            "y": 0,
+            "width": 941,
+            "height": 1671
+          },
+          "bbox_normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "full_page_teaching_overlay_reference_extent",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.back_action": {
+          "bbox_px": {
+            "x": 58,
+            "y": 63,
+            "width": 21,
+            "height": 37
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.037702,
+            "width": 0.022317,
+            "height": 0.022142
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "foreground_core_threshold_rgb_luma_lt_125_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.masthead_title": {
+          "bbox_px": {
+            "x": 402,
+            "y": 65,
+            "width": 138,
+            "height": 32
+          },
+          "bbox_normalized": {
+            "x": 0.427205,
+            "y": 0.038899,
+            "width": 0.146652,
+            "height": 0.01915
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "foreground_core_threshold_rgb_luma_lt_125_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.masthead_subtitle": {
+          "bbox_px": {
+            "x": 259,
+            "y": 120,
+            "width": 424,
+            "height": 22
+          },
+          "bbox_normalized": {
+            "x": 0.275239,
+            "y": 0.071813,
+            "width": 0.450584,
+            "height": 0.013166
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "foreground_core_threshold_rgb_luma_lt_125_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.step_indicator": {
+          "bbox_px": {
+            "x": 70,
+            "y": 835,
+            "width": 108,
+            "height": 27
+          },
+          "bbox_normalized": {
+            "x": 0.074389,
+            "y": 0.499701,
+            "width": 0.114772,
+            "height": 0.016158
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "manual_native_pixel_boundary_review; OCR_not_used",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.title": {
+          "bbox_px": {
+            "x": 72,
+            "y": 891,
+            "width": 366,
+            "height": 55
+          },
+          "bbox_normalized": {
+            "x": 0.076514,
+            "y": 0.533214,
+            "width": 0.388948,
+            "height": 0.032914
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.support_copy": {
+          "bbox_px": {
+            "x": 72,
+            "y": 993,
+            "width": 665,
+            "height": 32
+          },
+          "bbox_normalized": {
+            "x": 0.076514,
+            "y": 0.594255,
+            "width": 0.706695,
+            "height": 0.01915
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.head_out": {
+          "bbox_px": {
+            "x": 57,
+            "y": 1074,
+            "width": 268,
+            "height": 173
+          },
+          "bbox_normalized": {
+            "x": 0.060574,
+            "y": 0.642729,
+            "width": 0.284803,
+            "height": 0.103531
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "mean_luminance_row_column_gradient_edges",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.too_small": {
+          "bbox_px": {
+            "x": 354,
+            "y": 1074,
+            "width": 252,
+            "height": 173
+          },
+          "bbox_normalized": {
+            "x": 0.376196,
+            "y": 0.642729,
+            "width": 0.2678,
+            "height": 0.103531
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "mean_luminance_row_column_gradient_edges",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.occlusion": {
+          "bbox_px": {
+            "x": 635,
+            "y": 1074,
+            "width": 251,
+            "height": 173
+          },
+          "bbox_normalized": {
+            "x": 0.674814,
+            "y": 0.642729,
+            "width": 0.266738,
+            "height": 0.103531
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "mean_luminance_row_column_gradient_edges",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.head_out.caption": {
+          "bbox_px": {
+            "x": 71,
+            "y": 1267,
+            "width": 193,
+            "height": 64
+          },
+          "bbox_normalized": {
+            "x": 0.075452,
+            "y": 0.758229,
+            "width": 0.205101,
+            "height": 0.0383
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.too_small.caption": {
+          "bbox_px": {
+            "x": 366,
+            "y": 1268,
+            "width": 148,
+            "height": 63
+          },
+          "bbox_normalized": {
+            "x": 0.388948,
+            "y": 0.758827,
+            "width": 0.157279,
+            "height": 0.037702
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.occlusion.caption": {
+          "bbox_px": {
+            "x": 649,
+            "y": 1267,
+            "width": 147,
+            "height": 64
+          },
+          "bbox_normalized": {
+            "x": 0.689692,
+            "y": 0.758229,
+            "width": 0.156217,
+            "height": 0.0383
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.completion_hint": {
+          "bbox_px": {
+            "x": 287,
+            "y": 1392,
+            "width": 370,
+            "height": 26
+          },
+          "bbox_normalized": {
+            "x": 0.304995,
+            "y": 0.833034,
+            "width": 0.393199,
+            "height": 0.01556
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "chromatic_foreground_core_threshold_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.pagination": {
+          "bbox_px": {
+            "x": 426,
+            "y": 1479,
+            "width": 89,
+            "height": 16
+          },
+          "bbox_normalized": {
+            "x": 0.45271,
+            "y": 0.885099,
+            "width": 0.09458,
+            "height": 0.009575
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "chromatic_foreground_core_threshold_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.skip_action": {
+          "bbox_px": {
+            "x": 71,
+            "y": 1542,
+            "width": 67,
+            "height": 38
+          },
+          "bbox_normalized": {
+            "x": 0.075452,
+            "y": 0.922801,
+            "width": 0.071201,
+            "height": 0.022741
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.previous_action": {
+          "bbox_px": null,
+          "bbox_normalized": null,
+          "measurement_status": "NOT_VISIBLE_ON_THIS_PAGE",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.primary_action": {
+          "bbox_px": {
+            "x": 569,
+            "y": 1505,
+            "width": 314,
+            "height": 98
+          },
+          "bbox_normalized": {
+            "x": 0.604676,
+            "y": 0.900658,
+            "width": 0.333688,
+            "height": 0.058648
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi; visible_button_fill_not_touch_target",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.header": {
+          "bbox_px": {
+            "x": 58,
+            "y": 63,
+            "width": 625,
+            "height": 79
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.037702,
+            "width": 0.664187,
+            "height": 0.047277
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_measured_visible_content_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.hero": {
+          "bbox_px": {
+            "x": 58,
+            "y": 198,
+            "width": 826,
+            "height": 570
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.118492,
+            "width": 0.87779,
+            "height": 0.341113
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "manual_native_pixel_boundary_review_of_bracket_markers; inner_photo_is_composited",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error_examples": {
+          "bbox_px": {
+            "x": 57,
+            "y": 1074,
+            "width": 829,
+            "height": 257
+          },
+          "bbox_normalized": {
+            "x": 0.060574,
+            "y": 0.642729,
+            "width": 0.880978,
+            "height": 0.1538
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_measured_card_and_caption_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.intro": {
+          "bbox_px": {
+            "x": 70,
+            "y": 835,
+            "width": 667,
+            "height": 190
+          },
+          "bbox_normalized": {
+            "x": 0.074389,
+            "y": 0.499701,
+            "width": 0.70882,
+            "height": 0.113704
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_measured_visible_text_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.actions": {
+          "bbox_px": {
+            "x": 71,
+            "y": 1505,
+            "width": 812,
+            "height": 98
+          },
+          "bbox_normalized": {
+            "x": 0.075452,
+            "y": 0.900658,
+            "width": 0.862912,
+            "height": 0.058648
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_visible_control_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        }
+      },
+      "non_recoverable_from_flattened_png": [
+        "editable source layers and original photo crops",
+        "source alpha before compositing",
+        "font family, declared sp size and line-height",
+        "invisible hit target extents",
+        "original DOM/CSS z-index values",
+        "independent background and hero source-photo files"
+      ]
+    },
+    "p02": {
+      "page_id": "p02",
+      "source_path": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+      "source_sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
+      "source_dimensions_px": {
+        "width": 941,
+        "height": 1671
+      },
+      "coordinate_system": "native_frozen_png_pixels; origin top-left; x right; y down; bbox half-open",
+      "outer_page_orientation": "portrait_reference_artboard; runtime_viewport_orientation_is_responsive",
+      "camera_capture_orientation": "portrait",
+      "fish_orientation": "vertical",
+      "card_edge_evidence": {
+        "row_edge_peak_top": 1069,
+        "row_edge_peak_bottom": 1247,
+        "column_edge_peaks": [
+          58,
+          324,
+          350,
+          607,
+          633,
+          887
+        ]
+      },
+      "components": {
+        "guide.background": {
+          "bbox_px": {
+            "x": 0,
+            "y": 0,
+            "width": 941,
+            "height": 1671
+          },
+          "bbox_normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "exact_png_canvas_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.overlay": {
+          "bbox_px": {
+            "x": 0,
+            "y": 0,
+            "width": 941,
+            "height": 1671
+          },
+          "bbox_normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "full_page_teaching_overlay_reference_extent",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.back_action": {
+          "bbox_px": {
+            "x": 58,
+            "y": 64,
+            "width": 21,
+            "height": 36
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.0383,
+            "width": 0.022317,
+            "height": 0.021544
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "foreground_core_threshold_rgb_luma_lt_125_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.masthead_title": {
+          "bbox_px": {
+            "x": 403,
+            "y": 66,
+            "width": 136,
+            "height": 31
+          },
+          "bbox_normalized": {
+            "x": 0.428268,
+            "y": 0.039497,
+            "width": 0.144527,
+            "height": 0.018552
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "foreground_core_threshold_rgb_luma_lt_125_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.masthead_subtitle": {
+          "bbox_px": {
+            "x": 259,
+            "y": 120,
+            "width": 423,
+            "height": 22
+          },
+          "bbox_normalized": {
+            "x": 0.275239,
+            "y": 0.071813,
+            "width": 0.449522,
+            "height": 0.013166
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "foreground_core_threshold_rgb_luma_lt_125_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.step_indicator": {
+          "bbox_px": {
+            "x": 70,
+            "y": 835,
+            "width": 108,
+            "height": 27
+          },
+          "bbox_normalized": {
+            "x": 0.074389,
+            "y": 0.499701,
+            "width": 0.114772,
+            "height": 0.016158
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "manual_native_pixel_boundary_review; OCR_not_used",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.title": {
+          "bbox_px": {
+            "x": 69,
+            "y": 897,
+            "width": 449,
+            "height": 51
+          },
+          "bbox_normalized": {
+            "x": 0.073326,
+            "y": 0.536804,
+            "width": 0.477152,
+            "height": 0.030521
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.support_copy": {
+          "bbox_px": {
+            "x": 69,
+            "y": 995,
+            "width": 588,
+            "height": 29
+          },
+          "bbox_normalized": {
+            "x": 0.073326,
+            "y": 0.595452,
+            "width": 0.624867,
+            "height": 0.017355
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.head_out": {
+          "bbox_px": {
+            "x": 58,
+            "y": 1069,
+            "width": 268,
+            "height": 179
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.639737,
+            "width": 0.284803,
+            "height": 0.107121
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "mean_luminance_row_column_gradient_edges",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.too_small": {
+          "bbox_px": {
+            "x": 350,
+            "y": 1069,
+            "width": 259,
+            "height": 179
+          },
+          "bbox_normalized": {
+            "x": 0.371945,
+            "y": 0.639737,
+            "width": 0.275239,
+            "height": 0.107121
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "mean_luminance_row_column_gradient_edges",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.occlusion": {
+          "bbox_px": {
+            "x": 633,
+            "y": 1069,
+            "width": 256,
+            "height": 179
+          },
+          "bbox_normalized": {
+            "x": 0.672689,
+            "y": 0.639737,
+            "width": 0.272051,
+            "height": 0.107121
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "mean_luminance_row_column_gradient_edges",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.head_out.caption": {
+          "bbox_px": {
+            "x": 71,
+            "y": 1267,
+            "width": 193,
+            "height": 64
+          },
+          "bbox_normalized": {
+            "x": 0.075452,
+            "y": 0.758229,
+            "width": 0.205101,
+            "height": 0.0383
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.too_small.caption": {
+          "bbox_px": {
+            "x": 366,
+            "y": 1267,
+            "width": 149,
+            "height": 64
+          },
+          "bbox_normalized": {
+            "x": 0.388948,
+            "y": 0.758229,
+            "width": 0.158342,
+            "height": 0.0383
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.occlusion.caption": {
+          "bbox_px": {
+            "x": 648,
+            "y": 1267,
+            "width": 148,
+            "height": 64
+          },
+          "bbox_normalized": {
+            "x": 0.688629,
+            "y": 0.758229,
+            "width": 0.157279,
+            "height": 0.0383
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.completion_hint": {
+          "bbox_px": {
+            "x": 286,
+            "y": 1392,
+            "width": 372,
+            "height": 25
+          },
+          "bbox_normalized": {
+            "x": 0.303932,
+            "y": 0.833034,
+            "width": 0.395324,
+            "height": 0.014961
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "chromatic_foreground_core_threshold_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.pagination": {
+          "bbox_px": {
+            "x": 463,
+            "y": 1479,
+            "width": 52,
+            "height": 16
+          },
+          "bbox_normalized": {
+            "x": 0.49203,
+            "y": 0.885099,
+            "width": 0.05526,
+            "height": 0.009575
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "chromatic_foreground_core_threshold_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.skip_action": {
+          "bbox_px": {
+            "x": 71,
+            "y": 1542,
+            "width": 67,
+            "height": 38
+          },
+          "bbox_normalized": {
+            "x": 0.075452,
+            "y": 0.922801,
+            "width": 0.071201,
+            "height": 0.022741
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.previous_action": {
+          "bbox_px": {
+            "x": 207,
+            "y": 1542,
+            "width": 102,
+            "height": 30
+          },
+          "bbox_normalized": {
+            "x": 0.219979,
+            "y": 0.922801,
+            "width": 0.108395,
+            "height": 0.017953
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.primary_action": {
+          "bbox_px": {
+            "x": 575,
+            "y": 1507,
+            "width": 311,
+            "height": 97
+          },
+          "bbox_normalized": {
+            "x": 0.611052,
+            "y": 0.901855,
+            "width": 0.330499,
+            "height": 0.058049
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi; visible_button_fill_not_touch_target",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.header": {
+          "bbox_px": {
+            "x": 58,
+            "y": 64,
+            "width": 624,
+            "height": 78
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.0383,
+            "width": 0.663124,
+            "height": 0.046679
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_measured_visible_content_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.hero": {
+          "bbox_px": {
+            "x": 58,
+            "y": 198,
+            "width": 826,
+            "height": 570
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.118492,
+            "width": 0.87779,
+            "height": 0.341113
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "manual_native_pixel_boundary_review_of_bracket_markers; inner_photo_is_composited",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error_examples": {
+          "bbox_px": {
+            "x": 58,
+            "y": 1069,
+            "width": 831,
+            "height": 262
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.639737,
+            "width": 0.883103,
+            "height": 0.156792
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_measured_card_and_caption_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.intro": {
+          "bbox_px": {
+            "x": 69,
+            "y": 835,
+            "width": 588,
+            "height": 189
+          },
+          "bbox_normalized": {
+            "x": 0.073326,
+            "y": 0.499701,
+            "width": 0.624867,
+            "height": 0.113106
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_measured_visible_text_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.actions": {
+          "bbox_px": {
+            "x": 71,
+            "y": 1507,
+            "width": 815,
+            "height": 97
+          },
+          "bbox_normalized": {
+            "x": 0.075452,
+            "y": 0.901855,
+            "width": 0.8661,
+            "height": 0.058049
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_visible_control_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        }
+      },
+      "non_recoverable_from_flattened_png": [
+        "editable source layers and original photo crops",
+        "source alpha before compositing",
+        "font family, declared sp size and line-height",
+        "invisible hit target extents",
+        "original DOM/CSS z-index values",
+        "independent background and hero source-photo files"
+      ]
+    },
+    "p03": {
+      "page_id": "p03",
+      "source_path": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+      "source_sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
+      "source_dimensions_px": {
+        "width": 941,
+        "height": 1672
+      },
+      "coordinate_system": "native_frozen_png_pixels; origin top-left; x right; y down; bbox half-open",
+      "outer_page_orientation": "portrait_reference_artboard; runtime_viewport_orientation_is_responsive",
+      "camera_capture_orientation": "landscape",
+      "fish_orientation": "horizontal",
+      "card_edge_evidence": {
+        "row_edge_peak_top": 1074,
+        "row_edge_peak_bottom": 1246,
+        "column_edge_peaks": [
+          56,
+          332,
+          355,
+          609,
+          633,
+          887
+        ]
+      },
+      "components": {
+        "guide.background": {
+          "bbox_px": {
+            "x": 0,
+            "y": 0,
+            "width": 941,
+            "height": 1672
+          },
+          "bbox_normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "exact_png_canvas_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.overlay": {
+          "bbox_px": {
+            "x": 0,
+            "y": 0,
+            "width": 941,
+            "height": 1672
+          },
+          "bbox_normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "full_page_teaching_overlay_reference_extent",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.back_action": {
+          "bbox_px": {
+            "x": 58,
+            "y": 63,
+            "width": 20,
+            "height": 37
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.037679,
+            "width": 0.021254,
+            "height": 0.022129
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "foreground_core_threshold_rgb_luma_lt_125_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.masthead_title": {
+          "bbox_px": null,
+          "bbox_normalized": null,
+          "measurement_status": "NOT_VISIBLE_ON_THIS_PAGE",
+          "measurement_method": "foreground_core_threshold_rgb_luma_lt_125_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.masthead_subtitle": {
+          "bbox_px": null,
+          "bbox_normalized": null,
+          "measurement_status": "NOT_VISIBLE_ON_THIS_PAGE",
+          "measurement_method": "foreground_core_threshold_rgb_luma_lt_125_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.step_indicator": {
+          "bbox_px": {
+            "x": 70,
+            "y": 835,
+            "width": 108,
+            "height": 27
+          },
+          "bbox_normalized": {
+            "x": 0.074389,
+            "y": 0.499402,
+            "width": 0.114772,
+            "height": 0.016148
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "manual_native_pixel_boundary_review; OCR_not_used",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.title": {
+          "bbox_px": {
+            "x": 71,
+            "y": 891,
+            "width": 367,
+            "height": 56
+          },
+          "bbox_normalized": {
+            "x": 0.075452,
+            "y": 0.532895,
+            "width": 0.390011,
+            "height": 0.033493
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.support_copy": {
+          "bbox_px": {
+            "x": 72,
+            "y": 995,
+            "width": 664,
+            "height": 30
+          },
+          "bbox_normalized": {
+            "x": 0.076514,
+            "y": 0.595096,
+            "width": 0.705632,
+            "height": 0.017943
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.head_out": {
+          "bbox_px": {
+            "x": 56,
+            "y": 1074,
+            "width": 278,
+            "height": 173
+          },
+          "bbox_normalized": {
+            "x": 0.059511,
+            "y": 0.642344,
+            "width": 0.29543,
+            "height": 0.103469
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "mean_luminance_row_column_gradient_edges",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.too_small": {
+          "bbox_px": {
+            "x": 355,
+            "y": 1074,
+            "width": 256,
+            "height": 173
+          },
+          "bbox_normalized": {
+            "x": 0.377258,
+            "y": 0.642344,
+            "width": 0.272051,
+            "height": 0.103469
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "mean_luminance_row_column_gradient_edges",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.occlusion": {
+          "bbox_px": {
+            "x": 633,
+            "y": 1074,
+            "width": 256,
+            "height": 173
+          },
+          "bbox_normalized": {
+            "x": 0.672689,
+            "y": 0.642344,
+            "width": 0.272051,
+            "height": 0.103469
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "mean_luminance_row_column_gradient_edges",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.head_out.caption": {
+          "bbox_px": {
+            "x": 76,
+            "y": 1270,
+            "width": 191,
+            "height": 61
+          },
+          "bbox_normalized": {
+            "x": 0.080765,
+            "y": 0.759569,
+            "width": 0.202976,
+            "height": 0.036483
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.too_small.caption": {
+          "bbox_px": {
+            "x": 380,
+            "y": 1268,
+            "width": 145,
+            "height": 62
+          },
+          "bbox_normalized": {
+            "x": 0.403826,
+            "y": 0.758373,
+            "width": 0.154091,
+            "height": 0.037081
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error.occlusion.caption": {
+          "bbox_px": {
+            "x": 652,
+            "y": 1270,
+            "width": 145,
+            "height": 61
+          },
+          "bbox_normalized": {
+            "x": 0.69288,
+            "y": 0.759569,
+            "width": 0.154091,
+            "height": 0.036483
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.completion_hint": {
+          "bbox_px": {
+            "x": 293,
+            "y": 1394,
+            "width": 354,
+            "height": 25
+          },
+          "bbox_normalized": {
+            "x": 0.311371,
+            "y": 0.833732,
+            "width": 0.376196,
+            "height": 0.014952
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "chromatic_foreground_core_threshold_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.pagination": {
+          "bbox_px": {
+            "x": 426,
+            "y": 1485,
+            "width": 88,
+            "height": 17
+          },
+          "bbox_normalized": {
+            "x": 0.45271,
+            "y": 0.888158,
+            "width": 0.093518,
+            "height": 0.010167
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "chromatic_foreground_core_threshold_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.skip_action": {
+          "bbox_px": {
+            "x": 71,
+            "y": 1541,
+            "width": 65,
+            "height": 36
+          },
+          "bbox_normalized": {
+            "x": 0.075452,
+            "y": 0.921651,
+            "width": 0.069075,
+            "height": 0.021531
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.previous_action": {
+          "bbox_px": {
+            "x": 205,
+            "y": 1541,
+            "width": 100,
+            "height": 30
+          },
+          "bbox_normalized": {
+            "x": 0.217853,
+            "y": 0.921651,
+            "width": 0.10627,
+            "height": 0.017943
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.primary_action": {
+          "bbox_px": {
+            "x": 568,
+            "y": 1509,
+            "width": 316,
+            "height": 91
+          },
+          "bbox_normalized": {
+            "x": 0.603613,
+            "y": 0.902512,
+            "width": 0.335813,
+            "height": 0.054426
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "white_core_threshold_min_channel_gt_215_in_roi; visible_button_fill_not_touch_target",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.header": {
+          "bbox_px": {
+            "x": 58,
+            "y": 63,
+            "width": 20,
+            "height": 37
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.037679,
+            "width": 0.021254,
+            "height": 0.022129
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_measured_visible_content_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.hero": {
+          "bbox_px": {
+            "x": 58,
+            "y": 198,
+            "width": 826,
+            "height": 570
+          },
+          "bbox_normalized": {
+            "x": 0.061637,
+            "y": 0.118421,
+            "width": 0.87779,
+            "height": 0.340909
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "manual_native_pixel_boundary_review_of_bracket_markers; inner_photo_is_composited",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.error_examples": {
+          "bbox_px": {
+            "x": 56,
+            "y": 1074,
+            "width": 833,
+            "height": 257
+          },
+          "bbox_normalized": {
+            "x": 0.059511,
+            "y": 0.642344,
+            "width": 0.885228,
+            "height": 0.153708
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_measured_card_and_caption_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.intro": {
+          "bbox_px": {
+            "x": 70,
+            "y": 835,
+            "width": 666,
+            "height": 190
+          },
+          "bbox_normalized": {
+            "x": 0.074389,
+            "y": 0.499402,
+            "width": 0.707758,
+            "height": 0.113636
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_measured_visible_text_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        },
+        "guide.actions": {
+          "bbox_px": {
+            "x": 71,
+            "y": 1509,
+            "width": 813,
+            "height": 91
+          },
+          "bbox_normalized": {
+            "x": 0.075452,
+            "y": 0.902512,
+            "width": 0.863974,
+            "height": 0.054426
+          },
+          "measurement_status": "MEASURED_FROM_FROZEN_RASTER",
+          "measurement_method": "union_of_visible_control_bounds",
+          "coordinate_convention": "top_left_origin_half_open_xywh"
+        }
+      },
+      "non_recoverable_from_flattened_png": [
+        "editable source layers and original photo crops",
+        "source alpha before compositing",
+        "font family, declared sp size and line-height",
+        "invisible hit target extents",
+        "original DOM/CSS z-index values",
+        "independent background and hero source-photo files"
+      ]
+    }
+  }
+}

@@ -1,0 +1,1 @@
+Frozen manifest has 59 assets; 9 exact source assets found and 50 remain unavailable. The source ZIP `inputs/YuJian_26KF_Frozen_Visual_Assets_Existing_Materials_V1.zip` with SHA256 `d054bc189cd65795dbfd96fcbf57d3766d7c381ab3101d0411ada307f2b85746` was not found. See 26kf_asset_availability.csv for all expected paths and hashes. Test fixtures are labeled separately.

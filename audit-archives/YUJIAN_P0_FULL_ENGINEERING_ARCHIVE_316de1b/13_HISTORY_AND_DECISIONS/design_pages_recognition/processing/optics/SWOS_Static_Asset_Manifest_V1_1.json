@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "SWOS_STATIC_VISUAL_ASSETS_V1_1",
+  "status": "PRIVATE_REVIEW_ASSETS_WITHHELD_FROM_PUBLIC_REPOSITORY",
+  "source_photo": {
+    "filename": "208758.jpg",
+    "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+    "width": 1152,
+    "height": 1536,
+    "orientation": 1,
+    "source_status": "SHA256_AND_DIMENSIONS_VERIFIED_IN_CURRENT_EXECUTION",
+    "public_permission": "NOT_CONFIRMED",
+    "repository_included": false,
+    "reason": "Contains a person and Xiaohongshu watermark; no confirmed public publication permission.",
+    "size_bytes": 331421,
+    "actual_format": "JPEG",
+    "current_execution_verification": {
+      "date": "2026-10-23",
+      "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+      "bytes": 331421,
+      "dimensions_px": [
+        1152,
+        1536
+      ],
+      "format": "JPEG",
+      "exif_orientation": 1
+    },
+    "public_publication_allowed": false,
+    "ci_artifact_allowed": false,
+    "pages_upload_allowed": false
+  },
+  "historic_direction_reference": {
+    "filename": "渔见AI鱼获识别动画分镜海报.png",
+    "sha256": "ea0cf2e5fa84aad64195487cbedaab07b1727e96e87c9b4e661dc3d0fa252c1c",
+    "width": 1672,
+    "height": 941,
+    "role": "APPROVED_DIRECTION_REFERENCE",
+    "pixel_frozen_source": false,
+    "version": "SWOS 14-frame V0.3",
+    "model_generated": true,
+    "availability": "PRIVATE_HANDOFF_VERIFIED_BROWSER_LOCAL_VIEWER",
+    "id": "swos-history",
+    "size_bytes": 2340788,
+    "status": "14_FRAME_V0_3_HISTORICAL_VISUAL_REFERENCE",
+    "byte_verification": "PRIVATE_HANDOFF_SHA256_AND_DIMENSIONS_VERIFIED",
+    "public_permission": "NOT_CONFIRMED",
+    "repository_included": false,
+    "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1",
+    "public_publication_allowed": false,
+    "current_execution_byte_verification": "NOT_RECHECKED_THIS_EXECUTION"
+  },
+  "processing_authorities": [
+    {
+      "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+      "role": "FROZEN_PAGE_STRUCTURE_REFERENCE"
+    },
+    {
+      "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+      "role": "FROZEN_PAGE_STRUCTURE_REFERENCE"
+    },
+    {
+      "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+      "role": "FROZEN_PAGE_STRUCTURE_REFERENCE"
+    }
+  ],
+  "result_authority": {
+    "path": "design/pages/recognition/design/05_Result_High_Frozen.png",
+    "role": "FROZEN_HIGH_RESULT_STRUCTURE_REFERENCE",
+    "hero_media_contract": "design/pages/recognition/result/media/hero_media_contract.json"
+  },
+  "fish_geometry": {
+    "source": "human visual trace for this SHA only",
+    "state": "MANUAL_REFERENCE_ONLY_NOT_PRODUCTION_MASK",
+    "not_detector_output": true,
+    "not_approved_for_runtime": true
+  },
+  "derived_frames": {
+    "status": "PRIVATE_REVIEW_RENDERED_VISUAL_REVIEWED",
+    "repository_included": false,
+    "frame_count": 15,
+    "expected_dimensions_px": {
+      "width": 1080,
+      "height": 1920
+    },
+    "deliverables": [
+      "15 individual 1080x1920 PNG frames",
+      "8+7 contact sheet with global sample times",
+      "P7/R0/R0.5/R1 shared geometry comparison",
+      "P0/P4 original-photo versus effect-composite comparison",
+      "R5 versus Frozen HIGH Result comparison"
+    ],
+    "renderer": "deterministic Pillow static compositor; no image-generation model",
+    "fish_outline": "MANUAL_REFERENCE_ONLY_NOT_PRODUCTION_MASK",
+    "effect_strength_alpha_mapping": "ILLUSTRATIVE_STATIC_REVIEW_ONLY_NOT_PRODUCTION_ALPHA"
+  },
+  "browser_preview": {
+    "default_photo_embedded": false,
+    "local_user_upload": true,
+    "photo_uploads_networked": false,
+    "persistent_storage": false
+  },
+  "contract_adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "adoption_pr": 190,
+  "source_prs": [
+    186,
+    187
+  ],
+  "photo_publication_permission": "NOT_CONFIRMED",
+  "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
+  "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
+  "public_asset_publication_allowed": false,
+  "asset_authorization_gate": "PIXEL_BASELINE_SOURCE_IDENTITY_FROZEN; PUBLIC_PUBLICATION_BLOCKED_UNTIL_EXPLICIT_PERMISSION_AND_LICENSE",
+  "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+  "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
+}

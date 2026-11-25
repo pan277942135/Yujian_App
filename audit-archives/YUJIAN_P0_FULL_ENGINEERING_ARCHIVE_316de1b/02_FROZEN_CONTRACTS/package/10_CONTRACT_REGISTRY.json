@@ -1,0 +1,118 @@
+{
+  "contractSetId": "YUJIAN_AI_V2_SIX_CORE_CONTRACTS",
+  "version": "1.0.0",
+  "effectiveDate": "2026-11-24",
+  "status": "FROZEN_SPECIFICATION",
+  "reviewStatus": "CROSS_CONTRACT_REVIEW_PASS",
+  "implementationConformance": "NOT_ASSESSED",
+  "deviceAcceptance": "NOT_RUN",
+  "repository": "pan277942135/Yujian_App",
+  "targetPullRequest": 346,
+  "contracts": [
+    {
+      "id": "YUJIAN_RECOGNITION_RUNTIME_CONTRACT_V1",
+      "version": "1.0.0",
+      "file": "02_RECOGNITION_RUNTIME_CONTRACT_V1.md",
+      "owner": "model-runtime",
+      "dependsOn": [],
+      "status": "FROZEN_SPECIFICATION",
+      "sha256": "a6b27578a9a6c96b0ba4dd6595eea5faa11602611b55d46d4117d3c5bc97a80e"
+    },
+    {
+      "id": "YUJIAN_RECOGNITION_RESULT_SNAPSHOT_CONTRACT_V1",
+      "version": "1.0.0",
+      "file": "03_RECOGNITION_RESULT_SNAPSHOT_CONTRACT_V1.md",
+      "owner": "recognition-data",
+      "dependsOn": [
+        "YUJIAN_RECOGNITION_RUNTIME_CONTRACT_V1"
+      ],
+      "status": "FROZEN_SPECIFICATION",
+      "sha256": "125ed4f09ef278a45de41f44ddcddd32a235a3d15f0bfb6dfd2fa944a7f83442"
+    },
+    {
+      "id": "YUJIAN_REVEAL_TIMELINE_CONTRACT_V1",
+      "version": "1.0.0",
+      "file": "04_REVEAL_TIMELINE_CONTRACT_V1.md",
+      "owner": "scene-timeline",
+      "dependsOn": [
+        "YUJIAN_RECOGNITION_RESULT_SNAPSHOT_CONTRACT_V1"
+      ],
+      "status": "FROZEN_SPECIFICATION",
+      "sha256": "960d90154cd6d1b159582203836cad44fabe19c5ff23559bf6be575683920a87"
+    },
+    {
+      "id": "YUJIAN_ORB_TO_GLYPH_RENDERING_CONTRACT_V1",
+      "version": "1.0.0",
+      "file": "05_ORB_TO_GLYPH_RENDERING_CONTRACT_V1.md",
+      "owner": "orb-glyph-rendering",
+      "dependsOn": [
+        "YUJIAN_RECOGNITION_RESULT_SNAPSHOT_CONTRACT_V1",
+        "YUJIAN_REVEAL_TIMELINE_CONTRACT_V1"
+      ],
+      "status": "FROZEN_SPECIFICATION",
+      "sha256": "84e2a65289b9850423fb3e75edf73266c47f7db0e21ead7aaa3479324467cb50"
+    },
+    {
+      "id": "YUJIAN_RESULT_HANDOFF_CONTRACT_V1",
+      "version": "1.0.0",
+      "file": "06_RESULT_HANDOFF_CONTRACT_V1.md",
+      "owner": "result-handoff",
+      "dependsOn": [
+        "YUJIAN_RECOGNITION_RESULT_SNAPSHOT_CONTRACT_V1",
+        "YUJIAN_REVEAL_TIMELINE_CONTRACT_V1",
+        "YUJIAN_ORB_TO_GLYPH_RENDERING_CONTRACT_V1"
+      ],
+      "status": "FROZEN_SPECIFICATION",
+      "sha256": "c1f89229b0f523492f2b8446286d3ea84d73aca39d11ce2627617c4f328e9b42"
+    },
+    {
+      "id": "YUJIAN_RUNTIME_EVIDENCE_CONTRACT_V1",
+      "version": "1.0.0",
+      "file": "07_RUNTIME_EVIDENCE_CONTRACT_V1.md",
+      "owner": "runtime-evidence",
+      "dependsOn": [
+        "YUJIAN_RECOGNITION_RUNTIME_CONTRACT_V1",
+        "YUJIAN_RECOGNITION_RESULT_SNAPSHOT_CONTRACT_V1",
+        "YUJIAN_REVEAL_TIMELINE_CONTRACT_V1",
+        "YUJIAN_ORB_TO_GLYPH_RENDERING_CONTRACT_V1",
+        "YUJIAN_RESULT_HANDOFF_CONTRACT_V1"
+      ],
+      "status": "FROZEN_SPECIFICATION",
+      "sha256": "38fbe6b619e270bba9c7b730c1d306446aa8997fb1061fb2c49b06979700025c"
+    }
+  ],
+  "canonicalRules": {
+    "keyframes": "KF00-KF25",
+    "topLevelStages": 13,
+    "activePresentationBudgetMs": 6000,
+    "modelDependencyDeadlineMs": 60000,
+    "stage13Substages": [
+      "13.1_NAME_STABLE",
+      "13.2_PHOTO_SETTLE",
+      "13.3_RESULT_SCENE_HANDOFF",
+      "13.4_RESULT_INFO_ARRIVAL",
+      "13.5_RESULT_SCENE_STABLE"
+    ],
+    "residentFilaments": [
+      "G01",
+      "G02",
+      "A01",
+      "A02",
+      "C01"
+    ],
+    "taskEnergyCount": "reference-and-runtime-derived-not-fixed-to-five"
+  },
+  "targetBranch": "fix/26kf-path-boundary-and-fish-gate-v1",
+  "parentHeadSha": "0acfa98afe96bb04768c8304b81cd5e1456b63d9",
+  "supportingPolicies": [
+    {
+      "id": "YUJIAN_NON_MODEL_GATE_DEADLINE_POLICY_V1",
+      "version": "1.0.0",
+      "file": "12_NON_MODEL_GATE_DEADLINE_POLICY_V1.md",
+      "owner": "scene-timeline",
+      "status": "FROZEN_SPECIFICATION",
+      "sha256": "49b3bf8de8244a169d7779647cd24c08063d3427d62de95f5d139fe932b08d93",
+      "authority": "User-supplied Work supplement A"
+    }
+  ]
+}

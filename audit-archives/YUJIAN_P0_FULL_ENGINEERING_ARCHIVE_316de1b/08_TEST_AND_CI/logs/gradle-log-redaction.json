@@ -1,0 +1,8 @@
+{
+  "original_path": "/tmp/yujian-final-gradle.log",
+  "original_sha256": "b6ae9d7126fec60a95d051dc7d5b98641c70026aa458797356a351a81b51cbe9",
+  "archive_path": "08_TEST_AND_CI/logs/yujian-final-gradle.redacted.log",
+  "sanitized_sha256": "ebc8509d6b04a13231e45051c469e15adef72b8a64a0171906abfb45fee53893",
+  "original_retained_in_place": true,
+  "redactions": "trustStorePassword=changeit and credential-like assignments"
+}

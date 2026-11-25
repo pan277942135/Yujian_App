@@ -1,0 +1,194 @@
+schema_version: '1.0'
+state_id: YUJIAN_APP_PR346_CROSS_LAYER_CLOSURE_V4_1
+project:
+  name: YuJian Android App
+  repository: pan277942135/Yujian_App
+  scope: 'PR #346 six-contract remediation of 17 audited findings; Gate Deadline, Stage10–13.5 and Exact-HEAD APK (YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1)'
+state_control:
+  execution_baseline_sha: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+  current_branch: fix/26kf-path-boundary-and-fish-gate-v1
+  current_pr: 346
+  base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
+  state_origin: initialized on this Work branch from canonical control-plane definitions; no prior branch-local state existed
+source_of_truth:
+  canonical_control_plane: origin/main:CONTROL_PLANE_REGISTRY.yaml
+  current_work_state: WORK_EXECUTION_STATE.json
+  evidence_status: Frozen visual ZIP (164751025 bytes, SHA256 d054bc189cd65795dbfd96fcbf57d3766d7c381ab3101d0411ada307f2b85746), EAC685C9 evidence ZIP (SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275), and 302e51a0725b602704363f264b1c70dc.mp4 (SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392) are available and verified; all device evidence predates the current source changes.
+repositories:
+  android_app:
+    remote: https://github.com/pan277942135/Yujian_App.git
+    branch: fix/26kf-path-boundary-and-fish-gate-v1
+    head_sha: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+pull_requests:
+  PR346:
+    number: 346
+    branch: fix/26kf-path-boundary-and-fish-gate-v1
+    base_branch: fix/det-fish-v03-main-runtime-closure
+    base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
+    head_sha: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+    status: DRAFT_OPEN_UNMERGED
+    status_source: GitHub PR page metadata verified on 2026-11-24; state DRAFT, closedTime null, mergedTime null; head matches refs/heads and refs/pull/346; no PR mutation performed.
+phases:
+  P0:
+    status: NOT_CONFIRMED
+  P1:
+    status: NOT_CONFIRMED
+  P2:
+    status: NOT_CONFIRMED
+  P3:
+    status: NOT_CONFIRMED
+  P4:
+    status: NOT_CONFIRMED
+  P5:
+    status: NOT_CONFIRMED
+  P6:
+    status: IN_PROGRESS
+  P7:
+    status: NOT_CONFIRMED
+  P8:
+    status: NOT_CONFIRMED
+  P9:
+    status: NOT_CONFIRMED
+recognition_main_journey:
+  contract_status: FROZEN
+  route:
+  - J01 Empty Home
+  - J02 Tap Camera
+  - J03 Camera Permission
+  - J04 First Capture Guide
+  - J05 Camera Capture
+  - J06 Preview Ready
+  - J07 Recognition Processing
+  - J08 Detection
+  - J09 Outline
+  - J10 Classification
+  - J11 Recognition Result
+  - J12 High Confidence Result
+  - J13 Medium/Low Confidence Result
+  - J14 No Fish / Invalid Image
+  - J15 Save Catch
+  - J16 Continue / Edit Catch
+  - J17 Return Home
+  - J18 Recent Catch
+  - J19 FishRecordDetail A
+  - J20 FishRecordDetail B / Memory
+runtime_gates:
+  exact_head:
+    sha: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+    admission: Initial admission at this source failed on stale dynamic state; state-only reconciliation checkpoint and a fresh admission run are required. No historical result is promoted.
+    baseline_android_ci:
+      status: PASS_BEFORE_THIS_WORK
+      run_id: '44989215170'
+      url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
+      source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
+    build: Pending final marked checkpoint build from the final branch head
+    unit_tests: NOT_RUN_FOR_BABD6B3; previous 542-case result is historical at the recorded 6102640 source and must be rerun for this work.
+    android_test_compile: HISTORICAL_PASS_AT_6102640; not revalidated at this work baseline.
+    lint: V5_LINT_NOT_RUN
+    api36_emulator: PENDING current source; local /dev/kvm, adb, and emulator are absent. Do not claim current-source KVM, boot, or AUTO PASS before the hosted marked run completes
+    model_validation: HISTORICAL_PASS_AT_6102640; final exact-head APK model hashes are pending.
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+    status: NOT_CONFIRMED
+apk_and_evidence:
+  source_head: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+  exact_head_apk: 'PENDING: rebuild from the final source commit; prior APKs are historical and must not be delivered.'
+  model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
+  input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
+  input_evidence_zip: 'artifacts/26kf_visual_reference_v1/inputs/YuJian_Recognition_Evidence_eac685c91965.zip; 16,204,260 bytes; SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; historical pre-fix source SHA 67f17f0eb6a80233438cb8b00111a55d6767a6d8'
+  fixture_b: 'FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not found in current attachments/workspace.'
+  emulator_device_evidence: 'Hosted Run 45172732325 at source 6102640437041159abc519b00249b7aedff0bb03: KVM preflight, memory gate, APK Pair verification and AVD memory config passed; API36 AUTO job failed and exact-head enforcement failed. Runtime evidence artifact 14818308331 (10.1 MB, SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33) uploaded but contents/logs are not readable here; emulator boot and failure classification are NOT_CONFIRMED. No AUTO PASS claimed.'
+current_work:
+  id: YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1
+  phase: P6
+  task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
+  exact_head: babd6b3ad31ee02f70d74738a27d7f14cc6b5e10
+  status: RUNNING
+  stage: G0_BASELINE_RECONCILED_ADMISSION_RETRY
+  requested_task_id: YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1
+  requested_task_title: 'YuJian 六大合同 17 项问题集中整改、Gate Deadline 冻结、Stage10–13.5 完整闭环与 Exact-HEAD Debug APK V1'
+  blockers:
+  - 'API36_CURRENT_SOURCE_PENDING: local /dev/kvm, adb, and emulator are absent; hosted KVM/AUTO run required.'
+  - 'SLIMSAM_PERFORMANCE_AFTER_NOT_RUN: same-device post-fix run is pending.'
+  - 'VISUAL_AUTO_ACCEPTANCE_NOT_RUN: only six pre-fix captures are available.'
+  - 'HUAWEI_DEVICE_QA_PENDING.'
+  - 'FIXTURE_B_UNAVAILABLE: named ZIP absent from current attachments/workspace; deterministic source regression can proceed but real Fixture B replay is blocked.'
+  - 'GATE_DEADLINE_TABLE_MISSING: task attachment references a second-part timeout table but supplies no Gate values, retry maxima, or cumulative budget; independent non-numeric work may continue.'
+
+blockers:
+- id: FIXTURE-B-INPUT-001
+  severity: P0
+  area: G0/G6
+  status: OPEN
+  condition: YuJian_Recognition_Evidence_c2b6cc74040c.zip was not present in current attachments or workspace search.
+  affected_gate: Real BBOX_ONLY/ORB_ONLY fixture replay.
+  unblock_condition: Obtain the authorized named ZIP; continue deterministic source regressions without claiming fixture replay.
+  independent_work_may_continue: true
+- id: API36-AUTO-SMOKE-001
+  severity: P0
+  area: G8
+  status: OPEN
+  condition: No current-source API36 KVM/AVD/production AUTO run is confirmed; hosted marked workflow is pending.
+  affected_gate: Exact-head API36 AUTO and Stage10–13.5 device evidence.
+  unblock_condition: Run the same exact-head APK Pair on hosted KVM, confirm API36 boot/ADB, successful final Instrumentation code -1, and complete business evidence.
+  independent_work_may_continue: true
+
+- id: GATE-DEADLINE-TABLE-001
+  severity: P0
+  area: Gate Deadline Policy
+  status: OPEN
+  condition: The attached task refers to a second-part Gate timeout table, but the supplied text contains no numeric table.
+  affected_gate: Frozen Gate policy values, retry maxima, and cumulative attempt blocking budget.
+  unblock_condition: Supply the missing Gate ID, timeout, retry, and cumulative budget table.
+  independent_work_may_continue: true
+
+protected_invariants:
+  product_scope:
+  - Keep Detector, Classifier, SlimSAM, trusted Mask, P-star, PathLedger and Orb GPU material behavior unchanged unless a
+    failing cross-layer test proves a required edit.
+  - Use production AUTO flow; MANUAL preview is not runtime evidence.
+  timing:
+  - Retain the frozen 13-stage minimum 6000 ms contract.
+  - Use the first stable photo frame as the shared clock origin; model wait remains independently bounded.
+  - Do not force Result Stable by time or hard-coded state.
+  handoff:
+  - FULL_REVEAL uses the real Attempt Mask and Fish Path with consistent identity, mask and geometry provenance.
+  - Orb, Chinese glyph and Result progress only from real rendering and accepted events.
+  evidence:
+  - Do not promote user-pasted facts or synthetic fixtures to device-verified evidence.
+  - Do not claim API36 emulator or physical-device PASS without exact-HEAD execution evidence.
+next_actions:
+- id: G0-01
+  owner: Codex
+  status: COMPLETED
+  action: Verify branch history/checkpoint, Fixture A ZIP provenance, and Fixture B/MP4 availability.
+- id: G0-02
+  owner: Codex
+  status: COMPLETED
+  action: Minimal state checkpoint 06e357b93107539892898bf1c11ef4a0d078db01 passed CONTROL_PLANE_ADMISSION; historical Registry OPEN_GAP remains unchanged and non-blocking.
+- id: G1-G6
+  owner: Codex
+  status: COMPLETED
+  action: Deterministic regressions and corresponding fixes completed for tensor metadata, crop/geometry, SessionStore races, Stage10 handoff, and Glyph/13.5 event order.
+- id: G0-03
+  owner: Codex
+  status: READY
+  action: Commit a state-only reconciliation for the verified PR #346 head/base, then rerun Control Plane Admission before product edits.
+- id: G8-01
+  owner: Codex
+  status: READY
+  action: Inspect runtime evidence artifact 14818308331 from failed Run 45172732325; classify INFRA_BLOCKED versus BUSINESS_LOGIC_FAILURE/RESOURCE_EXHAUSTED, repair the observed cause, and rerun only the exact-head API36 AUTO gate.
+completion_rules:
+- Complete applicable deterministic cross-layer tests before final APK packaging.
+- Separate LOGIC_PASS, EMULATOR_PASS, EXACT_HEAD_CI_PASS and DEVICE_QA_PASS.
+- 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
+state_update:
+  initialized_at: '2026-11-22T11:07:35Z'
+  last_updated_at: '2026-11-23T18:31:00Z'
+  note: 'Reconciled PR #346 from live GitHub metadata: base fix/det-fish-v03-main-runtime-closure@6ec43662ef76c6ffee8530148098649496ab7fb1, Draft head babd6b3ad31ee02f70d74738a27d7f14cc6b5e10; six frozen core contract hashes verified. Initial admission failed on stale dynamic state. New requested task YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1 is active. No product code/tests changed or run; missing Gate timeout table remains an open blocker. Earlier V5 evidence remains historical.'
+agent_recovery:
+  resume_order:
+  - Keep the historical Registry OPEN_GAP unchanged; no Admission PASS is claimed for this source commit.
+  - Source regressions, module tests, and AndroidTest APK compilation pass; exact-head APK packaging and hosted API36 AUTO remain pending.
+  - Preserve the unavailable Fixture B and unavailable post-fix device evidence accurately; do not promote historical captures to current-head PASS.
+  - Push only to the existing PR #346 branch; do not create another PR, merge, or mark ready.

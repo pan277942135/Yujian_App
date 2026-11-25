@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "MISSING_V2_OVERVIEW_NAME",
+      "status": "MISSING",
+      "detail": "Both V2 overview filenames referenced by the workbook/readme are absent under those exact names."
+    },
+    {
+      "id": "MISSING_KF00_KF01_INDEPENDENT",
+      "status": "MISSING",
+      "detail": "HOME and CAPTURE are only overview cells; no independent full-screen frozen source."
+    },
+    {
+      "id": "MISSING_KF14_RETURN_DIRECTION",
+      "status": "MISSING",
+      "detail": "A static ORB_RETURN state exists; continuous Fish/Gold-to-Orb direction is not shown directly."
+    },
+    {
+      "id": "MISSING_KF25_SAVE_SUCCESS",
+      "status": "MISSING",
+      "detail": "Only save control/highlight is shown; no save action or persisted-success feedback frame."
+    },
+    {
+      "id": "MISSING_KF12_2_INDEPENDENT",
+      "status": "MISSING",
+      "detail": "KF12.2 is absent from the 26KF rows; only Frame 5 on the six-frame board supports the intermediate state."
+    },
+    {
+      "id": "MISSING_COMPONENT_LEVEL_TOKENS",
+      "status": "MISSING",
+      "detail": "Composite board crops do not provide independent component contours, runtime Mask/P*, Resident paths or Task Energy paths; further source-native measurement is needed."
+    }
+  ]
+}

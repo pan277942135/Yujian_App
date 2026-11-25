@@ -1,0 +1,632 @@
+{
+  "schemaVersion": 1,
+  "sourceMappingWorkbook": "YuJian_26KF_Frozen_Visual_Assets_V1/02_CANONICAL_CONTRACTS_AND_AUDITS/26KF_HIGHRES_SOURCE_MAPPING_PROPOSAL_V1.xlsx",
+  "overviewMaster": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+  "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+  "mappingRows": [
+    {
+      "checkpointId": "KF00",
+      "stage": "HOME",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF00",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF00.png",
+        "pixelBounds": {
+          "x": 4,
+          "y": 195,
+          "width": 935,
+          "height": 1733
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "—",
+      "independentFramePath": null,
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF00",
+      "sourceNotes": "指定目录内的26KF总览该格标注HOME；目录中没有独立首页母版。总览作为唯一画面依据。",
+      "mappingRemarks": "总览格为缩略画面，独立全屏首页未找到。"
+    },
+    {
+      "checkpointId": "KF01",
+      "stage": "CAPTURE",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF01",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF01.png",
+        "pixelBounds": {
+          "x": 971,
+          "y": 195,
+          "width": 935,
+          "height": 1733
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "—",
+      "independentFramePath": null,
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF01",
+      "sourceNotes": "指定目录内的26KF总览该格标注CAPTURE；目录中没有独立拍照页母版。",
+      "mappingRemarks": "总览格为缩略画面，独立全屏拍照页未找到。"
+    },
+    {
+      "checkpointId": "KF02",
+      "stage": "PHOTO_STABLE",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF02",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF02.png",
+        "pixelBounds": {
+          "x": 1938,
+          "y": 195,
+          "width": 935,
+          "height": 1733
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "01 PHOTO_STABLE␉照片稳定.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/01 PHOTO_STABLE\t照片稳定.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF02；Stage 01-03.png / Frame 1",
+      "sourceNotes": "独立图展示照片稳定后的识别场景；Stage 01-03首格显示照片与静止Orb，七态板S0卡也对应PHOTO_STABLE。主冻结依据推荐独立图01。",
+      "mappingRemarks": "Stage 01-03 Frame 1按从左到右编号；FRAME_NUMBER_INFERRED_FROM_LAYOUT。七态板S0是状态卡，不是逐帧动画。"
+    },
+    {
+      "checkpointId": "KF03",
+      "stage": "ORB_WAKE",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF03",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF03.png",
+        "pixelBounds": {
+          "x": 2905,
+          "y": 195,
+          "width": 935,
+          "height": 1733
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "02 ORB_WAKE Orb 苏醒.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/02 ORB_WAKE Orb 苏醒.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF03；Stage 01-03.png / Frame 2",
+      "sourceNotes": "独立图呈现Orb亮起；三格板第2格表现Orb苏醒及Resident结构，七态板S1卡对应Awakening。主冻结依据推荐独立图02。",
+      "mappingRemarks": "Stage 01-03 Frame 2按从左到右编号；FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF04",
+      "stage": "RESIDENT_ACTIVE",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF04",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF04.png",
+        "pixelBounds": {
+          "x": 3872,
+          "y": 195,
+          "width": 935,
+          "height": 1733
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "—",
+      "independentFramePath": null,
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF04；Stage 01-03.png / Frame 2",
+      "sourceNotes": "三格板第2格的R06说明列出G01/G02/A01/A02/C01；七态板S2卡显示Resident=ACTIVE，可支持常驻层激活。",
+      "mappingRemarks": "Resident光丝属于Orb常驻结构，不能解释为Task任务光丝；该板没有独立KF04全屏图。"
+    },
+    {
+      "checkpointId": "KF05",
+      "stage": "ORB_RELEASE",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF05",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF05.png",
+        "pixelBounds": {
+          "x": 4839,
+          "y": 195,
+          "width": 935,
+          "height": 1733
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "03 灵动水能释放.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/03 灵动水能释放.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF05；Stage 01-03.png / Frame 3",
+      "sourceNotes": "独立图与三格板第3格均显示水性能量从Orb向照片释放；七态板S2卡提供Active Output阶段级佐证。主冻结依据推荐独立图03。",
+      "mappingRemarks": "Task Energy的形态和数量以画面为准；不从Resident数量推断。"
+    },
+    {
+      "checkpointId": "KF06",
+      "stage": "PERIMETER_ARRIVAL",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF06",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF06.png",
+        "pixelBounds": {
+          "x": 5806,
+          "y": 195,
+          "width": 935,
+          "height": 1733
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "04 PERIMETER_ARRIVAL␉水光抵达照片外围.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/04 PERIMETER_ARRIVAL\t水光抵达照片外围.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF06；Stage 04–05 持续水光输出 × 照片触达 × 鱼体定位.png / Frame 1",
+      "sourceNotes": "独立图显示外围水光抵达照片边缘；四格板第1格表现首次触边。主冻结依据推荐独立图04。",
+      "mappingRemarks": "四格板Frame 1按从左到右编号；FRAME_NUMBER_INFERRED_FROM_LAYOUT。板内KF标签是局部编号。"
+    },
+    {
+      "checkpointId": "KF07",
+      "stage": "PERIMETER_COVERAGE",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF07",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF07.png",
+        "pixelBounds": {
+          "x": 6773,
+          "y": 195,
+          "width": 935,
+          "height": 1733
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "—",
+      "independentFramePath": null,
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF07；Stage 04–05 持续水光输出 × 照片触达 × 鱼体定位.png / Frame 2",
+      "sourceNotes": "四格板第2格从边缘接触发展为外围覆盖，视觉状态与外围扩展对应。",
+      "mappingRemarks": "板内KF02为局部标签，不等于总览KF07；Frame 2按布局编号。FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF08",
+      "stage": "TASK_ENERGY_SPLIT",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF08",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF08.png",
+        "pixelBounds": {
+          "x": 7740,
+          "y": 195,
+          "width": 935,
+          "height": 1733
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "—",
+      "independentFramePath": null,
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF08；Stage 04–05 持续水光输出 × 照片触达 × 鱼体定位.png / Frame 3",
+      "sourceNotes": "四格板第3格表现外围运转后能量转向鱼体区域，作为Task Energy分流依据。",
+      "mappingRemarks": "板内KF03为局部标签，不等于总览KF08；Frame 3按布局编号。FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF09",
+      "stage": "PATH_TO_FISH",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF09",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF09.png",
+        "pixelBounds": {
+          "x": 4,
+          "y": 1961,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "05 PATH_TO_FISH␉光丝寻鱼.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/05 PATH_TO_FISH\t光丝寻鱼.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF09；Stage 04–05 持续水光输出 × 照片触达 × 鱼体定位.png / Frame 4",
+      "sourceNotes": "独立图和四格板第4格都显示能量路径抵达鱼体附近。主冻结依据推荐独立图05。",
+      "mappingRemarks": "只能作为Visual Geometry Reference；端点不能据此认定为Runtime Mask或P*。板内KF04为局部标签。FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF10",
+      "stage": "CONTOUR_A",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF10",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF10.png",
+        "pixelBounds": {
+          "x": 971,
+          "y": 1961,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "06 CONTOUR_A␉鱼体轮廓 A 形成.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/06 CONTOUR_A\t鱼体轮廓 A 形成.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF10；Stage 06–09 鱼体轮廓绘制 × 高光流动.png / Frame 1",
+      "sourceNotes": "独立图呈现鱼体早期局部轮廓；四格板第1格为同一黑鱼轮廓的起始段。",
+      "mappingRemarks": "鱼体线条仅作Visual Geometry Reference，不等同Runtime Mask。四格编号按布局推定。"
+    },
+    {
+      "checkpointId": "KF11",
+      "stage": "CONTOUR_B",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF11",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF11.png",
+        "pixelBounds": {
+          "x": 1938,
+          "y": 1961,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "07 CONTOUR_B␉鱼体轮廓 B 形成.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/07 CONTOUR_B\t鱼体轮廓 B 形成.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF11；Stage 06–09 鱼体轮廓绘制 × 高光流动.png / Frame 2",
+      "sourceNotes": "独立图与连续板第2格显示同一鱼体轮廓沿鱼身延展。",
+      "mappingRemarks": "鱼体线条仅作Visual Geometry Reference，不等同Runtime Mask。FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF12",
+      "stage": "CONTOUR_C",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF12",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF12.png",
+        "pixelBounds": {
+          "x": 2905,
+          "y": 1961,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "08 CONTOUR_C␉鱼体轮廓 C 完成.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/08 CONTOUR_C\t鱼体轮廓 C 完成.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF12；Stage 06–09 鱼体轮廓绘制 × 高光流动.png / Frame 3",
+      "sourceNotes": "独立图与连续板第3格显示轮廓进一步闭合，匹配Contour C。",
+      "mappingRemarks": "同一鱼体轮廓序列；仅作Visual Geometry Reference。FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF13",
+      "stage": "GOLD_PEAK",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF13",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF13.png",
+        "pixelBounds": {
+          "x": 3872,
+          "y": 1961,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "09 FISH_GOLD_PEAK␉鱼体金光凝聚.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/09 FISH_GOLD_PEAK\t鱼体金光凝聚.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF13；Stage 06–09 鱼体轮廓绘制 × 高光流动.png / Frame 4",
+      "sourceNotes": "独立图与连续板第4格显示已完成轮廓上的金光增强。主冻结依据推荐独立图09。",
+      "mappingRemarks": "连续板内局部KF04不等于总览KF13；FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF14",
+      "stage": "ORB_RETURN",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF14",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF14.png",
+        "pixelBounds": {
+          "x": 4839,
+          "y": 1961,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "10 ORB_RETURN␉Orb 能量回收.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/10 ORB_RETURN\tOrb 能量回收.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF14",
+      "sourceNotes": "独立图与总览显示Orb回收状态；七态板S3（第4张状态卡）实际画出Orb周边回流能量态并标明ORB_RETURN。状态匹配明确。",
+      "mappingRemarks": "S3卡支持回收状态，但未逐段显示Gold/Fish至Orb的完整路径；该动态路径仍列入MISSING_KF_EVIDENCE。"
+    },
+    {
+      "checkpointId": "KF15",
+      "stage": "11.1 WATER_CORE_STRETCH",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF15",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF15.png",
+        "pixelBounds": {
+          "x": 5806,
+          "y": 1961,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "11.1 水核舒展  保持完整球体，准备形变.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/11.1 水核舒展  保持完整球体，准备形变.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF15；六帧黑鱼水幻变形记.png / Frame 1",
+      "sourceNotes": "六帧板Frame 1为完整球体，符合准备形变状态；七态板S4（第5张状态卡）覆盖11.1–11.2。独立图11.1视觉上已呈扁椭圆，主冻结依据推荐六帧板Frame 1。",
+      "mappingRemarks": "存在独立图与连续帧状态差异；独立图11.1只能作候选补充。六帧编号按3×2从左至右、从上到下推定。"
+    },
+    {
+      "checkpointId": "KF16",
+      "stage": "11.2 HORIZONTAL_STRETCH",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF16",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF16.png",
+        "pixelBounds": {
+          "x": 6773,
+          "y": 1961,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "11.2 横向舒展  水核横向延展，水草与光丝舒展.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/11.2 横向舒展  水核横向延展，水草与光丝舒展.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF16；六帧黑鱼水幻变形记.png / Frame 2",
+      "sourceNotes": "独立图与六帧板Frame 2都呈现横向舒展及水草/光丝延展；七态板S4卡覆盖11.1–11.2。",
+      "mappingRemarks": "六帧编号按3×2从左至右、从上到下推定；FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF17",
+      "stage": "11.3 WATERLIGHT_DECONSTRUCTION",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF17",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF17.png",
+        "pixelBounds": {
+          "x": 7740,
+          "y": 1961,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "11.3 水光解构  液态能量解构，转化为墨韵笔势.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/11.3 水光解构  液态能量解构，转化为墨韵笔势.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF17；六帧黑鱼水幻变形记.png / Frame 3",
+      "sourceNotes": "独立图与六帧板Frame 3显示液态能量解构为墨韵笔势；七态板S5卡覆盖11.3–12.3。",
+      "mappingRemarks": "六帧编号按3×2从左至右、从上到下推定；FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF18",
+      "stage": "12.1 STROKE_AGGREGATION",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF18",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF18.png",
+        "pixelBounds": {
+          "x": 4,
+          "y": 3729,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "12.1 笔势聚合  水墨笔画开始形成.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/12.1 笔势聚合  水墨笔画开始形成.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF18；六帧黑鱼水幻变形记.png / Frame 4",
+      "sourceNotes": "独立图与六帧板Frame 4表现笔画聚合，尚未到完整稳定名称；七态板S5卡显示解构至Glyph。",
+      "mappingRemarks": "六帧编号按3×2从左至右、从上到下推定；FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF19",
+      "stage": "12.3 SPECIES_NAME_FINAL",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF19",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF19.png",
+        "pixelBounds": {
+          "x": 971,
+          "y": 3729,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "12.3 名称定形  完整鱼种名称清晰呈现.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/12.3 名称定形  完整鱼种名称清晰呈现.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF19；六帧黑鱼水幻变形记.png / Frame 6",
+      "sourceNotes": "独立图与六帧板Frame 6均显示完整“黑鱼”名称稳定呈现；七态板S5卡覆盖11.3–12.3。",
+      "mappingRemarks": "12.2 Glyph Emergence对应六帧板Frame 5，但主26KF总览没有独立12.2行；不新增第27行。"
+    },
+    {
+      "checkpointId": "KF20",
+      "stage": "13.1 RESIDUE_SETTLE",
+      "mappingStatus": "EXACT",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF20",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF20.png",
+        "pixelBounds": {
+          "x": 1938,
+          "y": 3729,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "13.1 余辉收束、照片归位.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/13.1 余辉收束、照片归位.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF20；水润识鱼界面演进展示板.png / Frame 1",
+      "sourceNotes": "独立图和五格结果板Frame 1均仍属于Recognition Scene：照片与Glyph留在识别场景，余辉收束；七态板S6卡对应Residue Settle。",
+      "mappingRemarks": "结果板Frame 1按从左到右编号；FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF21",
+      "stage": "13.2 RESULT_TRANSITION",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF21",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF21.png",
+        "pixelBounds": {
+          "x": 2905,
+          "y": 3729,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "—",
+      "independentFramePath": null,
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF21；水润识鱼界面演进展示板.png / Frame 2",
+      "sourceNotes": "五格板Frame 2仍显示识别页布局正在转入Result；与13.2转场状态相符。",
+      "mappingRemarks": "板内KF07为局部标签，不等于总览KF21；FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF22",
+      "stage": "13.3 RESULT_HANDOFF",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF22",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF22.png",
+        "pixelBounds": {
+          "x": 3872,
+          "y": 3729,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "—",
+      "independentFramePath": null,
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF22；水润识鱼界面演进展示板.png / Frame 3",
+      "sourceNotes": "五格板Frame 3首次由Result页面接管，标题和照片/Glyph出现，信息字段尚未进入。该画面是13.3最直接的视觉依据。",
+      "mappingRemarks": "总览KF22画面已显示完整信息字段，与局部五格板的先接管阶段不一致；推荐五格板Frame 3。"
+    },
+    {
+      "checkpointId": "KF23",
+      "stage": "13.4 INFO_ARRIVAL",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF23",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF23.png",
+        "pixelBounds": {
+          "x": 4839,
+          "y": 3729,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "—",
+      "independentFramePath": null,
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF23；水润识鱼界面演进展示板.png / Frame 4",
+      "sourceNotes": "五格板Frame 4在Result接管后出现长度、重量、钓获地点和手记信息。",
+      "mappingRemarks": "总览KF23也已显示信息字段，无法单独区分信息首次进入与稳定；推荐五格板Frame 4。FRAME_NUMBER_INFERRED_FROM_LAYOUT。"
+    },
+    {
+      "checkpointId": "KF24",
+      "stage": "13.5 RESULT_STABLE",
+      "mappingStatus": "STRONG",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF24",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF24.png",
+        "pixelBounds": {
+          "x": 5806,
+          "y": 3729,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "13.2 识别结果页面转场.png",
+      "independentFramePath": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/01_Independent_Process_Frames/13.2 识别结果页面转场.png",
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF24；水润识鱼界面演进展示板.png / Frame 5",
+      "sourceNotes": "五格板Frame 5表现完整Result信息稳定；独立结果页可参考布局，但使用不同鱼/钓友，不作为主身份依据。",
+      "mappingRemarks": "该独立文件名虽含13.2，实际画面为完整Result UI且身份不同；只作KF24候选布局参考。主冻结依据推荐五格板Frame 5。"
+    },
+    {
+      "checkpointId": "KF25",
+      "stage": "SAVE_CURRENT_CATCH",
+      "mappingStatus": "CANDIDATE",
+      "overviewSource": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+      "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+      "overviewFrameLabel": "KF25",
+      "overviewCrop": {
+        "path": "derived/26kf_overview_crops/KF25.png",
+        "pixelBounds": {
+          "x": 6773,
+          "y": 3729,
+          "width": 935,
+          "height": 1731
+        },
+        "derivedFromComposite": true,
+        "independentAsset": false
+      },
+      "independentFrameReference": "—",
+      "independentFramePath": null,
+      "continuousBoardReference": "YuJian_AI_26KF_HighRes_Overview_V2.png / Frame KF25；水润识鱼界面演进展示板.png / Frame 5",
+      "sourceNotes": "总览KF25突出“保存本次鱼获”控件；五格板Frame 5只显示Result稳定页面，并未显示保存结果。",
+      "mappingRemarks": "仅见按钮高亮/入口，没有按下、保存中或保存成功反馈；列入MISSING_KF_EVIDENCE。"
+    }
+  ]
+}

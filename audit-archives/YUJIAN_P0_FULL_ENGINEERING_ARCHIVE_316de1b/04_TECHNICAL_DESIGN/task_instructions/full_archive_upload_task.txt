@@ -1,0 +1,444 @@
+# Work P0｜YuJian 全量工程资料盘点 × 历史证据归档 × GitHub 独立分支上传 V1
+
+**Task ID:** `YUJIAN_P0_FULL_ENGINEERING_ARCHIVE_UPLOAD_V1`
+
+**Repository:** `pan277942135/Yujian_App`
+
+**PR #346:** 保持现状，不修改。
+
+**当前生产源码基线：**
+`316de1b705fb54ee7d6e2114259ec1f87773aedf`
+
+**原始 P0 审计基线：**
+`babd6b3ad31ee02f70d74738a27d7f14cc6b5e10`
+
+**资料归档分支：**
+`archive/yujian-p0-full-engineering-316de1b`
+
+**目标目录：**
+`audit-archives/YUJIAN_P0_FULL_ENGINEERING_ARCHIVE_316de1b/`
+
+---
+
+## 一、本轮唯一目标
+
+将 YuJian AI / 26KF 识鱼系统截至当前 P0-17 整改阶段的全部关键工程资料，完整盘点、分类、校验并上传到 GitHub 独立归档分支。
+
+本轮不仅包含已经生成的九份整改交付文件。
+
+还必须包括：
+
+1. 六份冻结合同。
+2. 原始 P0 源码符合性审计材料。
+3. 17 项问题的技术方案及整改验收材料。
+4. Gate Deadline 全套规范和数值表。
+5. 源码修改差异和生产调用链证据。
+6. 测试、CI 和 APK 构建原始证据。
+7. 模型资产与 Native Runtime 资料。
+8. 26KF 视觉资产及真实设备证据。
+9. 历史问题、决策和未完成事项。
+10. 完整的资料索引、SHA256 清单和可下载 ZIP。
+
+最终交付必须允许 ChatGPT 独立读取这些资料，不依赖 Codex 本地工作区继续存在。
+
+## 二、SOURCE_LOCK：先保护生产代码
+
+1. 核验 PR #346 当前远端 HEAD。
+2. 核验 Commit `316de1b705fb54ee7d6e2114259ec1f87773aedf` 是否仍是目标整改版本。
+3. 确认原始审计基线 `babd6b3...`。
+4. 检查当前所有相关工作区和 Worktree。
+5. 检查是否存在尚未提交的资料、源码 Diff 或证据。
+6. 对现存资料先做只读盘点，不删除、不覆盖、不移动原文件。
+
+禁止：
+
+- 修改生产源码。
+- 修改 PR #346。
+- 修改 Main。
+- Reset / Rebase / Force Push。
+- 删除历史 Worktree。
+- 删除原始证据。
+- 重新构建 APK 来替代已经存在的 APK。
+- 用新生成的报告覆盖历史报告。
+
+## 三、资料发现：完整搜索相关工作目录
+
+优先检查以下已知位置，必须先验证路径是否存在：
+
+- `/workspace/Yujian_App_PR346/`
+- `/workspace/Yujian_P0_delivery/`
+- `/workspace/Yujian_App_P0_2_android_validation/`
+- `/workspace/YUJIAN_P0_AUDIT_PR346_babd6b3/`
+- `/workspace/` 下其他 YuJian / YUJIAN / PR346 / P0 相关工作区。
+- 仓库内 `docs/contracts/`、`audit-archives/`、`artifacts/`、`reports/`、`evidence/`、`scripts/`。
+
+对于其他目录，先确认与本项目的关联，不要上传无关项目文件。
+
+同时检查 GitHub 上已经存在的历史审计分支：
+
+`audit/p0-conformance-babd6b3`
+
+从该分支取得已经上传的原始 P0 审计资料。
+
+不得只检查当前工作区而遗漏其他保留的交付目录。
+
+## 四、必须收集的十类资料
+
+### A. 六份冻结合同
+
+从仓库实际 Contract Registry 和 Manifest 确认六份合同的准确名称。
+
+完整收集：
+
+- 六份合同原文。
+- Registry。
+- Manifest。
+- SHA256SUMS。
+- 合同冻结 Work 指令。
+- 合同版本与冻结记录。
+
+不允许根据历史记忆重新编写合同。
+
+必须保留原文件字节和原始 SHA256。
+
+### B. 原始 P0 审计资料
+
+从原审计分支和本地归档取得：
+
+- 00_EXECUTIVE_AUDIT_REPORT.md
+- 01_REQUIREMENT_CONFORMANCE_MATRIX.csv
+- 02_CROSS_LAYER_CALL_GRAPH.md
+- 03_ROOT_CAUSE_REGISTER.md
+- 04_TEST_AND_EVIDENCE_INDEX.md
+- 05_AUDIT_MANIFEST.json
+- SOURCE_MODULE_MAP.md
+- 原始 ZIP。
+- ZIP SHA256。
+
+确认审计基线为 `babd6b3...`。
+
+### C. 17 项整改完整资料
+
+收集现有九份文件：
+
+- 00_FINAL_REMEDIATION_REPORT.md
+- 01_17_ISSUE_CLOSURE_MATRIX.csv
+- 02_GATE_DEADLINE_POLICY_REPORT.md
+- 03_PRODUCTION_CALL_GRAPH.md
+- 04_TEST_RESULTS.md
+- 05_NATIVE_RUNTIME_STATUS.md
+- 06_APK_MANIFEST.json
+- 07_SHA256SUMS
+- 08_UNRESOLVED_ITEMS.md
+
+另外收集：
+
+- 17 项整改技术方案。
+- 每项问题的根因分析。
+- 修改文件及函数列表。
+- Producer / Consumer 映射。
+- 验收条件。
+- 未完成项与风险。
+- 历史修复前后的差异资料。
+
+### D. Gate Deadline 资料
+
+完整收集：
+
+- `12_NON_MODEL_GATE_DEADLINE_POLICY_V1.md`
+- `02_GATE_DEADLINE_POLICY_REPORT.md`
+- 23 Gate 数值表。
+- Timeout / Retry / Budget 规则。
+- Gate Policy / Tracker 实现。
+- 对应单测。
+- 实际生产接入情况。
+- 未接入 Gate 清单。
+
+保留已经冻结的参数，不得自行修改：
+
+- 主动呈现：6000ms。
+- 共享模型 Attempt Deadline：60000ms。
+- 单 Gate 最长：3000ms。
+- Attempt 非模型阻塞区间并集：10000ms。
+- PixelCopy：1500ms，不计入业务预算。
+
+### E. 源码与调用链证据
+
+基于：
+
+`babd6b3... → 316de1b...`
+
+生成或收集：
+
+1. 完整源码 Diff，优先使用 Git 原生二进制安全格式。
+2. Commit Stat。
+3. Changed Files CSV。
+4. 关键函数修改前后对照。
+5. Producer / Consumer 调用链。
+6. Controller / Store 双端关系。
+7. Gate 起始、成功、失败、超时调用关系。
+8. 尚未接入的生产路径。
+
+Diff 必须对应精确 SHA，不允许用当前工作区不确定状态代替。
+
+### F. 测试及 CI 原始资料
+
+收集：
+
+- 全部 Gradle Test 日志。
+- 各模块测试结果。
+- JUnit XML。
+- Kotlin 编译日志。
+- AndroidTest 编译日志。
+- assembleDebug 日志。
+- 模型校验日志。
+- Exact-HEAD CI Run URL、Run ID、Job 和 Step 状态。
+- 574 项测试的实际统计。
+- 被 Skip 的设备任务及原因。
+- `verify_production_model.py` 完整失败信息。
+
+不能只上传测试总结，必须尽量保留原始可复核日志。
+
+### G. APK 资料
+
+收集：
+
+- YuJian Debug APK。
+- AndroidTest APK（如果存在）。
+- APK_BUILD_MANIFEST。
+- APK_SHA256SUMS。
+- 签名校验报告。
+- SOURCE_REVISION 验证结果。
+- APK 包内模型资产核验结果。
+- GitHub Actions Artifact 名称、Run ID、下载地址。
+
+APK 已知信息：
+
+- Source SHA：`316de1b705fb54ee7d6e2114259ec1f87773aedf`
+- SHA256：`ac98167b18ebb4d6d18d6d0161fe57da64bbf100c6ae345f621fe13166cccb7e`
+- 大小：`200257995 bytes`
+
+优先保留原始 APK，不要重新构建替代。
+
+注意：普通 Git 仓库单文件超过 100MB 的限制。
+
+大文件不得强行提交到普通 Git：
+
+- 优先复用现有 GitHub Actions Artifact。
+- 必要时使用独立 Release 或已经配置的 LFS。
+- 如果上传权限阻塞，保留原文件并记录下载方式、SHA 和阻塞原因。
+- 不允许将 APK 拆成多个假文件冒充上传成功。
+
+### H. 模型与 Native Runtime 资料
+
+收集：
+
+- DET_FISH 模型合同及元数据。
+- Classifier 模型元数据。
+- SlimSAM 模型元数据。
+- MODEL_REGISTRY。
+- MODEL_LOCK。
+- 模型 SHA256SUMS。
+- `model_release_contract.json`。
+- 模型来源验证器。
+- 模型校验完整日志。
+- ONNX Runtime 生命周期分析。
+- TFLite 生命周期分析。
+- Native Memory Profile。
+- Embedding Cache Identity / Lease 资料。
+
+模型二进制文件仅在必要、可取得、允许分发且存储方式合规时归档；否则保留来源、版本、大小和 SHA256，不得伪造模型文件。
+
+### I. 26KF 视觉及真机证据
+
+搜索并收集所有实际存在且与本轮整改相关的：
+
+- 26KF 高清母版。
+- KF00–KF25 映射。
+- 视觉验收标准。
+- 原始照片及 Mask。
+- original_mask.png。
+- Alpha 直方图。
+- PixelCopy。
+- Orb → Glyph 视频。
+- 真机测试 MP4。
+- Evidence ZIP。
+- Evidence 索引。
+- AUTO 验收日志。
+
+优先保留原始证据，不要压缩后删除原文件。
+
+如果某项证据不存在，明确记录 `NOT_AVAILABLE`，不得制造占位文件或模拟真机证据。
+
+### J. 历史问题和设计决策
+
+收集与 PR #346 直接相关的：
+
+- 历史 Work 指令。
+- P0 根因分析。
+- Stage10–13.5 卡死分析。
+- PATH_BOUND 修复设计。
+- Snapshot Commit-once 设计。
+- GlyphPathProvider 设计。
+- Result Handoff Contract。
+- Runtime Evidence Contract。
+- 其他冻结合同对应的技术方案。
+- 已完成和未完成事项。
+- 历史 APK 与真机测试结果。
+
+优先保留原始文件，避免将多个版本合并成一份无法追溯的文档。
+
+## 五、归档目录结构
+
+统一整理为：
+
+`audit-archives/YUJIAN_P0_FULL_ENGINEERING_ARCHIVE_316de1b/`
+
+目录：
+
+- `00_README/`
+- `01_SOURCE_BASELINE/`
+- `02_FROZEN_CONTRACTS/`
+- `03_ORIGINAL_P0_AUDIT/`
+- `04_TECHNICAL_DESIGN/`
+- `05_GATE_DEADLINE/`
+- `06_REMEDIATION_17/`
+- `07_SOURCE_DIFF_AND_CALL_GRAPH/`
+- `08_TEST_AND_CI/`
+- `09_APK_DELIVERY/`
+- `10_MODEL_AND_NATIVE_RUNTIME/`
+- `11_26KF_VISUAL_ASSETS/`
+- `12_DEVICE_EVIDENCE/`
+- `13_HISTORY_AND_DECISIONS/`
+- `14_MANIFEST_AND_CHECKSUMS/`
+
+每类目录保留原始文件名，并可在其下增加索引文件。
+
+## 六、资料完整性与来源验证
+
+建立：
+
+`ARCHIVE_INVENTORY.csv`
+
+字段：
+
+- category
+- filename
+- original_path
+- original_source_commit
+- original_sha256
+- size_bytes
+- file_type
+- evidence_type
+- upload_status
+- github_url
+- notes
+
+建立：
+
+`ARCHIVE_MANIFEST.json`
+
+记录：
+
+- Source Commit。
+- Original Audit Commit。
+- PR 编号及分支。
+- 所有归档文件。
+- 每份文件 SHA256。
+- 文件数量和总大小。
+- GitHub 上传状态。
+- 缺失资料。
+- 被排除资料及原因。
+
+建立：
+
+`SHA256SUMS`
+
+对全部实际归档文件计算 SHA256。
+
+要求：
+
+1. 复制前计算原始 SHA。
+2. 复制后计算归档 SHA。
+3. 上传后从 GitHub 远端重新读取文件。
+4. 对比远端文件 SHA 与原始 SHA。
+5. 对 ZIP 执行完整性测试。
+6. 下载 ZIP 后重新计算 ZIP SHA256。
+
+不允许只用本地校验结果声称远端上传成功。
+
+## 七、资料分级和安全约束
+
+以下内容禁止上传：
+
+- GH_TOKEN / GITHUB_TOKEN。
+- OAuth Token。
+- `.env`。
+- 私有 SSH Key。
+- Android 签名私钥及密码。
+- 用户凭据。
+- 与项目无关的个人文件。
+- Gradle Cache 等无价值缓存。
+
+日志中如包含凭据，先安全脱敏，并保留原始日志在受保护的本地环境，不得将凭据随归档上传。
+
+不得为了凑齐资料数量而上传无关文件。
+
+## 八、GitHub 上传
+
+目标分支：
+
+`archive/yujian-p0-full-engineering-316de1b`
+
+基于精确源码提交：
+
+`316de1b705fb54ee7d6e2114259ec1f87773aedf`
+
+执行：
+
+`SOURCE_LOCK → MATERIAL_DISCOVERY → INVENTORY → HASH_VERIFY → ARCHIVE_BUILD → GITHUB_UPLOAD → REMOTE_READBACK → ZIP_VERIFY`
+
+要求：
+
+1. 只在独立归档分支工作。
+2. 不修改 PR #346 功能分支。
+3. 不修改 Main。
+4. 不创建生产 PR。
+5. 不 Force Push。
+6. 如果归档分支已存在，先核验其内容，再安全追加。
+7. 每次归档 Commit 后立即 Push。
+8. 推送后重新读取 GitHub 远端。
+
+## 九、最终交付
+
+必须交付：
+
+1. 完整资料目录 GitHub 链接。
+2. 归档分支 URL。
+3. 最终 Commit SHA。
+4. ZIP 下载链接。
+5. ZIP SHA256。
+6. ARCHIVE_INVENTORY.csv。
+7. ARCHIVE_MANIFEST.json。
+8. SHA256SUMS。
+9. 九份整改报告的远端链接。
+10. 六份合同的远端链接。
+11. 原始 P0 审计资料链接。
+12. APK 和 Actions Artifact 下载链接。
+13. 可用的真机证据下载链接。
+14. 缺失资料清单。
+15. 上传失败资料清单及明确原因。
+
+最终状态只能使用：
+
+`YUJIAN_FULL_ENGINEERING_ARCHIVE_UPLOAD_PASS`
+
+或：
+
+`YUJIAN_FULL_ENGINEERING_ARCHIVE_PARTIAL`
+
+只有全部必需文件完成远端读取和 SHA256 验证，才允许报告 PASS。
+
+不得把本地存在、Git Commit 存在或 GitHub 页面可打开，直接等同于全部归档完成。
+
+**最终目标：任何独立审计者只凭 GitHub 归档分支和资料索引，就能复核六份合同、17 项整改、Gate 设计、源码差异、测试结果、APK 来源和真实设备证据。**

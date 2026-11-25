@@ -1,0 +1,91 @@
+{
+  "contract": "recognition_result_hero_media",
+  "version": "V1.2",
+  "status": "FROZEN",
+  "source": "original_oriented_user_photo",
+  "subject_states": {
+    "states": [
+      "HIGH",
+      "MEDIUM",
+      "LOW"
+    ],
+    "bbox_role": "verified_subject_anchor_for_presentation_crop_only",
+    "preferred_mode": "BBOX_ANCHORED_SAFE_CROP",
+    "fallback_mode": "FULL_SOURCE_FOREGROUND_SAME_SOURCE_AMBIENT",
+    "initial_padding": {
+      "horizontal_fraction": 0.1,
+      "vertical_fraction": 0.12
+    },
+    "retry_padding_profiles": [
+      {
+        "horizontal_fraction": 0.1,
+        "vertical_fraction": 0.12
+      },
+      {
+        "horizontal_fraction": 0.08,
+        "vertical_fraction": 0.08
+      },
+      {
+        "horizontal_fraction": 0.04,
+        "vertical_fraction": 0.04
+      },
+      {
+        "horizontal_fraction": 0,
+        "vertical_fraction": 0
+      }
+    ],
+    "edge_compensation": "stop_at_source_edge_transfer_unavailable_expansion_to_opposite_side",
+    "bbox_missing_or_untrusted": "skip_aggressive_crop_use_full_source_foreground_same_source_ambient"
+  },
+  "recovery_states": {
+    "states": [
+      "NO_FISH",
+      "IMAGE_QUALITY"
+    ],
+    "mode": "FULL_SOURCE_FOREGROUND_SAME_SOURCE_AMBIENT",
+    "bbox_crop": "PROHIBITED",
+    "source_rect": [
+      0,
+      0,
+      1,
+      1
+    ]
+  },
+  "prohibited": [
+    "stretch",
+    "generated_fill",
+    "outpaint",
+    "fish_repair",
+    "detector_crop",
+    "classifier_crop",
+    "solid_letterbox",
+    "post_entry_crop_jump"
+  ],
+  "container_geometry": {
+    "width_policy": "responsive_to_available_window_content_width",
+    "aspect_ratio_policy": "fixed_per_result_state_not_photo_orientation",
+    "reference_sizes_dp": {
+      "HIGH": [
+        322,
+        210
+      ],
+      "MEDIUM": [
+        322,
+        178
+      ],
+      "LOW": [
+        322,
+        178
+      ],
+      "NO_FISH": [
+        322,
+        245
+      ],
+      "IMAGE_QUALITY": [
+        322,
+        214
+      ]
+    },
+    "short_screen_behavior": "allow_content_scroll_keep_primary_actions_reachable"
+  }
+}

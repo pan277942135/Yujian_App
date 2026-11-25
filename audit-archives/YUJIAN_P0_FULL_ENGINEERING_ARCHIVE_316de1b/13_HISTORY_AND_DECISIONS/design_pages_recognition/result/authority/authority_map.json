@@ -1,0 +1,120 @@
+{
+  "package": "Recognition Result Design Package V1",
+  "package_version": "V1",
+  "scope": "android_design",
+  "authority_order": [
+    {
+      "rank": 1,
+      "authority": "STATE_FROZEN_REFERENCES",
+      "files": [
+        "design/pages/recognition/design/05_Result_High_Frozen.png",
+        "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+        "design/pages/recognition/design/07_Result_Low_Frozen.png",
+        "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+        "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png"
+      ],
+      "rule": "Final authority for state-specific composition, hierarchy and visible copy."
+    },
+    {
+      "rank": 2,
+      "authority": "HERO_MEDIA_CONTRACT_V1",
+      "files": [
+        "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+        "design/pages/recognition/result/media/hero_media_contract.json",
+        "design/pages/recognition/result/media/hero_media_test_vectors.json"
+      ],
+      "rule": "Numeric/behavior authority for mapping arbitrary real user photos inside the Frozen Hero container. Does not redefine page/container geometry."
+    },
+    {
+      "rank": 3,
+      "authority": "SPECIES_SELECTOR_V1",
+      "files": [
+        "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md",
+        "design/pages/recognition/result/species_selector/species_selector_contract.json",
+        "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
+        "design/pages/recognition/result/species_selector/frozen/manifest.json"
+      ],
+      "scope": "Recognition Result shared species selector only.",
+      "rule": "Owns the Species Selector interaction and media presentation. Does not redefine Frozen Result page composition or state references 05–09."
+    },
+    {
+      "rank": 4,
+      "authority": "METADATA_EDIT_FLOW_V1",
+      "files": [
+        "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
+        "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
+        "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
+        "design/pages/recognition/result/metadata_edit/frozen/manifest.json"
+      ],
+      "scope": [
+        "Length Bottom Sheet",
+        "Weight Bottom Sheet",
+        "Location Bottom Sheet",
+        "keyboard/focus",
+        "validation",
+        "clear/re-edit",
+        "location search/current/recent"
+      ],
+      "excluded_scope": [
+        "underlying Result page composition",
+        "confidence badge",
+        "legacy Result CTA",
+        "legacy Metadata List"
+      ],
+      "rule": "Visual board owns the listed metadata overlays/interactions only; the existing frozen behavior spec/contract governs semantics. It cannot revive legacy Result page composition."
+    },
+    {
+      "rank": 5,
+      "authority": "ENGINEERING_DESIGN_CONTRACTS_V1",
+      "files": [
+        "design/pages/recognition/result/engineering/Recognition_Result_Layout_Geometry_V1.md",
+        "design/pages/recognition/result/engineering/Recognition_Result_Component_Map_V1.md",
+        "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Input_Contract_V1.md",
+        "design/pages/recognition/result/engineering/Recognition_Result_Candidate_Card_V1.md",
+        "design/pages/recognition/result/engineering/Recognition_Result_Visual_Acceptance_Map_V1.md"
+      ],
+      "rule": "Deterministic page geometry, adaptive behavior, component mapping, input behavior, candidate state visuals and visual QA tolerances."
+    },
+    {
+      "rank": 6,
+      "authority": "RESULT_PACKAGE_SPECS",
+      "root": "design/pages/recognition/result/",
+      "rule": "Behavior, interaction, CTA and implementation-facing state contract."
+    },
+    {
+      "rank": 7,
+      "authority": "CORE_VISUAL_SYSTEM_REFERENCE",
+      "file": "design/system/core_visual_v1/reference/recognition_result_v1.png",
+      "sha256": "c4c9d77084dd3547cacba31a45c5bf4766a77dd8844d504a980471e0b93d8482",
+      "rule": "Shared Result visual language/base composition. Does not override a state-specific Frozen reference."
+    },
+    {
+      "rank": 8,
+      "authority": "GLOBAL_RECOGNITION_RUNTIME",
+      "files": [
+        "design/pages/recognition/runtime/Recognition_Runtime_Contract_V1_1.md",
+        "design/pages/recognition/runtime/Recognition_State_UI_Mapping_V1.md"
+      ],
+      "rule": "Real pipeline/state routing authority. Result visuals must not change model semantics."
+    },
+    {
+      "rank": 9,
+      "authority": "RUNTIME_IMPLEMENTATION",
+      "files": [
+        "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+        "app/src/main/java/com/yujian/ai/ui/screens/RecognitionIssueScreen.kt"
+      ],
+      "rule": "Implementation must be corrected when it conflicts with higher authority."
+    }
+  ],
+  "conflict_rules": [
+    "Engineering Design Contracts govern implementation details not uniquely measurable from a Frozen PNG; they do not authorize changing the Frozen page hierarchy.",
+    "Frozen state PNG owns Hero container placement; Hero Media Contract owns dynamic user-photo placement inside that container.",
+    "State-specific Frozen PNG wins over the Core Visual reference for state differences.",
+    "Result spec wins over runtime behavior when runtime is implementation debt.",
+    "Global Recognition Runtime Contract wins for classifier/detector/confidence semantics.",
+    "Missing runtime capability must be recorded as a gap; it must not silently rewrite design intent.",
+    "Species Selector V1 owns only the selector; it cannot change the 05–09 Frozen Result pages or their hierarchy.",
+    "Metadata Edit Flow V1 board owns only the metadata edit overlays/interactions listed in its manifest; it is not authority for the underlying Result page layout, confidence badge, legacy CTA, legacy metadata list, Species Tag or Gold action."
+  ]
+}

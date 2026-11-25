@@ -1,0 +1,168 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "base_branch": "main",
+  "base_sha": "03db3692669847084d7e48fc3128f85cbf832af9",
+  "blockers": [
+    "FIXTURE_B_UNAVAILABLE: the named c2b6cc74040c evidence ZIP is not among current task attachments; source regression can be tested, but that real fixture cannot be replayed.",
+    "API36_CURRENT_SOURCE_PENDING: local /dev/kvm, adb, and emulator are absent; current-source hosted KVM/AUTO run pending.",
+    "SLIMSAM_PERFORMANCE_AFTER_NOT_RUN: post-fix same-device measurements pending.",
+    "VISUAL_AUTO_ACCEPTANCE_NOT_RUN: pre-fix evidence includes only six captured checkpoints.",
+    "HUAWEI_DEVICE_QA_PENDING.",
+    "GATE_DEADLINE_TABLE_MISSING: attachment says a second-part timeout table is the only numeric authority but includes no values. Gate constants remain unspecified; independent non-numeric work can continue."
+  ],
+  "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+  "checkpoint_updated_at": "2026-11-24T11:08:39Z",
+  "control_plane_revision": "03db3692669847084d7e48fc3128f85cbf832af9",
+  "dependencies": [
+    "P5-02"
+  ],
+  "evidence": {
+    "admission": "CONTROL_PLANE_ADMISSION=PASS on state checkpoint 67f17f0eb6a80233438cb8b00111a55d6767a6d8 for implementation source 6102640437041159abc519b00249b7aedff0bb03; all six Admission groups pass; structural_errors=0; historical OPEN_GAP=1 is non-blocking.",
+    "admission_baseline": "CONTROL_PLANE_ADMISSION=PASS at 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; structural_errors=0; historical OPEN_GAP=1 is not an Admission failure. Current recovered-state Admission is the next required check.",
+    "android_test_compile": ":app:assembleDebugAndroidTest PASS; production AUTO instrumentation APK compiled, not run locally.",
+    "api36_false_positive_audit": "User supplied Run 45032036762 facts: INSTRUMENTATION_RESULT shortMsg=Process crashed; INSTRUMENTATION_CODE=0; lowmemorykiller reported Kill com.yujian.ai.uiv2 with rss=670552kB, swap=1257028kB and min-watermark/swap-low reason. Source SHA/raw artifact remain NOT_CONFIRMED; facts were not independently replayed.",
+    "api36_memory_controls": "Run 45106300573 passed the hosted x64 KVM preflight and >=5 GiB host MemAvailable gate; standalone prelaunch AVD config step reported and asserted hw.ramSize=4096M and hw.heapSize=512M. Runtime artifact 14788427080 SHA256 f0aaa9891a87ffda19f52146be08a389a48acc62090c2eddf867c4e3f4e93099 is uploaded but its contents cannot be read here. Therefore actual emulator boot, in-guest meminfo, PSS/RSS/Swap, SlimSAM Encoder/Decoder timing, GC/Native Heap, LMK events and leak diagnosis are NOT_CONFIRMED for this run.",
+    "archive_integrity": "Fixture A ZIP unzip -t passed; 14,190,826 bytes; SHA256 19a01dcc9dd07e0b489b22ddae41cc763fed1fe6a03377cceef5e13616e1164d; archive provenance records source SHA 3eb481c1f2ca4053fc58f87729f923fb70ef7f50, so it is historical evidence and not current-head runtime proof.",
+    "branch_head": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10 (verified remote PR #346 source baseline; no product edits in this task yet)",
+    "code_implementation_commit": "6102640437041159abc519b00249b7aedff0bb03",
+    "current_admission_attempt": "Initial CONTROL_PLANE_ADMISSION on babd6b3ad31ee02f70d74738a27d7f14cc6b5e10: CONTROL_PLANE_SYNC PASS; Registry/Feature Matrix/Phase Task/Unified Contract structure pass (one historical OPEN_GAP); Project Master State and Work Execution State failed due stale recorded source SHA 26f1b63bc6946fdda681de500873a1e09bfe2a5f versus verified remote head babd6b3ad31ee02f70d74738a27d7f14cc6b5e10 and stale PR base metadata. State-only reconciliation is being committed; no source/tests have run.",
+    "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
+    "evidence_zip": "/workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip; 14,190,826 bytes; unzip -t passed; 33 recorded hash entries verified; extracted at /tmp/yujian-evidence-5344335",
+    "exact_head_apk": "PENDING final marked checkpoint build; previous 67f17f0 APK is stale and must not be delivered.",
+    "exact_head_ci": "PENDING: push final marked checkpoint on the existing PR #346 branch; inspect hosted Build/KVM/API36 results before any PASS declaration.",
+    "fail_closed_parser_tests": "8/8 PASS: the three requested instrumentation cases plus finalizer exact-source/pass, runner-failure, boot-contradiction and malformed-memory fail-closed cases.",
+    "kf_matrix": "scripts/android_runtime/tests/test_26kf_runtime_trace_matrix_v2.py: 4/4 PASS; RecognitionVisualStateControllerTest.autoCheckpointStageWaitsForItsPixelCopyBeforeAdvancing passed in the module suite.",
+    "kvm_preflight_artifact": "Run 45106300573 artifact 14787935229 SHA256 b72e62d7006e3f8073442a7d1ac3675ba0ba1f7cd238a7ceb079148f76e7bc78.",
+    "latest_api36_run": {
+      "run_id": "45110217717",
+      "source_sha": "6ad3eb6264abdb29f43924210422765ce7a7803a",
+      "code_source_sha": "a9f597a4f3b5f2911e8962d2b138ace503fdbe4b",
+      "BUILD_PASS": true,
+      "build_result": "success",
+      "KVM_READY": true,
+      "kvm_preflight": "KVM_READY",
+      "host_memory_preflight": "PASS; minimum 5 GiB MemAvailable gate satisfied; raw host report artifact inaccessible",
+      "avd_prelaunch_memory_config": {
+        "hw.ramSize": "4096M",
+        "hw.heapSize": "512M",
+        "step_result": "success"
+      },
+      "exact_head_apk_pair_verified": true,
+      "apk_pair_artifact": "YuJian-runtime-apks-6ad3eb6264abdb29f43924210422765ce7a7803a-MODEL_CROP_M1_v0.2",
+      "apk_pair_artifact_id": "14789643852",
+      "apk_pair_artifact_sha256": "75e38e628acd3ddced2f2ee04828d44bd0429541b2ad4a8268a8982789cccf70",
+      "smoke_runner_outcome": "success_step_outcome; job failed in summary finalization and exact-head enforcement",
+      "classification": "SUMMARY_FINALIZATION_FAILURE_UNCLASSIFIED",
+      "api36_emulator_boot": "NOT_CONFIRMED",
+      "EMULATOR_BOOT_PASS": "NOT_CONFIRMED",
+      "instrumentation_started": "NOT_CONFIRMED",
+      "AUTO_SMOKE_PASS": false,
+      "DEVICE_QA_PENDING": true,
+      "failure_reason": "The finalizer and Enforce steps failed; the runtime artifact is inaccessible, so the instrumentation result and runtime classification cannot be independently confirmed.",
+      "runtime_evidence_artifact": "YuJian-recognition-result-api36-6ad3eb6264abdb29f43924210422765ce7a7803a",
+      "runtime_evidence_artifact_id": "14790495872",
+      "runtime_evidence_sha256": "2729c61d007bff9e659d7725e54f126df60cfc6935a8069e406ab44ab4d5febf",
+      "runtime_evidence_limitation": "Artifact uploaded (8.58 MB); contents/raw logs unavailable in this environment. Do not infer API36 boot, Instrumentation completion, resource exhaustion, business failure or AUTO pass."
+    },
+    "local_android_test_compile": "Exact-source :app:assembleDebugAndroidTest PASS after final test additions; production Instrumentation test has not run locally because KVM/ADB/emulator are absent.",
+    "local_script_validation": "8/8 targeted Python tests PASS; finalizer/validator py_compile PASS; smoke shell bash -n PASS; workflow YAML parses and all 5 embedded Python blocks compile; git diff --check PASS. actionlint is not installed.",
+    "local_sdk_state": "Tracked local.properties restored exactly; builds used ANDROID_HOME environment variables and did not persist SDK path edits.",
+    "local_source_commit": "7119089573515c4f5e0699b72d057cec592eee3b",
+    "main_control_plane": "03db3692669847084d7e48fc3128f85cbf832af9",
+    "model_asset_validation": "Model bootstrap and Detector/Classifer asset validation PASS; generated model snapshot uses the current source SHA during final build. Model bytes unchanged.",
+    "pr_status": "GitHub PR #346 page metadata: state DRAFT; closedTime=null; mergedTime=null; base fix/det-fish-v03-main-runtime-closure@6ec43662ef76c6ffee8530148098649496ab7fb1; head babd6b3ad31ee02f70d74738a27d7f14cc6b5e10.",
+    "previous_admission_attempt": "CONTROL_PLANE_ADMISSION=PASS on the final marked state-only checkpoint for source commit 0ad7dbb5379504a3e6b3908e66fc5b74a76bdf20; structural_errors=0; one unchanged historical OPEN_GAP is non-blocking; no Registry or validator edits.",
+    "remote_branch_and_pr_ref": "git ls-remote verified refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head both at babd6b3ad31ee02f70d74738a27d7f14cc6b5e10; base branch fix/det-fish-v03-main-runtime-closure at 6ec43662ef76c6ffee8530148098649496ab7fb1.",
+    "runtime_capability": "Local host has no /dev/kvm, adb, or emulator; API36 AUTO requires the existing hosted x64 workflow.",
+    "task_spec": "/workspace/attachments/b839fe2f-e829-4a32-b8db-11ab2146b68a/已粘贴的文本.txt",
+    "unit_tests": "542 JUnit tests across eight configured module tasks; 0 failures, 0 errors, 0 skipped. The app suite passed after the standard model asset bootstrap.",
+    "user_supplied_failure_facts": "Task prose is not device evidence; inspect the ZIP records directly before promoting any fact",
+    "video_attachment": "302e51a0725b602704363f264b1c70dc.mp4 is available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; source evidence is historical/pre-fix.",
+    "workflow_failure_summary_fix": "Source 7119089573515c4f5e0699b72d057cec592eee3b moves summary/result enrichment into scripts/ci/finalize_recognition_result_api36_smoke.py; exact runtime source SHA is mandatory, Build/KVM/Boot/runner gates must agree with AUTO, contradictions force AUTO_SMOKE_PASS=false, evidence hashes and APK SHA-256 values are captured, and finalization exceptions produce INFRA_BLOCKED evidence.",
+    "requested_task_id": "YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1",
+    "requested_task_title": "YuJian 六大合同 17 项问题集中整改、Gate Deadline 冻结、Stage10–13.5 完整闭环与 Exact-HEAD Debug APK V1",
+    "fixture_b": "FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not present; deterministic ORB-only regressions are source tests, not real fixture replay.",
+    "debug_apk_build": "PENDING final checkpoint Exact-HEAD APK Pair build.",
+    "packaged_apk_verification": "PENDING final checkpoint APK verification.",
+    "api36_local_capability": "No local /dev/kvm, adb, or emulator. No TCG attempt.",
+    "fixture_a": "Current supplied Huawei evidence ZIP SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; source SHA 67f17f0eb6a80233438cb8b00111a55d6767a6d8; pre-fix evidence, replayed as deterministic source fixture only.",
+    "final_api36_status": "PENDING current source. No current-source KVM/boot/AUTO PASS declared.",
+    "api36_failure_classification": "AUTO_SMOKE_PASS=false. EMULATOR_BOOT_PASS=NOT_CONFIRMED. The production smoke command ended with exit code 1; final enforcement failed. Uploaded runtime artifact 14818308331 is 10.1 MB with SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33, but raw contents are inaccessible, so INFRA_BLOCKED versus BUSINESS_LOGIC_FAILURE versus RESOURCE_EXHAUSTED cannot be distinguished.",
+    "api36_runtime_artifact": "Run 45172732325 artifact 14818308331 (YuJian-recognition-result-api36-6102640437041159abc519b00249b7aedff0bb03, 10.1 MB), SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33. Uploaded successfully; artifact content not readable in this session.",
+    "hosted_apk_pair_artifact": "Run 45172732325 APK Pair artifact 14818985729, SHA256 4fae2e48d7d12adcc72f85f65a08cf94f51e6e9dd0849808a87d235fca18d45f; produced by hosted Build at source 6102640437041159abc519b00249b7aedff0bb03.",
+    "runtime_evidence_scope": "Exact code source 6102640437041159abc519b00249b7aedff0bb03 KVM/build/AVD prelaunch gates passed, but production smoke returned exit 1 and enforcement failed. Raw runtime evidence artifact is uploaded, SHA recorded, and available on Run 45172732325 for authenticated inspection; this session cannot read the archive.",
+    "business_runtime_outcome": "NOT_RUN on current source; current exact-head Stage10–13.5 production AUTO evidence required.",
+    "final_head_ci_run": "Pending final marked push to existing PR #346 branch.",
+    "branch_source_commit": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10 (existing PR #346 branch fix/26kf-path-boundary-and-fish-gate-v1; source baseline for this remediation; no new PR or merge)",
+    "frozen_visual_archive": "164,751,025 bytes; SHA256 d054bc189cd65795dbfd96fcbf57d3766d7c381ab3101d0411ada307f2b85746; all six uploaded part hashes match UPLOAD_MANIFEST.json; reconstructed archive passed unzip -t.",
+    "real_device_evidence": "YuJian_Recognition_Evidence_eac685c91965.zip SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; 302e51a0725b602704363f264b1c70dc.mp4 SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392. Both are Huawei CMS-AL20/API36 historical pre-fix evidence, not current-run proof.",
+    "performance_baseline": "Historical Huawei log interval: 12,557 ms from first SlimSAM PROCESSING to READY; internal encoder/decoder timing, memory and GC were not recorded in that archive.",
+    "performance_after": "NOT_RUN; no same-device post-fix run exists. Do not claim device performance improvement.",
+    "visual_status": "Reference inventory/tokens/mapping/ROIs and diagnostic-only comparisons for six historical captures are recorded under artifacts/26kf_visual_reference_v1. Current source visual acceptance NOT_RUN.",
+    "current_source_changes": "Immutable versioned RecognitionSnapshot metadata and pending-input SessionStore binding; stale energy event envelope/sequence regression; richer SlimSAM initialization and failure/tensor diagnostics.",
+    "input_evidence_zip": "/workspace/Yujian_App/artifacts/26kf_visual_reference_v1/inputs/YuJian_Recognition_Evidence_eac685c91965.zip; 16,204,260 bytes; SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; integrity entries independently verified.",
+    "previous_task_spec": "/workspace/attachments/c9f1a71a-fd89-4cba-b20d-5eb1ac9c338d/已粘贴的文本.txt",
+    "task_scope_blocker": "GATE_DEADLINE_TABLE_MISSING: attachment says a second-part timeout table is the only numeric authority but includes no values. Gate constants remain unspecified; independent non-numeric work can continue.",
+    "previous_v5_status": "Preserved from existing state and build log: prior V5/API36 failures and historical test/APK evidence remain scoped to their recorded source SHAs; no current-source PASS is inferred."
+  },
+  "execution_v2": {
+    "issues": {
+      "8eb8d70b6e7a1f222ad4": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "GitHub Actions run 45110217717 at exact HEAD 6ad3eb6264abdb29f43924210422765ce7a7803a: BUILD and exact APK Pair passed; KVM, host memory and AVD 4096M/512M checks passed; smoke step ended and uploaded runtime artifact 14790495872 (8.58 MB, SHA256 2729c61d007bff9e659d7725e54f126df60cfc6935a8069e406ab44ab4d5febf); Record early API36 infrastructure failure when smoke did not start and Enforce exact-head result both failed at 04:32:14Z. Artifact contents and runtime classification/boot/instrumentation fields are inaccessible, so AUTO status remains NOT_CONFIRMED.",
+            "hypothesis": "The inline post-smoke summary finalizer failed for an input-dependent reason. Source 7119089573515c4f5e0699b72d057cec592eee3b extracts finalization into a tested helper, records exception evidence, and forces fail-closed gate consistency; exact-head hosted rerun is pending.",
+            "source_sha": "a9f597a4f3b5f2911e8962d2b138ace503fdbe4b"
+          }
+        ],
+        "gate_id": "G8_EXACT_HEAD_CI_AND_API36_SMOKE",
+        "symptom_key": "API36_RESULT_SUMMARY_FINALIZATION_FAILURE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "ef98c6d745afc159e5b6": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "GitHub Actions run 45106300573 triggered at exact HEAD 8301b4868f00476ed6f6ff2bc30e8286273d269c: Android Build, KVM/host-memory gate, exact APK Pair verification, and standalone API36 AVD RAM/heap setup passed; Run production AUTO smoke ended with runner exit code 2. Runtime artifact 14788427080 SHA256 f0aaa9891a87ffda19f52146be08a389a48acc62090c2eddf867c4e3f4e93099 uploaded but contents are not accessible in this environment; API36 boot and Instrumentation start are NOT_CONFIRMED.",
+            "hypothesis": "The emulator runner is exiting before the production smoke script records runtime state after the standalone AVD setup passed; surface classification and available runner evidence in the Actions summary before changing runner or workload configuration.",
+            "source_sha": "00e43d38bf8d7694f28fef308c9ad72442e98298"
+          }
+        ],
+        "gate_id": "G8_EXACT_HEAD_CI_AND_API36_SMOKE",
+        "symptom_key": "API36_EMULATOR_RUNNER_EXIT_2_BEFORE_RUNTIME_RESULT",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      }
+    },
+    "schema_version": "1.0"
+  },
+  "next_action": "Commit this state-only reconciliation, rerun Control Plane Admission, then trace PhotoIdentity and snapshot production paths before source edits.",
+  "phase": "P6",
+  "repository": "pan277942135/Yujian_App",
+  "schema_version": "1.0",
+  "source_sha": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+  "stage": "G0_BASELINE_RECONCILED_ADMISSION_RETRY",
+  "status": "RUNNING",
+  "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+  "work_id": "YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1",
+  "current_work": {
+    "exact_head": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+    "status": "RUNNING",
+    "stage": "G0_BASELINE_RECONCILED_ADMISSION_RETRY",
+    "blockers": [
+      "API36_CURRENT_SOURCE_PENDING: local host has no /dev/kvm, adb, or emulator; hosted x64 workflow must run.",
+      "SLIMSAM_PERFORMANCE_AFTER_NOT_RUN: no post-fix measurement on the same Huawei device, image, and model.",
+      "VISUAL_AUTO_ACCEPTANCE_NOT_RUN: only six pre-fix KF captures are available; no post-fix API36 screenshot set.",
+      "HUAWEI_DEVICE_QA_PENDING: the user device is not exposed to Codex.",
+      "GATE_DEADLINE_TABLE_MISSING: attachment says a second-part timeout table is the only numeric authority but includes no values. Gate constants remain unspecified; independent non-numeric work can continue."
+    ],
+    "id": "YUJIAN_PR346_CROSS_LAYER_CLOSURE_CLOUD_V4_1",
+    "task_id": "YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1",
+    "requested_task_id": "YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1",
+    "requested_task_title": "YuJian 六大合同 17 项问题集中整改、Gate Deadline 冻结、Stage10–13.5 完整闭环与 Exact-HEAD Debug APK V1"
+  },
+  "state_update": {
+    "last_updated_at": "2026-11-23T18:31:00Z",
+    "note": "Source commit 26f1b63bc6946fdda681de500873a1e09bfe2a5f contains the V5 SessionStore, event envelope, SlimSAM failure diagnostics and evidence inventory. Six part hashes and reconstructed frozen ZIP SHA verify; 542 JUnit tests and AndroidTest compile pass. Current-source hosted AUTO, post-fix visual/performance, and Huawei device validation remain pending."
+  }
+}

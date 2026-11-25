@@ -1,0 +1,211 @@
+{
+  "taskId": "YUJIAN_P0_SIX_CONTRACTS_IMPLEMENTATION_CONFORMANCE_AUDIT_V1",
+  "repository": "pan277942135/Yujian_App",
+  "pullRequest": 346,
+  "prState": "OPEN_DRAFT",
+  "prHeadBranch": "fix/26kf-path-boundary-and-fish-gate-v1",
+  "prHeadSha": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+  "expectedHeadSha": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+  "prBaseSha": "6ec43662ef76c6ffee8530148098649496ab7fb1",
+  "sourceLock": {
+    "remoteBranchRefSha": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+    "remotePullRequestHeadRefSha": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+    "auditCheckout": "/tmp/yujian-pr346-audit",
+    "auditCheckoutMode": "detached exact-HEAD clone",
+    "auditCheckoutSha": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+    "sharedWorkspaceCheckout": "/workspace/Yujian_App",
+    "sharedWorkspaceBranch": "work",
+    "sharedWorkspaceSha": "03db3692669847084d7e48fc3128f85cbf832af9",
+    "sharedWorkspaceUsedAsSource": false,
+    "sharedWorkspaceModified": false,
+    "prMetadataEvidence": "GitHub PR page: state DRAFT, headSha and baseSha; git ls-remote: target branch ref and refs/pull/346/head agree"
+  },
+  "contractSet": {
+    "version": "1.0.0",
+    "status": "FROZEN_SPECIFICATION",
+    "implementationConformanceBeforeAudit": "NOT_ASSESSED",
+    "deviceAcceptanceBeforeAudit": "NOT_RUN",
+    "checksumCommand": "cd docs/contracts/yujian-ai-v2 && sha256sum -c SHA256SUMS",
+    "checksumResult": "15/15 package entries OK (including all six core contracts)",
+    "coreContracts": [
+      {
+        "id": "C1",
+        "file": "02_RECOGNITION_RUNTIME_CONTRACT_V1.md",
+        "sha256": "a6b27578a9a6c96b0ba4dd6595eea5faa11602611b55d46d4117d3c5bc97a80e"
+      },
+      {
+        "id": "C2",
+        "file": "03_RECOGNITION_RESULT_SNAPSHOT_CONTRACT_V1.md",
+        "sha256": "125ed4f09ef278a45de41f44ddcddd32a235a3d15f0bfb6dfd2fa944a7f83442"
+      },
+      {
+        "id": "C3",
+        "file": "04_REVEAL_TIMELINE_CONTRACT_V1.md",
+        "sha256": "960d90154cd6d1b159582203836cad44fabe19c5ff23559bf6be575683920a87"
+      },
+      {
+        "id": "C4",
+        "file": "05_ORB_TO_GLYPH_RENDERING_CONTRACT_V1.md",
+        "sha256": "84e2a65289b9850423fb3e75edf73266c47f7db0e21ead7aaa3479324467cb50"
+      },
+      {
+        "id": "C5",
+        "file": "06_RESULT_HANDOFF_CONTRACT_V1.md",
+        "sha256": "c1f89229b0f523492f2b8446286d3ea84d73aca39d11ce2627617c4f328e9b42"
+      },
+      {
+        "id": "C6",
+        "file": "07_RUNTIME_EVIDENCE_CONTRACT_V1.md",
+        "sha256": "38fbe6b619e270bba9c7b730c1d306446aa8997fb1061fb2c49b06979700025c"
+      }
+    ],
+    "supportingFilesRead": [
+      "01_CROSS_CONTRACT_REVIEW.md",
+      "09_CROSS_CONTRACT_ACCEPTANCE_MATRIX.csv",
+      "10_CONTRACT_REGISTRY.json",
+      "CONTRACT_SOURCE_INVENTORY.md",
+      "CONTRACT_MANIFEST.json",
+      "SHA256SUMS",
+      "README.md"
+    ]
+  },
+  "auditTime": {
+    "date": "2026-11-24",
+    "startUtc": null,
+    "startUtcNote": "Exact start time was not captured before initial source inspection; intentionally not reconstructed.",
+    "endUtc": "2026-11-24T07:37:00Z",
+    "clientTimezone": "Asia/Shanghai"
+  },
+  "commandsAndChecks": [
+    "git status --short --branch; git rev-parse HEAD; git branch --show-current (shared workspace and independent checkout)",
+    "git show -s --format=%H%n%P%n%cs%n%s HEAD",
+    "git ls-remote origin refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 refs/pull/346/head",
+    "Read-only HTTPS fetch of https://github.com/pan277942135/Yujian_App/pull/346; inspected title, state, headSha and baseSha",
+    "sha256sum docs/contracts/yujian-ai-v2/<six core contract files>",
+    "sha256sum -c docs/contracts/yujian-ai-v2/SHA256SUMS",
+    "cat/read-only inspection of settings.gradle.kts, module build.gradle.kts project dependencies, contract package supporting files and acceptance matrix",
+    "rg --files across all Gradle modules for production/test/androidTest inventory",
+    "rg -n targeted identity, run lifecycle, stage/KF, handoff, evidence, PixelCopy, video, profiler, first-failure and receipt symbols across app/application-core/recognition-*",
+    "sed -n and Python pathlib line-range reads of the production callers/consumers, runtime managers, scene controller, path ledger, result UI, evidence exporter/verifier, and relevant test sources",
+    "Python CSV structural check: 137 unique requirement rows; C01-C24, A01-A19, KF00-KF25 present"
+  ],
+  "tests": {
+    "executed": [],
+    "status": "NOT_RUN",
+    "reason": "This audit inspected current-HEAD test sources and did not execute Unit, Instrumentation, emulator, or device tests.",
+    "apkBuilt": false,
+    "emulatorOrDeviceRun": false
+  },
+  "scopeInspectedFiles": [
+    "settings.gradle.kts",
+    "app/build.gradle.kts",
+    "application-core/build.gradle.kts",
+    "recognition-domain/build.gradle.kts",
+    "recognition-runtime/build.gradle.kts",
+    "waterlight-renderer/build.gradle.kts",
+    "recognition-ui/build.gradle.kts",
+    "recognition-result-components/build.gradle.kts",
+    "recognition-result-ui/build.gradle.kts",
+    "app/src/main/java/com/yujian/ai/YujianApplication.kt",
+    "app/src/main/java/com/yujian/ai/YujianApp.kt",
+    "app/src/main/java/com/yujian/ai/media/RecognitionImageStore.kt",
+    "application-core/src/main/java/com/yujian/ai/ai/model/Models.kt",
+    "application-core/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt",
+    "application-core/src/main/java/com/yujian/ai/ai/FishDetectorEngine.kt",
+    "application-core/src/main/java/com/yujian/ai/ai/FishRecognitionEngine.kt",
+    "application-core/src/main/java/com/yujian/ai/ai/RecognitionAttemptDeadline.kt",
+    "application-core/src/main/java/com/yujian/ai/ai/RecognitionModelWatchdog.kt",
+    "application-core/src/main/java/com/yujian/ai/ai/subject/SlimSamRuntimeManager.kt",
+    "application-core/src/main/java/com/yujian/ai/ai/subject/SlimSamRuntimeCoordinator.kt",
+    "application-core/src/main/java/com/yujian/ai/ai/subject/SlimSamSegmenter.kt",
+    "application-core/src/main/java/com/yujian/ai/ai/subject/SlimSamTensorContract.kt",
+    "recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt",
+    "recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneAnimationController.kt",
+    "recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/WaterLightPathLedger.kt",
+    "recognition-runtime/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionResultRuntimeContracts.kt",
+    "recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+    "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/RecognitionMaskContourExtractor.kt",
+    "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionResultRuntime.kt",
+    "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealSessionStore.kt",
+    "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionResultHandoffConsumer.kt",
+    "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionEvidencePolicies.kt",
+    "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionSessionEvidenceRecorder.kt",
+    "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionPixelCopyCapture.kt",
+    "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionEvidenceZipExporter.kt",
+    "recognition-ui/src/main/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionEvidenceArchiveVerifier.kt",
+    "recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultComponents.kt",
+    "recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultHandoffMilestoneEffects.kt",
+    "recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultRevealCoordinator.kt",
+    "recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+    "waterlight-renderer production Orb resident/filament renderer sources",
+    "application-core/src/test/java/com/yujian/ai/ai/RecognitionRuntimeContractTest.kt",
+    "application-core/src/test/java/com/yujian/ai/ai/RecognitionAttemptDeadlineTest.kt",
+    "application-core/src/test/java/com/yujian/ai/ai/subject/SlimSamRuntimeCoordinatorTest.kt",
+    "application-core/src/test/java/com/yujian/ai/ai/subject/SlimSamTensorContractTest.kt",
+    "recognition-runtime/src/test/java/com/yujian/ai/ui/waterlight/RecognitionSceneFrameTest.kt",
+    "recognition-runtime/src/test/java/com/yujian/ai/ui/waterlight/WaterLightPathLedgerTest.kt",
+    "recognition-ui/src/test/java/com/yujian/ai/ui/recognition/reveal/RecognitionResultRuntimeTest.kt",
+    "recognition-ui/src/test/java/com/yujian/ai/ui/recognition/reveal/RecognitionFishPathSnapshotBindingTest.kt",
+    "recognition-ui/src/test/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionSessionEvidenceRecorderTest.kt",
+    "recognition-ui/src/test/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionPixelCopyCaptureTest.kt",
+    "recognition-ui/src/test/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionEvidenceZipExporterTest.kt",
+    "app/src/androidTest/java/com/yujian/ai/RecognitionResultHandoffGuardrailRuntimeTest.kt",
+    "app/src/androidTest/java/com/yujian/ai/RecognitionResultHandoffProductionNavigationTest.kt",
+    "app/src/androidTest/java/com/yujian/ai/RecognitionRevealProductionRuntimeTest.kt",
+    "app/src/androidTest/java/com/yujian/ai/RecognitionFrozenFlowEmulatorTest.kt",
+    "app/src/androidTest/java/com/yujian/ai/RecognitionRuntimeAssetContractTest.kt",
+    "recognition-ui/src/test/resources/recognition/stage10_failure_5344335d6a51.json",
+    "recognition-ui/src/test/java/com/yujian/ai/ui/recognition/RecognitionStage10FailureFixtureTest.kt"
+  ],
+  "deliverables": [
+    {
+      "path": "00_EXECUTIVE_AUDIT_REPORT.md",
+      "bytes": 7721,
+      "sha256": "47b3f54606e4975928860b699cd1e5b5e2e485b632d97bd41d66b72a0a1438ac"
+    },
+    {
+      "path": "01_REQUIREMENT_CONFORMANCE_MATRIX.csv",
+      "bytes": 89453,
+      "sha256": "031f38cb215aff572b259330c2c1d398ba490331d71c5fbff19df77c85bf77ed"
+    },
+    {
+      "path": "02_CROSS_LAYER_CALL_GRAPH.md",
+      "bytes": 10895,
+      "sha256": "eccf8c9544aee8035293f0851eda5df33a70f2904476d4ea18e1bf4114f1a8ba"
+    },
+    {
+      "path": "03_ROOT_CAUSE_REGISTER.md",
+      "bytes": 34509,
+      "sha256": "4db1fefd831c387e90786e1cfec67366d6eec6f0a99cb361e10adfc283756fdf"
+    },
+    {
+      "path": "04_TEST_AND_EVIDENCE_INDEX.md",
+      "bytes": 10232,
+      "sha256": "28c0f47aa8cf23bef927dfa1ca5cbf87fc3093567eb1f2e849bad2529e8e56ea"
+    },
+    {
+      "path": "SOURCE_MODULE_MAP.md",
+      "bytes": 8870,
+      "sha256": "6e7fa74ad0046934b315966e929e02d40abb23fcf76f0452a496536e01771aa4"
+    }
+  ],
+  "manifestSelfHash": null,
+  "manifestSelfHashNote": "Self-referential SHA256 is omitted; calculate from the delivered file after writing if needed.",
+  "auditStatus": "P0_CONFORMANCE_AUDIT_COMPLETE",
+  "implementationConformance": "NONCONFORMANT_WITH_P0_AND_P1_FINDINGS",
+  "findingCounts": {
+    "P0": 4,
+    "P1": 13,
+    "P2": 0
+  },
+  "repoMutations": {
+    "productionSourceModified": false,
+    "testsModified": false,
+    "contractFilesModified": false,
+    "prModified": false,
+    "prMerged": false,
+    "prMarkedReady": false,
+    "newPrCreated": false
+  },
+  "historicalIncidentRootCause": "PARTIALLY_RECONSTRUCTED_FROM_OLDER_FIXTURE: source commit 3eb481c1f2ca4053fc58f87729f923fb70ef7f50 records Stage10 EVENT_STAGE_MISMATCH, zero-segment RETURN, four missing gates (return receipt/completion, Glyph, Result geometry), geometry pending, and Result first-presented at 60006ms. The earliest upstream failure and exact-HEAD attribution remain ROOT_CAUSE_UNCONFIRMED."
+}

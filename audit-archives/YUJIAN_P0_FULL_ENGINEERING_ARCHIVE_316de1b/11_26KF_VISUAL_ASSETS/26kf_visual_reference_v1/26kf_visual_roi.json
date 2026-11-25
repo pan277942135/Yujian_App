@@ -1,0 +1,347 @@
+{
+  "schemaVersion": 1,
+  "coordinateSpace": "original overview PNG pixels; left/top inclusive, right/bottom exclusive",
+  "overviewMaster": "YuJian_26KF_Frozen_Visual_Assets_V1/01_FROZEN_26KF_SOURCE/02_Continuous_Process_Boards/AI_26KF_HighRes_Overview.png",
+  "overviewSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+  "gridMethod": "Original-scale repeated RGB edge profiles: 9 columns, 3 frame rows. Each crop includes the source cell label; composite crops remain marked derivedFromComposite=true.",
+  "rowBounds": [
+    {
+      "top": 195,
+      "bottom": 1928
+    },
+    {
+      "top": 1961,
+      "bottom": 3692
+    },
+    {
+      "top": 3729,
+      "bottom": 5460
+    }
+  ],
+  "columnBounds": [
+    {
+      "left": 4,
+      "right": 939
+    },
+    {
+      "left": 971,
+      "right": 1906
+    },
+    {
+      "left": 1938,
+      "right": 2873
+    },
+    {
+      "left": 2905,
+      "right": 3840
+    },
+    {
+      "left": 3872,
+      "right": 4807
+    },
+    {
+      "left": 4839,
+      "right": 5774
+    },
+    {
+      "left": 5806,
+      "right": 6741
+    },
+    {
+      "left": 6773,
+      "right": 7708
+    },
+    {
+      "left": 7740,
+      "right": 8675
+    }
+  ],
+  "checkpoints": [
+    {
+      "checkpointId": "KF00",
+      "row": 0,
+      "column": 0,
+      "x": 4,
+      "y": 195,
+      "width": 935,
+      "height": 1733,
+      "cropPath": "derived/26kf_overview_crops/KF00.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF01",
+      "row": 0,
+      "column": 1,
+      "x": 971,
+      "y": 195,
+      "width": 935,
+      "height": 1733,
+      "cropPath": "derived/26kf_overview_crops/KF01.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF02",
+      "row": 0,
+      "column": 2,
+      "x": 1938,
+      "y": 195,
+      "width": 935,
+      "height": 1733,
+      "cropPath": "derived/26kf_overview_crops/KF02.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF03",
+      "row": 0,
+      "column": 3,
+      "x": 2905,
+      "y": 195,
+      "width": 935,
+      "height": 1733,
+      "cropPath": "derived/26kf_overview_crops/KF03.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF04",
+      "row": 0,
+      "column": 4,
+      "x": 3872,
+      "y": 195,
+      "width": 935,
+      "height": 1733,
+      "cropPath": "derived/26kf_overview_crops/KF04.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF05",
+      "row": 0,
+      "column": 5,
+      "x": 4839,
+      "y": 195,
+      "width": 935,
+      "height": 1733,
+      "cropPath": "derived/26kf_overview_crops/KF05.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF06",
+      "row": 0,
+      "column": 6,
+      "x": 5806,
+      "y": 195,
+      "width": 935,
+      "height": 1733,
+      "cropPath": "derived/26kf_overview_crops/KF06.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF07",
+      "row": 0,
+      "column": 7,
+      "x": 6773,
+      "y": 195,
+      "width": 935,
+      "height": 1733,
+      "cropPath": "derived/26kf_overview_crops/KF07.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF08",
+      "row": 0,
+      "column": 8,
+      "x": 7740,
+      "y": 195,
+      "width": 935,
+      "height": 1733,
+      "cropPath": "derived/26kf_overview_crops/KF08.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF09",
+      "row": 1,
+      "column": 0,
+      "x": 4,
+      "y": 1961,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF09.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF10",
+      "row": 1,
+      "column": 1,
+      "x": 971,
+      "y": 1961,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF10.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF11",
+      "row": 1,
+      "column": 2,
+      "x": 1938,
+      "y": 1961,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF11.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF12",
+      "row": 1,
+      "column": 3,
+      "x": 2905,
+      "y": 1961,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF12.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF13",
+      "row": 1,
+      "column": 4,
+      "x": 3872,
+      "y": 1961,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF13.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF14",
+      "row": 1,
+      "column": 5,
+      "x": 4839,
+      "y": 1961,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF14.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF15",
+      "row": 1,
+      "column": 6,
+      "x": 5806,
+      "y": 1961,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF15.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF16",
+      "row": 1,
+      "column": 7,
+      "x": 6773,
+      "y": 1961,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF16.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF17",
+      "row": 1,
+      "column": 8,
+      "x": 7740,
+      "y": 1961,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF17.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF18",
+      "row": 2,
+      "column": 0,
+      "x": 4,
+      "y": 3729,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF18.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF19",
+      "row": 2,
+      "column": 1,
+      "x": 971,
+      "y": 3729,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF19.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF20",
+      "row": 2,
+      "column": 2,
+      "x": 1938,
+      "y": 3729,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF20.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF21",
+      "row": 2,
+      "column": 3,
+      "x": 2905,
+      "y": 3729,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF21.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF22",
+      "row": 2,
+      "column": 4,
+      "x": 3872,
+      "y": 3729,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF22.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF23",
+      "row": 2,
+      "column": 5,
+      "x": 4839,
+      "y": 3729,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF23.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF24",
+      "row": 2,
+      "column": 6,
+      "x": 5806,
+      "y": 3729,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF24.png",
+      "derivedFromComposite": true
+    },
+    {
+      "checkpointId": "KF25",
+      "row": 2,
+      "column": 7,
+      "x": 6773,
+      "y": 3729,
+      "width": 935,
+      "height": 1731,
+      "cropPath": "derived/26kf_overview_crops/KF25.png",
+      "derivedFromComposite": true
+    }
+  ]
+}

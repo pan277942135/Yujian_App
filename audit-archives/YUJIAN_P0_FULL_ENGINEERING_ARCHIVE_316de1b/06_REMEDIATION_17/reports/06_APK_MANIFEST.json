@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "task_id": "YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1",
+  "repository": "pan277942135/Yujian_App",
+  "pull_request": 346,
+  "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+  "baseline_head": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+  "pr_base_sha_expected": "6ec43662ef76c6ffee8530148098649496ab7fb1",
+  "final_source_revision": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+  "apk": {
+    "filename": "yujian-debug-316de1b7.apk",
+    "local_path": "/workspace/Yujian_P0_delivery/yujian-debug-316de1b7.apk",
+    "size_bytes": 200257995,
+    "sha256": "ac98167b18ebb4d6d18d6d0161fe57da64bbf100c6ae345f621fe13166cccb7e",
+    "package_name": "com.yujian.ai.uiv2",
+    "version_name": "2.3.3-orb-wake-v1.1-20261103",
+    "version_code": 6,
+    "signing_scheme": "APK Signature Scheme v2",
+    "signer_certificate_sha256": "4fcea5e06af643972fb2f5c5af5293523d89080ad1194d6068d26ceb5701a2c6",
+    "source_revision_match": true,
+    "direct_download_url": null,
+    "release_tag": "yujian-debug-316de1b7",
+    "release_status": "NOT_CREATED_API_403_INVALID_GH_TOKEN"
+  },
+  "models": {
+    "raw_assets_changed_from_baseline": false,
+    "apk_asset_byte_hash_validation": "PASS",
+    "strict_release_provenance_validation": "FAIL_INVALID_ASSET_ID",
+    "reason": "model_release_contract.json release_assets entries lack fields required by verify_production_model.py"
+  },
+  "tests": {
+    "gradle_unit_tests": {
+      "tests": 574,
+      "passed": 574,
+      "failed": 0,
+      "skipped": 0
+    },
+    "android_test_kotlin_compile": "PASS",
+    "android_instrumentation": "NOT_RUN",
+    "contract_package_static_checks": {
+      "passed": 13
+    },
+    "orb_to_glyph_video_verifier_unit_tests": {
+      "passed": 3,
+      "failed": 0
+    }
+  },
+  "acceptance": {
+    "device_runtime_acceptance": "NOT_RUN",
+    "visual_auto_acceptance": "NOT_RUN",
+    "full_flow_accepted": "NOT_RUN"
+  },
+  "remote": {
+    "branch_ref_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+    "pull_ref_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+    "main_sha": "03db3692669847084d7e48fc3128f85cbf832af9",
+    "pr_draft_open_metadata": "UNVERIFIED_API_403",
+    "release_asset_upload": "BLOCKED_API_403_INVALID_GH_TOKEN"
+  }
+}

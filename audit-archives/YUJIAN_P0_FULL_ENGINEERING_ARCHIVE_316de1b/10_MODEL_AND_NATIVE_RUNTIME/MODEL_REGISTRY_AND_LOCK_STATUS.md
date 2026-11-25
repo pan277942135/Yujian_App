@@ -1,0 +1,1 @@
+No files named `MODEL_REGISTRY` or `MODEL_LOCK` were found in the pinned source snapshot or inspected workspaces. Model metadata, production assets and validator sources are included. Strict model verifier failure is retained; no PASS is inferred. Native memory-profile sources/tests exist, but no verified device profile output was available.

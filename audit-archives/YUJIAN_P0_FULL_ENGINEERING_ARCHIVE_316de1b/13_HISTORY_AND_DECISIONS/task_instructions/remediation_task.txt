@@ -1,0 +1,1806 @@
+# Work P0 — YuJian 六大合同 17 项问题集中整改 × Gate Deadline 冻结 × Stage10–13.5 完整闭环 × Exact-HEAD Debug APK 交付 V1
+
+**Task ID:** `YUJIAN_P0_SIX_CONTRACTS_17_FINDINGS_FIX_GATE_DEADLINE_APK_V1`
+
+**Project:** YuJian AI / 渔见 AI
+
+**Repository:** `pan277942135/Yujian_App`
+
+**PR:** #346
+
+**Branch:** `fix/26kf-path-boundary-and-fish-gate-v1`
+
+**审计基线 HEAD：**
+`babd6b3ad31ee02f70d74738a27d7f14cc6b5e10`
+
+**PR Base SHA：**
+`6ec43662ef76c6ffee8530148098649496ab7fb1`
+
+**执行环境：** Codex Cloud
+
+**Priority:** P0
+
+**最终目标：**
+
+一次性完成六份技术合同对应的 17 项源码问题整改，建立统一非模型 Gate 超时体系，恢复完整的 Recognition → Orb Return → Glyph → Result Handoff 生产调用链，完成基础自动化测试、Exact-HEAD CI 和 Debug APK 交付。
+
+---
+
+# 0. 执行前置条件与源码锁定
+
+## 0.1 必须使用原 PR
+
+首先重新核验：
+
+- PR #346 是否仍然 Open / Draft。
+- 目标分支是否仍为 `fix/26kf-path-boundary-and-fish-gate-v1`。
+- 远端 HEAD 是否仍为预期的 `babd6b3ad31ee02f70d74738a27d7f14cc6b5e10`。
+- PR Base SHA 是否仍为 `6ec43662ef76c6ffee8530148098649496ab7fb1`。
+
+如果 HEAD 已经变化：
+
+立即读取新的远端 HEAD、提交父子关系和文件变更，确认是否属于本 Work 已知的合法前置提交。
+
+不能在未知分叉上继续修改。
+
+## 0.2 仓库操作约束
+
+1. 直接复用现有 PR #346 分支。
+2. 不创建新 PR。
+3. 不创建平行生产分支。
+4. 不执行 reset --hard、force push、未经批准的 rebase。
+5. 不覆盖其他 Work 已提交的源码。
+6. 不修改 Main。
+7. 不合并 PR。
+8. 保持 PR Open / Draft。
+9. 所有生产代码修改必须能够在 GitHub Commit Diff 中核验。
+
+建议将本次工作拆分为逻辑 Commit，但全部留在 PR #346：
+
+- Commit 1：Gate Deadline Policy。
+- Commit 2：PhotoIdentity / ModelIdentity / Snapshot。
+- Commit 3：Native Runtime / Embedding / PATH_BOUND。
+- Commit 4：Timeline / RETURN / Orb-to-Glyph。
+- Commit 5：Result Handoff / Evidence / Final Tests。
+
+不得为追求提交数量而拆分无关文件。
+
+## 0.3 六份合同是不可修改的规范基线
+
+路径：
+
+`docs/contracts/yujian-ai-v2/`
+
+六份合同：
+
+| 合同 | 文件 |
+|---|---|
+| C1 | `02_RECOGNITION_RUNTIME_CONTRACT_V1.md` |
+| C2 | `03_RECOGNITION_RESULT_SNAPSHOT_CONTRACT_V1.md` |
+| C3 | `04_REVEAL_TIMELINE_CONTRACT_V1.md` |
+| C4 | `05_ORB_TO_GLYPH_RENDERING_CONTRACT_V1.md` |
+| C5 | `06_RESULT_HANDOFF_CONTRACT_V1.md` |
+| C6 | `07_RUNTIME_EVIDENCE_CONTRACT_V1.md` |
+
+冻结 SHA256：
+
+- C1：`a6b27578a9a6c96b0ba4dd6595eea5faa11602611b55d46d4117d3c5bc97a80e`
+- C2：`125ed4f09ef278a45de41f44ddcddd32a235a3d15f0bfb6dfd2fa944a7f83442`
+- C3：`960d90154cd6d1b159582203836cad44fabe19c5ff23559bf6be575683920a87`
+- C4：`84e2a65289b9850423fb3e75edf73266c47f7db0e21ead7aaa3479324467cb50`
+- C5：`c1f89229b0f523492f2b8446286d3ea84d73aca39d11ce2627617c4f328e9b42`
+- C6：`38fbe6b619e270bba9c7b730c1d306446aa8997fb1061fb2c49b06979700025c`
+
+不得直接修改六份合同正文及其已冻结语义。
+
+本次 Gate Deadline Policy 是独立补充规范，不得静默修改原合同。
+
+## 0.4 必须阅读的审计输入
+
+以下文件是本次 17 项问题的审计依据：
+
+`audit-archives/YUJIAN_P0_AUDIT_PR346_babd6b3/`
+
+必须读取：
+
+- `00_EXECUTIVE_AUDIT_REPORT.md`
+- `01_REQUIREMENT_CONFORMANCE_MATRIX.csv`
+- `02_CROSS_LAYER_CALL_GRAPH.md`
+- `03_ROOT_CAUSE_REGISTER.md`
+- `04_TEST_AND_EVIDENCE_INDEX.md`
+- `05_AUDIT_MANIFEST.json`
+- `SOURCE_MODULE_MAP.md`
+
+原始审计归档不得覆盖。
+
+审计文件已经记录 4 项 P0、13 项 P1，共 17 项源码符合性问题。所有测试在该审计中均为 NOT_RUN。
+
+---
+
+# 1. P0｜正式建立 Gate Deadline Policy V1
+
+## 1.1 新增规范文件
+
+新增：
+
+`docs/contracts/yujian-ai-v2/12_NON_MODEL_GATE_DEADLINE_POLICY_V1.md`
+
+规范 ID：
+
+`YUJIAN_NON_MODEL_GATE_DEADLINE_POLICY_V1`
+
+版本：`1.0.0`
+
+状态：`FROZEN_SPECIFICATION`
+
+内容必须包含：
+
+1. Gate ID 唯一枚举。
+2. Gate 超时数值。
+3. Gate 起始事件。
+4. Gate 成功事件。
+5. Gate 失败码。
+6. 重试次数和重试条件。
+7. Attempt 级累计阻塞预算。
+8. Gate 与 SceneClock 的关系。
+9. Gate 与 ModelClock 的关系。
+10. Gate 超时后的失败分类。
+11. AUTO / MANUAL 的区别。
+12. Gate Evidence 数据结构。
+13. 单元测试验收矩阵。
+
+以本指令第二部分的超时表为唯一数值基准。
+
+## 1.2 修改机器可读合同索引
+
+更新：
+
+- `docs/contracts/yujian-ai-v2/README.md`
+- `docs/contracts/yujian-ai-v2/CONTRACT_MANIFEST.json`
+- `docs/contracts/yujian-ai-v2/10_CONTRACT_REGISTRY.json`
+- `docs/contracts/yujian-ai-v2/11_CHANGELOG.md`
+- `docs/contracts/yujian-ai-v2/CONTRACT_SOURCE_INVENTORY.md`
+- `docs/contracts/yujian-ai-v2/SHA256SUMS`
+- `docs/contracts/yujian-ai-v2/validate_contract_package.py`
+
+要求：
+
+- 增加 supportingPolicies 注册项。
+- 记录 Gate Policy 文件 SHA256。
+- 保留六份核心合同原 SHA256。
+- 不把 Gate Policy 冒充第七份核心合同。
+- 不改变六份核心合同的版本和冻结状态。
+- 合同包校验器必须识别新增文件。
+- 全部文件 SHA256 必须重新核验。
+
+## 1.3 代码实现
+
+新增：
+
+`recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionGateDeadlinePolicy.kt`
+
+负责：
+
+- `RecognitionGateId`
+- `RecognitionGateDeadlineSpec`
+- `RecognitionGateFailureAction`
+- `RecognitionGateDeadlinePolicyV1`
+- 全部超时常量
+- 最大重试次数
+- 重试分类
+
+新增：
+
+`recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionGateDeadlineTracker.kt`
+
+负责：
+
+- Gate arm-once。
+- 计算 deadline。
+- 查询剩余时间。
+- 成功关闭。
+- 超时关闭。
+- 重试次数记录。
+- Gate 状态快照。
+- Attempt 级累计阻塞时间。
+- 上游失败后的下游阻断。
+- 防止 Gate Deadline 被重复重置。
+
+必须提供：
+
+```text
+armOnce()
+markSatisfied()
+markRetrying()
+markFailed()
+evaluateTimeouts()
+nextDeadlineUptimeMs()
+snapshot()
+resetForNewAttempt()
+```
+
+接口可根据现有工程规范调整，但上述行为不可缺失。
+
+## 1.4 Gate 计时规则
+
+所有 Gate 使用统一单调时间基准。
+
+禁止：
+
+- System.currentTimeMillis() 作为 Gate Deadline。
+- Compose 重组重新创建 Deadline。
+- 每次收到等待回调重新计算 3000ms。
+- Stage 切换重新启动原 Gate。
+- 重试时重置 timeout。
+- 模型超时与非模型 Gate 超时共用同一个计时器。
+
+新增 Attempt 级统一 Watchdog。
+
+由 `app` 组合根负责调度，采用一个统一的最近 Deadline 调度循环，不为每个 Gate 创建独立动画 Timer。
+
+Watchdog 不拥有 SceneClock，不推进 Stage，不产生业务成功事件。
+
+`RecognitionSceneAnimationController` 仍然是唯一 Stage 所有者。
+
+## 1.5 超时失败分类
+
+统一使用：
+
+```text
+NON_MODEL_GATE_TIMEOUT
+GATE_IDENTITY_MISMATCH
+GATE_EVENT_ORDER_INVALID
+GATE_RETRY_EXHAUSTED
+NON_MODEL_GATE_WAIT_BUDGET_EXCEEDED
+BLOCKED_BY_UPSTREAM_FAILURE
+```
+
+各 Gate 还必须有具体错误码，例如：
+
+```text
+PATH_BOUND_TIMEOUT
+RETURN_RENDER_TIMEOUT
+GLYPH_PATH_TIMEOUT
+RESULT_GEOMETRY_TIMEOUT
+HANDOFF_ACK_TIMEOUT
+PHOTO_SETTLE_TIMEOUT
+RESULT_INFO_ARRIVAL_TIMEOUT
+RESULT_SCENE_STABLE_TIMEOUT
+```
+
+任何 Gate 超时都必须产生 FIRST_FAILURE 记录。
+
+---
+
+# 2. P0-01｜PhotoIdentity 双 Hash
+
+## 修改文件
+
+1. `app/src/main/java/com/yujian/ai/media/RecognitionImageStore.kt`
+2. `application-core/src/main/java/com/yujian/ai/ai/model/Models.kt`
+3. `application-core/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt`
+4. `application-core/src/main/java/com/yujian/ai/ai/FishDetectorEngine.kt`
+5. `application-core/src/main/java/com/yujian/ai/ai/FishRecognitionEngine.kt`
+6. `application-core/src/main/java/com/yujian/ai/ai/subject/SlimSamSegmenter.kt`
+7. `recognition-ui/src/main/java/com/yujian/ai/ui/recognition/RecognitionMaskContourExtractor.kt`
+8. `recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionSceneFrame.kt`
+9. `recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/WaterLightPathLedger.kt`
+10. `recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealSessionStore.kt`
+
+## 修改函数
+
+`RecognitionImageStore.persistNormalized()`
+
+`FishRecognitionPipeline.recognize()`
+
+`FishDetectorEngine.detect()`
+
+`FishRecognitionEngine.recognize()`
+
+`SlimSamSegmenter.segment()`
+
+`RecognitionMaskContourExtractor` 的 Mask 输入和 Contour 身份构建函数。
+
+`WaterLightPathLedger` 的路径绑定和 Snapshot 导出函数。
+
+## 实施要求
+
+在 `recognition-domain` 建立纯 Kotlin 不可变 `PhotoIdentity`。
+
+必须包含：
+
+```text
+photoId
+sourceBytesSha256
+canonicalPixelSha256
+width
+height
+sourceOrientation
+normalizationVersion
+photoContentVersion
+```
+
+原始文件 SHA 在图像归一化之前计算。
+
+规范像素 SHA 必须基于实际送入模型的规范化像素缓冲区计算。
+
+必须冻结：
+
+- Pixel Format。
+- Color Space。
+- Row Order。
+- Channel Order。
+- Orientation Normalization。
+- Pixel Serialization Version。
+
+不得使用 JPEG 重编码后的文件 SHA 代替 canonical pixel SHA。
+
+不得使用 Bitmap generationId 作为持久身份。
+
+所有模型、Mask、Contour、P*、FishPath 和 ResultSnapshot 使用同一 PhotoIdentity。
+
+允许保留旧 `photoSha256` 作为兼容字段，但必须明确其语义，不得继续作为全系统唯一照片身份。
+
+## 验收测试
+
+新增 `PhotoIdentityTest`。
+
+扩展：
+
+- `RecognitionImageStoreTest`
+- `RecognitionExifOrientationTest`
+- `RecognitionImageTransformTest`
+
+必须验证：
+
+1. 相同像素、不同 JPEG 编码，canonicalPixelSha256 相同。
+2. 不同像素，canonicalPixelSha256 不同。
+3. EXIF 方向归一化正确。
+4. 原始 SHA 和规范像素 SHA 不混用。
+5. 旧 Attempt 回调无法写入新 PhotoIdentity。
+6. 全链路身份一致。
+
+---
+
+# 3. P0-02｜RecognitionResultSnapshot Commit-once
+
+## 修改文件
+
+1. `recognition-domain` 新增不可变 Snapshot 模型。
+2. `recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionResultRuntime.kt`
+3. `recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealSessionStore.kt`
+4. `recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionResultHandoffConsumer.kt`
+5. `recognition-result-ui/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt`
+6. `app/src/main/java/com/yujian/ai/YujianApp.kt`
+
+## 修改函数
+
+`RecognitionRevealSessionStore.resultSnapshot(key)`
+
+`RecognitionRevealSessionStore.updateFishPathSnapshot(...)`
+
+`YujianApp` 的模型终态回调、Snapshot 获取和 Result 导航交接函数。
+
+新增：
+
+`RecognitionSnapshotCommitter.commitOnce(attemptId)`
+
+## 实施要求
+
+建立真正的不可变：
+
+`RecognitionResultSnapshot`
+
+包含：
+
+- snapshotId
+- recognitionSessionId
+- attemptId
+- PhotoIdentity
+- ModelBundleIdentity
+- DetectorResult
+- Classifier SpeciesResult
+- MaskOutcome
+- ContourOutcome
+- PStarGeometry
+- FishPathSnapshotRef
+- recognitionOutcome
+- schemaVersion
+- contentHash
+- committedAtMonotonicNanos
+
+Snapshot 不允许持有可变 Bitmap、Compose State、Result Geometry 或 Evidence 状态。
+
+采用确定性序列化计算 contentHash。
+
+提交条件：
+
+**FULL_REVEAL**
+
+- Classifier 有效。
+- Mask TRUSTED。
+- Contour 有效闭合。
+- P* 有效。
+- Controller 和 SessionStore 接受同一 FishPath 身份。
+
+**ORB_ONLY**
+
+- Classifier 有效。
+- Mask 已终态但不可信。
+- 不携带虚假的可信 Contour/FishPath。
+- 记录明确的降级原因。
+
+**CLASSIFICATION_FAILED**
+
+- 不生成真实鱼种 Glyph。
+
+MASK_PENDING 禁止提交成功 Snapshot。
+
+提交之后不得修改 Snapshot。
+
+Result Geometry、Glyph Receipt、Handoff ACK 和 Evidence 必须通过 snapshotId 关联。
+
+## 验收测试
+
+新增：
+
+`RecognitionSnapshotCommitterTest`
+
+扩展：
+
+- `RecognitionResultRuntimeTest`
+- `RecognitionFishPathSnapshotBindingTest`
+- `RecognitionResultHandoffGuardrailRuntimeTest`
+
+覆盖：
+
+- 同一 Attempt 重复提交。
+- Snapshot Hash 稳定。
+- Snapshot 不可变。
+- 新 Attempt 隔离。
+- 旧回调拒绝。
+- FULL_REVEAL / ORB_ONLY 分支合法性。
+
+---
+
+# 4. P0-03｜真实 Frame Presented 与 Glyph 稳定回执
+
+## 修改文件
+
+1. `recognition-runtime/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionResultRuntimeContracts.kt`
+2. `recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultComponents.kt`
+3. `recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultHandoffMilestoneEffects.kt`
+4. `recognition-result-components/src/main/java/com/yujian/ai/ui/screens/RecognitionResultRevealCoordinator.kt`
+5. `recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionResultHandoffConsumer.kt`
+6. `recognition-ui/src/main/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionPixelCopyCapture.kt`
+7. `recognition-ui/src/main/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionSessionEvidenceRecorder.kt`
+
+## 修改函数
+
+`RecognitionGlyphReadinessContract.isRendered()`
+
+`RecognitionGlyphReadinessContract.isNameStableClaim()`
+
+`RecognitionResultComponents` 中实际 Glyph 绘制及 `drawWithContent` 回执生产函数。
+
+`RecognitionResultHandoffMilestoneEffects` 中 NAME_STABLE 事件生产函数。
+
+`RecognitionResultHandoffConsumer.consume()`
+
+## 实施要求
+
+必须区分四种事实：
+
+```text
+DRAW_SUBMITTED
+FRAME_PRESENTED
+PIXELCOPY_CAPTURED
+VISUAL_VALIDATED
+```
+
+新增对应不可变 Receipt。
+
+FramePresented 必须有真实 Android 平台帧提交/呈现依据，并关联：
+
+- Attempt。
+- Snapshot。
+- Renderer。
+- Stage/KF。
+- Frame Sequence。
+- Geometry Version。
+- 单调时间戳。
+
+必须审查 API36 实际可用的帧提交和呈现接口。
+
+不得把 Compose drawWithContent 回调、Choreographer 帧回调或普通 Draw Sequence 单独冒充物理屏幕已显示。
+
+PixelCopy 另行确认对应 Window 内容，并通过 Frame Sequence / KF / 身份关联。
+
+NAME_STABLE 至少要求：
+
+1. 真实 SpeciesResult。
+2. 当前 Snapshot 对应 GlyphPath。
+3. Orb 解体完成。
+4. Glyph 真正绘制。
+5. Frame Presented 回执有效。
+6. 文字几何稳定。
+7. Attempt 身份一致。
+
+PixelCopy 和视觉分析用于独立视觉验收，不得反向控制业务 Stage。
+
+## 验收测试
+
+扩展 `RecognitionResultRuntimeTest`。
+
+新增：
+
+- `RecognitionFramePresentationContractTest`
+- `RecognitionFrameIdentityTest`
+
+覆盖：
+
+- 只有 DRAW_SUBMITTED。
+- FramePresented 延迟。
+- Frame 丢失。
+- 旧 Frame。
+- 错误 Snapshot。
+- PixelCopy 与 Frame Sequence 不匹配。
+- NAME_STABLE 不提前成功。
+
+---
+
+# 5. P0-04｜Native ONNX 推理终止与资源安全
+
+## 修改文件
+
+1. `application-core/src/main/java/com/yujian/ai/ai/RecognitionAttemptDeadline.kt`
+2. `application-core/src/main/java/com/yujian/ai/ai/subject/SlimSamSegmenter.kt`
+3. `application-core/src/main/java/com/yujian/ai/ai/subject/SlimSamRuntimeManager.kt`
+4. `application-core/src/main/java/com/yujian/ai/ai/subject/SlimSamRuntimeCoordinator.kt`
+5. `application-core/src/main/java/com/yujian/ai/ai/RecognitionModelWatchdog.kt`
+6. `application-core/src/main/java/com/yujian/ai/ai/FishRecognitionPipeline.kt`
+7. `app/src/main/java/com/yujian/ai/YujianApplication.kt`
+8. `app/src/main/java/com/yujian/ai/YujianApp.kt`
+
+## 修改函数
+
+`SlimSamSegmenter.segment()`
+
+Vision Encoder `session.run()` 调用位置。
+
+Decoder `session.run()` 调用位置。
+
+`SlimSamRuntimeManager.closeForProcessTermination()`
+
+`RecognitionAttemptDeadline.remainingMs()`
+
+## 实施要求
+
+先核查当前实际 ONNX Runtime Android 1.29.0 的 API。
+
+不得凭经验假设 `RunOptions` 的 Termination 能力。
+
+若支持真实 Termination：
+
+- 每次 Native Run 独立持有 RunOptions。
+- 保存 Run ID。
+- 到达 60 秒 Deadline 后请求终止。
+- 记录 Termination 是否成功。
+- 等待 Native Call 实际返回。
+- Native 返回之前不得释放 Buffer。
+- 拒绝迟到结果。
+
+若当前 API 无法可靠终止：
+
+必须实施隔离策略，不能使用 Thread.interrupt 冒充强制终止。
+
+必要时建立独立 `:model_runtime` 进程和专用 Service。
+
+主进程通过受控 IPC 提交任务；大型 Tensor 使用受生命周期管理的共享内存或文件描述符，不直接通过 Binder 传输。
+
+状态严格区分：
+
+```text
+RUNNING
+CANCEL_REQUESTED
+TERMINATION_REQUESTED
+NATIVE_CALL_RETURNED
+OUTPUT_DISCARDED
+RESOURCE_RELEASED
+NATIVE_CALL_STUCK
+QUARANTINED
+```
+
+60,000ms 模型总 Deadline 不变。
+
+## 验收测试
+
+扩展：
+
+- `RecognitionAttemptDeadlineTest`
+- `SlimSamRuntimeCoordinatorTest`
+- `RecognitionRevealProductionRuntimeTest` 测试源码
+
+新增：
+
+`SlimSamNativeRunLifecycleTest`
+
+使用可控 Fake Native Executor 验证：
+
+- 取消请求。
+- 终止请求。
+- Native 延迟返回。
+- Native 返回前 Buffer 不释放。
+- 迟到结果拒绝。
+- Session Quarantine。
+- 新 Attempt 恢复。
+
+不得让真正可能永久阻塞的 Native 测试挂死 CI。
+
+---
+
+# 6. P1-01｜Embedding Cache Key 完整化
+
+## 文件
+
+- `application-core/.../subject/SlimSamRuntimeCoordinator.kt`
+- `application-core/.../subject/SlimSamSegmenter.kt`
+
+## 函数
+
+`SlimSamEmbeddingCacheKey`
+
+`getEmbedding()`
+
+`putEmbeddingIfActive()`
+
+`SlimSamSegmenter.segment()`
+
+## 修改
+
+Cache Key 必须包含：
+
+```text
+canonicalPixelSha256
+encoderModelSha256
+preprocessVersion
+inputSchemaHash
+inputShape
+```
+
+删除 Bitmap generationId 作为持久身份的回退逻辑。
+
+增加 Embedding Lease。
+
+Decoder 正在使用 Embedding 时禁止释放。
+
+## 测试
+
+扩展：
+
+`SlimSamRuntimeCoordinatorTest.embeddingCacheIdentityUsesPhotoContentGeometryAndModelContracts`
+
+逐一改变五个 Key 字段，必须触发缓存失效。
+
+---
+
+# 7. P1-02｜四模型独立 Inference Trace
+
+## 文件
+
+- `application-core/.../RecognitionModelWatchdog.kt`
+- `application-core/.../FishDetectorEngine.kt`
+- `application-core/.../FishRecognitionEngine.kt`
+- `application-core/.../FishRecognitionPipeline.kt`
+- `application-core/.../subject/SlimSamRuntimeManager.kt`
+- `application-core/.../subject/SlimSamSegmenter.kt`
+- `recognition-ui/.../RecognitionSessionEvidenceRecorder.kt`
+
+## 函数
+
+Detector Run 入口。
+
+Classifier Run 入口。
+
+Vision Encoder Run 入口。
+
+Mask Decoder Run 入口。
+
+`RecognitionModelWatchdog` 的开始、结束和终态函数。
+
+## 修改
+
+每次模型 Run 记录：
+
+- modelSessionId
+- inferenceId
+- modelId/version/SHA
+- attemptId
+- photoId
+- canonicalPixelSha256
+- input Tensor Name/Type/Shape
+- output Tensor Name/Type/Shape
+- preprocessVersion
+- runtime/provider
+- start/end monotonic timestamp
+- duration
+- terminal status
+- errorCode
+- output summary/hash
+
+不得把大型 Tensor 或 Embedding 写入普通日志。
+
+## 测试
+
+扩展：
+
+- `RecognitionModelWatchdogTest`
+- `RecognitionRuntimeContractTest`
+- `RecognitionRuntimeAssetContractTest`
+
+确保四个模型独立可检索，Run ID 不重复。
+
+---
+
+# 8. P1-03｜PATH_BOUND 双端接受后再冻结 FishPath
+
+## 文件
+
+- `recognition-runtime/.../RecognitionSceneAnimationController.kt`
+- `recognition-runtime/.../WaterLightPathLedger.kt`
+- `recognition-ui/.../RecognizingScreen.kt`
+- `recognition-ui/.../RecognitionRevealSessionStore.kt`
+- `app/.../YujianApp.kt`
+
+## 函数
+
+`onFishContactPathAvailable()`
+
+`onFishPathSnapshot()`
+
+`WaterLightPathLedger.exportRecognitionFishPathSnapshot()`
+
+`RecognitionRevealSessionStore.updateFishPathSnapshot()`
+
+`RecognizingScreen` 中 ABSORB Event 处理和 Snapshot 导出函数。
+
+## 修改顺序
+
+```text
+MASK TRUSTED
+    ↓
+CONTOUR CLOSED
+    ↓
+PSTAR READY
+    ↓
+PATH_BIND_REQUESTED
+    ↓
+CONTROLLER PATH_BOUND ACK
+    ↓
+SESSION_STORE PATH_BOUND ACK
+    ↓
+FISHPATH SNAPSHOT FREEZE
+    ↓
+STAGE05 COMPLETE
+```
+
+Controller 和 Store 必须接受同一个：
+
+- Attempt ID。
+- PhotoIdentity。
+- MaskIdentity。
+- Geometry Version。
+- P*。
+- FishPath ID。
+- Path Content Hash。
+
+只有两端都接受后才允许冻结。
+
+Stage10 只能读取已冻结的 FishPathSnapshot。
+
+禁止在 Stage10 临时重新计算或创建 Path ID。
+
+ORB_ONLY 分支必须使用独立的 Orb-only Path Policy。
+
+## 测试
+
+扩展：
+
+- `RecognitionFishPathSnapshotBindingTest`
+- `WaterLightPathLedgerTest`
+
+新增双端接受、单端拒绝、重复注册和迟到回调测试。
+
+---
+
+# 9. P1-11｜Stage10–13.5 根因修复
+
+本项优先级最高。
+
+## 文件
+
+- `recognition-runtime/.../RecognitionSceneAnimationController.kt`
+- `recognition-runtime/.../RecognitionSceneFrame.kt`
+- `recognition-runtime/.../RecognitionResultRuntimeContracts.kt`
+- `recognition-ui/.../RecognizingScreen.kt`
+- `recognition-ui/.../RecognitionResultRuntime.kt`
+- `recognition-ui/.../RecognitionRevealSessionStore.kt`
+- `recognition-ui/.../RecognitionResultHandoffConsumer.kt`
+- `recognition-result-components/.../RecognitionResultComponents.kt`
+- `recognition-result-components/.../RecognitionResultHandoffMilestoneEffects.kt`
+- `recognition-result-ui/.../RecognitionResultScreen.kt`
+- `app/.../YujianApp.kt`
+
+## 修改函数
+
+`RecognitionSceneAnimationController.canAdvance()`
+
+`RecognitionSceneAnimationController.stageEventComplete()`
+
+`RecognitionSceneAnimationController.waitingReason()`
+
+`RecognitionSceneAnimationController.setResultGeometryState()`
+
+`RecognitionSceneAnimationController.onOrbReturnRenderComplete()`
+
+`RecognitionSceneAnimationController.onOrbCoreDissolveRendered()`
+
+`RecognitionSceneAnimationController.onGlyphPathReady()`
+
+`RecognitionSceneAnimationController.onGlyphRevealRendered()`
+
+`RecognitionReturnEventSubmissionReadiness.isReady()`
+
+`RecognitionResultHandoffConsumer.consume()`
+
+## Stage10 修复必须满足
+
+当前错误依赖：
+
+```text
+ORB_RETURN
+  ├── RETURN_RENDER
+  ├── ORB_RETURN_COMPLETE
+  ├── GLYPH_AVAILABLE
+  └── RESULT_GEOMETRY_READY
+```
+
+必须改为：
+
+```text
+ORB_RETURN
+  ├── ORIGINAL_FISHPATH_SNAPSHOT
+  ├── RETURN_PATH_IDENTITY_VALID
+  ├── RETURN_PATH_SEGMENTS_VALID
+  ├── ORB_ANCHOR_READY
+  └── RETURN_RENDER_FRAME_PRESENTED
+```
+
+删除 Stage10 对：
+
+- Glyph Path READY。
+- Result Geometry READY。
+- Result Host 已完成导航。
+- Hero Raster READY。
+
+的提前依赖。
+
+`setResultGeometryState(PENDING)` 不得：
+
+- 清除 Stage10 已接受的 RETURN Receipt。
+- 清除 ORB_RETURN Complete。
+- 全局冻结 Stage10 SceneClock。
+- 让 Result Geometry 反向控制 Processing Scene。
+
+Result Geometry 可以提前异步准备，但只在 13.2 PHOTO_SETTLE 真正需要时成为业务 Gate。
+
+## Stage11 修复
+
+ORB_TO_NAME 依赖：
+
+- Stage10 RETURN 完成。
+- 真实 SpeciesResult。
+- 当前 Attempt 的 GlyphPathSnapshot。
+- Orb Core Dissolve Receipt。
+- Resident Energy Source 身份。
+- 真实 Energy Migration。
+
+不得依赖普通文字是否已出现在 Result 页面。
+
+## Stage12 修复
+
+GLYPH_REVEAL 依赖：
+
+- 当前 GlyphPathSnapshot。
+- 真实 Glyph Renderer。
+- 实际 Frame Presented。
+- NAME_STABLE Receipt。
+
+不得使用静态文字替换动画。
+
+## Stage13 修复
+
+严格保持：
+
+```text
+13.1 NAME_STABLE
+    ↓
+13.2 PHOTO_SETTLE
+    ↓
+13.3 RESULT_SCENE_HANDOFF
+    ↓
+13.4 RESULT_INFO_ARRIVAL
+    ↓
+13.5 RESULT_SCENE_STABLE
+```
+
+五个子阶段：
+
+- 不增加 Stage14–18。
+- 不增加独立动画 Timer。
+- 不重新启动 SceneClock。
+- 不修改 6000ms 合同。
+- 不允许乱序。
+- 每个阶段有独立 Producer、Consumer、Receipt、ACK 和 Failure Code。
+
+## 测试
+
+扩展：
+
+- `RecognitionVisualStateControllerTest`
+- `RecognitionResultRuntimeTest`
+- `RecognitionStage10FailureFixtureTest`
+
+增加以下回归场景：
+
+1. Result Geometry 永久 PENDING。
+2. Glyph Path 延迟。
+3. RETURN 零路径段。
+4. RETURN 错误 Stage。
+5. RETURN Geometry Version 不匹配。
+6. FishPathSnapshot 缺失。
+7. Controller 已接受但 Store 拒绝。
+8. Stage10 RETURN 完成后才进入 Stage11。
+9. Stage11 Glyph 不可用时有明确超时。
+10. Stage12 只有 Draw Submission，没有 Frame Presented。
+11. 13.2 Photo Settle 失败。
+12. 13.3 ACK 失败。
+13. 13.4 信息没有真实呈现。
+14. 13.5 Stable Receipt 缺失。
+
+必须用历史 Fixture：
+
+`recognition-ui/src/test/resources/recognition/stage10_failure_5344335d6a51.json`
+
+进行确定性回归。
+
+历史 Fixture 只能作为历史故障事实，不能冒充当前设备运行证据。
+
+---
+
+# 10. P1-13｜共享 GlyphPathProvider
+
+## 文件
+
+- `recognition-ui/.../RecognitionResultRuntime.kt`
+- `recognition-ui/.../RecognitionRevealSessionStore.kt`
+- `recognition-result-components/.../RecognitionResultComponents.kt`
+- `recognition-result-components/.../RecognitionResultRevealCoordinator.kt`
+- `recognition-result-ui/.../RecognitionResultScreen.kt`
+- `recognition-runtime/.../RecognitionResultRuntimeContracts.kt`
+
+## 新增能力
+
+建立共享 `GlyphPathProvider`。
+
+建议放在：
+
+`recognition-ui/src/main/java/com/yujian/ai/ui/recognition/reveal/GlyphPathProvider.kt`
+
+生产入口：
+
+```text
+prepareGlyphPath(snapshotId, speciesResult, typographyToken)
+```
+
+输出：
+
+`GlyphPathSnapshot`
+
+必须记录：
+
+- glyphPathId
+- snapshotId
+- speciesKey
+- speciesName
+- fontIdentity
+- fontHash
+- typographyTokenVersion
+- fontWeight
+- fontSize
+- characterCount
+- pathHash
+- glyphBounds
+- coordinateSpace
+- character/contour metadata
+
+禁止：
+
+- 固定鱼名。
+- 静态 PNG。
+- 硬编码目标点阵。
+- 从历史 Attempt 取 Glyph。
+- 依赖 ResultScreen 首次导航才生成 Glyph。
+
+注意模块依赖：
+
+`recognition-domain` 不得引入 Android Path。
+
+跨层 Snapshot 保存可复核的不可变几何描述；Android Renderer 根据该描述重建实际 Path。
+
+Processing 和 Result 必须消费同一 GlyphPathSnapshot。
+
+## 测试
+
+新增：
+
+`GlyphPathProviderTest`
+
+覆盖：
+
+- 同一名称、同一字体得到一致 Path Hash。
+- 不同字体得到不同身份。
+- 不同鱼种名称得到不同身份。
+- 新 Attempt 拒绝旧 Glyph。
+- Processing 与 Result 使用同一 glyphPathId。
+- GlyphPath 在 Result Navigation 前准备完成。
+
+---
+
+# 11. P1-05｜Result Geometry 与 Handoff Receipt
+
+## 文件
+
+- `recognition-ui/.../RecognitionResultRuntime.kt`
+- `recognition-runtime/.../RecognitionResultRuntimeContracts.kt`
+- `recognition-ui/.../RecognitionRevealSessionStore.kt`
+- `recognition-ui/.../RecognitionResultHandoffConsumer.kt`
+- `recognition-runtime/.../RecognitionSceneAnimationController.kt`
+- `recognition-result-ui/.../RecognitionResultScreen.kt`
+- `app/.../YujianApp.kt`
+
+## 修改函数
+
+`RecognitionResultGeometryReadiness.isReady()`
+
+`RecognitionResultNavigationReadiness.canNavigate()`
+
+`RecognitionRevealSessionStore.canAcceptResultHandoffEvent()`
+
+`RecognitionRevealSessionStore.recordResultHandoffEvent()`
+
+`RecognitionResultHandoffConsumer.consume()`
+
+## 新增 Receipt
+
+- `ResultGeometryReceipt`
+- `PhotoSettleReceipt`
+- `ResultHostMountedReceipt`
+- `HandoffEnvelope`
+- `ResultHandoffAck`
+- `SceneOwnerTransferReceipt`
+- `ResultInfoArrivalReceipt`
+- `ResultSceneStableReceipt`
+
+所有对象绑定：
+
+- snapshotId。
+- snapshotContentHash。
+- handoffId。
+- recognitionSessionId。
+- attemptId。
+- photoId。
+- geometryVersion。
+- eventSequence。
+
+## 核心规则
+
+Layout Geometry READY 不等于 Hero Raster READY。
+
+Hero Raster READY 不等于 GPU Render READY。
+
+GPU Draw Submission 不等于 Frame Presented。
+
+Result Host Mounted 不等于 Scene Ownership Transferred。
+
+Consumer ACK 不等于 Result Scene Stable。
+
+13.3 只有 Consumer 接受后才允许原子转移可见 Scene Owner。
+
+交接失败时保留原 Scene Owner，禁止显示静态 Result 后冒充成功。
+
+## 测试
+
+扩展：
+
+`RecognitionResultRuntimeTest`
+
+新增：
+
+- Host pre-mount。
+- Geometry/Raster 分离。
+- Handoff Envelope Hash 校验。
+- ACK 重复。
+- Scene Owner 双重绘制拒绝。
+- 13.1–13.5 完整顺序。
+
+---
+
+# 12. P1-04｜KF25 正确状态
+
+## 文件
+
+- `recognition-ui/.../RecognitionSessionEvidenceRecorder.kt`
+- `recognition-ui/.../RecognitionEvidencePolicies.kt`
+- `recognition-ui/.../RecognitionEvidenceZipExporter.kt`
+- `recognition-result-ui/.../RecognitionResultScreen.kt`
+
+## 修改函数
+
+`beginAttempt()`
+
+`checkpointStatusAfterExport()`
+
+保存动作触发与 KF25 Capture 记录函数。
+
+## 规则
+
+没有真实保存动作：
+
+`KF25 = NOT_APPLICABLE`
+
+用户触发保存但采集失败：
+
+`KF25 = CAPTURE_FAILED`
+
+用户触发保存且采集成功：
+
+`KF25 = CAPTURED`
+
+禁止继续将未触发保存的 KF25 输出为 NOT_REACHED。
+
+## 测试
+
+扩展：
+
+`RecognitionSessionEvidenceRecorderTest`
+
+覆盖无保存、保存成功、保存失败、PixelCopy 失败四种情况。
+
+---
+
+# 13. P1-06｜Evidence Recorder 不得控制 SceneClock
+
+## 文件
+
+- `recognition-ui/.../RecognizingScreen.kt`
+- `recognition-ui/.../RecognitionSessionEvidenceRecorder.kt`
+- `recognition-ui/.../RecognitionPixelCopyCapture.kt`
+- `recognition-runtime/.../RecognitionSceneAnimationController.kt`
+
+## 修改函数
+
+`RecognitionSessionEvidenceRecorder.onFramePresented()`
+
+`RecognitionSceneAnimationController.setVisualCheckpointCapturePending()`
+
+`RecognizingScreen` 中 `drawWithContent` 的 Evidence 接线。
+
+## 修改
+
+删除：
+
+```text
+PixelCopy Pending
+    ↓
+RecognitionSceneAnimationController
+    ↓
+Stage Advancement Block
+```
+
+改成：
+
+```text
+Production Frame
+    ├── Scene Controller
+    └── Evidence Recorder
+            ↓
+        PixelCopy
+            ↓
+        Independent Receipt
+```
+
+Evidence 只读观察。
+
+PixelCopy 超时不得暂停 SceneClock。
+
+Evidence 队列必须有界。
+
+溢出记录：
+
+`EVIDENCE_EVENT_BUFFER_OVERFLOW`
+
+## 测试
+
+扩展：
+
+- `RecognitionSessionEvidenceRecorderTest`
+- `RecognitionPixelCopyCaptureTest`
+- `RecognitionVisualStateControllerTest`
+
+注入 PixelCopy 延迟，验证 Stage 时间、事件序号不变。
+
+---
+
+# 14. P1-07｜Native Memory Profile 与算子归因
+
+## 文件
+
+- `application-core/.../subject/SlimSamRuntimeManager.kt`
+- `application-core/.../subject/SlimSamSegmenter.kt`
+- `application-core/.../RecognitionModelWatchdog.kt`
+- `app/src/androidTest/java/com/yujian/ai/RecognitionRevealProductionRuntimeTest.kt`
+
+## 实施
+
+分开采集：
+
+- Java Heap。
+- Native Heap。
+- RSS/PSS。
+- GPU Memory（明确标注估算或真实值）。
+- ORT Session。
+- ORT Inference Run。
+- Encoder/Decoder 内存变化。
+- Native Allocation Trace。
+
+ORT Operator Profile 和 Native Allocator Trace 分开。
+
+只有在 Run ID、时间区间和 allocator 调用栈之间存在真实可验证关联时，才能报告 Operator Allocation Bytes。
+
+否则：
+
+`OPERATOR_MEMORY_ATTRIBUTION_INCOMPLETE`
+
+禁止使用理论 Tensor 大小冒充实际算子内存分配。
+
+## 测试
+
+新增 Profile Schema / Parser Unit Tests。
+
+本轮不运行真机性能剖析，不生成虚假的设备内存验收结论。
+
+---
+
+# 15. P1-08｜Evidence ZIP 独立验证
+
+## 文件
+
+- `recognition-ui/.../RecognitionEvidenceZipExporter.kt`
+- `recognition-ui/.../RecognitionEvidenceArchiveVerifier.kt`
+- `recognition-ui/.../RecognitionEvidencePolicies.kt`
+- `recognition-ui/.../RecognitionSessionEvidenceRecorder.kt`
+
+## 修改函数
+
+`RecognitionEvidenceZipExporter.export()`
+
+`ensureExpectedFiles()`
+
+`RecognitionEvidenceArchiveVerifier.verify()`
+
+## 必须修复
+
+删除通过创建空 JSONL 和 `{}` 占位文件伪装证据存在的做法。
+
+每个文件必须具有明确状态：
+
+- AVAILABLE
+- NOT_RUN
+- UNAVAILABLE
+- NOT_REACHED
+- FAILED
+- NOT_APPLICABLE
+
+独立 Validator 必须从最终 ZIP 解压读取实际文件。
+
+检查：
+
+1. ZIP CRC。
+2. 文件完整性。
+3. SHA256。
+4. JSON Schema。
+5. Event Sequence。
+6. Attempt Identity。
+7. Snapshot Identity。
+8. KF00–KF25 状态矩阵。
+9. KF25 适用性。
+10. PixelCopy PNG。
+11. MP4 解码和 KF 时间索引。
+12. FIRST_FAILURE。
+13. 文件 Manifest。
+14. 原子 Finalize。
+
+## 测试
+
+扩展：
+
+`RecognitionEvidenceZipExporterTest`
+
+新增：
+
+`RecognitionEvidenceIndependentValidatorTest`
+
+缺少文件必须明确报告，不能生成空文件后通过。
+
+---
+
+# 16. P1-09｜Orb-to-Glyph 连续视频采集与验证
+
+## 新增文件
+
+建议：
+
+- `scripts/android_runtime/capture_orb_to_glyph_video.sh`
+- `scripts/android_runtime/verify_orb_to_glyph_video.py`
+- `scripts/android_runtime/test_verify_orb_to_glyph_video.py`
+
+可采用经过授权的 Android 设备端 screenrecord 或 MediaProjection。
+
+优先复用设备原生录屏能力，避免为了证据引入第二套生产 Renderer。
+
+## 必须实现
+
+覆盖：
+
+- KF14 ORB_RETURN
+- KF15 WATER_CORE_STRETCH
+- KF16 HORIZONTAL_STRETCH
+- KF17 WATERLIGHT_DECONSTRUCTION
+- KF18 GLYPH_EMERGENCE
+- KF19 SPECIES_NAME_FINAL
+- KF20 NAME_STABLE
+
+视频必须来自真实生产屏幕。
+
+记录：
+
+- Width / Height。
+- Codec。
+- FPS。
+- Frame Count。
+- PTS。
+- Dropped Frames。
+- Duration。
+- Attempt / Snapshot。
+- KF 时间索引。
+- SHA256。
+
+视频不能使用 Demo、静态图拼接、离屏渲染或人工补帧。
+
+本轮只实现采集和验证能力并执行可运行的基础测试，不进行模拟器或真机视觉验收。
+
+---
+
+# 17. P1-10｜FIRST_FAILURE 根因记录
+
+## 新增文件
+
+建议：
+
+`recognition-runtime/src/main/java/com/yujian/ai/ui/waterlight/core/RecognitionFirstFailureRecord.kt`
+
+`recognition-ui/src/main/java/com/yujian/ai/ui/recognition/diagnostics/RecognitionFirstFailureCoordinator.kt`
+
+## 修改文件
+
+- `RecognitionSceneAnimationController.kt`
+- `RecognitionSessionEvidenceRecorder.kt`
+- `RecognitionResultHandoffConsumer.kt`
+- `RecognitionModelWatchdog.kt`
+- `YujianApp.kt`
+
+## 必须记录
+
+```text
+firstFailureId
+gateId
+failureCode
+attemptId
+snapshotId
+stageId
+kfId
+lastSuccessfulEvent
+firstFailedEvent
+expected
+actual
+affectedModule
+rootCauseConfidence
+evidenceRefs
+blockedDownstream
+timestamp
+```
+
+第一项失败一旦确认，不允许被后续错误覆盖。
+
+后续依赖失败标记：
+
+`BLOCKED_BY_UPSTREAM_FAILURE`
+
+不得把下游的 Result Geometry Pending 当作上游 Mask 失败。
+
+## 测试
+
+新增：
+
+`RecognitionFirstFailureCoordinatorTest`
+
+覆盖：
+
+- 两个连续失败只保留第一个根因。
+- 下游阻断正确。
+- Attempt 隔离。
+- 错误身份不污染记录。
+- Evidence 引用完整。
+
+---
+
+# 18. P1-12｜Exact-HEAD 基础测试与 APK
+
+## 执行范围
+
+本轮 Codex Cloud 只进行：
+
+1. 源码修改。
+2. Unit Tests。
+3. 必要的跨模块编译。
+4. Debug APK 构建。
+5. APK SHA256。
+6. 模型资产校验。
+7. 代码与测试结果审查。
+
+不执行：
+
+- 真机视觉验收。
+- 模拟器视觉验收。
+- MANUAL 预览代替 AUTO 验收。
+- 视觉高保真 PASS 宣告。
+- 未经授权的设备录屏。
+
+AndroidTest 可以编译，但本轮不要求运行完整 Instrumentation / Emulator 流程。
+
+## 必须执行的基础测试
+
+### recognition-domain
+
+`test`
+
+### recognition-runtime
+
+- `RecognitionSceneFrameTest`
+- `WaterLightPathLedgerTest`
+- `Stage04ArrivalPathWithoutMaskTest`
+- `RecognitionOrbReturnPathDrawCoverageTest`
+- 新增 Gate Deadline Tests
+
+### application-core
+
+- `RecognitionAttemptDeadlineTest`
+- `RecognitionRuntimeContractTest`
+- `RecognitionModelWatchdogTest`
+- `SlimSamRuntimeCoordinatorTest`
+- `SlimSamTensorContractTest`
+- 新增 Native Lifecycle Tests
+
+### recognition-ui
+
+- `RecognitionResultRuntimeTest`
+- `RecognitionFishPathSnapshotBindingTest`
+- `RecognitionVisualStateControllerTest`
+- `RecognitionStage10FailureFixtureTest`
+- `RecognitionSessionEvidenceRecorderTest`
+- `RecognitionPixelCopyCaptureTest`
+- `RecognitionEvidenceZipExporterTest`
+
+### waterlight-renderer
+
+- `OrbResidentSystemsV1Test`
+- `OrbFilamentRendererSamplingTest`
+- `OrbFluidOpticalIntegrationV1Test`
+
+### recognition-result-components / recognition-result-ui
+
+运行对应模块的 Unit Tests。
+
+### app
+
+- `RecognitionAttemptDeadlineTest` 所在模块测试。
+- `RecognitionResultHandoffGuardrailRuntimeTest` 的源码覆盖检查。
+- 其他相关 Unit Tests。
+
+执行前检查 Gradle 实际任务名称。
+
+## Gradle 执行
+
+按当前工程模块配置执行对应 Unit Test 任务。
+
+基础构建目标：
+
+```bash
+./gradlew --no-daemon \
+  :recognition-domain:test \
+  :recognition-runtime:test \
+  :application-core:testDebugUnitTest \
+  :waterlight-renderer:test \
+  :recognition-ui:testDebugUnitTest \
+  :recognition-result-components:testDebugUnitTest \
+  :recognition-result-ui:testDebugUnitTest \
+  :app:testDebugUnitTest \
+  :app:assembleDebug
+```
+
+如果某模块实际 Gradle 插件任务名称不同，以当前工程任务清单为准，不得因为任务名错误而跳过测试。
+
+AndroidTest 只允许进行编译检查，不执行设备视觉验收。
+
+## APK 验收
+
+必须取得：
+
+`app/build/outputs/apk/debug/app-debug.apk`
+
+检查：
+
+- APK 文件真实存在。
+- APK 可正常解析。
+- Package Name 正确。
+- Debug 签名正确。
+- APK 内模型资产完整。
+- 模型 SHA256 一致。
+- `SOURCE_REVISION` 与最终 Git Commit 一致。
+
+输出：
+
+```text
+FINAL_COMMIT
+APK_PATH
+APK_SIZE_BYTES
+APK_SHA256
+PACKAGE_NAME
+SOURCE_REVISION
+MODEL_ASSET_VALIDATION
+UNIT_TEST_RESULT
+BUILD_RESULT
+```
+
+APK 必须来自最终提交的 Exact HEAD。
+
+禁止提交代码后继续使用旧 Commit 的 APK。
+
+---
+
+# 19. 17 项问题最终关闭矩阵
+
+Codex 必须生成：
+
+`audit-archives/YUJIAN_P0_17_ISSUES_REMEDIATION_V1/01_17_ISSUE_CLOSURE_MATRIX.csv`
+
+每项至少包含：
+
+```text
+Issue_ID
+Priority
+Contract_ID
+Root_Cause
+Affected_Files
+Affected_Functions
+Production_Producer
+Production_Consumer
+Code_Change_Commit
+Unit_Tests
+Test_Result
+Cross_Layer_Status
+Exact_Head_Status
+APK_Status
+Evidence_Refs
+Final_Status
+Unresolved_Risks
+```
+
+17 项必须逐条记录：
+
+| Issue | 最终验收目标 |
+|---|---|
+| P0-01 | PhotoIdentity 双 Hash 全链路一致 |
+| P0-02 | Snapshot Commit-once |
+| P0-03 | FramePresented 与 DrawSubmitted 分离 |
+| P0-04 | Native 取消、终止和资源释放可验证 |
+| P1-01 | Embedding Cache Key 完整 |
+| P1-02 | 四模型独立 Inference Trace |
+| P1-03 | PATH_BOUND 双端接受 |
+| P1-04 | KF25 正确状态 |
+| P1-05 | Result Geometry / Handoff Receipt 完整 |
+| P1-06 | Evidence 不控制 SceneClock |
+| P1-07 | Native Memory / Operator Attribution 真实可核验 |
+| P1-08 | Evidence ZIP 独立验证 |
+| P1-09 | Orb-to-Glyph MP4 采集和验证能力 |
+| P1-10 | FIRST_FAILURE |
+| P1-11 | Stage10–13.5 Gate 依赖修复 |
+| P1-12 | Exact-HEAD 基础测试和 APK |
+| P1-13 | 共享 GlyphPathProvider |
+
+每一项必须记录实际修改文件和函数。
+
+不能仅写：
+
+`FIXED`
+
+必须给出：
+
+- Commit SHA。
+- 代码 Diff。
+- 测试名称。
+- 测试结果。
+- 证据文件。
+
+对于尚未进行真机验证的事项，不能填写 RUNTIME_VERIFIED。
+
+---
+
+# 20. 最终交付物
+
+必须形成以下交付目录：
+
+`audit-archives/YUJIAN_P0_17_ISSUES_REMEDIATION_V1/`
+
+包含：
+
+| 文件 | 内容 |
+|---|---|
+| `00_FINAL_REMEDIATION_REPORT.md` | 总体修复报告 |
+| `01_17_ISSUE_CLOSURE_MATRIX.csv` | 17 项逐项关闭矩阵 |
+| `02_GATE_DEADLINE_POLICY_REPORT.md` | Gate 数值和运行机制 |
+| `03_PRODUCTION_CALL_GRAPH.md` | 修复后的实际生产调用链 |
+| `04_TEST_RESULTS.md` | 基础测试和编译结果 |
+| `05_NATIVE_RUNTIME_STATUS.md` | Native 生命周期和未验证能力 |
+| `06_APK_MANIFEST.json` | APK、Commit、模型身份 |
+| `07_SHA256SUMS` | 全部交付物 Hash |
+| `08_UNRESOLVED_ITEMS.md` | 真机待验证和未完成项目 |
+
+同时交付：
+
+1. 新增 Gate Deadline Policy。
+2. 完整生产代码。
+3. 新增和修改后的 Unit Tests。
+4. Exact-HEAD CI 结果。
+5. Debug APK。
+6. APK SHA256。
+7. GitHub PR #346 最新链接。
+8. APK 直接下载链接。
+
+---
+
+# 21. 最终停止条件
+
+以下全部完成后才允许报告本 Work 的源码和基础交付完成：
+
+- [ ] 六份合同保持原始 SHA256。
+- [ ] GateDeadlinePolicy V1 已落盘并校验。
+- [ ] 17 项问题全部完成源码整改，或有明确、可证明的未完成原因。
+- [ ] 所有关键 Producer / Consumer 调用链接通。
+- [ ] Stage10 不再等待 Result Geometry 和 Glyph Path。
+- [ ] Stage11–13.5 按真实事件顺序执行。
+- [ ] Native 取消和资源所有权不存在虚假成功状态。
+- [ ] Snapshot Commit-once。
+- [ ] PATH_BOUND 双端接受。
+- [ ] GlyphPathProvider 预导航准备。
+- [ ] FramePresented Receipt 独立存在。
+- [ ] Evidence 不控制 SceneClock。
+- [ ] KF25 语义正确。
+- [ ] ZIP 不再合成空文件冒充证据。
+- [ ] FIRST_FAILURE 可以定位第一个失败。
+- [ ] Gate 超时全部有界。
+- [ ] Unit Tests 通过。
+- [ ] Exact-HEAD APK 构建成功。
+- [ ] APK SHA256 与 Commit 一致。
+- [ ] 交付文件完整。
+
+**注意：** 本轮不执行真机视觉验收，因此以下状态必须保留：
+
+```text
+DEVICE_RUNTIME_ACCEPTANCE = NOT_RUN
+VISUAL_AUTO_ACCEPTANCE = NOT_RUN
+FULL_FLOW_ACCEPTED = NOT_RUN
+```
+
+不得为了让报告全部绿色而伪造这些状态。
+
+---
+
+# 22. Codex 最终汇报格式
+
+最终报告必须按以下顺序输出：
+
+## A. 源码基线
+
+- PR / Branch / Base / HEAD。
+- 最终 Commit。
+- 修改文件数。
+- Commit 数量。
+
+## B. Gate Deadline
+
+- 全部 Gate 数值。
+- 重试次数。
+- 累计阻塞预算。
+- 超时行为。
+- Stage10 依赖解耦情况。
+
+## C. 17 项整改结果
+
+逐项给出：
+
+- 原始根因。
+- 修改文件和函数。
+- 具体修复内容。
+- 对应测试。
+- 测试结果。
+- 剩余风险。
+
+## D. 关键生产链
+
+分别说明：
+
+```text
+Photo → Model → Mask → Contour → P* → FishPath
+FishPath → Snapshot → Timeline
+ORB_RETURN → Orb Deconstruction → Glyph
+Glyph → NAME_STABLE
+PHOTO_SETTLE → HANDOFF_ACK
+SCENE_OWNER_TRANSFER → INFO_ARRIVAL → RESULT_STABLE
+Runtime → Evidence → Independent Validator
+```
+
+## E. 测试
+
+列出每项真实执行的 Gradle Task、通过数、失败数和报告路径。
+
+## F. APK
+
+提供直接 APK 下载链接、大小、SHA256 和对应 Commit。
+
+## G. 未完成事项
+
+如实列出：
+
+- 尚未验证的 Native 行为。
+- 尚未运行的 AndroidTest。
+- 尚未验证的 API36 帧呈现行为。
+- 尚未运行的 MP4 设备采集。
+- 尚未完成的真机视觉验收。
+
+## 最终执行要求
+
+**不要在 Gate 参数冻结后再次自行设计一套超时体系。**
+
+**不要继续给 Stage10 添加新的下游依赖。**
+
+**不要用更多日志替代实际根因修复。**
+
+**不要以单元测试通过代替生产调用链完整。**
+
+**不要以 APK 构建成功代替真机识别成功。**
+
+一次集中完成 17 项问题的代码整改和基础交付。任何无法完成的事项必须保留具体阻塞原因、已经完成的修改和下一步明确动作，不得静默跳过。
+
+本 Work 最终交付的是一套可审查、可追踪、可安装、能够继续进行真机验收的 YuJian 生产工程，而不是又一轮局部补丁。

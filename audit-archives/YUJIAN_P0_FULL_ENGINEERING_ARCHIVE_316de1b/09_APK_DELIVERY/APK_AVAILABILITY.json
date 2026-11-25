@@ -1,0 +1,17 @@
+{
+  "source_commit": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+  "filename": "yujian-debug-316de1b7.apk",
+  "sha256": "ac98167b18ebb4d6d18d6d0161fe57da64bbf100c6ae345f621fe13166cccb7e",
+  "size_bytes": 200257995,
+  "package_id": "com.yujian.ai.uiv2",
+  "version_name": "2.3.3-orb-wake-v1.1-20261103",
+  "version_code": 6,
+  "debug_signature_v2_verified": true,
+  "dex_source_revision": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+  "local_original_path": "/workspace/Yujian_P0_delivery/yujian-debug-316de1b7.apk",
+  "archive_status": "EXCLUDED_FROM_GIT_ARCHIVE_OVER_100MB",
+  "lfs_configured": false,
+  "release_or_actions_download_verified": false,
+  "android_test_apk": "NOT_FOUND",
+  "reason": "Exceeds 100MB ordinary Git per-file limit; no LFS; GitHub API returned HTTP 403."
+}

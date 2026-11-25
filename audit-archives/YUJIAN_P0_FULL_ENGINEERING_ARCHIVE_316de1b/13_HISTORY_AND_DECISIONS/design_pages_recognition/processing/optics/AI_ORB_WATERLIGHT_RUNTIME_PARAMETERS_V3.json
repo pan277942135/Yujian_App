@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "AI-ORB-WATERLIGHT-WEB-ANDROID-V3",
+  "task_id": "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3",
+  "status": "ACTIVE_IMPLEMENTATION_CANDIDATE",
+  "audit_sources": {
+    "android_main_sha": "ddd0db3a7f1bdb38cbd70081322c20d330ec7fad",
+    "android_v2_pr": 294,
+    "android_v2_head_sha": "b820baa41d62ab7d056e3b084daa5b9f655d8aeb",
+    "web_repository": "18694061757-ctrl/Fish-Mask-Gold-Contour-Lab",
+    "web_main_sha": "54ac0b6307454549d004d1890d9ee12cc6b54040"
+  },
+  "time_policy": {
+    "global_processing_duration_ms": null,
+    "global_rr09_duration_ms": null,
+    "global_scene_duration_ms": null,
+    "global_elapsed_deadline_enabled": false,
+    "scene_clock": "one monotonic clock, started by the first actually presented stable original-photo frame",
+    "camera_photo_morph_ms": 700,
+    "camera_orb_morph_ms": 900,
+    "photo_and_orb_entry_parallel": true,
+    "debug_default_mode": "MANUAL",
+    "debug_auto_minimum_stage_ms": 3000,
+    "debug_manual_auto_advance": false,
+    "model_watchdog_ms": 60000,
+    "watchdog_outcome": "explicit technical timeout/failure; never model success or ORB_ONLY_READY",
+    "production_stage_minimums_source": "preserve existing approved local optical rhythm and Web layer durations; no new global cutoff"
+  },
+  "stages": [
+    {"order": 1, "id": "PHOTO_STABLE", "reference_local_ms": 0, "entry_gate": "current original photo first stable frame presented", "mask_required_to_draw": false},
+    {"order": 2, "id": "ORB_WAKE", "reference_local_ms": 350, "entry_gate": "photo stable", "mask_required_to_draw": false},
+    {"order": 3, "id": "ORB_RELEASE", "reference_local_ms": 600, "entry_gate": "Orb release event and measured Orb anchor", "mask_required_to_draw": false},
+    {"order": 4, "id": "PERIMETER_ARRIVAL", "reference_local_ms": 125, "entry_gate": "release path reaches measured photo-edge anchor", "mask_required_to_draw": false},
+    {"order": 5, "id": "PATH_TO_FISH", "reference_local_ms": 125, "entry_gate": "real Detector target and valid current PhotoSpace transform", "mask_required_to_draw": false},
+    {"order": 6, "id": "CONTOUR_A", "reference_local_ms": 250, "entry_gate": "classifier ready and SlimSAM terminal TRUSTED with valid contour", "mask_required_to_draw": true},
+    {"order": 7, "id": "CONTOUR_B", "reference_local_ms": 250, "entry_gate": "same trusted Mask and contour identity", "mask_required_to_draw": true},
+    {"order": 8, "id": "CONTOUR_C", "reference_local_ms": 250, "entry_gate": "same trusted Mask and contour identity", "mask_required_to_draw": true},
+    {"order": 9, "id": "FISH_GOLD_PEAK", "reference_local_ms": 850, "entry_gate": "trusted contour presented and real contour completion event", "mask_required_to_draw": true},
+    {"order": 10, "id": "ORB_RETURN", "reference_local_ms": 380, "entry_gate": "fish focus ready or explicit Orb-only branch; current Orb geometry available", "mask_required_to_draw": false},
+    {"order": 11, "id": "ORB_TO_NAME", "reference_local_ms": 170, "entry_gate": "return energy received and real classifier species glyph available", "mask_required_to_draw": false},
+    {"order": 12, "id": "SPECIES_NAME_REVEAL", "reference_local_ms": 130, "entry_gate": "valid real classifier Chinese species name", "mask_required_to_draw": false},
+    {"order": 13, "id": "RESIDUE_SETTLE", "reference_local_ms": 170, "entry_gate": "glyph reveal event completed", "mask_required_to_draw": false}
+  ],
+  "entry_morph": {
+    "photo_morph_ms": 700,
+    "orb_morph_ms": 900,
+    "concurrent": true,
+    "gallery_orb_entry": "direct water-core display; do not synthesize camera-button origin"
+  },
+  "web_effects": {
+    "effect_02": {
+      "spread_duration_ms": 1200,
+      "intensity": 1.8,
+      "speed": 1.0,
+      "margin_ratio": 0.015,
+      "glow_size_css_px": 45,
+      "gold_color": "#4D9B91",
+      "cyan_color": "#D89913",
+      "green_color": "#719FBC",
+      "bottom_mask_strength": 1.0,
+      "blend_ratio": 0.8,
+      "caustics_density_config_only": 0.85,
+      "caustics_density_consumed_by_shader": false,
+      "blend_mode": "overlay"
+    },
+    "effect_01": {
+      "spread_duration_ms": 1200,
+      "intensity": 1.5,
+      "speed": 1.0,
+      "margin_ratio": 0.015,
+      "glow_size_css_px": 48,
+      "gold_color": "#FEF08A",
+      "cyan_color": "#38BDF8",
+      "green_color": "#2DD4BF",
+      "bottom_mask_strength": 1.0,
+      "blend_ratio": 0.75,
+      "caustics_density_config_only": 0.85,
+      "caustics_density_consumed_by_shader": false,
+      "blend_mode": "overlay"
+    },
+    "perimeter_motion_nodes": 16,
+    "caustics_octaves": 3,
+    "sunlit_spots_grid": 3,
+    "web_css_blend": "CSS overlay over photo composite; accent Canvas uses screen internally",
+    "android_blend_rule": "explicitly implement and validate local composite; do not assume CSS blend equivalence"
+  },
+  "web_contour": {
+    "source_geometry": "real ContourData.svgPath",
+    "under_stroke": {"color": "#063B46", "width_css_px": 3.8, "opacity": 0.8},
+    "blue_gold_gradient": ["#0284C7", "#38BDF8", "#FDE68A", "#F59E0B", "#0284C7", "#38BDF8", "#FDE68A", "#F59E0B", "#0284C7"],
+    "core_width_css_px": 2.2,
+    "ice_highlight": {"color": "#DDFBFF", "width_of_core_ratio": 0.46, "opacity": 0.6},
+    "sunlit_gold_glint": {"color": "#FFD166", "arc_length_ratio": 0.2, "period_ms": 2200, "intensity": 0.8, "feather_ends": true},
+    "soft_glow": {"radius_css_px": 32, "intensity": 0.5},
+    "halo": {"radius_css_px": 64, "intensity": 1.5},
+    "gold_brightness": 0.9,
+    "smoothing_passes": 3,
+    "simplification_tolerance": 2.2,
+    "contour_growth_ms": 1000,
+    "soft_glow_start_after_growth_ms": 150,
+    "soft_glow_complete_after_growth_ms": 400,
+    "confirmation_highlight_after_soft_glow_ms": 200,
+    "confirmation_highlight_rise_ms": 80,
+    "confirmation_highlight_decay_ms": 170
+  },
+  "android_current_candidates": {
+    "perimeter_palette_status": "candidate; target-device visual calibration remains pending",
+    "perimeter_palette": {"primary": "#2D7C89", "secondary": "#67BDCA", "highlight": "#C1E9EE"},
+    "orb_palette_status": "retained existing Orb values",
+    "orb_palette": {"lake_water_blue": "#348CA6", "warm_gold": "#D8BC87", "soft_water_green": "#5B8F78"},
+    "perimeter_shader": {"intensity": 1.5, "margin_ratio": 0.06, "blend_ratio": 0.75, "photo_overlay_composite": true},
+    "known_gap": "Android candidate perimeter intensity/margin differ from Web EFFECT_02; frozen Android P2 geometry remains authoritative and must be compared before parameter changes"
+  },
+  "coordinate_conversion": {
+    "source_of_truth": "EXIF-normalized canonical photo plus RecognitionImageTransform and measured photoContentRect",
+    "css_pixel_to_android_display": "derive a measured source-CSS-to-photo-content scale from rendered geometry; never treat CSS px as dp",
+    "physical_dp_conversion": "use Android density only when converting a dp-valued UI stroke to physical px",
+    "mask_mapping": "SlimSAM ROI -> canonical PhotoSpace -> DisplaySpace through the same transform"
+  },
+  "identity_fields": ["sessionId", "attemptId", "imageId", "photoSha256", "photoContentVersion", "geometryVersion", "eventSequence"],
+  "mask_policy": {
+    "TRUSTED": "real Mask + valid current contour may render contour/gold",
+    "UNTRUSTED_OR_FAILED": "no contour/gold; use measured photo perimeter return to original Orb if Classifier is valid",
+    "PROCESSING_OR_QUEUED": "pending; do not reveal, do not treat as Orb-only"
+  }
+}

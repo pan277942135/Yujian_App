@@ -1,0 +1,30 @@
+{
+  "repository": "pan277942135/Yujian_App",
+  "pull_request": 346,
+  "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+  "baseline_head": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10",
+  "source_revision": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+  "artifact": "yujian-debug-316de1b7.apk",
+  "build_type": "debug",
+  "package_name": "com.yujian.ai.uiv2",
+  "version_name": "2.3.3-orb-wake-v1.1-20261103",
+  "version_code": 6,
+  "apk_size_bytes": 200257995,
+  "apk_sha256": "ac98167b18ebb4d6d18d6d0161fe57da64bbf100c6ae345f621fe13166cccb7e",
+  "signing": "Android Debug; APK Signature Scheme v2",
+  "signer_certificate_sha256": "4fcea5e06af643972fb2f5c5af5293523d89080ad1194d6068d26ceb5701a2c6",
+  "unit_tests": {
+    "executed": 574,
+    "passed": 574,
+    "failed": 0,
+    "skipped": 0
+  },
+  "android_test_kotlin_compile": "PASS",
+  "android_instrumentation": "NOT_RUN",
+  "packaged_classifier_assets": "PASS",
+  "strict_release_snapshot_validation": "FAIL: release asset rows lack required asset id",
+  "device_runtime_acceptance": "NOT_RUN",
+  "visual_auto_acceptance": "NOT_RUN",
+  "full_flow_accepted": "NOT_RUN",
+  "release_tag": "yujian-debug-316de1b7"
+}
