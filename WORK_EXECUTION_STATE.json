@@ -9,25 +9,27 @@
     "FIXTURE_B_UNAVAILABLE: the named historical evidence ZIP is absent from current attachments/workspace; source regressions can run without claiming replay."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-25T08:18:10Z",
+  "checkpoint_updated_at": "2026-11-25T14:56:11Z",
   "control_plane_revision": "03db3692669847084d7e48fc3128f85cbf832af9",
   "current_work": {
     "blockers": [
       "P0_2_ORIGINAL_OBJECT_UNAVAILABLE_BUT_INTEGRATION_PRESENT: remote commit 57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5 records original source 759e918332293a4ffaea479a57556386b7c41f1d, original parent babd6b3ad31ee02f70d74738a27d7f14cc6b5e10, and an integration patch; exact original commit object remains unavailable for direct tree comparison.",
-      "ANDROID_TEST_COMPILE_BLOCKED: :app:assembleDebugAndroidTest could not resolve AndroidX Test dependencies because dl.google.com DNS resolution failed.",
-      "LINT_BLOCKED: lint could not resolve com.android.tools.lint:lint-gradle:32.1.1 because dl.google.com DNS resolution failed.",
-      "DEVICE_RUNTIME_PENDING: no /dev/kvm, adb, or emulator is available locally; no DEVICE_RUNTIME_VERIFIED claim.",
-      "EXACT_HEAD_CI_PENDING: merged source has not been committed/pushed and hosted CI evidence is not available.",
-      "APK_DELIVERY_PENDING: merged exact-HEAD Debug APK has not been rebuilt or delivered.",
-      "FIXTURE_B_UNAVAILABLE: historical runtime fixture B is absent; no replay is claimed."
+      "FIXTURE_B_UNAVAILABLE: historical runtime fixture B is absent; no replay is claimed.",
+      "CI_RUN_LOGS_UNAVAILABLE: Run 45575753918 logs could not be read; GitHub HTML returned HTTP 406 and API access failed at the network tunnel with 403. The GH_TOKEN is invalid and was not retried. The callback mismatch is verified from source, but its correlation to the failed CI log remains UNVERIFIED.",
+      "ANDROIDTEST_COMPILE_BLOCKED_EXTERNAL_DNS: post-fix :app:assembleDebugAndroidTest stopped at :app:processDebugAndroidTestManifest before Kotlin compilation because dl.google.com could not resolve AndroidX Test dependencies.",
+      "LINT_BLOCKED_EXTERNAL_DNS: post-fix :app:lintDebug stopped while resolving com.android.tools.lint:lint-gradle:32.1.1 from dl.google.com.",
+      "API36_RUNTIME_BLOCKED: /dev/kvm, adb and emulator are absent; no Instrumentation or AUTO run is claimed.",
+      "FINAL_EXACT_HEAD_CI_PENDING: focused fix is not yet committed or pushed; hosted status for the final SHA must be verified if run access becomes available.",
+      "FINAL_APK_PENDING: current cafc289c APK is stale for the pending callback-fix commit; rebuild after commit.",
+      "MASTER_GOAL_CONTRACT_NOT_FOUND: no existing tracked Master Goal Contract file is present; record this task in the existing Work Execution State and build log, without creating a parallel contract."
     ],
     "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
     "exact_head": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
     "id": "YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
     "phase": "P6",
-    "requested_task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
-    "requested_task_title": "Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery",
-    "stage": "G8_POST_MERGE_VALIDATION_PASS",
+    "requested_task_id": "YUJIAN_P0_EXACT_HEAD_ANDROIDTEST_CALLBACK_CLOSURE_V1",
+    "requested_task_title": "YuJian Exact-HEAD Final Closure — AndroidTest Callback, PATH_BOUND Transaction, Exact-HEAD CI and Debug APK",
+    "stage": "G8_ANDROIDTEST_CALLBACK_FIX_LOCAL_VALIDATION",
     "status": "RUNNING",
     "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
     "current_validated_tree_note": "The merge working tree containing local implementation commit 5b1f28c2 and remote source 57ccf1b3 passed full JVM tests (604/604) and :app:compileReleaseKotlin; the merge commit/push and exact-HEAD APK remain pending."
@@ -224,6 +226,108 @@
       "original_commit_object_available": false,
       "integration_provenance": "Remote commit 57ccf1b3 records original parent babd6b3ad31ee02f70d74738a27d7f14cc6b5e10 and patch ids original d91bb6389f704615dcd14dbceaf0610d52cf399c / integrated da593356225b0d71ccfdbf797267446dd962c77f; provenance metadata verified, direct file-level comparison against missing original object remains unavailable.",
       "merge_commit": "PENDING"
+    },
+    "exact_head_androidtest_callback_closure_v1": {
+      "task_id": "YUJIAN_P0_EXACT_HEAD_ANDROIDTEST_CALLBACK_CLOSURE_V1",
+      "repository": "pan277942135/Yujian_App",
+      "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+      "starting_local_head": "cafc289c27d7b7fc80d8bbc76183e799f5d28ae9",
+      "remote_branch_head_before_fix": "cafc289c27d7b7fc80d8bbc76183e799f5d28ae9",
+      "remote_pr_346_head_before_fix": "cafc289c27d7b7fc80d8bbc76183e799f5d28ae9",
+      "task_main_baseline": "03db3692669847084d7e48fc3128f85cbf832af9",
+      "observed_remote_main": "bc89484ca79fe20c63c9c6e65b284f1ec3ac1863",
+      "main_modified": false,
+      "ci_failure_run": {
+        "run_id": "45575753918",
+        "run_number": "4212",
+        "sha": "cafc289c27d7b7fc80d8bbc76183e799f5d28ae9",
+        "reported_status": "FAILURE",
+        "status_source": "user-provided task attachment",
+        "raw_logs_retrieved": false,
+        "access_errors": [
+          "github.com Actions page HTTP 406",
+          "GitHub API tunnel HTTP 403",
+          "GH_TOKEN invalid; not retried"
+        ]
+      },
+      "static_root_cause": {
+        "status": "SOURCE_VERIFIED_CI_CORRELATION_UNVERIFIED",
+        "file": "app/src/androidTest/java/com/yujian/ai/RecognitionRevealProductionRuntimeTest.kt",
+        "old_call": "one-argument onFishPathSnapshot lambda called updateFishPathSnapshot directly",
+        "production_contract": "three-argument snapshot/prepareController/commitController callback; production App uses RecognitionPathBindingCommitCoordinator",
+        "production_declaration_file": "recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+        "raw_ci_error": "UNVERIFIED: could not read Run 45575753918 logs"
+      },
+      "source_changes": [
+        "app/src/androidTest/java/com/yujian/ai/RecognitionRevealProductionRuntimeTest.kt: use real Controller prepare/commit callbacks, SessionStore prepare/commit/abort, one flow-scoped CommitCoordinator, shared Receipt object capture, exact session/attempt/photo/mask/geometry/content identity assertions at onFinished and Handoff"
+      ],
+      "callsite_audit": {
+        "production": "YujianApp.kt uses shared CommitCoordinator",
+        "instrumentation": "single production runtime test now uses the 3-argument coordinator transaction",
+        "direct_updateFishPathSnapshot": "only AndroidTest Store-only identity/order/late-callback probes; no production bypass found",
+        "workflow_artifact_upload": "android.yml already uploads frozen APK pair and installable debug APK"
+      },
+      "path_binding_existing_jvm_coverage": [
+        "dual endpoint prepare gate",
+        "store commit failure controller compensation",
+        "idempotent duplicate and conflicting content hash",
+        "stale photo/attempt identity",
+        "concurrent duplicate commit"
+      ],
+      "post_fix_jvm_regression": {
+        "command": "Gradle 9.3.1 --rerun-tasks test :app:compileReleaseKotlin",
+        "result": "BUILD SUCCESSFUL",
+        "tests": 604,
+        "passed": 604,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "junit_xml_count": 116,
+        "module_counts": {
+          "app": 126,
+          "application-core": 78,
+          "recognition-domain": 8,
+          "recognition-result-ui": 20,
+          "recognition-runtime": 71,
+          "recognition-ui": 237,
+          "waterlight-renderer": 64
+        },
+        "log": "/tmp/yujian-build-diagnostics/cafc289c-forced-jvm-release.log"
+      },
+      "androidtest_compile": {
+        "task": ":app:assembleDebugAndroidTest",
+        "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS_BEFORE_KOTLIN",
+        "failure": "Could not resolve androidx.test.ext:junit:1.2.1, androidx.test:runner:1.6.2 and androidx.test.uiautomator:2.3.0 from dl.google.com; Temporary failure in name resolution.",
+        "log": "/tmp/yujian-build-diagnostics/cafc289c-androidtest-postfix.log"
+      },
+      "lint": {
+        "task": ":app:lintDebug",
+        "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS_BEFORE_LINT",
+        "failure": "Could not resolve com.android.tools.lint:lint-gradle:32.1.1 from dl.google.com; Temporary failure in name resolution.",
+        "log": "/tmp/yujian-build-diagnostics/cafc289c-lintDebug-postfix.log"
+      },
+      "api36_runtime": {
+        "result": "BLOCKED_NO_DEVICE_RUNTIME",
+        "missing": [
+          "/dev/kvm",
+          "adb",
+          "emulator"
+        ],
+        "instrumentation_execution": "NOT_RUN",
+        "stage10_13_5_auto": "NOT_VERIFIED"
+      },
+      "exact_head_ci": "PENDING_SAFE_PUSH_AND_HOSTED_STATUS_UNAVAILABLE",
+      "apk": {
+        "result": "PENDING_POST_COMMIT_EXACT_HEAD_REBUILD",
+        "previous_cafc289c_apk_is_stale": true
+      },
+      "github_artifact": {
+        "workflow_configuration": "PRESENT",
+        "actual_final_run_artifact": "NOT_VERIFIED"
+      },
+      "tflite_hard_termination": "TFLITE_NATIVE_HARD_TERMINATION_UNVERIFIED",
+      "p0_2_original_history": "759e918332293a4ffaea479a57556386b7c41f1d object not available for direct historical file-by-file comparison.",
+      "master_goal_contract": "No tracked existing Master Goal Contract file found; no parallel contract created. Execution record is appended to existing WORK_EXECUTION_STATE.json and harness/build-log.md."
     }
   },
   "execution_v2": {
@@ -400,15 +504,15 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Complete and commit the no-force merge with remote PR-346 head 57ccf1b3, push only the existing PR branch, verify PR/source refs and main, then build and verify a Debug APK for the resulting exact HEAD.",
+  "next_action": "Commit the focused AndroidTest callback and evidence update, safe-push to the existing PR branch, verify remote branch and PR refs, build an APK for the resulting exact HEAD, and capture hosted CI/artifact outcomes if GitHub run access is available.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
   "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
-  "stage": "G8_POST_MERGE_VALIDATION_PASS",
+  "stage": "G8_ANDROIDTEST_CALLBACK_FIX_LOCAL_VALIDATION",
   "state_update": {
-    "last_updated_at": "2026-11-25T08:18:10Z",
-    "note": "After merging the remote PR-346 head 57ccf1b into the implementation worktree, the full Gradle test task passed with 604/604 tests and :app:compileReleaseKotlin passed. AndroidTest compilation and lint remain blocked by dl.google.com DNS; device runtime is unavailable. The no-force merge commit, safe push, remote ref verification and final exact-HEAD Debug APK remain pending."
+    "last_updated_at": "2026-11-25T14:56:11Z",
+    "note": "Follow-up task locked PR source cafc289c; remote PR refs remained cafc289c and remote Main advanced to bc89484c without local modification. Static source audit found the stale one-argument AndroidTest callback and the test now routes the real Processing callbacks through the shared PATH_BOUND coordinator with same-object Receipt and identity assertions. Forced JVM tests pass 604/604 and Release Kotlin compile passes. AndroidTest compile and lint are blocked before source validation by dl.google.com DNS. Run 45575753918 raw logs, final hosted CI, device runtime and final APK remain unverified/pending."
   },
   "status": "RUNNING",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",

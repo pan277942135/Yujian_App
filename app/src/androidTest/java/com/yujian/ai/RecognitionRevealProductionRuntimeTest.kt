@@ -40,6 +40,9 @@ import com.yujian.ai.ui.theme.YujianTheme
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.RecognitionPathBindingCommitCoordinator
+import com.yujian.ai.ui.waterlight.core.RecognitionPathBindingCommitReceipt
+import com.yujian.ai.ui.waterlight.core.RecognitionPathBindingIdentity
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.WaterLightGeometryVersion
@@ -49,6 +52,7 @@ import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -211,6 +215,50 @@ class RecognitionRevealProductionRuntimeTest {
         val sceneController = SceneMotionCoordinator().apply {
             beginNewSession(sceneIdentity, debugBuild = false, nowMs = SystemClock.uptimeMillis())
         }
+        val pathBindingCommitCoordinator = RecognitionPathBindingCommitCoordinator()
+        val controllerPathBindingReceipt = AtomicReference<RecognitionPathBindingCommitReceipt?>()
+        val storePathBindingReceipt = AtomicReference<RecognitionPathBindingCommitReceipt?>()
+        val coordinatorPathBindingReceipt = AtomicReference<RecognitionPathBindingCommitReceipt?>()
+
+        fun assertPathBindingReceiptIdentity() {
+            val state = requireNotNull(revealSessionStore.snapshot)
+            val boundPath = requireNotNull(state.fishPathSnapshot)
+            val controllerReceipt = requireNotNull(controllerPathBindingReceipt.get())
+            val storeReceipt = requireNotNull(storePathBindingReceipt.get())
+            val coordinatorReceipt = requireNotNull(coordinatorPathBindingReceipt.get())
+            val expectedIdentity = RecognitionPathBindingIdentity(
+                recognitionSessionId = boundPath.sessionId,
+                attemptId = boundPath.attemptId,
+                photoId = boundPath.imageId,
+                photoIdentityHash = boundPath.photoSha256,
+                pathSnapshotContentHash = boundPath.calculateContentSha256(),
+                fishPathId = boundPath.fishPathId,
+                maskSha256 = boundPath.maskSha256,
+                maskVersion = boundPath.maskVersion,
+                geometryVersion = boundPath.geometryVersion,
+            )
+
+            assertEquals(RecognitionFishPathSnapshotBindingState.BOUND, state.fishPathSnapshotBindingState)
+            assertEquals(state.fishPathBindingCommitReceiptId, coordinatorReceipt.receiptId)
+            assertEquals(SESSION_ID, coordinatorReceipt.identity.recognitionSessionId)
+            assertEquals(ATTEMPT_ID, coordinatorReceipt.identity.attemptId)
+            assertEquals(selectedImage.imageId, coordinatorReceipt.identity.photoId)
+            assertEquals(selectedImage.photoSha256, coordinatorReceipt.identity.photoIdentityHash)
+            assertSame("Controller and SessionStore must consume the exact same receipt instance", controllerReceipt, storeReceipt)
+            assertSame("Coordinator must return the receipt consumed by both endpoints", storeReceipt, coordinatorReceipt)
+            assertSame(coordinatorReceipt, pathBindingCommitCoordinator.committedReceipt(boundPath.attemptId))
+            assertEquals(expectedIdentity, controllerReceipt.identity)
+            assertEquals(expectedIdentity, storeReceipt.identity)
+            assertEquals(expectedIdentity, coordinatorReceipt.identity)
+            assertEquals(boundPath, state.fishPathSnapshot)
+            assertEquals(boundPath.snapshotSha256, state.fishPathSnapshotProducerSha256)
+            assertEquals(boundPath.calculateContentSha256(), state.fishPathSnapshotContentSha256)
+            assertTrue("Controller must have committed the path named by the shared receipt", sceneController.fishPathSnapshotReady())
+            assertEquals(
+                boundPath.fishPathId,
+                sceneController.gateSnapshot(SystemClock.uptimeMillis())["fishPathId"],
+            )
+        }
         val flowStartElapsedRealtimeMs = SystemClock.elapsedRealtime()
         val navigationPrerequisitesReadyElapsedRealtimeMs = AtomicReference<Long?>()
         fun markNavigationPrerequisitesReady() {
@@ -348,6 +396,7 @@ class RecognitionRevealProductionRuntimeTest {
                                         RecognitionFishPathSnapshotBindingState.BOUND,
                                         revealSessionStore.snapshot?.fishPathSnapshotBindingState,
                                     )
+                                    assertPathBindingReceiptIdentity()
                                     pathBoundUptimeMs.compareAndSet(null, SystemClock.uptimeMillis())
                                     markNavigationPrerequisitesReady()
                                     val prerequisitesReadyAt = requireNotNull(
@@ -404,14 +453,52 @@ class RecognitionRevealProductionRuntimeTest {
                                 revealSessionStore.updateProcessingPhoto(revealKey, photo)
                                 markNavigationPrerequisitesReady()
                             },
-                            onFishPathSnapshot = { pathSnapshot ->
-                                val accepted = revealSessionStore.updateFishPathSnapshot(revealKey, pathSnapshot)
+                            onFishPathSnapshot = { pathSnapshot, prepareController, commitController ->
+                                val controllerPrepared = prepareController()
+                                val storePrepared = controllerPrepared && revealSessionStore.prepareFishPathSnapshot(
+                                    revealKey,
+                                    pathSnapshot,
+                                )
+                                val contentHash = pathSnapshot.calculateContentSha256()
+                                val committedReceipt = pathBindingCommitCoordinator.commit(
+                                    identity = RecognitionPathBindingIdentity(
+                                        recognitionSessionId = pathSnapshot.sessionId,
+                                        attemptId = pathSnapshot.attemptId,
+                                        photoId = pathSnapshot.imageId,
+                                        photoIdentityHash = pathSnapshot.photoSha256,
+                                        pathSnapshotContentHash = contentHash,
+                                        fishPathId = pathSnapshot.fishPathId,
+                                        maskSha256 = pathSnapshot.maskSha256,
+                                        maskVersion = pathSnapshot.maskVersion,
+                                        geometryVersion = pathSnapshot.geometryVersion,
+                                    ),
+                                    nowUptimeMs = SystemClock.uptimeMillis(),
+                                    controllerPrepared = controllerPrepared,
+                                    storePrepared = storePrepared,
+                                    commitController = { receipt ->
+                                        controllerPathBindingReceipt.set(receipt)
+                                        commitController(receipt)
+                                    },
+                                    commitStore = { receipt ->
+                                        storePathBindingReceipt.set(receipt)
+                                        revealSessionStore.commitPreparedFishPathSnapshot(revealKey, receipt)
+                                    },
+                                    compensateController = { receipt ->
+                                        sceneController.abortFishPathBinding(receipt)
+                                    },
+                                    abortStore = { receipt ->
+                                        revealSessionStore.abortPreparedFishPathSnapshot(revealKey, receipt?.receiptId)
+                                    },
+                                )
+                                coordinatorPathBindingReceipt.set(committedReceipt)
+                                val accepted = committedReceipt != null
                                 markNavigationPrerequisitesReady()
                                 if (!accepted) {
                                     handoffFailure.set(
-                                        "production Processing PathLedger snapshot was rejected by SessionStore",
+                                        "production Processing PATH_BOUND controller/store transaction did not commit",
                                     )
                                 }
+                                accepted
                             },
                         )
                     } else {
@@ -578,6 +665,8 @@ class RecognitionRevealProductionRuntimeTest {
             assertEquals("Processing photo identity must cross the handoff unchanged", processingPhotoSnapshot.imageId, handoff.imageId)
             val trustedGeometry = requireNotNull(subjectGeometry.get())
             val fishPathSnapshot = requireNotNull(handoff.fishPathSnapshot)
+            assertPathBindingReceiptIdentity()
+            assertEquals(fishPathSnapshot, revealSessionStore.snapshot?.fishPathSnapshot)
             val bindingProbe = RecognitionRevealSessionStore().apply {
                 beginAttempt(SESSION_ID, ATTEMPT_ID, selectedImage)
             }
