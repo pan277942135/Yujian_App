@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.home.CaptureButtonMotionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.612Z" hostname="dd8a05580e5c" time="0.025">
+  <properties/>
+  <testcase name="heroTransitionExpandsAndSettlesOnTheShared580msClock" classname="com.yujian.ai.ui.home.CaptureButtonMotionTest" time="0.002"/>
+  <testcase name="clickWaterRippleUses600msAnd36dpOutwardTravel" classname="com.yujian.ai.ui.home.CaptureButtonMotionTest" time="0.0"/>
+  <testcase name="idleGoldFlareSweepsOnceThenRestsAtTheMorningLightEntry" classname="com.yujian.ai.ui.home.CaptureButtonMotionTest" time="0.0"/>
+  <testcase name="frozenCaptureBreathUsesFiveSecondCycleAndCapsAtOnePointZeroOneFive" classname="com.yujian.ai.ui.home.CaptureButtonMotionTest" time="0.002"/>
+  <testcase name="shutterDiameterStaysInsideTheFrozenResponsiveRange" classname="com.yujian.ai.ui.home.CaptureButtonMotionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

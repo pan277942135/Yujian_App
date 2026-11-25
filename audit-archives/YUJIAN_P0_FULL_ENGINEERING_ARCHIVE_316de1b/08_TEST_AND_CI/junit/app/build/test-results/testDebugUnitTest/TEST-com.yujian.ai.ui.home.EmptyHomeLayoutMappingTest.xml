@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.home.EmptyHomeLayoutMappingTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:03:16.069Z" hostname="dd8a05580e5c" time="0.006">
+  <properties/>
+  <testcase name="frozenGeometryMapsAcrossRequiredPortraitProfilesAndFontScales" classname="com.yujian.ai.ui.home.EmptyHomeLayoutMappingTest" time="0.005"/>
+  <testcase name="horizontalSafeInsetsUsePhysicalLeftEdgeInBothLayoutDirections" classname="com.yujian.ai.ui.home.EmptyHomeLayoutMappingTest" time="0.0"/>
+  <testcase name="compact320By640UsesShortProfileWithoutShrinkingHeroOrTouchTarget" classname="com.yujian.ai.ui.home.EmptyHomeLayoutMappingTest" time="0.0"/>
+  <testcase name="canonicalViewportKeepsHeroAtFrozenReferenceAnchor" classname="com.yujian.ai.ui.home.EmptyHomeLayoutMappingTest" time="0.0"/>
+  <testcase name="canonicalHeroFitPreservesSourceAspectWithinOnePercent" classname="com.yujian.ai.ui.home.EmptyHomeLayoutMappingTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

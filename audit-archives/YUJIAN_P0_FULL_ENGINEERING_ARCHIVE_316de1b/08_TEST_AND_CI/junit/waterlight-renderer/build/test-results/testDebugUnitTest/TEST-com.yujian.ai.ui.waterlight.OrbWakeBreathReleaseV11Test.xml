@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.waterlight.OrbWakeBreathReleaseV11Test" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:33.310Z" hostname="dd8a05580e5c" time="0.004">
+  <properties/>
+  <testcase name="r06BodyAlphaBoostIsBoundedSelectiveAndPreservesFadeInputs" classname="com.yujian.ai.ui.waterlight.OrbWakeBreathReleaseV11Test" time="0.0"/>
+  <testcase name="orbReleaseCurveUsesStageLocalProgressAndReturnsWithoutResettingScenePhase" classname="com.yujian.ai.ui.waterlight.OrbWakeBreathReleaseV11Test" time="0.001"/>
+  <testcase name="fourSourceDerivedLeavesKeepIndependentPhaseAndBoundedAmplitudeAtRuntimeSizes" classname="com.yujian.ai.ui.waterlight.OrbWakeBreathReleaseV11Test" time="0.003"/>
+  <testcase name="wakeAndS1ToS2EnvelopesUseSemanticStageProgress" classname="com.yujian.ai.ui.waterlight.OrbWakeBreathReleaseV11Test" time="0.0"/>
+  <testcase name="stage02TimingAndWakeCurvesUseSemanticStageProgressInBothPlaybackModes" classname="com.yujian.ai.ui.waterlight.OrbWakeBreathReleaseV11Test" time="0.0"/>
+  <testcase name="r06WakeReadabilityEnvelopeHasFrozenStage02AndReleaseBoundaries" classname="com.yujian.ai.ui.waterlight.OrbWakeBreathReleaseV11Test" time="0.0"/>
+  <testcase name="r06WakeBodyBoostIsContinuousAtStageBoundaryAndFadesOutAcrossFirst80Ms" classname="com.yujian.ai.ui.waterlight.OrbWakeBreathReleaseV11Test" time="0.0"/>
+  <testcase name="breathUsesOneSceneClockAcrossStageChangesAndFrozenProfiles" classname="com.yujian.ai.ui.waterlight.OrbWakeBreathReleaseV11Test" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.RecognitionEffect01MotionTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.777Z" hostname="dd8a05580e5c" time="0.003">
+  <properties/>
+  <testcase name="shockwaveIsBoundToOrbReleaseStageLocalTime" classname="com.yujian.ai.ui.recognition.RecognitionEffect01MotionTest" time="0.0"/>
+  <testcase name="processingEnvironmentEnvelopeUsesSemanticStageBoundaries" classname="com.yujian.ai.ui.recognition.RecognitionEffect01MotionTest" time="0.0"/>
+  <testcase name="frozenEffect01AndSurgeValuesRemainExact" classname="com.yujian.ai.ui.recognition.RecognitionEffect01MotionTest" time="0.0"/>
+  <testcase name="upwardWaveIsDeterministicMonotoneAndBounded" classname="com.yujian.ai.ui.recognition.RecognitionEffect01MotionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.ProductionAutoFixesP0Test" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.695Z" hostname="dd8a05580e5c" time="0.06">
+  <properties/>
+  <testcase name="p0_2_productionV1AppliesR06WakeStrokeEnvelopeAndBodyAlphaReadability" classname="com.yujian.ai.ui.recognition.ProductionAutoFixesP0Test" time="0.002"/>
+  <testcase name="p0_0_pixelCopyTimeoutBudgetAndStatusPolicyRemainExplicit" classname="com.yujian.ai.ui.recognition.ProductionAutoFixesP0Test" time="0.002"/>
+  <testcase name="p0_3_nonReadyOrDecodeFailureMaskTerminalMarksSlimSamFailedImmediately" classname="com.yujian.ai.ui.recognition.ProductionAutoFixesP0Test" time="0.007"/>
+  <testcase name="p0_5_resultStableReadinessSeparatesOpticalResidueAndSceneStable" classname="com.yujian.ai.ui.recognition.ProductionAutoFixesP0Test" time="0.001"/>
+  <testcase name="p0_6_resultVisualReadyWaitsForFishPathSnapshotWhenMaskIsTrusted" classname="com.yujian.ai.ui.recognition.ProductionAutoFixesP0Test" time="0.044"/>
+  <testcase name="p0_1_absorbRejectedUnderOrbOnlyReadyAndAcceptedUnderFishFocusWithContourC" classname="com.yujian.ai.ui.recognition.ProductionAutoFixesP0Test" time="0.001"/>
+  <testcase name="p0_4_onGlyphRevealRenderedReturnsBooleanAndRequiresMatchingStage" classname="com.yujian.ai.ui.recognition.ProductionAutoFixesP0Test" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.recognition.domain.RecognitionSnapshotCommitterTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-24T12:35:38.140Z" hostname="dd8a05580e5c" time="0.235">
+  <properties/>
+  <testcase name="changedPayloadConflictsAndOldAttemptCannotCommit" classname="com.yujian.ai.recognition.domain.RecognitionSnapshotCommitterTest" time="0.17"/>
+  <testcase name="repeatedCommitReturnsTheFirstImmutableSnapshot" classname="com.yujian.ai.recognition.domain.RecognitionSnapshotCommitterTest" time="0.026"/>
+  <testcase name="listsAreFrozenAndOutcomeBranchesAreValidated" classname="com.yujian.ai.recognition.domain.RecognitionSnapshotCommitterTest" time="0.037"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

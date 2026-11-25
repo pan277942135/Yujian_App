@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.privacy.PrivacyPromptFrequencyTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:28.220Z" hostname="dd8a05580e5c" time="0.002">
+  <properties/>
+  <testcase name="prompts_only_after_corrected_record_is_saved" classname="com.yujian.ai.privacy.PrivacyPromptFrequencyTest" time="0.001"/>
+  <testcase name="manual_withdrawal_suppresses_future_proactive_prompts" classname="com.yujian.ai.privacy.PrivacyPromptFrequencyTest" time="0.0"/>
+  <testcase name="three_dismissals_are_never_prompted_again" classname="com.yujian.ai.privacy.PrivacyPromptFrequencyTest" time="0.0"/>
+  <testcase name="seven_day_cooldown_and_consent_gate_are_enforced" classname="com.yujian.ai.privacy.PrivacyPromptFrequencyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

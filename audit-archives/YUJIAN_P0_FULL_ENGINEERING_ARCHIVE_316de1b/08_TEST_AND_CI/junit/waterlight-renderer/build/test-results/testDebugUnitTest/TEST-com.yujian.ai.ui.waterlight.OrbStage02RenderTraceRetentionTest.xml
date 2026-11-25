@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.waterlight.OrbStage02RenderTraceRetentionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:33.303Z" hostname="dd8a05580e5c" time="0.004">
+  <properties/>
+  <testcase name="manualPausedFrameKeyDeduplicatesOnlyTheSamePausedState" classname="com.yujian.ai.ui.waterlight.OrbStage02RenderTraceRetentionTest" time="0.001"/>
+  <testcase name="checkpointsPointToNearestRealProductionFramesWithoutSynthesizingFrames" classname="com.yujian.ai.ui.waterlight.OrbStage02RenderTraceRetentionTest" time="0.002"/>
+  <testcase name="boundedAttemptStreamRetainsRecentRowsAndReportsDroppedCount" classname="com.yujian.ai.ui.waterlight.OrbStage02RenderTraceRetentionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

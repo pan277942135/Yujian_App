@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:51:30.481Z" hostname="dd8a05580e5c" time="0.154">
+  <properties/>
+  <testcase name="orbOnlyReturnUsesOnlyTheRecordedPerimeterToOrbSegment" classname="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" time="0.021"/>
+  <testcase name="processingSnapshotRejectsChangedMaskPStarAttemptAndGeometry" classname="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" time="0.001"/>
+  <testcase name="changedMaskShaOrPStarCannotReusePreviousFishPathOrReturnRoute" classname="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" time="0.032"/>
+  <testcase name="untrustedMaskCannotCreateFishPath" classname="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" time="0.0"/>
+  <testcase name="processingSnapshotPreservesOriginalPathMaskPStarGeometryAndReturnSegments" classname="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" time="0.058"/>
+  <testcase name="geometryVersionMustBePositiveAndZeroOrNegativeRemainUnmeasured" classname="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" time="0.001"/>
+  <testcase name="orbOnlyProcessingSnapshotPreservesLedgerPathIdentityWithoutMaskOrPStar" classname="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" time="0.016"/>
+  <testcase name="returnRouteReversesFishThenPerimeterThenOriginalOrb" classname="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" time="0.001"/>
+  <testcase name="identityChangeInvalidatesEveryStoredSegment" classname="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" time="0.0"/>
+  <testcase name="stage04ArrivalIsPhotoAndDetectorBoundWithoutMaskOrPStarIdentity" classname="com.yujian.ai.ui.waterlight.WaterLightPathLedgerTest" time="0.023"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

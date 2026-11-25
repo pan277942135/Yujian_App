@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMathTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.873Z" hostname="dd8a05580e5c" time="0.011">
+  <properties/>
+  <testcase name="rejectsAnAspectRatioMismatchInsteadOfDistortingThePerimeter" classname="com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMathTest" time="0.003"/>
+  <testcase name="sixteenDeterministicSparklesExpandFromBothBottomBranches" classname="com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMathTest" time="0.0"/>
+  <testcase name="sourceTimeUsesOnlyTheSharedSceneOpticalReference" classname="com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMathTest" time="0.0"/>
+  <testcase name="defaultProfileMatchesFrozenEffect02AndKeepsEffect01ForRegression" classname="com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMathTest" time="0.002"/>
+  <testcase name="sourcePerimeterHas280SamplesAndStartsAtBottomCenter" classname="com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMathTest" time="0.001"/>
+  <testcase name="perimeterExpansionStaysContinuousAcrossExistingReleaseAndArrivalStages" classname="com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMathTest" time="0.0"/>
+  <testcase name="measuredCoordinateScaleMapsCappedSourceBackingUnitsUniformly" classname="com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMathTest" time="0.001"/>
+  <testcase name="missingSourceMetricsAreExplicitlyUnmeasured" classname="com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMathTest" time="0.0"/>
+  <testcase name="perimeterLifetimeFollowsRecognitionPhaseInsteadOfAnAbsoluteElapsedCutoff" classname="com.yujian.ai.ui.recognition.RecognitionPerimeterShaderMathTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

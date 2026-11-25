@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.waterlight.OrbResidentSystemsV1Test" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:33.268Z" hostname="dd8a05580e5c" time="0.016">
+  <properties/>
+  <testcase name="onlyTheFrozenFiveR06PathsAreResident" classname="com.yujian.ai.ui.waterlight.OrbResidentSystemsV1Test" time="0.002"/>
+  <testcase name="coreRotationIsSceneClockDrivenRadialAndRadiusPreserving" classname="com.yujian.ai.ui.waterlight.OrbResidentSystemsV1Test" time="0.01"/>
+  <testcase name="taskReleaseAndReturnDoNotChangeResidentLifecycleOrAlpha" classname="com.yujian.ai.ui.waterlight.OrbResidentSystemsV1Test" time="0.001"/>
+  <testcase name="residentGeometryRotatesOnSceneTimeAndReducedMotionFreezesIt" classname="com.yujian.ai.ui.waterlight.OrbResidentSystemsV1Test" time="0.002"/>
+  <testcase name="debugAndReleaseResolveTheSameProductionOpticsProfile" classname="com.yujian.ai.ui.waterlight.OrbResidentSystemsV1Test" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

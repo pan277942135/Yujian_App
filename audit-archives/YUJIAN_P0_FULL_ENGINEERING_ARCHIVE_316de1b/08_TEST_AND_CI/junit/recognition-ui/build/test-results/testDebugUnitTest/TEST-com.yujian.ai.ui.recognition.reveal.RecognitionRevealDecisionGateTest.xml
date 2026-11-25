@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:14.575Z" hostname="dd8a05580e5c" time="0.002">
+  <properties/>
+  <testcase name="trustedSlimSamFirstWaitsForClassifier" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <testcase name="openContourCannotEnterFullRevealAndPStarWaitIsExplicitlyTerminalizable" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.001"/>
+  <testcase name="mediumOrLowClassifierResultUsesNavigableStaticRouteWithoutAnimationPass" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <testcase name="classifierFirstWaitsForTrustedSlimSamThenChoosesFishFocus" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <testcase name="readySubjectWithoutItsGeometrySnapshotStaysPendingInsteadOfDowngrading" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <testcase name="classifierFirstWithUntrustedMaskChoosesOrbOnly" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <testcase name="pStarStateDistinguishesPendingReadyAndTerminalUnavailable" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <testcase name="processingIsNeverTreatedAsSlimSamFailureEvenAfterLongWait" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.001"/>
+  <testcase name="staleOrCancelledAttemptCannotCompleteReveal" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <testcase name="failedClassifierDoesNotRevealEvenIfMaskIsTrusted" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <testcase name="untrustedSlimSamFirstWaitsForClassifierThenChoosesOrbOnly" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <testcase name="classifierFirstWithSlimSamFailureKeepsRealSpeciesOnOrbPath" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <testcase name="simultaneousResultsMakeOneDeterministicDecision" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

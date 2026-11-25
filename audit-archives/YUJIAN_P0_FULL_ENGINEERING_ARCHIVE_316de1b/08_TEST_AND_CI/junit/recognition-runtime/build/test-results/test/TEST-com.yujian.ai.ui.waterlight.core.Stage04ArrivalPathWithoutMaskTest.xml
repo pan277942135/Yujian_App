@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.waterlight.core.Stage04ArrivalPathWithoutMaskTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:51:30.678Z" hostname="dd8a05580e5c" time="0.07">
+  <properties/>
+  <testcase name="stage04ArrivalPathAndEventCompleteWhileSlimSamIsPendingThenOrbOnlySkipsContours" classname="com.yujian.ai.ui.waterlight.core.Stage04ArrivalPathWithoutMaskTest" time="0.006"/>
+  <testcase name="arrivalCoincidentWithPhotoEdgeTravelsAlongBoundaryWithoutEnteringPhoto" classname="com.yujian.ai.ui.waterlight.core.Stage04ArrivalPathWithoutMaskTest" time="0.001"/>
+  <testcase name="orbOnlyLedgerPathRequiresCanvasReceiptAndCompletesStage10To135" classname="com.yujian.ai.ui.waterlight.core.Stage04ArrivalPathWithoutMaskTest" time="0.015"/>
+  <testcase name="fullRevealRequiresRealMaskClosedContourAndBoundPStarThroughOrbReturn" classname="com.yujian.ai.ui.waterlight.core.Stage04ArrivalPathWithoutMaskTest" time="0.047"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

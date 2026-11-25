@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.home.GeminiCatchCarouselCountTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:03:16.113Z" hostname="dd8a05580e5c" time="0.13">
+  <properties/>
+  <testcase name="finitePageCountMatchesDistinctValidCatchIdsForRequiredCases" classname="com.yujian.ai.ui.home.GeminiCatchCarouselCountTest" time="0.054"/>
+  <testcase name="localCatchTotalUsesUniqueStableIdsWhenServerTotalIsUnavailable" classname="com.yujian.ai.ui.home.GeminiCatchCarouselCountTest" time="0.027"/>
+  <testcase name="duplicateStableIdsKeepTheNewestRealCatchWithoutCloningPages" classname="com.yujian.ai.ui.home.GeminiCatchCarouselCountTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

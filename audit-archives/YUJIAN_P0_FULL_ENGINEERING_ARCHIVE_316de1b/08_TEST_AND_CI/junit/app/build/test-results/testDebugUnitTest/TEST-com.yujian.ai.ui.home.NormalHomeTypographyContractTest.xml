@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.home.NormalHomeTypographyContractTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:03:16.314Z" hostname="dd8a05580e5c" time="0.027">
+  <properties/>
+  <testcase name="systemFontScaleRemainsAnIndependentAccessibilityMultiplier" classname="com.yujian.ai.ui.home.NormalHomeTypographyContractTest" time="0.023"/>
+  <testcase name="referencePixelSizesAreAppliedOnceAcrossViewportAndDensityProfiles" classname="com.yujian.ai.ui.home.NormalHomeTypographyContractTest" time="0.001"/>
+  <testcase name="minimumReadingSizesAndLineHeightsAreMaintainedOnNarrowViewports" classname="com.yujian.ai.ui.home.NormalHomeTypographyContractTest" time="0.002"/>
+  <testcase name="a1080PhysicalPixelViewportMatchesFrozenReferenceAtEveryDensity" classname="com.yujian.ai.ui.home.NormalHomeTypographyContractTest" time="0.001"/>
+  <testcase name="measuredReferenceSpacingUsesViewportWidthAndIsNotDensityMultipliedTwice" classname="com.yujian.ai.ui.home.NormalHomeTypographyContractTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

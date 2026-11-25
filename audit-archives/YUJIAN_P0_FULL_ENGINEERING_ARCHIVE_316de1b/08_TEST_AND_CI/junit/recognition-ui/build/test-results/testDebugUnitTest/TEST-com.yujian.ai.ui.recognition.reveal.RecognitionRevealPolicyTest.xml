@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:14.608Z" hostname="dd8a05580e5c" time="0.039">
+  <properties/>
+  <testcase name="reduceMotionIsImmediateAndLowPerformanceRespectsParticleBudget" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.003"/>
+  <testcase name="geometryTrustBindsMaskToSessionAttemptAndPhotoHash" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.004"/>
+  <testcase name="eligibilityIsHighOnlyAndRequiresTrustedGeometryAndPhotoAnchor" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.0"/>
+  <testcase name="rr09StartsStageTenFromProcessingGeometryWithoutWaitingForResultOrGlyphGeometry" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.0"/>
+  <testcase name="sharedSemanticStagesDriveRevealWithoutAnAggregateTimeline" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.02"/>
+  <testcase name="sourceCropTransformPreservesAspectWithoutStretching" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.007"/>
+  <testcase name="attemptKeyAndPlaybackLedgerTrackClaimInterruptionResumeAndCompletionSeparately" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.003"/>
+  <testcase name="resultPhotoCannotMoveUntilNameHoldHasBeenAccepted" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.0"/>
+  <testcase name="orbOnlyFallbackKeepsItsReturnAndResidueOpticsWithoutFishGold" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.0"/>
+  <testcase name="latinNameComesOnlyFromExactCatalogIdAndHidesWhenMissing" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.001"/>
+  <testcase name="geometryTrustRejectsStaleImageBadMasksAndInvalidBoxes" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

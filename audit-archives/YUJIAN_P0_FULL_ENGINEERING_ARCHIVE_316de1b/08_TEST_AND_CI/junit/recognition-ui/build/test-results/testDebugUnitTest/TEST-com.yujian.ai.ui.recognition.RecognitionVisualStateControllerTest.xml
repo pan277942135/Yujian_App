@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.918Z" hostname="dd8a05580e5c" time="0.136">
+  <properties/>
+  <testcase name="invalidResultGeometryCannotPauseOrBlockTheRecognitionStageClock" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.016"/>
+  <testcase name="evidenceCaptureHasNoSceneClockControlHook" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.0"/>
+  <testcase name="explicitStepPreviewCanInspectStagesWithoutModelData" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.006"/>
+  <testcase name="fishContactPathIsBoundToExactMaskPStarAndPositiveGeometryVersion" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.03"/>
+  <testcase name="productionHoldsAtNameUntilMeasuredNameStableMilestoneIsAccepted" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.003"/>
+  <testcase name="handoffIsValidOnlyAtExactStageTenAfterClassifierMaskJoinAndOrbAnchor" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.0"/>
+  <testcase name="fullRevealReturnConsumesTheProcessingLedgerSnapshotAndRejectsDefaultOrStaleIdentity" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.075"/>
+  <testcase name="manualAndAutoKeepTheRecognitionIdentityWhenPlaybackModeChanges" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.001"/>
+  <testcase name="aNewAttemptInvalidatesThePreviousIdentityAndItsEvents" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.0"/>
+  <testcase name="stageTenReturnReceiptIsAcceptedWhileResultGeometryAndGlyphArePending" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.001"/>
+  <testcase name="previousAndReplayTouchOnlyTheSelectedManualStage" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.001"/>
+  <testcase name="diagnosticAutoWaitsThreeSecondsAndStillHonorsRealEventGates" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.0"/>
+  <testcase name="resultRevealTimeIsLocalToTheSelectedStageAndReplayRestartsThatStage" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.0"/>
+  <testcase name="geometryGatePreservesDiagnosticAutoProgressWhenPausedBeforeLateRecovery" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.0"/>
+  <testcase name="failureIsTechnicalAndLateModelReadinessCannotNavigateFromStageThirteen" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.0"/>
+  <testcase name="explicitUntrustedMaskTerminalAllowsOrbOnlyJoinButPendingMaskDoesNot" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.001"/>
+  <testcase name="pauseFreezesTheSharedStageFrameAndResumeContinuesTheSamePreview" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.0"/>
+  <testcase name="orbToNameRequiresARealDrawReceiptForTheFullyDissolvedCore" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.001"/>
+  <testcase name="geometryGateRecoversLateAndDoesNotOverrideUserPause" classname="com.yujian.ai.ui.recognition.RecognitionVisualStateControllerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

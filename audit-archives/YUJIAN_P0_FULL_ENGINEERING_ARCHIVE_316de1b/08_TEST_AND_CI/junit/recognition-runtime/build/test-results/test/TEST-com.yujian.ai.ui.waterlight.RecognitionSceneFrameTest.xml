@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:51:30.394Z" hostname="dd8a05580e5c" time="0.057">
+  <properties/>
+  <testcase name="sharedSceneFrameCarriesResultInformationArrivalAndStableState" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.001"/>
+  <testcase name="debugAndReleaseSessionsBothStartInAutoAndWaitForTheRealPhotoFrame" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.001"/>
+  <testcase name="resultHandoffAndFramesCarryTheExactControllerStageAndIdentity" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.0"/>
+  <testcase name="productionStageDoesNotAdvanceUntilTheRenderedReleaseEventCompletes" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.038"/>
+  <testcase name="explicitSemanticStageIsIndependentOfCumulativeSceneTime" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.001"/>
+  <testcase name="semanticStageSetAndOrderRemainExactlyThirteen" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.001"/>
+  <testcase name="resultHandoffEventsRejectStaleAttemptAndPrematureHostAttachment" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.003"/>
+  <testcase name="projectionsRemainDeterministicAndPhotoOrbMotionUsesSceneTime" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.0"/>
+  <testcase name="frozenFullPathMinimumsAreExactlySixSeconds" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.0"/>
+  <testcase name="oldAttemptResultEventCannotEnterTheNextProductionSession" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.0"/>
+  <testcase name="perimeterArrivalCanBecomeRenderableAfterDetectorTargetArrives" classname="com.yujian.ai.ui.waterlight.RecognitionSceneFrameTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

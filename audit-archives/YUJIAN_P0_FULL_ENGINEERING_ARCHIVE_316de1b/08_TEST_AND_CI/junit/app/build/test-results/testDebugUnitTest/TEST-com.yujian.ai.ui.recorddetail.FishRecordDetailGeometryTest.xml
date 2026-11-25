@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recorddetail.FishRecordDetailGeometryTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:03:16.875Z" hostname="dd8a05580e5c" time="0.003">
+  <properties/>
+  <testcase name="frozenReferenceGeometryIsExplicitAndResponsiveMappingKeepsItsProportions" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailGeometryTest" time="0.001"/>
+  <testcase name="safeInsetsAndLargeFontScaleDoNotChangeHeroAspectOrEscapeSafeWidth" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailGeometryTest" time="0.0"/>
+  <testcase name="heroKeepsFrozenReferenceAspectAcrossSupportedWidths" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailGeometryTest" time="0.0"/>
+  <testcase name="tabletHeroUsesTheContentMaximumAndFrozenAspect" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailGeometryTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

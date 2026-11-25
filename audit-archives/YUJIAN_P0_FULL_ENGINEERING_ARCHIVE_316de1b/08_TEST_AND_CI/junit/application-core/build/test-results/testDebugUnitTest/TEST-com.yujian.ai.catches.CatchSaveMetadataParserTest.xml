@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.catches.CatchSaveMetadataParserTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:28.065Z" hostname="dd8a05580e5c" time="0.004">
+  <properties/>
+  <testcase name="parsesTheRequiredCatchMeasurementsAndUnicodeText" classname="com.yujian.ai.catches.CatchSaveMetadataParserTest" time="0.001"/>
+  <testcase name="rejectsInvalidAndOutOfRangeMeasurementsBeforeUpload" classname="com.yujian.ai.catches.CatchSaveMetadataParserTest" time="0.001"/>
+  <testcase name="blankValuesRemainNullInsteadOfBecomingZero" classname="com.yujian.ai.catches.CatchSaveMetadataParserTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

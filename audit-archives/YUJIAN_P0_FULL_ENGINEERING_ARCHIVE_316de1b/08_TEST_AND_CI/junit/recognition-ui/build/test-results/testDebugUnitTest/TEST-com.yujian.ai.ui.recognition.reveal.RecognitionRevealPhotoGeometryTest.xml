@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometryTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:14.579Z" hostname="dd8a05580e5c" time="0.025">
+  <properties/>
+  <testcase name="processingViewportFallbackExistsBeforeResultHeroOrTitleLayout" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometryTest" time="0.002"/>
+  <testcase name="orbOnlyProjectionConsumesTheLedgerRouteAndRejectsStaleIdentity" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometryTest" time="0.0"/>
+  <testcase name="photoGeometryReportsTheConcretePermanentFailureReason" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometryTest" time="0.002"/>
+  <testcase name="yellowFishCropResolvesPhotoGeometryBeforeAndAfterHeroRasterCallback" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometryTest" time="0.0"/>
+  <testcase name="invalidResolvedTransformIsReportedWithoutHidingTheFailure" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometryTest" time="0.014"/>
+  <testcase name="fullFrameFitFallbackResolvesForPortraitAndLandscapeSources" classname="com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometryTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

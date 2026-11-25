@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.RecognitionMaskBitmapOwnershipTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.792Z" hostname="dd8a05580e5c" time="0.048">
+  <properties/>
+  <testcase name="publishedMaskIsNotRecycledWhileComposeCanRetainItsImageBitmap" classname="com.yujian.ai.ui.recognition.RecognitionMaskBitmapOwnershipTest" time="0.048"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

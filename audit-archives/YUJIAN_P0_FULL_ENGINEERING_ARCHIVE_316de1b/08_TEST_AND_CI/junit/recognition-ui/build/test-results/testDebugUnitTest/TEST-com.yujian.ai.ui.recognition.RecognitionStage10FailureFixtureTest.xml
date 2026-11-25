@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.RecognitionStage10FailureFixtureTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.899Z" hostname="dd8a05580e5c" time="0.016">
+  <properties/>
+  <testcase name="fixturePreservesDeviceFactsWithoutInventingSessionStoreOrNavigationEvidence" classname="com.yujian.ai.ui.recognition.RecognitionStage10FailureFixtureTest" time="0.016"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

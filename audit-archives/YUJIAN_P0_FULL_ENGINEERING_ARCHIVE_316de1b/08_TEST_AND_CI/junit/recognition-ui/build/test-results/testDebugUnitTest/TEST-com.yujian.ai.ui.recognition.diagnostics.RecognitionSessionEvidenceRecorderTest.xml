@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorderTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:14.506Z" hostname="dd8a05580e5c" time="0.011">
+  <properties/>
+  <testcase name="processingAndResultEvidenceRequireTheSameSessionAndAttempt" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorderTest" time="0.005"/>
+  <testcase name="standardCheckpointAndMotionEncodingPreserveFullResolutionPolicy" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorderTest" time="0.0"/>
+  <testcase name="frozen26KfPolicyCapturesOnlyPresentedSemanticCheckpoints" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorderTest" time="0.001"/>
+  <testcase name="requiredLogsEntriesAndResultStableCaptureFailClosed" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorderTest" time="0.005"/>
+  <testcase name="motionScreenshotsStopWhileModelGateWaitsOrSceneIsPaused" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorderTest" time="0.0"/>
+  <testcase name="reachedCheckpointWithoutPresentedEventIsMissingButUnreachedStageStaysUnreached" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorderTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

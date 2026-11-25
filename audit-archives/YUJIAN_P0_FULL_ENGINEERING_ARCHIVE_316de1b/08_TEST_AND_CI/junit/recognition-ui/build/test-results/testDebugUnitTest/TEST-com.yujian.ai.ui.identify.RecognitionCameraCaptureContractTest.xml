@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.identify.RecognitionCameraCaptureContractTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.639Z" hostname="dd8a05580e5c" time="0.005">
+  <properties/>
+  <testcase name="repeatedTapWhileCapturingDoesNotCreateAnotherRequest" classname="com.yujian.ai.ui.identify.RecognitionCameraCaptureContractTest" time="0.001"/>
+  <testcase name="zeroByteOrUnreadableImageCannotEnterRecognition" classname="com.yujian.ai.ui.identify.RecognitionCameraCaptureContractTest" time="0.001"/>
+  <testcase name="captureCannotStartBeforeCameraAndImageCaptureAreReady" classname="com.yujian.ai.ui.identify.RecognitionCameraCaptureContractTest" time="0.0"/>
+  <testcase name="validSavedAndDecodedImageCompletesCaptureForRecognition" classname="com.yujian.ai.ui.identify.RecognitionCameraCaptureContractTest" time="0.0"/>
+  <testcase name="galleryFlowDoesNotUseCameraCaptureContract" classname="com.yujian.ai.ui.identify.RecognitionCameraCaptureContractTest" time="0.0"/>
+  <testcase name="shutterIsViewportCenteredAndGalleryStaysInsideRightSafeInset" classname="com.yujian.ai.ui.identify.RecognitionCameraCaptureContractTest" time="0.001"/>
+  <testcase name="imageCaptureErrorLeavesCaptureRetryable" classname="com.yujian.ai.ui.identify.RecognitionCameraCaptureContractTest" time="0.0"/>
+  <testcase name="shutterCenterDoesNotDependOnGalleryWidthOrVisibility" classname="com.yujian.ai.ui.identify.RecognitionCameraCaptureContractTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

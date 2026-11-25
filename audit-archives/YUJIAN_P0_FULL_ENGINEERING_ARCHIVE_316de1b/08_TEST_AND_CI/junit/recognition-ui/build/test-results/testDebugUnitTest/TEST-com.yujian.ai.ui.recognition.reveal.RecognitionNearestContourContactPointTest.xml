@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.reveal.RecognitionNearestContourContactPointTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:14.560Z" hostname="dd8a05580e5c" time="0.003">
+  <properties/>
+  <testcase name="rejectsSmallNoiseLoopsWhileRetainingTheMainMaskBoundary" classname="com.yujian.ai.ui.recognition.reveal.RecognitionNearestContourContactPointTest" time="0.002"/>
+  <testcase name="excludesInternalHoleBoundariesFromContactCandidates" classname="com.yujian.ai.ui.recognition.reveal.RecognitionNearestContourContactPointTest" time="0.0"/>
+  <testcase name="orbOutsidePhotoStillChoosesARealContourContact" classname="com.yujian.ai.ui.recognition.reveal.RecognitionNearestContourContactPointTest" time="0.0"/>
+  <testcase name="choosesClosestMaskContourPoint" classname="com.yujian.ai.ui.recognition.reveal.RecognitionNearestContourContactPointTest" time="0.001"/>
+  <testcase name="mapsRoiContourIntoCanonicalPhotoBeforeMeasuringDistance" classname="com.yujian.ai.ui.recognition.reveal.RecognitionNearestContourContactPointTest" time="0.0"/>
+  <testcase name="invalidOrbCoordinateCannotCreateAContact" classname="com.yujian.ai.ui.recognition.reveal.RecognitionNearestContourContactPointTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

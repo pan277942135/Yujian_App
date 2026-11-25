@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:14.565Z" hostname="dd8a05580e5c" time="0.008">
+  <properties/>
+  <testcase name="resultInfoAndStableMilestonesRequireMeasuredDrawReceipts" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.001"/>
+  <testcase name="terminalReturnEnergyWaitsForCanvasReceiptAndIsConsumedOnlyOnce" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.001"/>
+  <testcase name="handoffSequenceAndMonotonicClockRejectDuplicateSkippedOrNonIncreasingEvents" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.0"/>
+  <testcase name="orbCoreDissolveReceiptRequiresTheCurrentAttemptFullStretchAndCompletedDraw" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.0"/>
+  <testcase name="opticalResidueIsNotFinalCompletionWithoutAllFiveResultEventsAndStableScene" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.0"/>
+  <testcase name="glyphReadinessRequiresClassifierPathAndCompletedCanvasDrawForSameAttempt" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.001"/>
+  <testcase name="fullRevealReturnProjectionConsumesAllThreeOriginalSegmentsAndKeepsIdentity" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.003"/>
+  <testcase name="measuredResultGeometryCanOpenBeforeTheHeroRasterReceipt" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.0"/>
+  <testcase name="malformedCompletedSetCannotSkipAnEarlierSubstage" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.0"/>
+  <testcase name="resultInfoEntranceStartsOnlyAfterSceneHandoffAndCompletesBeforeInfoArrival" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.0"/>
+  <testcase name="fiveResultMilestonesHaveStableContractIdsAndStrictOrder" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.001"/>
+  <testcase name="resultNavigationDoesNotDependOnStage10GeometryOrCanvasReceipts" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.001"/>
+  <testcase name="returnEventCanRetryAfterGeometryAndCanvasReadinessWithTheCurrentSequence" classname="com.yujian.ai.ui.recognition.reveal.RecognitionResultRuntimeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

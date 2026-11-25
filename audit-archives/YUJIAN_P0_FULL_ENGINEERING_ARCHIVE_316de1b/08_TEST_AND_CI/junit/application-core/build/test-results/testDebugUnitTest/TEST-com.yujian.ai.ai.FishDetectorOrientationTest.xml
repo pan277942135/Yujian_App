@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ai.FishDetectorOrientationTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:27.282Z" hostname="dd8a05580e5c" time="0.107">
+  <properties/>
+  <testcase name="allAttemptsNoFishSelectNoneAndPreserveNoFishAssessment" classname="com.yujian.ai.ai.FishDetectorOrientationTest" time="0.07"/>
+  <testcase name="retryIsAllowedOnlyForNoFishAssessment" classname="com.yujian.ai.ai.FishDetectorOrientationTest" time="0.016"/>
+  <testcase name="orientationWireNamesAndOrderMatchTheBoundedRuntimeContract" classname="com.yujian.ai.ai.FishDetectorOrientationTest" time="0.005"/>
+  <testcase name="originalNoFishRunsBothRotationsAndSelectsGoodOverEarlierWarning" classname="com.yujian.ai.ai.FishDetectorOrientationTest" time="0.003"/>
+  <testcase name="sameQualityClassSelectsHigherExistingRankScoreDeterministically" classname="com.yujian.ai.ai.FishDetectorOrientationTest" time="0.0"/>
+  <testcase name="ccw90DetectionMapsBackToOriginalBeforeQualityGateAndCrop" classname="com.yujian.ai.ai.FishDetectorOrientationTest" time="0.006"/>
+  <testcase name="cw90DetectionMapsBackToOriginalNormalizedCoordinates" classname="com.yujian.ai.ai.FishDetectorOrientationTest" time="0.001"/>
+  <testcase name="originalReadyKeepsOnlyOriginalAttempt" classname="com.yujian.ai.ai.FishDetectorOrientationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

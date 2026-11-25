@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.661Z" hostname="dd8a05580e5c" time="0.007">
+  <properties/>
+  <testcase name="displayOrientedBoxIsNeverTransformedTwice" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.003"/>
+  <testcase name="impossibleAspectAndMissingOrUntrustedBoxesUseFullSourceFallback" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.0"/>
+  <testcase name="exifOrientationsTwoThroughEightMapBoundingBoxCornersCorrectly" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.001"/>
+  <testcase name="yellowFishPixelCropConvertsToValidatedNormalizedHeroGeometry" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.0"/>
+  <testcase name="sameContainerRatioDoesNotDependOnPhotoOrientation" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.0"/>
+  <testcase name="exactBoundaryOverflowMovesToTheOppositeSideInBothAxes" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.001"/>
+  <testcase name="invalidAmbiguousAndUnreasonableDetectionsNeverBecomeAggressiveCrops" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.0"/>
+  <testcase name="rawExifCoordinatesAreMappedOnceBeforeCropPlanning" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.0"/>
+  <testcase name="safeCropKeepsTheWholeBoxInsideSourceAndPreservesRequestedRatio" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.0"/>
+  <testcase name="pixelCropConversionRejectsInvalidSourceAndOutOfRangeGeometry" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.0"/>
+  <testcase name="allFourImageEdgesRemainCropCandidatesAndUseOppositeSpace" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.001"/>
+  <testcase name="displaySafetyThresholdCanBeConfiguredWithoutTouchingInferenceGates" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.0"/>
+  <testcase name="safetyMarginRetriesInFrozenOrderAndUsesLargestFeasibleLevel" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.0"/>
+  <testcase name="qualityErrorCanDisableSubjectCropEvenWhenABoxExists" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.0"/>
+  <testcase name="labelledLandscapeAndPortraitFixturesKeepTheWholeFishAtOneCardRatio" classname="com.yujian.ai.ui.imagery.FishPhotoCropPlannerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

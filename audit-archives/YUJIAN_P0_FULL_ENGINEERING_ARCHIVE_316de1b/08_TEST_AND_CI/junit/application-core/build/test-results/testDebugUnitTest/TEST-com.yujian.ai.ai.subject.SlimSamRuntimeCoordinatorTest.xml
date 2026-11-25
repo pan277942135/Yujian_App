@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ai.subject.SlimSamRuntimeCoordinatorTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:27.968Z" hostname="dd8a05580e5c" time="0.076">
+  <properties/>
+  <testcase name="wrappedRuntimeFailureRetainsModelStageRootCauseAndActualTensorMetadata" classname="com.yujian.ai.ai.subject.SlimSamRuntimeCoordinatorTest" time="0.015"/>
+  <testcase name="embeddingLeaseRetainsValueUntilDecoderReleasesIt" classname="com.yujian.ai.ai.subject.SlimSamRuntimeCoordinatorTest" time="0.002"/>
+  <testcase name="cancellationDoesNotConsumeInitializationRetryBudget" classname="com.yujian.ai.ai.subject.SlimSamRuntimeCoordinatorTest" time="0.007"/>
+  <testcase name="cancelledOldPhotoCannotReplaceTheActivePhotosEmbedding" classname="com.yujian.ai.ai.subject.SlimSamRuntimeCoordinatorTest" time="0.001"/>
+  <testcase name="permanentlyFailedInitializationStopsAtConfiguredLimit" classname="com.yujian.ai.ai.subject.SlimSamRuntimeCoordinatorTest" time="0.001"/>
+  <testcase name="embeddingCacheIdentityUsesPhotoContentGeometryAndModelContracts" classname="com.yujian.ai.ai.subject.SlimSamRuntimeCoordinatorTest" time="0.0"/>
+  <testcase name="concurrentStartupAndRecognitionRequestsCreateSessionsOnlyOnce" classname="com.yujian.ai.ai.subject.SlimSamRuntimeCoordinatorTest" time="0.048"/>
+  <testcase name="failedInitializationRetriesOnlyWithinConfiguredLimit" classname="com.yujian.ai.ai.subject.SlimSamRuntimeCoordinatorTest" time="0.002"/>
+  <testcase name="replacingActivePhotoReleasesThePreviousEmbeddingReference" classname="com.yujian.ai.ai.subject.SlimSamRuntimeCoordinatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

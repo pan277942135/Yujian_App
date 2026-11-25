@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.waterlight.GateSnapshotTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:51:30.362Z" hostname="dd8a05580e5c" time="0.027">
+  <properties/>
+  <testcase name="firstBlockedGateNamesMissingOrbAnchorWithoutAdvancing" classname="com.yujian.ai.ui.waterlight.GateSnapshotTest" time="0.027"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

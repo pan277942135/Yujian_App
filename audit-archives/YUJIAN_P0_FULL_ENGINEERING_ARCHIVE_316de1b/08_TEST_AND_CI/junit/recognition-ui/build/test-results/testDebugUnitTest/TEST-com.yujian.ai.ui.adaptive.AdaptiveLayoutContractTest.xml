@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.adaptive.AdaptiveLayoutContractTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.297Z" hostname="dd8a05580e5c" time="0.098">
+  <properties/>
+  <testcase name="safeDrawingInsetsReduceGeometryForCutoutAndGestureNavigation" classname="com.yujian.ai.ui.adaptive.AdaptiveLayoutContractTest" time="0.042"/>
+  <testcase name="shortAndStandardHeightBoundariesAreExplicit" classname="com.yujian.ai.ui.adaptive.AdaptiveLayoutContractTest" time="0.0"/>
+  <testcase name="accessibilityFontScaleGrowsRequiredTextBlocksInsteadOfShrinkingTypography" classname="com.yujian.ai.ui.adaptive.AdaptiveLayoutContractTest" time="0.001"/>
+  <testcase name="frozenResponsiveViewportProfilesResolveBySafeWidthAndHeight" classname="com.yujian.ai.ui.adaptive.AdaptiveLayoutContractTest" time="0.05"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

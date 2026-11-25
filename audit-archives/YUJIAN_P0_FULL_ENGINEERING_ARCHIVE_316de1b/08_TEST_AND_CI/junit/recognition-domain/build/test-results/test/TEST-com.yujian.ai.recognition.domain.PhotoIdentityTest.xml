@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.recognition.domain.PhotoIdentityTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-24T12:35:38.069Z" hostname="dd8a05580e5c" time="0.045">
+  <properties/>
+  <testcase name="differentPixelsProduceDifferentCanonicalHashes" classname="com.yujian.ai.recognition.domain.PhotoIdentityTest" time="0.02"/>
+  <testcase name="serializationSpecificationIsFrozenAndIdentityFieldsAreValidated" classname="com.yujian.ai.recognition.domain.PhotoIdentityTest" time="0.015"/>
+  <testcase name="canonicalHashIsStableAcrossDifferentEncodedSourceIdentities" classname="com.yujian.ai.recognition.domain.PhotoIdentityTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

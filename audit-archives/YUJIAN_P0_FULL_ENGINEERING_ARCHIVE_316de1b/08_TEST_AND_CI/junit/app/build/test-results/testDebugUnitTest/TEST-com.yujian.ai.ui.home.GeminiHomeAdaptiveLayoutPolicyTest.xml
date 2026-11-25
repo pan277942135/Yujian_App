@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:03:16.248Z" hostname="dd8a05580e5c" time="0.023">
+  <properties/>
+  <testcase name="cardShrinksToReadableMinimumInsteadOfRestoringOversizedTarget" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.001"/>
+  <testcase name="adaptiveV2FixesEdgePeekWhenTheHeightConstrainedHeroBecomesNarrow" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.001"/>
+  <testcase name="mistAvatarUsesFrozenWidthOnlySizingAndDoesNotShrinkOnLargerScreens" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.0"/>
+  <testcase name="neighborCardsStaySmallerEvenWhenHeroShrinksForHeight" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.007"/>
+  <testcase name="positiveSurplusIsDividedEquallyBetweenInterBandGaps" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.0"/>
+  <testcase name="exactM01ExceptionUsesFrozenCompactSpacingAndTouchSafeCameraValues" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.001"/>
+  <testcase name="cameraArtworkScalesWithCanvasWidthAndHeightWithoutGrowingUnbounded" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.0"/>
+  <testcase name="screenBandRemainsDiagnosticWhileAdaptiveSpacingUsesContinuousInputs" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.0"/>
+  <testcase name="cappedHeroKeepsAnEdgePeekWhenFeasibleAndAnInTrackFallbackOtherwise" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.001"/>
+  <testcase name="adaptiveV2WrapsAuxiliaryTextForNarrowCardsWithoutChangingV3BaselinePolicy" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.0"/>
+  <testcase name="minimumReadableCardHeightAccountsForSystemFontScaleAndBoundedMetadataLines" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.0"/>
+  <testcase name="adaptiveV2UsesIndependentV22VisibleSpacingTargets" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.001"/>
+  <testcase name="compactViewportDoesNotOverReserveTwoMetadataLinesAtNormalFontScale" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.0"/>
+  <testcase name="contractCurvesRemainContinuousAtRequiredSafeHeightBoundaries" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.008"/>
+  <testcase name="responsiveTypographyGrowsWithLargerAndTallerViewports" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.0"/>
+  <testcase name="adaptiveV2UsesV3LikeCardWidthCapAndFrozenAspectRatio" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.0"/>
+  <testcase name="adaptiveV2TopAlignsItsContentFirstGroupAndScrollsOnlyWhenNeeded" classname="com.yujian.ai.ui.home.GeminiHomeAdaptiveLayoutPolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

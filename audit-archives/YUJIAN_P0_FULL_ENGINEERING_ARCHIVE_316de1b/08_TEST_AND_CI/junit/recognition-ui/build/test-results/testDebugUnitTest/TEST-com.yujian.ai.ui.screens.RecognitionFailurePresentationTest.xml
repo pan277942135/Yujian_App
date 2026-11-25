@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.screens.RecognitionFailurePresentationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:14.648Z" hostname="dd8a05580e5c" time="0.017">
+  <properties/>
+  <testcase name="internalRuntimeMessageIsNeverRendered" classname="com.yujian.ai.ui.screens.RecognitionFailurePresentationTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.designsystem.YuJianDesignTokensTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.398Z" hostname="dd8a05580e5c" time="0.098">
+  <properties/>
+  <testcase name="coreColorTokensExistAndKeepSemanticContrast" classname="com.yujian.ai.ui.designsystem.YuJianDesignTokensTest" time="0.019"/>
+  <testcase name="captureMotionAndHapticTokensMatchFrozenDesign" classname="com.yujian.ai.ui.designsystem.YuJianDesignTokensTest" time="0.027"/>
+  <testcase name="typographySpacingAndRadiusTokensExist" classname="com.yujian.ai.ui.designsystem.YuJianDesignTokensTest" time="0.052"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

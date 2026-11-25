@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:03:16.880Z" hostname="dd8a05580e5c" time="0.007">
+  <properties/>
+  <testcase name="sentinelLocationIsMissingAndTimestampIsHumanReadable" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.002"/>
+  <testcase name="fields_render_measurement_combinations_without_placeholders" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.001"/>
+  <testcase name="first_bside_reveal_requires_ready_asset_and_unconsumed_flag" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.0"/>
+  <testcase name="loading_is_selected_for_requested_catch_id" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.001"/>
+  <testcase name="cached_record_wins_over_refresh_error" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.001"/>
+  <testcase name="matching_record_is_success" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.0"/>
+  <testcase name="hero_metadata_keeps_long_location_separate_from_measurements" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.0"/>
+  <testcase name="saved_story_is_preserved_and_sentinel_values_are_hidden" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.0"/>
+  <testcase name="nonFinite_measurements_are_omitted" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.0"/>
+  <testcase name="invalidBothTimestampsNeverBecome1970" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.0"/>
+  <testcase name="hero_metadata_omits_each_missing_optional_field" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.0"/>
+  <testcase name="navigation_contract_targets_catch_id_route" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.0"/>
+  <testcase name="missing_record_is_empty_and_request_error_is_error" classname="com.yujian.ai.ui.recorddetail.FishRecordDetailPresentationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:33.343Z" hostname="dd8a05580e5c" time="0.018">
+  <properties/>
+  <testcase name="mismatchedIdentityAndStaleFrameResultsCannotTakeOrRetainOwnership" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.011"/>
+  <testcase name="fiveResidentIdentitiesRemainStableAndUnique" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.001"/>
+  <testcase name="eachRequiredPassFailureRejectsFirstFrameAndRetainsFallback" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.001"/>
+  <testcase name="hostFrameReceiptSequenceIsMonotonicAndIndependentOfSceneClock" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.0"/>
+  <testcase name="productionPresentationGateAcceptsOnlyCompleteFrameThenRealSwap" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.001"/>
+  <testcase name="stage3aUnimplementedFrozenInputsRemainNotReadyAndKeepComposeFallback" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.001"/>
+  <testcase name="eglSwapFailureOrMissingPresentationRejectsFrame" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.0"/>
+  <testcase name="completedCoreAloneCannotReleaseProductionFallback" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.0"/>
+  <testcase name="diagnosticPayloadIncludesEveryRequiredPassAndNoRawPhotoIdentity" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.001"/>
+  <testcase name="completeRenderAndRealPresentAcceptsGlOwner" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.001"/>
+  <testcase name="productionPresentationGateNeverSwapsAnUnreadyStage3aFrame" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.0"/>
+  <testcase name="contextLossAndSurfaceFailureKeepFallbackAndPreserveCause" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.0"/>
+  <testcase name="rejectedFirstFrameCanRetryAndFallbackNeverSharesOwnershipWithGl" classname="com.yujian.ai.ui.waterlight.renderer.OrbCrystalRenderResultTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

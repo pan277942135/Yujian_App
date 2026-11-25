@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.557Z" hostname="dd8a05580e5c" time="0.053">
+  <properties/>
+  <testcase name="countsLitSpeciesAndProgressFromRuntimeData" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.003"/>
+  <testcase name="carouselSelectionKeepsKnownSpeciesAndFallsBackToFirst" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.0"/>
+  <testcase name="catchStatesUseOnlyMatchingSavedRecords" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.02"/>
+  <testcase name="catalogCoverImageIsPreferredAndFallsBackGracefully" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.003"/>
+  <testcase name="publishedAssetsMapInFixedRoleOrderWithResolverAndVersionedCacheIdentity" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.014"/>
+  <testcase name="missingKnowledgeKeepsEveryPositionWithUnavailableState" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.001"/>
+  <testcase name="homeUsesOnlyActiveVersionedCoverHeroAndLITAndUNLITShareItsImage" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.0"/>
+  <testcase name="datasetShapesCoverEmptyThroughCarousel" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.0"/>
+  <testcase name="knowledgeCarouselAlwaysHasFiveTruthfulSlotsAndIgnoresGameFields" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.002"/>
+  <testcase name="draftArchivedMissingVersionAndBadUrlCoverHeroesStayUnavailable" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.001"/>
+  <testcase name="catalogCoverImageTakesPrecedenceOverVersionedCoverHero" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.001"/>
+  <testcase name="distinctRolesCannotReuseOneImageAndCacheChangesWhenVersionChanges" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.0"/>
+  <testcase name="serializedBackendPayloadIsNeverProjectedAsKnowledgeCardCopy" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.001"/>
+  <testcase name="savedRecordAssociationUsesStableSpeciesIdAndRecentFirst" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.001"/>
+  <testcase name="longStructuredKnowledgeFactIsPreservedForNaturalReflow" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.0"/>
+  <testcase name="legacyCardsAreUsedOnlyWhenTheVersionedContractIsAbsentAndAreTraceable" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.002"/>
+  <testcase name="invalidOrUnpublishedVersionedRolesNeverFallBackToLegacyCards" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.001"/>
+  <testcase name="legacyImageFieldIsOnlyAFallbackBehindCoverImageAndCoverHero" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.0"/>
+  <testcase name="recordCountIsQuietAndOmitsZero" classname="com.yujian.ai.ui.fishguide.FishGuidePresentationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceIndependentValidatorTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:13.056Z" hostname="dd8a05580e5c" time="0.042">
+  <properties/>
+  <testcase name="rejectsEventSequenceRegressionAfterReadingThePackagedZip" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceIndependentValidatorTest" time="0.039"/>
+  <testcase name="rejectsAnAvailableFileDeclaredInTheArchiveButMissingFromTheZip" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceIndependentValidatorTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

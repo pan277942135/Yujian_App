@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.waterlight.OrbGrassFrozenAssetsV11Test" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:33.016Z" hostname="dd8a05580e5c" time="0.249">
+  <properties/>
+  <testcase name="sourceAndAndroidRuntimeCoreArePinnedAndShaderUsesASafeTwoLayerCoreComposite" classname="com.yujian.ai.ui.waterlight.OrbGrassFrozenAssetsV11Test" time="0.046"/>
+  <testcase name="theRuntimeMappingKeepsFullSourceUvAtCompactNormalAndCameraSizes" classname="com.yujian.ai.ui.waterlight.OrbGrassFrozenAssetsV11Test" time="0.0"/>
+  <testcase name="masksAreComplete1254GrayscaleSourceDerivedFiles" classname="com.yujian.ai.ui.waterlight.OrbGrassFrozenAssetsV11Test" time="0.184"/>
+  <testcase name="debugAndReleaseResolveTheSameCandidateRenderer" classname="com.yujian.ai.ui.waterlight.OrbGrassFrozenAssetsV11Test" time="0.002"/>
+  <testcase name="allSixMasksAndTheSourceDerivedPathFilesMatchTheFrozenHashes" classname="com.yujian.ai.ui.waterlight.OrbGrassFrozenAssetsV11Test" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

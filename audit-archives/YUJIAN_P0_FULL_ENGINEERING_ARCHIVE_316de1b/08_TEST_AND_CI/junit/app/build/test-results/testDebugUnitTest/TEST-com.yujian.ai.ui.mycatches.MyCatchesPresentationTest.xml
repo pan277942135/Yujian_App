@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:03:16.352Z" hostname="dd8a05580e5c" time="0.516">
+  <properties/>
+  <testcase name="specialRecordFilterUsesAnySelectedMarkAcrossTheFullHistory" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.05"/>
+  <testcase name="rowGrowthMarkUsesFrozenPriorityAndCombinesSizeRecords" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.0"/>
+  <testcase name="catchListPresentationKeepsStoredMeasurementsAndClearMissingState" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.006"/>
+  <testcase name="archiveRecordDaysCountDistinctValidCatchDatesOnly" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.005"/>
+  <testcase name="countMilestonesUseTenFiftyOneHundredFiveHundredAndOneThousandThresholds" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.433"/>
+  <testcase name="filterUsesOrWithinDimensionsAndAndAcrossDimensions" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.009"/>
+  <testcase name="emptyStatePriorityKeepsSearchAheadOfFilterAndLoadingAheadOfBoth" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.002"/>
+  <testcase name="recentSearchesAreCommittedOnceAndCappedAtSix" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.0"/>
+  <testcase name="searchMatchesAndKeywordsDateAndGrowthMarks" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.007"/>
+  <testcase name="daySummaryCountsSpeciesAndOnlyShowsASingleLocation" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.001"/>
+  <testcase name="growthMarksFollowChronologyAndCompareSizesWithinSpecies" classname="com.yujian.ai.ui.mycatches.MyCatchesPresentationTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

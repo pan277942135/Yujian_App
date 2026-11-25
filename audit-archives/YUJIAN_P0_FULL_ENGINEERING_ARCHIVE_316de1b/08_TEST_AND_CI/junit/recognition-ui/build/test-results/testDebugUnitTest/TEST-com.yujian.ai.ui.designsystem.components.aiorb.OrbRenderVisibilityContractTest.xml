@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderVisibilityContractTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.500Z" hostname="dd8a05580e5c" time="0.045">
+  <properties/>
+  <testcase name="failedShaderInstanceIsLatchedAndNewAttemptMayCreateANewInstance" classname="com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderVisibilityContractTest" time="0.036"/>
+  <testcase name="debugIsolationSelectionCannotOverrideHostRejectionOrSelectSuppressed" classname="com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderVisibilityContractTest" time="0.006"/>
+  <testcase name="releaseShaderIsAllowedButRawCoreDoesNotDependOnShaderStatus" classname="com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderVisibilityContractTest" time="0.001"/>
+  <testcase name="stage01KeepsShaderOffAndWakeUsesNormalizedEightyMillisecondBoundary" classname="com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderVisibilityContractTest" time="0.0"/>
+  <testcase name="completionCannotHideOrbBeforeGoldPeakAndClampsAfterward" classname="com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderVisibilityContractTest" time="0.0"/>
+  <testcase name="formalAndDiagnosticWakeDurationsShareOneProgressBoundary" classname="com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderVisibilityContractTest" time="0.0"/>
+  <testcase name="overlayRequiresNormalModeEligibleStageAvailableEffectReadyStatusAndPositiveAlpha" classname="com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderVisibilityContractTest" time="0.0"/>
+  <testcase name="completionZeroKeepsParentCompletionAlphaAtOne" classname="com.yujian.ai.ui.designsystem.components.aiorb.OrbRenderVisibilityContractTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

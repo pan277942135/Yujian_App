@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.catches.CatchStoryContractTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:28.070Z" hostname="dd8a05580e5c" time="0.003">
+  <properties/>
+  <testcase name="blankAndJsonSentinelStoryValuesBecomeMissing" classname="com.yujian.ai.catches.CatchStoryContractTest" time="0.001"/>
+  <testcase name="savedStoryFromCatchResponseRemainsUserVisibleText" classname="com.yujian.ai.catches.CatchStoryContractTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

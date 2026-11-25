@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.home.EmptyHomeMotionTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:03:16.079Z" hostname="dd8a05580e5c" time="0.026">
+  <properties/>
+  <testcase name="sunParticlesAreDeterministic" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.005"/>
+  <testcase name="reducedMotionFreezesSceneAndDisablesIdleEffects" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.0"/>
+  <testcase name="v22FishingCompositionMatchesCanonicalBobberContactAndRippleAnchors" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.001"/>
+  <testcase name="cameraBreathAndSweepRespectFrozenBounds" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.004"/>
+  <testcase name="cameraBreathHasNegligibleCenterDrift" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.0"/>
+  <testcase name="canonicalAndTallTransformsKeepTheFishingProtectedRegionVisible" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.001"/>
+  <testcase name="bobberMotionAndRippleShareTheSameEventStartAndIdentity" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.0"/>
+  <testcase name="environmentalLoopsUseDistinctEntryPhases" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.004"/>
+  <testcase name="fullThirtySixSecondScheduleRepeatsFiveDeterministicEvents" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.003"/>
+  <testcase name="cloudDriftStaysWithinMotionSafeRange" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.0"/>
+  <testcase name="fishingLineUsesCanonicalV22MeasuredGeometry" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.0"/>
+  <testcase name="bobberMovesOnlyDuringDeterministicNibbleEvents" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.0"/>
+  <testcase name="userTapDipIsShortAndDoesNotBecomeAnIdleLoop" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.0"/>
+  <testcase name="periodicBobberRippleBurstsAreThreePointSixSecondsAndDeterministic" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.001"/>
+  <testcase name="automaticHapticOnlyFiresOnANewVisibleRunningMotionEvent" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.0"/>
+  <testcase name="bobberArtworkSplitsAtTheFixedWaterContactAcrossNibbleMotion" classname="com.yujian.ai.ui.home.EmptyHomeMotionTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

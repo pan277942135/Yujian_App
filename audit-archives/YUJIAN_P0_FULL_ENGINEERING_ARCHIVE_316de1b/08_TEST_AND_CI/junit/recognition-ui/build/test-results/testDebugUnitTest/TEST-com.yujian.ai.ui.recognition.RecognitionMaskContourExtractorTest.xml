@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.RecognitionMaskContourExtractorTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.842Z" hostname="dd8a05580e5c" time="0.023">
+  <properties/>
+  <testcase name="marchingSquaresEmitsClosedContourWithSubpixelThresholdCrossings" classname="com.yujian.ai.ui.recognition.RecognitionMaskContourExtractorTest" time="0.007"/>
+  <testcase name="defaultThresholdMatchesSlimSamHalfConfidenceAlphaEncoding" classname="com.yujian.ai.ui.recognition.RecognitionMaskContourExtractorTest" time="0.002"/>
+  <testcase name="narrowTailAndFinConnectionsStayInTheLargestRealMaskContour" classname="com.yujian.ai.ui.recognition.RecognitionMaskContourExtractorTest" time="0.005"/>
+  <testcase name="keepsHoleContoursAndRejectsIsolatedTransparentMaskNoise" classname="com.yujian.ai.ui.recognition.RecognitionMaskContourExtractorTest" time="0.002"/>
+  <testcase name="closedSmoothingKeepsARealMaskFinTipTailAndFiltersDetachedNoise" classname="com.yujian.ai.ui.recognition.RecognitionMaskContourExtractorTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.RecognitionFishFocusTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:12.784Z" hostname="dd8a05580e5c" time="0.007">
+  <properties/>
+  <testcase name="maskAcceptanceClosesWhenAdaptiveTimelineLeavesTheContourStage" classname="com.yujian.ai.ui.recognition.RecognitionFishFocusTest" time="0.002"/>
+  <testcase name="contourMaterialCandidateMatchesTheAuditedWebLayerContract" classname="com.yujian.ai.ui.recognition.RecognitionFishFocusTest" time="0.001"/>
+  <testcase name="fishGoldPeakUsesCore300msSoft500msAndHalo200ms" classname="com.yujian.ai.ui.recognition.RecognitionFishFocusTest" time="0.001"/>
+  <testcase name="noMaskMayBeRecordedAsLowCapabilityButDoesNotPromoteToAContour" classname="com.yujian.ai.ui.recognition.RecognitionFishFocusTest" time="0.001"/>
+  <testcase name="trustedMaskContourRevealsAcrossTheThreeSemanticContourStages" classname="com.yujian.ai.ui.recognition.RecognitionFishFocusTest" time="0.0"/>
+  <testcase name="contourCacheIdentityInvalidatesOnEveryRecognitionBoundary" classname="com.yujian.ai.ui.recognition.RecognitionFishFocusTest" time="0.001"/>
+  <testcase name="goldStrengthFollowsSemanticContourStagesAndHoldsThroughResultStages" classname="com.yujian.ai.ui.recognition.RecognitionFishFocusTest" time="0.001"/>
+  <testcase name="untrustedMaskNeverEnablesAnyFishShapeAndTrustedMaskIsPhaseGated" classname="com.yujian.ai.ui.recognition.RecognitionFishFocusTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

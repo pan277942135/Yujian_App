@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.screens.ProfileEditingContractsTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:03:16.917Z" hostname="dd8a05580e5c" time="0.019">
+  <properties/>
+  <testcase name="saveRequiresAValidEffectiveDraftOrPendingAvatar" classname="com.yujian.ai.ui.screens.ProfileEditingContractsTest" time="0.001"/>
+  <testcase name="cropTransformClampsScaleAndKeepsImageCoveringViewport" classname="com.yujian.ai.ui.screens.ProfileEditingContractsTest" time="0.018"/>
+  <testcase name="nicknameValidationUsesTrimmedUnicodeCodePoints" classname="com.yujian.ai.ui.screens.ProfileEditingContractsTest" time="0.0"/>
+  <testcase name="portraitAndSquareImagesProduceBoundedSquareCrop" classname="com.yujian.ai.ui.screens.ProfileEditingContractsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

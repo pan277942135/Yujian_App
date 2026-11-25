@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.waterlight.OrbFilamentRendererSamplingTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-24T13:59:32.809Z" hostname="dd8a05580e5c" time="0.094">
+  <properties/>
+  <testcase name="glassTransmissionKeepsInteriorSamplesWhenTheChunkMidpointIsOutsideTheMask" classname="com.yujian.ai.ui.waterlight.OrbFilamentRendererSamplingTest" time="0.084"/>
+  <testcase name="stageLocalReleaseMovesOutwardThenReturnsWithoutChangingTheFrozenPath" classname="com.yujian.ai.ui.waterlight.OrbFilamentRendererSamplingTest" time="0.003"/>
+  <testcase name="releaseTrailAtStartAndReturnTrailAtEndKeepOnlyCurrentFrameSamples" classname="com.yujian.ai.ui.waterlight.OrbFilamentRendererSamplingTest" time="0.001"/>
+  <testcase name="bothSamplingTiersPreserveOnlyCurrentEndpointRuns" classname="com.yujian.ai.ui.waterlight.OrbFilamentRendererSamplingTest" time="0.005"/>
+  <testcase name="reducedAndFullSamplingClearEveryIndexUsedByTheCurrentFrame" classname="com.yujian.ai.ui.waterlight.OrbFilamentRendererSamplingTest" time="0.001"/>
+  <testcase name="clippedSamplesSplitPathsInsteadOfConnectingAcrossTheGap" classname="com.yujian.ai.ui.waterlight.OrbFilamentRendererSamplingTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

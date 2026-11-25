@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-24T14:01:13.102Z" hostname="dd8a05580e5c" time="1.4">
+  <properties/>
+  <testcase name="documentProviderWriteFailurePropagates" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.003"/>
+  <testcase name="logSnapshotEnforcesByteCapAndMarksIncompleteReason" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.043"/>
+  <testcase name="concurrentWritesDoNotCorruptImmutableSnapshotPackagingOrHashes" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.07"/>
+  <testcase name="archiveRejectsAChangedFileHash" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.021"/>
+  <testcase name="originalMaskPngBytesAndShaSurviveArchivePackagingExactly" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.032"/>
+  <testcase name="archiveContainsExactlyTheHashedFilesAndMatchingManifest" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.008"/>
+  <testcase name="archiveRejectsAChangedManifest" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.004"/>
+  <testcase name="frameBudgetDropsMotionSamplesBeforeKeyCheckpoints" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.005"/>
+  <testcase name="boundedCommandCaptureDegradesGracefullyOnTimeoutTruncationAndMissingBinary" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.441"/>
+  <testcase name="blockedProcessingStagesExportVerifiedZipWithoutInventingResultEvidence" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.009"/>
+  <testcase name="archiveCopyPreservesBytesForDocumentProvider" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.004"/>
+  <testcase name="archiveIndexesResolveToFullResolutionWebpCheckpointsWithinStandardBudget" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.751"/>
+  <testcase name="unavailableEvidenceIsDeclaredInsteadOfSynthesizedAsEmptyFiles" classname="com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporterTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
