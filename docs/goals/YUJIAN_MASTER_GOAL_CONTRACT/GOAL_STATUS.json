@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "goalId": "YUJIAN_AI_FULL_RECOGNITION_AND_VISUAL_FIDELITY",
+  "createdAt": "2026-11-25",
+  "lifecycle": "NOT_ACCEPTED",
+  "registryEntryPoint": "main:CONTROL_PLANE_REGISTRY.yaml",
+  "masterDocumentIsCanonicalControlPlane": false,
+  "repository": "pan277942135/Yujian_App",
+  "pr": 346,
+  "activeBranch": "fix/26kf-path-boundary-and-fish-gate-v1",
+  "baselineReportHead": "cafc289c27d7b7fc80d8bbc76183e799f5d28ae9",
+  "failedDeviceEvidenceBuild": "57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5",
+  "device": "HUAWEI CMS-AL20; Android 16 API36",
+  "evidence": [
+    {
+      "case": "HIGH",
+      "id": "6f3a69a93779",
+      "zipSha256": "6c0c296c7d2ed35eaa6e42cc89d3dd5cd2426540c551a359590956d374c51f94",
+      "classifierConfidence": 0.8288033,
+      "slimSam": "READY",
+      "stagesCompleted": 8,
+      "stagesTotal": 13,
+      "lastStage": "FISH_GOLD_PEAK",
+      "status": "BLOCKED_AT_57CC; NEW_HEAD_UNVERIFIED"
+    },
+    {
+      "case": "MEDIUM_LOW",
+      "id": "9bc218e51c16",
+      "zipSha256": "0e06c3eac636fa0e4b1f1e54167ba925ecd3391338bc9ed0d05230f9cb8861a5",
+      "classifierConfidence": 0.44935718,
+      "slimSam": "READY",
+      "stagesCompleted": 4,
+      "stagesTotal": 13,
+      "lastStage": "PATH_TO_FISH",
+      "status": "BLOCKED_AT_57CC; NEW_HEAD_UNVERIFIED"
+    }
+  ],
+  "frozen": {
+    "stageCount": 13,
+    "activeAnimationBudgetMs": 6000,
+    "modelAttemptDeadlineMs": 60000,
+    "nonModelAttemptBlockedWaitBudgetMs": 10000,
+    "kfIds": "KF00-KF25",
+    "kfStatusRows": 26,
+    "substageIds": [
+      "NAME_STABLE",
+      "PHOTO_SETTLE",
+      "RESULT_SCENE_HANDOFF",
+      "RESULT_INFO_ARRIVAL",
+      "RESULT_SCENE_STABLE"
+    ],
+    "residentIds": [
+      "G01",
+      "G02",
+      "A01",
+      "A02",
+      "C01"
+    ]
+  },
+  "sourceMigration": {
+    "sixContractsLocatedOnPrBranch": true,
+    "masterImageSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+    "allRawAssetsInGithub": false,
+    "rawDeviceEvidenceInGithub": false,
+    "visualReferenceGapsRemain": true
+  },
+  "acceptance": {
+    "model": "PARTIAL",
+    "fullReveal": "FAIL_AT_57CC; PENDING_NEW_DEVICE",
+    "staticResult": "FAIL_AT_57CC; PENDING_NEW_DEVICE",
+    "stage": "FAIL_AT_57CC; PENDING_NEW_DEVICE",
+    "resultHandoff": "FAIL_AT_57CC; PENDING_NEW_DEVICE",
+    "pixelCopy": "INCOMPLETE",
+    "visualFidelity": "PENDING",
+    "nativeMemory": "PENDING",
+    "exactHeadCI": "HISTORIC_57CC_PASS; LATEST_UNVERIFIED",
+    "realDevice": "NOT_ACCEPTED"
+  },
+  "issueCount": 22,
+  "issueStatePolicy": "append-only history; verify closeout at exact source SHA"
+}
