@@ -90,6 +90,7 @@ data class RecognitionProcessingPhotoSnapshot(
     val contactPointMaskVersion: Long = -1L,
     val contactPointGeometryVersion: Long = 0L,
     val photoIdentity: PhotoIdentity? = null,
+    val geometryVersion: Long = 0L,
 )
 
 data class RecognitionRevealHandoff(

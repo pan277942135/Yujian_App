@@ -127,6 +127,9 @@ class SlimSamRuntimeCoordinatorTest {
         assertFalse(samePhoto == decodedAgain.copy(preprocessVersion = "rgb1024-pad-v2"))
         assertFalse(samePhoto == decodedAgain.copy(inputSchemaHash = "f".repeat(64)))
         assertFalse(samePhoto == decodedAgain.copy(inputShape = listOf(1, 3, 512, 512)))
+        assertFalse(samePhoto == decodedAgain.copy(attemptId = "another-attempt"))
+        assertFalse(samePhoto == decodedAgain.copy(recognitionSessionId = "another-session"))
+        assertFalse(samePhoto == decodedAgain.copy(photoId = "another-photo-id"))
     }
 
     @Test
@@ -163,7 +166,7 @@ class SlimSamRuntimeCoordinatorTest {
         val newPhoto = key("photo-new")
         cache.activate(oldPhoto)
         assertTrue(cache.putIfActive(oldPhoto, "old embedding"))
-        val lease = cache.lease(requireNotNull(cache.get(oldPhoto)))
+        val lease = cache.lease(oldPhoto, requireNotNull(cache.get(oldPhoto)))
 
         cache.activate(newPhoto)
 

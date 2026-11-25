@@ -15,6 +15,9 @@ import android.util.Log
 import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.RecognitionModelIdentity
+import com.yujian.ai.ai.RecognitionModelTensorReceipt
+import com.yujian.ai.ai.RecognitionRuntimeModelIdentity
+import com.yujian.ai.ai.RecognitionTensorContentHash
 import com.yujian.ai.ai.RecognitionAttemptDeadline
 import com.yujian.ai.ai.RecognitionAttemptFailureCode
 import com.yujian.ai.ai.RecognitionAttemptNativeTimeoutException
@@ -32,6 +35,7 @@ import java.nio.LongBuffer
 import java.security.MessageDigest
 import java.util.ArrayDeque
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.exp
 import kotlin.math.max
 import kotlin.math.min
@@ -76,6 +80,9 @@ class SlimSamSegmenter(
     private var verifiedDecoderModelBytes: ByteArray? = null
     private var visionAssetVerified = false
     private var decoderAssetVerified = false
+    private val visionModelSessionId = UUID.randomUUID().toString()
+    private val decoderModelSessionId = UUID.randomUUID().toString()
+    private val inferenceSequence = AtomicLong(0L)
 
     private data class CachedVisionEmbedding(
         val cacheKey: SlimSamEmbeddingCacheKey,
@@ -328,7 +335,7 @@ class SlimSamSegmenter(
                 val bboxEmbeddingWaitStartNs = SystemClock.elapsedRealtimeNanos()
                 recordTiming(identity, "BBOX_WAIT", "BBOX_EMBEDDING_WAIT_START", bboxEmbeddingWaitStartNs, bboxEmbeddingWaitStartNs, "WAITING")
                 val embedding = getOrComputeImageEmbedding(source, photoSha256, identity)
-                embeddingLease = embeddingCache.lease(embedding)
+                embeddingLease = embeddingCache.lease(embedding.cacheKey, embedding)
                 val bboxEmbeddingReadyNs = SystemClock.elapsedRealtimeNanos()
                 recordTiming(identity, "BBOX_WAIT", "BBOX_EMBEDDING_WAIT_END", bboxEmbeddingWaitStartNs, bboxEmbeddingReadyNs, "EMBEDDING_READY")
                 Log.i(TAG, "SLIMSAM_ENCODER_END duration_ms=${SystemClock.uptimeMillis() - encoderStarted}")
@@ -349,7 +356,7 @@ class SlimSamSegmenter(
                 val decoderStarted = SystemClock.uptimeMillis()
                 Log.i(TAG, "SLIMSAM_DECODER_START uptime_ms=$decoderStarted")
                 recordTiming(identity, "MASK_DECODER", "MASK_DECODER_START", decoderStartedNs, decoderStartedNs, "STARTED")
-                val (bestMask256, iouScore) = runMaskDecoder(embedding, points, identity?.attemptDeadline)
+                val (bestMask256, iouScore) = runMaskDecoder(embedding, points, identity)
                 val decoderEndedNs = SystemClock.elapsedRealtimeNanos()
                 recordTiming(identity, "MASK_DECODER", "MASK_DECODER_END", decoderStartedNs, decoderEndedNs, "PASS")
                 Log.i(TAG, "SLIMSAM_DECODER_END duration_ms=${(decoderEndedNs - decoderStartedNs) / 1_000_000} iou=$iouScore")
@@ -518,6 +525,9 @@ class SlimSamSegmenter(
             ) { "Embedding identity does not match canonical model-input pixels" }
         }
         val cacheKey = SlimSamEmbeddingCacheKey.create(
+            recognitionSessionId = identity?.sessionId ?: "UNSCOPED_PREWARM",
+            attemptId = identity?.attemptId ?: "UNSCOPED_PREWARM",
+            photoId = identity?.imageId ?: "UNSCOPED_PREWARM",
             canonicalPixelSha256 = photoSha256,
             width = source.width,
             height = source.height,
@@ -627,13 +637,72 @@ class SlimSamSegmenter(
             .asFloatBuffer()
 
         val encoderStartedNs = SystemClock.elapsedRealtimeNanos()
+        val encoderStartedMs = SystemClock.uptimeMillis()
+        val encoderInferenceId = "${identity?.attemptId ?: "unbound"}:SLIMSAM_ENCODER:${inferenceSequence.incrementAndGet()}"
         recordTiming(identity, "VISION_ENCODER", "VISION_ENCODER_START", encoderStartedNs, encoderStartedNs, "STARTED")
+        val encoderModelIdentity = identity?.let {
+            runtimeModelIdentity(
+                modelId = "SLIMSAM_VISION_ENCODER",
+                modelVersion = "VISION_ENCODER_V1",
+                expectedSha256 = VISION_ENCODER_SHA256,
+                actualSha256 = requireNotNull(visionModelSha256),
+                inputSchemaHash = schemaHash(session.inputInfo),
+                outputSchemaHash = schemaHash(session.outputInfo),
+                preprocessVersion = PREPROCESSING_VERSION,
+                sessionId = visionModelSessionId,
+            )
+        }
         OnnxTensor.createTensor(requireNotNull(environment), pixelBuffer, shape).use { inputTensor ->
+            require(inputTensor.info.type.name == "FLOAT" && inputTensor.info.shape.contentEquals(shape)) {
+                "SLIMSAM_VISION_INPUT_SCHEMA_MISMATCH"
+            }
+            if (identity != null) {
+                recordTensorReceipt(
+                    direction = "INPUT",
+                    identity = identity,
+                    inferenceId = encoderInferenceId,
+                    model = requireNotNull(encoderModelIdentity),
+                    tensorName = "pixel_values",
+                    dataType = inputTensor.info.type.name,
+                    shape = inputTensor.info.shape.toList(),
+                    byteSize = inputTensor.floatBuffer.remaining().toLong() * Float.SIZE_BYTES,
+                    contentHash = RecognitionTensorContentHash.sha256(inputTensor.floatBuffer),
+                    startUptimeMs = encoderStartedMs,
+                    endUptimeMs = SystemClock.uptimeMillis(),
+                )
+            }
             RecognitionOrtNativeRun.run(identity?.attemptDeadline) { runOptions ->
                 session.run(mapOf("pixel_values" to inputTensor), runOptions)
             }.use { result ->
                 val embTensor = result["image_embeddings"].get() as OnnxTensor
                 val posTensor = result["image_positional_embeddings"].get() as OnnxTensor
+
+                require(embTensor.info.type.name == "FLOAT" && embTensor.info.shape.contentEquals(longArrayOf(1, 256, 64, 64))) {
+                    "SLIMSAM_VISION_EMBEDDINGS_OUTPUT_SCHEMA_MISMATCH"
+                }
+                require(posTensor.info.type.name == "FLOAT" && posTensor.info.shape.contentEquals(longArrayOf(1, 256, 64, 64))) {
+                    "SLIMSAM_VISION_POSITIONAL_OUTPUT_SCHEMA_MISMATCH"
+                }
+                require(isFiniteFloatBuffer(embTensor.floatBuffer) && isFiniteFloatBuffer(posTensor.floatBuffer)) {
+                    "SLIMSAM_VISION_NON_FINITE_OUTPUT"
+                }
+                if (identity != null) {
+                    listOf("image_embeddings" to embTensor, "image_positional_embeddings" to posTensor).forEach { (name, tensor) ->
+                        recordTensorReceipt(
+                            direction = "OUTPUT",
+                            identity = identity,
+                            inferenceId = encoderInferenceId,
+                            model = requireNotNull(encoderModelIdentity),
+                            tensorName = name,
+                            dataType = tensor.info.type.name,
+                            shape = tensor.info.shape.toList(),
+                            byteSize = tensor.floatBuffer.remaining().toLong() * Float.SIZE_BYTES,
+                            contentHash = RecognitionTensorContentHash.sha256(tensor.floatBuffer),
+                            startUptimeMs = encoderStartedMs,
+                            endUptimeMs = SystemClock.uptimeMillis(),
+                        )
+                    }
+                }
 
                 embTensor.floatBuffer.rewind()
                 embBuffer.put(embTensor.floatBuffer)
@@ -705,7 +774,7 @@ class SlimSamSegmenter(
     private fun runMaskDecoder(
         embedding: CachedVisionEmbedding,
         points: List<SamPromptPoint>,
-        deadline: RecognitionAttemptDeadline?,
+        identity: RecognitionModelIdentity?,
     ): Pair<FloatArray, Float> {
         val decoder = getDecoderSession()
         val numPoints = points.size
@@ -731,6 +800,20 @@ class SlimSamSegmenter(
         val embShape = longArrayOf(1, 256, 64, 64)
         val pointsShape = longArrayOf(1, 1, numPoints.toLong(), 2)
         val labelsShape = longArrayOf(1, 1, numPoints.toLong())
+        val decoderStartedMs = SystemClock.uptimeMillis()
+        val inferenceId = "${identity?.attemptId ?: "unbound"}:SLIMSAM_DECODER:${inferenceSequence.incrementAndGet()}"
+        val runtimeIdentity = identity?.let {
+            runtimeModelIdentity(
+                modelId = "SLIMSAM_MASK_DECODER",
+                modelVersion = "MASK_DECODER_V1",
+                expectedSha256 = DECODER_MODEL_SHA256,
+                actualSha256 = requireNotNull(decoderModelSha256),
+                inputSchemaHash = schemaHash(decoder.inputInfo),
+                outputSchemaHash = schemaHash(decoder.outputInfo),
+                preprocessVersion = "slimsam-prompt-points-v1",
+                sessionId = decoderModelSessionId,
+            )
+        }
 
         val inputs = mutableMapOf<String, OnnxTensor>()
         try {
@@ -740,9 +823,79 @@ class SlimSamSegmenter(
             inputs["image_embeddings"] = OnnxTensor.createTensor(ortEnvironment, embedding.imageEmbeddings, embShape)
             inputs["image_positional_embeddings"] = OnnxTensor.createTensor(ortEnvironment, embedding.imagePositionalEmbeddings, embShape)
 
-            RecognitionOrtNativeRun.run(deadline) { runOptions -> decoder.run(inputs, runOptions) }.use { result ->
+            val expectedShapes = mapOf(
+                "input_points" to pointsShape,
+                "input_labels" to labelsShape,
+                "image_embeddings" to embShape,
+                "image_positional_embeddings" to embShape,
+            )
+            inputs.forEach { (name, tensor) ->
+                val expectedType = if (name == "input_labels") "INT64" else "FLOAT"
+                require(tensor.info.type.name == expectedType && tensor.info.shape.contentEquals(expectedShapes.getValue(name))) {
+                    "SLIMSAM_DECODER_INPUT_SCHEMA_MISMATCH:$name"
+                }
+            }
+            if (identity != null) {
+                inputs.forEach { (name, tensor) ->
+                    val contentHash = when (name) {
+                        "input_points" -> RecognitionTensorContentHash.sha256(tensor.floatBuffer)
+                        "input_labels" -> RecognitionTensorContentHash.sha256(tensor.longBuffer)
+                        "image_embeddings" -> RecognitionTensorContentHash.sha256(tensor.floatBuffer)
+                        else -> RecognitionTensorContentHash.sha256(tensor.floatBuffer)
+                    }
+                    val byteSize = when (name) {
+                        "input_labels" -> tensor.info.shape.fold(1L) { size, axis -> size * axis } * Long.SIZE_BYTES
+                        else -> tensor.info.shape.fold(1L) { size, axis -> size * axis } * Float.SIZE_BYTES
+                    }
+                    recordTensorReceipt(
+                        direction = "INPUT",
+                        identity = identity,
+                        inferenceId = inferenceId,
+                        model = requireNotNull(runtimeIdentity),
+                        tensorName = name,
+                        dataType = tensor.info.type.name,
+                        shape = tensor.info.shape.toList(),
+                        byteSize = byteSize,
+                        contentHash = contentHash,
+                        startUptimeMs = decoderStartedMs,
+                        endUptimeMs = SystemClock.uptimeMillis(),
+                    )
+                }
+            }
+
+            RecognitionOrtNativeRun.run(identity?.attemptDeadline) { runOptions -> decoder.run(inputs, runOptions) }.use { result ->
                 val iouScoresTensor = result["iou_scores"].get() as OnnxTensor
                 val predMasksTensor = result["pred_masks"].get() as OnnxTensor
+                require(iouScoresTensor.info.type.name == "FLOAT" &&
+                    iouScoresTensor.info.shape.contentEquals(longArrayOf(1, 1, 3))) {
+                    "SLIMSAM_DECODER_IOU_OUTPUT_SCHEMA_MISMATCH"
+                }
+                require(predMasksTensor.info.type.name == "FLOAT" &&
+                    predMasksTensor.info.shape.contentEquals(longArrayOf(1, 1, 3, 256, 256))) {
+                    "SLIMSAM_DECODER_MASK_OUTPUT_SCHEMA_MISMATCH"
+                }
+                require(isFiniteFloatBuffer(iouScoresTensor.floatBuffer) &&
+                    isFiniteFloatBuffer(predMasksTensor.floatBuffer)) {
+                    "SLIMSAM_DECODER_NON_FINITE_OUTPUT"
+                }
+
+                if (identity != null) {
+                    listOf("iou_scores" to iouScoresTensor, "pred_masks" to predMasksTensor).forEach { (name, tensor) ->
+                        recordTensorReceipt(
+                            direction = "OUTPUT",
+                            identity = identity,
+                            inferenceId = inferenceId,
+                            model = requireNotNull(runtimeIdentity),
+                            tensorName = name,
+                            dataType = tensor.info.type.name,
+                            shape = tensor.info.shape.toList(),
+                            byteSize = tensor.info.shape.fold(1L) { size, axis -> size * axis } * Float.SIZE_BYTES,
+                            contentHash = RecognitionTensorContentHash.sha256(tensor.floatBuffer),
+                            startUptimeMs = decoderStartedMs,
+                            endUptimeMs = SystemClock.uptimeMillis(),
+                        )
+                    }
+                }
 
                 val iouScoresBuf = iouScoresTensor.floatBuffer
                 val iouScores = FloatArray(3)
@@ -752,6 +905,9 @@ class SlimSamSegmenter(
                 val singleMaskSize = 256 * 256
                 val allMasks = FloatArray(3 * singleMaskSize)
                 masksBuf.get(allMasks)
+                require(iouScores.all(Float::isFinite) && allMasks.all(Float::isFinite)) {
+                    "SLIMSAM_DECODER_NON_FINITE_OUTPUT"
+                }
 
                 // Select the best mask candidate:
                 // Candidate 0: whole mask, Candidate 1: part, Candidate 2: subpart
@@ -894,6 +1050,94 @@ class SlimSamSegmenter(
     private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
         .digest(bytes).joinToString("") { "%02x".format(it) }
 
+    private fun schemaHash(nodes: Map<String, NodeInfo>): String {
+        val schema = nodes.toSortedMap().entries.joinToString("|") { (name, node) ->
+            val tensor = node.info as? TensorInfo
+                ?: throw SlimSamModelException("MODEL_TENSOR_SCHEMA_INVALID", "$name is not a tensor", "MODEL_SCHEMA")
+            "$name:${tensor.type.name}:${tensor.shape.joinToString(",")}"
+        }
+        return sha256(schema.toByteArray(Charsets.UTF_8))
+    }
+
+    private fun runtimeModelIdentity(
+        modelId: String,
+        modelVersion: String,
+        expectedSha256: String,
+        actualSha256: String,
+        inputSchemaHash: String,
+        outputSchemaHash: String,
+        preprocessVersion: String,
+        sessionId: String,
+    ): RecognitionRuntimeModelIdentity = RecognitionRuntimeModelIdentity(
+        modelId = modelId,
+        modelVersion = modelVersion,
+        expectedModelSha256 = expectedSha256,
+        actualAssetSha256 = actualSha256,
+        runtimeVerifiedModelSha256 = actualSha256,
+        modelFormat = "ONNX",
+        inputSchemaHash = inputSchemaHash,
+        outputSchemaHash = outputSchemaHash,
+        preprocessVersion = preprocessVersion,
+        postprocessVersion = SLIMSAM_OUTPUT_VALIDATION_VERSION,
+        runtimeName = "ONNX Runtime Android",
+        runtimeVersion = ORT_RUNTIME_VERSION,
+        executionProvider = "CPU",
+        modelSessionId = sessionId,
+    ).also { require(it.isValid()) { "SLIMSAM_MODEL_IDENTITY_INVALID:$modelId" } }
+
+    private fun recordTensorReceipt(
+        direction: String,
+        identity: RecognitionModelIdentity,
+        inferenceId: String,
+        model: RecognitionRuntimeModelIdentity,
+        tensorName: String,
+        dataType: String,
+        shape: List<Long>,
+        byteSize: Long,
+        contentHash: String,
+        startUptimeMs: Long,
+        endUptimeMs: Long,
+    ) {
+        val receipt = RecognitionModelTensorReceipt(
+            inferenceId = inferenceId,
+            recognitionSessionId = identity.sessionId,
+            attemptId = identity.attemptId,
+            photoId = identity.imageId,
+            canonicalPixelSha256 = identity.photoIdentity?.canonicalPixelSha256 ?: identity.photoSha256,
+            modelIdentity = model,
+            tensorName = tensorName,
+            dataType = dataType,
+            shape = shape,
+            byteSize = byteSize,
+            contentHash = contentHash,
+            startUptimeMs = startUptimeMs,
+            endUptimeMs = endUptimeMs.coerceAtLeast(startUptimeMs),
+            validationStatus = "VALID",
+        )
+        require(receipt.isValid()) { "SLIMSAM_${direction}_TENSOR_RECEIPT_INVALID:$tensorName" }
+        Log.i(
+            TAG,
+            "MODEL_TENSOR_RECEIPT direction=$direction inferenceId=${receipt.inferenceId} " +
+                "recognitionSessionId=${receipt.recognitionSessionId} attemptId=${receipt.attemptId} " +
+                "photoId=${receipt.photoId} canonicalPixelSha256=${receipt.canonicalPixelSha256} " +
+                "modelId=${model.modelId} modelVersion=${model.modelVersion} " +
+                "expectedModelSha256=${model.expectedModelSha256} actualAssetSha256=${model.actualAssetSha256} " +
+                "runtimeVerifiedModelSha256=${model.runtimeVerifiedModelSha256} " +
+                "inputSchemaHash=${model.inputSchemaHash} outputSchemaHash=${model.outputSchemaHash} " +
+                "runtime=${model.runtimeName}/${model.runtimeVersion} provider=${model.executionProvider} " +
+                "modelSessionId=${model.modelSessionId} tensor=${receipt.tensorName} " +
+                "type=${receipt.dataType} shape=${receipt.shape} byteSize=${receipt.byteSize} " +
+                "contentHash=${receipt.contentHash} startUptimeMs=${receipt.startUptimeMs} " +
+                "endUptimeMs=${receipt.endUptimeMs} validation=${receipt.validationStatus}",
+        )
+    }
+
+    private fun isFiniteFloatBuffer(buffer: FloatBuffer): Boolean {
+        val copy = buffer.asReadOnlyBuffer()
+        while (copy.hasRemaining()) if (!copy.get().isFinite()) return false
+        return true
+    }
+
     private fun sha256(file: File): String = file.inputStream().use { input ->
         val digest = MessageDigest.getInstance("SHA-256")
         val buffer = ByteArray(8 * 1024)
@@ -960,6 +1204,8 @@ class SlimSamSegmenter(
         const val VISION_INPUT_SCHEMA_HASH = "be8ebb75a0fd5d253e00ba0628d7b14b4117ea2d39f093bc2ff088cbb20c2047"
         val VISION_INPUT_SHAPE = listOf(1, 3, 1024, 1024)
         const val MODEL_VERSION = "cce23c7b+cb90b279-v1"
+        const val ORT_RUNTIME_VERSION = "1.29.0"
+        const val SLIMSAM_OUTPUT_VALIDATION_VERSION = "slimsam-output-schema-finite-v1"
         const val PREPROCESSING_VERSION = "rgb1024-pad-mean-std-v1"
         const val EMBEDDING_CACHE_BYTES = 8L * 1024L * 1024L
     }

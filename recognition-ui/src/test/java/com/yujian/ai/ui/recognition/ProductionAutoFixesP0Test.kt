@@ -43,7 +43,7 @@ class ProductionAutoFixesP0Test {
 
     @Test
     fun p0_0_pixelCopyTimeoutBudgetAndStatusPolicyRemainExplicit() {
-        assertEquals(2_000L, RecognitionPixelCopyCapture.DEFAULT_TIMEOUT_MS)
+        assertEquals(1_500L, RecognitionPixelCopyCapture.DEFAULT_TIMEOUT_MS)
         assertEquals(
             "PIXELCOPY_TIMEOUT",
             RecognitionEvidenceCapturePolicy.pixelCopyStatus(

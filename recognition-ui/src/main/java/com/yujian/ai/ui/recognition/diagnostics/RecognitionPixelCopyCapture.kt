@@ -9,7 +9,9 @@ import android.os.Handler
 import android.os.Looper
 import android.view.PixelCopy
 import android.view.Window
+import com.yujian.ai.ui.waterlight.core.RecognitionGateDeadlinePolicyV1
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 
 /** Resolves the actual host Window even when Compose supplies a wrapped Context. */
 fun recognitionEvidenceWindow(context: Context): Window? {
@@ -31,15 +33,25 @@ data class RecognitionPixelCopyResult(
     val geometryVersionAtCompletion: Long? = null,
 )
 
+data class RecognitionPixelCopyGateEvent(
+    val identity: RecognitionSceneIdentity,
+    val stageId: String,
+    val requestSubmitted: Boolean,
+    val captureSucceeded: Boolean? = null,
+    val status: String,
+    val monotonicTimestampMs: Long,
+)
+
 /** Captures the real Android Window buffer. The caller compares stage identity after completion. */
 object RecognitionPixelCopyCapture {
-    const val DEFAULT_TIMEOUT_MS = 2_000L
+    const val DEFAULT_TIMEOUT_MS = RecognitionGateDeadlinePolicyV1.PIXELCOPY_CAPTURE_TIMEOUT_MS
 
     fun request(
         window: Window?,
         frame: RecognitionSceneFrame,
         currentFrame: () -> RecognitionSceneFrame?,
         timeoutMs: Long = DEFAULT_TIMEOUT_MS,
+        onRequestSubmitted: (() -> Unit)? = null,
         callback: (RecognitionPixelCopyResult) -> Unit,
     ) {
         val requestTime = android.os.SystemClock.uptimeMillis()
@@ -120,6 +132,7 @@ object RecognitionPixelCopyCapture {
                 }
                 return
             }
+            onRequestSubmitted?.invoke()
             runCatching {
                 PixelCopy.request(window, bitmap, { copyResult ->
                     handler.removeCallbacks(timeoutRunnable)

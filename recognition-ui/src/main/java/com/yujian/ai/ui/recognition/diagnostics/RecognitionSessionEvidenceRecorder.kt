@@ -83,9 +83,19 @@ class RecognitionSessionEvidenceRecorder(
     private var motionRequestCount = 0
     private var pixelCopyInFlight = false
     private var pixelCopySuspendedReason: String? = null
+    private var pixelCopyGateObserver: ((RecognitionPixelCopyGateEvent) -> Unit)? = null
     private var firstFrameTimestampMs: Long? = null
     private var latestSceneElapsedMs = 0L
     private var latestGeometryVersion = -1L
+
+    fun setPixelCopyGateObserver(observer: ((RecognitionPixelCopyGateEvent) -> Unit)?) {
+        synchronized(lock) { pixelCopyGateObserver = observer }
+    }
+
+    private fun emitPixelCopyGateEvent(event: RecognitionPixelCopyGateEvent) {
+        val observer = synchronized(lock) { pixelCopyGateObserver }
+        observer?.invoke(event)
+    }
 
     fun beginAttempt(identity: RecognitionEvidenceIdentity) {
         synchronized(lock) {
@@ -1193,7 +1203,33 @@ class RecognitionSessionEvidenceRecorder(
                 "stageProgress" to frame.stageProgress,
             ),
         )
-        RecognitionPixelCopyCapture.request(window, frame, latestFrame) { result ->
+        RecognitionPixelCopyCapture.request(
+            window = window,
+            frame = frame,
+            currentFrame = latestFrame,
+            timeoutMs = RecognitionPixelCopyCapture.DEFAULT_TIMEOUT_MS,
+            onRequestSubmitted = {
+                emitPixelCopyGateEvent(
+                    RecognitionPixelCopyGateEvent(
+                        identity = frame.identity,
+                        stageId = frame.stage.name,
+                        requestSubmitted = true,
+                        status = "PIXELCOPY_REQUEST_SUBMITTED",
+                        monotonicTimestampMs = SystemClock.uptimeMillis(),
+                    ),
+                )
+            },
+        ) { result ->
+            emitPixelCopyGateEvent(
+                RecognitionPixelCopyGateEvent(
+                    identity = frame.identity,
+                    stageId = frame.stage.name,
+                    requestSubmitted = false,
+                    captureSucceeded = result.bitmap != null && result.status == "SUCCESS",
+                    status = result.status,
+                    monotonicTimestampMs = result.completionTimestampMs,
+                ),
+            )
             synchronized(lock) {
                 if (generation == activeGeneration) {
                     pixelCopyInFlight = false

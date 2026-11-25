@@ -81,6 +81,8 @@ class RecognitionSceneAnimationController(
     private var lastAcceptedEventTimestampMs = 0L
     private val acceptedEnergyEvents = mutableSetOf<String>()
     private val acceptedEnergyEventTrace = mutableListOf<EnergyEvent>()
+    private val pendingEnergyPathRenderReceipts = linkedMapOf<String, Pair<EnergyEvent, RecognitionEnergyPathRenderReceipt>>()
+    private val completedEnergyPathRenderEventIds = mutableSetOf<String>()
     private val acceptedResultHandoffEvents = mutableListOf<RecognitionResultHandoffEvent>()
     private val completedResultHandoffSubstages = mutableSetOf<ResultHandoffSubstage>()
     private var lastResultHandoffEventSequence = 0L
@@ -89,9 +91,12 @@ class RecognitionSceneAnimationController(
     private var stageGateWaitStartedAtMs: Long? = null
     private var stageGateWaitReason: String? = null
     private var stageEventObserver: ((RecognitionSceneStageEvent) -> Unit)? = null
+    private var gateProducerObserver: ((RecognitionGateProducerEvent) -> Boolean)? = null
+    private var stageAdvanceAuthorizer: ((RecognitionSceneStage, Long) -> Boolean)? = null
     private var lastObservedGeometryVersion = 0L
     var resultSceneStable: Boolean = false
         private set
+    private var resultSceneOwnerTransferReceiptId: String? = null
 
     /** Immutable readout for integration evidence; only controller-accepted events are exposed. */
     fun acceptedEnergyEventsSnapshot(): List<EnergyEvent> = acceptedEnergyEventTrace.toList()
@@ -100,6 +105,27 @@ class RecognitionSceneAnimationController(
     fun stageTimelineSnapshot(): List<RecognitionSceneStageTraceEntry> = stageTimeline.toList()
     fun setStageEventObserver(observer: ((RecognitionSceneStageEvent) -> Unit)?) {
         stageEventObserver = observer
+    }
+    fun setGateProducerObserver(observer: ((RecognitionGateProducerEvent) -> Boolean)?) {
+        gateProducerObserver = observer
+    }
+    fun setStageAdvanceAuthorizer(authorizer: ((RecognitionSceneStage, Long) -> Boolean)?) {
+        stageAdvanceAuthorizer = authorizer
+    }
+
+    /** A blocking Gate failure terminates the current production attempt; it never advances it. */
+    fun onGateFailure(gateId: RecognitionGateId?, failureCode: String, nowMs: Long) {
+        if (failureCode.isBlank() || failed) return
+        val spec = gateId?.let(RecognitionGateDeadlinePolicyV1.specs::get)
+        if (spec?.action == RecognitionGateFailureAction.EVIDENCE_ONLY) return
+        failed = true
+        emitStageEvent(
+            action = RecognitionSceneStageEventAction.BLOCKED,
+            stage = currentStage,
+            nowMs = nowMs,
+            progress = stageProgress(nowMs),
+            waitingReason = failureCode,
+        )
     }
     fun firstFrameCommittedTimestampMs(): Long? = firstFrameCommittedTimestampMs
     fun resultGeometryVersionsSnapshot(): Set<Long> = resultGeometryVersions.toSet()
@@ -133,6 +159,7 @@ class RecognitionSceneAnimationController(
     private var activeFishContactPathId: String? = null
     private var fishContactPathId: String? = null
     private var fishPathSnapshot: RecognitionSnapshot? = null
+    private var preparedFishPathSnapshot: RecognitionSnapshot? = null
     private var orbOnlyReturnPathSnapshot: RecognitionOrbOnlyReturnPathSnapshot? = null
     private var revealDecisionState = RecognitionRevealDecisionState.WAITING_BOTH
     private var fishContactPathReady = false
@@ -244,6 +271,14 @@ class RecognitionSceneAnimationController(
         previewStartedAtMs = nowMs.takeIf { mode == ScenePlaybackMode.MANUAL && !paused }
         if (!paused) sceneClockStartedAtMs = nowMs
         bumpEventSequence()
+        emitGateProducerReceipt(
+            RecognitionGateId.PHOTO_FIRST_FRAME,
+            sourceEvent = "PHOTO_FRAME_COMMITTED",
+            stage = RecognitionSceneStage.PHOTO_STABLE,
+            kfId = "KF02",
+            contentHash = currentIdentity.photoSha256,
+            nowMs = nowMs,
+        )
         emitStageEvent(
             action = RecognitionSceneStageEventAction.ENTERED,
             stage = RecognitionSceneStage.PHOTO_STABLE,
@@ -344,18 +379,86 @@ class RecognitionSceneAnimationController(
             invalidateMaskContactPath()
         }
         photoTransformReady = true
+        emitGateProducerReceipt(
+            RecognitionGateId.PROCESSING_GEOMETRY,
+            sourceEvent = "PHOTO_TRANSFORM_READY",
+            stage = currentStage,
+            kfId = "KF02",
+            geometryVersion = acceptedVersion,
+            nowMs = lastNowMs,
+        )
     }
 
     fun onOrbAnchorAvailable(ready: Boolean, currentIdentity: RecognitionSceneIdentity? = null) {
-        if (isCurrent(currentIdentity)) orbAnchorReady = ready
+        if (isCurrent(currentIdentity)) {
+            orbAnchorReady = ready
+            if (ready && currentStage == RecognitionSceneStage.ORB_WAKE) emitGateProducerReceipt(
+                RecognitionGateId.ORB_ANCHOR,
+                sourceEvent = "ORB_ANCHOR_LAYOUT_READY",
+                stage = currentStage,
+                kfId = "KF03",
+                geometryVersion = activePhotoGeometryVersion,
+                nowMs = lastNowMs,
+            )
+        }
     }
 
     fun onReleasePathAvailable(ready: Boolean, currentIdentity: RecognitionSceneIdentity? = null) {
-        if (isCurrent(currentIdentity)) releasePathReady = ready
+        if (isCurrent(currentIdentity)) {
+            releasePathReady = ready
+        }
     }
 
     fun onPerimeterArrivalPresented(ready: Boolean, currentIdentity: RecognitionSceneIdentity? = null) {
-        if (isCurrent(currentIdentity)) perimeterArrivalPresented = ready
+        if (isCurrent(currentIdentity)) {
+            perimeterArrivalPresented = ready
+        }
+    }
+
+    /** Accept only a full-path frame that passed the GLES draw and EGL swap for this Attempt. */
+    fun onEnergyPathRenderComplete(
+        event: EnergyEvent,
+        receipt: RecognitionEnergyPathRenderReceipt,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!isCurrent(currentIdentity)) return false
+        val active = identity ?: return false
+        if (currentStage != event.stage ||
+            !RecognitionEnergyPathRenderContract.isComplete(active, event, receipt)
+        ) return false
+        if (event.eventId in completedEnergyPathRenderEventIds) return true
+        if (event.eventId in acceptedEnergyEvents) return commitEnergyPathRenderReceipt(event, receipt)
+        if (event.eventSequence != eventSequence) return false
+        val previous = pendingEnergyPathRenderReceipts[event.eventId]
+        if (previous != null && receipt.frameSequence <= previous.second.frameSequence) return false
+        pendingEnergyPathRenderReceipts[event.eventId] = event to receipt
+        return true
+    }
+
+    private fun commitEnergyPathRenderReceipt(
+        event: EnergyEvent,
+        receipt: RecognitionEnergyPathRenderReceipt,
+    ): Boolean {
+        if (event.eventId in completedEnergyPathRenderEventIds) return true
+        if (acceptedEnergyEventTrace.none { it == event } ||
+            !RecognitionEnergyPathRenderContract.isComplete(identity ?: return false, event, receipt)
+        ) return false
+        val gateId = when (event.feedback) {
+            EnergyFeedback.RELEASE -> RecognitionGateId.RELEASE_RENDER
+            EnergyFeedback.ARRIVE -> RecognitionGateId.PERIMETER_ARRIVAL_RENDER
+            else -> return false
+        }
+        val accepted = emitGateProducerReceipt(
+            gateId,
+            sourceEvent = "${event.eventId}:EGL_SWAP:${receipt.frameSequence}",
+            stage = event.stage,
+            kfId = if (gateId == RecognitionGateId.RELEASE_RENDER) "KF04" else "KF09",
+            geometryVersion = receipt.geometryVersion,
+            contentHash = receipt.pathContentSha256,
+            nowMs = receipt.observedAtUptimeMs,
+        )
+        if (accepted) completedEnergyPathRenderEventIds += event.eventId
+        return accepted
     }
 
     fun onPerimeterArrivalPathAvailable(
@@ -399,6 +502,15 @@ class RecognitionSceneAnimationController(
         maskTrusted = trusted && !failedTerminal && activeMaskSha256 != null && activeMaskVersion != null
         this.contourValid = maskTrusted && contourValid
         this.contourClosed = maskTrusted && contourClosed
+        if (!maskTrusted || failedTerminal) emitGateProducerReceipt(
+            RecognitionGateId.MASK_CONTOUR_PSTAR,
+            sourceEvent = if (failedTerminal) "MASK_FAILED_TERMINAL" else "MASK_UNTRUSTED_TERMINAL",
+            stage = currentStage,
+            kfId = "KF10",
+            contentHash = activeMaskSha256,
+            nowMs = lastNowMs,
+            resultStatus = "DEGRADED_ACCEPTED",
+        )
     }
 
     fun onRevealDecisionReady(currentIdentity: RecognitionSceneIdentity? = null) {
@@ -423,6 +535,14 @@ class RecognitionSceneAnimationController(
         if (!isCurrent(currentIdentity)) return
         revealDecisionState = decision
         revealDecisionReady = RecognitionRevealDecisionGate.isReady(decision)
+        if (revealDecisionReady) emitGateProducerReceipt(
+            RecognitionGateId.REVEAL_DECISION,
+            sourceEvent = "REVEAL_BRANCH_${decision.name}",
+            stage = currentStage,
+            kfId = "KF09",
+            contentHash = identity?.photoSha256,
+            nowMs = nowMs,
+        )
         if (decision == RecognitionRevealDecisionState.ORB_ONLY_READY &&
             currentStage in setOf(
                 RecognitionSceneStage.CONTOUR_A,
@@ -484,6 +604,15 @@ class RecognitionSceneAnimationController(
             )
         ) return false
         fishGoldComplete = true
+        emitGateProducerReceipt(
+            RecognitionGateId.FISH_GOLD_RENDER,
+            sourceEvent = "FISH_GOLD_RENDER_RECEIPT:${receipt.drawPassSequence}",
+            stage = receipt.stage,
+            kfId = "KF13",
+            geometryVersion = receipt.geometryVersion,
+            contentHash = receipt.maskSha256,
+            nowMs = lastNowMs,
+        )
         return true
     }
 
@@ -505,6 +634,20 @@ class RecognitionSceneAnimationController(
         contourRenderReceipts[receipt.stage] = receipt
         lastContourDrawPassSequence = receipt.drawPassSequence
         bumpEventSequence()
+        emitGateProducerReceipt(
+            RecognitionGateId.CONTOUR_RENDER,
+            sourceEvent = "CONTOUR_RENDER_RECEIPT:${receipt.drawPassSequence}",
+            stage = receipt.stage,
+            kfId = when (receipt.stage) {
+                RecognitionSceneStage.CONTOUR_A -> "KF10"
+                RecognitionSceneStage.CONTOUR_B -> "KF11"
+                RecognitionSceneStage.CONTOUR_C -> "KF12"
+                else -> null
+            },
+            geometryVersion = receipt.geometryVersion,
+            contentHash = receipt.maskSha256,
+            nowMs = lastNowMs,
+        )
         return true
     }
 
@@ -532,6 +675,14 @@ class RecognitionSceneAnimationController(
         ) else RecognitionGlyphReadiness(speciesResultReady = readiness.speciesResultReady)
         glyphAvailable = valid
         glyphRevealComplete = false
+        if (valid) emitGateProducerReceipt(
+            RecognitionGateId.GLYPH_PATH,
+            sourceEvent = "GLYPH_PATH_READY:${descriptor?.speciesKey.orEmpty()}",
+            stage = currentStage,
+            kfId = "KF15",
+            contentHash = descriptor?.speciesKey,
+            nowMs = lastNowMs,
+        )
     }
 
     fun onGlyphRevealRendered(readiness: RecognitionGlyphReadiness, currentIdentity: RecognitionSceneIdentity? = null): Boolean {
@@ -560,6 +711,15 @@ class RecognitionSceneAnimationController(
         orbCoreDissolveReceipt = receipt
         orbToGlyphComplete = true
         bumpEventSequence()
+        emitGateProducerReceipt(
+            RecognitionGateId.ORB_TO_GLYPH_RENDER,
+            sourceEvent = "ORB_CORE_DISSOLVE_RENDERED:${receipt.drawPassSequence}",
+            stage = currentStage,
+            kfId = "KF15",
+            geometryVersion = lastObservedGeometryVersion.takeIf { it > 0L },
+            contentHash = receipt.identity.photoSha256,
+            nowMs = lastNowMs,
+        )
         return true
     }
 
@@ -590,6 +750,14 @@ class RecognitionSceneAnimationController(
         residueRenderReceipt = receipt
         residueSettleComplete = true
         bumpEventSequence()
+        emitGateProducerReceipt(
+            RecognitionGateId.RESIDUE_SETTLE_RENDER,
+            sourceEvent = "RESIDUE_RENDER_RECEIPT:${receipt.drawPassSequence}",
+            stage = receipt.stage,
+            kfId = "KF24",
+            contentHash = receipt.identity.photoSha256,
+            nowMs = lastNowMs,
+        )
         return true
     }
 
@@ -679,6 +847,32 @@ class RecognitionSceneAnimationController(
         return null
     }
 
+    /** Commit Result ownership only after this Controller accepted the exact handoff ACK event. */
+    fun transferResultSceneOwnership(receipt: RecognitionSceneOwnerTransferReceipt): Boolean {
+        if (!receipt.isValid()) return false
+        val active = identity ?: return false
+        if (receipt.recognitionSessionId != active.sessionId || receipt.attemptId != active.attemptId ||
+            receipt.photoId != active.imageId || receipt.photoIdentityHash != active.photoSha256 ||
+            acceptedResultHandoffEvents.none {
+                it.substage == ResultHandoffSubstage.RESULT_SCENE_HANDOFF &&
+                    it.eventSequence == receipt.handoffAckEventSequence && it.identity == active
+            }
+        ) return false
+        val existing = resultSceneOwnerTransferReceiptId
+        if (existing != null) return existing == receipt.receiptId
+        resultSceneOwnerTransferReceiptId = receipt.receiptId
+        bumpEventSequence()
+        return true
+    }
+
+    fun abortResultSceneOwnershipTransfer(receipt: RecognitionSceneOwnerTransferReceipt): Boolean {
+        if (resultSceneOwnerTransferReceiptId != receipt.receiptId) return false
+        resultSceneOwnerTransferReceiptId = null
+        return true
+    }
+
+    fun resultSceneOwnerTransferReceiptId(): String? = resultSceneOwnerTransferReceiptId
+
     /** Result milestones are accepted only against this Attempt's measured geometry and path. */
     fun acceptResultHandoffEvent(event: RecognitionResultHandoffEvent): RecognitionResultHandoffReceipt {
         val rejection = canAcceptResultHandoffEvent(event)
@@ -696,6 +890,29 @@ class RecognitionSceneAnimationController(
             bumpEventSequence()
             closeCurrentStage(event.monotonicTimestampMs, eventSequence)
         }
+        val gateId = when (event.substage) {
+            ResultHandoffSubstage.NAME_STABLE -> RecognitionGateId.GLYPH_REVEAL_NAME_STABLE
+            ResultHandoffSubstage.PHOTO_SETTLE -> RecognitionGateId.PHOTO_SETTLE
+            ResultHandoffSubstage.RESULT_SCENE_HANDOFF -> RecognitionGateId.HANDOFF_ACK
+            ResultHandoffSubstage.RESULT_INFO_ARRIVAL -> RecognitionGateId.RESULT_INFO_ARRIVAL
+            ResultHandoffSubstage.RESULT_SCENE_STABLE -> RecognitionGateId.RESULT_SCENE_STABLE
+        }
+        emitGateProducerReceipt(
+            gateId,
+            sourceEvent = "RESULT_HANDOFF:${event.substage.name}:${event.eventSequence}",
+            stage = event.stage,
+            kfId = when (event.substage) {
+                ResultHandoffSubstage.NAME_STABLE -> "KF18"
+                ResultHandoffSubstage.PHOTO_SETTLE -> "KF21"
+                ResultHandoffSubstage.RESULT_SCENE_HANDOFF -> "KF22"
+                ResultHandoffSubstage.RESULT_INFO_ARRIVAL -> "KF23"
+                ResultHandoffSubstage.RESULT_SCENE_STABLE -> "KF24"
+            },
+            geometryVersion = event.geometryVersion,
+            contentHash = event.resultIdentity,
+            snapshotId = null,
+            nowMs = event.monotonicTimestampMs,
+        )
         return RecognitionResultHandoffReceipt(true, resultSceneStable = resultSceneStable)
     }
 
@@ -714,6 +931,15 @@ class RecognitionSceneAnimationController(
         // recognition SceneClock, nor invalidate a Processing-path RETURN receipt.
         resultGeometryVersions = acceptedVersions
         resultGeometryState = state
+        if (state == SceneGeometryState.READY && acceptedVersions.isNotEmpty()) emitGateProducerReceipt(
+            RecognitionGateId.RESULT_HOST_GEOMETRY,
+            sourceEvent = "RESULT_HOST_GEOMETRY_READY:${acceptedVersions.sorted().joinToString(",")}",
+            stage = currentStage,
+            kfId = "KF18",
+            geometryVersion = acceptedVersions.maxOrNull(),
+            contentHash = acceptedVersions.sorted().joinToString(","),
+            nowMs = nowMs,
+        )
     }
 
     /** Accept one current, non-duplicate event and use it to unlock the next semantic state. */
@@ -727,6 +953,7 @@ class RecognitionSceneAnimationController(
         event: EnergyEvent,
     ): EnergyEventAcceptanceResult {
         fun reject(reason: EnergyEventRejectionReason): EnergyEventAcceptanceResult {
+            pendingEnergyPathRenderReceipts.remove(event.eventId)
             lastRejectedEnergyEvent = EnergyEventRejectionDiagnostic(event, reason, frame.stageProgress, modelGates)
             return EnergyEventAcceptanceResult(false, reason)
         }
@@ -863,6 +1090,8 @@ class RecognitionSceneAnimationController(
             EnergyFeedback.SETTLE -> Unit // Optical completion requires a Canvas render receipt.
         }
         bumpEventSequence()
+        val pendingRender = pendingEnergyPathRenderReceipts.remove(event.eventId)
+        if (pendingRender?.first == event) commitEnergyPathRenderReceipt(event, pendingRender.second)
         return EnergyEventAcceptanceResult(true)
     }
 
@@ -944,17 +1173,26 @@ class RecognitionSceneAnimationController(
         activeMaskGeometryVersion = geometryVersion
         activeMaskContactPointNormalizedSource = contactPointNormalizedSource
         activeFishContactPathId = pathId
+        emitGateProducerReceipt(
+            RecognitionGateId.MASK_CONTOUR_PSTAR,
+            sourceEvent = "PSTAR_PATH_VALIDATED:$pathId",
+            stage = currentStage,
+            kfId = "KF10",
+            geometryVersion = geometryVersion,
+            contentHash = normalizedMaskSha,
+            nowMs = lastNowMs,
+        )
         return true
     }
 
-    /** Bind the immutable RETURN route exported by the same Processing PathLedger. */
-    fun onFishPathSnapshot(
+    /** Validate the Controller endpoint without publishing a downstream-visible binding. */
+    fun prepareFishPathSnapshot(
         snapshot: RecognitionSnapshot,
         currentIdentity: RecognitionSceneIdentity? = null,
     ): Boolean {
-        if (!isCurrent(currentIdentity)) return false
+        if (!isCurrent(currentIdentity) || !snapshot.isValid()) return false
         val active = identity ?: return false
-        if (!snapshot.isValid() || snapshot.sessionId != active.sessionId ||
+        if (snapshot.sessionId != active.sessionId ||
             snapshot.attemptId != active.attemptId || snapshot.imageId != active.imageId ||
             snapshot.photoSha256 != active.photoSha256 || snapshot.photoContentVersion != active.photoContentVersion ||
             !maskTrusted || snapshot.maskSha256 != activeMaskSha256 || snapshot.maskVersion != activeMaskVersion ||
@@ -965,8 +1203,71 @@ class RecognitionSceneAnimationController(
         ) return false
         val current = fishPathSnapshot
         if (current != null && current != snapshot) return false
-        fishPathSnapshot = snapshot
+        val prepared = preparedFishPathSnapshot
+        if (prepared != null && prepared != snapshot) return false
+        preparedFishPathSnapshot = snapshot
         return true
+    }
+
+    /** Controller commits only the exact immutable snapshot named by the shared coordinator receipt. */
+    fun commitFishPathBinding(
+        receipt: RecognitionPathBindingCommitReceipt,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!receipt.isValid() || !isCurrent(currentIdentity)) return false
+        val active = identity ?: return false
+        val candidate = preparedFishPathSnapshot ?: fishPathSnapshot ?: return false
+        val expectedHash = candidate.calculateContentSha256()
+        val pathIdentity = receipt.identity
+        if (pathIdentity.recognitionSessionId != active.sessionId || pathIdentity.attemptId != active.attemptId ||
+            pathIdentity.photoId != active.imageId || pathIdentity.photoIdentityHash != active.photoSha256 ||
+            pathIdentity.pathSnapshotContentHash != expectedHash || pathIdentity.fishPathId != candidate.fishPathId ||
+            pathIdentity.maskSha256 != candidate.maskSha256 || pathIdentity.maskVersion != candidate.maskVersion ||
+            pathIdentity.geometryVersion != candidate.geometryVersion
+        ) return false
+        if (fishPathSnapshot != null && fishPathSnapshot != candidate) return false
+        fishPathSnapshot = candidate
+        preparedFishPathSnapshot = null
+        bumpEventSequence()
+        return true
+    }
+
+    /** Compensation is valid only before the caller publishes the shared commit receipt. */
+    fun abortFishPathBinding(receipt: RecognitionPathBindingCommitReceipt): Boolean {
+        val current = identity ?: return false
+        if (receipt.identity.attemptId != current.attemptId ||
+            receipt.identity.recognitionSessionId != current.sessionId
+        ) return false
+        val candidate = preparedFishPathSnapshot ?: fishPathSnapshot ?: return false
+        if (candidate.calculateContentSha256() != receipt.identity.pathSnapshotContentHash) return false
+        preparedFishPathSnapshot = null
+        if (fishPathSnapshot == candidate) fishPathSnapshot = null
+        return true
+    }
+
+    /** Compatibility path for controller-only fixtures; production uses the shared coordinator. */
+    fun onFishPathSnapshot(
+        snapshot: RecognitionSnapshot,
+        currentIdentity: RecognitionSceneIdentity? = null,
+    ): Boolean {
+        if (!prepareFishPathSnapshot(snapshot, currentIdentity)) return false
+        val active = identity ?: return false
+        val receipt = RecognitionPathBindingCommitReceipt(
+            receiptId = "controller-fixture:${active.attemptId}:${snapshot.calculateContentSha256()}",
+            identity = RecognitionPathBindingIdentity(
+                recognitionSessionId = snapshot.sessionId,
+                attemptId = snapshot.attemptId,
+                photoId = snapshot.imageId,
+                photoIdentityHash = snapshot.photoSha256,
+                pathSnapshotContentHash = snapshot.calculateContentSha256(),
+                fishPathId = snapshot.fishPathId,
+                maskSha256 = snapshot.maskSha256,
+                maskVersion = snapshot.maskVersion,
+                geometryVersion = snapshot.geometryVersion,
+            ),
+            committedAtUptimeMs = snapshot.creationTimestampMonotonicMs,
+        )
+        return commitFishPathBinding(receipt, currentIdentity)
     }
 
     /** Stores only the real Processing ledger route used by the ORB_ONLY_READY branch. */
@@ -1009,6 +1310,17 @@ class RecognitionSceneAnimationController(
         if (previous != null && receipt.drawPassSequence <= previous.drawPassSequence) return false
         orbReturnRenderReceipt = receipt
         bumpEventSequence()
+        emitGateProducerReceipt(
+            RecognitionGateId.RETURN_RENDER,
+            sourceEvent = "ORB_RETURN_RENDER_RECEIPT:${receipt.drawPassSequence}",
+            stage = receipt.stage,
+            kfId = "KF14",
+            geometryVersion = receipt.resultGeometryVersion,
+            contentHash = receipt.pathId,
+            snapshotId = fishPathSnapshot?.fishPathId,
+            snapshotContentHash = fishPathSnapshot?.calculateContentSha256(),
+            nowMs = lastNowMs,
+        )
         return true
     }
 
@@ -1035,6 +1347,21 @@ class RecognitionSceneAnimationController(
         if (elapsed < required) return currentStage
         if (!canAdvance(currentStage, successfulRevealAllowed)) {
             val nextWaitReason = modelGates.waitingReason ?: "WAITING_FOR_STAGE_EVENT_OR_MODEL_GATE"
+            if (stageGateWaitStartedAtMs == null || stageGateWaitReason != nextWaitReason) {
+                stageGateWaitStartedAtMs = nowMs
+                stageGateWaitReason = nextWaitReason
+                emitStageEvent(
+                    action = RecognitionSceneStageEventAction.BLOCKED,
+                    stage = currentStage,
+                    nowMs = nowMs,
+                    progress = progress,
+                    waitingReason = nextWaitReason,
+                )
+            }
+            return currentStage
+        }
+        if (!isStageAdvanceAuthorized(currentStage, nowMs)) {
+            val nextWaitReason = "WAITING_FOR_STAGE_ADVANCE_AUTHORIZATION"
             if (stageGateWaitStartedAtMs == null || stageGateWaitReason != nextWaitReason) {
                 stageGateWaitStartedAtMs = nowMs
                 stageGateWaitReason = nextWaitReason
@@ -1130,7 +1457,7 @@ class RecognitionSceneAnimationController(
             eventSequence = eventSequence,
             monotonicTimestampMs = nowMs.coerceAtLeast(0L),
             energyEvent = energyEvent,
-            stageEventComplete = stageEventComplete(currentStage),
+            stageEventComplete = stageEventComplete(currentStage, nowMs),
             resultHandoffSubstage = resultSubstage,
             resultInfoArrivalProgress = if (ResultHandoffSubstage.RESULT_INFO_ARRIVAL in completedResultHandoffSubstages || resultSceneStable) 1f else 0f,
             resultSceneStable = resultSceneStable,
@@ -1253,6 +1580,12 @@ class RecognitionSceneAnimationController(
         nowMs: Long,
         startImmediately: Boolean = true,
     ) {
+        if (stage.ordinal > currentStage.ordinal && stageAdvanceAuthorizer != null) {
+            if (stage.ordinal != currentStage.ordinal + 1 ||
+                !canAdvance(currentStage, successfulRevealAllowed = true) ||
+                !isStageAdvanceAuthorized(currentStage, nowMs)
+            ) return
+        }
         mode = ScenePlaybackMode.MANUAL
         currentStage = stage
         paused = !startImmediately
@@ -1270,6 +1603,10 @@ class RecognitionSceneAnimationController(
     fun advanceToNextStage(nowMs: Long): RecognitionSceneStage? {
         if (mode != ScenePlaybackMode.MANUAL || !photoFirstFrameCommitted ||
             currentStage == RecognitionSceneStage.entries.last()
+        ) return null
+        if (stageAdvanceAuthorizer != null &&
+            (!canAdvance(currentStage, successfulRevealAllowed = true) ||
+                !isStageAdvanceAuthorized(currentStage, nowMs))
         ) return null
         val next = RecognitionSceneStage.entries[currentStage.ordinal + 1]
         beginStepPreview(next, nowMs)
@@ -1395,11 +1732,11 @@ class RecognitionSceneAnimationController(
                 else -> false
             }
         RecognitionSceneStage.CONTOUR_A -> revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY &&
-            maskTrusted && fishContactPathReady && contourValid && contourClosed
+            maskTrusted && fishContactPathReady && contourValid && contourClosed && hasContourReceipt(stage)
         RecognitionSceneStage.CONTOUR_B -> revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY &&
-            maskTrusted && fishContactPathReady && contourValid && contourClosed
+            maskTrusted && fishContactPathReady && contourValid && contourClosed && hasContourReceipt(stage)
         RecognitionSceneStage.CONTOUR_C -> revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY &&
-            maskTrusted && fishContactPathReady && contourValid && contourClosed
+            maskTrusted && fishContactPathReady && contourValid && contourClosed && hasContourReceipt(stage)
         RecognitionSceneStage.FISH_GOLD_PEAK -> revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY &&
             maskTrusted && fishContactPathReady && contourValid && contourClosed &&
             fishGoldComplete && classifierReady && revealDecisionReady
@@ -1409,7 +1746,7 @@ class RecognitionSceneAnimationController(
             orbReturnRenderReceipt != null && orbReturnComplete && orbAnchorReady
         RecognitionSceneStage.ORB_TO_NAME -> successfulRevealAllowed &&
             revealDecisionState in setOf(RecognitionRevealDecisionState.FISH_FOCUS_READY, RecognitionRevealDecisionState.ORB_ONLY_READY) &&
-            orbToGlyphComplete && glyphAvailable
+            orbToGlyphComplete
         RecognitionSceneStage.SPECIES_NAME_REVEAL -> successfulRevealAllowed &&
             revealDecisionState in setOf(RecognitionRevealDecisionState.FISH_FOCUS_READY, RecognitionRevealDecisionState.ORB_ONLY_READY) &&
             glyphRevealComplete && glyphAvailable &&
@@ -1419,26 +1756,15 @@ class RecognitionSceneAnimationController(
             residueSettleComplete
     }
 
-    private fun stageEventComplete(stage: RecognitionSceneStage): Boolean = when (stage) {
-        RecognitionSceneStage.PHOTO_STABLE -> photoFirstFrameCommitted
-        RecognitionSceneStage.ORB_WAKE -> orbAnchorReady
-        RecognitionSceneStage.ORB_RELEASE -> releasePathReady
-        RecognitionSceneStage.PERIMETER_ARRIVAL -> perimeterArrivalPathReady && perimeterArrivalPresented
-        RecognitionSceneStage.PATH_TO_FISH -> if (revealDecisionState == RecognitionRevealDecisionState.FISH_FOCUS_READY) {
-            fishContactPathReady
-        } else {
-            revealDecisionState == RecognitionRevealDecisionState.ORB_ONLY_READY && revealDecisionReady
-        }
-        RecognitionSceneStage.CONTOUR_A,
-        RecognitionSceneStage.CONTOUR_B,
-        RecognitionSceneStage.CONTOUR_C -> maskTrusted && fishContactPathReady && contourValid && contourClosed &&
-            contourRenderReceipts[stage]?.let(RecognitionContourRenderContract::isComplete) == true
-        RecognitionSceneStage.FISH_GOLD_PEAK -> fishContactPathReady && fishGoldComplete
-        RecognitionSceneStage.ORB_RETURN -> orbReturnRenderReceipt != null && orbReturnComplete
-        RecognitionSceneStage.ORB_TO_NAME -> orbToGlyphComplete
-        RecognitionSceneStage.SPECIES_NAME_REVEAL -> glyphRevealComplete
-        RecognitionSceneStage.RESIDUE_SETTLE -> residueSettleComplete
-    }
+    /** One predicate owns both AUTO transition authorization and the emitted stage-complete flag. */
+    private fun stageEventComplete(stage: RecognitionSceneStage, nowMs: Long): Boolean =
+        canAdvance(stage, successfulRevealAllowed = true) && isStageAdvanceAuthorized(stage, nowMs)
+
+    private fun isStageAdvanceAuthorized(stage: RecognitionSceneStage, nowMs: Long): Boolean =
+        stageAdvanceAuthorizer?.invoke(stage, nowMs) != false
+
+    private fun hasContourReceipt(stage: RecognitionSceneStage): Boolean =
+        contourRenderReceipts[stage]?.let(RecognitionContourRenderContract::isComplete) == true
 
     private fun next(stage: RecognitionSceneStage, successfulRevealAllowed: Boolean): RecognitionSceneStage = when (stage) {
         RecognitionSceneStage.PHOTO_STABLE -> RecognitionSceneStage.ORB_WAKE
@@ -1515,7 +1841,6 @@ class RecognitionSceneAnimationController(
             }
             RecognitionSceneStage.ORB_TO_NAME -> when {
                 !orbReturnComplete -> "WAITING_FOR_ORB_ENERGY_RECEIVE_EVENT"
-                !glyphAvailable -> "WAITING_FOR_REAL_CLASSIFIER_GLYPH"
                 !orbToGlyphComplete -> "WAITING_FOR_ORB_TO_GLYPH_COMPLETION"
                 else -> null
             }
@@ -1599,6 +1924,7 @@ class RecognitionSceneAnimationController(
         activeFishContactPathId = null
         fishContactPathId = null
         fishPathSnapshot = null
+        preparedFishPathSnapshot = null
         fishContactPathReady = false
         fishPathBindingStatus = RecognitionFishPathBindingStatus.WAITING_FOR_PHOTO_GEOMETRY
         contourRenderReceipts.clear()
@@ -1639,6 +1965,8 @@ class RecognitionSceneAnimationController(
         lastAcceptedEventTimestampMs = 0L
         acceptedEnergyEvents.clear()
         acceptedEnergyEventTrace.clear()
+        pendingEnergyPathRenderReceipts.clear()
+        completedEnergyPathRenderEventIds.clear()
         acceptedResultHandoffEvents.clear()
         completedResultHandoffSubstages.clear()
         lastResultHandoffEventSequence = 0L
@@ -1648,6 +1976,7 @@ class RecognitionSceneAnimationController(
         stageGateWaitReason = null
         lastObservedGeometryVersion = 0L
         resultSceneStable = false
+        resultSceneOwnerTransferReceiptId = null
         detectorReady = false
         classifierReady = false
         slimSamTerminal = false
@@ -1695,6 +2024,44 @@ class RecognitionSceneAnimationController(
 
     private fun bumpEventSequence() {
         eventSequence += 1L
+    }
+
+    private fun emitGateProducerReceipt(
+        gateId: RecognitionGateId,
+        sourceEvent: String,
+        stage: RecognitionSceneStage,
+        kfId: String? = null,
+        geometryVersion: Long? = null,
+        contentHash: String? = null,
+        snapshotId: String? = null,
+        snapshotContentHash: String? = null,
+        nowMs: Long = lastNowMs,
+        resultStatus: String = "ACCEPTED",
+    ): Boolean {
+        val active = identity ?: return false
+        val observer = gateProducerObserver ?: return false
+        val spec = RecognitionGateDeadlinePolicyV1.spec(gateId)
+        bumpEventSequence()
+        return observer(
+            RecognitionGateProducerEvent(
+                gateId = gateId,
+                producerId = spec.producerId,
+                producerVersion = spec.producerVersion,
+                recognitionSessionId = active.sessionId,
+                attemptId = active.attemptId,
+                photoId = active.imageId,
+                photoIdentityHash = active.photoSha256.orEmpty(),
+                snapshotId = snapshotId,
+                snapshotContentHash = snapshotContentHash,
+                sourceEventId = "${active.attemptId}:${gateId.name}:${eventSequence}:$sourceEvent",
+                stageId = stage.name,
+                kfId = kfId,
+                geometryVersion = geometryVersion,
+                contentHash = contentHash,
+                monotonicTimestampMs = nowMs.coerceAtLeast(0L),
+                resultStatus = resultStatus,
+            ),
+        )
     }
 
     private fun closeCurrentStage(endedAtMs: Long, sequence: Long) {

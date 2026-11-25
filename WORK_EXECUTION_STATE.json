@@ -9,14 +9,17 @@
     "FIXTURE_B_UNAVAILABLE: the named historical evidence ZIP is absent from current attachments/workspace; source regressions can run without claiming replay."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-25T05:34:08Z",
+  "checkpoint_updated_at": "2026-11-25T07:57:54Z",
   "control_plane_revision": "03db3692669847084d7e48fc3128f85cbf832af9",
   "current_work": {
     "blockers": [
-      "P0_2_HISTORY_UNAVAILABLE: commit 759e918332293a4ffaea479a57556386b7c41f1d is absent from local objects and origin rejected the SHA fetch; preservation cannot be asserted from unavailable content.",
-      "POST_CHANGE_VALIDATION_PENDING: source 316de1b baseline passed; the complete regression, compiles, lint, CI and APK checks must run again after the fixes.",
-      "DEVICE_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator; exact-head hosted/device runtime evidence is required.",
-      "FIXTURE_B_UNAVAILABLE: the named historical evidence ZIP is absent from current attachments/workspace; source regressions can run without claiming replay."
+      "P0_2_HISTORY_UNAVAILABLE: commit 759e918332293a4ffaea479a57556386b7c41f1d is absent locally and origin rejected fetching the raw SHA; no cherry-pick/reset was performed, but exact historical preservation review remains unavailable.",
+      "ANDROID_TEST_COMPILE_BLOCKED: :app:assembleDebugAndroidTest could not resolve androidx.test.ext:junit:1.2.1, androidx.test:runner:1.6.2, or uiautomator:2.3.0 because dl.google.com DNS resolution failed.",
+      "LINT_BLOCKED: lint could not resolve com.android.tools.lint:lint-gradle:32.1.1 from dl.google.com due DNS failure.",
+      "DEVICE_RUNTIME_PENDING: this host has no /dev/kvm, adb, or emulator; no DEVICE_RUNTIME_VERIFIED or instrumentation execution is claimed.",
+      "EXACT_HEAD_CI_PENDING: source worktree has not yet been committed/pushed; hosted CI and API36 runtime evidence remain pending.",
+      "APK_DELIVERY_PENDING: final exact-HEAD Debug APK has not yet been built, verified, or uploaded.",
+      "FIXTURE_B_UNAVAILABLE: the named historical evidence ZIP is absent; no evidence replay is claimed."
     ],
     "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
     "exact_head": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
@@ -24,7 +27,7 @@
     "phase": "P6",
     "requested_task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
     "requested_task_title": "Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery",
-    "stage": "G1_BASELINE_TESTS_COMPLETE",
+    "stage": "G7_POST_CHANGE_VALIDATION_COMPLETE",
     "status": "RUNNING",
     "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2"
   },
@@ -34,19 +37,48 @@
   "evidence": {
     "admission": "CONTROL_PLANE_ADMISSION=PASS on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 with product source 316de1b705fb54ee7d6e2114259ec1f87773aedf; Registry, Feature Matrix, Phase/Task, Unified Contract structure, Control Plane Sync, Project Master State and Work Execution State pass; structural_errors=0; the unchanged historical RecognitionResultScreen path remains one non-blocking OPEN_GAP.",
     "admission_baseline": "CONTROL_PLANE_ADMISSION=PASS at 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; structural_errors=0; historical OPEN_GAP=1 is not an Admission failure. Current recovered-state Admission is the next required check.",
-    "android_test_compile": ":app:assembleDebugAndroidTest PASS; production AUTO instrumentation APK compiled, not run locally.",
+    "android_test_compile": {
+      "task": ":app:assembleDebugAndroidTest",
+      "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS",
+      "failure": "Could not resolve androidx.test.ext:junit:1.2.1, androidx.test:runner:1.6.2, androidx.test.uiautomator:uiautomator:2.3.0; dl.google.com temporary name resolution failure.",
+      "evidence": "/tmp/yujian-build-diagnostics/final-androidtest-compile.log"
+    },
     "api36_failure_classification": "AUTO_SMOKE_PASS=false. EMULATOR_BOOT_PASS=NOT_CONFIRMED. The production smoke command ended with exit code 1; final enforcement failed. Uploaded runtime artifact 14818308331 is 10.1 MB with SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33, but raw contents are inaccessible, so INFRA_BLOCKED versus BUSINESS_LOGIC_FAILURE versus RESOURCE_EXHAUSTED cannot be distinguished.",
     "api36_false_positive_audit": "User supplied Run 45032036762 facts: INSTRUMENTATION_RESULT shortMsg=Process crashed; INSTRUMENTATION_CODE=0; lowmemorykiller reported Kill com.yujian.ai.uiv2 with rss=670552kB, swap=1257028kB and min-watermark/swap-low reason. Source SHA/raw artifact remain NOT_CONFIRMED; facts were not independently replayed.",
     "api36_local_capability": "No local /dev/kvm, adb, or emulator. No TCG attempt.",
     "api36_memory_controls": "Run 45106300573 passed the hosted x64 KVM preflight and >=5 GiB host MemAvailable gate; standalone prelaunch AVD config step reported and asserted hw.ramSize=4096M and hw.heapSize=512M. Runtime artifact 14788427080 SHA256 f0aaa9891a87ffda19f52146be08a389a48acc62090c2eddf867c4e3f4e93099 is uploaded but its contents cannot be read here. Therefore actual emulator boot, in-guest meminfo, PSS/RSS/Swap, SlimSAM Encoder/Decoder timing, GC/Native Heap, LMK events and leak diagnosis are NOT_CONFIRMED for this run.",
     "api36_runtime_artifact": "Run 45172732325 artifact 14818308331 (YuJian-recognition-result-api36-6102640437041159abc519b00249b7aedff0bb03, 10.1 MB), SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33. Uploaded successfully; artifact content not readable in this session.",
     "archive_integrity": "Fixture A ZIP unzip -t passed; 14,190,826 bytes; SHA256 19a01dcc9dd07e0b489b22ddae41cc763fed1fe6a03377cceef5e13616e1164d; archive provenance records source SHA 3eb481c1f2ca4053fc58f87729f923fb70ef7f50, so it is historical evidence and not current-head runtime proof.",
+    "baseline_unit_tests": {
+      "command": "Gradle 9.3.1 test --no-daemon (Android SDK and JDK supplied through temporary environment settings)",
+      "errors": 0,
+      "evidence": "Gradle JUnit XML files under each module build/test-results; counts were summed from suite XML.",
+      "failed": 0,
+      "modules": {
+        "app": 126,
+        "application-core": 62,
+        "recognition-domain": 8,
+        "recognition-result-ui": 20,
+        "recognition-runtime": 57,
+        "recognition-ui": 237,
+        "waterlight-renderer": 64
+      },
+      "no_test_sources": [
+        "recognition-result-components"
+      ],
+      "passed": 574,
+      "result": "BUILD SUCCESSFUL",
+      "skipped": 0,
+      "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+      "total": 574
+    },
     "branch_head": "316de1b705fb54ee7d6e2114259ec1f87773aedf (current implementation source already contains earlier PR remediation; this V2 Work has not edited product source yet).",
     "branch_source_commit": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10 (existing PR #346 branch fix/26kf-path-boundary-and-fish-gate-v1; source baseline for this remediation; no new PR or merge)",
+    "build_environment_recovery": "Default Gradle wrapper first hit unwritable /home/agent/.gradle, then Java DNS/proxy, missing writable Android preference location, stale ignored local.properties SDK path, and Java 21 runtime without javac. Using cached Gradle 9.3.1, proxy host/port, JDK 17, ANDROID_HOME, one ANDROID_USER_HOME and a temporary local.properties sdk.dir override enabled the baseline run. Original local.properties SHA256 00442ca5571017eaa602a8267c4b0c95b33f99e4ca945742a188352aeeaa2fe5 was restored and verified.",
     "business_runtime_outcome": "NOT_RUN on current source; current exact-head Stage10–13.5 production AUTO evidence required.",
     "code_implementation_commit": "6102640437041159abc519b00249b7aedff0bb03",
     "current_admission_attempt": "Second CONTROL_PLANE_ADMISSION on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 passed. Product source remains 316de1b705fb54ee7d6e2114259ec1f87773aedf. No production source changes or tests have run in this V2 Work yet.",
-    "current_source_changes": "Immutable versioned RecognitionSnapshot metadata and pending-input SessionStore binding; stale energy event envelope/sequence regression; richer SlimSAM initialization and failure/tensor diagnostics.",
+    "current_source_changes": "Working-tree implementation: fail-closed 23-Gate control plane with receipt validation and timeout integration; producer-authored Stage045 GLES render receipts; independent contour receipts; model identities and input/output tensor receipts; PhotoIdentity propagation and embedding cache identity; Controller/Store PATH_BOUND prepare/commit/abort coordinator; snapshot commit safeguards; PixelCopy observational deadline; TFLite native-run serialization, timeout quarantine and lifecycle evidence. Exact source commit is pending.",
     "debug_apk_build": "PENDING final checkpoint Exact-HEAD APK Pair build.",
     "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
     "evidence_zip": "/workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip; 14,190,826 bytes; unzip -t passed; 33 recorded hash entries verified; extracted at /tmp/yujian-evidence-5344335",
@@ -123,30 +155,39 @@
     "video_attachment": "302e51a0725b602704363f264b1c70dc.mp4 is available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; source evidence is historical/pre-fix.",
     "visual_status": "Reference inventory/tokens/mapping/ROIs and diagnostic-only comparisons for six historical captures are recorded under artifacts/26kf_visual_reference_v1. Current source visual acceptance NOT_RUN.",
     "workflow_failure_summary_fix": "Source 7119089573515c4f5e0699b72d057cec592eee3b moves summary/result enrichment into scripts/ci/finalize_recognition_result_api36_smoke.py; exact runtime source SHA is mandatory, Build/KVM/Boot/runner gates must agree with AUTO, contradictions force AUTO_SMOKE_PASS=false, evidence hashes and APK SHA-256 values are captured, and finalization exceptions produce INFRA_BLOCKED evidence.",
-    "baseline_unit_tests": {
-      "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
-      "command": "Gradle 9.3.1 test --no-daemon (Android SDK and JDK supplied through temporary environment settings)",
+    "post_change_unit_tests": {
+      "command": "Gradle 9.3.1 test --no-daemon",
       "result": "BUILD SUCCESSFUL",
-      "total": 574,
-      "passed": 574,
+      "source_state": "current implementation worktree after PATH_BOUND idempotency hardening",
+      "total": 593,
+      "passed": 593,
       "failed": 0,
       "errors": 0,
       "skipped": 0,
       "modules": {
         "app": 126,
-        "application-core": 62,
+        "application-core": 67,
         "recognition-domain": 8,
-        "recognition-runtime": 57,
-        "recognition-ui": 237,
         "recognition-result-ui": 20,
+        "recognition-runtime": 71,
+        "recognition-ui": 237,
         "waterlight-renderer": 64
       },
-      "no_test_sources": [
-        "recognition-result-components"
-      ],
-      "evidence": "Gradle JUnit XML files under each module build/test-results; counts were summed from suite XML."
+      "delta_from_original_574": 19,
+      "evidence": "114 Gradle JUnit XML reports under module build/test-results directories; final regression log /tmp/yujian-build-diagnostics/final2-unit-and-release.log"
     },
-    "build_environment_recovery": "Default Gradle wrapper first hit unwritable /home/agent/.gradle, then Java DNS/proxy, missing writable Android preference location, stale ignored local.properties SDK path, and Java 21 runtime without javac. Using cached Gradle 9.3.1, proxy host/port, JDK 17, ANDROID_HOME, one ANDROID_USER_HOME and a temporary local.properties sdk.dir override enabled the baseline run. Original local.properties SHA256 00442ca5571017eaa602a8267c4b0c95b33f99e4ca945742a188352aeeaa2fe5 was restored and verified."
+    "post_change_release_compile": {
+      "task": ":app:compileReleaseKotlin",
+      "result": "PASS",
+      "evidence": "Final Gradle regression build completed BUILD SUCCESSFUL."
+    },
+    "lint": {
+      "task": "lint",
+      "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS",
+      "failure": "Could not resolve com.android.tools.lint:lint-gradle:32.1.1; dl.google.com temporary name resolution failure.",
+      "evidence": "/tmp/yujian-build-diagnostics/final-lint.log"
+    },
+    "tflite_hard_termination": "HARD_NATIVE_TERMINATION_NOT_VERIFIED: synchronous TFLite 2.16.1 Interpreter.run cannot be reliably interrupted with the available API; old Attempt receipts are rejected, concurrent Interpreter runs are prevented, and native resources are quarantined until the call actually returns."
   },
   "execution_v2": {
     "issues": {
@@ -187,6 +228,19 @@
         ],
         "gate_id": "G6_BASELINE_UNIT_TESTS",
         "symptom_key": "GRADLE_PLUGIN_RESOLUTION_NO_CACHE_OR_NETWORK",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "6c033ad651a4fd579f28": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Gradle configuration completed, then exited before task execution: task testDebugUnitTest not found in project recognition-runtime.",
+            "hypothesis": "Gradle module exposes test task as :recognition-runtime:test rather than testDebugUnitTest",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "LOCAL_TARGETED_TEST",
+        "symptom_key": "TASK_NAME_NOT_FOUND_TESTDEBUGUNITTEST",
         "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
       },
       "8eb8d70b6e7a1f222ad4": {
@@ -316,8 +370,8 @@
   "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
   "stage": "G1_BASELINE_TESTS_COMPLETE",
   "state_update": {
-    "last_updated_at": "2026-11-25T05:34:08Z",
-    "note": "Admission PASS at code source 316de1b. Baseline Gradle test at exact code source 316de1b completed 574/574 pass, 0 fail/error/skipped across seven tested modules; result-components has no test sources. All temporary SDK/config changes were restored. Post-fix regression and exact-head delivery remain pending."
+    "last_updated_at": "2026-11-25T07:57:54Z",
+    "note": "Production source changes for Gate Control Plane, recognition identity/model receipts, PATH_BOUND transaction, Stage045 GLES render receipts, and native TFLite quarantine have been made in the worktree. Final Gradle test and Release Kotlin compile pass: 593/593 JVM tests across seven modules, 0 failed/error/skipped; the original 574-test baseline remains present. AndroidTest compile and lint are blocked before source validation because dl.google.com DNS resolution fails. Source commit, push, exact-HEAD Debug APK and remote delivery verification remain pending."
   },
   "status": "RUNNING",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",

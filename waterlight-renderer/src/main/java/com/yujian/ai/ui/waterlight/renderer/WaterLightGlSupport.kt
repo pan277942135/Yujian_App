@@ -54,6 +54,7 @@ internal class TransparentGlTextureView<FrameT : Any>(
     private val tag: String,
     private val renderer: GlSceneRenderer<FrameT>,
     private val onFirstFramePresented: () -> Unit = {},
+    private val onFrameSwapped: (FrameT, Long) -> Unit = { _, _ -> },
     private val onRenderResult: (OrbCrystalRenderResult, String) -> Unit = { _, _ -> },
     private val onOwnerStateChanged: (OrbCrystalRenderResult?, Boolean) -> Unit = { _, _ -> },
 ) : TextureView(context), TextureView.SurfaceTextureListener {
@@ -194,6 +195,11 @@ internal class TransparentGlTextureView<FrameT : Any>(
                 if (ownerAccepted) firstRenderDecisionReported = true
             }
             reportOwnerState(ownerAccepted, completedResult)
+            if (ownerAccepted && swapped && execution.drawStatus == RenderPassStatus.PASS) {
+                post {
+                    if (!released.get()) onFrameSwapped(frame, frameSequence)
+                }
+            }
             if (ownerAccepted && !firstFrameNotified) {
                 firstFrameNotified = true
                 post {

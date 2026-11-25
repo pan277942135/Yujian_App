@@ -64,7 +64,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
             RecognitionModelWatchdog.execute(
                 modelName = "DETECTOR",
                 identity = modelIdentity,
-            ) { detector.detect(bitmap, modelIdentity?.attemptDeadline) }
+            ) { detector.detect(bitmap, modelIdentity?.attemptDeadline, modelIdentity) }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (timeout: RecognitionAttemptNativeTimeoutException) {
@@ -167,7 +167,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
                 RecognitionModelWatchdog.execute(
                     modelName = "CLASSIFIER",
                     identity = modelIdentity,
-                ) { classifier.recognize(crop, traceContext, modelIdentity?.attemptDeadline) }
+                ) { classifier.recognize(crop, traceContext, modelIdentity?.attemptDeadline, modelIdentity) }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (timeout: RecognitionAttemptNativeTimeoutException) {

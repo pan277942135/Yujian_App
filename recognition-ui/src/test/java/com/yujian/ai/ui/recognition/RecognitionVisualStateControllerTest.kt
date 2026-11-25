@@ -722,6 +722,10 @@ class RecognitionVisualStateControllerTest {
         controller.beginNewSession(identity, debugBuild = false, nowMs = 0L)
         assertTrue(controller.markPhotoFirstFramePresented(identity, 0L))
         controller.setResultGeometryState(SceneGeometryState.READY, 0L, identity, setOf(9L))
+        controller.onRevealDecision(
+            RecognitionRevealDecisionState.ORB_ONLY_READY,
+            currentIdentity = identity,
+        )
         controller.beginStepPreview(RecognitionSceneStage.ORB_TO_NAME, 10L)
 
         controller.onSceneTransitionComplete(RecognitionSceneStage.ORB_TO_NAME, identity)

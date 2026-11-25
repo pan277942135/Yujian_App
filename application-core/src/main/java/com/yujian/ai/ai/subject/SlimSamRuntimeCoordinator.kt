@@ -82,6 +82,9 @@ internal fun Throwable.slimSamFailureDetails(): SlimSamFailureDetails {
 
 /** Stable single-photo cache identity. Bitmap object identity is intentionally not part of the key. */
 internal data class SlimSamEmbeddingCacheKey(
+    val recognitionSessionId: String,
+    val attemptId: String,
+    val photoId: String,
     val canonicalPixelSha256: String,
     val width: Int,
     val height: Int,
@@ -92,6 +95,9 @@ internal data class SlimSamEmbeddingCacheKey(
 ) {
     companion object {
         fun create(
+            recognitionSessionId: String = "UNSCOPED_PREWARM",
+            attemptId: String = "UNSCOPED_PREWARM",
+            photoId: String = "UNSCOPED_PREWARM",
             canonicalPixelSha256: String,
             width: Int,
             height: Int,
@@ -100,6 +106,9 @@ internal data class SlimSamEmbeddingCacheKey(
             inputSchemaHash: String,
             inputShape: List<Int>,
         ) = SlimSamEmbeddingCacheKey(
+            recognitionSessionId = recognitionSessionId,
+            attemptId = attemptId,
+            photoId = photoId,
             canonicalPixelSha256 = canonicalPixelSha256,
             width = width,
             height = height,
@@ -138,7 +147,10 @@ internal class SlimSamEmbeddingCache<T> {
         cachedValue?.takeIf { activeKey == key && cachedKey == key }
 
     @Synchronized
-    fun lease(value: T): Lease<T> {
+    fun lease(key: SlimSamEmbeddingCacheKey, value: T): Lease<T> {
+        check(activeKey == key && cachedKey == key && cachedValue == value) {
+            "Embedding lease identity is no longer active"
+        }
         activeLeaseCount += 1
         return Lease(value) {
             synchronized(this) { activeLeaseCount = (activeLeaseCount - 1).coerceAtLeast(0) }

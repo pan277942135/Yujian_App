@@ -28,12 +28,19 @@ class RecognitionGateDeadlinePolicyTest {
         assertEquals(10_000L, RecognitionGateDeadlinePolicyV1.MAX_NON_MODEL_BLOCKED_WAIT_PER_ATTEMPT_MS)
         assertEquals(1_500L, RecognitionGateDeadlinePolicyV1.PIXELCOPY_CAPTURE_TIMEOUT_MS)
         assertTrue(RecognitionGateDeadlinePolicyV1.specs.values.all { it.maxCumulativeBlockedMs == if (it.countsTowardAttemptBudget) it.timeoutMs else 0L })
+        assertTrue(RecognitionGateDeadlinePolicyV1.spec(RecognitionGateId.GLYPH_PATH).dependsOn.isEmpty())
     }
 
     @Test fun gateStartsAndSuccessesAreExplicitAndRevealStartsAfterModelTerminal() {
         assertEquals("ALL_REQUIRED_MODELS_TERMINAL", RecognitionGateDeadlinePolicyV1.spec(RecognitionGateId.REVEAL_DECISION).startEvent)
         assertEquals("MASK_CALLBACK_TERMINAL", RecognitionGateDeadlinePolicyV1.spec(RecognitionGateId.MASK_CONTOUR_PSTAR).startEvent)
         assertEquals("PIXELCOPY_REQUEST_SUBMITTED", RecognitionGateDeadlinePolicyV1.spec(RecognitionGateId.PIXELCOPY_CAPTURE).startEvent)
+        assertEquals(RecognitionGateCategory.OBSERVATIONAL, RecognitionGateDeadlinePolicyV1.spec(RecognitionGateId.PIXELCOPY_CAPTURE).category)
+        assertEquals(RecognitionGateFailureAction.EVIDENCE_ONLY, RecognitionGateDeadlinePolicyV1.spec(RecognitionGateId.PIXELCOPY_CAPTURE).action)
+        assertEquals(
+            listOf(setOf(RecognitionGateId.PATH_BOUND, RecognitionGateId.ORB_ONLY_RETURN_PATH)),
+            RecognitionGateDeadlinePolicyV1.spec(RecognitionGateId.RETURN_RENDER).anyOfDependencies,
+        )
         assertTrue(RecognitionGateDeadlinePolicyV1.spec(RecognitionGateId.RETURN_RENDER).dependsOn.none {
             it == RecognitionGateId.RESULT_HOST_GEOMETRY || it == RecognitionGateId.GLYPH_PATH
         })

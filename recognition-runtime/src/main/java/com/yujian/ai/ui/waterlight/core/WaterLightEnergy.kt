@@ -1,5 +1,7 @@
 package com.yujian.ai.ui.waterlight.core
 
+import java.security.MessageDigest
+
 /** Visual energy is sampled from the existing recognition clock and current photo identity. */
 enum class EnergyAnchor { ORB_CORE, ORB_RIBBON, PHOTO_PERIMETER, PHOTO_PATH, FISH_CONTOUR, REVEAL_TEXT, RESIDUE }
 enum class EnergyFeedback { RELEASE, ARRIVE, ABSORB, RETURN, TRANSLATE, REVEAL, SETTLE }
@@ -69,6 +71,23 @@ data class EnergyEvent(
         sessionId == frame.sessionId && attemptId == frame.attemptId && imageId == frame.imageId &&
             photoSha256 == frame.photoSha256 && photoContentVersion == frame.photoContentVersion &&
             geometryVersion == frame.geometryVersion
+
+    fun calculatePathContentSha256(): String {
+        val geometry = pathSegments.takeIf { it.isNotEmpty() } ?: listOfNotNull(pathGeometry)
+        val canonical = buildString {
+            append(eventId).append('|').append(feedback.name).append('|').append(geometryVersion).append('|')
+            append(pathId.orEmpty()).append('|')
+            geometry.forEach { segment ->
+                listOf(segment.start, segment.control1, segment.control2, segment.end).forEach { point ->
+                    append(point.x.toBits()).append(',').append(point.y.toBits()).append(';')
+                }
+                append(segment.coordinateSpace).append('|')
+            }
+        }
+        return MessageDigest.getInstance("SHA-256")
+            .digest(canonical.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+    }
 }
 
 /** Single event envelope used from WaterLightEnergy production through Controller consumption. */

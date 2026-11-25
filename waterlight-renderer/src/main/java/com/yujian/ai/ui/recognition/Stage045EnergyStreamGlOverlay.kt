@@ -7,6 +7,7 @@ import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
@@ -16,6 +17,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yujian.ai.ui.identify.DisplayRect
+import com.yujian.ai.ui.waterlight.core.EnergyEvent
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.RecognitionEnergyPathRenderReceipt
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
@@ -60,6 +65,8 @@ internal data class Stage045GlFrame(
     val reducedMotion: Boolean,
     val attemptId: String = "",
     val geometryVersion: Long = 0L,
+    val identity: RecognitionSceneIdentity,
+    val energyEvent: EnergyEvent?,
 )
 
 internal fun stage045CompositeSucceeded(execution: GlBloomExecution, skipBlur: Boolean): Boolean =
@@ -86,12 +93,14 @@ fun Stage045EnergyStreamGlOverlay(
     cornerRadiusPx: Float,
     releasePath: WaterLightPathGeometry?,
     arrivalPath: WaterLightPathGeometry?,
+    energyEvent: EnergyEvent?,
     fishPath: WaterLightPathGeometry?,
     viewportWidthPx: Float,
     viewportHeightPx: Float,
     globalOpacity: Float,
     lowPerformance: Boolean,
     onFirstFramePresented: () -> Unit,
+    onEnergyPathRenderComplete: (EnergyEvent, RecognitionEnergyPathRenderReceipt) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     val scene = waterLightFrame.sceneFrame
@@ -106,6 +115,7 @@ fun Stage045EnergyStreamGlOverlay(
     val density = LocalDensity.current.density
     val lifecycleOwner = LocalLifecycleOwner.current
     val renderer = remember { Stage045GlRenderer() }
+    val latestEnergyPathRenderComplete = rememberUpdatedState(onEnergyPathRenderComplete)
     val textureView = remember(context) {
         TransparentGlTextureView(
             context = context,
@@ -113,6 +123,41 @@ fun Stage045EnergyStreamGlOverlay(
             tag = "Stage045EnergyGl",
             renderer = renderer,
             onFirstFramePresented = onFirstFramePresented,
+            onFrameSwapped = { renderedFrame, sequence ->
+                val event = renderedFrame.energyEvent
+                val feedbackProgress = event?.let { current -> when (current.feedback) {
+                    EnergyFeedback.RELEASE -> renderedFrame.releaseProgress.takeIf {
+                        renderedFrame.stage == RecognitionSceneStage.ORB_RELEASE &&
+                            renderedFrame.releasePath == current.pathGeometry
+                    }
+                    EnergyFeedback.ARRIVE -> renderedFrame.arrivalProgress.takeIf {
+                        renderedFrame.stage == RecognitionSceneStage.PERIMETER_ARRIVAL &&
+                            renderedFrame.arrivalPath == current.pathGeometry
+                    }
+                    else -> null
+                } }
+                if (event != null && feedbackProgress != null) {
+                    val route = event.pathSegments.takeIf { it.isNotEmpty() } ?: listOfNotNull(event.pathGeometry)
+                    val receipt = RecognitionEnergyPathRenderReceipt(
+                        identity = renderedFrame.identity,
+                        eventId = event.eventId,
+                        stage = renderedFrame.stage,
+                        feedback = event.feedback,
+                        pathId = event.pathId.orEmpty(),
+                        geometryVersion = renderedFrame.geometryVersion,
+                        pathGeometry = event.pathGeometry,
+                        pathSegments = event.pathSegments,
+                        pathContentSha256 = event.calculatePathContentSha256(),
+                        sourceStageProgress = renderedFrame.stageProgress,
+                        renderedProgress = feedbackProgress,
+                        renderedSegmentCount = route.size,
+                        eglSwapSucceeded = true,
+                        frameSequence = sequence,
+                        observedAtUptimeMs = SystemClock.uptimeMillis(),
+                    )
+                    latestEnergyPathRenderComplete.value(event, receipt)
+                }
+            },
         )
     }
 
@@ -202,6 +247,8 @@ fun Stage045EnergyStreamGlOverlay(
         reducedMotion = reduce,
         attemptId = scene.identity.attemptId,
         geometryVersion = scene.geometryVersion,
+        identity = scene.identity,
+        energyEvent = energyEvent,
     )
 
     AndroidView(

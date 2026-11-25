@@ -130,6 +130,8 @@ import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
 import com.yujian.ai.ui.waterlight.core.RecognitionSnapshot
+import com.yujian.ai.ui.waterlight.core.RecognitionPathBindingCommitReceipt
+import com.yujian.ai.ui.waterlight.core.RecognitionPathBindingIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionOrbOnlyReturnPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionFishGoldRenderReceipt
@@ -222,6 +224,32 @@ private fun evidenceGeometry(geometry: com.yujian.ai.ui.waterlight.core.WaterLig
     "coordinateSpace" to geometry.coordinateSpace,
 )
 
+private fun commitControllerOnlyFishPathForFixture(
+    snapshot: RecognitionSnapshot,
+    prepareController: () -> Boolean,
+    commitController: (RecognitionPathBindingCommitReceipt) -> Boolean,
+): Boolean {
+    if (!prepareController()) return false
+    val contentHash = snapshot.calculateContentSha256()
+    return commitController(
+        RecognitionPathBindingCommitReceipt(
+            receiptId = "screen-fixture:${snapshot.attemptId}:$contentHash",
+            identity = RecognitionPathBindingIdentity(
+                recognitionSessionId = snapshot.sessionId,
+                attemptId = snapshot.attemptId,
+                photoId = snapshot.imageId,
+                photoIdentityHash = snapshot.photoSha256,
+                pathSnapshotContentHash = contentHash,
+                fishPathId = snapshot.fishPathId,
+                maskSha256 = snapshot.maskSha256,
+                maskVersion = snapshot.maskVersion,
+                geometryVersion = snapshot.geometryVersion,
+            ),
+            committedAtUptimeMs = SystemClock.uptimeMillis(),
+        ),
+    )
+}
+
 @Composable
 fun RecognizingScreen(
     image: SelectedImage?, onBack: () -> Unit,
@@ -232,7 +260,11 @@ fun RecognizingScreen(
     motionPolicyOverride: RecognitionMotionPolicy? = null,
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
-    onFishPathSnapshot: (RecognitionSnapshot) -> Unit = {},
+    onFishPathSnapshot: (
+        RecognitionSnapshot,
+        prepareController: () -> Boolean,
+        commitController: (RecognitionPathBindingCommitReceipt) -> Boolean,
+    ) -> Boolean = ::commitControllerOnlyFishPathForFixture,
     onOrbOnlyReturnPathSnapshot: (RecognitionOrbOnlyReturnPathSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
@@ -287,7 +319,11 @@ fun RecognitionProcessingScene(
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)? = null,
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
-    onFishPathSnapshot: (RecognitionSnapshot) -> Unit = {},
+    onFishPathSnapshot: (
+        RecognitionSnapshot,
+        prepareController: () -> Boolean,
+        commitController: (RecognitionPathBindingCommitReceipt) -> Boolean,
+    ) -> Boolean = ::commitControllerOnlyFishPathForFixture,
     onOrbOnlyReturnPathSnapshot: (RecognitionOrbOnlyReturnPathSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
@@ -2126,7 +2162,13 @@ fun RecognitionProcessingScene(
                                 "geometryVersion" to event.geometryVersion,
                             ),
                         )
-                    } else if (controller.onFishPathSnapshot(snapshot, sceneIdentity)) {
+                    } else {
+                        val bindingCommitted = fishPathSnapshotCallback.value.invoke(
+                            snapshot,
+                            { controller.prepareFishPathSnapshot(snapshot, sceneIdentity) },
+                            { receipt -> controller.commitFishPathBinding(receipt, sceneIdentity) },
+                        )
+                        if (bindingCommitted) {
                         val snapshotEvidence = mapOf(
                             "sessionIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(snapshot.sessionId),
                             "attemptIdHash" to com.yujian.ai.ui.recognition.diagnostics.sha256(snapshot.attemptId),
@@ -2157,12 +2199,11 @@ fun RecognitionProcessingScene(
                             payload = snapshotEvidence,
                         )
                         recognitionEvidenceRecorder?.recordGateDiagnostic("FISH_PATH_SNAPSHOT_ACCEPTED", snapshotEvidence)
-                        fishPathSnapshotCallback.value.invoke(snapshot)
-                    } else {
+                        } else {
                         recognitionEvidenceRecorder?.recordGateDiagnostic(
                             "FISH_PATH_SNAPSHOT_REJECTED",
                             mapOf(
-                                "reason" to "CONTROLLER_IDENTITY_OR_MASK_PATH_MISMATCH",
+                                "reason" to "CONTROLLER_STORE_COORDINATED_BIND_REJECTED",
                                 "fishPathId" to snapshot.fishPathId,
                                 "returnPathId" to snapshot.returnPathId,
                                 "eventPathId" to event.pathId,
@@ -2172,6 +2213,7 @@ fun RecognitionProcessingScene(
                                 "geometryVersion" to snapshot.geometryVersion,
                             ),
                         )
+                        }
                     }
                 }
             } else {
@@ -2318,6 +2360,7 @@ fun RecognitionProcessingScene(
                         contactPointMaskVersion = contactMaskVersion,
                         contactPointGeometryVersion = contactGeometryVersion,
                         photoIdentity = image.photoIdentity,
+                        geometryVersion = maxOf(waterLightFrame.geometryVersion, photoGeometryVersion),
                     )
                 processingPhotoSnapshotForReveal = processingSnapshot
                 onProcessingPhotoSnapshot(processingSnapshot)
@@ -2346,12 +2389,16 @@ fun RecognitionProcessingScene(
                 cornerRadiusPx = with(density) { 16.dp.toPx() },
                 releasePath = energyPathLedger.releasePath(waterLightFrame),
                 arrivalPath = energyPathLedger.perimeterArrivalPath(waterLightFrame)?.geometry,
+                energyEvent = energyProducerEvent,
                 fishPath = activeFishPath,
                 viewportWidthPx = viewportWidthPx,
                 viewportHeightPx = viewportHeightPx,
                 globalOpacity = 1f - orbPresentationCompletion.coerceIn(0f, 1f),
                 lowPerformance = motionPolicy.lowPerformance,
                 onFirstFramePresented = { stage045GlPresented = true },
+                onEnergyPathRenderComplete = { event, receipt ->
+                    controller.onEnergyPathRenderComplete(event, receipt, sceneIdentity)
+                },
                 modifier = Modifier.fillMaxSize(),
             )
         }

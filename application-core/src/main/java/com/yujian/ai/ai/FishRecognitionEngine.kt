@@ -18,6 +18,11 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
+import java.util.UUID
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.exp
 import kotlin.math.min
 
@@ -37,8 +42,12 @@ data class ProductionModelInfo(
     val classCount: Int,
     val inputShape: List<Int>,
     val inputDtype: String,
+    val inputTensorName: String,
+    val inputSchemaHash: String,
     val outputShape: List<Int>,
     val outputDtype: String,
+    val outputTensorName: String,
+    val outputSchemaHash: String,
     val classMapSha256: String,
     val tensorContractSha256: String,
     val classes: List<ProductionModelClass>,
@@ -63,6 +72,12 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
 
     private val modelInfoLazy = lazy { readProductionModelInfo() }
     val modelInfo: ProductionModelInfo get() = modelInfoLazy.value
+    private val modelSessionId = UUID.randomUUID().toString()
+    private val nativeRunLifecycle = RecognitionTfliteNativeRunLifecycle(
+        modelSessionId = modelSessionId,
+        nowUptimeMs = android.os.SystemClock::uptimeMillis,
+        onEvent = ::recordNativeLifecycleEvent,
+    )
 
     private fun readProductionModelInfo(): ProductionModelInfo {
         fun assetBytes(name: String): ByteArray = context.assets.open(name).use { it.readBytes() }
@@ -197,8 +212,12 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
             classCount = classCount,
             inputShape = inputShape,
             inputDtype = inputDtype,
+            inputTensorName = inputTensor.getString("name"),
+            inputSchemaHash = inputTensor.toString().toByteArray(Charsets.UTF_8).sha256(),
             outputShape = outputShape,
             outputDtype = outputDtype,
+            outputTensorName = outputTensor.getString("name"),
+            outputSchemaHash = outputTensor.toString().toByteArray(Charsets.UTF_8).sha256(),
             classMapSha256 = classMapSha,
             tensorContractSha256 = tensorSha,
             classes = classes,
@@ -242,12 +261,27 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         bitmap: Bitmap,
         pipelineContext: InferenceTrace.PipelineContext? = null,
         deadline: RecognitionAttemptDeadline? = null,
+        modelIdentity: RecognitionModelIdentity? = null,
     ): RecognitionPrediction = withContext(Dispatchers.Default) {
+        val inferenceId = "${modelIdentity?.attemptId ?: "unbound"}:CLASSIFIER:${inferenceSequence.incrementAndGet()}"
+        val token = nativeRunLifecycle.begin(inferenceId, modelIdentity?.attemptId ?: "UNBOUND_ATTEMPT", deadline)
+        val timeoutTask: ScheduledFuture<*>? = deadline?.let { attemptDeadline ->
+            nativeDeadlineScheduler.schedule(
+                { nativeRunLifecycle.onDeadline(token) },
+                attemptDeadline.remainingMs(android.os.SystemClock.uptimeMillis()),
+                TimeUnit.MILLISECONDS,
+            )
+        }
+        try {
         if (deadline?.isExpired(android.os.SystemClock.uptimeMillis()) == true) {
             throw RecognitionAttemptNativeTimeoutException("CLASSIFIER deadline expired before native submission")
         }
         val started = System.nanoTime()
+        val inferenceStartedAtMs = android.os.SystemClock.uptimeMillis()
         val inputTensor = interpreter.getInputTensor(0)
+        require(inputTensor.name() == modelInfo.inputTensorName) {
+            "TFLITE runtime input name=${inputTensor.name()} contract=${modelInfo.inputTensorName}"
+        }
         val inputShape = inputTensor.shape()
         require(inputTensor.dataType() == DataType.FLOAT32) { "${modelInfo.modelId} 输入必须为 FLOAT32" }
         require(inputShape.contentEquals(modelInfo.inputShape.toIntArray())) {
@@ -267,6 +301,9 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val input = makeInputBuffer(prepared.bitmap, nchw)
 
         val outputTensor = interpreter.getOutputTensor(0)
+        require(outputTensor.name() == modelInfo.outputTensorName) {
+            "TFLITE runtime output name=${outputTensor.name()} contract=${modelInfo.outputTensorName}"
+        }
         require(outputTensor.dataType() == DataType.FLOAT32) { "${modelInfo.modelId} 输出必须为 FLOAT32" }
         val outputShape = outputTensor.shape()
         require(outputShape.contentEquals(modelInfo.outputShape.toIntArray())) {
@@ -277,15 +314,94 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
             "模型输出类别数应为 ${modelInfo.classCount}，实际为 $count"
         }
 
+        val runtimeIdentity = modelIdentity?.let { identity ->
+            RecognitionRuntimeModelIdentity(
+                modelId = modelInfo.modelId,
+                modelVersion = modelInfo.releaseTag,
+                expectedModelSha256 = modelInfo.sha256,
+                actualAssetSha256 = modelInfo.sha256,
+                runtimeVerifiedModelSha256 = modelInfo.sha256,
+                modelFormat = "TFLITE",
+                inputSchemaHash = modelInfo.inputSchemaHash,
+                outputSchemaHash = modelInfo.outputSchemaHash,
+                preprocessVersion = CLASSIFIER_PREPROCESS_VERSION,
+                postprocessVersion = CLASSIFIER_POSTPROCESS_VERSION,
+                runtimeName = "TensorFlow Lite",
+                runtimeVersion = TFLITE_RUNTIME_VERSION,
+                executionProvider = "CPU",
+                modelSessionId = modelSessionId,
+            ).also { require(it.isValid()) { "CLASSIFIER_MODEL_IDENTITY_INVALID" } }
+        }
+
         val output = ByteBuffer.allocateDirect(count * 4).order(ByteOrder.nativeOrder())
-        interpreter.run(input.buffer, output)
-        if (deadline?.isExpired(android.os.SystemClock.uptimeMillis()) == true) {
+        if (runtimeIdentity != null) {
+            val inputReceipt = RecognitionModelTensorReceipt(
+                inferenceId = inferenceId,
+                recognitionSessionId = requireNotNull(modelIdentity).sessionId,
+                attemptId = modelIdentity.attemptId,
+                photoId = modelIdentity.imageId,
+                canonicalPixelSha256 = modelIdentity.photoIdentity?.canonicalPixelSha256 ?: modelIdentity.photoSha256,
+                modelIdentity = runtimeIdentity,
+                tensorName = inputTensor.name(),
+                dataType = inputTensor.dataType().name,
+                shape = inputShape.map(Int::toLong),
+                byteSize = input.buffer.capacity().toLong(),
+                contentHash = RecognitionTensorContentHash.sha256(input.buffer),
+                startUptimeMs = inferenceStartedAtMs,
+                endUptimeMs = android.os.SystemClock.uptimeMillis(),
+                validationStatus = "VALID",
+            )
+            require(inputReceipt.isValid()) { "CLASSIFIER_INPUT_RECEIPT_INVALID" }
+            logTensorReceipt("INPUT", inputReceipt)
+        }
+        if (!nativeRunLifecycle.startNative(token, input.buffer.capacity().toLong(), output.capacity().toLong())) {
+            if (token.timeoutObserved || deadline?.isExpired(android.os.SystemClock.uptimeMillis()) == true) {
+                throw RecognitionAttemptNativeTimeoutException("CLASSIFIER deadline expired before native submission")
+            }
+            throw IllegalStateException("TFLITE_SESSION_CLOSED_OR_QUARANTINED")
+        }
+        try {
+            interpreter.run(input.buffer, output)
+        } catch (nativeError: Throwable) {
+            val outputUsable = nativeRunLifecycle.nativeReturned(token)
+            if (!outputUsable) {
+                throw RecognitionAttemptNativeTimeoutException(
+                    "CLASSIFIER native run exceeded the shared deadline; native exception output discarded",
+                    nativeError,
+                )
+            }
+            throw nativeError
+        }
+        if (!nativeRunLifecycle.nativeReturned(token)) {
             throw RecognitionAttemptNativeTimeoutException(
                 "CLASSIFIER native run returned after the shared deadline; result discarded",
             )
         }
         output.rewind()
+        val outputContentHash = RecognitionTensorContentHash.sha256(output.asReadOnlyBuffer())
+        output.rewind()
         val logits = FloatArray(count) { output.float }
+        require(logits.all(Float::isFinite)) { "CLASSIFIER_OUTPUT_NON_FINITE" }
+        if (runtimeIdentity != null) {
+            val outputReceipt = RecognitionModelTensorReceipt(
+                inferenceId = inferenceId,
+                recognitionSessionId = requireNotNull(modelIdentity).sessionId,
+                attemptId = modelIdentity.attemptId,
+                photoId = modelIdentity.imageId,
+                canonicalPixelSha256 = modelIdentity.photoIdentity?.canonicalPixelSha256 ?: modelIdentity.photoSha256,
+                modelIdentity = runtimeIdentity,
+                tensorName = outputTensor.name(),
+                dataType = outputTensor.dataType().name,
+                shape = outputShape.map(Int::toLong),
+                byteSize = output.capacity().toLong(),
+                contentHash = outputContentHash,
+                startUptimeMs = inferenceStartedAtMs,
+                endUptimeMs = android.os.SystemClock.uptimeMillis(),
+                validationStatus = "VALID",
+            )
+            require(outputReceipt.isValid()) { "CLASSIFIER_OUTPUT_RECEIPT_INVALID" }
+            logTensorReceipt("OUTPUT", outputReceipt)
+        }
         val probabilities = softmax(logits)
         val candidates = modelInfo.classes.map { label ->
             RecognitionCandidate(
@@ -337,6 +453,10 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
             latencyMs = latencyMs,
             modelInputBitmap = prepared.bitmap,
         )
+        } finally {
+            timeoutTask?.cancel(false)
+            if (nativeRunLifecycle.finish(token)) closeInterpreterAfterSafeReturn()
+        }
     }
 
     /**
@@ -411,7 +531,60 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
     }
 
     override fun close() {
-        if (interpreterLazy.isInitialized()) interpreterLazy.value.close()
+        if (nativeRunLifecycle.requestClose()) closeInterpreterAfterSafeReturn()
+    }
+
+    private fun closeInterpreterAfterSafeReturn() {
+        try {
+            if (interpreterLazy.isInitialized()) interpreterLazy.value.close()
+            nativeRunLifecycle.confirmSessionClosed()
+        } catch (error: Throwable) {
+            Log.e(LOG_TAG, "TFLITE_SESSION_CLOSE_FAILED modelSessionId=$modelSessionId", error)
+        }
+    }
+
+    private fun logTensorReceipt(direction: String, receipt: RecognitionModelTensorReceipt) {
+        Log.i(
+            LOG_TAG,
+            "MODEL_TENSOR_RECEIPT direction=$direction inferenceId=${receipt.inferenceId} " +
+                "recognitionSessionId=${receipt.recognitionSessionId} attemptId=${receipt.attemptId} " +
+                "photoId=${receipt.photoId} canonicalPixelSha256=${receipt.canonicalPixelSha256} " +
+                "modelId=${receipt.modelIdentity.modelId} modelVersion=${receipt.modelIdentity.modelVersion} " +
+                "expectedModelSha256=${receipt.modelIdentity.expectedModelSha256} " +
+                "actualAssetSha256=${receipt.modelIdentity.actualAssetSha256} " +
+                "runtimeVerifiedModelSha256=${receipt.modelIdentity.runtimeVerifiedModelSha256} " +
+                "inputSchemaHash=${receipt.modelIdentity.inputSchemaHash} " +
+                "outputSchemaHash=${receipt.modelIdentity.outputSchemaHash} " +
+                "runtime=${receipt.modelIdentity.runtimeName}/${receipt.modelIdentity.runtimeVersion} " +
+                "provider=${receipt.modelIdentity.executionProvider} modelSessionId=${receipt.modelIdentity.modelSessionId} " +
+                "tensor=${receipt.tensorName} type=${receipt.dataType} shape=${receipt.shape} " +
+                "byteSize=${receipt.byteSize} contentHash=${receipt.contentHash} " +
+                "startUptimeMs=${receipt.startUptimeMs} endUptimeMs=${receipt.endUptimeMs} " +
+                "validation=${receipt.validationStatus} error=${receipt.errorCode.orEmpty()}",
+        )
+    }
+
+    private fun recordNativeLifecycleEvent(event: RecognitionTfliteNativeEvent) {
+        val memoryProfile = runCatching {
+            RecognitionNativeMemoryProfiler.sample(
+                attemptId = event.attemptId,
+                modelRunId = event.inferenceId,
+                modelId = modelInfoLazy.value.modelId,
+                stageId = "TFLITE_NATIVE_${event.state.name}",
+                nowUptimeMs = event.monotonicTimestampMs,
+            ).toJson().toString()
+        }.getOrNull()
+        val hardTermination = if (event.state == RecognitionTfliteNativeState.NATIVE_CALL_STUCK) {
+            " HARD_NATIVE_TERMINATION_NOT_VERIFIED"
+        } else ""
+        Log.i(
+            LOG_TAG,
+            "TFLITE_NATIVE_LIFECYCLE inferenceId=${event.inferenceId} attemptId=${event.attemptId} " +
+                "modelSessionId=${event.modelSessionId} state=${event.state.name} " +
+                "timestampUptimeMs=${event.monotonicTimestampMs} inputBytes=${event.inputBufferBytes} " +
+                "outputBytes=${event.outputBufferBytes} detail=${event.detail.orEmpty()} " +
+                "memoryProfile=${memoryProfile ?: "UNAVAILABLE"}$hardTermination",
+        )
     }
 
     private fun ByteArray.sha256(): String =
@@ -426,7 +599,14 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         const val MODEL_SNAPSHOT_FILE = "model_release_contract.json"
         const val PRODUCTION_RELEASE_MODEL_FILE = "fish_classifier_v0_2.tflite"
         const val PRODUCTION_RELEASE_TAG = "mobile-model-v0.2"
+        const val TFLITE_RUNTIME_VERSION = "2.16.1"
+        const val CLASSIFIER_PREPROCESS_VERSION = "LETTERBOX_RGB_IMAGENET_NORMALIZATION_V1"
+        const val CLASSIFIER_POSTPROCESS_VERSION = "SOFTMAX_CLASS_ORDER_V1"
         private const val LOG_TAG = "FishRecognitionEngine"
+        private val inferenceSequence = AtomicLong(0L)
+        private val nativeDeadlineScheduler = Executors.newSingleThreadScheduledExecutor { runnable ->
+            Thread(runnable, "yujian-tflite-deadline").apply { isDaemon = true }
+        }
 
         private const val PADDING_R = 124
         private const val PADDING_G = 116

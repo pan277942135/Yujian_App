@@ -472,6 +472,10 @@ class Stage04ArrivalPathWithoutMaskTest {
         assertTrue(fixture.controller.onFishPathSnapshot(pathSnapshot, fixture.identity))
 
         assertEquals(RecognitionSceneStage.CONTOUR_A, fixture.controller.currentSceneStage(2_200L))
+        assertEquals(RecognitionSceneStage.CONTOUR_A, fixture.controller.currentSceneStage(2_650L))
+        assertFalse(requireNotNull(
+            controllerFrame(fixture.controller, fixture.identity, fixture.geometryVersion, 2_650L).sceneFrameOverride,
+        ).stageEventComplete)
         assertFalse(fixture.controller.onContourRenderComplete(
             contourReceipt(fixture, maskSha, maskVersion, fishPathId, RecognitionSceneStage.CONTOUR_B, 2_650L, 1f / 3f, 1L),
             fixture.identity,
@@ -481,6 +485,7 @@ class Stage04ArrivalPathWithoutMaskTest {
             fixture.identity,
         ))
         assertEquals(RecognitionSceneStage.CONTOUR_B, fixture.controller.currentSceneStage(2_650L))
+        assertEquals(RecognitionSceneStage.CONTOUR_B, fixture.controller.currentSceneStage(3_100L))
         assertTrue(fixture.controller.onContourRenderComplete(
             contourReceipt(fixture, maskSha, maskVersion, fishPathId, RecognitionSceneStage.CONTOUR_B, 3_100L, 2f / 3f, 3L),
             fixture.identity,

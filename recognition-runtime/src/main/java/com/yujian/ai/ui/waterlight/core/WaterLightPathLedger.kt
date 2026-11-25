@@ -166,6 +166,25 @@ data class RecognitionOrbOnlyReturnPathSnapshot(
         attemptId == frame.attemptId && imageId == frame.imageId && photoSha256 == frame.photoSha256 &&
         photoContentVersion == frame.photoContentVersion && geometryVersion == frame.geometryVersion
         && photoIdentity == frame.photoIdentity
+
+    fun calculateContentSha256(): String = MessageDigest.getInstance("SHA-256")
+        .digest(canonicalContent().toByteArray(Charsets.UTF_8))
+        .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+
+    private fun canonicalContent(): String = listOf(
+        sessionId,
+        attemptId,
+        imageId,
+        photoSha256,
+        photoContentVersion,
+        pathId,
+        geometryVersion,
+        segment,
+        sourceCoordinateSpace,
+        creationTimestampMonotonicMs,
+        creationEventSequence,
+        photoIdentity,
+    ).joinToString("|") { it.toString() }
 }
 
 private data class WaterLightPathIdentity(

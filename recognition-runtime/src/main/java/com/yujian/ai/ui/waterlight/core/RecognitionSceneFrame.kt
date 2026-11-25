@@ -117,6 +117,58 @@ object RecognitionFishGoldRenderContract {
         receipt.outerHaloDrawn && receipt.glintDrawn && receipt.drawPassSequence > 0L
 }
 
+/** A GL route receipt is published only after the matching event path was drawn and EGL swapped. */
+data class RecognitionEnergyPathRenderReceipt(
+    val identity: RecognitionSceneIdentity,
+    val eventId: String,
+    val stage: RecognitionSceneStage,
+    val feedback: EnergyFeedback,
+    val pathId: String,
+    val geometryVersion: Long,
+    val pathGeometry: WaterLightPathGeometry?,
+    val pathSegments: List<WaterLightPathGeometry>,
+    val pathContentSha256: String,
+    val sourceStageProgress: Float,
+    val renderedProgress: Float,
+    val renderedSegmentCount: Int,
+    val eglSwapSucceeded: Boolean,
+    val frameSequence: Long,
+    val observedAtUptimeMs: Long,
+)
+
+object RecognitionEnergyPathRenderContract {
+    fun isComplete(
+        identity: RecognitionSceneIdentity,
+        event: EnergyEvent,
+        receipt: RecognitionEnergyPathRenderReceipt,
+    ): Boolean {
+        val expectedSourceAndTarget = when (event.feedback) {
+            EnergyFeedback.RELEASE -> event.stage == RecognitionSceneStage.ORB_RELEASE &&
+                event.source == EnergyAnchor.ORB_RIBBON && event.target == EnergyAnchor.PHOTO_PERIMETER
+            EnergyFeedback.ARRIVE -> event.stage == RecognitionSceneStage.PERIMETER_ARRIVAL &&
+                event.source == EnergyAnchor.PHOTO_PERIMETER && event.target == EnergyAnchor.PHOTO_PATH
+            else -> false
+        }
+        val route = event.pathSegments.takeIf { it.isNotEmpty() } ?: listOfNotNull(event.pathGeometry)
+        return expectedSourceAndTarget && event.hasValidContract() && event.renderStatus == "READY" &&
+            event.pathId?.isNotBlank() == true && route.isNotEmpty() && route.all(WaterLightPathGeometry::isValid) &&
+            event.sessionId == identity.sessionId && event.attemptId == identity.attemptId &&
+            event.imageId == identity.imageId && event.photoSha256 == identity.photoSha256 &&
+            event.photoContentVersion == identity.photoContentVersion &&
+            receipt.identity == identity && receipt.eventId == event.eventId && receipt.stage == event.stage &&
+            receipt.feedback == event.feedback && receipt.pathId == event.pathId &&
+            receipt.geometryVersion == event.geometryVersion && receipt.pathGeometry == event.pathGeometry &&
+            receipt.pathSegments == event.pathSegments &&
+            receipt.pathContentSha256 == event.calculatePathContentSha256() &&
+            receipt.pathContentSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) &&
+            receipt.sourceStageProgress.isFinite() && receipt.sourceStageProgress >= .999f &&
+            event.level.isFinite() && event.level >= .999f &&
+            receipt.renderedProgress.isFinite() && receipt.renderedProgress >= .999f &&
+            receipt.renderedSegmentCount == route.size && receipt.eglSwapSucceeded &&
+            receipt.frameSequence > 0L && receipt.observedAtUptimeMs >= event.monotonicTimestampMs
+    }
+}
+
 /** Renderer receipt for the actual Result-host Orb RETURN path and measured viewport. */
 data class RecognitionOrbReturnRenderReceipt(
     val identity: RecognitionSceneIdentity,

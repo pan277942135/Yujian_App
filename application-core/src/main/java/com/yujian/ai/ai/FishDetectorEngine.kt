@@ -1,16 +1,21 @@
 package com.yujian.ai.ai
 
 import ai.onnxruntime.OnnxTensor
+import ai.onnxruntime.OnnxJavaType
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import ai.onnxruntime.TensorInfo
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.util.Log
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
+import java.util.UUID
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
@@ -77,9 +82,17 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
     private data class VerifiedModel(
         val bytes: ByteArray,
         val sha256: String,
+        val expectedSha256: String,
         val inputSize: Int,
         val inputName: String,
+        val outputShape: List<Long>,
     )
+
+    private val modelSessionId = UUID.randomUUID().toString()
+    private val sessionLifecycleLock = Any()
+    private var activeSessionUsers = 0
+    private var sessionCloseRequested = false
+    private var sessionClosed = false
 
     private data class PillowAxisCoefficients(
         val starts: IntArray,
@@ -119,6 +132,17 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
                 require(session.inputNames.first() == verifiedModel.inputName) {
                     "DET_FISH_v0.1 输入名不一致：runtime=${session.inputNames.first()} metadata=${verifiedModel.inputName}"
                 }
+                val inputInfo = session.inputInfo.getValue(verifiedModel.inputName).info as? TensorInfo
+                    ?: error("DET_FISH_v0.1 runtime input is not a tensor")
+                require(inputInfo.type == OnnxJavaType.FLOAT && inputInfo.shape.contentEquals(
+                    longArrayOf(1L, 3L, verifiedModel.inputSize.toLong(), verifiedModel.inputSize.toLong()),
+                )) { "DET_FISH_v0.1 runtime input schema mismatch: $inputInfo" }
+                val outputName = session.outputNames.first()
+                val outputInfo = session.outputInfo.getValue(outputName).info as? TensorInfo
+                    ?: error("DET_FISH_v0.1 runtime output is not a tensor")
+                require(outputInfo.type == OnnxJavaType.FLOAT && outputInfo.shape.toList() == verifiedModel.outputShape) {
+                    "DET_FISH_v0.1 runtime output schema mismatch: $outputInfo"
+                }
             }
         } catch (failure: RecognitionStageFailureException) {
             throw failure
@@ -132,6 +156,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
     suspend fun detect(
         bitmap: Bitmap,
         deadline: RecognitionAttemptDeadline? = null,
+        modelIdentity: RecognitionModelIdentity? = null,
     ): DetectorRun = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
         require(bitmap.width > 0 && bitmap.height > 0) { "鱼体检测输入图片尺寸无效" }
         val started = System.nanoTime()
@@ -141,7 +166,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         fun evaluate(orientation: DetectorOrientationAttempt): Pair<DetectorRun, FishInputAssessment> {
             val attemptBitmap = orientBitmap(bitmap, orientation)
             val attemptRun = try {
-                detectOnce(attemptBitmap, model, deadline)
+                detectOnce(attemptBitmap, model, deadline, modelIdentity)
             } finally {
                 if (attemptBitmap !== bitmap && !attemptBitmap.isRecycled) attemptBitmap.recycle()
             }
@@ -211,20 +236,104 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         bitmap: Bitmap,
         model: VerifiedModel,
         deadline: RecognitionAttemptDeadline?,
+        modelIdentity: RecognitionModelIdentity?,
+    ): DetectorRun = withSessionLease { activeSession ->
+        detectOnceWithSession(bitmap, model, deadline, modelIdentity, activeSession)
+    }
+
+    private fun detectOnceWithSession(
+        bitmap: Bitmap,
+        model: VerifiedModel,
+        deadline: RecognitionAttemptDeadline?,
+        modelIdentity: RecognitionModelIdentity?,
+        activeSession: OrtSession,
     ): DetectorRun {
         val attemptStarted = System.nanoTime()
+        val inferenceStartedAtMs = android.os.SystemClock.uptimeMillis()
+        val inferenceId = "${modelIdentity?.attemptId ?: "unbound"}:DETECTOR:${inferenceSequence.incrementAndGet()}"
         val prepared = prepareInput(bitmap, model.inputSize)
         val shape = longArrayOf(1, 3, model.inputSize.toLong(), model.inputSize.toLong())
+        val outputName = activeSession.outputNames.single()
+        val outputInfo = activeSession.outputInfo.getValue(outputName).info as TensorInfo
+        val inputSchemaHash = schemaHash("${model.inputName}|FLOAT|${shape.joinToString()}")
+        val outputSchemaHash = schemaHash("$outputName|${outputInfo.type.name}|${outputInfo.shape.joinToString()}")
+        val runtimeIdentity = modelIdentity?.let {
+            RecognitionRuntimeModelIdentity(
+                modelId = MODEL_FAMILY,
+                modelVersion = MODEL_VERSION,
+                expectedModelSha256 = model.expectedSha256,
+                actualAssetSha256 = model.sha256,
+                runtimeVerifiedModelSha256 = model.sha256,
+                modelFormat = "ONNX",
+                inputSchemaHash = inputSchemaHash,
+                outputSchemaHash = outputSchemaHash,
+                preprocessVersion = DETECTOR_PREPROCESS_VERSION,
+                postprocessVersion = DETECTOR_POSTPROCESS_VERSION,
+                runtimeName = "ONNX Runtime Android",
+                runtimeVersion = ORT_RUNTIME_VERSION,
+                executionProvider = "CPU",
+                modelSessionId = modelSessionId,
+            ).also { identity -> require(identity.isValid()) { "DETECTOR_MODEL_IDENTITY_INVALID" } }
+        }
 
         var outputShape = emptyList<Int>()
-        val rows = OnnxTensor.createTensor(environment, prepared.buffer.asFloatBuffer(), shape).use { tensor ->
+        val rows = OnnxTensor.createTensor(environment, prepared.buffer.asFloatBuffer(), shape).use { inputTensor ->
+            require(inputTensor.info.type == OnnxJavaType.FLOAT && inputTensor.info.shape.contentEquals(shape)) {
+                "DET_FISH_v0.1 submitted input tensor schema mismatch"
+            }
+            runtimeIdentity?.let { identity ->
+                val receipt = RecognitionModelTensorReceipt(
+                    inferenceId = inferenceId,
+                    recognitionSessionId = requireNotNull(modelIdentity).sessionId,
+                    attemptId = modelIdentity.attemptId,
+                    photoId = modelIdentity.imageId,
+                    canonicalPixelSha256 = modelIdentity.photoIdentity?.canonicalPixelSha256 ?: modelIdentity.photoSha256,
+                    modelIdentity = identity,
+                    tensorName = model.inputName,
+                    dataType = inputTensor.info.type.name,
+                    shape = shape.toList(),
+                    byteSize = prepared.buffer.capacity().toLong(),
+                    contentHash = RecognitionTensorContentHash.sha256(prepared.buffer),
+                    startUptimeMs = inferenceStartedAtMs,
+                    endUptimeMs = android.os.SystemClock.uptimeMillis(),
+                    validationStatus = "VALID",
+                )
+                require(receipt.isValid()) { "DETECTOR_INPUT_RECEIPT_INVALID" }
+                logTensorReceipt("INPUT", receipt)
+            }
             RecognitionOrtNativeRun.run(deadline) { runOptions ->
-                session.run(mapOf(model.inputName to tensor), runOptions)
+                activeSession.run(mapOf(model.inputName to inputTensor), runOptions)
             }.use { result ->
                 val output = result[0] as? OnnxTensor
                     ?: error("DET_FISH_v0.1 输出不是 FLOAT tensor")
+                require(output.info.type == OnnxJavaType.FLOAT) { "DET_FISH_v0.1 output dtype mismatch" }
                 outputShape = output.info.shape.map { it.toInt() }
-                materializeRows(output.value)
+                require(output.info.shape.toList() == model.outputShape) { "DET_FISH_v0.1 output shape mismatch" }
+                val outputRows = materializeRows(output.value)
+                val finite = outputRows.all { row -> row.all(Float::isFinite) }
+                runtimeIdentity?.let { identity ->
+                    val receipt = RecognitionModelTensorReceipt(
+                        inferenceId = inferenceId,
+                        recognitionSessionId = requireNotNull(modelIdentity).sessionId,
+                        attemptId = modelIdentity.attemptId,
+                        photoId = modelIdentity.imageId,
+                        canonicalPixelSha256 = modelIdentity.photoIdentity?.canonicalPixelSha256 ?: modelIdentity.photoSha256,
+                        modelIdentity = identity,
+                        tensorName = outputName,
+                        dataType = output.info.type.name,
+                        shape = output.info.shape.toList(),
+                        byteSize = output.floatBuffer.remaining().toLong() * Float.SIZE_BYTES,
+                        contentHash = RecognitionTensorContentHash.sha256(output.floatBuffer),
+                        startUptimeMs = inferenceStartedAtMs,
+                        endUptimeMs = android.os.SystemClock.uptimeMillis(),
+                        validationStatus = if (finite) "VALID" else "INVALID",
+                        errorCode = if (finite) null else "NON_FINITE_OUTPUT",
+                    )
+                    logTensorReceipt("OUTPUT", receipt)
+                    require(receipt.isValid()) { "DETECTOR_OUTPUT_RECEIPT_INVALID" }
+                }
+                require(finite) { "DETECTOR_OUTPUT_NON_FINITE" }
+                outputRows
             }
         }
 
@@ -268,7 +377,8 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         require(metadata.getString("dataset_version") == DATASET_VERSION) { "Detector 数据集版本不匹配" }
 
         val actualSha = modelBytes.sha256()
-        require(metadata.getString("onnx_sha256") == actualSha) { "Detector ONNX SHA256 校验失败：$actualSha" }
+        val expectedSha = metadata.getString("onnx_sha256")
+        require(expectedSha == actualSha) { "Detector ONNX SHA256 校验失败：$actualSha" }
         require(metadata.getLong("onnx_bytes") == modelBytes.size.toLong()) {
             "Detector ONNX 大小异常：${modelBytes.size}"
         }
@@ -301,7 +411,11 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         val inputName = onnx.getString("input_name")
         require(inputName.isNotBlank())
 
-        return VerifiedModel(modelBytes, actualSha, inputSize, inputName)
+        val outputShape = onnx.getJSONArray("output_shape").let { array ->
+            require(array.length() == 3)
+            (0 until array.length()).map { index -> array.getLong(index).also { require(it > 0L) } }
+        }
+        return VerifiedModel(modelBytes, actualSha, expectedSha, inputSize, inputName, outputShape)
     }
 
     private fun prepareInput(bitmap: Bitmap, inputSize: Int): PreparedInput {
@@ -440,7 +554,61 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
     }
 
     override fun close() {
-        if (sessionLazy.isInitialized()) sessionLazy.value.close()
+        val closeNow = synchronized(sessionLifecycleLock) {
+            sessionCloseRequested = true
+            if (activeSessionUsers == 0 && !sessionClosed && sessionLazy.isInitialized()) {
+                sessionClosed = true
+                sessionLazy.value
+            } else null
+        }
+        closeNow?.close()
+    }
+
+    private inline fun <T> withSessionLease(block: (OrtSession) -> T): T {
+        val leasedSession = synchronized(sessionLifecycleLock) {
+            check(!sessionCloseRequested) { "DETECTOR_SESSION_CLOSE_REQUESTED" }
+            val initialized = session
+            check(!sessionClosed) { "DETECTOR_SESSION_CLOSED" }
+            activeSessionUsers += 1
+            initialized
+        }
+        try {
+            return block(leasedSession)
+        } finally {
+            val closeNow = synchronized(sessionLifecycleLock) {
+                activeSessionUsers = (activeSessionUsers - 1).coerceAtLeast(0)
+                if (sessionCloseRequested && activeSessionUsers == 0 && !sessionClosed) {
+                    sessionClosed = true
+                    leasedSession
+                } else null
+            }
+            closeNow?.close()
+        }
+    }
+
+    private fun schemaHash(value: String): String = MessageDigest.getInstance("SHA-256")
+        .digest(value.toByteArray(Charsets.UTF_8))
+        .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+
+    private fun logTensorReceipt(direction: String, receipt: RecognitionModelTensorReceipt) {
+        Log.i(
+            "RecognitionModelReceipt",
+            "MODEL_TENSOR_RECEIPT direction=$direction inferenceId=${receipt.inferenceId} " +
+                "recognitionSessionId=${receipt.recognitionSessionId} attemptId=${receipt.attemptId} " +
+                "photoId=${receipt.photoId} canonicalPixelSha256=${receipt.canonicalPixelSha256} " +
+                "modelId=${receipt.modelIdentity.modelId} modelVersion=${receipt.modelIdentity.modelVersion} " +
+                "expectedModelSha256=${receipt.modelIdentity.expectedModelSha256} " +
+                "actualAssetSha256=${receipt.modelIdentity.actualAssetSha256} " +
+                "runtimeVerifiedModelSha256=${receipt.modelIdentity.runtimeVerifiedModelSha256} " +
+                "inputSchemaHash=${receipt.modelIdentity.inputSchemaHash} " +
+                "outputSchemaHash=${receipt.modelIdentity.outputSchemaHash} " +
+                "runtime=${receipt.modelIdentity.runtimeName}/${receipt.modelIdentity.runtimeVersion} " +
+                "provider=${receipt.modelIdentity.executionProvider} modelSessionId=${receipt.modelIdentity.modelSessionId} " +
+                "tensor=${receipt.tensorName} type=${receipt.dataType} shape=${receipt.shape} " +
+                "byteSize=${receipt.byteSize} contentHash=${receipt.contentHash} " +
+                "startUptimeMs=${receipt.startUptimeMs} endUptimeMs=${receipt.endUptimeMs} " +
+                "validation=${receipt.validationStatus} error=${receipt.errorCode.orEmpty()}",
+        )
     }
 
     private fun readAssetBytes(name: String): ByteArray =
@@ -461,7 +629,11 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         const val EXPECTED_INPUT_SIZE = 416
         const val YOLOX_FILL = 114
         const val ORIENTATION_RETRY_POLICY_VERSION = "DETECTOR_ORIENTATION_RETRY_v2"
+        const val ORT_RUNTIME_VERSION = "1.29.0"
+        const val DETECTOR_PREPROCESS_VERSION = "YOLOX_BGR_NCHW_LETTERBOX_PILLOW_BILINEAR_V1"
+        const val DETECTOR_POSTPROCESS_VERSION = "YOLOX_DECODE_NMS_V1"
         private const val DETECTOR_INTRA_OP_THREADS = 2
+        private val inferenceSequence = AtomicLong(0L)
         val ORIENTATION_ATTEMPTS = listOf(
             DetectorOrientationAttempt.ORIGINAL,
             DetectorOrientationAttempt.CW90,

@@ -34,6 +34,8 @@ import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.waterlight.core.RecognitionSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionOrbOnlyReturnPathSnapshot
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionPathBindingCommitReceipt
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneOwnerTransferReceipt
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import java.security.MessageDigest
 
@@ -52,6 +54,9 @@ data class RecognitionRevealSessionSnapshot(
     val pendingFishPathSnapshot: RecognitionSnapshot? = null,
     val fishPathSnapshotBindingState: RecognitionFishPathSnapshotBindingState =
         RecognitionFishPathSnapshotBindingState.NOT_RECEIVED,
+    val fishPathBindingCommitReceiptId: String? = null,
+    val sceneOwner: RecognitionSceneOwner = RecognitionSceneOwner.RECOGNITION,
+    val sceneOwnerTransferReceiptId: String? = null,
     val fishPathSnapshotBindingDiagnostic: Map<String, String> = emptyMap(),
     val fishPathSnapshotPathId: String? = null,
     val fishPathSnapshotProducerSha256: String? = null,
@@ -92,12 +97,15 @@ internal enum class RecognitionFishPathSnapshotBindOutcome {
 enum class RecognitionFishPathSnapshotBindingState {
     NOT_RECEIVED,
     RECEIVED_PENDING,
+    PREPARED,
     BOUND,
     REJECTED_IDENTITY,
     REJECTED_MASK,
     REJECTED_GEOMETRY,
     REJECTED_FROZEN_HANDOFF,
 }
+
+enum class RecognitionSceneOwner { RECOGNITION, RESULT }
 
 /** Pure identity join used by SessionStore when Path, Photo, and Subject callbacks race. */
 internal object RecognitionFishPathSnapshotBinding {
@@ -360,6 +368,20 @@ class RecognitionRevealSessionStore : ViewModel() {
     fun updateFishPathSnapshot(
         key: RecognitionRevealKey,
         pathSnapshot: RecognitionSnapshot,
+    ): Boolean = receiveFishPathSnapshot(key, pathSnapshot, prepareOnly = false)
+
+    /** Stage one endpoint without making a path visible to downstream consumers. */
+    @Synchronized
+    fun prepareFishPathSnapshot(
+        key: RecognitionRevealKey,
+        pathSnapshot: RecognitionSnapshot,
+    ): Boolean = receiveFishPathSnapshot(key, pathSnapshot, prepareOnly = true)
+
+    @Synchronized
+    private fun receiveFishPathSnapshot(
+        key: RecognitionRevealKey,
+        pathSnapshot: RecognitionSnapshot,
+        prepareOnly: Boolean,
     ): Boolean {
         val current = snapshot ?: return false
         val image = current.image ?: return false
@@ -449,12 +471,117 @@ class RecognitionRevealSessionStore : ViewModel() {
             ),
             pStarPathFailureReason = null,
         )
-        val candidate = acceptPendingFishPathIfReady(staged)
+        val prepared = prepareOnly && RecognitionFishPathSnapshotBinding.evaluate(
+            path = pathSnapshot,
+            subjectStatus = staged.subjectResult.status,
+            subject = staged.subjectGeometry,
+            photo = staged.processingPhoto,
+            sessionId = staged.recognitionSessionId,
+            attemptId = staged.recognitionAttemptId.orEmpty(),
+            imageId = image.imageId,
+            photoSha256 = image.photoSha256,
+            photoContentVersion = contentVersion,
+            photoIdentity = image.photoIdentity,
+        ) == RecognitionFishPathSnapshotBindOutcome.ACCEPTED
+        val candidate = if (prepared) staged.copy(
+            fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.PREPARED,
+            fishPathSnapshotPendingReason = null,
+            fishPathSnapshotBindingDiagnostic = RecognitionFishPathSnapshotBinding.diagnostic(
+                path = pathSnapshot,
+                subject = staged.subjectGeometry,
+                photo = staged.processingPhoto,
+                sessionId = staged.recognitionSessionId,
+                attemptId = staged.recognitionAttemptId.orEmpty(),
+                imageId = image.imageId,
+                photoSha256 = image.photoSha256,
+                photoContentVersion = contentVersion,
+                photoIdentity = image.photoIdentity,
+                state = RecognitionFishPathSnapshotBindingState.PREPARED,
+                subjectStatus = staged.subjectResult.status,
+                handoffFrozen = false,
+            ),
+        ) else if (prepareOnly) acceptPendingFishPathIfReady(staged) else acceptPendingFishPathIfReady(staged)
         snapshot = candidate.copy(
             handoff = rebuildHandoff(candidate),
             revealDecision = decisionFor(candidate),
         )
-        return candidate.pendingFishPathSnapshot == pathSnapshot || candidate.fishPathSnapshot == pathSnapshot
+        return if (prepareOnly) {
+            prepared && candidate.pendingFishPathSnapshot == pathSnapshot &&
+                candidate.fishPathSnapshotBindingState == RecognitionFishPathSnapshotBindingState.PREPARED
+        } else candidate.pendingFishPathSnapshot == pathSnapshot || candidate.fishPathSnapshot == pathSnapshot
+    }
+
+    /** Finalize the prepared path only when the shared coordinator presents its immutable receipt. */
+    @Synchronized
+    fun commitPreparedFishPathSnapshot(
+        key: RecognitionRevealKey,
+        receipt: RecognitionPathBindingCommitReceipt,
+    ): Boolean {
+        if (!receipt.isValid()) return false
+        val current = snapshot ?: return false
+        val path = current.pendingFishPathSnapshot ?: current.fishPathSnapshot ?: return false
+        val image = current.image ?: return false
+        val identity = receipt.identity
+        if (!current.matches(key) || current.fishPathSnapshotBindingState !in setOf(
+                RecognitionFishPathSnapshotBindingState.PREPARED,
+                RecognitionFishPathSnapshotBindingState.BOUND,
+            ) || identity.recognitionSessionId != key.recognitionSessionId ||
+            identity.attemptId != key.recognitionAttemptId || identity.photoId != image.imageId ||
+            identity.photoIdentityHash != image.photoSha256 ||
+            identity.pathSnapshotContentHash != path.calculateContentSha256() ||
+            identity.fishPathId != path.fishPathId || identity.maskSha256 != path.maskSha256 ||
+            identity.maskVersion != path.maskVersion || identity.geometryVersion != path.geometryVersion
+        ) return false
+        if (current.fishPathBindingCommitReceiptId != null) {
+            return current.fishPathBindingCommitReceiptId == receipt.receiptId && current.fishPathSnapshot == path
+        }
+        val promoted = acceptPendingFishPathIfReady(
+            current.copy(fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING),
+        )
+        if (promoted.fishPathSnapshotBindingState != RecognitionFishPathSnapshotBindingState.BOUND ||
+            promoted.fishPathSnapshot != path
+        ) return false
+        snapshot = promoted.copy(
+            fishPathBindingCommitReceiptId = receipt.receiptId,
+            handoff = rebuildHandoff(promoted),
+            revealDecision = decisionFor(promoted),
+        )
+        return true
+    }
+
+    @Synchronized
+    fun abortPreparedFishPathSnapshot(key: RecognitionRevealKey, receiptId: String? = null): Boolean {
+        val current = snapshot ?: return false
+        if (!current.matches(key) || current.fishPathSnapshotBindingState !in setOf(
+                RecognitionFishPathSnapshotBindingState.PREPARED,
+                RecognitionFishPathSnapshotBindingState.RECEIVED_PENDING,
+                RecognitionFishPathSnapshotBindingState.BOUND,
+            ) || (receiptId != null && current.fishPathBindingCommitReceiptId != null &&
+                current.fishPathBindingCommitReceiptId != receiptId)
+        ) return false
+        val identity = current.image ?: return false
+        snapshot = current.copy(
+            fishPathSnapshot = null,
+            pendingFishPathSnapshot = null,
+            fishPathSnapshotBindingState = RecognitionFishPathSnapshotBindingState.NOT_RECEIVED,
+            fishPathBindingCommitReceiptId = null,
+            fishPathSnapshotPendingReason = null,
+            fishPathSnapshotBindingDiagnostic = RecognitionFishPathSnapshotBinding.diagnostic(
+                path = current.pendingFishPathSnapshot ?: current.fishPathSnapshot,
+                subject = current.subjectGeometry,
+                photo = current.processingPhoto,
+                sessionId = current.recognitionSessionId,
+                attemptId = current.recognitionAttemptId.orEmpty(),
+                imageId = identity.imageId,
+                photoSha256 = identity.photoSha256,
+                photoContentVersion = identity.photoIdentity?.photoContentVersion ?: 0L,
+                photoIdentity = identity.photoIdentity,
+                state = RecognitionFishPathSnapshotBindingState.NOT_RECEIVED,
+                subjectStatus = current.subjectResult.status,
+                handoffFrozen = false,
+            ),
+        )
+        return true
     }
 
     /** Retains the real Processing-ledger perimeter route before an Orb-only handoff freezes. */
@@ -501,6 +628,7 @@ class RecognitionRevealSessionStore : ViewModel() {
     private fun acceptPendingFishPathIfReady(
         candidate: RecognitionRevealSessionSnapshot,
     ): RecognitionRevealSessionSnapshot {
+        if (candidate.fishPathSnapshotBindingState == RecognitionFishPathSnapshotBindingState.PREPARED) return candidate
         val path = candidate.pendingFishPathSnapshot ?: return candidate
         val image = candidate.image ?: return candidate
         val contentVersion = image.photoIdentity?.photoContentVersion ?: 0L
@@ -1246,6 +1374,41 @@ class RecognitionRevealSessionStore : ViewModel() {
         snapshot = current.copy(resultHandoffState = nextState)
         if (stable) playedKeys.complete(key, resultSceneStable = true)
         return RecognitionResultHandoffReceipt(true, resultSceneStable = stable)
+    }
+
+    /** Store endpoint for the explicit Consumer-ACK to Result-owner transfer. */
+    @Synchronized
+    fun transferSceneOwner(key: RecognitionRevealKey, receipt: RecognitionSceneOwnerTransferReceipt): Boolean {
+        if (!receipt.isValid()) return false
+        val current = snapshot ?: return false
+        val image = current.image ?: return false
+        val result = current.committedResultSnapshot ?: return false
+        if (!current.matches(key) || current.recognitionSessionId != receipt.recognitionSessionId ||
+            current.recognitionAttemptId != receipt.attemptId || image.imageId != receipt.photoId ||
+            image.photoIdentity?.canonicalPixelSha256 != receipt.photoIdentityHash ||
+            result.snapshotId != receipt.snapshotId || result.contentHash != receipt.snapshotContentHash ||
+            !current.resultHandoffState.has(ResultHandoffSubstage.RESULT_SCENE_HANDOFF)
+        ) return false
+        val existing = current.sceneOwnerTransferReceiptId
+        if (existing != null) return existing == receipt.receiptId && current.sceneOwner == RecognitionSceneOwner.RESULT
+        snapshot = current.copy(
+            sceneOwner = RecognitionSceneOwner.RESULT,
+            sceneOwnerTransferReceiptId = receipt.receiptId,
+        )
+        return true
+    }
+
+    @Synchronized
+    fun abortSceneOwnerTransfer(key: RecognitionRevealKey, receipt: RecognitionSceneOwnerTransferReceipt): Boolean {
+        val current = snapshot ?: return false
+        if (!current.matches(key) || current.sceneOwnerTransferReceiptId != receipt.receiptId ||
+            current.sceneOwner != RecognitionSceneOwner.RESULT
+        ) return false
+        snapshot = current.copy(
+            sceneOwner = RecognitionSceneOwner.RECOGNITION,
+            sceneOwnerTransferReceiptId = null,
+        )
+        return true
     }
 
     fun recordRejectedResultHandoffEvent(key: RecognitionRevealKey, event: RecognitionResultHandoffEvent, reason: String) {
