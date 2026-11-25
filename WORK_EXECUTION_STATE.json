@@ -32,7 +32,7 @@
     "P5-02"
   ],
   "evidence": {
-    "admission": "CONTROL_PLANE_ADMISSION=PASS on state checkpoint 67f17f0eb6a80233438cb8b00111a55d6767a6d8 for implementation source 6102640437041159abc519b00249b7aedff0bb03; all six Admission groups pass; structural_errors=0; historical OPEN_GAP=1 is non-blocking.",
+    "admission": "CONTROL_PLANE_ADMISSION=PASS on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 with product source 316de1b705fb54ee7d6e2114259ec1f87773aedf; Registry, Feature Matrix, Phase/Task, Unified Contract structure, Control Plane Sync, Project Master State and Work Execution State pass; structural_errors=0; the unchanged historical RecognitionResultScreen path remains one non-blocking OPEN_GAP.",
     "admission_baseline": "CONTROL_PLANE_ADMISSION=PASS at 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; structural_errors=0; historical OPEN_GAP=1 is not an Admission failure. Current recovered-state Admission is the next required check.",
     "android_test_compile": ":app:assembleDebugAndroidTest PASS; production AUTO instrumentation APK compiled, not run locally.",
     "api36_failure_classification": "AUTO_SMOKE_PASS=false. EMULATOR_BOOT_PASS=NOT_CONFIRMED. The production smoke command ended with exit code 1; final enforcement failed. Uploaded runtime artifact 14818308331 is 10.1 MB with SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33, but raw contents are inaccessible, so INFRA_BLOCKED versus BUSINESS_LOGIC_FAILURE versus RESOURCE_EXHAUSTED cannot be distinguished.",
@@ -45,7 +45,7 @@
     "branch_source_commit": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10 (existing PR #346 branch fix/26kf-path-boundary-and-fish-gate-v1; source baseline for this remediation; no new PR or merge)",
     "business_runtime_outcome": "NOT_RUN on current source; current exact-head Stage10–13.5 production AUTO evidence required.",
     "code_implementation_commit": "6102640437041159abc519b00249b7aedff0bb03",
-    "current_admission_attempt": "2026-11-25 initial admission on 316de1b: static registry, feature matrix, task machine, contract structure and branch sync passed; project state passed; Work state failed because source_sha was babd6b3 while implementation files changed through 316de1b. failure_gate check allowed first attempt and record captured it as ac3bb2ad23dfa92e4d71. State-only reconciliation is in progress; no production source edits or tests have run in this Work.",
+    "current_admission_attempt": "Second CONTROL_PLANE_ADMISSION on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 passed. Product source remains 316de1b705fb54ee7d6e2114259ec1f87773aedf. No production source changes or tests have run in this V2 Work yet.",
     "current_source_changes": "Immutable versioned RecognitionSnapshot metadata and pending-input SessionStore binding; stale energy event envelope/sequence regression; richer SlimSAM initialization and failure/tensor diagnostics.",
     "debug_apk_build": "PENDING final checkpoint Exact-HEAD APK Pair build.",
     "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
@@ -168,15 +168,15 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Commit the state-only source checkpoint, rerun Control Plane Admission, then start current-source regression and production fixes.",
+  "next_action": "Trace Gate authorization, four-model execution receipts, PhotoIdentity propagation, path binding, snapshot consumers and native resource ownership in current production callers.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
   "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
-  "stage": "G0_ADMISSION_RECONCILIATION",
+  "stage": "G0_SOURCE_LOCK_COMPLETE",
   "state_update": {
     "last_updated_at": "2026-11-25T05:15:18Z",
-    "note": "New V2 Work intake. Source lock verified at 316de1b; Git Remote write probe passed. User supplied frozen Gate table and it matches the formal Policy. Initial Admission failure was recorded via Work V2 failure_gate; reconciling tracked dynamic state before any product edits or tests. P0-2 historical commit object remains unavailable."
+    "note": "Control Plane Admission passed on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for unchanged product source 316de1b705fb54ee7d6e2114259ec1f87773aedf. User supplied Gate policy is frozen and consistent. Source lock is complete; begin root-cause tracing and source fixes. P0-2 historical commit content remains unavailable."
   },
   "status": "RUNNING",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",

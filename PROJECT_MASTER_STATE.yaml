@@ -75,7 +75,7 @@ recognition_main_journey:
 runtime_gates:
   exact_head:
     sha: 316de1b705fb54ee7d6e2114259ec1f87773aedf
-    admission: Initial admission on this source failed because WORK_EXECUTION_STATE.source_sha was stale; failure is recorded. State-only reconciliation and a fresh admission run are pending.
+    admission: CONTROL_PLANE_ADMISSION=PASS on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf; all admission groups pass, structural_errors=0; one unchanged historical RecognitionResultScreen path OPEN_GAP is non-blocking.
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
@@ -104,7 +104,7 @@ current_work:
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
   exact_head: 316de1b705fb54ee7d6e2114259ec1f87773aedf
   status: RUNNING
-  stage: G0_ADMISSION_RECONCILIATION
+  stage: G0_SOURCE_LOCK_COMPLETE
   requested_task_id: YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2
   requested_task_title: 'Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery'
   blockers:
@@ -165,8 +165,8 @@ protected_invariants:
 next_actions:
 - id: P0-SOURCE-LOCK-01
   owner: Codex
-  status: READY
-  action: Commit the state-only 316de1b source checkpoint and rerun Control Plane Admission before product edits.
+  status: COMPLETED
+  action: State checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 passed Control Plane Admission for source 316de1b705fb54ee7d6e2114259ec1f87773aedf.
 - id: P0-ROOT-CAUSE-02
   owner: Codex
   status: READY
@@ -183,10 +183,10 @@ completion_rules:
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
   last_updated_at: '2026-11-25T05:15:18Z'
-  note: 'V2 intake on existing PR #346 branch at exact source 316de1b705fb54ee7d6e2114259ec1f87773aedf; main 03db3692669847084d7e48fc3128f85cbf832af9; remote push probe passed. User supplied frozen Gate values matching the formal Policy. Initial Admission failure due stale WORK state was recorded with failure_gate ID ac3bb2ad23dfa92e4d71; state-only reconciliation is pending before product edits. P0-2 commit object is unavailable; no history rewrite or cherry-pick performed. Historical tests/runtime evidence remain historical.'
+  note: 'V2 intake on existing PR #346 branch at exact source 316de1b705fb54ee7d6e2114259ec1f87773aedf; main 03db3692669847084d7e48fc3128f85cbf832af9; remote push probe passed. User supplied frozen Gate values matching the formal Policy. Initial Admission failure due stale WORK state was recorded with failure_gate ID ac3bb2ad23dfa92e4d71; state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 now passes Admission for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf. P0-2 commit object is unavailable; no history rewrite or cherry-pick performed. Historical tests/runtime evidence remain historical.'
 agent_recovery:
   resume_order:
-  - Keep the historical Registry OPEN_GAP unchanged; no Admission PASS is claimed for this source commit.
+  - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.
   - Source regressions, module tests, and AndroidTest APK compilation pass; exact-head APK packaging and hosted API36 AUTO remain pending.
   - Preserve the unavailable Fixture B and unavailable post-fix device evidence accurately; do not promote historical captures to current-head PASS.
   - Push only to the existing PR #346 branch; do not create another PR, merge, or mark ready.
