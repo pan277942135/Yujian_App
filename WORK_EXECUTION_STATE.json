@@ -4,29 +4,29 @@
   "base_sha": "03db3692669847084d7e48fc3128f85cbf832af9",
   "blockers": [
     "P0_2_HISTORY_UNAVAILABLE: commit 759e918332293a4ffaea479a57556386b7c41f1d is absent from local objects and origin rejected the SHA fetch; preservation cannot be asserted from unavailable content.",
-    "EXACT_HEAD_TESTS_PENDING: current source 316de1b has not yet been revalidated in this Work.",
+    "POST_CHANGE_VALIDATION_PENDING: source 316de1b baseline passed; the complete regression, compiles, lint, CI and APK checks must run again after the fixes.",
     "DEVICE_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator; exact-head hosted/device runtime evidence is required.",
     "FIXTURE_B_UNAVAILABLE: the named historical evidence ZIP is absent from current attachments/workspace; source regressions can run without claiming replay."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-25T05:15:18Z",
+  "checkpoint_updated_at": "2026-11-25T05:34:08Z",
   "control_plane_revision": "03db3692669847084d7e48fc3128f85cbf832af9",
   "current_work": {
-    "id": "YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
-    "phase": "P6",
-    "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
-    "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
-    "exact_head": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
-    "status": "RUNNING",
-    "stage": "G0_ADMISSION_RECONCILIATION",
-    "requested_task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
-    "requested_task_title": "Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery",
     "blockers": [
       "P0_2_HISTORY_UNAVAILABLE: commit 759e918332293a4ffaea479a57556386b7c41f1d is absent from local objects and origin rejected the SHA fetch; preservation cannot be asserted from unavailable content.",
-      "EXACT_HEAD_TESTS_PENDING: current source 316de1b has not yet been revalidated in this Work.",
+      "POST_CHANGE_VALIDATION_PENDING: source 316de1b baseline passed; the complete regression, compiles, lint, CI and APK checks must run again after the fixes.",
       "DEVICE_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator; exact-head hosted/device runtime evidence is required.",
       "FIXTURE_B_UNAVAILABLE: the named historical evidence ZIP is absent from current attachments/workspace; source regressions can run without claiming replay."
-    ]
+    ],
+    "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+    "exact_head": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+    "id": "YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
+    "phase": "P6",
+    "requested_task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
+    "requested_task_title": "Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery",
+    "stage": "G1_BASELINE_TESTS_COMPLETE",
+    "status": "RUNNING",
+    "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2"
   },
   "dependencies": [
     "P5-02"
@@ -58,6 +58,8 @@
     "fixture_a": "Current supplied Huawei evidence ZIP SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; source SHA 67f17f0eb6a80233438cb8b00111a55d6767a6d8; pre-fix evidence, replayed as deterministic source fixture only.",
     "fixture_b": "FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not present; deterministic ORB-only regressions are source tests, not real fixture replay.",
     "frozen_visual_archive": "164,751,025 bytes; SHA256 d054bc189cd65795dbfd96fcbf57d3766d7c381ab3101d0411ada307f2b85746; all six uploaded part hashes match UPLOAD_MANIFEST.json; reconstructed archive passed unzip -t.",
+    "gate_deadline_policy": "User supplied Gate Deadline Policy V1 numeric table. Values and retry maxima match docs/contracts/yujian-ai-v2/12_NON_MODEL_GATE_DEADLINE_POLICY_V1.md; no budget increase or alternate values introduced.",
+    "github_write_auth": "Git Remote write permission PASS: temporary probe ref was pushed, remotely verified, deleted, and absence verified. No token value was read or logged. GitHub API/CLI status is not used to infer Git Remote authorization.",
     "hosted_apk_pair_artifact": "Run 45172732325 APK Pair artifact 14818985729, SHA256 4fae2e48d7d12adcc72f85f65a08cf94f51e6e9dd0849808a87d235fca18d45f; produced by hosted Build at source 6102640437041159abc519b00249b7aedff0bb03.",
     "input_evidence_zip": "/workspace/Yujian_App/artifacts/26kf_visual_reference_v1/inputs/YuJian_Recognition_Evidence_eac685c91965.zip; 16,204,260 bytes; SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; integrity entries independently verified.",
     "kf_matrix": "scripts/android_runtime/tests/test_26kf_runtime_trace_matrix_v2.py: 4/4 PASS; RecognitionVisualStateControllerTest.autoCheckpointStageWaitsForItsPixelCopyBeforeAdvancing passed in the module suite.",
@@ -99,6 +101,7 @@
     "local_source_commit": "7119089573515c4f5e0699b72d057cec592eee3b",
     "main_control_plane": "03db3692669847084d7e48fc3128f85cbf832af9",
     "model_asset_validation": "Model bootstrap and Detector/Classifer asset validation PASS; generated model snapshot uses the current source SHA during final build. Model bytes unchanged.",
+    "p0_2_history": "Requested commit 759e918332293a4ffaea479a57556386b7c41f1d is not present locally; git fetch origin <SHA> returned upload-pack not our ref. Historical change review remains unavailable; no cherry-pick/reset performed.",
     "packaged_apk_verification": "PENDING final checkpoint APK verification.",
     "performance_after": "NOT_RUN; no same-device post-fix run exists. Do not claim device performance improvement.",
     "performance_baseline": "Historical Huawei log interval: 12,557 ms from first SlimSAM PROCESSING to READY; internal encoder/decoder timing, memory and GC were not recorded in that archive.",
@@ -112,6 +115,7 @@
     "requested_task_title": "Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery",
     "runtime_capability": "Local host has no /dev/kvm, adb, or emulator; API36 AUTO requires the existing hosted x64 workflow.",
     "runtime_evidence_scope": "Exact code source 6102640437041159abc519b00249b7aedff0bb03 KVM/build/AVD prelaunch gates passed, but production smoke returned exit 1 and enforcement failed. Raw runtime evidence artifact is uploaded, SHA recorded, and available on Run 45172732325 for authenticated inspection; this session cannot read the archive.",
+    "source_lock": "Local PR worktree and remote branch refs/pull/346/head are 316de1b705fb54ee7d6e2114259ec1f87773aedf; main is 03db3692669847084d7e48fc3128f85cbf832af9; PR base branch fix/det-fish-v03-main-runtime-closure is 6ec43662ef76c6ffee8530148098649496ab7fb1. Existing branch only; no PR status mutation.",
     "task_scope_blocker": "Prior V1 intake lacked the numeric Gate table; V2 user supplied it, and it matches the frozen formal Policy. This blocker is resolved.",
     "task_spec": "/workspace/attachments/b839fe2f-e829-4a32-b8db-11ab2146b68a/已粘贴的文本.txt",
     "unit_tests": "542 JUnit tests across eight configured module tasks; 0 failures, 0 errors, 0 skipped. The app suite passed after the standard model asset bootstrap.",
@@ -119,13 +123,72 @@
     "video_attachment": "302e51a0725b602704363f264b1c70dc.mp4 is available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; source evidence is historical/pre-fix.",
     "visual_status": "Reference inventory/tokens/mapping/ROIs and diagnostic-only comparisons for six historical captures are recorded under artifacts/26kf_visual_reference_v1. Current source visual acceptance NOT_RUN.",
     "workflow_failure_summary_fix": "Source 7119089573515c4f5e0699b72d057cec592eee3b moves summary/result enrichment into scripts/ci/finalize_recognition_result_api36_smoke.py; exact runtime source SHA is mandatory, Build/KVM/Boot/runner gates must agree with AUTO, contradictions force AUTO_SMOKE_PASS=false, evidence hashes and APK SHA-256 values are captured, and finalization exceptions produce INFRA_BLOCKED evidence.",
-    "source_lock": "Local PR worktree and remote branch refs/pull/346/head are 316de1b705fb54ee7d6e2114259ec1f87773aedf; main is 03db3692669847084d7e48fc3128f85cbf832af9; PR base branch fix/det-fish-v03-main-runtime-closure is 6ec43662ef76c6ffee8530148098649496ab7fb1. Existing branch only; no PR status mutation.",
-    "github_write_auth": "Git Remote write permission PASS: temporary probe ref was pushed, remotely verified, deleted, and absence verified. No token value was read or logged. GitHub API/CLI status is not used to infer Git Remote authorization.",
-    "gate_deadline_policy": "User supplied Gate Deadline Policy V1 numeric table. Values and retry maxima match docs/contracts/yujian-ai-v2/12_NON_MODEL_GATE_DEADLINE_POLICY_V1.md; no budget increase or alternate values introduced.",
-    "p0_2_history": "Requested commit 759e918332293a4ffaea479a57556386b7c41f1d is not present locally; git fetch origin <SHA> returned upload-pack not our ref. Historical change review remains unavailable; no cherry-pick/reset performed."
+    "baseline_unit_tests": {
+      "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+      "command": "Gradle 9.3.1 test --no-daemon (Android SDK and JDK supplied through temporary environment settings)",
+      "result": "BUILD SUCCESSFUL",
+      "total": 574,
+      "passed": 574,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "modules": {
+        "app": 126,
+        "application-core": 62,
+        "recognition-domain": 8,
+        "recognition-runtime": 57,
+        "recognition-ui": 237,
+        "recognition-result-ui": 20,
+        "waterlight-renderer": 64
+      },
+      "no_test_sources": [
+        "recognition-result-components"
+      ],
+      "evidence": "Gradle JUnit XML files under each module build/test-results; counts were summed from suite XML."
+    },
+    "build_environment_recovery": "Default Gradle wrapper first hit unwritable /home/agent/.gradle, then Java DNS/proxy, missing writable Android preference location, stale ignored local.properties SDK path, and Java 21 runtime without javac. Using cached Gradle 9.3.1, proxy host/port, JDK 17, ANDROID_HOME, one ANDROID_USER_HOME and a temporary local.properties sdk.dir override enabled the baseline run. Original local.properties SHA256 00442ca5571017eaa602a8267c4b0c95b33f99e4ca945742a188352aeeaa2fe5 was restored and verified."
   },
   "execution_v2": {
     "issues": {
+      "154daccd66fc422594bb": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Gradle warns that sdk.dir=/Users/liliang/Library/Android/sdk does not exist; current SDK platforms are installed under /tmp/yujian-android-sdk.",
+            "hypothesis": "Ignored local.properties points to a removed macOS SDK directory; provide the discovered current SDK and temporarily update only local environment config, restoring its exact original hash afterward.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "ANDROID_SDK_LOCAL_PROPERTIES_PATH_STALE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "157c9329dfd480593019": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "./gradlew test --no-daemon exited 1 before build with Could not create parent directory for lock file /home/agent/.gradle/wrapper/dists/gradle-9.3.1-bin/...; no test task ran.",
+            "hypothesis": "The runner default Gradle user home is under /home/agent, outside writable roots; the Wrapper fails before Gradle starts.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "GRADLE_WRAPPER_LOCK_PATH_NOT_WRITABLE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "368f75586bdd2da505d8": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Direct Gradle 9.3.1 started with absolute /tmp daemon logs, then failed resolving com.android.application:com.android.application.gradle.plugin:9.1.1 from Google, MavenRepo and Gradle Plugin Portal; no source compilation or tests ran.",
+            "hypothesis": "The writable Gradle user home has no Android Gradle Plugin cache and restricted DNS/network prevents resolving the plugin marker from Google/Maven/Gradle repositories.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "GRADLE_PLUGIN_RESOLUTION_NO_CACHE_OR_NETWORK",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
       "8eb8d70b6e7a1f222ad4": {
         "closed": false,
         "failures": [
@@ -137,6 +200,32 @@
         ],
         "gate_id": "G8_EXACT_HEAD_CI_AND_API36_SMOKE",
         "symptom_key": "API36_RESULT_SUMMARY_FINALIZATION_FAILURE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "9df57880ad59f5725fde": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "With GRADLE_USER_HOME=/tmp/yujian-gradle-home, ./gradlew test --no-daemon failed during wrapper distribution download with java.net.UnknownHostException: services.gradle.org; no test task ran.",
+            "hypothesis": "The Gradle 9.3.1 wrapper distribution is not cached in the writable Gradle user home and the execution network cannot resolve services.gradle.org.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "GRADLE_DISTRIBUTION_DNS_UNAVAILABLE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "a0216e92ff5bcb55bc19": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Gradle resolved the Android application plugin and then failed during :app configuration with /home/agent/.android: Read-only file system (analytics.settings). No source compilation or tests ran.",
+            "hypothesis": "Android Gradle Plugin metrics initialization writes to the runner home at /home/agent/.android, which is read-only in this workspace; configure ANDROID_USER_HOME under writable /tmp.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "ANDROID_GRADLE_USER_HOME_READ_ONLY",
         "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
       },
       "ac3bb2ad23dfa92e4d71": {
@@ -152,6 +241,45 @@
         "symptom_key": "WORK_EXECUTION_STATE_SOURCE_SHA_STALE",
         "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
       },
+      "dfddf731f726e21befc4": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Gradle --stacktrace identifies AndroidLocationsException: both ANDROID_SDK_HOME and ANDROID_USER_HOME are set; plugin requires one injection method. Temporary local.properties SDK override restored to original SHA256 00442ca5571017eaa602a8267c4b0c95b33f99e4ca945742a188352aeeaa2fe5.",
+            "hypothesis": "Android Gradle Plugin rejects multiple Android preference-directory injection variables; use only the recommended ANDROID_USER_HOME and omit deprecated ANDROID_SDK_HOME.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "ANDROID_PREFERENCES_HOME_VARIABLE_CONFLICT",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "e6a6889795f5d5e80a49": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "With JAVA_HOME=/tmp/yujian-jdk17, ANDROID_HOME/SDK_ROOT=/tmp/yujian-android-sdk, ANDROID_USER_HOME/SDK_HOME=/tmp/yujian-android-home and a temporary local.properties sdk.dir override (restored after the attempt), Gradle failed creating AndroidLocationsBuildService before task execution.",
+            "hypothesis": "Android Gradle Plugin still cannot create its Android locations service after selecting the writable SDK; the suppressed nested cause must be resolved before retrying the baseline.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "ANDROID_LOCATIONS_DIRECTORY_CREATOR_FAILURE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "ec96d6247d36fb592cfc": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Gradle task configuration fails because /usr/lib/jvm/java-21-openjdk-amd64 has no JAVA_COMPILER capability; /tmp/yujian-jdk17/bin/javac exists and project modules use Java 17.",
+            "hypothesis": "The default Java 21 runtime image contains no javac; configure JAVA_HOME to the installed JDK 17 because project modules target Java 17.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "JAVA_21_RUNTIME_LACKS_COMPILER",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
       "ef98c6d745afc159e5b6": {
         "closed": false,
         "failures": [
@@ -164,19 +292,32 @@
         "gate_id": "G8_EXACT_HEAD_CI_AND_API36_SMOKE",
         "symptom_key": "API36_EMULATOR_RUNNER_EXIT_2_BEFORE_RUNTIME_RESULT",
         "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "f4425fcf34f20b5269b2": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Cached Gradle 9.3.1 was launched directly with GRADLE_USER_HOME=/tmp/yujian-gradle-home; Gradle failed before task execution because -Xlog:gc... could not open build/diagnostics/gc-*.log. No tests ran.",
+            "hypothesis": "The repository JVM args send GC logs to build/diagnostics but the directory does not exist in this clean workspace, preventing daemon startup.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "GRADLE_DAEMON_GC_LOG_DIRECTORY_MISSING",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
       }
     },
     "schema_version": "1.0"
   },
-  "next_action": "Trace Gate authorization, four-model execution receipts, PhotoIdentity propagation, path binding, snapshot consumers and native resource ownership in current production callers.",
+  "next_action": "Trace and fix production Gate authorization, model receipts and identities, atomic PATH_BOUND commit authority, Snapshot consumers, and Native resource lifetime.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
   "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
-  "stage": "G0_SOURCE_LOCK_COMPLETE",
+  "stage": "G1_BASELINE_TESTS_COMPLETE",
   "state_update": {
-    "last_updated_at": "2026-11-25T05:15:18Z",
-    "note": "Control Plane Admission passed on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for unchanged product source 316de1b705fb54ee7d6e2114259ec1f87773aedf. User supplied Gate policy is frozen and consistent. Source lock is complete; begin root-cause tracing and source fixes. P0-2 historical commit content remains unavailable."
+    "last_updated_at": "2026-11-25T05:34:08Z",
+    "note": "Admission PASS at code source 316de1b. Baseline Gradle test at exact code source 316de1b completed 574/574 pass, 0 fail/error/skipped across seven tested modules; result-components has no test sources. All temporary SDK/config changes were restored. Post-fix regression and exact-head delivery remain pending."
   },
   "status": "RUNNING",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",

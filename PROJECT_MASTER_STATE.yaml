@@ -82,7 +82,7 @@ runtime_gates:
       url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
       source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
     build: Pending final marked checkpoint build from the final branch head
-    unit_tests: NOT_RUN_AT_316DE1B; baseline and post-change suites are pending this Work.
+    unit_tests: BASELINE_PASS_AT_316DE1B — 574 total, 574 pass, 0 fail, 0 error, 0 skipped across app 126, application-core 62, recognition-domain 8, recognition-runtime 57, recognition-ui 237, recognition-result-ui 20, waterlight-renderer 64; post-change full regression pending.
     android_test_compile: NOT_RUN_AT_316DE1B; exact-source compile is pending.
     lint: NOT_RUN_AT_316DE1B; exact-source lint is pending.
     api36_emulator: PENDING current source; local /dev/kvm, adb, and emulator are absent. Do not claim current-source KVM, boot, or AUTO PASS before the hosted marked run completes
@@ -104,12 +104,12 @@ current_work:
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
   exact_head: 316de1b705fb54ee7d6e2114259ec1f87773aedf
   status: RUNNING
-  stage: G0_SOURCE_LOCK_COMPLETE
+  stage: G1_BASELINE_TESTS_COMPLETE
   requested_task_id: YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2
   requested_task_title: 'Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery'
   blockers:
   - 'P0_2_HISTORY_UNAVAILABLE: requested historical commit object is unavailable; preservation review cannot be completed from current remote objects.'
-  - 'EXACT_HEAD_TESTS_PENDING: current source 316de1b has not yet been revalidated in this Work.'
+  - 'POST_CHANGE_VALIDATION_PENDING: baseline source 316de1b passed 574 unit tests; post-fix full regression, AndroidTest compile, Release compile, lint, CI and APK checks remain pending.'
   - 'DEVICE_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator; exact-head hosted/device evidence remains pending.'
   - 'FIXTURE_B_UNAVAILABLE: named historical evidence ZIP is absent; no fixture replay will be claimed.'
 
@@ -134,7 +134,7 @@ blockers:
   severity: P0
   area: G6/G8
   status: OPEN
-  condition: No tests, AndroidTest compile, Release compile, lint, APK, or current-source device run has yet been executed for this V2 Work.
+  condition: Baseline unit tests passed at source 316de1b; post-fix full regression, AndroidTest compile, Release compile, lint, APK and current-source device run remain pending.
   affected_gate: Cross-layer regression and exact-head delivery.
   unblock_condition: Run the requested exact-source verification after code changes.
   independent_work_may_continue: true
@@ -182,8 +182,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-25T05:15:18Z'
-  note: 'V2 intake on existing PR #346 branch at exact source 316de1b705fb54ee7d6e2114259ec1f87773aedf; main 03db3692669847084d7e48fc3128f85cbf832af9; remote push probe passed. User supplied frozen Gate values matching the formal Policy. Initial Admission failure due stale WORK state was recorded with failure_gate ID ac3bb2ad23dfa92e4d71; state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 now passes Admission for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf. P0-2 commit object is unavailable; no history rewrite or cherry-pick performed. Historical tests/runtime evidence remain historical.'
+  last_updated_at: '2026-11-25T05:34:08Z'
+  note: 'V2 intake on existing PR #346 branch at exact source 316de1b705fb54ee7d6e2114259ec1f87773aedf; main 03db3692669847084d7e48fc3128f85cbf832af9; remote push probe passed. User supplied frozen Gate values matching the formal Policy. Initial Admission failure due stale WORK state was recorded with failure_gate ID ac3bb2ad23dfa92e4d71; state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 passed Admission for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf. Baseline Gradle test passed 574/574 with 0 failures, errors or skips. P0-2 commit object is unavailable; no history rewrite or cherry-pick performed. Post-fix tests and runtime evidence remain pending.'
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.

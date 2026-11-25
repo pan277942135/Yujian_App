@@ -342,3 +342,10 @@
 
 - `CONTROL_PLANE_ADMISSION=PASS` for product source `316de1b705fb54ee7d6e2114259ec1f87773aedf`. Canonical Registry, Feature Matrix, Phase/Task State Machine, Unified Contract structure, Control Plane Sync, Project Master State and Work Execution State passed. `structural_errors=0`; one unchanged historical `RecognitionResultScreen.kt` path `OPEN_GAP` is non-blocking.
 - No product code or tests have run in this V2 Work yet. Proceeding to source call-chain root-cause tracing.
+
+
+## 2026-11-25 — PR #346 source `316de1b` baseline tests
+
+- Gradle 9.3.1 `test --no-daemon` completed successfully on product source `316de1b705fb54ee7d6e2114259ec1f87773aedf`. JUnit XML totals: 574 tests, 574 pass, 0 failures, 0 errors, 0 skipped. Module counts: app 126; application-core 62; recognition-domain 8; recognition-runtime 57; recognition-ui 237; recognition-result-ui 20; waterlight-renderer 64. `recognition-result-components` contains no test sources.
+- The initial run used cached Gradle 9.3.1 with Java proxy properties, JDK 17, Android SDK `/tmp/yujian-android-sdk`, a single `ANDROID_USER_HOME`, and a temporary SDK path in ignored `local.properties`. That file was restored and its SHA-256 verified as `00442ca5571017eaa602a8267c4b0c95b33f99e4ca945742a188352aeeaa2fe5`.
+- These are baseline results before this V2 Work's production edits. Final post-change tests must rerun with task execution forced and current source SHA.
