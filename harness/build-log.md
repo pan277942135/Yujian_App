@@ -325,3 +325,14 @@
 - Initial `CONTROL_PLANE_ADMISSION` on `babd6b3ad31ee02f70d74738a27d7f14cc6b5e10` had static registry, feature matrix, phase/task, unified-contract structure, and sync pass (with one pre-existing non-blocking OPEN_GAP), but Project/Work state failed because it still recorded source `26f1b63...` and a stale PR base (`main@03db...`).
 - Branch-local state is reconciled to the observed PR metadata and source baseline while preserving prior V5 evidence/failures. The task attachment references a “second-part Gate timeout table” but contains no numeric table. This remains an open blocker for freezing Gate values; no values are inferred.
 - No product code or tests were changed/run in this intake checkpoint. Next: commit this state-only checkpoint, rerun Admission, then proceed with independent source-confirmed issues.
+
+
+## 2026-11-25 — Production Control & Identity Closure V2 intake and admission checkpoint
+
+- Requested Work: `YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2`, mapped to the existing canonical P6 task `YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2`; PR #346 remains the only target. Current local/remote source branch and `refs/pull/346/head` are `316de1b705fb54ee7d6e2114259ec1f87773aedf`; `main` is `03db3692669847084d7e48fc3128f85cbf832af9`; PR base branch head remains `6ec43662ef76c6ffee8530148098649496ab7fb1`.
+- Git Remote write authorization was verified with a temporary probe ref, then the ref was deleted and absence confirmed. No token was read or logged. Existing untracked archive material was preserved.
+- Initial Control Plane Admission on source `316de1b` passed canonical registry, Feature Matrix, Phase/Task, Unified Contract structure, Control Plane Sync and Project Master State, but Work State failed because its `source_sha` remained `babd6b3` despite code changes through `316de1b`. The approved Work V2 failure gate allowed the first attempt and recorded failure `ac3bb2ad23dfa92e4d71`; this is a state reconciliation, not a product-code failure.
+- User supplied the frozen Gate Deadline values; they match `docs/contracts/yujian-ai-v2/12_NON_MODEL_GATE_DEADLINE_POLICY_V1.md`. The former missing-table blocker is removed. No alternate timeout values were inferred.
+- Historical commit `759e918332293a4ffaea479a57556386b7c41f1d` is absent from local Git objects, and `git fetch origin <SHA>` returned `upload-pack: not our ref`; its file-level preservation review remains blocked. No cherry-pick, reset, source edit, test, or PR mutation occurred before this checkpoint.
+- Current PR source and Pull Request refs were re-read and agree. Draft metadata is only last confirmed by the 2026-11-24 observation; this pass did not change the PR or query its live Draft state.
+- State-only reconciliation is committed before repeating Admission; current-source tests and all product changes remain pending.
