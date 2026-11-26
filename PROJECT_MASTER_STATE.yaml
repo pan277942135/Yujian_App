@@ -18,16 +18,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: 37af697cae5dd88d25f00f50bffb1f45805d9076
+    head_sha: 4da469384e1ef814488b75d979eff8ca3ac1df79
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: fix/det-fish-v03-main-runtime-closure
     base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
-    head_sha: 37af697cae5dd88d25f00f50bffb1f45805d9076
+    head_sha: 4da469384e1ef814488b75d979eff8ca3ac1df79
     status: DRAFT_OPEN_UNMERGED
-    status_source: Git refs were rechecked on 2026-11-26 after the CDDG push; refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head both equal 37af697cae5dd88d25f00f50bffb1f45805d9076. Draft remains the last known PR state; live metadata could not be queried because GitHub API egress is proxy-blocked; no PR mutation occurred.
+    status_source: Git refs were rechecked on 2026-11-26 after the CDDG push; refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head both equal 4da469384e1ef814488b75d979eff8ca3ac1df79. Draft remains the last known PR state; live metadata could not be queried because GitHub API egress is proxy-blocked; no PR mutation occurred.
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -75,7 +75,7 @@ recognition_main_journey:
 runtime_gates:
   exact_head:
     sha: 2362e097befb38136ed4d48975ad19e94276e836
-    admission: CDDGV1 code commit 2362e097befb38136ed4d48975ad19e94276e836 follows verified PR head 37af697cae5dd88d25f00f50bffb1f45805d9076. The 31-test CDDG suite passes; Admission for this candidate state checkpoint is pending.
+    admission: CDDGV1 code fix 2362e097befb38136ed4d48975ad19e94276e836 and state checkpoint 4da469384e1ef814488b75d979eff8ca3ac1df79 were pushed by ordinary fast-forward; both the target branch and PR ref were independently verified at 4da469384e1ef814488b75d979eff8ca3ac1df79. The 31-test CDDG suite and full Admission pass. Exact-HEAD CI remains unavailable via the current API route.
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
@@ -182,8 +182,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-26T07:46:21Z'
-  note: "P0 GitHub Continuous Delivery Guard V1 has code commits 189f6d85b02fdcbd41f431fdb58020a42f589dc3 and 2362e097befb38136ed4d48975ad19e94276e836; fix commit 2362e097befb38136ed4d48975ad19e94276e836 adds a regression proving CI UNAVAILABLE/PENDING keeps independent research enabled, and the Work V2 suite passes 31/31. The latest verified branch and PR ref before this candidate are 37af697cae5dd88d25f00f50bffb1f45805d9076. Git write is proven; GitHub REST identity/permissions and Exact-HEAD CI remain unverified because API egress returns proxy HTTP 403."
+  last_updated_at: '2026-11-26T07:50:15Z'
+  note: "P0 GitHub Continuous Delivery Guard V1 code fix 2362e097befb38136ed4d48975ad19e94276e836 adds regression coverage proving CI UNAVAILABLE/PENDING keeps independent research enabled, with Work V2 suite 31/31. `delivery_guard.py` pushed the fix and state checkpoint 4da469384e1ef814488b75d979eff8ca3ac1df79 by ordinary fast-forward; target branch and refs/pull/346/head matched 4da469384e1ef814488b75d979eff8ca3ac1df79 and main stayed bc89484ca79fe20c63c9c6e65b284f1ec3ac1863. Git write is proven; REST identity/permissions and Exact-HEAD CI remain unverified because API egress returns proxy HTTP 403."
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.
