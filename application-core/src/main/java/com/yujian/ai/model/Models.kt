@@ -32,7 +32,7 @@ data class SelectedImage(
     val photoSha256: String = "",
     /** Measured presentation geometry only; never used as model/crop input. */
     val capturePresentation: CapturePresentation? = null,
-    /** Original EXIF 1..8; records mirrors that rotationDegrees alone cannot represent. */
+    /** Applied EXIF 1..8; missing or invalid values use NORMAL. The original attribute is retained below. */
     val sourceExifOrientation: Int = 1,
     /** Timestamp captured/imported with this image; Result rendering must never regenerate it. */
     val captureTimestampEpochMs: Long = System.currentTimeMillis(),

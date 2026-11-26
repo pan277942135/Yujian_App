@@ -89,6 +89,7 @@ class RecognitionExifOrientationTest {
                 saveAttributes()
             }
             val raw = ExifInterface(input).getAttribute(ExifInterface.TAG_ORIENTATION)
+            assertEquals("0", raw)
             val selected = RecognitionImageStore.normalizeCameraFile(context, input)
             normalized = File(selected.filePath)
             assertEquals(raw, selected.sourceExifOrientationRaw)

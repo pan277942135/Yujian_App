@@ -74,13 +74,38 @@ class Api36InstrumentationCaseTests(unittest.TestCase):
     def test_assertion_failure_is_instrumentation_failure(self):
         result = self.evaluate(passing_log().replace("INSTRUMENTATION_CODE: -1", "FAILURES!!!\nINSTRUMENTATION_CODE: 0"))
         self.assertFalse(result["passed"])
-        self.assertEqual("INSTRUMENTATION_FAILURE", result["reason"])
+        self.assertEqual("TEST_ASSERTION_FAILURE", result["reason"])
 
     def test_cleanup_does_not_hide_prior_assertion_failure(self):
         raw = passing_log().replace("INSTRUMENTATION_CODE: -1", "FAILURES!!!\nINSTRUMENTATION_CODE: 0")
         result = self.evaluate(raw, auxiliary_log="am_kill: stop com.yujian.ai.uiv2 due to finished inst")
         self.assertFalse(result["passed"])
-        self.assertEqual("INSTRUMENTATION_FAILURE", result["reason"])
+        self.assertEqual("TEST_ASSERTION_FAILURE", result["reason"])
+
+    def test_java_fatal_exception_is_distinct_from_native_crash(self):
+        result = self.evaluate(auxiliary_log="FATAL EXCEPTION: main Process: com.yujian.ai.uiv2")
+        self.assertFalse(result["passed"])
+        self.assertEqual("JAVA_CRASH", result["reason"])
+
+    def test_native_tombstone_is_distinct_from_java_crash(self):
+        result = self.evaluate(auxiliary_log="Fatal signal 11 (SIGSEGV) in com.yujian.ai.uiv2 tombstone")
+        self.assertFalse(result["passed"])
+        self.assertEqual("NATIVE_CRASH", result["reason"])
+
+    def test_finished_inst_after_test_end_is_recorded_as_cleanup(self):
+        result = self.evaluate(
+            auxiliary_log="11-26 09:01:10.000  100  100 I ActivityManager: am_kill: stop com.yujian.ai.uiv2 (pid 333) due to finished inst",
+            app_pids=("333",), start_time_utc="2026-11-26T09:00:00Z", end_time_utc="2026-11-26T09:01:00Z",
+        )
+        self.assertTrue(result["passed"])
+        self.assertEqual("EXPECTED_CLEANUP", result["event_classification"])
+
+    def test_other_pid_native_crash_does_not_contaminate_case(self):
+        result = self.evaluate(
+            auxiliary_log="11-26 09:00:20.000  444  444 F DEBUG: Fatal signal 11 in com.yujian.ai.uiv2",
+            app_pids=("333",), start_time_utc="2026-11-26T09:00:00Z", end_time_utc="2026-11-26T09:01:00Z",
+        )
+        self.assertTrue(result["passed"])
 
     def test_matching_pid_and_time_confirm_lmk(self):
         result = self.evaluate(
@@ -108,6 +133,17 @@ class Api36InstrumentationCaseTests(unittest.TestCase):
         result = self.evaluate(passing_log(method_name="someOtherTest"))
         self.assertFalse(result["passed"])
         self.assertFalse(result["started"])
+        self.assertEqual("TEST_NOT_STARTED", result["event_classification"])
+
+    def test_sdk_or_avd_start_failure_is_infrastructure_blocked(self):
+        result = self.evaluate("No devices/emulators found; AVD boot failed")
+        self.assertFalse(result["passed"])
+        self.assertEqual("INFRA_BLOCKED", result["event_classification"])
+
+    def test_started_without_completion_is_not_completed(self):
+        result = self.evaluate(passing_log().replace("INSTRUMENTATION_STATUS_CODE: 0", ""))
+        self.assertFalse(result["passed"])
+        self.assertEqual("TEST_NOT_COMPLETED", result["event_classification"])
 
     def test_extra_completed_test_fails(self):
         raw = passing_log().replace("INSTRUMENTATION_STATUS_CODE: 0", "INSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS_CODE: 0")
@@ -157,6 +193,7 @@ class Api36InstrumentationCaseTests(unittest.TestCase):
         )
         self.assertFalse(result["passed"])
         self.assertEqual("INSTRUMENTATION_TIMEOUT", result["reason"])
+        self.assertEqual("INSTRUMENTATION_TIMEOUT", result["event_classification"])
 
     def test_no_normal_summary_fails(self):
         result = self.evaluate(passing_log().replace("OK (1 test)", ""))

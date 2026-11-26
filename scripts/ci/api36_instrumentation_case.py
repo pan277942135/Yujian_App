@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 import re
@@ -77,24 +77,39 @@ def evaluate_case(
         for event in status_events
     )
     final_codes = [int(value) for value in re.findall(r"^INSTRUMENTATION_CODE:\s*(-?\d+)\s*$", raw_log, re.M)]
-    event_lines = raw_log.splitlines() + _case_log_lines(auxiliary_log, app_pids + instrumentation_pids,
+    case_pids = app_pids + instrumentation_pids
+    event_lines = raw_log.splitlines() + _case_log_lines(auxiliary_log, case_pids,
                                                         start_time_utc, end_time_utc)
     app = re.compile(r"com\.yujian\.ai\.uiv2(?:\.test)?\b", re.I)
+    cleanup_end = (datetime.fromisoformat(end_time_utc.replace("Z", "+00:00")) +
+                   timedelta(seconds=60)).isoformat() if end_time_utc else ""
+    cleanup_lines = raw_log.splitlines() + _case_log_lines(auxiliary_log, case_pids,
+                                                           start_time_utc, cleanup_end)
     lmk_confirmed = any(
         app.search(line) and re.search(r"\b(?:lmkd|lowmemorykiller)\b", line, re.I)
         and re.search(r"\b(?:kill|killed|oom|low memory)\b", line, re.I)
         for line in event_lines
     )
-    process_crash = any(
+    native_crash = any(
+        re.search(r"fatal signal\s+\d+|tombstone|crash_dump|debuggerd.*(?:crash|dump)", line, re.I)
+        for line in event_lines
+    )
+    java_crash = any(
+        re.search(r"fatal exception", line, re.I)
+        for line in event_lines
+    )
+    generic_crash = any(
         re.search(r"fatal exception|process crashed", line, re.I)
         and (app.search(line) or "fatal exception" in line.lower()
              or "INSTRUMENTATION_RESULT: shortMsg=Process crashed" in line)
         for line in event_lines
     )
+    process_crash = native_crash or java_crash or generic_crash
     normal_cleanup = any(
         app.search(line) and re.search(r"\bam_kill\b.*\bfinished inst\b", line, re.I)
-        for line in event_lines
+        for line in cleanup_lines
     )
+    assertion_failure = any(re.search(r"AssertionError|FAILURES!!!", line, re.I) for line in raw_log.splitlines())
     unknown_death = any(
         app.search(line) and re.search(r"\b(?:am_proc_died|SIGKILL|am_kill)\b", line, re.I)
         and not re.search(r"\bfinished inst\b", line, re.I)
@@ -126,8 +141,14 @@ def evaluate_case(
         reason = "INSTRUMENTATION_TIMEOUT"
     elif lmk_confirmed:
         reason = "LMK_CONFIRMED"
-    elif process_crash:
+    elif native_crash:
+        reason = "NATIVE_CRASH"
+    elif java_crash:
+        reason = "JAVA_CRASH"
+    elif generic_crash:
         reason = "PROCESS_CRASH"
+    elif assertion_failure:
+        reason = "TEST_ASSERTION_FAILURE"
     elif failed_status or failed_marker:
         reason = "INSTRUMENTATION_FAILURE"
     elif unknown_death:
@@ -142,6 +163,22 @@ def evaluate_case(
         reason = "EXPECTED_ONE_COMPLETED_TEST"
     else:
         reason = "NORMAL_ONE_TEST_SUMMARY_MISSING"
+    infra_failure = bool(re.search(
+        r"no devices/emulators|device offline|emulator.*(?:boot|launch).*fail|"
+        r"AVD.*(?:not found|fail)|SDK.*(?:not found|missing)", raw_log, re.I,
+    ))
+    if passed:
+        event_classification = "EXPECTED_CLEANUP" if normal_cleanup else "NORMAL_COMPLETION"
+    elif timed_out:
+        event_classification = "INSTRUMENTATION_TIMEOUT"
+    elif infra_failure:
+        event_classification = "INFRA_BLOCKED"
+    elif not started:
+        event_classification = "TEST_NOT_STARTED"
+    elif status_codes.count(0) != 1:
+        event_classification = "TEST_NOT_COMPLETED"
+    else:
+        event_classification = reason
     return {
         "class": class_name,
         "test": f"{class_name}#{method_name}",
@@ -156,11 +193,15 @@ def evaluate_case(
         "lmk_or_process_death_observed": lmk_or_process_death,
         "lmk_confirmed": lmk_confirmed,
         "process_crash": process_crash,
+        "java_crash": java_crash,
+        "native_crash": native_crash,
+        "assertion_failure": assertion_failure,
         "normal_process_cleanup": normal_cleanup,
         "process_death_unknown": unknown_death,
         "normal_summary": normal_summary,
         "passed": passed,
         "reason": reason,
+        "event_classification": event_classification,
         "app_pids": list(app_pids),
         "instrumentation_pids": list(instrumentation_pids),
         "start_time_utc": start_time_utc,

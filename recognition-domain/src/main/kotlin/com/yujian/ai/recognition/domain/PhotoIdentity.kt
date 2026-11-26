@@ -11,7 +11,7 @@ data class PhotoIdentity(
     val canonicalPixelSha256: String,
     val width: Int,
     val height: Int,
-    /** Original EXIF orientation value (1..8), before normalization. */
+    /** Valid source EXIF orientation (1..8); missing or invalid values use NORMAL (1). */
     val sourceOrientation: Int,
     val normalizationVersion: String,
     val photoContentVersion: Long,

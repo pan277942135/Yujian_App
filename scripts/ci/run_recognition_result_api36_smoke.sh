@@ -916,7 +916,9 @@ elif [[ "$test_a_force_stop_verified" != true ]]; then
   failure_phase="BETWEEN_INSTRUMENTATION_TESTS"
 elif [[ "$test_b_passed" != true ]]; then
   result_classification="BUSINESS_LOGIC_FAILURE"
-  failure_reason="PRODUCTION_REVEAL_INSTRUMENTATION_FAILED"
+  test_b_reason="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("reason", "RESULT_INVALID"))' \
+    "$evidence_dir/test-cases/production-reveal/result.json" 2>/dev/null || printf '%s' 'PRODUCTION_REVEAL_TEST_RESULT_MISSING')"
+  failure_reason="PRODUCTION_REVEAL_INSTRUMENTATION_FAILED:$test_b_reason"
   failure_phase="PRODUCTION_REVEAL_INSTRUMENTATION"
 elif [[ "$test_b_force_stop_verified" != true ]]; then
   result_classification="INFRA_BLOCKED"
@@ -924,7 +926,9 @@ elif [[ "$test_b_force_stop_verified" != true ]]; then
   failure_phase="BETWEEN_REVEAL_AND_AUTO"
 elif [[ "$test_c_passed" != true ]]; then
   result_classification="BUSINESS_LOGIC_FAILURE"
-  failure_reason="PRODUCTION_HOME_PICKER_AUTO_INSTRUMENTATION_FAILED"
+  test_c_reason="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("reason", "RESULT_INVALID"))' \
+    "$evidence_dir/test-cases/production-auto/result.json" 2>/dev/null || printf '%s' 'PRODUCTION_AUTO_TEST_RESULT_MISSING')"
+  failure_reason="PRODUCTION_HOME_PICKER_AUTO_INSTRUMENTATION_FAILED:$test_c_reason"
   failure_phase="PRODUCTION_AUTO_INSTRUMENTATION"
 elif [[ "$validation_status" -eq 0 && "$validation_reason" == "NONE" ]]; then
   result_classification="AUTO_SMOKE_PASS"
