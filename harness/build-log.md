@@ -413,3 +413,10 @@
 
 - `delivery_guard.py push-stage` pushed guard fix `2362e097befb38136ed4d48975ad19e94276e836` and state checkpoint `4da469384e1ef814488b75d979eff8ca3ac1df79` by ordinary fast-forward. Independent ref check matched both the target PR branch and `refs/pull/346/head`; `main` remained unchanged at `bc89484ca79fe20c63c9c6e65b284f1ec3ac1863`.
 - Work V2 unit suite: 31/31 PASS; Admission PASS. GitHub Actions status/REST account metadata remain UNAVAILABLE due proxy HTTP 403; `CI_RAW_EVIDENCE_UNAVAILABLE` retained.
+
+## 2026-11-26 — Classifier tensor binding P0 follow-up
+
+- Task `YUJIAN_P0_CLASSIFIER_TENSOR_RUNTIME_REGRESSION_FIX_V1` code commit `cf746e152e027e945494ddceee9f94ce63c7d8d3` was non-force pushed to PR #346's original branch after integrating remote `cc2cde46`.
+- Production binding now maps frozen logical `images` / `logits` to TFLite `serving_default_args_0` / `serving_default_output_0_output` for the exact model SHA, keeping shape, NCHW and FLOAT32 validation. CI checks both source model and APK FlatBuffer; AndroidTest adds real Interpreter and production engine calls.
+- JVM: 604/604 PASS, 0 failures/errors/skips (116 XML). Release Kotlin and Debug APK build PASS. Packaged model and FlatBuffer binding gate PASS.
+- AndroidTest compile blocked at `processDebugAndroidTestManifest` by dl.google.com DNS; Lint blocked by unavailable lint-gradle:32.1.1. No device runtime or final hosted CI PASS is claimed. Final checkpoint HEAD APK rebuild pending.

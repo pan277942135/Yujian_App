@@ -13,10 +13,14 @@
     "AUTO_RUNTIME_UNVERIFIED: no 26KF device run, real Mask/PixelCopy evidence, or Stage10–13.5 end-to-end AUTO evidence was produced.",
     "FIXTURE_B_UNAVAILABLE: historical runtime evidence ZIP is absent; replay not claimed.",
     "GITHUB_API_EGRESS_BLOCKED: api.github.com CONNECT/HTTP 403; the saved network-policy draft requires publish before authenticated API identity and permission can be verified.",
-    "GITHUB_WRITE_AUTH_UNVERIFIED: public Git reads and dry-run were successful, but no actual write push has yet verified permission; do not repeat the blocked token/API request."
+    "GITHUB_WRITE_AUTH_UNVERIFIED: public Git reads and dry-run were successful, but no actual write push has yet verified permission; do not repeat the blocked token/API request.",
+    "CLASSIFIER_ANDROIDTEST_COMPILE_BLOCKED_EXTERNAL_DNS",
+    "CLASSIFIER_LINT_BLOCKED_EXTERNAL_DEPENDENCY",
+    "CLASSIFIER_RUNTIME_UNVERIFIED",
+    "CLASSIFIER_EXACT_HEAD_CI_UNVERIFIED"
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-26T07:35:17Z",
+  "checkpoint_updated_at": "2026-11-26T08:01:15Z",
   "control_plane_revision": "bc89484ca79fe20c63c9c6e65b284f1ec3ac1863",
   "current_work": {
     "blockers": [
@@ -31,13 +35,13 @@
       "FIXTURE_B_UNAVAILABLE: historical runtime evidence ZIP is absent; replay not claimed."
     ],
     "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
-    "exact_head": "2362e097befb38136ed4d48975ad19e94276e836",
+    "exact_head": "cf746e152e027e945494ddceee9f94ce63c7d8d3",
     "id": "YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
     "phase": "P6",
-    "requested_task_id": "YUJIAN_P0_EXACT_HEAD_ANDROIDTEST_CALLBACK_CLOSURE_V1",
-    "requested_task_title": "YuJian Exact-HEAD Final Closure — AndroidTest Callback, PATH_BOUND Transaction, Exact-HEAD CI and Debug APK",
-    "stage": "P0_CDDG_FIX_PUSHED_CI_UNAVAILABLE",
-    "status": "RUNNING",
+    "requested_task_id": "YUJIAN_P0_CLASSIFIER_TENSOR_RUNTIME_REGRESSION_FIX_V1",
+    "requested_task_title": "Classifier Tensor Contract Regression V1",
+    "stage": "P0_CLASSIFIER_TENSOR_BINDING_SOURCE_VERIFIED_RUNTIME_PENDING",
+    "status": "BLOCKED",
     "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
     "current_validated_tree_note": "Final pushed source commit 4c328ab5e7c6d555c9575ebeffa2c815e6618baf passed 604/604 JVM tests, :app:compileReleaseKotlin, Debug APK build, packaged model/assets, signature and ZIP checks. APK SHA256 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0; 200382052 bytes. AndroidTest and lint are blocked before source validation by Google Maven DNS; hosted exact-head CI and API36 runtime remain unverified.",
     "delivery_guard_status": "GUARD_CODE_AND_STATE_PUSH_PASS_CI_UNAVAILABLE"
@@ -409,6 +413,33 @@
       "resolution": "Updated runtime exact-head pointer and documented that 30 local tool tests pass while Android product regressions remain historical.",
       "Admission": "NOT_RUN for failed state-only checkpoint",
       "evidence": "/workspace/goal_checkpoints/yujian_cddg_v1_20261126/20261126T073401407658Z_189f6d85/TEST_REPORT.md"
+    },
+    "classifier_tensor_runtime_regression_fix_v1": {
+      "task_id": "YUJIAN_P0_CLASSIFIER_TENSOR_RUNTIME_REGRESSION_FIX_V1",
+      "base_remote_head": "37af697cae5dd88d25f00f50bffb1f45805d9076",
+      "integrated_remote_head_before_fix": "cc2cde46725b4296f39cb489784ce42311dca05c",
+      "source_fix_commit": "cf746e152e027e945494ddceee9f94ce63c7d8d3",
+      "production_fix": "Frozen MODEL_CROP_M1_v0.2 SHA maps logical images/logits to actual serving_default_args_0/serving_default_output_0_output, preserving shape/FLOAT32/NCHW checks before native run.",
+      "failure_screen": "Diagnostics collapsed by default; copy/export remain available after expansion.",
+      "terminal_event": "First PIPELINE_TERMINAL per Attempt is retained across both production call sites.",
+      "model_gate": "CLASSIFIER_REAL_TFLITE_TENSOR_BINDING_GATE=PASS on committed model and pre-fix APK model bytes; the new CI workflow checks the newly assembled APK.",
+      "jvm": {
+        "tests": 604,
+        "passed": 604,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "junit_xml": 116,
+        "log": "/tmp/yujian-build-diagnostics/classifier-jvm-build.log"
+      },
+      "release_kotlin_compile": "PASS",
+      "debug_apk_build": "PASS on source tree before final state-only checkpoint; final-head rebuild pending",
+      "androidtest_compile": "BLOCKED before Kotlin: dl.google.com DNS failure resolving AndroidX Test dependencies",
+      "lint": "BLOCKED before analysis: lint-gradle:32.1.1 unavailable in offline cache",
+      "instrumentation_runtime": "NOT_RUN: no local API36 device/KVM/emulator",
+      "classifier_inference_runtime": "NOT_VERIFIED: new Interpreter.run and production engine test added but not executed on device",
+      "github_ci": "NOT_VERIFIED: final-head hosted result unavailable",
+      "github_artifact": "NOT_VERIFIED"
     }
   },
   "execution_v2": {
@@ -585,17 +616,17 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Validate and push this final state-only checkpoint by ordinary fast-forward to PR #346, verify refs, then query Actions for the resulting exact HEAD after api.github.com network access is published; keep CI UNAVAILABLE until a real run result is readable.",
+  "next_action": "Verify final-head hosted CI, compile and execute AndroidTest on API36 with Google Maven access, and confirm real classifier input/output receipts before claiming runtime pass.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "2362e097befb38136ed4d48975ad19e94276e836",
-  "stage": "P0_CDDG_FIX_PUSHED_CI_UNAVAILABLE",
+  "source_sha": "cf746e152e027e945494ddceee9f94ce63c7d8d3",
+  "stage": "P0_CLASSIFIER_TENSOR_BINDING_SOURCE_VERIFIED_RUNTIME_PENDING",
   "state_update": {
-    "last_updated_at": "2026-11-26T07:50:15Z",
-    "note": "CDDG code commit 189f6d85 and checkpoint commit e30d33bf were pushed by ordinary fast-forward. ls-remote independently confirmed the PR branch and refs/pull/346/head at e30d33bf and main unchanged at bc89484. GitHub REST/Actions status remains unverified due proxy HTTP 403; no CI PASS is claimed. The earlier state validation failure report remains retained."
+    "last_updated_at": "2026-11-26T08:01:15Z",
+    "note": "Classifier runtime tensor binding source fix cf746e152e027e945494ddceee9f94ce63c7d8d3 pushed to PR #346; 604/604 JVM, Release Kotlin and Debug APK build passed. AndroidTest and Lint blocked by missing Google Maven dependencies. Device inference and final CI remain unverified."
   },
-  "status": "RUNNING",
+  "status": "BLOCKED",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
   "work_id": "YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2"
 }
