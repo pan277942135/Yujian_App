@@ -3,9 +3,9 @@ state_id: YUJIAN_APP_PR346_CROSS_LAYER_CLOSURE_V4_1
 project:
   name: YuJian Android App
   repository: pan277942135/Yujian_App
-  scope: 'PR #346 production control and identity closure, frozen Gate Deadline policy, Native runtime safety, and exact-HEAD delivery (YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2)'
+  scope: 'Master Goal V2.3 unified source baseline, Guard V1 integration, classifier real-inference receipt closure, and API36 exact-head verification (YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE)'
 state_control:
-  execution_baseline_sha: 2362e097befb38136ed4d48975ad19e94276e836
+  execution_baseline_sha: af5fac3c86cb3ac2e03894f52fd8031d3010611d
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
@@ -18,16 +18,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: 4da469384e1ef814488b75d979eff8ca3ac1df79
+    head_sha: 2d8bacef09f79d20dde7e2a8587c1caab00432fa
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: fix/det-fish-v03-main-runtime-closure
     base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
-    head_sha: 4da469384e1ef814488b75d979eff8ca3ac1df79
+    head_sha: 2d8bacef09f79d20dde7e2a8587c1caab00432fa
     status: DRAFT_OPEN_UNMERGED
-    status_source: Git refs were rechecked on 2026-11-26 after the CDDG push; refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head both equal 4da469384e1ef814488b75d979eff8ca3ac1df79. Draft remains the last known PR state; live metadata could not be queried because GitHub API egress is proxy-blocked; no PR mutation occurred.
+    status_source: 'Pre-push source lock check on 2026-11-26 verified refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head at 2d8bacef09f79d20dde7e2a8587c1caab00432fa, and main at bc89484ca79fe20c63c9c6e65b284f1ec3ac1863. Local guarded V2.3 commits 3cc0a443 and af5fac3c are pending state checkpoint, Admission, and ordinary push. PR Draft/open is the last known metadata; no PR state mutation occurred.'
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -74,43 +74,44 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: 2362e097befb38136ed4d48975ad19e94276e836
-    admission: CDDGV1 code fix 2362e097befb38136ed4d48975ad19e94276e836 and state checkpoint 4da469384e1ef814488b75d979eff8ca3ac1df79 were pushed by ordinary fast-forward; both the target branch and PR ref were independently verified at 4da469384e1ef814488b75d979eff8ca3ac1df79. The 31-test CDDG suite and full Admission pass. Exact-HEAD CI remains unavailable via the current API route.
+    sha: af5fac3c86cb3ac2e03894f52fd8031d3010611d
+    admission: 'PENDING state-only checkpoint Admission. Guarded V2.3 source commit 3cc0a443253ff357b429fb0e3620f2954e3ef8f2 and Master Goal status commit af5fac3c86cb3ac2e03894f52fd8031d3010611d are local descendants of the remotely verified source lock; final ordinary push and post-push ref verification are pending.'
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
       url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
       source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
-    build: Pending final marked checkpoint build from the final branch head
-    unit_tests: CDDG tooling 30/30 PASS at 189f6d85; product/module regression remains historical (604/604 at 4c328ab) and is not re-claimed for this SHA.
-    android_test_compile: NOT_RUN_AT_316DE1B; exact-source compile is pending.
-    lint: NOT_RUN_AT_316DE1B; exact-source lint is pending.
-    api36_emulator: PENDING current source; local /dev/kvm, adb, and emulator are absent. Do not claim current-source KVM, boot, or AUTO PASS before the hosted marked run completes
-    model_validation: HISTORICAL_ONLY_AT_6102640; final exact-head APK model hashes are pending.
+    build: 'PENDING exact PR checkpoint; local Gradle wrapper could not resolve services.gradle.org, so no current-source APK build is claimed.'
+    unit_tests: 'Guard V1 31/31 PASS; classifier binding and API36 runner/finalizer deterministic tests pass. Product/module JVM regression remains PENDING for V2.3; historical 604/604 at 4c328ab and 574/574 at 316de1b are not promoted.'
+    android_test_compile: 'PENDING current V2.3 source; hosted exact-head compilation is required.'
+    lint: 'PENDING current V2.3 source; hosted exact-head lint is required.'
+    api36_emulator: 'PENDING current V2.3 source; no local /dev/kvm, adb, or emulator. Hosted Test A and Test B must run on the marked checkpoint.'
+    model_validation: 'PASS: scripts/verify_classifier_tensor_binding.py inspected the unchanged committed model FlatBuffer and exact model SHA. Real TFLite Interpreter.run() and production Top1 remain PENDING API36.'
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: 316de1b705fb54ee7d6e2114259ec1f87773aedf
-  exact_head_apk: 'PENDING: rebuild from the final source commit; prior APKs are historical and must not be delivered.'
+  source_head: af5fac3c86cb3ac2e03894f52fd8031d3010611d
+  exact_head_apk: 'PENDING: build from the final pushed PR checkpoint; prior APKs are historical and must not be delivered.'
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
   input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
   input_evidence_zip: 'artifacts/26kf_visual_reference_v1/inputs/YuJian_Recognition_Evidence_eac685c91965.zip; 16,204,260 bytes; SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; historical pre-fix source SHA 67f17f0eb6a80233438cb8b00111a55d6767a6d8'
   fixture_b: 'FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not found in current attachments/workspace.'
   emulator_device_evidence: 'Hosted Run 45172732325 at source 6102640437041159abc519b00249b7aedff0bb03: KVM preflight, memory gate, APK Pair verification and AVD memory config passed; API36 AUTO job failed and exact-head enforcement failed. Runtime evidence artifact 14818308331 (10.1 MB, SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33) uploaded but contents/logs are not readable here; emulator boot and failure classification are NOT_CONFIRMED. No AUTO PASS claimed.'
 current_work:
-  id: YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2
+  id: YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 2362e097befb38136ed4d48975ad19e94276e836
-  status: RUNNING
-  stage: P0_CDDG_GUARD_TESTED_PENDING_ADMISSION_PUSH
-  requested_task_id: YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2
-  requested_task_title: 'Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery'
+  exact_head: af5fac3c86cb3ac2e03894f52fd8031d3010611d
+  status: BLOCKED
+  stage: P0_V23_SOURCE_AND_STATUS_COMMITTED_PENDING_STATE_CHECKPOINT_ADMISSION_PUSH_CI_API36
+  requested_task_id: YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE
+  requested_task_title: 'YuJian Master Goal V2.3 — unified source baseline, Guard V1 integration, classifier real inference, API36 simulator verification'
   blockers:
   - 'P0_2_HISTORY_UNAVAILABLE: requested historical commit object is unavailable; preservation review cannot be completed from current remote objects.'
-  - 'POST_CHANGE_VALIDATION_PENDING: baseline source 316de1b passed 574 unit tests; post-fix full regression, AndroidTest compile, Release compile, lint, CI and APK checks remain pending.'
-  - 'DEVICE_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator; exact-head hosted/device evidence remains pending.'
+  - 'V23_PRODUCT_REGRESSION_PENDING: local Gradle wrapper distribution could not resolve services.gradle.org; current-source JVM, AndroidTest compile, Release Kotlin, lint, and APK results are pending hosted exact-head CI.'
+  - 'DEVICE_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator; exact-head API36 Test A/Test B evidence remains pending.'
+  - 'GITHUB_EXACT_HEAD_CI_PENDING: local source commits require final state checkpoint Admission and ordinary PR branch push before hosted CI can run.'
   - 'FIXTURE_B_UNAVAILABLE: named historical evidence ZIP is absent; no fixture replay will be claimed.'
 
 blockers:
@@ -134,17 +135,17 @@ blockers:
   severity: P0
   area: G6/G8
   status: OPEN
-  condition: Baseline unit tests passed at source 316de1b; post-fix full regression, AndroidTest compile, Release compile, lint, APK and current-source device run remain pending.
+  condition: V2.3 source commit 3cc0a443 and status commit af5fac3c are local; Guard deterministic tests and model metadata gate pass, while product JVM regression, AndroidTest compile, Release compile, lint, APK and current-source device run await exact-head hosted execution.
   affected_gate: Cross-layer regression and exact-head delivery.
-  unblock_condition: Run the requested exact-source verification after code changes.
+  unblock_condition: Push the final state checkpoint by ordinary fast-forward and inspect its exact-head GitHub Actions results and artifacts.
   independent_work_may_continue: true
 - id: API36-AUTO-SMOKE-001
   severity: P0
   area: G8
   status: OPEN
-  condition: No current-source API36 KVM/AVD/production AUTO run is confirmed; local KVM, adb, and emulator are unavailable.
+  condition: No current-source API36 KVM/AVD/instrumentation run is confirmed; local KVM, adb, and emulator are unavailable.
   affected_gate: Exact-head API36 AUTO and device runtime evidence.
-  unblock_condition: Run the exact source APK on authorized hosted KVM/device and capture complete results.
+  unblock_condition: Run the final exact-head AndroidTest APK on hosted API36 and verify both real instrumentation cases and complete results.
   independent_work_may_continue: true
 
 protected_invariants:
@@ -174,7 +175,15 @@ next_actions:
 - id: P0-DELIVERY-03
   owner: Codex
   status: READY
-  action: Run Control Plane Admission on the CDDG state checkpoint, push normally to PR #346, verify the remote SHA, and record Exact-HEAD CI.
+  action: Create the state-only checkpoint for V2.3, run Control Plane Admission, push by ordinary fast-forward to the existing PR #346 branch, then verify remote refs and exact-head CI artifacts.
+- id: V23-SOURCE-01
+  owner: Codex
+  status: COMPLETED
+  action: Guard source commit 3cc0a443 and status ledger commit af5fac3c record Master Goal V2.3, classifier receipt integration, and sequential API36 Test A/Test B gates; local deterministic checks pass.
+- id: V23-CHECKPOINT-02
+  owner: Codex
+  status: READY
+  action: Commit this state-only checkpoint with source_sha af5fac3c, validate Admission, then perform the existing branch's ordinary fast-forward push and inspect the exact-head hosted run.
 
 completion_rules:
 - Complete applicable deterministic cross-layer tests before final APK packaging.
@@ -182,11 +191,11 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-26T07:50:15Z'
-  note: "P0 GitHub Continuous Delivery Guard V1 code fix 2362e097befb38136ed4d48975ad19e94276e836 adds regression coverage proving CI UNAVAILABLE/PENDING keeps independent research enabled, with Work V2 suite 31/31. `delivery_guard.py` pushed the fix and state checkpoint 4da469384e1ef814488b75d979eff8ca3ac1df79 by ordinary fast-forward; target branch and refs/pull/346/head matched 4da469384e1ef814488b75d979eff8ca3ac1df79 and main stayed bc89484ca79fe20c63c9c6e65b284f1ec3ac1863. Git write is proven; REST identity/permissions and Exact-HEAD CI remain unverified because API egress returns proxy HTTP 403."
+  last_updated_at: '2026-11-26T09:37:27Z'
+  note: 'V2.3 Guard source commit 3cc0a443253ff357b429fb0e3620f2954e3ef8f2 and status commit af5fac3c86cb3ac2e03894f52fd8031d3010611d were created from the remotely verified 2d8bacef source lock. Guard tests (31/31), classifier FlatBuffer gate, API36 parser and finalizer tests (20/20), sequential runner harness, workflow YAML, Bash syntax, and diff checks passed. Android/JVM build, AndroidTest, lint, API36 runtime, APK, and hosted CI remain pending. The checkpoint requires Admission and ordinary push before any exact-head claim.'
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.
-  - Source regressions, module tests, and AndroidTest APK compilation pass; exact-head APK packaging and hosted API36 AUTO remain pending.
+  - V2.3 deterministic source checks passed at guarded source commit 3cc0a443; the later status commit is af5fac3c. Current-source Gradle/JVM, AndroidTest compile, lint, APK, and hosted exact-head API36 Test A/Test B remain pending.
   - Preserve the unavailable Fixture B and unavailable post-fix device evidence accurately; do not promote historical captures to current-head PASS.
   - Push only to the existing PR #346 branch; do not create another PR, merge, or mark ready.
