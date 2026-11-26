@@ -15,7 +15,7 @@
     "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-26T14:19:15Z",
+  "checkpoint_updated_at": "2026-11-26T14:35:11Z",
   "control_plane_revision": "bc89484ca79fe20c63c9c6e65b284f1ec3ac1863",
   "current_work": {
     "blockers": [
@@ -27,7 +27,8 @@
       "AUTO_RUNTIME_UNVERIFIED: no current-source 26KF device run, real Mask/PixelCopy evidence, or Stage10-13.5 end-to-end AUTO evidence was produced.",
       "FIXTURE_B_UNAVAILABLE: historical runtime evidence ZIP is absent; replay is not claimed.",
       "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79.",
-      "P0_V2_API36_RUNTIME_PENDING: source 719b9de requires hosted Test A/B/C, classifier native execution, SlimSAM/Mask/Result evidence, and exact-head APK verification."
+      "P0_V2_RUN4223_FAILURE: exact-head build passed, API36 smoke failed at 86065bcf; artifact 15125829938 is inaccessible under current network policy, so runtime root cause is NOT_CONFIRMED.",
+      "P0_V2_API36_RUNTIME_PENDING: source 044e266 requires hosted Test A/B/C, classifier native execution, SlimSAM/Mask/Result evidence, and exact-head APK verification."
     ],
     "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
     "current_validated_tree_note": "Final pushed source commit 4c328ab5e7c6d555c9575ebeffa2c815e6618baf passed 604/604 JVM tests, :app:compileReleaseKotlin, Debug APK build, packaged model/assets, signature and ZIP checks. APK SHA256 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0; 200382052 bytes. AndroidTest and lint are blocked before source validation by Google Maven DNS; hosted exact-head CI and API36 runtime remain unverified.",
@@ -614,15 +615,15 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Commit this state-only checkpoint, run Control Plane Admission, fast-forward push PR #346, then inspect exact-head CI Test A/B/C, runtime evidence and APK. Device QA remains pending.",
+  "next_action": "Validate and push P0 V2 parser classification checkpoint after observing #4224; inspect exact-head hosted API36 Test A/B/C and collect runtime artifact for root-cause repair.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "719b9de3549797742393a49835309d9c8f013e58",
-  "stage": "P0_V2_CLASSIFIER_AUTO_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH_API36",
+  "source_sha": "044e266c5e452348425ec1dea1d016db69239e4b",
+  "stage": "P0_V2_PARSER_CATEGORIES_COMMITTED_PENDING_ADMISSION_PUSH_API36",
   "state_update": {
-    "last_updated_at": "2026-11-26T14:19:15Z",
-    "note": "P0 V2 source 719b9de adds raw EXIF diagnostic, classifier native execution trace, and hosted API36 production Home/Picker/AUTO/Result Test C. Local parser/finalizer 28/28, model metadata gate and runner fault fixture pass. Real API36 execution and APK are pending."
+    "last_updated_at": "2026-11-26T14:35:11Z",
+    "note": "P0 V2 source 044e266 adds Java/native/assertion/cleanup/infra classifications with PID/time correlation. Local 34 parser/finalizer tests and runner fixture pass. Historical #4223 built successfully but API36 smoke failed; original runtime artifact is unavailable, cause NOT_CONFIRMED. #4224 at eb2db5e is in progress."
   },
   "status": "BLOCKED",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",

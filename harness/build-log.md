@@ -439,3 +439,8 @@
 
 - Source `719b9de3549797742393a49835309d9c8f013e58` adds classifier native event trace, raw EXIF Orientation evidence, and a hosted API36 Home/Picker/AUTO/Result instrumentation case. The original HUAWEI-only case remains separately available.
 - Local parser/finalizer tests 28/28 PASS, frozen TFLite metadata Gate PASS, fake runner fault path PASS; real device inference and complete AUTO evidence are NOT_RUN for this source. Run #4223 at 86065bcf is historical once this candidate is pushed.
+
+## 2026-11-26 — P0 V2 API36 failure classification checkpoint
+
+- Source `044e266c5e452348425ec1dea1d016db69239e4b` adds case PID/time scoped Java, Native, Assertion, expected cleanup, timeout, and infrastructure classifications. Parser/finalizer 34/34 PASS and fake runner failure remains FAIL. AndroidTest is pending for this source.
+- Historical #4223 at 86065bcf: build succeeded, API36 smoke failed in 4m05s; artifact 15125829938 ZIP digest 0403a61d7da607fb7a7f9526d0db1e78738124c914c56f28f5c5f2bcd1f8fb75. GitHub API is denied by current network policy and public web omits download; cause NOT_CONFIRMED. #4224 at eb2db5e is still running.
