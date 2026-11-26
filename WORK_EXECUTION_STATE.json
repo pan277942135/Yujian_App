@@ -626,12 +626,12 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Checkpoint and push V3 source, run exact-head hosted API36 A/B/C, inspect actual SlimSAM timing and evidence, then deliver APK only if all gates pass.",
+  "next_action": "Push PASS-gated Release job; await exact-head CI API36 A/B/C and inspect real model timing before any APK PASS claim.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "5db2ba710037c45951defe687075bd5b38f5a800",
-  "stage": "P0_V3_RUN4225_ROOT_CAUSE_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH_API36",
+  "source_sha": "162318f2b7f483a4622ff0da77e52b2c8a849057",
+  "stage": "P0_V3_EXACT_HEAD_RELEASE_GATE_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH",
   "state_update": {
     "last_updated_at": "2026-11-26T14:35:11Z",
     "note": "P0 V2 source 044e266 adds Java/native/assertion/cleanup/infra classifications with PID/time correlation. Local 34 parser/finalizer tests and runner fixture pass. Historical #4223 built successfully but API36 smoke failed; original runtime artifact is unavailable, cause NOT_CONFIRMED. #4224 at eb2db5e is in progress."

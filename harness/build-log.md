@@ -450,3 +450,7 @@
 - Source `5db2ba710037c45951defe687075bd5b38f5a800` fixes AndroidTest asset/storage separation, fail-fast AUTO failure evidence, direct SlimSAM input hashing and phase timing, API36 4-core config, memory windows and independent A/B/C failure reporting.
 - Local 44 CI Python tests, fake runner failure path, classifier metadata gate and source diff checks PASS. Focused Kotlin receipt tests reported 28 PASS by implementation agent; hosted A/B/C, encoder 60s benchmark, exact-head CI and APK are PENDING.
 - Run #4225 at `d1e72403` failed; user supplied artifact ID 15134616720 and digest 47fd3ff89fea6bb7fa21375f19a9a1a51320398da45cc2f53bac834f3d3e9b7c. GitHub API artifact download is blocked in this workspace.
+
+## 2026-11-27 — P0 V3 exact-head delivery gate checkpoint
+
+- Source `162318f2b7f483a4622ff0da77e52b2c8a849057` adds a CI Release job gated on build and API36 A/B/C success, validates APK and Evidence hashes, and verifies published assets. No Release was created at this checkpoint.
