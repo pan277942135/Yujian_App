@@ -15,7 +15,7 @@
     "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-26T14:05:47Z",
+  "checkpoint_updated_at": "2026-11-26T14:19:15Z",
   "control_plane_revision": "bc89484ca79fe20c63c9c6e65b284f1ec3ac1863",
   "current_work": {
     "blockers": [
@@ -27,7 +27,7 @@
       "AUTO_RUNTIME_UNVERIFIED: no current-source 26KF device run, real Mask/PixelCopy evidence, or Stage10-13.5 end-to-end AUTO evidence was produced.",
       "FIXTURE_B_UNAVAILABLE: historical runtime evidence ZIP is absent; replay is not claimed.",
       "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79.",
-      "P0_V2_API36_RUNTIME_PENDING: db86f445 has not run on hosted API36; local Gradle/SDK unavailable. Runtime and APK acceptance remain NOT_RUN."
+      "P0_V2_API36_RUNTIME_PENDING: source 719b9de requires hosted Test A/B/C, classifier native execution, SlimSAM/Mask/Result evidence, and exact-head APK verification."
     ],
     "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
     "current_validated_tree_note": "Final pushed source commit 4c328ab5e7c6d555c9575ebeffa2c815e6618baf passed 604/604 JVM tests, :app:compileReleaseKotlin, Debug APK build, packaged model/assets, signature and ZIP checks. APK SHA256 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0; 200382052 bytes. AndroidTest and lint are blocked before source validation by Google Maven DNS; hosted exact-head CI and API36 runtime remain unverified.",
@@ -614,15 +614,15 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Run Control Plane Admission for P0 V2 EXIF/Parser commit db86f445, fast-forward push PR #346 branch, then inspect exact-head API36 Test A/B and build evidence; real AUTO/Test C and final APK remain pending.",
+  "next_action": "Commit this state-only checkpoint, run Control Plane Admission, fast-forward push PR #346, then inspect exact-head CI Test A/B/C, runtime evidence and APK. Device QA remains pending.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "db86f445e466b61349e615ffb90c3280b6d82ab1",
-  "stage": "P0_V2_EXIF_PARSER_COMMITTED_PENDING_ADMISSION_PUSH_API36",
+  "source_sha": "719b9de3549797742393a49835309d9c8f013e58",
+  "stage": "P0_V2_CLASSIFIER_AUTO_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH_API36",
   "state_update": {
-    "last_updated_at": "2026-11-26T14:05:47Z",
-    "note": "P0 V2 EXIF fixture normalization and PID/time-correlated API36 parser committed at db86f445; 17 parser unit tests and fake runner control-flow pass locally. Real AndroidTest, AUTO and APK remain pending exact-head hosted CI. Run #4222 failed at historical a1c9c4ae and cannot promote this source."
+    "last_updated_at": "2026-11-26T14:19:15Z",
+    "note": "P0 V2 source 719b9de adds raw EXIF diagnostic, classifier native execution trace, and hosted API36 production Home/Picker/AUTO/Result Test C. Local parser/finalizer 28/28, model metadata gate and runner fault fixture pass. Real API36 execution and APK are pending."
   },
   "status": "BLOCKED",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",

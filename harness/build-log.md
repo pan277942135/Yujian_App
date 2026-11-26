@@ -434,3 +434,8 @@
 - Source commit `db86f445e466b61349e615ffb90c3280b6d82ab1` reuses the production photo normalization entry in both API36 tests and scopes LMK classification to case PID/time. Raw JPEG SHA matches `a7ed3bb0...`; no APP1 or Orientation tag was observed.
 - Parser unit tests 17/17 and fake runner control-flow fixture passed. Hosted AndroidTest, real Classifier, AUTO, Result and APK remain pending. Run #4222 at `a1c9c4ae` is historical FAIL.
 - Delivery Guard push attempt was blocked by stale Work source state; its failure snapshot encountered a binary patch UTF-8 decoder error. This state checkpoint advances the tracked implementation baseline to `db86f445e466b61349e615ffb90c3280b6d82ab1` for Admission and ordinary push.
+
+## 2026-11-26 — P0 V2 classifier and hosted AUTO checkpoint
+
+- Source `719b9de3549797742393a49835309d9c8f013e58` adds classifier native event trace, raw EXIF Orientation evidence, and a hosted API36 Home/Picker/AUTO/Result instrumentation case. The original HUAWEI-only case remains separately available.
+- Local parser/finalizer tests 28/28 PASS, frozen TFLite metadata Gate PASS, fake runner fault path PASS; real device inference and complete AUTO evidence are NOT_RUN for this source. Run #4223 at 86065bcf is historical once this candidate is pushed.
