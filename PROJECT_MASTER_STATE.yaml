@@ -18,16 +18,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: 52aca20a49be6ab0f01d0b635988209cd5d55da0
+    head_sha: e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: fix/det-fish-v03-main-runtime-closure
     base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
-    head_sha: 52aca20a49be6ab0f01d0b635988209cd5d55da0
+    head_sha: e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67
     status: DRAFT_OPEN_UNMERGED
-    status_source: Git refs were rechecked on 2026-11-26 and refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 plus refs/pull/346/head both equal 52aca20a49be6ab0f01d0b635988209cd5d55da0; live Draft metadata could not be queried because GitHub API egress is proxy-blocked; no PR mutation occurred.
+    status_source: Git refs were rechecked on 2026-11-26 after the CDDG push; refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head both equal e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67. Draft remains the last known PR state; live metadata could not be queried because GitHub API egress is proxy-blocked; no PR mutation occurred.
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -75,7 +75,7 @@ recognition_main_journey:
 runtime_gates:
   exact_head:
     sha: 189f6d85b02fdcbd41f431fdb58020a42f589dc3
-    admission: Baseline Admission PASS at remote source 52aca20a49be6ab0f01d0b635988209cd5d55da0; state-only checkpoint Admission is pending. Prior state validation found and is correcting a stale runtime exact-head pointer.
+    admission: Baseline Admission PASS at remote source 52aca20a49be6ab0f01d0b635988209cd5d55da0; code commit 189f6d85 and pushed state checkpoint e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67 are recorded. Current state-only checkpoint Admission is pending.
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
@@ -182,8 +182,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-26T07:33:03Z'
-  note: "P0 GitHub Continuous Delivery Guard V1 source commit 189f6d85b02fdcbd41f431fdb58020a42f589dc3 was created from exact PR base 52aca20a49be6ab0f01d0b635988209cd5d55da0; 30/30 local Work V2 and guard fixture tests passed. GitHub API remains proxy-blocked; actual push and Exact-HEAD CI are pending."
+  last_updated_at: '2026-11-26T07:38:53Z'
+  note: "P0 GitHub Continuous Delivery Guard V1 code commit 189f6d85b02fdcbd41f431fdb58020a42f589dc3 was created from exact PR base 52aca20a49be6ab0f01d0b635988209cd5d55da0; 30/30 local Work V2 and guard fixture tests passed. delivery_guard pushed state checkpoint e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67 by fast-forward and independently verified both the PR branch and refs/pull/346/head. Git write is proven; GitHub REST identity/permissions and Exact-HEAD CI remain unverified because API egress returns proxy HTTP 403."
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.
