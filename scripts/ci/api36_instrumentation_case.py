@@ -4,10 +4,43 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
 import xml.etree.ElementTree as ET
+
+
+def _case_log_lines(log: str, pids: tuple[str, ...], start: str, end: str) -> list[str]:
+    """Keep only logcat events tied to this test's process and UTC interval."""
+    if not start or not end:
+        return log.splitlines()  # Unit fixtures without runtime metadata.
+    begin = datetime.fromisoformat(start.replace("Z", "+00:00"))
+    finish = datetime.fromisoformat(end.replace("Z", "+00:00"))
+    known_pids = {pid for row in pids for pid in row.split() if pid.isdigit()}
+    selected: list[str] = []
+    for line in log.splitlines():
+        threadtime = re.match(r"^(\d\d)-(\d\d)\s+(\d\d):(\d\d):(\d\d)\.(\d+)\s+(\d+)\s+\d+\s+", line)
+        epoch = re.match(r"^(\d{10})\.(\d+)\s+(\d+)\s+\d+\s+", line)
+        if threadtime:
+            month, day, hour, minute, second, fraction, source_pid = threadtime.groups()
+            event_time = datetime(begin.year, int(month), int(day), int(hour), int(minute), int(second),
+                                  int(fraction[:6].ljust(6, "0")), tzinfo=timezone.utc)
+        elif epoch:
+            seconds, fraction, source_pid = epoch.groups()
+            event_time = datetime.fromtimestamp(int(seconds) + int(fraction[:6].ljust(6, "0")) / 1e6, timezone.utc)
+        else:
+            continue  # An undated global log line cannot prove an in-window death.
+        if not begin <= event_time <= finish:
+            continue
+        target = re.search(r"\bpid\s*[=: ]\s*(\d+)\b|\(pid\s+(\d+)\)|\((\d+)\)", line, re.I)
+        target_pid = next((group for group in target.groups() if group), None) if target else source_pid
+        if known_pids and target_pid not in known_pids:
+            continue
+        if not known_pids:
+            continue  # A package name without a sampled PID is insufficient for attribution.
+        selected.append(line)
+    return selected
 
 
 def evaluate_case(
@@ -44,13 +77,30 @@ def evaluate_case(
         for event in status_events
     )
     final_codes = [int(value) for value in re.findall(r"^INSTRUMENTATION_CODE:\s*(-?\d+)\s*$", raw_log, re.M)]
-    lmk_pattern = re.compile(
-        r"(?is)(?:lowmemorykiller|\blmkd\b|\bam_kill\b|\bam_proc_died\b|\bSIGKILL\b|process crashed|fatal exception).*"
-        r"(?:com\.yujian\.ai\.uiv2(?:\.test)?|instrumentation)|"
-        r"(?:com\.yujian\.ai\.uiv2(?:\.test)?|instrumentation).*"
-        r"(?:lowmemorykiller|\blmkd\b|\bam_kill\b|\bam_proc_died\b|\bSIGKILL\b|process crashed|fatal exception)",
+    event_lines = raw_log.splitlines() + _case_log_lines(auxiliary_log, app_pids + instrumentation_pids,
+                                                        start_time_utc, end_time_utc)
+    app = re.compile(r"com\.yujian\.ai\.uiv2(?:\.test)?\b", re.I)
+    lmk_confirmed = any(
+        app.search(line) and re.search(r"\b(?:lmkd|lowmemorykiller)\b", line, re.I)
+        and re.search(r"\b(?:kill|killed|oom|low memory)\b", line, re.I)
+        for line in event_lines
     )
-    lmk_or_process_death = bool(lmk_pattern.search(raw_log + "\n" + auxiliary_log))
+    process_crash = any(
+        re.search(r"fatal exception|process crashed", line, re.I)
+        and (app.search(line) or "fatal exception" in line.lower()
+             or "INSTRUMENTATION_RESULT: shortMsg=Process crashed" in line)
+        for line in event_lines
+    )
+    normal_cleanup = any(
+        app.search(line) and re.search(r"\bam_kill\b.*\bfinished inst\b", line, re.I)
+        for line in event_lines
+    )
+    unknown_death = any(
+        app.search(line) and re.search(r"\b(?:am_proc_died|SIGKILL|am_kill)\b", line, re.I)
+        and not re.search(r"\bfinished inst\b", line, re.I)
+        for line in event_lines
+    )
+    lmk_or_process_death = lmk_confirmed or process_crash or unknown_death
     failed_status = any(code < 0 and code != -1 for code in status_codes)
     failed_marker = bool(
         re.search(r"(?i)FAILURES!!!|INSTRUMENTATION_RESULT: shortMsg=|test run failed|instrumentation aborted", raw_log)
@@ -74,8 +124,14 @@ def evaluate_case(
         reason = "NONE"
     elif timed_out:
         reason = "INSTRUMENTATION_TIMEOUT"
-    elif lmk_or_process_death:
-        reason = "PROCESS_DEATH_OR_LOW_MEMORY_MANAGER_EVENT"
+    elif lmk_confirmed:
+        reason = "LMK_CONFIRMED"
+    elif process_crash:
+        reason = "PROCESS_CRASH"
+    elif failed_status or failed_marker:
+        reason = "INSTRUMENTATION_FAILURE"
+    elif unknown_death:
+        reason = "PROCESS_DEATH_UNKNOWN"
     elif command_exit_code != 0:
         reason = f"INSTRUMENTATION_COMMAND_EXIT_{command_exit_code}"
     elif not started:
@@ -84,8 +140,6 @@ def evaluate_case(
         reason = "INSTRUMENTATION_CODE_NOT_EXACTLY_MINUS_ONE"
     elif status_codes.count(0) != 1:
         reason = "EXPECTED_ONE_COMPLETED_TEST"
-    elif failed_status or failed_marker:
-        reason = "INSTRUMENTATION_REPORTED_FAILURE"
     else:
         reason = "NORMAL_ONE_TEST_SUMMARY_MISSING"
     return {
@@ -100,6 +154,10 @@ def evaluate_case(
         "command_exit_code": command_exit_code,
         "timed_out": timed_out,
         "lmk_or_process_death_observed": lmk_or_process_death,
+        "lmk_confirmed": lmk_confirmed,
+        "process_crash": process_crash,
+        "normal_process_cleanup": normal_cleanup,
+        "process_death_unknown": unknown_death,
         "normal_summary": normal_summary,
         "passed": passed,
         "reason": reason,

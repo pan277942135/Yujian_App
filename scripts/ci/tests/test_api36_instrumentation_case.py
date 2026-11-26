@@ -52,13 +52,57 @@ class Api36InstrumentationCaseTests(unittest.TestCase):
         raw = passing_log().replace("INSTRUMENTATION_CODE: -1", "INSTRUMENTATION_RESULT: shortMsg=Process crashed\nINSTRUMENTATION_CODE: 0")
         result = self.evaluate(raw)
         self.assertFalse(result["passed"])
-        self.assertEqual("PROCESS_DEATH_OR_LOW_MEMORY_MANAGER_EVENT", result["reason"])
+        self.assertEqual("PROCESS_CRASH", result["reason"])
 
     def test_lmk_event_fails_even_when_instrumentation_claims_success(self):
         result = self.evaluate(auxiliary_log="lowmemorykiller: Kill 'com.yujian.ai.uiv2' (pid 124) rss=670552kB")
         self.assertFalse(result["passed"])
         self.assertTrue(result["lmk_or_process_death_observed"])
-        self.assertEqual("PROCESS_DEATH_OR_LOW_MEMORY_MANAGER_EVENT", result["reason"])
+        self.assertEqual("LMK_CONFIRMED", result["reason"])
+
+    def test_finished_instrumentation_cleanup_is_not_lmk(self):
+        result = self.evaluate(auxiliary_log="am_kill: stop com.yujian.ai.uiv2 due to finished inst")
+        self.assertTrue(result["passed"])
+        self.assertTrue(result["normal_process_cleanup"])
+        self.assertFalse(result["lmk_confirmed"])
+
+    def test_unexplained_process_death_is_distinct_from_lmk(self):
+        result = self.evaluate(auxiliary_log="am_proc_died: com.yujian.ai.uiv2 pid=1234")
+        self.assertFalse(result["passed"])
+        self.assertEqual("PROCESS_DEATH_UNKNOWN", result["reason"])
+
+    def test_assertion_failure_is_instrumentation_failure(self):
+        result = self.evaluate(passing_log().replace("INSTRUMENTATION_CODE: -1", "FAILURES!!!\nINSTRUMENTATION_CODE: 0"))
+        self.assertFalse(result["passed"])
+        self.assertEqual("INSTRUMENTATION_FAILURE", result["reason"])
+
+    def test_cleanup_does_not_hide_prior_assertion_failure(self):
+        raw = passing_log().replace("INSTRUMENTATION_CODE: -1", "FAILURES!!!\nINSTRUMENTATION_CODE: 0")
+        result = self.evaluate(raw, auxiliary_log="am_kill: stop com.yujian.ai.uiv2 due to finished inst")
+        self.assertFalse(result["passed"])
+        self.assertEqual("INSTRUMENTATION_FAILURE", result["reason"])
+
+    def test_matching_pid_and_time_confirm_lmk(self):
+        result = self.evaluate(
+            auxiliary_log="11-26 09:00:20.000  100  100 I lmkd: Kill com.yujian.ai.uiv2 (pid 333)",
+            app_pids=("333",), start_time_utc="2026-11-26T09:00:00Z", end_time_utc="2026-11-26T09:01:00Z",
+        )
+        self.assertEqual("LMK_CONFIRMED", result["reason"])
+
+    def test_other_process_lmk_does_not_contaminate_case(self):
+        result = self.evaluate(
+            auxiliary_log="11-26 09:00:20.000  100  100 I lmkd: Kill com.yujian.ai.uiv2 (pid 444)",
+            app_pids=("333",), start_time_utc="2026-11-26T09:00:00Z", end_time_utc="2026-11-26T09:01:00Z",
+        )
+        self.assertTrue(result["passed"])
+        self.assertFalse(result["lmk_confirmed"])
+
+    def test_event_outside_case_window_does_not_contaminate_case(self):
+        result = self.evaluate(
+            auxiliary_log="11-26 09:02:20.000  100  100 I lmkd: Kill com.yujian.ai.uiv2 (pid 333)",
+            app_pids=("333",), start_time_utc="2026-11-26T09:00:00Z", end_time_utc="2026-11-26T09:01:00Z",
+        )
+        self.assertTrue(result["passed"])
 
     def test_wrong_test_name_fails(self):
         result = self.evaluate(passing_log(method_name="someOtherTest"))

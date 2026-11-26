@@ -1,5 +1,7 @@
 package com.yujian.ai
 
+import android.util.Log
+import androidx.exifinterface.media.ExifInterface
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Handler
@@ -15,7 +17,6 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.exifinterface.media.ExifInterface
 import com.yujian.ai.ai.FishRecognitionEngine
 import com.yujian.ai.ai.FishRecognitionPipeline
 import com.yujian.ai.ai.RecognitionModelIdentity
@@ -28,8 +29,9 @@ import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.knowledge.FishKnowledgeRepository
 import com.yujian.ai.model.SelectedImage
+import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.recognition.domain.CanonicalPhotoPixelsV1
-import com.yujian.ai.recognition.domain.PhotoIdentity
+import java.io.ByteArrayInputStream
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
@@ -62,7 +64,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
-import java.io.ByteArrayInputStream
 import java.security.MessageDigest
 import java.util.Locale
 import java.util.Collections
@@ -120,34 +121,22 @@ class RecognitionRevealProductionRuntimeTest {
         val sourceBytes = testContext.assets.open(SOURCE_ASSET).use { it.readBytes() }
         val sourceSha256 = sourceBytes.sha256()
         assertEquals(SOURCE_SHA256, sourceSha256)
-        val bitmap = requireNotNull(BitmapFactory.decodeByteArray(sourceBytes, 0, sourceBytes.size))
-        val sourceExifOrientation = ExifInterface(ByteArrayInputStream(sourceBytes))
-            .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-        assertEquals(ExifInterface.ORIENTATION_NORMAL, sourceExifOrientation)
-        val imageId = "rr09-production-night-catch-$sourceSha256"
-        val canonicalPixelSha256 = CanonicalPhotoPixelsV1.sha256(bitmap.width, bitmap.height) { row, destination ->
-            bitmap.getPixels(destination, 0, bitmap.width, 0, row, bitmap.width, 1)
-        }
-        val photoIdentity = PhotoIdentity(
-            photoId = imageId,
-            sourceBytesSha256 = sourceSha256,
-            canonicalPixelSha256 = canonicalPixelSha256,
-            width = bitmap.width,
-            height = bitmap.height,
-            sourceOrientation = sourceExifOrientation,
-            normalizationVersion = PhotoIdentity.NORMALIZATION_VERSION_V1,
-            photoContentVersion = 1L,
-        )
+        val selectedImage = runBlocking { RecognitionImageStore.normalizeAsset(testContext, SOURCE_ASSET) }
+        val bitmap = selectedImage.bitmap
+        val imageId = selectedImage.imageId
+        val canonicalPixelSha256 = selectedImage.photoSha256
+        val photoIdentity = requireNotNull(selectedImage.photoIdentity)
+        assertEquals(sourceSha256, photoIdentity.sourceBytesSha256)
+        val rawExif = ExifInterface(ByteArrayInputStream(sourceBytes))
+        Log.i("YujianExifAudit", "reveal raw_orientation=${rawExif.getAttribute(ExifInterface.TAG_ORIENTATION)} parsed_orientation=${rawExif.getAttributeInt(ExifInterface.TAG_ORIENTATION, -1)} normalized_orientation=${selectedImage.sourceExifOrientation}")
+        assertEquals(ExifInterface.ORIENTATION_NORMAL, selectedImage.sourceExifOrientation)
+        assertEquals(selectedImage.sourceExifOrientation, photoIdentity.sourceOrientation)
+        assertEquals(bitmap.width, photoIdentity.width)
+        assertEquals(bitmap.height, photoIdentity.height)
+        assertEquals(canonicalPixelSha256, CanonicalPhotoPixelsV1.sha256(bitmap.width, bitmap.height) { row, pixels ->
+            bitmap.getPixels(pixels, 0, bitmap.width, 0, row, bitmap.width, 1)
+        })
         assertTrue("registered night-catch PhotoIdentity must be valid", photoIdentity.isValid())
-        val selectedImage = SelectedImage(
-            filePath = SOURCE_ASSET,
-            bitmap = bitmap,
-            source = "androidTest_registered_photo",
-            imageId = imageId,
-            photoSha256 = canonicalPixelSha256,
-            sourceExifOrientation = sourceExifOrientation,
-            photoIdentity = photoIdentity,
-        )
         val recognitionModelIdentity = RecognitionModelIdentity(
             sessionId = SESSION_ID,
             attemptId = ATTEMPT_ID,

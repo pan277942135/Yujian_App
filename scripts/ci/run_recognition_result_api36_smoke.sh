@@ -396,8 +396,13 @@ slimsam = {name: model_event(name) for name in (
 slim_start = next((row['uptime_ms'] for row in slimsam['SLIMSAM_START'] if row['uptime_ms'] is not None), None)
 slim_end = next((row['uptime_ms'] for row in slimsam['SLIMSAM_END'] if row['uptime_ms'] is not None), None)
 model_window = [row for row in emulator if row['uptime_ms'] is not None and slim_start is not None and slim_end is not None and slim_start <= row['uptime_ms'] <= slim_end]
-kill_text = read('lowmemorykiller-events.txt')
-app_kill = bool(re.search(r'(lowmemorykiller|lmkd|am_kill|am_proc_died).*com\.yujian\.ai\.uiv2|com\.yujian\.ai\.uiv2.*(killed|kill)', kill_text, re.I))
+case_results = []
+for case_file in (root / 'test-cases').glob('*/result.json'):
+    try:
+        case_results.append(json.loads(case_file.read_text(encoding='utf-8')))
+    except (OSError, ValueError):
+        pass
+app_kill = any(case.get('lmk_confirmed') is True for case in case_results)
 min_host_available = min((row['mem_available_kb'] for row in host if row['mem_available_kb'] is not None), default=None)
 min_emulator_available = min((row['mem_available_kb'] for row in emulator if row['mem_available_kb'] is not None), default=None)
 peak_model = max((row['process_rss_kb'] for row in model_window if row['process_rss_kb'] is not None), default=None)
@@ -842,8 +847,16 @@ if [[ "$slimsam_validation_status" -ne 0 ]]; then
   fi
 fi
 
-if grep -Eiq '(lowmemorykiller|lmkd|am_kill|am_proc_died).*(com\.yujian\.ai\.uiv2|oom|low memory)|(oom.*kill.*com\.yujian\.ai\.uiv2)' \
-    "$evidence_dir/instrumentation.log" "$evidence_dir/logcat-pre-verdict.txt" "$evidence_dir/logcat-live.txt" "$evidence_dir/emulator-memory-snapshots.txt"; then
+if python3 - "$evidence_dir/test-cases" <<'PY'
+import json
+import sys
+from pathlib import Path
+for path in Path(sys.argv[1]).glob('*/result.json'):
+    if json.loads(path.read_text(encoding='utf-8')).get('lmk_confirmed') is True:
+        raise SystemExit(0)
+raise SystemExit(1)
+PY
+then
   result_classification="RESOURCE_EXHAUSTED"
   failure_reason="APP_PROCESS_KILLED_BY_LOW_MEMORY_MANAGER"
   failure_phase="INSTRUMENTATION"

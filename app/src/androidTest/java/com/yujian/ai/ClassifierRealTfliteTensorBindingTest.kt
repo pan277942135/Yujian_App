@@ -1,14 +1,13 @@
 package com.yujian.ai
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.exifinterface.media.ExifInterface
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.ai.FishRecognitionEngine
 import com.yujian.ai.ai.FishRecognitionPipeline
 import com.yujian.ai.ai.RecognitionModelIdentity
+import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.recognition.domain.CanonicalPhotoPixelsV1
-import com.yujian.ai.recognition.domain.PhotoIdentity
 import java.io.ByteArrayInputStream
 import java.security.MessageDigest
 import java.util.concurrent.CopyOnWriteArrayList
@@ -32,24 +31,21 @@ class ClassifierRealTfliteTensorBindingTest {
         val modelBytes = targetContext.assets.open(FishRecognitionEngine.MODEL_FILE).use { it.readBytes() }
         assertEquals(FishRecognitionEngine.FROZEN_CLASSIFIER_SHA256, modelBytes.sha256())
 
-        val exifOrientation = ExifInterface(ByteArrayInputStream(photoBytes))
-            .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-        assertEquals(ExifInterface.ORIENTATION_NORMAL, exifOrientation)
-        val bitmap = requireNotNull(BitmapFactory.decodeByteArray(photoBytes, 0, photoBytes.size))
-        val canonicalPixelSha = CanonicalPhotoPixelsV1.sha256(bitmap.width, bitmap.height) { row, destination ->
-            bitmap.getPixels(destination, 0, bitmap.width, 0, row, bitmap.width, 1)
-        }
-        val photoId = "classifier-real-night-catch-$sourceSha"
-        val photoIdentity = PhotoIdentity(
-            photoId = photoId,
-            sourceBytesSha256 = sourceSha,
-            canonicalPixelSha256 = canonicalPixelSha,
-            width = bitmap.width,
-            height = bitmap.height,
-            sourceOrientation = exifOrientation,
-            normalizationVersion = PhotoIdentity.NORMALIZATION_VERSION_V1,
-            photoContentVersion = 1L,
-        )
+        val selectedImage = runBlocking { RecognitionImageStore.normalizeAsset(testContext, SOURCE_ASSET) }
+        val bitmap = selectedImage.bitmap
+        val photoIdentity = requireNotNull(selectedImage.photoIdentity)
+        val photoId = selectedImage.imageId
+        val canonicalPixelSha = selectedImage.photoSha256
+        assertEquals(sourceSha, photoIdentity.sourceBytesSha256)
+        val rawExif = ExifInterface(ByteArrayInputStream(photoBytes))
+        Log.i("YujianExifAudit", "classifier raw_orientation=${rawExif.getAttribute(ExifInterface.TAG_ORIENTATION)} parsed_orientation=${rawExif.getAttributeInt(ExifInterface.TAG_ORIENTATION, -1)} normalized_orientation=${selectedImage.sourceExifOrientation}")
+        assertEquals(ExifInterface.ORIENTATION_NORMAL, selectedImage.sourceExifOrientation)
+        assertEquals(selectedImage.sourceExifOrientation, photoIdentity.sourceOrientation)
+        assertEquals(bitmap.width, photoIdentity.width)
+        assertEquals(bitmap.height, photoIdentity.height)
+        assertEquals(canonicalPixelSha, CanonicalPhotoPixelsV1.sha256(bitmap.width, bitmap.height) { row, pixels ->
+            bitmap.getPixels(pixels, 0, bitmap.width, 0, row, bitmap.width, 1)
+        })
         assertTrue("fixture PhotoIdentity must be valid", photoIdentity.isValid())
         val identity = RecognitionModelIdentity(
             sessionId = "classifier-real-tflite-session",
