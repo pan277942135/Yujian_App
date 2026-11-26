@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.Alignment
@@ -53,6 +57,7 @@ fun RecognitionIssueScreen(
     onChooseAnother: () -> Unit,
     onChooseGallery: () -> Unit,
 ) {
+    var showDiagnostics by rememberSaveable { mutableStateOf(false) }
     val state = result?.let(::resolveRecognitionUiState)
     val configuration = LocalConfiguration.current
     val safeInsets = rememberSafeDrawingInsets()
@@ -125,14 +130,19 @@ fun RecognitionIssueScreen(
                             fontSize = 15.sp,
                             lineHeight = 23.sp,
                         )
-                        Text("识别诊断", color = DeepInk, fontWeight = FontWeight.SemiBold)
-                        Text(
-                            diagnostics.take(12_000),
-                            modifier = Modifier.fillMaxWidth(), color = MutedInk,
-                            fontSize = 11.sp, lineHeight = 15.sp,
-                        )
-                        TextButton(onClick = onCopyDiagnostics) { Text("复制完整诊断日志") }
-                        TextButton(onClick = onExportDiagnostics) { Text("导出诊断 ZIP") }
+                        TextButton(onClick = { showDiagnostics = !showDiagnostics }) {
+                            Text(if (showDiagnostics) "收起诊断" else "查看诊断")
+                        }
+                        if (showDiagnostics) {
+                            Text("识别诊断", color = DeepInk, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                diagnostics.take(12_000),
+                                modifier = Modifier.fillMaxWidth(), color = MutedInk,
+                                fontSize = 11.sp, lineHeight = 15.sp,
+                            )
+                            TextButton(onClick = onCopyDiagnostics) { Text("复制完整诊断日志") }
+                            TextButton(onClick = onExportDiagnostics) { Text("导出诊断 ZIP") }
+                        }
                         Spacer(Modifier.height(4.dp))
                         // RR04 draws these actions directly on its Result surface, avoiding the shared Material button's extra surface/elevation layer.
                         if (isNoFish) {

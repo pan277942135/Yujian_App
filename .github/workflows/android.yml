@@ -353,6 +353,9 @@ jobs:
       - name: Bootstrap verified recognition assets
         run: python3 scripts/bootstrap_android_recognition_assets.py
 
+      - name: CLASSIFIER_REAL_TFLITE_TENSOR_BINDING_GATE
+        run: python3 scripts/verify_classifier_tensor_binding.py
+
       - name: Read production model identity
         id: model_trace
         run: |
@@ -453,6 +456,9 @@ jobs:
 
       - name: Verify packaged recognition assets in APK
         run: python3 scripts/verify_packaged_android_apk.py
+
+      - name: Verify packaged classifier tensor binding
+        run: python3 scripts/verify_classifier_tensor_binding.py --apk app/build/outputs/apk/debug/app-debug.apk
 
       - name: Decode capture and Processing rasters from actual APK
         run: python3 scripts/verify_capture_presentation_assets.py --apk app/build/outputs/apk/debug/app-debug.apk

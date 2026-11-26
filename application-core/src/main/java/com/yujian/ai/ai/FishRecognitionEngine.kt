@@ -55,6 +55,24 @@ data class ProductionModelInfo(
     val classOrder: List<String> get() = classes.map { it.speciesKey }
 }
 
+internal object FrozenClassifierTensorBinding {
+    private const val MODEL_ID = "MODEL_CROP_M1_v0.2"
+
+    fun input(modelId: String, sha256: String, logicalName: String): String {
+        require(modelId == MODEL_ID && sha256 == FishRecognitionEngine.FROZEN_CLASSIFIER_SHA256 && logicalName == "images") {
+            "Unsupported classifier input binding: $modelId/$logicalName"
+        }
+        return "serving_default_args_0"
+    }
+
+    fun output(modelId: String, sha256: String, logicalName: String): String {
+        require(modelId == MODEL_ID && sha256 == FishRecognitionEngine.FROZEN_CLASSIFIER_SHA256 && logicalName == "logits") {
+            "Unsupported classifier output binding: $modelId/$logicalName"
+        }
+        return "serving_default_output_0_output"
+    }
+}
+
 class FishRecognitionEngine(private val context: Context) : AutoCloseable {
     private data class PreparedBitmap(
         val bitmap: Bitmap,
@@ -165,6 +183,9 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         require(inputs.length() == 1 && outputs.length() == 1) { "classifier 必须恰有一个输入和一个输出 tensor" }
         val inputTensor = inputs.getJSONObject(0)
         val outputTensor = outputs.getJSONObject(0)
+        FrozenClassifierTensorBinding.input(modelId, modelSha, inputTensor.getString("name"))
+        FrozenClassifierTensorBinding.output(modelId, modelSha, outputTensor.getString("name"))
+        require(inputTensor.getString("layout") == "NCHW") { "Classifier input layout must be NCHW" }
         val inputShape = shape(inputTensor, "shape")
         val outputShape = shape(outputTensor, "shape")
         val snapshotInputShape = shape(snapshot, "input_shape")
@@ -279,7 +300,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val started = System.nanoTime()
         val inferenceStartedAtMs = android.os.SystemClock.uptimeMillis()
         val inputTensor = interpreter.getInputTensor(0)
-        require(inputTensor.name() == modelInfo.inputTensorName) {
+        require(inputTensor.name() == FrozenClassifierTensorBinding.input(modelInfo.modelId, modelInfo.sha256, modelInfo.inputTensorName)) {
             "TFLITE runtime input name=${inputTensor.name()} contract=${modelInfo.inputTensorName}"
         }
         val inputShape = inputTensor.shape()
@@ -301,7 +322,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val input = makeInputBuffer(prepared.bitmap, nchw)
 
         val outputTensor = interpreter.getOutputTensor(0)
-        require(outputTensor.name() == modelInfo.outputTensorName) {
+        require(outputTensor.name() == FrozenClassifierTensorBinding.output(modelInfo.modelId, modelInfo.sha256, modelInfo.outputTensorName)) {
             "TFLITE runtime output name=${outputTensor.name()} contract=${modelInfo.outputTensorName}"
         }
         require(outputTensor.dataType() == DataType.FLOAT32) { "${modelInfo.modelId} 输出必须为 FLOAT32" }

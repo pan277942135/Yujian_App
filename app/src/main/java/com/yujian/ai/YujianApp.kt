@@ -232,6 +232,9 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
     var productionResult by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.productionResult) }
     var recognitionTechnicalFailure by remember { mutableStateOf(false) }
     val recognitionDiagnostics = remember(activityContext) { RecognitionAttemptDiagnostics(activityContext) }
+    val terminalLoggedAttempts = remember(activityContext) {
+        java.util.Collections.synchronizedSet(mutableSetOf<String>())
+    }
     var subjectResult by remember(revealSessionStore) {
         mutableStateOf(revealSessionStore.snapshot?.subjectResult ?: FishSubjectResult(SubjectStatus.IDLE))
     }
@@ -1012,10 +1015,12 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
 
     fun deliverRecognitionAttempt(result: ProductionRecognitionResult, attemptId: String) {
         if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return
-        recognitionDiagnostics.event("PIPELINE_TERMINAL", "PIPELINE", if (result.ready) "PASS" else "FAIL",
-            mapOf("failure_code" to result.failureCode?.name, "status" to result.status.name,
-                "bbox" to result.assessment.primary?.box.toString(), "crop_pixels" to result.cropPixels?.toList(),
-                "top1" to result.prediction?.top1?.toString()), result.failureCause)
+        if (terminalLoggedAttempts.add(attemptId)) {
+            recognitionDiagnostics.event("PIPELINE_TERMINAL", "PIPELINE", if (result.ready) "PASS" else "FAIL",
+                mapOf("failure_code" to result.failureCode?.name, "status" to result.status.name,
+                    "bbox" to result.assessment.primary?.box.toString(), "crop_pixels" to result.cropPixels?.toList(),
+                    "top1" to result.prediction?.top1?.toString()), result.failureCause)
+        }
         if (result.ready) {
             val handoff = completeRecognitionAttempt(result, attemptId)
             if (handoff == null || !RecognitionRevealDecisionGate.isNavigable(
@@ -1764,9 +1769,11 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                         },
                         onFailure = { error ->
                             if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
-                                recognitionDiagnostics.event("PIPELINE_TERMINAL", "PIPELINE", "FAIL",
-                                    mapOf("failure_code" to (error as? com.yujian.ai.ai.RecognitionStageFailureException)?.failureCode?.name,
-                                        "failure_stage" to if (error.message?.contains("CLASSIFIER") == true) "CLASSIFIER_MODEL_LOAD" else "MODEL_PIPELINE"), error)
+                                if (terminalLoggedAttempts.add(attemptId)) {
+                                    recognitionDiagnostics.event("PIPELINE_TERMINAL", "PIPELINE", "FAIL",
+                                        mapOf("failure_code" to (error as? com.yujian.ai.ai.RecognitionStageFailureException)?.failureCode?.name,
+                                            "failure_stage" to if (error.message?.contains("CLASSIFIER") == true) "CLASSIFIER_MODEL_LOAD" else "MODEL_PIPELINE"), error)
+                                }
                                 productionResult = null
                                 recognitionTechnicalFailure = true
                                 nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
