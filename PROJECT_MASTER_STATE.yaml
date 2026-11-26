@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'Master Goal V2.3 unified source baseline, Guard V1 integration, classifier real-inference receipt closure, and API36 exact-head verification (YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE)'
 state_control:
-  execution_baseline_sha: af5fac3c86cb3ac2e03894f52fd8031d3010611d
+  execution_baseline_sha: db86f445e466b61349e615ffb90c3280b6d82ab1
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
@@ -18,16 +18,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: 2d8bacef09f79d20dde7e2a8587c1caab00432fa
+    head_sha: a1c9c4aeac27e621cd7de4efc4956ff49bfb70fb
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: fix/det-fish-v03-main-runtime-closure
     base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
-    head_sha: 2d8bacef09f79d20dde7e2a8587c1caab00432fa
+    head_sha: a1c9c4aeac27e621cd7de4efc4956ff49bfb70fb
     status: DRAFT_OPEN_UNMERGED
-    status_source: 'Pre-push source lock check on 2026-11-26 verified refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head at 2d8bacef09f79d20dde7e2a8587c1caab00432fa, and main at bc89484ca79fe20c63c9c6e65b284f1ec3ac1863. Local guarded V2.3 commits 3cc0a443 and af5fac3c are pending state checkpoint, Admission, and ordinary push. PR Draft/open is the last known metadata; no PR state mutation occurred.'
+    status_source: 'Live git ls-remote verified PR #346 branch and pull head at a1c9c4aeac27e621cd7de4efc4956ff49bfb70fb before P0 V2 push. Candidate source db86f445 is local pending state checkpoint and Admission. No PR metadata mutation occurred.'
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -74,8 +74,8 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: af5fac3c86cb3ac2e03894f52fd8031d3010611d
-    admission: 'PENDING state-only checkpoint Admission. Guarded V2.3 source commit 3cc0a443253ff357b429fb0e3620f2954e3ef8f2 and Master Goal status commit af5fac3c86cb3ac2e03894f52fd8031d3010611d are local descendants of the remotely verified source lock; final ordinary push and post-push ref verification are pending.'
+    sha: db86f445e466b61349e615ffb90c3280b6d82ab1
+    admission: 'PENDING P0 V2 state-only checkpoint Admission and ordinary push. Candidate source db86f445 has parser unit 17/17 and runner fixture PASS; AndroidTest and API36 runtime remain NOT_RUN for this source.'
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
@@ -91,7 +91,7 @@ runtime_gates:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: af5fac3c86cb3ac2e03894f52fd8031d3010611d
+  source_head: db86f445e466b61349e615ffb90c3280b6d82ab1
   exact_head_apk: 'PENDING: build from the final pushed PR checkpoint; prior APKs are historical and must not be delivered.'
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
   input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
@@ -99,19 +99,19 @@ apk_and_evidence:
   fixture_b: 'FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not found in current attachments/workspace.'
   emulator_device_evidence: 'Hosted Run 45172732325 at source 6102640437041159abc519b00249b7aedff0bb03: KVM preflight, memory gate, APK Pair verification and AVD memory config passed; API36 AUTO job failed and exact-head enforcement failed. Runtime evidence artifact 14818308331 (10.1 MB, SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33) uploaded but contents/logs are not readable here; emulator boot and failure classification are NOT_CONFIRMED. No AUTO PASS claimed.'
 current_work:
-  id: YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE
+  id: YUJIAN_EXIF_CLASSIFIER_AUTO_RESULT_API36_CLOSURE_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: af5fac3c86cb3ac2e03894f52fd8031d3010611d
+  exact_head: db86f445e466b61349e615ffb90c3280b6d82ab1
   status: BLOCKED
-  stage: P0_V23_SOURCE_AND_STATUS_COMMITTED_PENDING_STATE_CHECKPOINT_ADMISSION_PUSH_CI_API36
-  requested_task_id: YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE
-  requested_task_title: 'YuJian Master Goal V2.3 — unified source baseline, Guard V1 integration, classifier real inference, API36 simulator verification'
+  stage: P0_V2_EXIF_PARSER_COMMITTED_PENDING_ADMISSION_PUSH_API36
+  requested_task_id: YUJIAN_EXIF_CLASSIFIER_AUTO_RESULT_API36_CLOSURE_V2
+  requested_task_title: 'YuJian P0 V2 — EXIF, real classifier, AUTO recognition, Result runtime and API36 acceptance'
   blockers:
   - 'P0_2_HISTORY_UNAVAILABLE: requested historical commit object is unavailable; preservation review cannot be completed from current remote objects.'
   - 'V23_PRODUCT_REGRESSION_PENDING: local Gradle wrapper distribution could not resolve services.gradle.org; current-source JVM, AndroidTest compile, Release Kotlin, lint, and APK results are pending hosted exact-head CI.'
   - 'DEVICE_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator; exact-head API36 Test A/Test B evidence remains pending.'
-  - 'GITHUB_EXACT_HEAD_CI_PENDING: local source commits require final state checkpoint Admission and ordinary PR branch push before hosted CI can run.'
+  - 'GITHUB_EXACT_HEAD_CI_PENDING: P0 V2 candidate db86f445 requires state checkpoint Admission and ordinary PR branch push before hosted CI can run.'
   - 'FIXTURE_B_UNAVAILABLE: named historical evidence ZIP is absent; no fixture replay will be claimed.'
 
 blockers:
@@ -135,9 +135,9 @@ blockers:
   severity: P0
   area: G6/G8
   status: OPEN
-  condition: V2.3 source commit 3cc0a443 and status commit af5fac3c are local; Guard deterministic tests and model metadata gate pass, while product JVM regression, AndroidTest compile, Release compile, lint, APK and current-source device run await exact-head hosted execution.
+  condition: P0 V2 candidate db86f445 contains EXIF test and parser fixes; 17 parser unit tests and runner harness pass, while AndroidTest compile, real runtime and APK await hosted exact-head CI.
   affected_gate: Cross-layer regression and exact-head delivery.
-  unblock_condition: Push the final state checkpoint by ordinary fast-forward and inspect its exact-head GitHub Actions results and artifacts.
+  unblock_condition: Push the P0 V2 state checkpoint by ordinary fast-forward and inspect its exact-head GitHub Actions results and artifacts.
   independent_work_may_continue: true
 - id: API36-AUTO-SMOKE-001
   severity: P0
@@ -191,8 +191,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-26T09:37:27Z'
-  note: 'V2.3 Guard source commit 3cc0a443253ff357b429fb0e3620f2954e3ef8f2 and status commit af5fac3c86cb3ac2e03894f52fd8031d3010611d were created from the remotely verified 2d8bacef source lock. Guard tests (31/31), classifier FlatBuffer gate, API36 parser and finalizer tests (20/20), sequential runner harness, workflow YAML, Bash syntax, and diff checks passed. Android/JVM build, AndroidTest, lint, API36 runtime, APK, and hosted CI remain pending. The checkpoint requires Admission and ordinary push before any exact-head claim.'
+  last_updated_at: '2026-11-26T14:06:45Z'
+  note: 'P0 V2 source db86f445 contains production EXIF normalization usage and PID/time-scoped LMK classification. Parser 17/17 and fake runner fixture pass. Source is local pending state-only checkpoint Admission and GitHub push. Run #4222 at a1c9c4ae failed; it cannot promote current runtime, AUTO or APK gates.'
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.
