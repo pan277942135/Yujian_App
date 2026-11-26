@@ -1055,6 +1055,18 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
         } else {
             productionResult = result
             recognitionTechnicalFailure = result.failureCode != null
+            sessionImage?.let { selected ->
+                runCatching {
+                    RecognitionResultProductionEvidenceWriter.writeAttemptFailure(
+                        activityContext, recognitionSessionId.orEmpty(), attemptId,
+                        selected.imageId, selected.photoSha256,
+                        diagnosticPlaybackController.currentStage.name,
+                        result.failureCode?.name ?: result.status.name,
+                        result.status.name, subjectResult.status.name, false,
+                        revealSessionStore.snapshot?.fishPathSnapshotBindingState?.name ?: "NOT_STARTED",
+                    )
+                }.onFailure { Log.e("RecognitionResultEvidence", "attempt failure evidence write failed", it) }
+            }
             runCatching { nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } } }
                 .onFailure { Log.e("RecognitionRevealHandoff", "RECOGNITION_ISSUE_NAVIGATION_FAILED attempt=$attemptId", it) }
         }
@@ -1525,6 +1537,19 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                     activeRecognitionAttemptId == activeAttempt && sessionImage?.imageId == selected.imageId &&
                                     sessionImage?.photoSha256 == selected.photoSha256) {
                                     subjectResult = resolved
+                                    if (resolved.status != SubjectStatus.PROCESSING) {
+                                        runCatching {
+                                            RecognitionResultProductionEvidenceWriter.writeAttemptFailure(
+                                                activityContext, sessionId, activeAttempt,
+                                                selected.imageId, selected.photoSha256,
+                                                diagnosticPlaybackController.currentStage.name,
+                                                resolved.errorCode ?: resolved.status.name,
+                                                if (productionResult?.ready == true) "READY" else "NOT_READY",
+                                                resolved.status.name, false,
+                                                revealSessionStore.snapshot?.fishPathSnapshotBindingState?.name ?: "NOT_STARTED",
+                                            )
+                                        }.onFailure { Log.e("RecognitionResultEvidence", "subject failure evidence write failed", it) }
+                                    }
                                     revealSessionStore.updateSubject(RecognitionRevealKey(sessionId, activeAttempt), resolved, geometry)
                                     scope.launch { retryReadyRecognitionHandoff(activeAttempt) }
                                 }

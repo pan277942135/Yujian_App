@@ -1,6 +1,8 @@
 package com.yujian.ai.ai
 
+import com.yujian.ai.ai.subject.allocateSlimSamPixelBuffer
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,6 +28,32 @@ class RecognitionModelExecutionReceiptTest {
         assertEquals(4, buffer.position())
         assertEquals(64, hash.length)
         assertTrue(hash.matches(Regex("[a-f0-9]{64}")))
+    }
+
+    @Test fun directByteBufferHashMatchesCanonicalFloatBufferHash() {
+        val bytes = allocateSlimSamPixelBuffer()
+        val floats = bytes.asFloatBuffer()
+        val values = floatArrayOf(1.25f, -2.5f, 0f, -0f, Float.MIN_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE)
+        val elementCount = 3 * 1024 * 1024
+        for (index in 0 until elementCount) {
+            floats.put(index, values[index % values.size])
+        }
+
+        assertTrue(bytes.isDirect)
+        assertEquals(ByteOrder.LITTLE_ENDIAN, bytes.order())
+        val directHash = RecognitionTensorContentHash.sha256(bytes)
+        assertEquals(RecognitionTensorContentHash.sha256(floats), directHash)
+        assertEquals(64, directHash.length)
+        assertEquals(0, bytes.position())
+        assertEquals(elementCount * Float.SIZE_BYTES, bytes.limit())
+        assertEquals(0, floats.position())
+        assertEquals(elementCount, floats.limit())
+
+        // A change in the final float must affect the receipt, even across hash chunks.
+        floats.put(elementCount - 1, 42f)
+        val updatedHash = RecognitionTensorContentHash.sha256(bytes)
+        assertNotEquals(directHash, updatedHash)
+        assertEquals(RecognitionTensorContentHash.sha256(floats), updatedHash)
     }
 
     private fun receipt(

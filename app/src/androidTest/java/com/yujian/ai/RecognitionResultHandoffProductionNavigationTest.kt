@@ -49,7 +49,7 @@ class RecognitionResultHandoffProductionNavigationTest {
         val targetContext = instrumentation.targetContext
         val testContext = instrumentation.context
         val device = UiDevice.getInstance(instrumentation)
-        val evidenceDir = File(testContext.cacheDir, EVIDENCE_DIR).apply {
+        val evidenceDir = File(targetContext.cacheDir, EVIDENCE_DIR).apply {
             deleteRecursively()
             mkdirs()
         }
@@ -109,12 +109,17 @@ class RecognitionResultHandoffProductionNavigationTest {
                 targetContext.cacheDir,
                 "recognition-runtime-result-handoff/qualification_report.json",
             )
+            val failureFile = File(targetContext.cacheDir, "recognition-runtime-result-handoff/attempt_failure.json")
             val resultDeadline = SystemClock.elapsedRealtime() + PRODUCTION_WAIT_MS
-            while (SystemClock.elapsedRealtime() < resultDeadline && !qualificationFile.isFile) {
-                instrumentation.waitForIdleSync()
-                SystemClock.sleep(500L)
+            while (SystemClock.elapsedRealtime() < resultDeadline && !qualificationFile.isFile && !failureFile.isFile) {
+                SystemClock.sleep(250L)
             }
-            assertTrue("Production Result did not reach its evidence-producing stable state", qualificationFile.isFile)
+            assertTrue(
+                "Production Result did not reach its evidence-producing stable state; " +
+                    "terminalFailure=${failureFile.takeIf(File::isFile)?.readText() ?: "NONE"}; " +
+                    "lastRuntime=${latestRuntimeState(targetContext)}",
+                qualificationFile.isFile,
+            )
 
             val evidenceRoot = qualificationFile.parentFile ?: error("app evidence folder missing")
             val runtimeMatrix = JSONObject(File(evidenceRoot, "runtime_matrix.json").readText())
@@ -278,7 +283,7 @@ class RecognitionResultHandoffProductionNavigationTest {
             cells.first().click()
             return
         }
-        val hierarchy = File(InstrumentationRegistry.getInstrumentation().context.cacheDir, "picker_hierarchy.xml")
+        val hierarchy = File(InstrumentationRegistry.getInstrumentation().targetContext.cacheDir, "picker_hierarchy.xml")
         device.dumpWindowHierarchy(hierarchy)
         throw AssertionError("System picker exposed no selectable photo cells; hierarchy=${hierarchy.absolutePath}")
     }
@@ -302,6 +307,15 @@ class RecognitionResultHandoffProductionNavigationTest {
         return condition()
     }
 
+    private fun latestRuntimeState(context: android.content.Context): String {
+        val root = File(context.cacheDir, "recognition-runtime-result-handoff")
+        return listOf("attempt_failure.json", "runtime_matrix.json", "path_identity_trace.json")
+            .joinToString("; ") { name ->
+                val file = File(root, name)
+                "$name=${file.takeIf(File::isFile)?.readText()?.take(2048) ?: "MISSING"}"
+            }
+    }
+
     private fun JSONArray.strings(key: String): List<String> =
         (0 until length()).map { getJSONObject(it).getString(key) }
 
@@ -317,6 +331,6 @@ class RecognitionResultHandoffProductionNavigationTest {
         const val EVIDENCE_DIR = "recognition-result-handoff"
         const val FIXTURE = "detector_case_b_night_flash.jpg"
         const val FIXTURE_SHA256 = "a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b"
-        const val PRODUCTION_WAIT_MS = 420_000L
+        const val PRODUCTION_WAIT_MS = 90_000L
     }
 }

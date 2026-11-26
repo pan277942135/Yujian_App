@@ -2,6 +2,7 @@ package com.yujian.ai.ui.recognition.reveal
 
 import android.content.Context
 import android.os.Build
+import android.os.SystemClock
 import android.util.Log
 import com.yujian.ai.recognition.ui.BuildConfig
 import com.yujian.ai.ui.waterlight.core.EnergyAnchor
@@ -28,6 +29,38 @@ object RecognitionResultProductionEvidenceWriter {
     }
 
     fun directory(context: Context): File = File(context.cacheDir, DIRECTORY_NAME)
+
+    /** Terminal failure from the live attempt; the success writer never runs on this branch. */
+    fun writeAttemptFailure(
+        context: Context,
+        recognitionSessionId: String,
+        attemptId: String,
+        imageId: String,
+        photoSha256: String,
+        currentStage: String,
+        failureCode: String,
+        classifierStatus: String,
+        slimSamStatus: String,
+        maskTrusted: Boolean,
+        fishPathStatus: String,
+    ) {
+        val output = directory(context).apply { if (!isDirectory) require(mkdirs()) }
+        require(output.isDirectory && output.canWrite()) { "Recognition evidence directory is not writable" }
+        val failureFile = File(output, "attempt_failure.json")
+        if (failureFile.exists()) return // FIRST_FAILURE is immutable for an attempt.
+        writeJson(output, failureFile.name, JSONObject()
+            .put("recognitionSessionId", recognitionSessionId)
+            .put("attemptId", attemptId)
+            .put("imageId", imageId)
+            .put("photoSha256", photoSha256)
+            .put("currentStage", currentStage)
+            .put("failureCode", failureCode)
+            .put("failureTimestamp", SystemClock.elapsedRealtime())
+            .put("classifierStatus", classifierStatus)
+            .put("slimSamStatus", slimSamStatus)
+            .put("maskTrusted", maskTrusted)
+            .put("fishPathStatus", fishPathStatus))
+    }
 
     fun writeStableResult(
         context: Context,

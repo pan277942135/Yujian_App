@@ -123,6 +123,16 @@ if [[ "${1:-}" == shell ]]; then
         printf 'INSTRUMENTATION_RESULT: stream=\n'
         printf 'OK (1 test)\n'
         printf 'INSTRUMENTATION_CODE: -1\n'
+      elif [[ "$shell_args" == *"RecognitionResultHandoffProductionNavigationTest#"* ]]; then
+        for code in 1 -2; do
+          printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.RecognitionResultHandoffProductionNavigationTest\n'
+          printf 'INSTRUMENTATION_STATUS: test=hostedApi36HomePickerAutoRecognitionCompletesResultHandoff\n'
+          if [[ "$code" == -2 ]]; then
+            printf 'INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: terminalFailure=SLIMSAM_TIMEOUT\n'
+          fi
+          printf 'INSTRUMENTATION_STATUS_CODE: %s\n' "$code"
+        done
+        printf 'FAILURES!!!\nINSTRUMENTATION_CODE: -1\n'
       else
         printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.RecognitionRevealProductionRuntimeTest\n'
         printf 'INSTRUMENTATION_STATUS: test=realNightCatchHandoffDrivesTheNativeResultReveal\n'
@@ -204,6 +214,16 @@ assert result["APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS"] is True, result
 assert result["APP_FORCE_STOP_VERIFIED_BETWEEN_REVEAL_AND_AUTO"] is True, result
 assert result["failure_phase"] == "PRODUCTION_REVEAL_INSTRUMENTATION", result
 assert result["failure_reason"] != "APP_STARTUP_DID_NOT_COMPLETE", result
+assert result["validation_reason"] == "UPSTREAM_RUNTIME_NOT_REACHED", result
+assert result["slimsam_validation_reason"] == "UPSTREAM_RUNTIME_NOT_REACHED", result
+cases = result["instrumentation_cases"]
+assert cases["production_night_catch_reveal"]["root_cause"] == "PROCESS_CRASH", cases
+auto = cases["production_home_picker_auto"]
+assert auto["started"] and auto["completed"] and not auto["passed"], auto
+assert auto["failure_phase"] == "PRODUCTION_AUTO_INSTRUMENTATION", auto
+assert auto["failure_reason"] == "TEST_ASSERTION_FAILURE", auto
+assert auto["root_cause"] == "SLIMSAM_TIMEOUT", auto
+assert "SLIMSAM_TIMEOUT" in auto["exception"] and "SLIMSAM_TIMEOUT" in auto["relevant_log_excerpt"], auto
 memory = json.loads(pathlib.Path(sys.argv[1]).with_name('memory-analysis.json').read_text(encoding='utf-8'))
 assert memory['lowmemorykiller_app_kill_observed'] is False, memory
 PY

@@ -1,6 +1,12 @@
 package com.yujian.ai.ai.subject
 
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.FloatBuffer
+
+/** Backing bytes for the encoder's FLOAT32 NCHW input and its canonical receipt hash. */
+internal fun allocateSlimSamPixelBuffer(): ByteBuffer =
+    ByteBuffer.allocateDirect(3 * 1024 * 1024 * Float.SIZE_BYTES).order(ByteOrder.LITTLE_ENDIAN)
 
 /** Writes one ARGB row into the existing normalized FLOAT32 NCHW input contract. */
 internal fun writeNormalizedRgbRow(

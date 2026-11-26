@@ -76,6 +76,25 @@ class Api36InstrumentationCaseTests(unittest.TestCase):
         self.assertFalse(result["passed"])
         self.assertEqual("TEST_ASSERTION_FAILURE", result["reason"])
 
+    def test_cause_and_exception_are_reported_for_a_completed_failure(self):
+        raw = passing_log().replace(
+            "INSTRUMENTATION_STATUS_CODE: 0",
+            "INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: invalid receipt\n"
+            "Caused by: java.io.FileNotFoundException: asset.jpg\n"
+            "INSTRUMENTATION_STATUS_CODE: -2",
+        )
+        result = self.evaluate(raw, failure_phase="CLASSIFIER_TFLITE_RUNTIME")
+        self.assertTrue(result["completed"])
+        self.assertFalse(result["passed"])
+        self.assertEqual("CLASSIFIER_TFLITE_RUNTIME", result["failure_phase"])
+        self.assertEqual("TEST_ASSERTION_FAILURE", result["failure_reason"])
+        self.assertEqual("java.lang.AssertionError: invalid receipt", result["exception"])
+        self.assertEqual("java.io.FileNotFoundException: asset.jpg", result["root_cause"])
+
+    def test_test_package_lmk_is_not_a_main_process_kill(self):
+        result = self.evaluate(auxiliary_log="lmkd: Kill 'com.yujian.ai.uiv2.test' (pid 123)")
+        self.assertFalse(result["lmk_confirmed"])
+
     def test_cleanup_does_not_hide_prior_assertion_failure(self):
         raw = passing_log().replace("INSTRUMENTATION_CODE: -1", "FAILURES!!!\nINSTRUMENTATION_CODE: 0")
         result = self.evaluate(raw, auxiliary_log="am_kill: stop com.yujian.ai.uiv2 due to finished inst")
@@ -133,6 +152,7 @@ class Api36InstrumentationCaseTests(unittest.TestCase):
         result = self.evaluate(passing_log(method_name="someOtherTest"))
         self.assertFalse(result["passed"])
         self.assertFalse(result["started"])
+        self.assertFalse(result["completed"])
         self.assertEqual("TEST_NOT_STARTED", result["event_classification"])
 
     def test_sdk_or_avd_start_failure_is_infrastructure_blocked(self):

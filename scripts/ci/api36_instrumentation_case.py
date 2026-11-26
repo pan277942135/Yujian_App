@@ -11,6 +11,14 @@ import re
 import xml.etree.ElementTree as ET
 
 
+def lmk_victim(line: str) -> str | None:
+    match = re.search(
+        r"\b(?:lmkd|lowmemorykiller)\s*:\s*(?:Kill(?:ed|ing)?(?: process)?)\s+"
+        r"['\"]?([\w.:-]+)['\"]?\s+\((?:pid\s+)?\d+\)", line, re.I,
+    )
+    return match[1] if match else None
+
+
 def _case_log_lines(log: str, pids: tuple[str, ...], start: str, end: str) -> list[str]:
     """Keep only logcat events tied to this test's process and UTC interval."""
     if not start or not end:
@@ -50,6 +58,7 @@ def evaluate_case(
     raw_log: str,
     auxiliary_log: str = "",
     command_exit_code: int,
+    failure_phase: str = "INSTRUMENTATION",
     timed_out: bool = False,
     app_pids: tuple[str, ...] = (),
     instrumentation_pids: tuple[str, ...] = (),
@@ -85,11 +94,7 @@ def evaluate_case(
                    timedelta(seconds=60)).isoformat() if end_time_utc else ""
     cleanup_lines = raw_log.splitlines() + _case_log_lines(auxiliary_log, case_pids,
                                                            start_time_utc, cleanup_end)
-    lmk_confirmed = any(
-        app.search(line) and re.search(r"\b(?:lmkd|lowmemorykiller)\b", line, re.I)
-        and re.search(r"\b(?:kill|killed|oom|low memory)\b", line, re.I)
-        for line in event_lines
-    )
+    lmk_confirmed = any(lmk_victim(line) == "com.yujian.ai.uiv2" for line in event_lines)
     native_crash = any(
         re.search(r"fatal signal\s+\d+|tombstone|crash_dump|debuggerd.*(?:crash|dump)", line, re.I)
         for line in event_lines
@@ -179,12 +184,46 @@ def evaluate_case(
         event_classification = "TEST_NOT_COMPLETED"
     else:
         event_classification = reason
+    completed = started and any(
+        event["class"] == class_name and event["test"] == method_name
+        and event["code"] in (0, -1, -2, -3, -4)
+        for event in status_events
+    )
+    failure_lines = []
+    exception = None
+    root_cause = None
+    if not passed:
+        deadline = re.compile(
+            r"\b(?:RECOGNITION_ATTEMPT_DEADLINE_EXCEEDED_SLIMSAM_TIMEOUT\w*|SLIMSAM_TIMEOUT)\b"
+            r"|\bATTEMPT_DEADLINE_EXCEEDED\s+stage=SLIMSAM\b"
+        )
+        relevant = re.compile(
+            r"INSTRUMENTATION_STATUS: stack=|INSTRUMENTATION_RESULT: shortMsg=|"
+            r"Exception|Error|Caused by:|FAILURES!!!|fatal signal|lmkd|lowmemorykiller|SLIMSAM_RESULT_FAILED",
+            re.I,
+        )
+        unique_lines = list(dict.fromkeys(line.strip() for line in event_lines))
+        deadline_lines = [line for line in unique_lines if deadline.search(line)]
+        failure_lines = (deadline_lines[:6] + [
+            line for line in unique_lines if not deadline.search(line) and relevant.search(line)
+        ][:14]) or [line.strip() for line in raw_log.splitlines() if line.strip()][-8:]
+        stack = "\n".join(line.removeprefix("INSTRUMENTATION_STATUS: stack=")
+                          for line in raw_log.splitlines())
+        exception_match = re.search(r"^([\w.$]+(?:Exception|Error|Throwable)(?::[^\n]*)?)$", stack, re.M)
+        if exception_match:
+            exception = exception_match[1]
+        causes = re.findall(r"^\s*Caused by:\s*(.+)$", stack, re.M)
+        root_cause = causes[-1] if causes else reason
+        if deadline_lines and started and not lmk_or_process_death:
+            root_cause = "SLIMSAM_TIMEOUT"
+        if len(failure_lines) > 20:
+            failure_lines = failure_lines[:20]
     return {
         "class": class_name,
         "test": f"{class_name}#{method_name}",
         "test_method": method_name,
         "started": started,
-        "completed": status_codes.count(0) == 1,
+        "completed": completed,
         "instrumentation_status_codes": status_codes,
         "instrumentation_events": status_events,
         "instrumentation_codes": final_codes,
@@ -201,6 +240,11 @@ def evaluate_case(
         "normal_summary": normal_summary,
         "passed": passed,
         "reason": reason,
+        "failure_phase": "NONE" if passed else failure_phase,
+        "failure_reason": reason,
+        "exception": exception,
+        "root_cause": root_cause,
+        "relevant_log_excerpt": "\n".join(line[:500] for line in failure_lines),
         "event_classification": event_classification,
         "app_pids": list(app_pids),
         "instrumentation_pids": list(instrumentation_pids),
@@ -242,6 +286,7 @@ def main() -> int:
     parser.add_argument("--log", required=True, type=Path)
     parser.add_argument("--auxiliary-log", type=Path)
     parser.add_argument("--command-exit-code", required=True, type=int)
+    parser.add_argument("--failure-phase", default="INSTRUMENTATION")
     parser.add_argument("--timed-out", action="store_true")
     parser.add_argument("--app-pids", type=Path)
     parser.add_argument("--instrumentation-pids", type=Path)
@@ -270,6 +315,7 @@ def main() -> int:
         auxiliary_log=auxiliary_log,
         command_exit_code=args.command_exit_code,
         timed_out=args.timed_out,
+        failure_phase=args.failure_phase,
         app_pids=pid_rows(args.app_pids),
         instrumentation_pids=pid_rows(args.instrumentation_pids),
         start_time_utc=args.start_time_utc,

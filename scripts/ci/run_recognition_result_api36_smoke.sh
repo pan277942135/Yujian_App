@@ -22,6 +22,8 @@ instrumentation_attempted=false
 test_started=false
 test_a_passed=false
 test_b_passed=false
+test_b_status=-1
+test_b_timed_out=false
 test_c_passed=false
 test_a_force_stop_verified=false
 test_b_force_stop_verified=false
@@ -193,7 +195,7 @@ run_instrumentation_case() {
   local start_time end_time command_pid command_status timed_out=false
   local had_errexit=false
   [[ "$-" == *e* ]] && had_errexit=true
-  start_time="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  start_time="$(date -u +%Y-%m-%dT%H:%M:%S.%6NZ)"
   record_instrumentation_process_state "$case_dir" "${label}_before"
   timeout 15s adb shell dumpsys activity processes > "$case_dir/activity-processes-before.txt" 2>&1
   timeout 15s adb shell dumpsys meminfo "$app_package" > "$case_dir/app-meminfo-before.txt" 2>&1
@@ -212,7 +214,7 @@ run_instrumentation_case() {
   if wait "$command_pid"; then command_status=0; else command_status=$?; fi
   if [[ "$command_status" -eq 124 || "$command_status" -eq 137 ]]; then timed_out=true; fi
   if [[ "$had_errexit" == true ]]; then set -e; fi
-  end_time="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  end_time="$(date -u +%Y-%m-%dT%H:%M:%S.%6NZ)"
 
   record_instrumentation_process_state "$case_dir" "${label}_after"
   timeout 15s adb shell dumpsys activity processes > "$case_dir/activity-processes-after.txt" 2>&1
@@ -223,7 +225,7 @@ run_instrumentation_case() {
   local -a parser_args=(
     --class-name "$class_name" --method-name "$method_name"
     --log "$raw_log" --auxiliary-log "$case_dir/logcat.txt"
-    --command-exit-code "$command_status"
+    --command-exit-code "$command_status" --failure-phase "$current_phase"
     --app-pids "$case_dir/app-pids.txt"
     --instrumentation-pids "$case_dir/instrumentation-pids.txt"
     --start-time-utc "$start_time" --end-time-utc "$end_time"
@@ -319,7 +321,7 @@ finish() {
     adb logcat -b all -d -v threadtime > "$evidence_dir/logcat.txt" 2>&1
     grep -Ei 'lowmemorykiller|lmkd|am_kill|am_proc_died|out of memory|oom.*kill|low memory' \
       "$evidence_dir/logcat.txt" > "$evidence_dir/lowmemorykiller-events.txt" || true
-    grep -Ei 'SLIMSAM_(START|END|PREWARM_[A-Z]+)|SLIMSAM_(ENCODER|DECODER)_(START|END)|SLIMSAM_.*duration_ms|GC |GC:|Native Heap|lowmemorykiller|lmkd' \
+    grep -Ei 'SLIMSAM_(START|END|PREWARM_[A-Z]+)|SLIMSAM_(ENCODER|DECODER)_(START|END)|SLIMSAM_.*duration_ms|ATTEMPT_DEADLINE_EXCEEDED|SLIMSAM_RESULT_FAILED|NATIVE_RUN_RETURNED|GC |GC:|Native Heap|lowmemorykiller|lmkd' \
       "$evidence_dir/logcat.txt" > "$evidence_dir/model-gc-native-memory-events.txt" || true
     adb devices -l > "$evidence_dir/adb-devices-final.txt" 2>&1
     pull_private_evidence
@@ -343,103 +345,12 @@ finish() {
     fi
   fi
 
-  python3 - "$evidence_dir/memory-analysis.json" "$evidence_dir" <<'PY'
-import json, pathlib, re, sys
-out, root = map(pathlib.Path, sys.argv[1:])
-def read(name):
-    p = root / name
-    return p.read_text(encoding='utf-8', errors='replace') if p.is_file() else ''
-def number(pattern, text):
-    match = re.search(pattern, text, re.MULTILINE)
-    return int(match.group(1).replace(',', '')) if match else None
-host_text = read('host-memory-snapshots.txt')
-emulator_text = read('emulator-memory-snapshots.txt')
-host_blocks = re.split(r'(?=^===== HOST_MEMORY_SNAPSHOT )', host_text, flags=re.MULTILINE)
-emulator_blocks = re.split(r'(?=^===== EMULATOR_MEMORY_SNAPSHOT )', emulator_text, flags=re.MULTILINE)
-host = []
-for block in host_blocks:
-    if not block.startswith('===== HOST_MEMORY_SNAPSHOT '):
-        continue
-    host.append({
-        'label': re.search(r'^===== HOST_MEMORY_SNAPSHOT (\S+)', block, re.MULTILINE).group(1),
-        'mem_total_kb': number(r'^MemTotal:\s+(\d+)', block),
-        'mem_available_kb': number(r'^MemAvailable:\s+(\d+)', block),
-        'swap_total_kb': number(r'^SwapTotal:\s+(\d+)', block),
-        'swap_free_kb': number(r'^SwapFree:\s+(\d+)', block),
-    })
-emulator = []
-for block in emulator_blocks:
-    if not block.startswith('===== EMULATOR_MEMORY_SNAPSHOT '):
-        continue
-    uptime = re.search(r'^([0-9]+(?:\.[0-9]+)?)\s+[0-9]+(?:\.[0-9]+)?\s*$', block, re.MULTILINE)
-    emulator.append({
-        'label': re.search(r'^===== EMULATOR_MEMORY_SNAPSHOT (\S+)', block, re.MULTILINE).group(1),
-        'uptime_ms': round(float(uptime.group(1)) * 1000) if uptime else None,
-        'mem_available_kb': number(r'^MemAvailable:\s+(\d+)', block),
-        'process_rss_kb': number(r'^VmRSS:\s+(\d+)', block),
-        'process_rss_peak_kb': number(r'^VmHWM:\s+(\d+)', block),
-        'process_swap_kb': number(r'^VmSwap:\s+(\d+)', block),
-        'app_total_pss_kb': number(r'^\s*TOTAL PSS:\s*([\d,]+)', block),
-        'native_heap_kb': number(r'^\s*Native Heap:\s*([\d,]+)', block),
-    })
-logcat = read('logcat.txt')
-def model_event(name):
-    values = []
-    for line in logcat.splitlines():
-        if name not in line:
-            continue
-        at = re.search(r'uptime_ms=(\d+)', line)
-        duration = re.search(r'duration_ms=(\d+)', line)
-        if at or duration:
-            values.append({'uptime_ms': int(at.group(1)) if at else None,
-                           'duration_ms': int(duration.group(1)) if duration else None,
-                           'line': line.strip()})
-    return values
-slimsam = {name: model_event(name) for name in (
-    'SLIMSAM_START', 'SLIMSAM_END', 'SLIMSAM_ENCODER_START',
-    'SLIMSAM_ENCODER_END', 'SLIMSAM_DECODER_START', 'SLIMSAM_DECODER_END')}
-slim_start = next((row['uptime_ms'] for row in slimsam['SLIMSAM_START'] if row['uptime_ms'] is not None), None)
-slim_end = next((row['uptime_ms'] for row in slimsam['SLIMSAM_END'] if row['uptime_ms'] is not None), None)
-model_window = [row for row in emulator if row['uptime_ms'] is not None and slim_start is not None and slim_end is not None and slim_start <= row['uptime_ms'] <= slim_end]
-case_results = []
-for case_file in (root / 'test-cases').glob('*/result.json'):
-    try:
-        case_results.append(json.loads(case_file.read_text(encoding='utf-8')))
-    except (OSError, ValueError):
-        pass
-app_kill = any(case.get('lmk_confirmed') is True for case in case_results)
-min_host_available = min((row['mem_available_kb'] for row in host if row['mem_available_kb'] is not None), default=None)
-min_emulator_available = min((row['mem_available_kb'] for row in emulator if row['mem_available_kb'] is not None), default=None)
-peak_model = max((row['process_rss_kb'] for row in model_window if row['process_rss_kb'] is not None), default=None)
-final_rss = next((row['process_rss_kb'] for row in reversed(emulator) if row['process_rss_kb'] is not None), None)
-if app_kill:
-    resource = 'RESOURCE_EXHAUSTED_APP_KILLED_BY_LOW_MEMORY_MANAGER'
-elif min_host_available is not None and min_host_available < 512 * 1024:
-    resource = 'HOST_MEMORY_PRESSURE_OBSERVED'
-elif min_emulator_available is not None and min_emulator_available < 256 * 1024:
-    resource = 'EMULATOR_MEMORY_PRESSURE_OBSERVED'
-else:
-    resource = 'NO_SYSTEM_KILL_OR_CRITICAL_MEMORY_PRESSURE_OBSERVED'
-if peak_model is not None and final_rss is not None and peak_model > final_rss * 1.10:
-    model_peak = 'TRANSIENT_RSS_PEAK_DURING_SLIMSAM_WINDOW'
-else:
-    model_peak = 'NO_TRANSIENT_SLIMSAM_RSS_PEAK_CONFIRMED'
-payload = {
-    'resource_classification': resource,
-    'model_peak_assessment': model_peak,
-    'memory_leak_assessment': 'NOT_DIAGNOSABLE_FROM_ONE_PRODUCTION_ATTEMPT; repeated workload or heap profiling is required',
-    'host_memory_min_available_kb': min_host_available,
-    'emulator_memory_min_available_kb': min_emulator_available,
-    'slimsam_model_events': slimsam,
-    'slimsam_memory_window_samples': model_window,
-    'app_rss_peak_in_slimsam_window_kb': peak_model,
-    'final_app_rss_kb': final_rss,
-    'lowmemorykiller_app_kill_observed': app_kill,
-    'host_snapshots': host,
-    'emulator_snapshots': emulator,
-}
-out.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
-PY
+  if ! python3 scripts/ci/api36_memory_analysis.py "$evidence_dir/memory-analysis.json" "$evidence_dir"; then
+    result_classification=INFRA_BLOCKED
+    failure_reason="MEMORY_ANALYSIS_FAILED"
+    failure_phase="EVIDENCE_FINALIZATION"
+    rc=1
+  fi
 
   if [[ "$result_classification" == AUTO_SMOKE_PASS ]]; then
     for required_evidence in \
@@ -483,24 +394,32 @@ PY
     "$failure_phase" "$instrumentation_attempted" "$adb_ready" "$emulator_boot_pass" "${BUILD_PASS:-false}" \
     "${KVM_READY:-false}" "$validation_reason" "$slimsam_validation_reason" "$apk_dir" "$screenrecord_exit_status" \
     "$video_pull_status" "$pre_screenshot_pull_status" "$post_screenshot_pull_status" \
-    "$test_a_force_stop_verified" "$test_b_force_stop_verified" <<'PY'
+    "$test_a_force_stop_verified" "$test_b_force_stop_verified" \
+    "$test_a_class#$test_a_method" "$test_class#$test_method" "$test_c_class#$test_c_method" <<'PY'
 import hashlib, json, pathlib, sys, time
 (path, evidence_root, source_sha, classification, reason, exit_code, instrument_status, timed_out,
  test_started, failure_phase, attempted, adb_ready, emulator_boot_pass, build_pass, kvm_ready,
  validation_reason, slimsam_validation_reason, apk_dir, screenrecord_exit_status, video_pull_status,
  pre_screenshot_pull_status, post_screenshot_pull_status, force_stop_verified,
- reveal_force_stop_verified) = sys.argv[1:]
+ reveal_force_stop_verified, test_a_name, test_b_name, test_c_name) = sys.argv[1:]
 path = pathlib.Path(path)
 evidence_root = pathlib.Path(evidence_root)
-def load_case(name):
-    p = evidence_root / 'test-cases' / name / 'result.json'
+def load_case(name, test_name, phase):
+    directory = evidence_root / 'test-cases' / name
     try:
-        return json.loads(p.read_text(encoding='utf-8'))
-    except Exception:
-        return {'passed': False, 'reason': 'CASE_RESULT_MISSING', 'test': None}
-test_a = load_case('classifier')
-test_b = load_case('production-reveal')
-test_c = load_case('production-auto')
+        return json.loads((directory / 'result.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        attempted = (directory / 'local-command-pid.txt').is_file()
+        case_reason = 'CASE_RESULT_MISSING_OR_INVALID' if attempted else 'CASE_NOT_RUN'
+        return {
+            'test': test_name, 'started': False, 'completed': False, 'passed': False,
+            'reason': case_reason, 'failure_phase': phase if attempted else failure_phase,
+            'failure_reason': case_reason, 'exception': None, 'root_cause': case_reason if attempted else reason,
+            'relevant_log_excerpt': '',
+        }
+test_a = load_case('classifier', test_a_name, 'CLASSIFIER_TFLITE_RUNTIME')
+test_b = load_case('production-reveal', test_b_name, 'PRODUCTION_REVEAL_INSTRUMENTATION')
+test_c = load_case('production-auto', test_c_name, 'PRODUCTION_AUTO_INSTRUMENTATION')
 def sha256_file(name):
     p = pathlib.Path(apk_dir) / name
     if not p.is_file():
@@ -791,6 +710,8 @@ fi
 if [[ "$instrument_status" -eq 124 || "$instrument_status" -eq 137 ]]; then
   instrumentation_timed_out=true
 fi
+test_b_status="$instrument_status"
+test_b_timed_out="$instrumentation_timed_out"
 cp "$evidence_dir/test-cases/production-reveal/instrumentation.log" "$evidence_dir/instrumentation.log"
 cp "$evidence_dir/test-cases/production-reveal/results.xml" "$evidence_dir/instrumentation_results.xml"
 if grep -Fq "INSTRUMENTATION_STATUS: test=$test_method" "$evidence_dir/instrumentation.log"; then
@@ -864,14 +785,19 @@ validator_args=(
   --business-report "$business_report"
   --business-evidence-dir "$business_dir"
   --source-sha "$source_sha"
-  --command-exit-code "$instrument_status"
+  --command-exit-code "$test_b_status"
 )
-if [[ "$instrumentation_timed_out" == true ]]; then
+if [[ "$test_b_timed_out" == true ]]; then
   validator_args+=(--timed-out)
 fi
 set +e
-validation_output="$(python3 scripts/ci/validate_recognition_result_api36_smoke.py "${validator_args[@]}" 2>&1)"
-validation_status=$?
+if [[ "$test_b_passed" != true && ! -f "$business_report" ]]; then
+  validation_output='{"passed": false, "reason": "UPSTREAM_RUNTIME_NOT_REACHED"}'
+  validation_status=1
+else
+  validation_output="$(python3 scripts/ci/validate_recognition_result_api36_smoke.py "${validator_args[@]}" 2>&1)"
+  validation_status=$?
+fi
 set -e
 printf '%s\n' "$validation_output" | tee "$evidence_dir/business-integrity-report.json"
 validation_reason="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("reason", "VALIDATOR_OUTPUT_INVALID"))' <<< "$validation_output" 2>/dev/null || printf '%s' 'VALIDATOR_OUTPUT_INVALID')"
@@ -882,6 +808,9 @@ set +e
 slimsam_validation_output="$(python3 scripts/ci/validate_slimsam_preload_evidence.py --evidence-dir "$slimsam_evidence_dir" 2>&1)"
 slimsam_validation_status=$?
 set -e
+if [[ "$test_b_passed" != true ]] && grep -Fq '"REQUIRED_SLIMSAM_EVIDENCE_MISSING"' <<< "$slimsam_validation_output"; then
+  slimsam_validation_output='{"passed": false, "reason": "UPSTREAM_RUNTIME_NOT_REACHED"}'
+fi
 printf '%s\n' "$slimsam_validation_output" | tee "$evidence_dir/slimsam-preload-integrity-report.json"
 slimsam_validation_reason="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("reason", "VALIDATOR_OUTPUT_INVALID"))' <<< "$slimsam_validation_output" 2>/dev/null || printf '%s' 'VALIDATOR_OUTPUT_INVALID')"
 if [[ "$slimsam_validation_status" -ne 0 ]]; then

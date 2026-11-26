@@ -121,7 +121,7 @@ class RecognitionRevealProductionRuntimeTest {
         val sourceBytes = testContext.assets.open(SOURCE_ASSET).use { it.readBytes() }
         val sourceSha256 = sourceBytes.sha256()
         assertEquals(SOURCE_SHA256, sourceSha256)
-        val selectedImage = runBlocking { RecognitionImageStore.normalizeAsset(testContext, SOURCE_ASSET) }
+        val selectedImage = runBlocking { RecognitionImageStore.normalizeAsset(testContext, targetContext, SOURCE_ASSET) }
         val bitmap = selectedImage.bitmap
         val imageId = selectedImage.imageId
         val canonicalPixelSha256 = selectedImage.photoSha256

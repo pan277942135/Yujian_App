@@ -24,6 +24,15 @@ class ClassifierRealTfliteTensorBindingTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val targetContext = instrumentation.targetContext
         val testContext = instrumentation.context
+        if (android.os.Build.VERSION.SDK_INT == 36 &&
+            (android.os.Build.FINGERPRINT.contains("generic", ignoreCase = true) ||
+                android.os.Build.HARDWARE.contains("ranchu", ignoreCase = true))) {
+            val runtimeCores = Runtime.getRuntime().availableProcessors()
+            val onlineCores = java.io.File("/sys/devices/system/cpu/online").readText().trim()
+            android.util.Log.i("Api36EmulatorResources", "availableProcessors=$runtimeCores cpuOnline=$onlineCores")
+            assertEquals("API36 emulator JVM must see four cores", 4, runtimeCores)
+            assertEquals("API36 emulator Linux must expose CPUs 0-3", "0-3", onlineCores)
+        }
         val photoBytes = testContext.assets.open(SOURCE_ASSET).use { it.readBytes() }
         val sourceSha = photoBytes.sha256()
         assertEquals(SOURCE_SHA256, sourceSha)
@@ -31,7 +40,7 @@ class ClassifierRealTfliteTensorBindingTest {
         val modelBytes = targetContext.assets.open(FishRecognitionEngine.MODEL_FILE).use { it.readBytes() }
         assertEquals(FishRecognitionEngine.FROZEN_CLASSIFIER_SHA256, modelBytes.sha256())
 
-        val selectedImage = runBlocking { RecognitionImageStore.normalizeAsset(testContext, SOURCE_ASSET) }
+        val selectedImage = runBlocking { RecognitionImageStore.normalizeAsset(testContext, targetContext, SOURCE_ASSET) }
         val bitmap = selectedImage.bitmap
         val photoIdentity = requireNotNull(selectedImage.photoIdentity)
         val photoId = selectedImage.imageId

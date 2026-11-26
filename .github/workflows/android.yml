@@ -674,7 +674,7 @@ jobs:
           assert contract.get('build_sha') == os.environ['SOURCE_SHA'], contract.get('build_sha')
           PY
 
-      - name: Create and verify API 36 AVD memory configuration
+      - name: Create and verify API 36 AVD resource configuration
         run: |
           set -euo pipefail
           evidence=evidence/runtime/recognition-result-api36
@@ -690,14 +690,14 @@ jobs:
               --package 'system-images;android-36;google_apis;x86_64' --device pixel_2
           fi
           test -f "$avd_config"
-          sed -i -e '/^[[:space:]]*hw\.ramSize=/d' -e '/^[[:space:]]*hw\.heapSize=/d' "$avd_config"
-          printf '%s\n' 'hw.ramSize=4096M' 'hw.heapSize=512M' >> "$avd_config"
+          sed -i -E '/^[[:space:]]*(hw\.(cpu\.ncore|ramSize|heapSize)|vm\.heapSize)[[:space:]]*=/d' "$avd_config"
+          printf '%s\n' 'hw.cpu.ncore=4' 'hw.ramSize=4096' 'vm.heapSize=512' >> "$avd_config"
           {
             printf 'avd_home=%s\navd_name=%s\navd_config=%s\n' "$avd_home" "$avd_name" "$avd_config"
             printf '%s\n' '--- avdmanager list avd -c ---'
             avdmanager list avd -c
-            printf '%s\n' '--- active AVD RAM, heap, ABI and image config ---'
-            grep -E '^[[:space:]]*(hw\.(ramSize|heapSize|cpu\.arch)|image\.sysdir\.1)=' "$avd_config"
+            printf '%s\n' '--- active AVD CPU, RAM, heap, ABI and image config ---'
+            grep -E '^[[:space:]]*(hw\.(ramSize|cpu\.(arch|ncore))|vm\.heapSize|image\.sysdir\.1)=' "$avd_config"
             cat "$avd_config"
           } | tee "$evidence/avd-config-before-launch.txt"
           python3 - "$avd_config" <<'PY'
@@ -707,8 +707,9 @@ jobs:
               key, sep, value = line.partition('=')
               if sep:
                   config[key.strip()] = value.strip()
-          assert config.get('hw.ramSize', '').removesuffix('M') == '4096', config.get('hw.ramSize')
-          assert config.get('hw.heapSize', '').removesuffix('M') == '512', config.get('hw.heapSize')
+          assert config.get('hw.cpu.ncore') == '4', config.get('hw.cpu.ncore')
+          assert config.get('hw.ramSize') == '4096', config.get('hw.ramSize')
+          assert config.get('vm.heapSize') == '512', config.get('vm.heapSize')
           assert config.get('hw.cpu.arch') == 'x86_64', config.get('hw.cpu.arch')
           image = config.get('image.sysdir.1', '').replace(chr(92), '/').rstrip('/')
           assert image.endswith('system-images/android-36/google_apis/x86_64'), image
@@ -724,12 +725,13 @@ jobs:
           target: google_apis
           profile: pixel_2
           avd-name: test
-          ram-size: 4096M
-          heap-size: 512M
+          force-avd-creation: 'false'
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           emulator-boot-timeout: 600
-          script: bash scripts/ci/run_recognition_result_api36_smoke.sh
+          script: |
+            python3 scripts/ci/check_api36_emulator_resources.py
+            bash scripts/ci/run_recognition_result_api36_smoke.sh
 
       - name: Record early API36 infrastructure failure when smoke did not start
         if: always()

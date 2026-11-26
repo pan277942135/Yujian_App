@@ -58,14 +58,38 @@ object RecognitionImageStore {
         }
     }
 
-    suspend fun normalizeAsset(context: Context, assetPath: String, source: String = "test_sample"): SelectedImage = withContext(Dispatchers.IO) {
-        val tempDir = File(context.cacheDir, "asset_imports").apply { mkdirs() }
+    suspend fun normalizeAsset(context: Context, assetPath: String, source: String = "test_sample"): SelectedImage =
+        normalizeAsset(context, context, assetPath, source)
+
+    suspend fun normalizeAsset(
+        assetContext: Context,
+        storageContext: Context,
+        assetPath: String,
+        source: String = "test_sample",
+    ): SelectedImage = withContext(Dispatchers.IO) {
+        val tempDir = File(storageContext.cacheDir, "asset_imports")
+        require(tempDir.isDirectory || tempDir.mkdirs()) { "无法创建测试照片临时目录" }
+        require(tempDir.isDirectory && tempDir.canWrite()) { "测试照片临时目录不可写" }
         val tempFile = File(tempDir, "asset_${UUID.randomUUID()}.jpg")
         try {
-            context.assets.open(assetPath).use { input ->
+            val sourceDigest = MessageDigest.getInstance("SHA-256")
+            assetContext.assets.open(assetPath).use { input ->
                 tempFile.outputStream().use { output -> input.copyTo(output) }
             }
-            normalizeLocalFile(context, tempFile, source, "测试照片格式不受支持")
+            require(tempFile.isFile && tempFile.length() > 0L) { "测试照片内容为空" }
+            assetContext.assets.open(assetPath).use { input ->
+                val bytes = ByteArray(64 * 1024)
+                while (true) {
+                    val count = input.read(bytes)
+                    if (count < 0) break
+                    sourceDigest.update(bytes, 0, count)
+                }
+            }
+            val expectedSha256 = sourceDigest.digest().joinToString("") { "%02x".format(it) }
+            require(sha256(tempFile) == expectedSha256) { "测试照片源文件校验失败" }
+            normalizeLocalFile(storageContext, tempFile, source, "测试照片格式不受支持").also { selected ->
+                require(selected.photoIdentity?.sourceBytesSha256 == expectedSha256) { "测试照片身份校验失败" }
+            }
         } finally {
             tempFile.delete()
         }
