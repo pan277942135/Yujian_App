@@ -870,6 +870,78 @@ jobs:
           print(f"API36_AUTO_SMOKE_CLASSIFICATION=AUTO_SMOKE_PASS source_sha={expected_sha}")
           PY
 
+  recognition-result-api36-delivery:
+    name: Publish exact-head Debug APK and API36 evidence
+    needs: [build, recognition-result-api36-smoke]
+    if: ${{ github.event_name == 'push' && needs.build.result == 'success' && needs.recognition-result-api36-smoke.result == 'success' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download exact-head APK pair
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          path: build/runtime-apks
+
+      - name: Download API36 A/B/C evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-recognition-result-api36-${{ needs.build.outputs.source_sha }}
+          path: build/api36-evidence
+
+      - name: Verify exact-head PASS and prepare release assets
+        env:
+          SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "$SOURCE_SHA" = "$GITHUB_SHA"
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+          (cd build/api36-evidence && sha256sum -c evidence-sha256sums.txt)
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, zipfile
+          sha = os.environ['SOURCE_SHA']
+          root = pathlib.Path('build/api36-evidence')
+          result = json.loads((root / 'runtime-result.json').read_text())
+          assert result['source_sha'] == sha
+          assert result['AUTO_SMOKE_PASS'] is True
+          assert result['API36_INSTRUMENTATION_PASS'] is True
+          for name in ('classifier_tensor_binding', 'production_night_catch_reveal', 'production_home_picker_auto'):
+              case = result['instrumentation_cases'][name]
+              assert case['started'] is True and case['completed'] is True and case['passed'] is True, (name, case)
+          apk = pathlib.Path('build/runtime-apks/app-debug.apk')
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          pathlib.Path('build/runtime-apks/app-debug.apk.sha256').write_text(f'{digest}  app-debug.apk\n')
+          metadata = {'source_sha': sha, 'run_id': os.environ['GITHUB_RUN_ID'], 'apk_sha256': digest,
+                      'apk_size_bytes': apk.stat().st_size, 'api36_a_b_c': 'PASS'}
+          pathlib.Path('build/runtime-apks/build-metadata.json').write_text(json.dumps(metadata, indent=2) + '\n')
+          with zipfile.ZipFile('build/YuJian-API36-Evidence.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+              for path in sorted(root.rglob('*')):
+                  if path.is_file(): archive.write(path, path.relative_to(root))
+          with zipfile.ZipFile('build/YuJian-API36-Evidence.zip') as archive:
+              assert archive.testzip() is None
+          PY
+
+      - name: Publish SHA-bound GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          tag="yujian-debug-${SOURCE_SHA}"
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" \
+            --title "YuJian Debug ${SOURCE_SHA:0:7} API36 A/B/C PASS" \
+            --notes "Exact HEAD $SOURCE_SHA; API36 A/B/C passed in run $GITHUB_RUN_ID. Device QA remains pending." \
+            build/runtime-apks/app-debug.apk \
+            build/runtime-apks/app-debug.apk.sha256 \
+            build/runtime-apks/build-metadata.json \
+            build/YuJian-API36-Evidence.zip
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq '.assets[].name' | sort > build/release-assets.txt
+          for asset in app-debug.apk app-debug.apk.sha256 build-metadata.json YuJian-API36-Evidence.zip; do
+            grep -Fx "$asset" build/release-assets.txt
+          done
+
   fish-optics-api36-runtime:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 316 }}
     needs: build
