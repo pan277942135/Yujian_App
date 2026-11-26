@@ -10,7 +10,8 @@
     "AUTO_RUNTIME_UNVERIFIED: no current-source 26KF device run, real Mask/PixelCopy evidence, or Stage10-13.5 end-to-end AUTO evidence was produced.",
     "FIXTURE_B_UNAVAILABLE: historical runtime evidence ZIP is absent; replay is not claimed.",
     "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79.",
-    "V3_API36_RUNTIME_PENDING: Run #4225 failed; artifact 15134616720 is inaccessible from this environment. Source fix 5db2ba710037c45951defe687075bd5b38f5a800 requires exact-head hosted A/B/C and real encoder timing before PASS."
+    "V3_API36_RUNTIME_PENDING: Run #4225 failed; artifact 15134616720 is inaccessible from this environment. Source fix 5db2ba710037c45951defe687075bd5b38f5a800 requires exact-head hosted A/B/C and real encoder timing before PASS.",
+    "RUN4226_EARLY_INFRA_FAILURE: build passed, API36 job failed before runtime-result; 47s smoke step, 3.54KB evidence artifact ID 15161108722; exact resource log inaccessible from workspace."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
   "checkpoint_updated_at": "2026-11-26T14:35:11Z",
@@ -626,12 +627,12 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Push PASS-gated Release job; await exact-head CI API36 A/B/C and inspect real model timing before any APK PASS claim.",
+  "next_action": "Push API36 resource serial discovery fix; inspect exact-head A/B/C and SlimSAM timing. Release only on PASS.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "162318f2b7f483a4622ff0da77e52b2c8a849057",
-  "stage": "P0_V3_EXACT_HEAD_RELEASE_GATE_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH",
+  "source_sha": "3df38dc15e0e36ae70db0276d5251dc46cd39784",
+  "stage": "P0_V3_API36_RESOURCE_DISCOVERY_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH",
   "state_update": {
     "last_updated_at": "2026-11-26T14:35:11Z",
     "note": "P0 V2 source 044e266 adds Java/native/assertion/cleanup/infra classifications with PID/time correlation. Local 34 parser/finalizer tests and runner fixture pass. Historical #4223 built successfully but API36 smoke failed; original runtime artifact is unavailable, cause NOT_CONFIRMED. #4224 at eb2db5e is in progress."

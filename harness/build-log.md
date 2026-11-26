@@ -454,3 +454,9 @@
 ## 2026-11-27 — P0 V3 exact-head delivery gate checkpoint
 
 - Source `162318f2b7f483a4622ff0da77e52b2c8a849057` adds a CI Release job gated on build and API36 A/B/C success, validates APK and Evidence hashes, and verifies published assets. No Release was created at this checkpoint.
+
+## 2026-11-27 — API36 resource discovery checkpoint
+
+- Run #4226 built APK from ea803384 but failed before runtime-result.json; API36 step lasted 47 seconds and early-failure evidence artifact 15161108722 was 3.54 KB. Root log inaccessible from current workspace.
+- Source `3df38dc15e0e36ae70db0276d5251dc46cd39784` discovers exactly one online emulator if ANDROID_SERIAL is unset and records resource-check failure in runtime-result. 46 CI Python tests, YAML parse and diff check PASS.
+- Local production :app:compileDebugKotlin PASS; application-core 79, recognition-ui 237, app 126 JVM tests PASS, 0 fail/skip. Local AndroidTest compile blocked on uncached AndroidX dependencies.
