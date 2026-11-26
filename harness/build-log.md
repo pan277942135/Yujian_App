@@ -402,3 +402,9 @@
 
 - `delivery_guard.py push-stage` completed with `PUSHED_AND_REMOTE_SHA_VERIFIED`; fast-forward remote SHA `e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67`. Independent `git ls-remote` confirmed both the target branch and `refs/pull/346/head` at that SHA; `main` remained `bc89484ca79fe20c63c9c6e65b284f1ec3ac1863`.
 - This proves Git write access for the repository/branch. GitHub REST identity/permissions and Actions status remain unverified because API egress is blocked with proxy HTTP 403. The marked push is not treated as CI PASS. PR was not mutated; Draft is last known state.
+
+## 2026-11-26T07:46:21Z — CDDG CI-unavailable continuation fix
+
+- Commit `2362e097befb38136ed4d48975ad19e94276e836` fixes `record_ci`: only verified `PASS` clears `continue_research`; `FAIL`, `UNAVAILABLE`, and `PENDING` keep independent work enabled. Added regression coverage for unavailable and pending hosted CI.
+- `python -m unittest discover -s tools/work_execution_v2 -p 'test_*.py' -v`: 31/31 PASS; `py_compile` PASS. GitHub REST/Actions remain unverified due proxy HTTP 403; no CI PASS claimed.
+- State checkpoint sequencing note: validating `WORK_EXECUTION_STATE.json` before its state-only checkpoint commit reports the expected self-reference when `source_sha` equals the code HEAD (the file is already tracked there). Per the repository validator contract, the Work-state and full Admission checks run after the state-only commit, where the code SHA is its parent and later differences are state-only.

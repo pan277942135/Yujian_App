@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'PR #346 production control and identity closure, frozen Gate Deadline policy, Native runtime safety, and exact-HEAD delivery (YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2)'
 state_control:
-  execution_baseline_sha: 189f6d85b02fdcbd41f431fdb58020a42f589dc3
+  execution_baseline_sha: 2362e097befb38136ed4d48975ad19e94276e836
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
@@ -18,16 +18,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67
+    head_sha: 37af697cae5dd88d25f00f50bffb1f45805d9076
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: fix/det-fish-v03-main-runtime-closure
     base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
-    head_sha: e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67
+    head_sha: 37af697cae5dd88d25f00f50bffb1f45805d9076
     status: DRAFT_OPEN_UNMERGED
-    status_source: Git refs were rechecked on 2026-11-26 after the CDDG push; refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head both equal e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67. Draft remains the last known PR state; live metadata could not be queried because GitHub API egress is proxy-blocked; no PR mutation occurred.
+    status_source: Git refs were rechecked on 2026-11-26 after the CDDG push; refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head both equal 37af697cae5dd88d25f00f50bffb1f45805d9076. Draft remains the last known PR state; live metadata could not be queried because GitHub API egress is proxy-blocked; no PR mutation occurred.
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -74,8 +74,8 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: 189f6d85b02fdcbd41f431fdb58020a42f589dc3
-    admission: Baseline Admission PASS at remote source 52aca20a49be6ab0f01d0b635988209cd5d55da0; code commit 189f6d85 and pushed state checkpoint e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67 are recorded. Current state-only checkpoint Admission is pending.
+    sha: 2362e097befb38136ed4d48975ad19e94276e836
+    admission: CDDGV1 code commit 2362e097befb38136ed4d48975ad19e94276e836 follows verified PR head 37af697cae5dd88d25f00f50bffb1f45805d9076. The 31-test CDDG suite passes; Admission for this candidate state checkpoint is pending.
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
@@ -102,7 +102,7 @@ current_work:
   id: YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 189f6d85b02fdcbd41f431fdb58020a42f589dc3
+  exact_head: 2362e097befb38136ed4d48975ad19e94276e836
   status: RUNNING
   stage: P0_CDDG_GUARD_TESTED_PENDING_ADMISSION_PUSH
   requested_task_id: YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2
@@ -182,8 +182,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-26T07:38:53Z'
-  note: "P0 GitHub Continuous Delivery Guard V1 code commit 189f6d85b02fdcbd41f431fdb58020a42f589dc3 was created from exact PR base 52aca20a49be6ab0f01d0b635988209cd5d55da0; 30/30 local Work V2 and guard fixture tests passed. delivery_guard pushed state checkpoint e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67 by fast-forward and independently verified both the PR branch and refs/pull/346/head. Git write is proven; GitHub REST identity/permissions and Exact-HEAD CI remain unverified because API egress returns proxy HTTP 403."
+  last_updated_at: '2026-11-26T07:46:21Z'
+  note: "P0 GitHub Continuous Delivery Guard V1 has code commits 189f6d85b02fdcbd41f431fdb58020a42f589dc3 and 2362e097befb38136ed4d48975ad19e94276e836; fix commit 2362e097befb38136ed4d48975ad19e94276e836 adds a regression proving CI UNAVAILABLE/PENDING keeps independent research enabled, and the Work V2 suite passes 31/31. The latest verified branch and PR ref before this candidate are 37af697cae5dd88d25f00f50bffb1f45805d9076. Git write is proven; GitHub REST identity/permissions and Exact-HEAD CI remain unverified because API egress returns proxy HTTP 403."
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.
