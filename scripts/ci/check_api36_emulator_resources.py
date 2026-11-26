@@ -7,6 +7,21 @@ import subprocess
 import sys
 
 
+def resolve_serial():
+    configured = os.environ.get("ANDROID_SERIAL", "").strip()
+    if configured:
+        return configured
+    output = subprocess.run(
+        ["adb", "devices"], check=True, capture_output=True, text=True, timeout=15,
+    ).stdout
+    devices = [line.split()[0] for line in output.splitlines()[1:]
+               if len(line.split()) >= 2 and line.split()[1] == "device"]
+    emulators = [serial for serial in devices if serial.startswith("emulator-")]
+    if len(emulators) != 1 or len(devices) != 1:
+        raise ValueError(f"expected one online emulator, found {devices}")
+    return emulators[0]
+
+
 def main():
     evidence_dir = Path("evidence/runtime/recognition-result-api36")
     evidence_dir.mkdir(parents=True, exist_ok=True)
@@ -16,7 +31,7 @@ def main():
             print(message, file=report, flush=True)
 
         try:
-            serial = os.environ["ANDROID_SERIAL"]
+            serial = resolve_serial()
             record(f"serial={serial}")
             hardware = Path(os.environ["ANDROID_AVD_HOME"]) / "test.avd" / "hardware-qemu.ini"
             effective = {}

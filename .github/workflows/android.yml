@@ -747,11 +747,18 @@ jobs:
             python3 - "$result" "$SOURCE_SHA" "$kvm_classification" "${{ needs.build.result }}" "${{ steps.api36_smoke.outcome }}" <<'PY'
             import json, pathlib, sys
             path, source_sha, kvm, build_result, smoke_result = sys.argv[1:]
+            resource_report = pathlib.Path(path).parent / 'emulator-resources.txt'
+            resource_failure = next((line.strip() for line in resource_report.read_text().splitlines()
+                                     if line.startswith('API36_EMULATOR_RESOURCES_FAIL=')), None) if resource_report.is_file() else None
+            failure_reason = resource_failure or f'SMOKE_DID_NOT_WRITE_RUNTIME_RESULT:kvm={kvm}:build={build_result}:runner={smoke_result}'
             payload = {
                 'source_sha': source_sha,
                 'api_level_expected': 36,
                 'classification': 'INFRA_BLOCKED',
-                'failure_reason': f'SMOKE_DID_NOT_WRITE_RUNTIME_RESULT:kvm={kvm}:build={build_result}:runner={smoke_result}',
+                'failure_reason': failure_reason,
+                'failure_phase': 'AVD_RESOURCE_VALIDATION' if resource_failure else 'SMOKE_STARTUP',
+                'root_cause': failure_reason,
+                'relevant_log_excerpt': resource_report.read_text()[-2048:] if resource_report.is_file() else '',
                 'validation_reason': 'NOT_RUN',
                 'instrumentation_started': False,
                 'instrumentation_attempted': False,
