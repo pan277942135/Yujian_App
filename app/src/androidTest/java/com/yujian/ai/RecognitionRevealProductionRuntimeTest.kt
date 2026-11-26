@@ -15,6 +15,8 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.exifinterface.media.ExifInterface
+import com.yujian.ai.ai.FishRecognitionEngine
 import com.yujian.ai.ai.FishRecognitionPipeline
 import com.yujian.ai.ai.RecognitionModelIdentity
 import com.yujian.ai.ai.ProductionRecognitionResult
@@ -26,6 +28,8 @@ import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.knowledge.FishKnowledgeRepository
 import com.yujian.ai.model.SelectedImage
+import com.yujian.ai.recognition.domain.CanonicalPhotoPixelsV1
+import com.yujian.ai.recognition.domain.PhotoIdentity
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
@@ -58,6 +62,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import java.io.ByteArrayInputStream
 import java.security.MessageDigest
 import java.util.Locale
 import java.util.Collections
@@ -116,12 +121,39 @@ class RecognitionRevealProductionRuntimeTest {
         val sourceSha256 = sourceBytes.sha256()
         assertEquals(SOURCE_SHA256, sourceSha256)
         val bitmap = requireNotNull(BitmapFactory.decodeByteArray(sourceBytes, 0, sourceBytes.size))
+        val sourceExifOrientation = ExifInterface(ByteArrayInputStream(sourceBytes))
+            .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        assertEquals(ExifInterface.ORIENTATION_NORMAL, sourceExifOrientation)
+        val imageId = "rr09-production-night-catch-$sourceSha256"
+        val canonicalPixelSha256 = CanonicalPhotoPixelsV1.sha256(bitmap.width, bitmap.height) { row, destination ->
+            bitmap.getPixels(destination, 0, bitmap.width, 0, row, bitmap.width, 1)
+        }
+        val photoIdentity = PhotoIdentity(
+            photoId = imageId,
+            sourceBytesSha256 = sourceSha256,
+            canonicalPixelSha256 = canonicalPixelSha256,
+            width = bitmap.width,
+            height = bitmap.height,
+            sourceOrientation = sourceExifOrientation,
+            normalizationVersion = PhotoIdentity.NORMALIZATION_VERSION_V1,
+            photoContentVersion = 1L,
+        )
+        assertTrue("registered night-catch PhotoIdentity must be valid", photoIdentity.isValid())
         val selectedImage = SelectedImage(
             filePath = SOURCE_ASSET,
             bitmap = bitmap,
             source = "androidTest_registered_photo",
-            imageId = "rr09-production-night-catch-$sourceSha256",
-            photoSha256 = sourceSha256,
+            imageId = imageId,
+            photoSha256 = canonicalPixelSha256,
+            sourceExifOrientation = sourceExifOrientation,
+            photoIdentity = photoIdentity,
+        )
+        val recognitionModelIdentity = RecognitionModelIdentity(
+            sessionId = SESSION_ID,
+            attemptId = ATTEMPT_ID,
+            imageId = selectedImage.imageId,
+            photoSha256 = canonicalPixelSha256,
+            photoIdentity = photoIdentity,
         )
         val subjectEngine = FishSubjectPreviewEngine(slimSamRuntime)
         val actualResult = AtomicReference<ProductionRecognitionResult?>()
@@ -151,6 +183,7 @@ class RecognitionRevealProductionRuntimeTest {
         val distinctPhotoWorkload = Collections.synchronizedList(mutableListOf<JSONObject>())
         val cancellationEvidence = AtomicReference<JSONObject?>()
         val memorySamples = Collections.synchronizedList(mutableListOf<JSONObject>())
+        val pipelineDiagnosticEvents = Collections.synchronizedList(mutableListOf<JSONObject>())
         val memorySampler = Executors.newSingleThreadScheduledExecutor()
         fun captureMemory(label: String) {
             val info = Debug.MemoryInfo()
@@ -319,15 +352,62 @@ class RecognitionRevealProductionRuntimeTest {
                                         .put("phase", "PIPELINE_START")
                                         .put("uptime_ns", SystemClock.elapsedRealtimeNanos())
                                         .put("thread_name", Thread.currentThread().name)
-                                    pipeline.recognize(selectedImage.bitmap, { progress ->
-                                        val atNs = SystemClock.elapsedRealtimeNanos()
-                                        val phase = progress.phase.name
-                                        pipelineStageEvents += JSONObject()
-                                            .put("phase", phase)
-                                            .put("uptime_ns", atNs)
-                                            .put("thread_name", Thread.currentThread().name)
-                                        onProgress(progress)
-                                    }).also { result ->
+                                    pipeline.recognize(
+                                        bitmap = selectedImage.bitmap,
+                                        onProgress = { progress ->
+                                            val atNs = SystemClock.elapsedRealtimeNanos()
+                                            val phase = progress.phase.name
+                                            pipelineStageEvents += JSONObject()
+                                                .put("phase", phase)
+                                                .put("uptime_ns", atNs)
+                                                .put("thread_name", Thread.currentThread().name)
+                                            onProgress(progress)
+                                        },
+                                        modelIdentity = recognitionModelIdentity,
+                                        onDiagnostic = { name, stage, status, details, error ->
+                                            pipelineDiagnosticEvents += JSONObject()
+                                                .put("name", name)
+                                                .put("stage", stage)
+                                                .put("status", status)
+                                                .put("details", JSONObject(details))
+                                                .put("error", error?.javaClass?.simpleName ?: JSONObject.NULL)
+                                                .put("uptime_ns", SystemClock.elapsedRealtimeNanos())
+                                        },
+                                    ).also { result ->
+                                        val productionPrediction = checkNotNull(result.prediction)
+                                        val inputReceipt = checkNotNull(productionPrediction.classifierInputReceipt) {
+                                            "production Classifier Input Receipt missing before SessionStore consumption"
+                                        }
+                                        val outputReceipt = checkNotNull(productionPrediction.classifierOutputReceipt) {
+                                            "production Classifier Output Receipt missing before SessionStore consumption"
+                                        }
+                                        check(inputReceipt.isValid() && outputReceipt.isValid())
+                                        check(inputReceipt.inferenceId == outputReceipt.inferenceId)
+                                        check(inputReceipt.recognitionSessionId == SESSION_ID && outputReceipt.recognitionSessionId == SESSION_ID)
+                                        check(inputReceipt.attemptId == ATTEMPT_ID && outputReceipt.attemptId == ATTEMPT_ID)
+                                        check(inputReceipt.photoId == selectedImage.imageId && outputReceipt.photoId == selectedImage.imageId)
+                                        check(inputReceipt.canonicalPixelSha256 == canonicalPixelSha256)
+                                        check(outputReceipt.canonicalPixelSha256 == canonicalPixelSha256)
+                                        val missingReceiptResult = result.copy(
+                                            prediction = productionPrediction.copy(classifierInputReceipt = null),
+                                        )
+                                        check(revealSessionStore.recordClassifierResult(
+                                            key = revealKey,
+                                            result = missingReceiptResult,
+                                            inferenceAsset = null,
+                                            highConfidenceResult = true,
+                                        ) == null) { "SessionStore accepted a production classifier result without its Input Receipt" }
+                                        val staleAttemptResult = result.copy(
+                                            prediction = productionPrediction.copy(
+                                                classifierInputReceipt = inputReceipt.copy(attemptId = "$ATTEMPT_ID-stale"),
+                                            ),
+                                        )
+                                        check(revealSessionStore.recordClassifierResult(
+                                            key = revealKey,
+                                            result = staleAttemptResult,
+                                            inferenceAsset = null,
+                                            highConfidenceResult = true,
+                                        ) == null) { "SessionStore accepted a classifier Receipt from a stale Attempt" }
                                         pipelineStageEvents += JSONObject()
                                             .put("phase", "PIPELINE_END")
                                             .put("uptime_ns", SystemClock.elapsedRealtimeNanos())
@@ -352,7 +432,7 @@ class RecognitionRevealProductionRuntimeTest {
                             prepareSubject = { selected ->
                                 subjectEngine.prepare(
                                     selected,
-                                    RecognitionModelIdentity(SESSION_ID, ATTEMPT_ID, selected.imageId, selected.photoSha256),
+                                    recognitionModelIdentity,
                                 )
                             },
                             onSlimSamTiming = { identity, stage, event, startNs, endNs, outcome ->
@@ -560,9 +640,52 @@ class RecognitionRevealProductionRuntimeTest {
             val result = requireNotNull(actualResult.get())
             val prediction = requireNotNull(result.prediction)
             assertTrue("registered night catch did not reach production RESULT_READY: ${result.status}", result.ready)
+            assertTrue("production Detector must return the registered fish", result.detectorRun.detections.isNotEmpty())
+            assertEquals("production Detector output SHA must be present", 64, result.detectorRun.onnxSha256.length)
+            val cropPixels = requireNotNull(result.cropPixels)
+            assertEquals("production Crop must carry its four source pixel bounds", 4, cropPixels.size)
+            assertTrue(cropPixels[0] >= 0 && cropPixels[1] >= 0)
+            assertTrue(cropPixels[2] <= bitmap.width && cropPixels[3] <= bitmap.height)
             assertEquals("yellow_catfish", prediction.top1.speciesKey)
             assertTrue("registered night catch must qualify as HIGH", prediction.top1.confidence >= .55f)
             assertTrue("registered night catch must have a clear production margin", !prediction.lowConfidence)
+            assertTrue("Top1 class index must be a real classifier output class", prediction.top1.classIndex in 0 until 15)
+            val classifierInputReceipt = requireNotNull(prediction.classifierInputReceipt)
+            val classifierOutputReceipt = requireNotNull(prediction.classifierOutputReceipt)
+            assertEquals("serving_default_args_0", classifierInputReceipt.tensorName)
+            assertEquals("FLOAT32", classifierInputReceipt.dataType)
+            assertEquals(listOf(1L, 3L, 224L, 224L), classifierInputReceipt.shape)
+            assertEquals(602112L, classifierInputReceipt.byteSize)
+            assertEquals("serving_default_output_0_output", classifierOutputReceipt.tensorName)
+            assertEquals("FLOAT32", classifierOutputReceipt.dataType)
+            assertEquals(listOf(1L, 15L), classifierOutputReceipt.shape)
+            assertEquals(60L, classifierOutputReceipt.byteSize)
+            assertEquals(FishRecognitionEngine.FROZEN_CLASSIFIER_SHA256,
+                classifierInputReceipt.modelIdentity.runtimeVerifiedModelSha256)
+            assertEquals(FishRecognitionEngine.FROZEN_CLASSIFIER_SHA256,
+                classifierOutputReceipt.modelIdentity.actualAssetSha256)
+            assertEquals(FishRecognitionEngine.FROZEN_CLASSIFIER_SHA256,
+                classifierOutputReceipt.modelIdentity.expectedModelSha256)
+            assertEquals("MODEL_CROP_M1_v0.2", classifierInputReceipt.modelIdentity.modelId)
+            assertEquals(classifierInputReceipt.modelIdentity, classifierOutputReceipt.modelIdentity)
+            assertEquals("yellow_catfish Top1 must come from the receipt-backed production Interpreter output",
+                classifierInputReceipt.inferenceId, classifierOutputReceipt.inferenceId)
+            assertEquals(recognitionModelIdentity.sessionId, classifierInputReceipt.recognitionSessionId)
+            assertEquals(recognitionModelIdentity.attemptId, classifierInputReceipt.attemptId)
+            assertEquals(selectedImage.imageId, classifierInputReceipt.photoId)
+            assertEquals(canonicalPixelSha256, classifierInputReceipt.canonicalPixelSha256)
+            assertEquals(selectedImage.imageId, classifierOutputReceipt.photoId)
+            assertEquals(canonicalPixelSha256, classifierOutputReceipt.canonicalPixelSha256)
+            assertTrue(classifierInputReceipt.contentHash.matches(Regex("[a-fA-F0-9]{64}")))
+            assertTrue(classifierOutputReceipt.contentHash.matches(Regex("[a-fA-F0-9]{64}")))
+            assertTrue("SessionStore consumer must see the validated receipt acceptance event", synchronized(pipelineDiagnosticEvents) {
+                pipelineDiagnosticEvents.any { it.optString("name") == "CLASSIFIER_RECEIPTS_ACCEPTED" && it.optString("status") == "PASS" }
+            })
+            assertTrue("production diagnostics must record Detector and Crop producers", synchronized(pipelineDiagnosticEvents) {
+                pipelineDiagnosticEvents.any { it.optString("name") == "DETECTOR_END" && it.optString("status") == "PASS" } &&
+                    pipelineDiagnosticEvents.any { it.optString("name") == "CROP_SUCCESS" && it.optString("status") == "PASS" } &&
+                    pipelineDiagnosticEvents.any { it.optString("name") == "CLASSIFIER_END" && it.optString("status") == "PASS" }
+            })
             val maskResult = requireNotNull(actualSubject.get())
             assertEquals("production mask must be ready for the trusted contour reveal", SubjectStatus.READY, maskResult.status)
             assertEquals("production mask quality must be trusted", com.yujian.ai.ai.subject.FishSubjectQuality.GOOD, maskResult.quality)
@@ -595,7 +718,7 @@ class RecognitionRevealProductionRuntimeTest {
                 runBlocking {
                     slimSamRuntime.prepare(
                         selectedImage,
-                        RecognitionModelIdentity(SESSION_ID, ATTEMPT_ID, selectedImage.imageId, selectedImage.photoSha256),
+                        recognitionModelIdentity,
                     )
                 }
                 val repeatEndNs = SystemClock.elapsedRealtimeNanos()
@@ -620,7 +743,7 @@ class RecognitionRevealProductionRuntimeTest {
             runBlocking {
                 slimSamRuntime.prepare(
                     selectedImage,
-                    RecognitionModelIdentity(SESSION_ID, ATTEMPT_ID, selectedImage.imageId, selectedImage.photoSha256),
+                    recognitionModelIdentity,
                 )
             }
             assertEquals("session reuse after cache trim", 1, slimSamRuntime.metricsSnapshot().visionSessionCount)

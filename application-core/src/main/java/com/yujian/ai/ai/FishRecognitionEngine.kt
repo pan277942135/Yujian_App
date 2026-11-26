@@ -355,8 +355,10 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         }
 
         val output = ByteBuffer.allocateDirect(count * 4).order(ByteOrder.nativeOrder())
+        var inputReceipt: RecognitionModelTensorReceipt? = null
+        var outputReceipt: RecognitionModelTensorReceipt? = null
         if (runtimeIdentity != null) {
-            val inputReceipt = RecognitionModelTensorReceipt(
+            val receipt = RecognitionModelTensorReceipt(
                 inferenceId = inferenceId,
                 recognitionSessionId = requireNotNull(modelIdentity).sessionId,
                 attemptId = modelIdentity.attemptId,
@@ -372,8 +374,9 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
                 endUptimeMs = android.os.SystemClock.uptimeMillis(),
                 validationStatus = "VALID",
             )
-            require(inputReceipt.isValid()) { "CLASSIFIER_INPUT_RECEIPT_INVALID" }
-            logTensorReceipt("INPUT", inputReceipt)
+            require(receipt.isValid()) { "CLASSIFIER_INPUT_RECEIPT_INVALID" }
+            inputReceipt = receipt
+            logTensorReceipt("INPUT", receipt)
         }
         if (!nativeRunLifecycle.startNative(token, input.buffer.capacity().toLong(), output.capacity().toLong())) {
             if (token.timeoutObserved || deadline?.isExpired(android.os.SystemClock.uptimeMillis()) == true) {
@@ -404,7 +407,7 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         val logits = FloatArray(count) { output.float }
         require(logits.all(Float::isFinite)) { "CLASSIFIER_OUTPUT_NON_FINITE" }
         if (runtimeIdentity != null) {
-            val outputReceipt = RecognitionModelTensorReceipt(
+            val receipt = RecognitionModelTensorReceipt(
                 inferenceId = inferenceId,
                 recognitionSessionId = requireNotNull(modelIdentity).sessionId,
                 attemptId = modelIdentity.attemptId,
@@ -420,8 +423,9 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
                 endUptimeMs = android.os.SystemClock.uptimeMillis(),
                 validationStatus = "VALID",
             )
-            require(outputReceipt.isValid()) { "CLASSIFIER_OUTPUT_RECEIPT_INVALID" }
-            logTensorReceipt("OUTPUT", outputReceipt)
+            require(receipt.isValid()) { "CLASSIFIER_OUTPUT_RECEIPT_INVALID" }
+            outputReceipt = receipt
+            logTensorReceipt("OUTPUT", receipt)
         }
         val probabilities = softmax(logits)
         val candidates = modelInfo.classes.map { label ->
@@ -473,6 +477,8 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
             candidates = candidates,
             latencyMs = latencyMs,
             modelInputBitmap = prepared.bitmap,
+            classifierInputReceipt = inputReceipt,
+            classifierOutputReceipt = outputReceipt,
         )
         } finally {
             timeoutTask?.cancel(false)

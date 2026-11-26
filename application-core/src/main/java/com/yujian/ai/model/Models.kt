@@ -1,5 +1,7 @@
 package com.yujian.ai.model
 
+import com.yujian.ai.ai.RecognitionModelTensorReceipt
+
 import android.graphics.Bitmap
 import com.yujian.ai.recognition.domain.PhotoIdentity
 import java.util.UUID
@@ -74,6 +76,9 @@ data class RecognitionPrediction(
     val latencyMs: Long,
     /** The rendered classifier-sized bitmap whose pixels are normalized into the packaged model input. */
     val modelInputBitmap: Bitmap? = null,
+    /** The validated tensor receipts produced by this classifier invocation, when identity is supplied. */
+    val classifierInputReceipt: RecognitionModelTensorReceipt? = null,
+    val classifierOutputReceipt: RecognitionModelTensorReceipt? = null,
 ) {
     val lowConfidence: Boolean
         get() {

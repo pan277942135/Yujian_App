@@ -7,6 +7,8 @@ source_sha="${SOURCE_SHA:-unknown}"
 app_package="com.yujian.ai.uiv2"
 test_package="com.yujian.ai.uiv2.test"
 runner="androidx.test.runner.AndroidJUnitRunner"
+test_a_class="com.yujian.ai.ClassifierRealTfliteTensorBindingTest"
+test_a_method="packagedClassifierRunsWithFrozenTensorBinding"
 test_class="com.yujian.ai.RecognitionRevealProductionRuntimeTest"
 test_method="realNightCatchHandoffDrivesTheNativeResultReveal"
 result_classification="INFRA_BLOCKED"
@@ -16,6 +18,9 @@ phase_pending_failure_reason="SMOKE_NOT_STARTED"
 failure_phase="INITIALIZATION"
 instrumentation_attempted=false
 test_started=false
+test_a_passed=false
+test_b_passed=false
+test_a_force_stop_verified=false
 adb_ready=false
 emulator_boot_pass=false
 instrument_status=-1
@@ -30,7 +35,8 @@ video_pull_status=not_run
 pre_screenshot_pull_status=not_run
 post_screenshot_pull_status=not_run
 
-mkdir -p "$evidence_dir/screenshots" "$evidence_dir/business-events"
+mkdir -p "$evidence_dir/screenshots" "$evidence_dir/business-events" \
+  "$evidence_dir/test-cases/classifier" "$evidence_dir/test-cases/production-reveal"
 
 enter_phase() {
   current_phase="$1"
@@ -144,6 +150,103 @@ capture_memory_snapshot() {
     printf 'app_process_status=NOT_RUNNING pid=%s\n' "${app_pid:-none}" >> "$diagnostic_snapshot_file" || return $?
   fi
   run_optional_diagnostic 'emulator dumpsys activity lmk' adb shell dumpsys activity lmk || return $?
+}
+
+record_instrumentation_process_state() {
+  local case_dir="$1"
+  local label="$2"
+  local app_pid=""
+  local test_pid=""
+  {
+    printf 'sample_utc=%s label=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$label"
+    if app_pid="$(timeout 15s adb shell pidof "$app_package" 2>/dev/null)"; then
+      app_pid="${app_pid//$'\r'/}"
+      printf 'app_pid=%s\n' "$app_pid"
+      printf '%s\n' "$app_pid" >> "$case_dir/app-pids.txt"
+    else
+      printf 'app_pid=NOT_RUNNING\n'
+    fi
+    if test_pid="$(timeout 15s adb shell pidof "$test_package" 2>/dev/null)"; then
+      test_pid="${test_pid//$'\r'/}"
+      printf 'instrumentation_pid=%s\n' "$test_pid"
+      printf '%s\n' "$test_pid" >> "$case_dir/instrumentation-pids.txt"
+    elif [[ -n "$app_pid" ]]; then
+      printf 'instrumentation_pid=%s (instrumentation-hosted-in-target-app-process)\n' "$app_pid"
+      printf '%s\n' "$app_pid" >> "$case_dir/instrumentation-pids.txt"
+    else
+      printf 'instrumentation_pid=NOT_OBSERVED\n'
+    fi
+  } >> "$case_dir/process-pids.log" 2>&1
+}
+
+run_instrumentation_case() {
+  local label="$1"
+  local class_name="$2"
+  local method_name="$3"
+  local case_dir="$4"
+  local raw_log="$case_dir/instrumentation.log"
+  local start_time end_time command_pid command_status timed_out=false
+  local had_errexit=false
+  [[ "$-" == *e* ]] && had_errexit=true
+  start_time="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  record_instrumentation_process_state "$case_dir" "${label}_before"
+  timeout 15s adb shell dumpsys activity processes > "$case_dir/activity-processes-before.txt" 2>&1
+  timeout 15s adb shell dumpsys meminfo "$app_package" > "$case_dir/app-meminfo-before.txt" 2>&1
+  timeout 15s adb shell dumpsys meminfo "$test_package" > "$case_dir/test-meminfo-before.txt" 2>&1
+
+  set +e
+  timeout 1200s adb shell am instrument -w -r \
+    -e class "$class_name#$method_name" \
+    "$test_package/$runner" > "$raw_log" 2>&1 &
+  command_pid=$!
+  printf 'local_instrumentation_command_pid=%s\n' "$command_pid" > "$case_dir/local-command-pid.txt"
+  while kill -0 "$command_pid" 2>/dev/null; do
+    record_instrumentation_process_state "$case_dir" "${label}_running"
+    sleep 5
+  done
+  if wait "$command_pid"; then command_status=0; else command_status=$?; fi
+  if [[ "$command_status" -eq 124 || "$command_status" -eq 137 ]]; then timed_out=true; fi
+  if [[ "$had_errexit" == true ]]; then set -e; fi
+  end_time="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+  record_instrumentation_process_state "$case_dir" "${label}_after"
+  timeout 15s adb shell dumpsys activity processes > "$case_dir/activity-processes-after.txt" 2>&1
+  timeout 15s adb shell dumpsys meminfo "$app_package" > "$case_dir/app-meminfo-after.txt" 2>&1
+  timeout 15s adb shell dumpsys meminfo "$test_package" > "$case_dir/test-meminfo-after.txt" 2>&1
+  adb logcat -b all -d -v threadtime > "$case_dir/logcat.txt" 2>&1
+
+  local -a parser_args=(
+    --class-name "$class_name" --method-name "$method_name"
+    --log "$raw_log" --auxiliary-log "$case_dir/logcat.txt"
+    --command-exit-code "$command_status"
+    --app-pids "$case_dir/app-pids.txt"
+    --instrumentation-pids "$case_dir/instrumentation-pids.txt"
+    --start-time-utc "$start_time" --end-time-utc "$end_time"
+    --json-out "$case_dir/result.json" --xml-out "$case_dir/results.xml"
+  )
+  [[ "$timed_out" == true ]] && parser_args+=(--timed-out)
+  if python3 scripts/ci/api36_instrumentation_case.py "${parser_args[@]}"; then
+    python3 - "$case_dir/results.xml" "$class_name" "$method_name" <<'PY'
+import sys, xml.etree.ElementTree as ET
+path, expected_class, expected_method = sys.argv[1:]
+root = ET.parse(path).getroot()
+cases = root.findall(".//testcase")
+assert len(cases) == 1, f"expected one JUnit testcase, found {len(cases)}"
+case = cases[0]
+assert case.get("classname") == expected_class, case.attrib
+assert case.get("name") == expected_method, case.attrib
+assert not case.findall("failure") and not case.findall("error") and not case.findall("skipped"), ET.tostring(case)
+suite = root.find("testsuite") if root.tag == "testsuites" else root
+assert suite is not None and suite.get("tests") == "1", ET.tostring(root)
+assert suite.get("failures") == "0" and suite.get("errors") == "0" and suite.get("skipped") == "0", suite.attrib
+PY
+    cat "$raw_log"
+    return 0
+  else
+    local parser_status=$?
+    cat "$raw_log"
+    return "$parser_status"
+  fi
 }
 
 pull_private_evidence() {
@@ -365,16 +468,27 @@ PY
     fi
   fi
 
-  python3 - "$evidence_dir/runtime-result.json" "$source_sha" "$result_classification" \
+  python3 - "$evidence_dir/runtime-result.json" "$evidence_dir" "$source_sha" "$result_classification" \
     "$failure_reason" "$rc" "$instrument_status" "$instrumentation_timed_out" "$test_started" \
     "$failure_phase" "$instrumentation_attempted" "$adb_ready" "$emulator_boot_pass" "${BUILD_PASS:-false}" \
     "${KVM_READY:-false}" "$validation_reason" "$slimsam_validation_reason" "$apk_dir" "$screenrecord_exit_status" \
-    "$video_pull_status" "$pre_screenshot_pull_status" "$post_screenshot_pull_status" <<'PY'
+    "$video_pull_status" "$pre_screenshot_pull_status" "$post_screenshot_pull_status" \
+    "$test_a_force_stop_verified" <<'PY'
 import hashlib, json, pathlib, sys, time
-(path, source_sha, classification, reason, exit_code, instrument_status, timed_out,
+(path, evidence_root, source_sha, classification, reason, exit_code, instrument_status, timed_out,
  test_started, failure_phase, attempted, adb_ready, emulator_boot_pass, build_pass, kvm_ready,
  validation_reason, slimsam_validation_reason, apk_dir, screenrecord_exit_status, video_pull_status,
- pre_screenshot_pull_status, post_screenshot_pull_status) = sys.argv[1:]
+ pre_screenshot_pull_status, post_screenshot_pull_status, force_stop_verified) = sys.argv[1:]
+path = pathlib.Path(path)
+evidence_root = pathlib.Path(evidence_root)
+def load_case(name):
+    p = evidence_root / 'test-cases' / name / 'result.json'
+    try:
+        return json.loads(p.read_text(encoding='utf-8'))
+    except Exception:
+        return {'passed': False, 'reason': 'CASE_RESULT_MISSING', 'test': None}
+test_a = load_case('classifier')
+test_b = load_case('production-reveal')
 def sha256_file(name):
     p = pathlib.Path(apk_dir) / name
     if not p.is_file():
@@ -384,7 +498,8 @@ def sha256_file(name):
         for block in iter(lambda: stream.read(1024 * 1024), b''):
             digest.update(block)
     return digest.hexdigest()
-passed = classification == 'AUTO_SMOKE_PASS'
+passed = (classification == 'AUTO_SMOKE_PASS' and test_a.get('passed') is True and
+          test_b.get('passed') is True and force_stop_verified == 'true')
 result = {
     'source_sha': source_sha,
     'api_level_expected': 36,
@@ -398,6 +513,14 @@ result = {
     'instrumentation_attempted': attempted == 'true',
     'instrumentation_command_exit_code': int(instrument_status),
     'instrumentation_timed_out': timed_out == 'true',
+    'instrumentation_cases': {
+        'classifier_tensor_binding': test_a,
+        'production_night_catch_reveal': test_b,
+    },
+    'CLASSIFIER_TFLITE_RUNTIME_PASS': test_a.get('passed') is True,
+    'PRODUCTION_REVEAL_INSTRUMENTATION_PASS': test_b.get('passed') is True,
+    'API36_INSTRUMENTATION_PASS': test_a.get('passed') is True and test_b.get('passed') is True,
+    'APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS': force_stop_verified == 'true',
     'adb_ready': adb_ready == 'true',
     'emulator_boot_pass': emulator_boot_pass == 'true',
     'BUILD_PASS': build_pass == 'true',
@@ -499,13 +622,17 @@ fi
 # optional units and whitespace because AVD Manager versions vary in formatting.
 avd_ram_config_mb="$(awk -F= '{ key=$1; gsub(/[[:space:]]/, "", key); if (tolower(key) == "hw.ramsize") { value=$2; gsub(/[[:space:]]/, "", value); sub(/[mM]([bB])?$/, "", value); result=value } } END { print result }' "$evidence_dir/avd-config-and-memory.txt")"
 avd_heap_config_mb="$(awk -F= '{ key=$1; gsub(/[[:space:]]/, "", key); if (tolower(key) == "hw.heapsize") { value=$2; gsub(/[[:space:]]/, "", value); sub(/[mM]([bB])?$/, "", value); result=value } } END { print result }' "$evidence_dir/avd-config-and-memory.txt")"
-if [[ "$avd_ram_config_mb" != "4096" || "$avd_heap_config_mb" != "512" ]]; then
-  failure_reason="AVD_RAM_OR_VM_HEAP_CONFIGURATION_MISMATCH:hw.ramSize_mb=${avd_ram_config_mb:-missing}:hw.heapSize_mb=${avd_heap_config_mb:-missing}:avd_home=${avd_home}"
-  printf '::error title=AVD memory configuration mismatch::expected hw.ramSize=4096M hw.heapSize=512M; observed hw.ramSize=%sM hw.heapSize=%sM; HOME=%s; ANDROID_AVD_HOME=%s; active_avd=%s; config=%s\n' \
+avd_cpu_arch="$(awk -F= '{ key=$1; gsub(/[[:space:]]/, "", key); if (tolower(key) == "hw.cpu.arch") { value=$2; gsub(/[[:space:]]/, "", value); result=value } } END { print result }' "$evidence_dir/avd-config-and-memory.txt")"
+avd_image_sysdir="$(awk -F= '{ key=$1; gsub(/[[:space:]]/, "", key); if (tolower(key) == "image.sysdir.1") { value=$2; sub(/\/+$/, "", value); result=value } } END { print result }' "$evidence_dir/avd-config-and-memory.txt")"
+if [[ "$avd_ram_config_mb" != "4096" || "$avd_heap_config_mb" != "512" ||
+      "$avd_cpu_arch" != "x86_64" || "$avd_image_sysdir" != *"system-images/android-36/google_apis/x86_64" ]]; then
+  failure_reason="AVD_CONFIGURATION_MISMATCH:hw.ramSize=${avd_ram_config_mb:-missing}:hw.heapSize=${avd_heap_config_mb:-missing}:hw.cpu.arch=${avd_cpu_arch:-missing}:image.sysdir.1=${avd_image_sysdir:-missing}:avd_home=${avd_home}"
+  printf '::error title=AVD configuration mismatch::expected hw.ramSize=4096M hw.heapSize=512M hw.cpu.arch=x86_64 image.sysdir.1=*system-images/android-36/google_apis/x86_64; observed hw.ramSize=%sM hw.heapSize=%sM hw.cpu.arch=%s image.sysdir.1=%s; HOME=%s; ANDROID_AVD_HOME=%s; active_avd=%s; config=%s\n' \
     "${avd_ram_config_mb:-missing}" "${avd_heap_config_mb:-missing}" \
+    "${avd_cpu_arch:-missing}" "${avd_image_sysdir:-missing}" \
     "${HOME:-unset}" "${ANDROID_AVD_HOME:-unset}" "$active_avd_name" "$active_avd_config"
   printf 'AVD_MEMORY_CONFIG_MISMATCH %s\n' "$failure_reason"
-  grep -Ei '^[[:space:]]*(hw\.(ramSize|heapSize)|vm\.heapSize)=' \
+  grep -Ei '^[[:space:]]*(hw\.(ramSize|heapSize|cpu\.arch)|image\.sysdir\.1|vm\.heapSize)=' \
     "$evidence_dir/avd-config-and-memory.txt" || true
   exit 32
 fi
@@ -595,15 +722,63 @@ fi
 memory_sampler_pid=$!
 
 instrumentation_attempted=true
-enter_phase INSTRUMENTATION INSTRUMENTATION_DID_NOT_COMPLETE
-set +e
-timeout 1200s adb shell am instrument -w -r \
-  -e class "$test_class#$test_method" \
-  "$test_package/$runner" 2>&1 | tee "$evidence_dir/instrumentation.log"
-instrument_status=${PIPESTATUS[0]}
-set -e
+enter_phase CLASSIFIER_TFLITE_RUNTIME CLASSIFIER_INSTRUMENTATION_DID_NOT_COMPLETE
+if run_instrumentation_case classifier_tflite "$test_a_class" "$test_a_method" \
+    "$evidence_dir/test-cases/classifier"; then
+  test_a_passed=true
+  printf 'CLASSIFIER_TFLITE_INSTRUMENTATION_PASS source_sha=%s\n' "$source_sha"
+else
+  test_a_status=$?
+  printf 'CLASSIFIER_TFLITE_INSTRUMENTATION_FAIL command_or_parser_status=%s\n' "$test_a_status"
+fi
+if ! capture_memory_snapshot after_classifier_tflite_test; then
+  failure_reason="MEMORY_DIAGNOSTIC_EVIDENCE_WRITE_FAILED_AFTER_CLASSIFIER_TEST"
+  failure_phase="CLASSIFIER_TFLITE_RUNTIME"
+  exit 44
+fi
+
+enter_phase BETWEEN_INSTRUMENTATION_TESTS APP_FORCE_STOP_NOT_VERIFIED
+if timeout 30s adb shell am force-stop "$app_package" > "$evidence_dir/force-stop-after-classifier.log" 2>&1; then
+  for attempt in $(seq 1 30); do
+    if app_pid_after_force_stop="$(timeout 10s adb shell pidof "$app_package" 2>/dev/null)"; then
+      app_pid_after_force_stop="${app_pid_after_force_stop//$'\r'/}"
+      if [[ -n "$app_pid_after_force_stop" ]]; then
+        sleep 1
+      else
+        test_a_force_stop_verified=true
+        break
+      fi
+    else
+      force_stop_pidof_status=$?
+      if [[ "$force_stop_pidof_status" -eq 1 ]]; then
+        test_a_force_stop_verified=true
+        break
+      fi
+      printf 'force_stop_pidof_exit_status=%s\n' "$force_stop_pidof_status" \
+        >> "$evidence_dir/force-stop-after-classifier.log"
+      break
+    fi
+  done
+fi
+printf 'APP_FORCE_STOP_VERIFIED_AFTER_TEST_A=%s\n' "$test_a_force_stop_verified" \
+  | tee "$evidence_dir/force-stop-after-classifier-verification.txt"
+adb logcat -b all -c
+
+enter_phase PRODUCTION_REVEAL_INSTRUMENTATION PRODUCTION_REVEAL_TEST_DID_NOT_COMPLETE
+if run_instrumentation_case production_reveal "$test_class" "$test_method" \
+    "$evidence_dir/test-cases/production-reveal"; then
+  test_b_passed=true
+  instrument_status=0
+else
+  instrument_status=$?
+fi
 if [[ "$instrument_status" -eq 124 || "$instrument_status" -eq 137 ]]; then
   instrumentation_timed_out=true
+fi
+cp "$evidence_dir/test-cases/production-reveal/instrumentation.log" "$evidence_dir/instrumentation.log"
+cp "$evidence_dir/test-cases/production-reveal/results.xml" "$evidence_dir/instrumentation_results.xml"
+if grep -Fq "INSTRUMENTATION_STATUS: test=$test_method" "$evidence_dir/instrumentation.log"; then
+  test_started=true
 fi
 if [[ -n "$memory_sampler_pid" ]]; then
   if ! : > "$memory_sampler_stop_file"; then
@@ -629,35 +804,10 @@ if [[ -n "$logcat_pid" ]]; then
   logcat_pid=""
 fi
 adb logcat -b all -d -v threadtime > "$evidence_dir/logcat-pre-verdict.txt" 2>&1
-if grep -Fq "INSTRUMENTATION_STATUS: test=$test_method" "$evidence_dir/instrumentation.log"; then
-  test_started=true
-fi
 
 # Pull the app-private trace before applying the verdict so crashes retain partial evidence.
 enter_phase BUSINESS_VALIDATION BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE
 pull_private_evidence
-python3 - "$evidence_dir/instrumentation.log" "$evidence_dir/instrumentation_results.xml" <<'PY'
-import pathlib, re, sys, xml.etree.ElementTree as ET
-raw_path, xml_path = map(pathlib.Path, sys.argv[1:])
-raw = raw_path.read_text(encoding='utf-8', errors='replace') if raw_path.is_file() else ''
-test_name = 'realNightCatchHandoffDrivesTheNativeResultReveal'
-final_codes = re.findall(r'^INSTRUMENTATION_CODE:\s*(-?\d+)\s*$', raw, re.M)
-failed = bool(re.search(r'FAILURES!!!|INSTRUMENTATION_RESULT: shortMsg=|INSTRUMENTATION_STATUS_CODE: -\d+', raw))
-passed = bool(final_codes and final_codes[-1] == '-1' and not failed and re.search(r'OK \(1 test\)', raw))
-root = ET.Element('testsuites')
-suite = ET.SubElement(root, 'testsuite', {
-    'name': 'com.yujian.ai.RecognitionRevealProductionRuntimeTest',
-    'tests': '1', 'failures': '0' if passed else '1', 'errors': '0',
-})
-case = ET.SubElement(suite, 'testcase', {
-    'classname': 'com.yujian.ai.RecognitionRevealProductionRuntimeTest',
-    'name': test_name,
-})
-if not passed:
-    failure = ET.SubElement(case, 'failure', {'message': 'AndroidJUnitRunner did not report a normal passing completion'})
-    failure.text = raw[-12000:]
-ET.ElementTree(root).write(xml_path, encoding='utf-8', xml_declaration=True)
-PY
 business_dir="$evidence_dir/business-events/rr09-gold-transfer-production"
 business_report="$business_dir/AUTO_SMOKE_BUSINESS_CONTRACT.json"
 validator_args=(
@@ -697,6 +847,20 @@ if grep -Eiq '(lowmemorykiller|lmkd|am_kill|am_proc_died).*(com\.yujian\.ai\.uiv
   result_classification="RESOURCE_EXHAUSTED"
   failure_reason="APP_PROCESS_KILLED_BY_LOW_MEMORY_MANAGER"
   failure_phase="INSTRUMENTATION"
+elif [[ "$test_a_passed" != true ]]; then
+  result_classification="BUSINESS_LOGIC_FAILURE"
+  test_a_reason="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("reason", "RESULT_INVALID"))' \
+    "$evidence_dir/test-cases/classifier/result.json" 2>/dev/null || printf '%s' 'CLASSIFIER_TEST_RESULT_MISSING')"
+  failure_reason="CLASSIFIER_TFLITE_INSTRUMENTATION_FAILED:$test_a_reason"
+  failure_phase="CLASSIFIER_TFLITE_RUNTIME"
+elif [[ "$test_a_force_stop_verified" != true ]]; then
+  result_classification="INFRA_BLOCKED"
+  failure_reason="APP_FORCE_STOP_BETWEEN_INSTRUMENTATION_TESTS_NOT_VERIFIED"
+  failure_phase="BETWEEN_INSTRUMENTATION_TESTS"
+elif [[ "$test_b_passed" != true ]]; then
+  result_classification="BUSINESS_LOGIC_FAILURE"
+  failure_reason="PRODUCTION_REVEAL_INSTRUMENTATION_FAILED"
+  failure_phase="PRODUCTION_REVEAL_INSTRUMENTATION"
 elif [[ "$validation_status" -eq 0 && "$validation_reason" == "NONE" ]]; then
   result_classification="AUTO_SMOKE_PASS"
   enter_phase COMPLETE NONE

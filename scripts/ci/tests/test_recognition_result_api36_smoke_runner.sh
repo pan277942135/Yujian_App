@@ -9,7 +9,7 @@ trap 'rm -rf "$test_root"' EXIT
 
 mkdir -p "$test_root/bin" "$test_root/home/.android/avd/Fake_API_36.avd" \
   "$test_root/apks" "$test_root/evidence"
-printf 'hw.ramSize=4096M\nhw.heapSize=512M\n' \
+printf 'hw.ramSize=4096M\nhw.heapSize=512M\nhw.cpu.arch=x86_64\nimage.sysdir.1=system-images/android-36/google_apis/x86_64/\n' \
   > "$test_root/home/.android/avd/Fake_API_36.avd/config.ini"
 printf 'fake app apk\n' > "$test_root/apks/app-debug.apk"
 printf 'fake test apk\n' > "$test_root/apks/app-debug-androidTest.apk"
@@ -87,22 +87,49 @@ if [[ "${1:-}" == shell ]]; then
     "cat /proc/uptime") printf '1000.00 2000.00\n'; exit 0 ;;
     *"/proc/vmstat"*) printf 'oom_kill 0\npgmajfault 0\npswpin 0\npswpout 0\n'; exit 0 ;;
     *"dumpsys meminfo"*) printf 'Native Heap 12000 13000 14000\n TOTAL PSS: 42000\n'; exit 0 ;;
-    *"pidof com.yujian.ai.uiv2"*) printf '42\n'; exit 0 ;;
+    *"dumpsys activity processes"*) printf 'ProcessRecord{42 com.yujian.ai.uiv2/u0a123}\n'; exit 0 ;;
+    *"pidof com.yujian.ai.uiv2.test"*)
+      if [[ -f "$FAKE_APP_STARTED" && ! -f "$FAKE_APP_STOPPED" ]]; then printf '42\n'; exit 0; fi
+      exit 1
+      ;;
+    *"pidof com.yujian.ai.uiv2"*)
+      if [[ -f "$FAKE_APP_STARTED" && ! -f "$FAKE_APP_STOPPED" ]]; then printf '42\n'; exit 0; fi
+      exit 1
+      ;;
     *"/proc/42/status"*) printf 'Name: com.yujian.ai.uiv2\nVmRSS: 43000 kB\nVmHWM: 44000 kB\nVmSwap: 0 kB\n'; exit 0 ;;
     *"dumpsys activity lmk"*) printf 'No low memory events\n'; exit 0 ;;
     *"am start"*)
+      rm -f "$FAKE_APP_STOPPED"
       : > "$FAKE_APP_STARTED"
       printf 'Starting: Intent { cmp=com.yujian.ai.uiv2/.MainActivity }\nStatus: ok\nLaunchState: COLD\nTotalTime: 3362\n'
       exit 0
       ;;
+    "am force-stop com.yujian.ai.uiv2")
+      : > "$FAKE_APP_STOPPED"
+      exit 0
+      ;;
     *"am instrument"*)
+      rm -f "$FAKE_APP_STOPPED"
+      : > "$FAKE_APP_STARTED"
       : > "$FAKE_INSTRUMENTATION_INVOKED"
-      printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.RecognitionRevealProductionRuntimeTest\n'
-      printf 'INSTRUMENTATION_STATUS: test=realNightCatchHandoffDrivesTheNativeResultReveal\n'
-      printf 'INSTRUMENTATION_STATUS_CODE: 1\n'
-      printf 'INSTRUMENTATION_RESULT: stream=\n'
-      printf 'INSTRUMENTATION_RESULT: shortMsg=Process crashed.\n'
-      printf 'INSTRUMENTATION_CODE: 0\n'
+      if [[ "$shell_args" == *"com.yujian.ai.ClassifierRealTfliteTensorBindingTest#packagedClassifierRunsWithFrozenTensorBinding"* ]]; then
+        printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.ClassifierRealTfliteTensorBindingTest\n'
+        printf 'INSTRUMENTATION_STATUS: test=packagedClassifierRunsWithFrozenTensorBinding\n'
+        printf 'INSTRUMENTATION_STATUS_CODE: 1\n'
+        printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.ClassifierRealTfliteTensorBindingTest\n'
+        printf 'INSTRUMENTATION_STATUS: test=packagedClassifierRunsWithFrozenTensorBinding\n'
+        printf 'INSTRUMENTATION_STATUS_CODE: 0\n'
+        printf 'INSTRUMENTATION_RESULT: stream=\n'
+        printf 'OK (1 test)\n'
+        printf 'INSTRUMENTATION_CODE: -1\n'
+      else
+        printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.RecognitionRevealProductionRuntimeTest\n'
+        printf 'INSTRUMENTATION_STATUS: test=realNightCatchHandoffDrivesTheNativeResultReveal\n'
+        printf 'INSTRUMENTATION_STATUS_CODE: 1\n'
+        printf 'INSTRUMENTATION_RESULT: stream=\n'
+        printf 'INSTRUMENTATION_RESULT: shortMsg=Process crashed.\n'
+        printf 'INSTRUMENTATION_CODE: 0\n'
+      fi
       exit 0
       ;;
     *"screencap"*|*"rm -f /sdcard/Download"*|*"screenrecord"*) exit 0 ;;
@@ -126,6 +153,7 @@ set +e
   SOURCE_SHA=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
   FAKE_ADB_CALLS="$test_root/adb-calls.log" \
   FAKE_APP_STARTED="$test_root/app-started" \
+  FAKE_APP_STOPPED="$test_root/app-stopped" \
   FAKE_INSTRUMENTATION_INVOKED="$test_root/instrumentation-invoked" \
   bash "$runner") > "$test_root/runner.stdout" 2>&1
 runner_status=$?
@@ -168,8 +196,27 @@ assert result["instrumentation_attempted"] is True, result
 assert result["instrumentation_started"] is True, result
 assert result["AUTO_SMOKE_PASS"] is False, result
 assert result["classification"] != "AUTO_SMOKE_PASS", result
-assert result["failure_phase"] == "BUSINESS_VALIDATION", result
+assert result["CLASSIFIER_TFLITE_RUNTIME_PASS"] is True, result
+assert result["PRODUCTION_REVEAL_INSTRUMENTATION_PASS"] is False, result
+assert result["APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS"] is True, result
+assert result["failure_phase"] == "PRODUCTION_REVEAL_INSTRUMENTATION", result
 assert result["failure_reason"] != "APP_STARTUP_DID_NOT_COMPLETE", result
+PY
+
+python3 - "$test_root/adb-calls.log" "$test_root/evidence/test-cases/classifier/result.json" \
+  "$test_root/evidence/test-cases/production-reveal/result.json" <<'PY'
+import json, pathlib, sys
+calls = pathlib.Path(sys.argv[1]).read_text(encoding='utf-8').splitlines()
+classifier_call = next(i for i, row in enumerate(calls) if 'am instrument -w -r -e class com.yujian.ai.ClassifierRealTfliteTensorBindingTest#packagedClassifierRunsWithFrozenTensorBinding' in row)
+force_stop_call = next(i for i, row in enumerate(calls) if 'am force-stop com.yujian.ai.uiv2' in row)
+reveal_call = next(i for i, row in enumerate(calls) if 'am instrument -w -r -e class com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal' in row)
+assert classifier_call < force_stop_call < reveal_call, calls
+first = json.loads(pathlib.Path(sys.argv[2]).read_text())
+second = json.loads(pathlib.Path(sys.argv[3]).read_text())
+assert first['passed'] is True and first['test'].endswith('#packagedClassifierRunsWithFrozenTensorBinding'), first
+assert second['passed'] is False and second['test'].endswith('#realNightCatchHandoffDrivesTheNativeResultReveal'), second
+assert pathlib.Path(sys.argv[2]).with_name('results.xml').is_file()
+assert pathlib.Path(sys.argv[3]).with_name('results.xml').is_file()
 PY
 
 printf '%s\n' \

@@ -312,7 +312,9 @@ jobs:
       - name: Validate fail-closed API36 smoke parser
         run: |
           python3 -m unittest discover -s scripts/ci/tests -p 'test_validate_recognition_result_api36_smoke.py' -v
+          python3 -m unittest discover -s scripts/ci/tests -p 'test_api36_instrumentation_case.py' -v
           python3 -m unittest discover -s scripts/ci/tests -p 'test_validate_slimsam_preload_evidence.py' -v
+          bash scripts/ci/tests/test_recognition_result_api36_smoke_runner.sh
 
       - name: Set up Python image verification dependency
         uses: actions/setup-python@v5
@@ -694,12 +696,23 @@ jobs:
             printf 'avd_home=%s\navd_name=%s\navd_config=%s\n' "$avd_home" "$avd_name" "$avd_config"
             printf '%s\n' '--- avdmanager list avd -c ---'
             avdmanager list avd -c
-            printf '%s\n' '--- active AVD RAM and heap config ---'
-            grep -E '^[[:space:]]*hw\.(ramSize|heapSize)=' "$avd_config"
+            printf '%s\n' '--- active AVD RAM, heap, ABI and image config ---'
+            grep -E '^[[:space:]]*(hw\.(ramSize|heapSize|cpu\.arch)|image\.sysdir\.1)=' "$avd_config"
             cat "$avd_config"
           } | tee "$evidence/avd-config-before-launch.txt"
-          grep -Fqx 'hw.ramSize=4096M' "$avd_config"
-          grep -Fqx 'hw.heapSize=512M' "$avd_config"
+          python3 - "$avd_config" <<'PY'
+          import pathlib, sys
+          config = {}
+          for line in pathlib.Path(sys.argv[1]).read_text(encoding='utf-8').splitlines():
+              key, sep, value = line.partition('=')
+              if sep:
+                  config[key.strip()] = value.strip()
+          assert config.get('hw.ramSize', '').removesuffix('M') == '4096', config.get('hw.ramSize')
+          assert config.get('hw.heapSize', '').removesuffix('M') == '512', config.get('hw.heapSize')
+          assert config.get('hw.cpu.arch') == 'x86_64', config.get('hw.cpu.arch')
+          image = config.get('image.sysdir.1', '').replace(chr(92), '/').rstrip('/')
+          assert image.endswith('system-images/android-36/google_apis/x86_64'), image
+          PY
 
       - name: Run production AUTO smoke on API 36
         id: api36_smoke

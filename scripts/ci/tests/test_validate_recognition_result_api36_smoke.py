@@ -21,6 +21,27 @@ from validate_recognition_result_api36_smoke import (  # noqa: E402
 SOURCE_SHA = "a" * 40
 
 
+def instrumentation_case(test, method):
+    return {
+        "test": f"{test}#{method}",
+        "test_method": method,
+        "started": True,
+        "completed": True,
+        "instrumentation_status_codes": [1, 0],
+        "instrumentation_codes": [-1],
+        "command_exit_code": 0,
+        "timed_out": False,
+        "lmk_or_process_death_observed": False,
+        "normal_summary": True,
+        "passed": True,
+        "reason": "NONE",
+        "app_pids": ["1142"],
+        "instrumentation_pids": ["1142"],
+        "start_time_utc": "2026-11-26T12:00:00Z",
+        "end_time_utc": "2026-11-26T12:00:01Z",
+    }
+
+
 def instrumentation_log(include_finish=True, crashed=False, final_code=-1):
     rows = [
         "INSTRUMENTATION_STATUS: class=" + TARGET_CLASS,
@@ -161,6 +182,20 @@ class Api36SmokeSummaryFinalizerTest(unittest.TestCase):
             "BUILD_PASS": True,
             "KVM_READY": True,
             "AUTO_SMOKE_PASS": True,
+            "instrumentation_cases": {
+                "classifier_tensor_binding": instrumentation_case(
+                    "com.yujian.ai.ClassifierRealTfliteTensorBindingTest",
+                    "packagedClassifierRunsWithFrozenTensorBinding",
+                ),
+                "production_night_catch_reveal": instrumentation_case(
+                    "com.yujian.ai.RecognitionRevealProductionRuntimeTest",
+                    "realNightCatchHandoffDrivesTheNativeResultReveal",
+                ),
+            },
+            "CLASSIFIER_TFLITE_RUNTIME_PASS": True,
+            "PRODUCTION_REVEAL_INSTRUMENTATION_PASS": True,
+            "API36_INSTRUMENTATION_PASS": True,
+            "APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS": True,
             "DEVICE_QA_PENDING": True,
         }), encoding="utf-8")
         (self.evidence_dir / "host-memory-preflight.json").write_text(json.dumps({
@@ -236,6 +271,30 @@ class Api36SmokeSummaryFinalizerTest(unittest.TestCase):
         self.assertEqual(0, process.returncode, process.stderr)
         self.assertEqual("INFRA_BLOCKED", payload["classification"])
         self.assertEqual("AUTO_PASS_GATE_CONTRADICTION:EMULATOR_BOOT_PASS", payload["failure_reason"])
+        self.assertIs(payload["AUTO_SMOKE_PASS"], False)
+
+    def test_missing_classifier_instrumentation_cannot_keep_auto_pass(self):
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        payload["instrumentation_cases"].pop("classifier_tensor_binding")
+        payload["CLASSIFIER_TFLITE_RUNTIME_PASS"] = False
+        payload["API36_INSTRUMENTATION_PASS"] = False
+        self.result_path.write_text(json.dumps(payload), encoding="utf-8")
+        process = self.finalize()
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertEqual("INFRA_BLOCKED", payload["classification"])
+        self.assertIn("CLASSIFIER_TFLITE_RUNTIME_PASS", payload["failure_reason"])
+        self.assertIs(payload["AUTO_SMOKE_PASS"], False)
+
+    def test_lmk_marked_classifier_case_cannot_keep_auto_pass(self):
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        payload["instrumentation_cases"]["classifier_tensor_binding"]["lmk_or_process_death_observed"] = True
+        self.result_path.write_text(json.dumps(payload), encoding="utf-8")
+        process = self.finalize()
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertEqual("INFRA_BLOCKED", payload["classification"])
+        self.assertIn("CLASSIFIER_TFLITE_RUNTIME_PASS", payload["failure_reason"])
         self.assertIs(payload["AUTO_SMOKE_PASS"], False)
 
     def test_bad_memory_input_is_reported_and_fails_closed(self):

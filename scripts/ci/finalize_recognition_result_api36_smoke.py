@@ -13,6 +13,26 @@ import traceback
 from typing import Any
 
 
+TEST_A = "com.yujian.ai.ClassifierRealTfliteTensorBindingTest#packagedClassifierRunsWithFrozenTensorBinding"
+TEST_B = "com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal"
+
+
+def _case_passes(value: Any, expected_test: str) -> bool:
+    return (
+        isinstance(value, dict)
+        and value.get("test") == expected_test
+        and value.get("passed") is True
+        and value.get("started") is True
+        and value.get("completed") is True
+        and value.get("command_exit_code") == 0
+        and value.get("timed_out") is False
+        and value.get("lmk_or_process_death_observed") is False
+        and value.get("normal_summary") is True
+        and value.get("instrumentation_codes") == [-1]
+        and value.get("instrumentation_status_codes", []).count(0) == 1
+    )
+
+
 def _load_object(path: pathlib.Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -50,6 +70,10 @@ def _append_summary(summary_path: pathlib.Path, payload: dict[str, Any]) -> None
         ("instrumentation_started", payload.get("instrumentation_started", "NOT_CONFIRMED")),
         ("instrumentation_command_exit_code", payload.get("instrumentation_command_exit_code", "NOT_CONFIRMED")),
         ("instrumentation_timed_out", payload.get("instrumentation_timed_out", "NOT_CONFIRMED")),
+        ("CLASSIFIER_TFLITE_RUNTIME_PASS", payload.get("CLASSIFIER_TFLITE_RUNTIME_PASS", False)),
+        ("PRODUCTION_REVEAL_INSTRUMENTATION_PASS", payload.get("PRODUCTION_REVEAL_INSTRUMENTATION_PASS", False)),
+        ("API36_INSTRUMENTATION_PASS", payload.get("API36_INSTRUMENTATION_PASS", False)),
+        ("APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS", payload.get("APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS", False)),
         ("smoke_step_outcome", payload.get("smoke_step_outcome", "NOT_CONFIRMED")),
         ("source_sha", payload.get("source_sha", "UNKNOWN")),
         ("app_apk_sha256", payload.get("app_apk_sha256", "NOT_RECORDED")),
@@ -114,6 +138,20 @@ def _enrich(payload: dict[str, Any], args: argparse.Namespace) -> None:
             failed_gates.append("SOURCE_SHA")
         if args.smoke_result != "success":
             failed_gates.append("SMOKE_RUNNER_STEP")
+        cases = payload.get("instrumentation_cases")
+        if not isinstance(cases, dict) or not _case_passes(cases.get("classifier_tensor_binding"), TEST_A):
+            failed_gates.append("CLASSIFIER_TFLITE_RUNTIME_PASS")
+        if not isinstance(cases, dict) or not _case_passes(cases.get("production_night_catch_reveal"), TEST_B):
+            failed_gates.append("PRODUCTION_REVEAL_INSTRUMENTATION_PASS")
+        if payload.get("CLASSIFIER_TFLITE_RUNTIME_PASS") is not True:
+            failed_gates.append("CLASSIFIER_TFLITE_RUNTIME_PASS_FIELD")
+        if payload.get("PRODUCTION_REVEAL_INSTRUMENTATION_PASS") is not True:
+            failed_gates.append("PRODUCTION_REVEAL_INSTRUMENTATION_PASS_FIELD")
+        if payload.get("API36_INSTRUMENTATION_PASS") is not True:
+            failed_gates.append("API36_INSTRUMENTATION_PASS")
+        if payload.get("APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS") is not True:
+            failed_gates.append("APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS")
+        failed_gates = list(dict.fromkeys(failed_gates))
         if failed_gates:
             payload["classification"] = "INFRA_BLOCKED"
             payload["failure_reason"] = "AUTO_PASS_GATE_CONTRADICTION:" + ",".join(failed_gates)

@@ -177,6 +177,27 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
             } catch (error: Throwable) {
                 throw RecognitionStageFailureException(RecognitionFailureCode.MODEL_INFERENCE_FAILED, error)
             }
+            modelIdentity?.let { identity ->
+                val (inputReceipt, outputReceipt) = validateClassifierReceipts(prediction, identity)
+                onDiagnostic(
+                    "CLASSIFIER_RECEIPTS_ACCEPTED",
+                    "CLASSIFIER",
+                    "PASS",
+                    mapOf(
+                        "inference_id" to inputReceipt.inferenceId,
+                        "recognition_session_id" to inputReceipt.recognitionSessionId,
+                        "attempt_id" to inputReceipt.attemptId,
+                        "photo_id" to inputReceipt.photoId,
+                        "canonical_pixel_sha256" to inputReceipt.canonicalPixelSha256,
+                        "model_sha256" to inputReceipt.modelIdentity.runtimeVerifiedModelSha256,
+                        "input_tensor" to inputReceipt.tensorName,
+                        "input_content_sha256" to inputReceipt.contentHash,
+                        "output_tensor" to outputReceipt.tensorName,
+                        "output_content_sha256" to outputReceipt.contentHash,
+                    ),
+                    null,
+                )
+            }
             val route = when {
                 prediction.top1.confidence < 0.45f -> ClassificationRoute.UNKNOWN
                 prediction.candidates.getOrNull(1)?.let {
@@ -231,5 +252,58 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
     override fun close() {
         detector.close()
         classifier.close()
+    }
+
+    private fun validateClassifierReceipts(
+        prediction: RecognitionPrediction,
+        identity: RecognitionModelIdentity,
+    ): Pair<RecognitionModelTensorReceipt, RecognitionModelTensorReceipt> {
+        val model = classifier.modelInfo
+        val input = requireNotNull(prediction.classifierInputReceipt) { "CLASSIFIER_INPUT_RECEIPT_MISSING" }
+        val output = requireNotNull(prediction.classifierOutputReceipt) { "CLASSIFIER_OUTPUT_RECEIPT_MISSING" }
+        val expectedCanonicalSha = identity.photoIdentity?.canonicalPixelSha256 ?: identity.photoSha256
+        val expectedInputTensor = FrozenClassifierTensorBinding.input(model.modelId, model.sha256, model.inputTensorName)
+        val expectedOutputTensor = FrozenClassifierTensorBinding.output(model.modelId, model.sha256, model.outputTensorName)
+        require(input.isValid()) { "CLASSIFIER_INPUT_RECEIPT_INVALID" }
+        require(output.isValid()) { "CLASSIFIER_OUTPUT_RECEIPT_INVALID" }
+        require(input.inferenceId == output.inferenceId) { "CLASSIFIER_RECEIPT_INFERENCE_ID_MISMATCH" }
+        require(input.modelIdentity == output.modelIdentity) { "CLASSIFIER_RECEIPT_MODEL_IDENTITY_MISMATCH" }
+        require(input.recognitionSessionId == identity.sessionId && output.recognitionSessionId == identity.sessionId) {
+            "CLASSIFIER_RECEIPT_SESSION_IDENTITY_MISMATCH"
+        }
+        require(input.attemptId == identity.attemptId && output.attemptId == identity.attemptId) {
+            "CLASSIFIER_RECEIPT_ATTEMPT_IDENTITY_MISMATCH"
+        }
+        require(input.photoId == identity.imageId && output.photoId == identity.imageId) {
+            "CLASSIFIER_RECEIPT_PHOTO_IDENTITY_MISMATCH"
+        }
+        require(input.canonicalPixelSha256 == expectedCanonicalSha && output.canonicalPixelSha256 == expectedCanonicalSha) {
+            "CLASSIFIER_RECEIPT_CANONICAL_PIXEL_IDENTITY_MISMATCH"
+        }
+        require(input.modelIdentity.modelId == model.modelId && output.modelIdentity.modelId == model.modelId) {
+            "CLASSIFIER_RECEIPT_MODEL_ID_MISMATCH"
+        }
+        require(input.modelIdentity.expectedModelSha256 == model.sha256 &&
+            input.modelIdentity.actualAssetSha256 == model.sha256 &&
+            input.modelIdentity.runtimeVerifiedModelSha256 == model.sha256 &&
+            output.modelIdentity.expectedModelSha256 == model.sha256 &&
+            output.modelIdentity.actualAssetSha256 == model.sha256 &&
+            output.modelIdentity.runtimeVerifiedModelSha256 == model.sha256) {
+            "CLASSIFIER_RECEIPT_MODEL_SHA_MISMATCH"
+        }
+        require(input.tensorName == expectedInputTensor && output.tensorName == expectedOutputTensor) {
+            "CLASSIFIER_RECEIPT_TENSOR_NAME_MISMATCH"
+        }
+        require(input.dataType.equals(model.inputDtype, ignoreCase = true) &&
+            output.dataType.equals(model.outputDtype, ignoreCase = true)) {
+            "CLASSIFIER_RECEIPT_TENSOR_TYPE_MISMATCH"
+        }
+        require(input.shape == model.inputShape.map(Int::toLong) && output.shape == model.outputShape.map(Int::toLong)) {
+            "CLASSIFIER_RECEIPT_TENSOR_SHAPE_MISMATCH"
+        }
+        require(prediction.modelVersion == model.modelId && prediction.modelSha256 == model.sha256) {
+            "CLASSIFIER_PREDICTION_MODEL_IDENTITY_MISMATCH"
+        }
+        return input to output
     }
 }

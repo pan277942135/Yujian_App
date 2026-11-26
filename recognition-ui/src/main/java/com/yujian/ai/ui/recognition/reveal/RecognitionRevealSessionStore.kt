@@ -792,9 +792,11 @@ class RecognitionRevealSessionStore : ViewModel() {
         val current = snapshot ?: return null
         val image = current.image ?: return null
         if (!current.matches(key) || image.imageId.isBlank() || image.photoSha256.isBlank()) return null
+        if (!classifierReceiptIdentityMatches(key, image, result)) return null
         if (current.handoff != null) {
             if (current.prediction?.top1?.speciesKey != result.prediction?.top1?.speciesKey ||
-                current.highConfidenceResult != highConfidenceResult
+                current.highConfidenceResult != highConfidenceResult ||
+                !sameClassifierReceiptPair(current.prediction, result.prediction)
             ) return null
             snapshot = current.copy(inferenceAsset = inferenceAsset ?: current.inferenceAsset)
             return current.revealDecision
@@ -811,6 +813,48 @@ class RecognitionRevealSessionStore : ViewModel() {
         )
         snapshot = updated
         return updated.revealDecision
+    }
+
+    private fun classifierReceiptIdentityMatches(
+        key: RecognitionRevealKey,
+        image: SelectedImage,
+        result: ProductionRecognitionResult,
+    ): Boolean {
+        if (!result.ready) return true
+        val prediction = result.prediction ?: return false
+        val input = prediction.classifierInputReceipt
+        val output = prediction.classifierOutputReceipt
+        if (input == null || output == null) {
+            return input == null && output == null && image.photoIdentity == null
+        }
+        val canonicalPixelSha = image.photoIdentity?.canonicalPixelSha256 ?: image.photoSha256
+        return input.isValid() && output.isValid() &&
+            input.inferenceId == output.inferenceId && input.modelIdentity == output.modelIdentity &&
+            input.recognitionSessionId == key.recognitionSessionId &&
+            output.recognitionSessionId == key.recognitionSessionId &&
+            input.attemptId == key.recognitionAttemptId && output.attemptId == key.recognitionAttemptId &&
+            input.photoId == image.imageId && output.photoId == image.imageId &&
+            input.canonicalPixelSha256 == canonicalPixelSha && output.canonicalPixelSha256 == canonicalPixelSha &&
+            prediction.modelVersion == input.modelIdentity.modelId &&
+            prediction.modelSha256 == input.modelIdentity.runtimeVerifiedModelSha256
+    }
+
+    private fun sameClassifierReceiptPair(
+        first: RecognitionPrediction?,
+        second: RecognitionPrediction?,
+    ): Boolean {
+        if (first == null || second == null) return first == second
+        val firstInput = first.classifierInputReceipt
+        val secondInput = second.classifierInputReceipt
+        val firstOutput = first.classifierOutputReceipt
+        val secondOutput = second.classifierOutputReceipt
+        if (firstInput == null || secondInput == null || firstOutput == null || secondOutput == null) {
+            return firstInput == secondInput && firstOutput == secondOutput
+        }
+        return firstInput.inferenceId == secondInput.inferenceId &&
+            firstInput.contentHash == secondInput.contentHash &&
+            firstOutput.inferenceId == secondOutput.inferenceId &&
+            firstOutput.contentHash == secondOutput.contentHash
     }
 
     fun revealDecisionFor(key: RecognitionRevealKey): RecognitionRevealDecisionState? {
@@ -835,6 +879,8 @@ class RecognitionRevealSessionStore : ViewModel() {
             current = snapshot?.takeIf { it.matches(key) } ?: return null
         }
         val image = current.image ?: return null
+        if (!classifierReceiptIdentityMatches(key, image, result)) return null
+        if (result.ready && !sameClassifierReceiptPair(current.prediction, result.prediction)) return null
         if (!result.ready) {
             val failedCandidate = current.copy(
                 productionResult = result,
