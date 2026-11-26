@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'PR #346 production control and identity closure, frozen Gate Deadline policy, Native runtime safety, and exact-HEAD delivery (YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2)'
 state_control:
-  execution_baseline_sha: 316de1b705fb54ee7d6e2114259ec1f87773aedf
+  execution_baseline_sha: 189f6d85b02fdcbd41f431fdb58020a42f589dc3
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
@@ -18,16 +18,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: 316de1b705fb54ee7d6e2114259ec1f87773aedf
+    head_sha: 52aca20a49be6ab0f01d0b635988209cd5d55da0
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: fix/det-fish-v03-main-runtime-closure
     base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
-    head_sha: 316de1b705fb54ee7d6e2114259ec1f87773aedf
+    head_sha: 52aca20a49be6ab0f01d0b635988209cd5d55da0
     status: DRAFT_OPEN_UNMERGED
-    status_source: GitHub PR metadata was last verified on 2026-11-24 at the prior head; current refs/heads and refs/pull/346/head both equal 316de1b705fb54ee7d6e2114259ec1f87773aedf. Live Draft metadata was not queried in this source-lock pass; no PR mutation performed.
+    status_source: Git refs were rechecked on 2026-11-26 and refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 plus refs/pull/346/head both equal 52aca20a49be6ab0f01d0b635988209cd5d55da0; live Draft metadata could not be queried because GitHub API egress is proxy-blocked; no PR mutation occurred.
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -74,15 +74,15 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: 316de1b705fb54ee7d6e2114259ec1f87773aedf
-    admission: CONTROL_PLANE_ADMISSION=PASS on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf; all admission groups pass, structural_errors=0; one unchanged historical RecognitionResultScreen path OPEN_GAP is non-blocking.
+    sha: 189f6d85b02fdcbd41f431fdb58020a42f589dc3
+    admission: Baseline Admission PASS at remote source 52aca20a49be6ab0f01d0b635988209cd5d55da0; state-only checkpoint Admission is pending. Prior state validation found and is correcting a stale runtime exact-head pointer.
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
       url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
       source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
     build: Pending final marked checkpoint build from the final branch head
-    unit_tests: BASELINE_PASS_AT_316DE1B — 574 total, 574 pass, 0 fail, 0 error, 0 skipped across app 126, application-core 62, recognition-domain 8, recognition-runtime 57, recognition-ui 237, recognition-result-ui 20, waterlight-renderer 64; post-change full regression pending.
+    unit_tests: CDDG tooling 30/30 PASS at 189f6d85; product/module regression remains historical (604/604 at 4c328ab) and is not re-claimed for this SHA.
     android_test_compile: NOT_RUN_AT_316DE1B; exact-source compile is pending.
     lint: NOT_RUN_AT_316DE1B; exact-source lint is pending.
     api36_emulator: PENDING current source; local /dev/kvm, adb, and emulator are absent. Do not claim current-source KVM, boot, or AUTO PASS before the hosted marked run completes
@@ -102,9 +102,9 @@ current_work:
   id: YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 316de1b705fb54ee7d6e2114259ec1f87773aedf
+  exact_head: 189f6d85b02fdcbd41f431fdb58020a42f589dc3
   status: RUNNING
-  stage: G1_BASELINE_TESTS_COMPLETE
+  stage: P0_CDDG_GUARD_TESTED_PENDING_ADMISSION_PUSH
   requested_task_id: YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2
   requested_task_title: 'Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery'
   blockers:
@@ -173,8 +173,8 @@ next_actions:
   action: Trace Gate authorization, four-model receipts, PhotoIdentity, atomic path binding, snapshot commit and native ownership in current production callers.
 - id: P0-DELIVERY-03
   owner: Codex
-  status: PENDING
-  action: After source fixes, run cross-layer tests, full regression, exact-head CI, push to the existing PR branch and build/verify the Debug APK.
+  status: READY
+  action: Run Control Plane Admission on the CDDG state checkpoint, push normally to PR #346, verify the remote SHA, and record Exact-HEAD CI.
 
 completion_rules:
 - Complete applicable deterministic cross-layer tests before final APK packaging.
@@ -182,8 +182,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-25T05:34:08Z'
-  note: 'V2 intake on existing PR #346 branch at exact source 316de1b705fb54ee7d6e2114259ec1f87773aedf; main 03db3692669847084d7e48fc3128f85cbf832af9; remote push probe passed. User supplied frozen Gate values matching the formal Policy. Initial Admission failure due stale WORK state was recorded with failure_gate ID ac3bb2ad23dfa92e4d71; state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 passed Admission for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf. Baseline Gradle test passed 574/574 with 0 failures, errors or skips. P0-2 commit object is unavailable; no history rewrite or cherry-pick performed. Post-fix tests and runtime evidence remain pending.'
+  last_updated_at: '2026-11-26T07:33:03Z'
+  note: "P0 GitHub Continuous Delivery Guard V1 source commit 189f6d85b02fdcbd41f431fdb58020a42f589dc3 was created from exact PR base 52aca20a49be6ab0f01d0b635988209cd5d55da0; 30/30 local Work V2 and guard fixture tests passed. GitHub API remains proxy-blocked; actual push and Exact-HEAD CI are pending."
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.

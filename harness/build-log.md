@@ -384,3 +384,16 @@
 - A Debug APK was built at `BUILD_SHA=4c328ab5e7c6d555c9575ebeffa2c815e6618baf` after the workflow-equivalent model asset bootstrap. `:app:assembleDebug` succeeded. APK: `/workspace/YuJian_Debug_4c328ab5.apk`; SHA256 `073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0`; size 200382052 bytes; package `com.yujian.ai.uiv2`; version `2.3.3-orb-wake-v1.1-20261103` (code 6). `sha256sum -c`, `unzip -t`, `apksigner` v2, model/trace, launcher icon, Capture/Processing raster, and Orb asset checks PASS. Checksum and metadata are adjacent downloadable files.
 - Hosted exact-HEAD Actions status and Artifact are NOT_VERIFIED: Run 45575753918 belongs to prior SHA `cafc289c...`, and raw Actions access is unavailable. No `/dev/kvm` or emulator binary is present; API36 Instrumentation and full Stage10–13.5 AUTO were not run. TFLite hard termination and direct historical comparison of `759e918...` remain unverified.
 - This execution entry is written after the source push into the existing Work Execution State/build log; no parallel Master Goal Contract was found or created.
+
+## 2026-11-26T07:31:28Z — P0 GitHub Continuous Delivery Guard V1
+
+- Source commit: `189f6d85b02fdcbd41f431fdb58020a42f589dc3` (parent `52aca20a49be6ab0f01d0b635988209cd5d55da0`).
+- Local regression: 30/30 PASS; fixture push failure, bundle restore, safe rebase, divergence hold, CI continuation, secret filtering.
+- GitHub API/auth: proxy egress 403; account and push permission remain unverified. Actual push and Exact-HEAD CI pending.
+- Recovery checkpoint: `/workspace/goal_checkpoints/yujian_cddg_v1_20261126`.
+
+## 2026-11-26T07:35:17Z — CDDG state checkpoint validation correction
+
+- First state-only commit attempt was held by `validate_project_master_state.py`: runtime exact-head SHA drift.
+- Cause: `state_control.execution_baseline_sha` and `current_work.exact_head` advanced to the CDDG source commit while `runtime_gates.exact_head.sha` remained at the older baseline.
+- Corrected the pointer and clarified the 30 CDDG tests versus historical Android product regression. No source commit or remote operation was changed.
