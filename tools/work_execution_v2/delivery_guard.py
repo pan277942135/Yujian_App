@@ -691,7 +691,9 @@ def record_ci(checkpoint_root: Path, commit_sha: str, status: str,
     record: dict[str, Any] = {
         "commit_sha": commit_sha, "status": status, "run_url": _redact(run_url),
         "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
-        "continue_research": status == "FAIL",
+        # Missing or pending hosted CI must not strand work that can continue
+        # locally; only a verified PASS closes this continuation signal.
+        "continue_research": status != "PASS",
     }
     checkpoint_root.mkdir(parents=True, exist_ok=True)
     if raw_log and raw_log.is_file():

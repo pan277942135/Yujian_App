@@ -344,6 +344,12 @@ class ClassificationTests(unittest.TestCase):
             record = json.loads(output.getvalue())
             self.assertTrue(record["continue_research"])
 
+    def test_ci_unavailable_and_pending_do_not_block_independent_research(self) -> None:
+        for status in ("UNAVAILABLE", "PENDING"):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as td:
+                record = guard.record_ci(Path(td), "b" * 40, status)
+                self.assertTrue(record["continue_research"])
+
 
 if __name__ == "__main__":
     unittest.main()
