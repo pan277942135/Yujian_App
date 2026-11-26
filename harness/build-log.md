@@ -444,3 +444,9 @@
 
 - Source `044e266c5e452348425ec1dea1d016db69239e4b` adds case PID/time scoped Java, Native, Assertion, expected cleanup, timeout, and infrastructure classifications. Parser/finalizer 34/34 PASS and fake runner failure remains FAIL. AndroidTest is pending for this source.
 - Historical #4223 at 86065bcf: build succeeded, API36 smoke failed in 4m05s; artifact 15125829938 ZIP digest 0403a61d7da607fb7a7f9526d0db1e78738124c914c56f28f5c5f2bcd1f8fb75. GitHub API is denied by current network policy and public web omits download; cause NOT_CONFIRMED. #4224 at eb2db5e is still running.
+
+## 2026-11-27 — P0 V3 Run #4225 root-cause source checkpoint
+
+- Source `5db2ba710037c45951defe687075bd5b38f5a800` fixes AndroidTest asset/storage separation, fail-fast AUTO failure evidence, direct SlimSAM input hashing and phase timing, API36 4-core config, memory windows and independent A/B/C failure reporting.
+- Local 44 CI Python tests, fake runner failure path, classifier metadata gate and source diff checks PASS. Focused Kotlin receipt tests reported 28 PASS by implementation agent; hosted A/B/C, encoder 60s benchmark, exact-head CI and APK are PENDING.
+- Run #4225 at `d1e72403` failed; user supplied artifact ID 15134616720 and digest 47fd3ff89fea6bb7fa21375f19a9a1a51320398da45cc2f53bac834f3d3e9b7c. GitHub API artifact download is blocked in this workspace.

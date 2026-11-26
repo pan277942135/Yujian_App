@@ -4,15 +4,13 @@
   "base_sha": "03db3692669847084d7e48fc3128f85cbf832af9",
   "blockers": [
     "P0_2_ORIGINAL_COMMIT_UNAVAILABLE: 759e918332293a4ffaea479a57556386b7c41f1d cannot be fetched; original file-by-file comparison remains unverified.",
-    "EXACT_HEAD_CI_PENDING: the V2.3 commit chain is not pushed yet; no GitHub Actions run has been verified for the current source.",
-    "ANDROIDTEST_COMPILE_PENDING_EXTERNAL_DNS: current V2.3 source has not compiled locally; earlier AndroidTest dependency resolution failed at dl.google.com, so hosted exact-head compilation remains pending.",
-    "LINT_PENDING_EXTERNAL_DNS: current V2.3 lint has not run; earlier lint dependency resolution failed at dl.google.com, so hosted exact-head lint remains pending.",
     "API36_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator is available; exact-head Test A and Test B require hosted API36 execution.",
     "DEBUG_APK_PENDING_EXACT_HEAD: prior APKs are historical; build and verify an APK from the final PR checkpoint.",
     "TFLITE_NATIVE_HARD_TERMINATION_UNVERIFIED: no device/native termination evidence was obtained.",
     "AUTO_RUNTIME_UNVERIFIED: no current-source 26KF device run, real Mask/PixelCopy evidence, or Stage10-13.5 end-to-end AUTO evidence was produced.",
     "FIXTURE_B_UNAVAILABLE: historical runtime evidence ZIP is absent; replay is not claimed.",
-    "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79."
+    "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79.",
+    "V3_API36_RUNTIME_PENDING: Run #4225 failed; artifact 15134616720 is inaccessible from this environment. Source fix 5db2ba710037c45951defe687075bd5b38f5a800 requires exact-head hosted A/B/C and real encoder timing before PASS."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
   "checkpoint_updated_at": "2026-11-26T14:35:11Z",
@@ -547,6 +545,19 @@
         "symptom_key": "WORK_EXECUTION_STATE_SOURCE_SHA_STALE",
         "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
       },
+      "ba128882f16503f3086b": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Run 45840869777 artifact 15134616720 SHA256 47fd3ff89fea6bb7fa21375f19a9a1a51320398da45cc2f53bac834f3d3e9b7c as identified by user V3 attachment",
+            "hypothesis": "AndroidTest asset and storage contexts are mixed; SlimSAM encoder exceeds shared deadline under two-core AVD",
+            "source_sha": "044e266c5e452348425ec1dea1d016db69239e4b"
+          }
+        ],
+        "gate_id": "API36_A_B_C_RUNTIME",
+        "symptom_key": "RUN4225_ASSET_STORAGE_SLIMSAM_TIMEOUT",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
       "dfddf731f726e21befc4": {
         "closed": false,
         "failures": [
@@ -615,17 +626,19 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Validate and push P0 V2 parser classification checkpoint after observing #4224; inspect exact-head hosted API36 Test A/B/C and collect runtime artifact for root-cause repair.",
+  "next_action": "Checkpoint and push V3 source, run exact-head hosted API36 A/B/C, inspect actual SlimSAM timing and evidence, then deliver APK only if all gates pass.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "044e266c5e452348425ec1dea1d016db69239e4b",
-  "stage": "P0_V2_PARSER_CATEGORIES_COMMITTED_PENDING_ADMISSION_PUSH_API36",
+  "source_sha": "5db2ba710037c45951defe687075bd5b38f5a800",
+  "stage": "P0_V3_RUN4225_ROOT_CAUSE_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH_API36",
   "state_update": {
     "last_updated_at": "2026-11-26T14:35:11Z",
     "note": "P0 V2 source 044e266 adds Java/native/assertion/cleanup/infra classifications with PID/time correlation. Local 34 parser/finalizer tests and runner fixture pass. Historical #4223 built successfully but API36 smoke failed; original runtime artifact is unavailable, cause NOT_CONFIRMED. #4224 at eb2db5e is in progress."
   },
   "status": "BLOCKED",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
-  "work_id": "YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2"
+  "work_id": "YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
+  "requested_task_id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
+  "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C, exact HEAD APK"
 }
