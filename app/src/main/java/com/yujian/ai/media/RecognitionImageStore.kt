@@ -85,6 +85,7 @@ object RecognitionImageStore {
         val sourceBytesSha256 = sha256(file)
 
         val exif = runCatching { ExifInterface(file) }.getOrNull()
+        val rawOrientation = exif?.getAttribute(ExifInterface.TAG_ORIENTATION)
         val rotation = exif?.rotationDegrees ?: 0
         val orientation = exif?.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
             ?.takeIf { it in ExifInterface.ORIENTATION_NORMAL..ExifInterface.ORIENTATION_ROTATE_270 }
@@ -106,6 +107,7 @@ object RecognitionImageStore {
             sourceBytesSha256 = sourceBytesSha256,
             captureTimestampEpochMs = captureTimestampEpochMs ?: exifCaptureTime.first,
             captureTimestampSource = if (captureTimestampEpochMs != null) "CAMERA_CAPTURE_CALLBACK" else exifCaptureTime.second,
+            rawExifOrientation = rawOrientation,
         )
         CameraNormalizationResult(
             selectedImage = selected,
@@ -123,6 +125,7 @@ object RecognitionImageStore {
     ): SelectedImage {
         val sourceBytesSha256 = sha256(file)
         val exif = runCatching { ExifInterface(file) }.getOrNull()
+        val rawOrientation = exif?.getAttribute(ExifInterface.TAG_ORIENTATION)
         val rotation = exif?.rotationDegrees ?: 0
         val orientation = exif?.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
             ?.takeIf { it in ExifInterface.ORIENTATION_NORMAL..ExifInterface.ORIENTATION_ROTATE_270 }
@@ -146,6 +149,7 @@ object RecognitionImageStore {
             sourceBytesSha256 = sourceBytesSha256,
             captureTimestampEpochMs = captureTime.first,
             captureTimestampSource = captureTime.second,
+            rawExifOrientation = rawOrientation,
         )
     }
 
@@ -159,6 +163,7 @@ object RecognitionImageStore {
         sourceBytesSha256: String,
         captureTimestampEpochMs: Long,
         captureTimestampSource: String,
+        rawExifOrientation: String? = null,
     ): SelectedImage {
         // Normalize all eight EXIF orientations, including mirrors, before any
         // detector, segmenter, crop or UI consumes this canonical bitmap.
@@ -217,6 +222,7 @@ object RecognitionImageStore {
             captureTimestampEpochMs = captureTimestampEpochMs,
             captureTimestampSource = captureTimestampSource,
             photoIdentity = photoIdentity,
+            sourceExifOrientationRaw = rawExifOrientation,
         )
     }
 

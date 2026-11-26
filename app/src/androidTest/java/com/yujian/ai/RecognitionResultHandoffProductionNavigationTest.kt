@@ -39,7 +39,12 @@ class RecognitionResultHandoffProductionNavigationTest {
     }
 
     @Test
-    fun productionHomePickerModelPipelineAndResultHandoffCompleteOnDevice() {
+    fun productionHomePickerModelPipelineAndResultHandoffCompleteOnDevice() = runProductionFlow(true)
+
+    @Test
+    fun hostedApi36HomePickerAutoRecognitionCompletesResultHandoff() = runProductionFlow(false)
+
+    private fun runProductionFlow(requirePhysicalHuawei: Boolean) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val targetContext = instrumentation.targetContext
         val testContext = instrumentation.context
@@ -123,8 +128,15 @@ class RecognitionResultHandoffProductionNavigationTest {
             val provenance = JSONObject(File(evidenceRoot, "runtime_provenance.json").readText())
             val runtimeDevice = provenance.getJSONObject("device")
             assertEquals(36, runtimeDevice.getInt("sdkInt"))
-            assertEquals("HUAWEI", runtimeDevice.getString("manufacturer").uppercase())
-            assertEquals("CMS-AL20", runtimeDevice.getString("model"))
+            if (requirePhysicalHuawei) {
+                assertEquals("HUAWEI", runtimeDevice.getString("manufacturer").uppercase())
+                assertEquals("CMS-AL20", runtimeDevice.getString("model"))
+            } else {
+                assertEquals(Build.MODEL, runtimeDevice.getString("model"))
+                assertTrue("Hosted test must run on the API36 emulator",
+                    Build.FINGERPRINT.contains("generic", ignoreCase = true) ||
+                        Build.HARDWARE.contains("ranchu", ignoreCase = true))
+            }
             assertEquals(targetContext.packageName, provenance.getString("packageName"))
 
             val modelContract = JSONObject(File(evidenceRoot, "model_release_contract.json").readText())
@@ -209,7 +221,7 @@ class RecognitionResultHandoffProductionNavigationTest {
 
             JSONObject().apply {
                 put("status", "PASS")
-                put("test", "ProductionHomePickerModelPipelineAndResultHandoff")
+                put("test", if (requirePhysicalHuawei) "ProductionHomePickerModelPipelineAndResultHandoff" else "HostedApi36HomePickerAutoRecognitionAndResultHandoff")
                 put("sourceCommitSha", BuildConfig.SOURCE_REVISION)
                 put("device", runtimeDevice)
                 put("sourceFixture", FIXTURE)

@@ -191,11 +191,17 @@ class Api36SmokeSummaryFinalizerTest(unittest.TestCase):
                     "com.yujian.ai.RecognitionRevealProductionRuntimeTest",
                     "realNightCatchHandoffDrivesTheNativeResultReveal",
                 ),
+                "production_home_picker_auto": instrumentation_case(
+                    "com.yujian.ai.RecognitionResultHandoffProductionNavigationTest",
+                    "hostedApi36HomePickerAutoRecognitionCompletesResultHandoff",
+                ),
             },
             "CLASSIFIER_TFLITE_RUNTIME_PASS": True,
             "PRODUCTION_REVEAL_INSTRUMENTATION_PASS": True,
+            "AUTO_PRODUCTION_SMOKE_PASS": True,
             "API36_INSTRUMENTATION_PASS": True,
             "APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS": True,
+            "APP_FORCE_STOP_VERIFIED_BETWEEN_REVEAL_AND_AUTO": True,
             "DEVICE_QA_PENDING": True,
         }), encoding="utf-8")
         (self.evidence_dir / "host-memory-preflight.json").write_text(json.dumps({
@@ -284,6 +290,17 @@ class Api36SmokeSummaryFinalizerTest(unittest.TestCase):
         self.assertEqual(0, process.returncode, process.stderr)
         self.assertEqual("INFRA_BLOCKED", payload["classification"])
         self.assertIn("CLASSIFIER_TFLITE_RUNTIME_PASS", payload["failure_reason"])
+        self.assertIs(payload["AUTO_SMOKE_PASS"], False)
+
+    def test_missing_real_home_picker_auto_cannot_keep_auto_pass(self):
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        payload["instrumentation_cases"].pop("production_home_picker_auto")
+        self.result_path.write_text(json.dumps(payload), encoding="utf-8")
+        process = self.finalize()
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertEqual("INFRA_BLOCKED", payload["classification"])
+        self.assertIn("AUTO_PRODUCTION_SMOKE_PASS", payload["failure_reason"])
         self.assertIs(payload["AUTO_SMOKE_PASS"], False)
 
     def test_lmk_marked_classifier_case_cannot_keep_auto_pass(self):

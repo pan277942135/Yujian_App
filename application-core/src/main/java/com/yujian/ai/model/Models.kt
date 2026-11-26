@@ -40,6 +40,8 @@ data class SelectedImage(
     val captureTimestampSource: String = "SYSTEM_INGESTION",
     /** Immutable dual-hash identity created from the original source bytes and model-input pixels. */
     val photoIdentity: PhotoIdentity? = null,
+    /** Raw EXIF Orientation attribute, if present; the applied orientation is sourceExifOrientation. */
+    val sourceExifOrientationRaw: String? = null,
 ) {
     init {
         require(photoIdentity == null || photoIdentity.isValid())

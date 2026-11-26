@@ -64,10 +64,39 @@ class RecognitionExifOrientationTest {
             val identity = requireNotNull(selected.photoIdentity)
 
             assertEquals(ExifInterface.ORIENTATION_TRANSPOSE, identity.sourceOrientation)
+            assertEquals(ExifInterface.ORIENTATION_TRANSPOSE.toString(), selected.sourceExifOrientationRaw)
             assertEquals(2, identity.width)
             assertEquals(3, identity.height)
             assertEquals(identity.width, selected.bitmap.width)
             assertEquals(identity.height, selected.bitmap.height)
+        } finally {
+            bitmap.recycle()
+            input.delete()
+            normalized?.delete()
+        }
+    }
+
+    @Test
+    fun undefinedOrientationKeepsRawDiagnosticAndAppliesNormalGeometry() = kotlinx.coroutines.runBlocking {
+        val input = File(context.cacheDir, "camera/exif-undefined-identity.jpg")
+        input.parentFile?.mkdirs()
+        val bitmap = Bitmap.createBitmap(3, 2, Bitmap.Config.ARGB_8888)
+        var normalized: File? = null
+        try {
+            input.outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)) }
+            ExifInterface(input).apply {
+                setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED.toString())
+                saveAttributes()
+            }
+            val raw = ExifInterface(input).getAttribute(ExifInterface.TAG_ORIENTATION)
+            val selected = RecognitionImageStore.normalizeCameraFile(context, input)
+            normalized = File(selected.filePath)
+            assertEquals(raw, selected.sourceExifOrientationRaw)
+            assertEquals(ExifInterface.ORIENTATION_NORMAL, selected.sourceExifOrientation)
+            assertEquals(ExifInterface.ORIENTATION_NORMAL, requireNotNull(selected.photoIdentity).sourceOrientation)
+            assertEquals(3, selected.bitmap.width)
+            assertEquals(2, selected.bitmap.height)
+            selected.bitmap.recycle()
         } finally {
             bitmap.recycle()
             input.delete()

@@ -11,6 +11,8 @@ test_a_class="com.yujian.ai.ClassifierRealTfliteTensorBindingTest"
 test_a_method="packagedClassifierRunsWithFrozenTensorBinding"
 test_class="com.yujian.ai.RecognitionRevealProductionRuntimeTest"
 test_method="realNightCatchHandoffDrivesTheNativeResultReveal"
+test_c_class="com.yujian.ai.RecognitionResultHandoffProductionNavigationTest"
+test_c_method="hostedApi36HomePickerAutoRecognitionCompletesResultHandoff"
 result_classification="INFRA_BLOCKED"
 failure_reason="SMOKE_NOT_STARTED"
 current_phase="INITIALIZATION"
@@ -20,7 +22,9 @@ instrumentation_attempted=false
 test_started=false
 test_a_passed=false
 test_b_passed=false
+test_c_passed=false
 test_a_force_stop_verified=false
+test_b_force_stop_verified=false
 adb_ready=false
 emulator_boot_pass=false
 instrument_status=-1
@@ -36,7 +40,8 @@ pre_screenshot_pull_status=not_run
 post_screenshot_pull_status=not_run
 
 mkdir -p "$evidence_dir/screenshots" "$evidence_dir/business-events" \
-  "$evidence_dir/test-cases/classifier" "$evidence_dir/test-cases/production-reveal"
+  "$evidence_dir/test-cases/classifier" "$evidence_dir/test-cases/production-reveal" \
+  "$evidence_dir/test-cases/production-auto"
 
 enter_phase() {
   current_phase="$1"
@@ -478,12 +483,13 @@ PY
     "$failure_phase" "$instrumentation_attempted" "$adb_ready" "$emulator_boot_pass" "${BUILD_PASS:-false}" \
     "${KVM_READY:-false}" "$validation_reason" "$slimsam_validation_reason" "$apk_dir" "$screenrecord_exit_status" \
     "$video_pull_status" "$pre_screenshot_pull_status" "$post_screenshot_pull_status" \
-    "$test_a_force_stop_verified" <<'PY'
+    "$test_a_force_stop_verified" "$test_b_force_stop_verified" <<'PY'
 import hashlib, json, pathlib, sys, time
 (path, evidence_root, source_sha, classification, reason, exit_code, instrument_status, timed_out,
  test_started, failure_phase, attempted, adb_ready, emulator_boot_pass, build_pass, kvm_ready,
  validation_reason, slimsam_validation_reason, apk_dir, screenrecord_exit_status, video_pull_status,
- pre_screenshot_pull_status, post_screenshot_pull_status, force_stop_verified) = sys.argv[1:]
+ pre_screenshot_pull_status, post_screenshot_pull_status, force_stop_verified,
+ reveal_force_stop_verified) = sys.argv[1:]
 path = pathlib.Path(path)
 evidence_root = pathlib.Path(evidence_root)
 def load_case(name):
@@ -494,6 +500,7 @@ def load_case(name):
         return {'passed': False, 'reason': 'CASE_RESULT_MISSING', 'test': None}
 test_a = load_case('classifier')
 test_b = load_case('production-reveal')
+test_c = load_case('production-auto')
 def sha256_file(name):
     p = pathlib.Path(apk_dir) / name
     if not p.is_file():
@@ -504,7 +511,8 @@ def sha256_file(name):
             digest.update(block)
     return digest.hexdigest()
 passed = (classification == 'AUTO_SMOKE_PASS' and test_a.get('passed') is True and
-          test_b.get('passed') is True and force_stop_verified == 'true')
+          test_b.get('passed') is True and test_c.get('passed') is True and
+          force_stop_verified == 'true' and reveal_force_stop_verified == 'true')
 result = {
     'source_sha': source_sha,
     'api_level_expected': 36,
@@ -521,11 +529,14 @@ result = {
     'instrumentation_cases': {
         'classifier_tensor_binding': test_a,
         'production_night_catch_reveal': test_b,
+        'production_home_picker_auto': test_c,
     },
     'CLASSIFIER_TFLITE_RUNTIME_PASS': test_a.get('passed') is True,
     'PRODUCTION_REVEAL_INSTRUMENTATION_PASS': test_b.get('passed') is True,
-    'API36_INSTRUMENTATION_PASS': test_a.get('passed') is True and test_b.get('passed') is True,
+    'AUTO_PRODUCTION_SMOKE_PASS': test_c.get('passed') is True,
+    'API36_INSTRUMENTATION_PASS': test_a.get('passed') is True and test_b.get('passed') is True and test_c.get('passed') is True,
     'APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS': force_stop_verified == 'true',
+    'APP_FORCE_STOP_VERIFIED_BETWEEN_REVEAL_AND_AUTO': reveal_force_stop_verified == 'true',
     'adb_ready': adb_ready == 'true',
     'emulator_boot_pass': emulator_boot_pass == 'true',
     'BUILD_PASS': build_pass == 'true',
@@ -785,6 +796,39 @@ cp "$evidence_dir/test-cases/production-reveal/results.xml" "$evidence_dir/instr
 if grep -Fq "INSTRUMENTATION_STATUS: test=$test_method" "$evidence_dir/instrumentation.log"; then
   test_started=true
 fi
+
+enter_phase BETWEEN_REVEAL_AND_AUTO APP_FORCE_STOP_AFTER_REVEAL_NOT_VERIFIED
+if timeout 30s adb shell am force-stop "$app_package" > "$evidence_dir/force-stop-after-reveal.log" 2>&1; then
+  for attempt in $(seq 1 30); do
+    if app_pid_after_reveal="$(timeout 10s adb shell pidof "$app_package" 2>/dev/null)"; then
+      app_pid_after_reveal="${app_pid_after_reveal//$'\r'/}"
+      if [[ -n "$app_pid_after_reveal" ]]; then sleep 1; else test_b_force_stop_verified=true; break; fi
+    else
+      pidof_status=$?
+      if [[ "$pidof_status" -eq 1 ]]; then test_b_force_stop_verified=true; fi
+      break
+    fi
+  done
+fi
+printf 'APP_FORCE_STOP_VERIFIED_AFTER_TEST_B=%s\n' "$test_b_force_stop_verified" \
+  | tee "$evidence_dir/force-stop-after-reveal-verification.txt"
+adb logcat -b all -c
+
+enter_phase PRODUCTION_AUTO_INSTRUMENTATION PRODUCTION_AUTO_TEST_DID_NOT_COMPLETE
+if run_instrumentation_case production_auto "$test_c_class" "$test_c_method" \
+    "$evidence_dir/test-cases/production-auto"; then
+  test_c_passed=true
+  instrument_status=0
+else
+  instrument_status=$?
+fi
+if [[ "$instrument_status" -eq 124 || "$instrument_status" -eq 137 ]]; then
+  instrumentation_timed_out=true
+fi
+if grep -Fq "INSTRUMENTATION_STATUS: test=$test_c_method" \
+    "$evidence_dir/test-cases/production-auto/instrumentation.log"; then
+  test_started=true
+fi
 if [[ -n "$memory_sampler_pid" ]]; then
   if ! : > "$memory_sampler_stop_file"; then
     failure_reason="MEMORY_DIAGNOSTIC_EVIDENCE_WRITE_FAILED"
@@ -874,6 +918,14 @@ elif [[ "$test_b_passed" != true ]]; then
   result_classification="BUSINESS_LOGIC_FAILURE"
   failure_reason="PRODUCTION_REVEAL_INSTRUMENTATION_FAILED"
   failure_phase="PRODUCTION_REVEAL_INSTRUMENTATION"
+elif [[ "$test_b_force_stop_verified" != true ]]; then
+  result_classification="INFRA_BLOCKED"
+  failure_reason="APP_FORCE_STOP_BETWEEN_REVEAL_AND_AUTO_NOT_VERIFIED"
+  failure_phase="BETWEEN_REVEAL_AND_AUTO"
+elif [[ "$test_c_passed" != true ]]; then
+  result_classification="BUSINESS_LOGIC_FAILURE"
+  failure_reason="PRODUCTION_HOME_PICKER_AUTO_INSTRUMENTATION_FAILED"
+  failure_phase="PRODUCTION_AUTO_INSTRUMENTATION"
 elif [[ "$validation_status" -eq 0 && "$validation_reason" == "NONE" ]]; then
   result_classification="AUTO_SMOKE_PASS"
   enter_phase COMPLETE NONE

@@ -57,6 +57,7 @@ if [[ "${1:-}" == logcat ]]; then
   if [[ "$args" == *"-d"* ]]; then
     if [[ -f "$FAKE_APP_STARTED" ]]; then
       printf '11-24 00:00:01.000 100 100 I SlimSamTiming: event=APP_FIRST_FRAME\n'
+      printf '11-24 00:00:02.000 100 100 I lmkd: Kill com.yujian.ai.uiv2 (pid 999)\n'
     fi
     exit 0
   fi
@@ -198,25 +199,34 @@ assert result["AUTO_SMOKE_PASS"] is False, result
 assert result["classification"] != "AUTO_SMOKE_PASS", result
 assert result["CLASSIFIER_TFLITE_RUNTIME_PASS"] is True, result
 assert result["PRODUCTION_REVEAL_INSTRUMENTATION_PASS"] is False, result
+assert result["AUTO_PRODUCTION_SMOKE_PASS"] is False, result
 assert result["APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS"] is True, result
+assert result["APP_FORCE_STOP_VERIFIED_BETWEEN_REVEAL_AND_AUTO"] is True, result
 assert result["failure_phase"] == "PRODUCTION_REVEAL_INSTRUMENTATION", result
 assert result["failure_reason"] != "APP_STARTUP_DID_NOT_COMPLETE", result
+memory = json.loads(pathlib.Path(sys.argv[1]).with_name('memory-analysis.json').read_text(encoding='utf-8'))
+assert memory['lowmemorykiller_app_kill_observed'] is False, memory
 PY
 
 python3 - "$test_root/adb-calls.log" "$test_root/evidence/test-cases/classifier/result.json" \
-  "$test_root/evidence/test-cases/production-reveal/result.json" <<'PY'
+  "$test_root/evidence/test-cases/production-reveal/result.json" \
+  "$test_root/evidence/test-cases/production-auto/result.json" <<'PY'
 import json, pathlib, sys
 calls = pathlib.Path(sys.argv[1]).read_text(encoding='utf-8').splitlines()
 classifier_call = next(i for i, row in enumerate(calls) if 'am instrument -w -r -e class com.yujian.ai.ClassifierRealTfliteTensorBindingTest#packagedClassifierRunsWithFrozenTensorBinding' in row)
 force_stop_call = next(i for i, row in enumerate(calls) if 'am force-stop com.yujian.ai.uiv2' in row)
 reveal_call = next(i for i, row in enumerate(calls) if 'am instrument -w -r -e class com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal' in row)
-assert classifier_call < force_stop_call < reveal_call, calls
+auto_call = next(i for i, row in enumerate(calls) if 'am instrument -w -r -e class com.yujian.ai.RecognitionResultHandoffProductionNavigationTest#hostedApi36HomePickerAutoRecognitionCompletesResultHandoff' in row)
+assert classifier_call < force_stop_call < reveal_call < auto_call, calls
 first = json.loads(pathlib.Path(sys.argv[2]).read_text())
 second = json.loads(pathlib.Path(sys.argv[3]).read_text())
+third = json.loads(pathlib.Path(sys.argv[4]).read_text())
 assert first['passed'] is True and first['test'].endswith('#packagedClassifierRunsWithFrozenTensorBinding'), first
 assert second['passed'] is False and second['test'].endswith('#realNightCatchHandoffDrivesTheNativeResultReveal'), second
+assert third['passed'] is False and third['test'].endswith('#hostedApi36HomePickerAutoRecognitionCompletesResultHandoff'), third
 assert pathlib.Path(sys.argv[2]).with_name('results.xml').is_file()
 assert pathlib.Path(sys.argv[3]).with_name('results.xml').is_file()
+assert pathlib.Path(sys.argv[4]).with_name('results.xml').is_file()
 PY
 
 printf '%s\n' \

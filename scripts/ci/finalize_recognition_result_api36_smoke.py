@@ -15,6 +15,7 @@ from typing import Any
 
 TEST_A = "com.yujian.ai.ClassifierRealTfliteTensorBindingTest#packagedClassifierRunsWithFrozenTensorBinding"
 TEST_B = "com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal"
+TEST_C = "com.yujian.ai.RecognitionResultHandoffProductionNavigationTest#hostedApi36HomePickerAutoRecognitionCompletesResultHandoff"
 
 
 def _case_passes(value: Any, expected_test: str) -> bool:
@@ -72,8 +73,10 @@ def _append_summary(summary_path: pathlib.Path, payload: dict[str, Any]) -> None
         ("instrumentation_timed_out", payload.get("instrumentation_timed_out", "NOT_CONFIRMED")),
         ("CLASSIFIER_TFLITE_RUNTIME_PASS", payload.get("CLASSIFIER_TFLITE_RUNTIME_PASS", False)),
         ("PRODUCTION_REVEAL_INSTRUMENTATION_PASS", payload.get("PRODUCTION_REVEAL_INSTRUMENTATION_PASS", False)),
+        ("AUTO_PRODUCTION_SMOKE_PASS", payload.get("AUTO_PRODUCTION_SMOKE_PASS", False)),
         ("API36_INSTRUMENTATION_PASS", payload.get("API36_INSTRUMENTATION_PASS", False)),
         ("APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS", payload.get("APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS", False)),
+        ("APP_FORCE_STOP_VERIFIED_BETWEEN_REVEAL_AND_AUTO", payload.get("APP_FORCE_STOP_VERIFIED_BETWEEN_REVEAL_AND_AUTO", False)),
         ("smoke_step_outcome", payload.get("smoke_step_outcome", "NOT_CONFIRMED")),
         ("source_sha", payload.get("source_sha", "UNKNOWN")),
         ("app_apk_sha256", payload.get("app_apk_sha256", "NOT_RECORDED")),
@@ -143,14 +146,20 @@ def _enrich(payload: dict[str, Any], args: argparse.Namespace) -> None:
             failed_gates.append("CLASSIFIER_TFLITE_RUNTIME_PASS")
         if not isinstance(cases, dict) or not _case_passes(cases.get("production_night_catch_reveal"), TEST_B):
             failed_gates.append("PRODUCTION_REVEAL_INSTRUMENTATION_PASS")
+        if not isinstance(cases, dict) or not _case_passes(cases.get("production_home_picker_auto"), TEST_C):
+            failed_gates.append("AUTO_PRODUCTION_SMOKE_PASS")
         if payload.get("CLASSIFIER_TFLITE_RUNTIME_PASS") is not True:
             failed_gates.append("CLASSIFIER_TFLITE_RUNTIME_PASS_FIELD")
         if payload.get("PRODUCTION_REVEAL_INSTRUMENTATION_PASS") is not True:
             failed_gates.append("PRODUCTION_REVEAL_INSTRUMENTATION_PASS_FIELD")
+        if payload.get("AUTO_PRODUCTION_SMOKE_PASS") is not True:
+            failed_gates.append("AUTO_PRODUCTION_SMOKE_PASS_FIELD")
         if payload.get("API36_INSTRUMENTATION_PASS") is not True:
             failed_gates.append("API36_INSTRUMENTATION_PASS")
         if payload.get("APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS") is not True:
             failed_gates.append("APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS")
+        if payload.get("APP_FORCE_STOP_VERIFIED_BETWEEN_REVEAL_AND_AUTO") is not True:
+            failed_gates.append("APP_FORCE_STOP_VERIFIED_BETWEEN_REVEAL_AND_AUTO")
         failed_gates = list(dict.fromkeys(failed_gates))
         if failed_gates:
             payload["classification"] = "INFRA_BLOCKED"

@@ -128,6 +128,7 @@ class RecognitionRevealProductionRuntimeTest {
         val photoIdentity = requireNotNull(selectedImage.photoIdentity)
         assertEquals(sourceSha256, photoIdentity.sourceBytesSha256)
         val rawExif = ExifInterface(ByteArrayInputStream(sourceBytes))
+        assertEquals(rawExif.getAttribute(ExifInterface.TAG_ORIENTATION), selectedImage.sourceExifOrientationRaw)
         Log.i("YujianExifAudit", "reveal raw_orientation=${rawExif.getAttribute(ExifInterface.TAG_ORIENTATION)} parsed_orientation=${rawExif.getAttributeInt(ExifInterface.TAG_ORIENTATION, -1)} normalized_orientation=${selectedImage.sourceExifOrientation}")
         assertEquals(ExifInterface.ORIENTATION_NORMAL, selectedImage.sourceExifOrientation)
         assertEquals(selectedImage.sourceExifOrientation, photoIdentity.sourceOrientation)
