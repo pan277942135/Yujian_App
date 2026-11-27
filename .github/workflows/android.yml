@@ -773,6 +773,7 @@ jobs:
             }
             pathlib.Path(path).parent.mkdir(parents=True, exist_ok=True)
             pathlib.Path(path).write_text(json.dumps(payload, indent=2) + '\n')
+            print(f'::error title=API36 smoke startup::{failure_reason}')
             PY
           fi
           finalizer_status=0
@@ -796,7 +797,8 @@ jobs:
               if not isinstance(payload, dict): payload = {}
           except Exception:
               payload = {}
-          reason = f'SUMMARY_FINALIZER_PROCESS_EXIT_{status}'
+          prior_reason = payload.get('failure_reason')
+          reason = f'{prior_reason};SUMMARY_FINALIZER_PROCESS_EXIT_{status}' if prior_reason else f'SUMMARY_FINALIZER_PROCESS_EXIT_{status}'
           payload.update({
               'source_sha': source_sha,
               'classification': 'INFRA_BLOCKED',
@@ -872,6 +874,7 @@ jobs:
           if result.get('DEVICE_QA_PENDING') is not True:
               failures.append('DEVICE_QA_PENDING_NOT_TRUE')
           if failures:
+              print(f"::error title=API36 AUTO smoke verdict::{classification}: {','.join(failures)}; {result.get('failure_reason', '')}")
               print(f"API36_AUTO_SMOKE_CLASSIFICATION={classification} reason={','.join(failures)}")
               raise SystemExit(1)
           print(f"API36_AUTO_SMOKE_CLASSIFICATION=AUTO_SMOKE_PASS source_sha={expected_sha}")

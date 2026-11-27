@@ -69,6 +69,7 @@ def main():
                 raise ValueError(", ".join(failures))
         except (KeyError, OSError, ValueError, subprocess.SubprocessError) as error:
             record(f"API36_EMULATOR_RESOURCES_FAIL={error}")
+            print(f"::error title=API36 emulator resources::{type(error).__name__}: {error}", flush=True)
             return 1
 
         record("API36_EMULATOR_RESOURCES_PASS")
