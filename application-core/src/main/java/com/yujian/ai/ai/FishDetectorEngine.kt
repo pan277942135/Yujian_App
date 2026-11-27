@@ -120,8 +120,15 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
     private val sessionLazy = lazy {
         try {
             val options = OrtSession.SessionOptions()
-            options.setIntraOpNumThreads(DETECTOR_INTRA_OP_THREADS)
+            val threadAllocation = RecognitionModelThreadPolicy.allocate()
+            options.setIntraOpNumThreads(threadAllocation.detectorThreads)
             options.setInterOpNumThreads(1)
+            Log.i(
+                "FishDetectorEngine",
+                "MODEL_THREAD_POLICY status=${RecognitionModelThreadPolicy.VALIDATION_STATUS} " +
+                    "model=detector processors=${threadAllocation.availableProcessors} " +
+                    "intra_op=${threadAllocation.detectorThreads} inter_op=1",
+            )
             try {
                 environment.createSession(verifiedModel.bytes, options)
             } finally {
@@ -632,7 +639,6 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         const val ORT_RUNTIME_VERSION = "1.29.0"
         const val DETECTOR_PREPROCESS_VERSION = "YOLOX_BGR_NCHW_LETTERBOX_PILLOW_BILINEAR_V1"
         const val DETECTOR_POSTPROCESS_VERSION = "YOLOX_DECODE_NMS_V1"
-        private const val DETECTOR_INTRA_OP_THREADS = 2
         private val inferenceSequence = AtomicLong(0L)
         val ORIENTATION_ATTEMPTS = listOf(
             DetectorOrientationAttempt.ORIGINAL,

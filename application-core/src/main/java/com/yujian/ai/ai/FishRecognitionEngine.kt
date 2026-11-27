@@ -265,13 +265,20 @@ class FishRecognitionEngine(private val context: Context) : AutoCloseable {
         }
     }
     private val actualModelSha256: String by lazy { modelBytes.sha256() }
+    private val threadAllocation = RecognitionModelThreadPolicy.allocate()
 
     private val interpreterLazy = lazy {
         try {
+            Log.i(
+                LOG_TAG,
+                "MODEL_THREAD_POLICY status=${RecognitionModelThreadPolicy.VALIDATION_STATUS} " +
+                    "model=classifier processors=${threadAllocation.availableProcessors} " +
+                    "intra_op=${threadAllocation.classifierThreads}",
+            )
             Log.i(LOG_TAG, "event=TFLITE_INTERPRETER_CREATE_START model_session_id=$modelSessionId model_sha=${modelInfo.sha256} uptime_ms=${android.os.SystemClock.uptimeMillis()} thread=${Thread.currentThread().name}")
             val buffer = ByteBuffer.allocateDirect(modelBytes.size).order(ByteOrder.nativeOrder())
             buffer.put(modelBytes).rewind()
-            Interpreter(buffer, Interpreter.Options().apply { setNumThreads(4) }).also {
+            Interpreter(buffer, Interpreter.Options().apply { setNumThreads(threadAllocation.classifierThreads) }).also {
                 Log.i(LOG_TAG, "event=TFLITE_INTERPRETER_CREATE_READY model_session_id=$modelSessionId model_sha=$actualModelSha256 uptime_ms=${android.os.SystemClock.uptimeMillis()} thread=${Thread.currentThread().name}")
             }
         } catch (failure: RecognitionStageFailureException) {

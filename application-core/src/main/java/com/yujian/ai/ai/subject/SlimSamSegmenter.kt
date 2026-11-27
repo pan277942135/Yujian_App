@@ -18,6 +18,7 @@ import com.yujian.ai.ai.RecognitionModelIdentity
 import com.yujian.ai.ai.RecognitionModelTensorReceipt
 import com.yujian.ai.ai.RecognitionRuntimeModelIdentity
 import com.yujian.ai.ai.RecognitionTensorContentHash
+import com.yujian.ai.ai.RecognitionModelThreadPolicy
 import com.yujian.ai.ai.RecognitionAttemptFailureCode
 import com.yujian.ai.ai.RecognitionAttemptNativeTimeoutException
 import com.yujian.ai.ai.RecognitionNativeRunDeadlineGuard
@@ -62,13 +63,20 @@ class SlimSamSegmenter(
 ) : AutoCloseable {
 
     private var environment: OrtEnvironment? = null
+    private val threadAllocation = RecognitionModelThreadPolicy.allocate()
 
     private val sessionOptionsDelegate = lazy {
         OrtSession.SessionOptions().apply {
-            val threadCount = Runtime.getRuntime().availableProcessors().coerceIn(2, 4)
+            val threadCount = threadAllocation.visionEncoderThreads
             setIntraOpNumThreads(threadCount)
             setInterOpNumThreads(1)
-            Log.i(TAG, "SLIMSAM_THREAD_POLICY intra_op=$threadCount inter_op=1")
+            Log.i(
+                TAG,
+                "SLIMSAM_THREAD_POLICY status=${RecognitionModelThreadPolicy.VALIDATION_STATUS} " +
+                    "processors=${threadAllocation.availableProcessors} " +
+                    "intra_op=$threadCount inter_op=1 detector_intra_op=${threadAllocation.detectorThreads} " +
+                    "classifier_intra_op=${threadAllocation.classifierThreads}",
+            )
         }
     }
     private val sessionOptions: OrtSession.SessionOptions get() = sessionOptionsDelegate.value
@@ -192,7 +200,7 @@ class SlimSamSegmenter(
         decoderModelSha256 = decoderModelSha256,
         visionTensorMetadata = visionTensorMetadata,
         decoderTensorMetadata = decoderTensorMetadata,
-        intraOpThreads = Runtime.getRuntime().availableProcessors().coerceIn(2, 4),
+        intraOpThreads = threadAllocation.visionEncoderThreads,
         embeddingBufferBytes = if (embeddingCache.hasValue()) EMBEDDING_CACHE_BYTES else 0L,
         cachedPhotoCount = if (embeddingCache.hasValue()) 1 else 0,
         activeNativeRunCount = nativeSessionGate.snapshot().activeRunCount,
