@@ -12,7 +12,8 @@
     "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79.",
     "V3_API36_RUNTIME_PENDING: Run #4225 failed; artifact 15134616720 is inaccessible from this environment. Source fix 5db2ba710037c45951defe687075bd5b38f5a800 requires exact-head hosted A/B/C and real encoder timing before PASS.",
     "RUN4226_EARLY_INFRA_FAILURE: build passed, API36 job failed before runtime-result; 47s smoke step, 3.54KB evidence artifact ID 15161108722; exact resource log inaccessible from workspace.",
-    "RUN4228_EARLY_INFRA_FAILURE: build PASS; API36 smoke 2m10s, evidence artifact 15162193629 3.54KB, A/B/C NOT_STARTED, exact error hidden by GitHub logs."
+    "RUN4228_EARLY_INFRA_FAILURE: build PASS; API36 smoke 2m10s, evidence artifact 15162193629 3.54KB, A/B/C NOT_STARTED, exact error hidden by GitHub logs.",
+    "RUN4229_AVD_RESOURCE_MISMATCH: public job annotation reports hw.cpu.ncore, vm.heapSize, guest online CPUs and dalvik.vm.heapsize mismatch. A/B/C NOT_STARTED."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
   "checkpoint_updated_at": "2026-11-26T14:35:11Z",
@@ -547,6 +548,19 @@
         "symptom_key": "WORK_EXECUTION_STATE_SOURCE_SHA_STALE",
         "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
       },
+      "b9beac4a3bab4e554c91": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Run 45917522348 job 140246417315 public annotation ValueError: hw.cpu.ncore, vm.heapSize, guest online CPUs, guest dalvik.vm.heapsize",
+            "hypothesis": "AVD config alone is not propagated to active emulator; start requires explicit four-core options and the guest heap key hw.heapSize",
+            "source_sha": "ca67fdf96eea3ad128add3d957efefdfc1149809"
+          }
+        ],
+        "gate_id": "API36_AVD_4CORE",
+        "symptom_key": "RUNTIME_CONFIG_2_CORES_NON512_HEAP",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
       "ba128882f16503f3086b": {
         "closed": false,
         "failures": [
@@ -628,19 +642,19 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Push error-annotation fix, inspect public GitHub check annotation for exact API36 startup failure, then repair and rerun A/B/C.",
+  "next_action": "Push actual 4-core/512M guest configuration and verify exact-head API36 A/B/C, then Release only on all PASS.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
+  "requested_task_id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
+  "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C, exact HEAD APK",
   "schema_version": "1.0",
-  "source_sha": "ca67fdf96eea3ad128add3d957efefdfc1149809",
-  "stage": "P0_V3_API36_FAILURE_ANNOTATION_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH",
+  "source_sha": "5775f08ff9774b418201be517a487ce8863dc45b",
+  "stage": "P0_V3_AVD_ACTUAL_RESOURCES_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH",
   "state_update": {
     "last_updated_at": "2026-11-26T14:35:11Z",
     "note": "P0 V2 source 044e266 adds Java/native/assertion/cleanup/infra classifications with PID/time correlation. Local 34 parser/finalizer tests and runner fixture pass. Historical #4223 built successfully but API36 smoke failed; original runtime artifact is unavailable, cause NOT_CONFIRMED. #4224 at eb2db5e is in progress."
   },
   "status": "BLOCKED",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
-  "work_id": "YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
-  "requested_task_id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
-  "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C, exact HEAD APK"
+  "work_id": "YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2"
 }

@@ -465,3 +465,8 @@
 
 - Run #4228 at fc6cd91e: build PASS, API36 smoke failed in 2m10s before runtime-result; evidence artifact 15162193629 only 3.54 KB. A/B/C NOT_STARTED, Release skipped.
 - Source `ca67fdf96eea3ad128add3d957efefdfc1149809` emits GitHub error annotations for resource/startup/verdict failure and preserves original failure reason through summary finalizer. 46 CI Python tests, YAML parse and diff check PASS.
+
+## 2026-11-27 — API36 actual resource mismatch checkpoint
+
+- Run #4229 at 2501ec1e: build PASS, API36 failed before A/B/C. Public annotation: `ValueError: hw.cpu.ncore, vm.heapSize, guest online CPUs, guest dalvik.vm.heapsize`. Release skipped.
+- Source `5775f08ff9774b418201be517a487ce8863dc45b` configures both heap keys and explicit emulator `-cores 4 -memory 4096`, checks config and actual guest 4 cores/512m. 48 Python CI tests and YAML parse PASS.
