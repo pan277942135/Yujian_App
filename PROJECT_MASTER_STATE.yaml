@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'Work P0 V3 Run #4225 root-cause closure, SlimSAM 60s performance, API36 A/B/C acceptance, and exact-head APK delivery (YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3)'
 state_control:
-  execution_baseline_sha: 6b61c50ce3d02f033635c54738d0ff868ef06599
+  execution_baseline_sha: d335f2270a8a751e40c365f9febc66c9db0be3fb
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
@@ -74,8 +74,8 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: 6b61c50ce3d02f033635c54738d0ff868ef06599
-    admission: 'CONTROL_PLANE_ADMISSION=PASS on the Run 4236 artifact-recovery checkpoint worktree; canonical origin/main revision 21295d95; structural_errors=0; historical OPEN_GAP=1 remains unchanged and non-blocking.'
+    sha: d335f2270a8a751e40c365f9febc66c9db0be3fb
+    admission: 'The recovery workflow source is d335f227. Its post-commit Admission initially rejected the stale 6b61c50 source pointer; a state-only checkpoint now records d335f227. Post-checkpoint Work-state validation and full Admission are pending.'
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
@@ -91,7 +91,7 @@ runtime_gates:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: 6b61c50ce3d02f033635c54738d0ff868ef06599
+  source_head: d335f2270a8a751e40c365f9febc66c9db0be3fb
   exact_head_apk: 'PENDING: build from the final pushed PR checkpoint; prior APKs are historical and must not be delivered.'
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
   input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
@@ -102,7 +102,7 @@ current_work:
   id: YUJIAN_EXIF_CLASSIFIER_AUTO_RESULT_API36_CLOSURE_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 6b61c50ce3d02f033635c54738d0ff868ef06599
+  exact_head: d335f2270a8a751e40c365f9febc66c9db0be3fb
   status: RECOVERING
   stage: P0_V3_RUN4236_ARTIFACT_RECOVERY_PENDING
   requested_task_id: YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3

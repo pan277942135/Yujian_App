@@ -21,7 +21,7 @@
     "RUN4236_API36_RUNTIME_FAILURE: exact-head smoke failed after 12m38s with BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE; A/B/C and SlimSAM timing are pending authenticated recovery of artifact 15179468061."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-27T07:39:33Z",
+  "checkpoint_updated_at": "2026-11-27T07:49:28Z",
   "control_plane_revision": "21295d95c3213acbe0da1de8557dfdab6ad20ce7",
   "current_work": {
     "blockers": [
@@ -32,7 +32,7 @@
       "TFLITE_NATIVE_HARD_TERMINATION_UNVERIFIED: no device/native termination evidence was obtained.",
       "AUTO_RUNTIME_UNVERIFIED: no current-source 26KF device run, real Mask/PixelCopy evidence, or Stage10-13.5 end-to-end AUTO evidence was produced.",
       "FIXTURE_B_UNAVAILABLE: historical runtime evidence ZIP is absent; replay is not claimed.",
-      "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79.",
+      "GITHUB_ACTIONS_ARTIFACT_RECOVERY_PENDING: direct GitHub API access is blocked by the environment proxy; the least-privilege actions:read recovery workflow is committed locally but has not yet been pushed or run.",
       "P0_V2_RUN4223_FAILURE: exact-head build passed, API36 smoke failed at 86065bcf; artifact 15125829938 is inaccessible under current network policy, so runtime root cause is NOT_CONFIRMED.",
       "P0_V2_API36_RUNTIME_PENDING: source 044e266 requires hosted Test A/B/C, classifier native execution, SlimSAM/Mask/Result evidence, and exact-head APK verification.",
       "RUN4233_API36_FAILURE: AVD health/config passed; API36 smoke failed after 22m40s, but case diagnostics are inaccessible. Root cause NOT_CONFIRMED; per-case summary/annotation patch pending exact-head rerun.",
@@ -40,15 +40,16 @@
     ],
     "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
     "current_validated_tree_note": "Final pushed source commit 4c328ab5e7c6d555c9575ebeffa2c815e6618baf passed 604/604 JVM tests, :app:compileReleaseKotlin, Debug APK build, packaged model/assets, signature and ZIP checks. APK SHA256 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0; 200382052 bytes. AndroidTest and lint are blocked before source validation by Google Maven DNS; hosted exact-head CI and API36 runtime remain unverified.",
-    "delivery_guard_status": "GUARD_CODE_AND_STATE_PUSH_PASS_CI_UNAVAILABLE",
-    "exact_head": "6b61c50ce3d02f033635c54738d0ff868ef06599",
+    "delivery_guard_status": "STATE_BASELINE_UPDATED_PENDING_STATE_ONLY_CHECKPOINT_AND_POST_CHECKPOINT_ADMISSION",
+    "exact_head": "d335f2270a8a751e40c365f9febc66c9db0be3fb",
     "id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
     "phase": "P6",
     "requested_task_id": "YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE",
     "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C and exact-HEAD APK delivery",
     "stage": "P0_V3_RUN4236_ARTIFACT_RECOVERY_PENDING",
     "status": "RECOVERING",
-    "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2"
+    "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
+    "next_action": "Run post-checkpoint Work state validation and Control Plane Admission, then guarded fast-forward push to trigger the existing Run 4236 evidence recovery job."
   },
   "dependencies": [
     "P5-02"
@@ -165,7 +166,7 @@
       "terminal_event": "First PIPELINE_TERMINAL per Attempt is retained across both production call sites."
     },
     "code_implementation_commit": "6102640437041159abc519b00249b7aedff0bb03",
-    "current_admission_attempt": "CONTROL_PLANE_ADMISSION=PASS on the recovery checkpoint worktree after recording Run 45953790013 and adding the one-time actions:read artifact recovery workflow; canonical origin/main revision 21295d95; structural_errors=0; historical OPEN_GAP=1 remains unchanged and non-blocking.",
+    "current_admission_attempt": "Pre-commit Admission passed with source 6b61c50; post-commit Admission correctly failed because .github/workflows/api36-evidence-recovery.yml changed after source_sha. State checkpoint must advance source_sha to d335f227, then Admission must be rerun.",
     "current_source_changes": "V2.3 source commit 3cc0a443 returns actual validated classifier Input/Output Receipts, validates both receipts and model/tensor/photo/session/attempt identity in the production pipeline, and requires the receipt pair at the photo-identity-bound SessionStore consumer. API36 smoke now runs real classifier Test A and production reveal Test B separately with force-stop/PID verification, exact instrumentation status parsing, process-death/LMK checks, and fail-closed finalization. Model binary, frozen product contracts, Gate policy, and visual parameters were not changed.",
     "debug_apk_build": "PASS: local Debug APK built at exact source HEAD 4c328ab5e7c6d555c9575ebeffa2c815e6618baf with BUILD_SHA embedded/verified; ZIP/signature/package/asset checks passed. APK SHA256 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0, size 200382052 bytes.",
     "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
@@ -759,19 +760,20 @@
         "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
       }
     },
-    "schema_version": "1.0"
+    "schema_version": "1.0",
+    "current_admission_attempt": "Post-commit Admission first rejected recovery workflow commit d335f227 because source_sha still pointed to 6b61c50. The source pointer is now advanced to d335f227 in a state-only update; commit that state checkpoint, then rerun full Admission. No runtime result is inferred."
   },
-  "next_action": "Push the guarded read-only artifact recovery workflow with [api36-evidence-recovery], retrieve Run 4236 A/B/C and SlimSAM evidence through the repository Actions token, then confirm the production root cause before changing runtime code.",
+  "next_action": "Commit the state-only source-baseline checkpoint at d335f227, run post-checkpoint Control Plane Admission, then push both recovery commits by ordinary fast-forward with the recovery and KVM-preflight markers.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "requested_task_id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
   "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C and exact-HEAD APK delivery",
   "schema_version": "1.0",
-  "source_sha": "6b61c50ce3d02f033635c54738d0ff868ef06599",
+  "source_sha": "d335f2270a8a751e40c365f9febc66c9db0be3fb",
   "stage": "P0_V3_RUN4236_ARTIFACT_RECOVERY_PENDING",
   "state_update": {
-    "last_updated_at": "2026-11-27T07:39:33Z",
-    "note": "Run 45953790013 at workflow HEAD 20405b16 passed the full build, AndroidTest compile, lint, Release Kotlin, KVM and AVD checks. API36 smoke ran 12m38s, uploaded artifact 15179468061 (15 MB, SHA256 7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765), then failed with BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE. A/B/C/root cause are NOT_CONFIRMED. Failure gate recorded this distinct source observation as attempt 2. Next step uses a guarded actions:read workflow to inspect the existing artifact; no re-upload requested. Control Plane Admission passed on the recovery checkpoint worktree; the existing Run 4236 artifact will be downloaded by a guarded read-only Actions job."
+    "last_updated_at": "2026-11-27T07:49:28Z",
+    "note": "Recovery workflow source commit d335f227 is in place. The prior post-commit Admission failure was caused by the stale 6b61c50 source pointer; the pointer now records d335f227. Commit only branch-local state/log updates, then run Work-state validation and full Admission against the resulting checkpoint before pushing. Run 45953790013 still has no visible per-case evidence; A/B/C and runtime root cause remain NOT_CONFIRMED."
   },
   "status": "RECOVERING",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
