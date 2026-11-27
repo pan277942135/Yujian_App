@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'Work P0 V3 Run #4225 root-cause closure, SlimSAM 60s performance, API36 A/B/C acceptance, and exact-head APK delivery (YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3)'
 state_control:
-  execution_baseline_sha: 7f83ef433e9c9ce867dd187433cc3dc37f6473aa
+  execution_baseline_sha: 5f00d3775d8d95fb94c9d2c7a2bc8c8738756466
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
@@ -74,8 +74,8 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: 7f83ef433e9c9ce867dd187433cc3dc37f6473aa
-    admission: 'Recovery diagnostics workflow source is 7f83ef43. Its state-only source-baseline checkpoint and post-checkpoint Work-state validation/Admission are pending.'
+    sha: 5f00d3775d8d95fb94c9d2c7a2bc8c8738756466
+    admission: 'Annotation diagnostics workflow source is 5f00d377. Its state-only source-baseline checkpoint and post-checkpoint Work-state validation/Admission are pending.'
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
@@ -91,7 +91,7 @@ runtime_gates:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: 7f83ef433e9c9ce867dd187433cc3dc37f6473aa
+  source_head: 5f00d3775d8d95fb94c9d2c7a2bc8c8738756466
   exact_head_apk: 'PENDING: build from the final pushed PR checkpoint; prior APKs are historical and must not be delivered.'
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
   input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
@@ -102,7 +102,7 @@ current_work:
   id: YUJIAN_EXIF_CLASSIFIER_AUTO_RESULT_API36_CLOSURE_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 7f83ef433e9c9ce867dd187433cc3dc37f6473aa
+  exact_head: 5f00d3775d8d95fb94c9d2c7a2bc8c8738756466
   status: RECOVERING
   stage: P0_V3_RUN4236_ARTIFACT_RECOVERY_PENDING
   requested_task_id: YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3
@@ -189,7 +189,7 @@ next_actions:
 - id: V3-RUN4236-EVIDENCE-RECOVERY
   owner: Codex
   status: IN_PROGRESS
-  action: Push the source-7f83ef43 state checkpoint to trigger the guarded actions:read job; extract identity-redacted SlimSAM timings and picker launch/package evidence from artifact 15179468061, then confirm root causes before runtime edits.
+  action: Push the source-5f00d377 state checkpoint to trigger the guarded actions:read job; read identity-redacted SlimSAM timings and picker launch/package annotations from artifact 15179468061, then confirm root causes before runtime edits.
 
 completion_rules:
 - Complete applicable deterministic cross-layer tests before final APK packaging.
@@ -198,7 +198,7 @@ completion_rules:
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
   last_updated_at: '2026-11-27T08:01:57Z'
-  note: 'Recovery run 45961309057 retrieved Run 45953790013 artifact 15179468061: Test A PASS; Test B failed with SLIMSAM_TIMEOUT at the 60,000ms Attempt Deadline and no Mask; Test C failed because the system picker was not detected. Root cause details remain open. Workflow source 7f83ef43 now extracts only identity-redacted retained log/timing and picker activity fields; pending state checkpoint, Admission and push.'
+  note: 'Recovery run 45961309057 retrieved Run 45953790013 artifact 15179468061: Test A PASS; Test B failed with SLIMSAM_TIMEOUT at the 60,000ms Attempt Deadline and no Mask; Test C failed because the system picker was not detected. Root cause details remain open. Workflow source 5f00d377 emits identity-redacted retained log/timing and picker activity fields as GitHub annotations because the public Actions view does not expose step-summary contents; pending state checkpoint, Admission and push.'
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.
