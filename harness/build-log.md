@@ -480,3 +480,8 @@
 
 - Run #4231 at 6b4e8122: build PASS, config and actual guest 4 CPU/RAM PASS, but guest `dalvik.vm.heapsize` mismatched 512m; A/B/C NOT_STARTED and Release skipped.
 - Source `7fcddc1e09e6b7f45e99bf3b518d30a24768a96a` passes `-prop dalvik.vm.heapsize=512m` before emulator boot and reports observed heap on failure. No post-boot property mutation. 49 CI Python tests PASS.
+
+## 2026-11-27 — API36 AVD VM heap semantics checkpoint
+
+- Run #4232 at bc908a69: build PASS, AVD config 4 CPU/4096M/512M PASS, guest CPU/RAM PASS, but API36 system image sets `dalvik.vm.heapsize=576m`; A/B/C NOT_STARTED due conflated checker.
+- Source `6d2b844808e2ba422b190cbf96d3a871686b8f24` keeps 512M AVD VM heap mandatory and records actual 576m Dalvik property as separate observation; removes ineffective boot `-prop`. 50 CI Python tests PASS, including wrong AVD heap fail.

@@ -15,7 +15,8 @@
     "RUN4228_EARLY_INFRA_FAILURE: build PASS; API36 smoke 2m10s, evidence artifact 15162193629 3.54KB, A/B/C NOT_STARTED, exact error hidden by GitHub logs.",
     "RUN4229_AVD_RESOURCE_MISMATCH: public job annotation reports hw.cpu.ncore, vm.heapSize, guest online CPUs and dalvik.vm.heapsize mismatch. A/B/C NOT_STARTED.",
     "RUN4230_ACTION_DEFAULT_OVERRIDE: build PASS, actual guest CPU 4; Action appended default cores=2 in AVD config and guest Dalvik heap remained wrong. A/B/C NOT_STARTED.",
-    "RUN4231_GUEST_HEAP_MISMATCH: all config/CPU/RAM checks passed; guest dalvik.vm.heapsize still non-512, so A/B/C NOT_STARTED."
+    "RUN4231_GUEST_HEAP_MISMATCH: all config/CPU/RAM checks passed; guest dalvik.vm.heapsize still non-512, so A/B/C NOT_STARTED.",
+    "RUN4232_DALVIK_SYSTEM_IMAGE_PROPERTY: AVD VM heap config=512M passed, guest dalvik.vm.heapsize=576m from API36 system image; checker conflated distinct settings, so A/B/C NOT_STARTED."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
   "checkpoint_updated_at": "2026-11-26T14:35:11Z",
@@ -602,6 +603,19 @@
         "symptom_key": "RUN4225_ASSET_STORAGE_SLIMSAM_TIMEOUT",
         "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
       },
+      "c3fa1c6d61c627f5724a": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Run 45925786797 job 140273255687 public annotation observed guest dalvik.vm.heapsize=576m; all AVD config, guest CPU/RAM checks passed",
+            "hypothesis": "AVD hw.heapSize=512M is frozen VM heap, while API36 system image independently sets dalvik.vm.heapsize=576m; checker conflated them",
+            "source_sha": "7fcddc1e09e6b7f45e99bf3b518d30a24768a96a"
+          }
+        ],
+        "gate_id": "API36_AVD_4CORE",
+        "symptom_key": "AVD_HEAP_VS_DALVIK_PROPERTY_CONFLATION",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
       "dfddf731f726e21befc4": {
         "closed": false,
         "failures": [
@@ -670,14 +684,14 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Push boot-time guest heap fix, verify actual 4-core/512m API36, run A/B/C and publish APK/Evidence only on PASS.",
+  "next_action": "Push VM heap semantics fix; verify API36 AVD config 512M and guest CPU 4, run real A/B/C, then Release only on PASS.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "requested_task_id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
   "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C, exact HEAD APK",
   "schema_version": "1.0",
-  "source_sha": "7fcddc1e09e6b7f45e99bf3b518d30a24768a96a",
-  "stage": "P0_V3_AVD_GUEST_HEAP_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH",
+  "source_sha": "6d2b844808e2ba422b190cbf96d3a871686b8f24",
+  "stage": "P0_V3_AVD_VM_HEAP_SEMANTICS_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH",
   "state_update": {
     "last_updated_at": "2026-11-26T14:35:11Z",
     "note": "P0 V2 source 044e266 adds Java/native/assertion/cleanup/infra classifications with PID/time correlation. Local 34 parser/finalizer tests and runner fixture pass. Historical #4223 built successfully but API36 smoke failed; original runtime artifact is unavailable, cause NOT_CONFIRMED. #4224 at eb2db5e is in progress."
