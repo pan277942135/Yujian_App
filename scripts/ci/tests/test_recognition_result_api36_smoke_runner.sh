@@ -109,6 +109,7 @@ if [[ "${1:-}" == shell ]]; then
       : > "$FAKE_APP_STOPPED"
       exit 0
       ;;
+    "am force-stop com.yujian.ai.uiv2.test") exit 0 ;;
     *"am instrument"*)
       rm -f "$FAKE_APP_STOPPED"
       : > "$FAKE_APP_STARTED"
@@ -133,6 +134,22 @@ if [[ "${1:-}" == shell ]]; then
           printf 'INSTRUMENTATION_STATUS_CODE: %s\n' "$code"
         done
         printf 'FAILURES!!!\nINSTRUMENTATION_CODE: -1\n'
+      elif [[ "$shell_args" == *"FishMaskApi36PerformanceBaselineTest#coldStartWaitsForRealVisionAndDecoderSessions"* ]]; then
+        printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.FishMaskApi36PerformanceBaselineTest\n'
+        printf 'INSTRUMENTATION_STATUS: test=coldStartWaitsForRealVisionAndDecoderSessions\n'
+        printf 'INSTRUMENTATION_STATUS_CODE: 1\n'
+        printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.FishMaskApi36PerformanceBaselineTest\n'
+        printf 'INSTRUMENTATION_STATUS: test=coldStartWaitsForRealVisionAndDecoderSessions\n'
+        printf 'INSTRUMENTATION_STATUS_CODE: 0\n'
+        printf 'INSTRUMENTATION_RESULT: stream=\nOK (1 test)\nINSTRUMENTATION_CODE: -1\n'
+      elif [[ "$shell_args" == *"FishMaskApi36PerformanceBaselineTest#tenPresetFishCacheMissesRunProductionRecognitionAndMask"* ]]; then
+        printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.FishMaskApi36PerformanceBaselineTest\n'
+        printf 'INSTRUMENTATION_STATUS: test=tenPresetFishCacheMissesRunProductionRecognitionAndMask\n'
+        printf 'INSTRUMENTATION_STATUS_CODE: 1\n'
+        printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.FishMaskApi36PerformanceBaselineTest\n'
+        printf 'INSTRUMENTATION_STATUS: test=tenPresetFishCacheMissesRunProductionRecognitionAndMask\n'
+        printf 'INSTRUMENTATION_STATUS_CODE: 0\n'
+        printf 'INSTRUMENTATION_RESULT: stream=\nOK (1 test)\nINSTRUMENTATION_CODE: -1\n'
       else
         printf 'INSTRUMENTATION_STATUS: class=com.yujian.ai.RecognitionRevealProductionRuntimeTest\n'
         printf 'INSTRUMENTATION_STATUS: test=realNightCatchHandoffDrivesTheNativeResultReveal\n'
@@ -209,6 +226,9 @@ assert result["AUTO_SMOKE_PASS"] is False, result
 assert result["classification"] != "AUTO_SMOKE_PASS", result
 assert result["CLASSIFIER_TFLITE_RUNTIME_PASS"] is True, result
 assert result["PRODUCTION_REVEAL_INSTRUMENTATION_PASS"] is False, result
+assert result["COLD_START_SESSION_PRELOAD_PASS"] is True, result
+assert result["COLD_START_SESSION_PRELOAD_COMMAND_PASS_COUNT"] == 3, result
+assert result["FISHMASK_DEMO_PERFORMANCE_BASELINE_PASS"] is True, result
 assert result["AUTO_PRODUCTION_SMOKE_PASS"] is False, result
 assert result["APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS"] is True, result
 assert result["APP_FORCE_STOP_VERIFIED_BETWEEN_REVEAL_AND_AUTO"] is True, result
@@ -230,6 +250,10 @@ PY
 
 python3 - "$test_root/adb-calls.log" "$test_root/evidence/test-cases/classifier/result.json" \
   "$test_root/evidence/test-cases/production-reveal/result.json" \
+  "$test_root/evidence/test-cases/cold-start-1/result.json" \
+  "$test_root/evidence/test-cases/cold-start-2/result.json" \
+  "$test_root/evidence/test-cases/cold-start-3/result.json" \
+  "$test_root/evidence/test-cases/fishmask-performance-baseline/result.json" \
   "$test_root/evidence/test-cases/production-auto/result.json" <<'PY'
 import json, pathlib, sys
 calls = pathlib.Path(sys.argv[1]).read_text(encoding='utf-8').splitlines()
@@ -237,16 +261,24 @@ classifier_call = next(i for i, row in enumerate(calls) if 'am instrument -w -r 
 force_stop_call = next(i for i, row in enumerate(calls) if 'am force-stop com.yujian.ai.uiv2' in row)
 reveal_call = next(i for i, row in enumerate(calls) if 'am instrument -w -r -e class com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal' in row)
 auto_call = next(i for i, row in enumerate(calls) if 'am instrument -w -r -e class com.yujian.ai.RecognitionResultHandoffProductionNavigationTest#hostedApi36HomePickerAutoRecognitionCompletesResultHandoff' in row)
-assert classifier_call < force_stop_call < reveal_call < auto_call, calls
+cold_calls = [next(i for i, row in enumerate(calls) if f'coldStartWaitsForRealVisionAndDecoderSessions -e source_sha ' in row and f'-e cold_start_id {index} ' in row) for index in range(1, 4)]
+perf_call = next(i for i, row in enumerate(calls) if 'am instrument -w -r -e class com.yujian.ai.FishMaskApi36PerformanceBaselineTest#tenPresetFishCacheMissesRunProductionRecognitionAndMask' in row)
+assert classifier_call < force_stop_call < reveal_call < cold_calls[0] < cold_calls[1] < cold_calls[2] < perf_call < auto_call, calls
+assert sum('am force-stop com.yujian.ai.uiv2.test' in row for row in calls) >= 6, calls
 first = json.loads(pathlib.Path(sys.argv[2]).read_text())
 second = json.loads(pathlib.Path(sys.argv[3]).read_text())
-third = json.loads(pathlib.Path(sys.argv[4]).read_text())
+third = [json.loads(pathlib.Path(path).read_text()) for path in sys.argv[4:7]]
+performance = json.loads(pathlib.Path(sys.argv[7]).read_text())
+auto = json.loads(pathlib.Path(sys.argv[8]).read_text())
 assert first['passed'] is True and first['test'].endswith('#packagedClassifierRunsWithFrozenTensorBinding'), first
 assert second['passed'] is False and second['test'].endswith('#realNightCatchHandoffDrivesTheNativeResultReveal'), second
-assert third['passed'] is False and third['test'].endswith('#hostedApi36HomePickerAutoRecognitionCompletesResultHandoff'), third
+assert all(case['passed'] is True and case['test'].endswith('#coldStartWaitsForRealVisionAndDecoderSessions') for case in third), third
+assert performance['passed'] is True and performance['test'].endswith('#tenPresetFishCacheMissesRunProductionRecognitionAndMask'), performance
+assert auto['passed'] is False and auto['test'].endswith('#hostedApi36HomePickerAutoRecognitionCompletesResultHandoff'), auto
 assert pathlib.Path(sys.argv[2]).with_name('results.xml').is_file()
 assert pathlib.Path(sys.argv[3]).with_name('results.xml').is_file()
-assert pathlib.Path(sys.argv[4]).with_name('results.xml').is_file()
+for path in sys.argv[4:]:
+    assert pathlib.Path(path).with_name('results.xml').is_file()
 PY
 
 printf '%s\n' \

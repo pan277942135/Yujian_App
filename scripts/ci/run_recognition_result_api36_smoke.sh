@@ -13,6 +13,8 @@ test_class="com.yujian.ai.RecognitionRevealProductionRuntimeTest"
 test_method="realNightCatchHandoffDrivesTheNativeResultReveal"
 test_c_class="com.yujian.ai.RecognitionResultHandoffProductionNavigationTest"
 test_c_method="hostedApi36HomePickerAutoRecognitionCompletesResultHandoff"
+test_perf_class="com.yujian.ai.FishMaskApi36PerformanceBaselineTest"
+test_perf_method="tenPresetFishCacheMissesRunProductionRecognitionAndMask"
 result_classification="INFRA_BLOCKED"
 failure_reason="SMOKE_NOT_STARTED"
 current_phase="INITIALIZATION"
@@ -25,6 +27,12 @@ test_b_passed=false
 test_b_status=-1
 test_b_timed_out=false
 test_c_passed=false
+test_perf_passed=false
+test_perf_status=-1
+test_perf_timed_out=false
+test_perf_force_stop_verified=false
+cold_start_passed_count=0
+cold_start_force_stop_verified=true
 test_a_force_stop_verified=false
 test_b_force_stop_verified=false
 adb_ready=false
@@ -43,7 +51,7 @@ post_screenshot_pull_status=not_run
 
 mkdir -p "$evidence_dir/screenshots" "$evidence_dir/business-events" \
   "$evidence_dir/test-cases/classifier" "$evidence_dir/test-cases/production-reveal" \
-  "$evidence_dir/test-cases/production-auto"
+  "$evidence_dir/test-cases/production-auto" "$evidence_dir/test-cases/fishmask-performance-baseline"
 
 enter_phase() {
   current_phase="$1"
@@ -191,8 +199,11 @@ run_instrumentation_case() {
   local class_name="$2"
   local method_name="$3"
   local case_dir="$4"
+  shift 4
+  local -a extra_args=("$@")
   local raw_log="$case_dir/instrumentation.log"
-  local start_time end_time command_pid command_status timed_out=false
+  local start_time end_time command_pid command_status timed_out=false case_timeout=1200
+  if [[ "$label" == fishmask-performance-baseline ]]; then case_timeout=2400; fi
   local had_errexit=false
   [[ "$-" == *e* ]] && had_errexit=true
   start_time="$(date -u +%Y-%m-%dT%H:%M:%S.%6NZ)"
@@ -202,8 +213,10 @@ run_instrumentation_case() {
   timeout 15s adb shell dumpsys meminfo "$test_package" > "$case_dir/test-meminfo-before.txt" 2>&1
 
   set +e
-  timeout 1200s adb shell am instrument -w -r \
+  timeout "${case_timeout}s" adb shell am instrument -w -r \
     -e class "$class_name#$method_name" \
+    -e source_sha "$source_sha" \
+    "${extra_args[@]}" \
     "$test_package/$runner" > "$raw_log" 2>&1 &
   command_pid=$!
   printf 'local_instrumentation_command_pid=%s\n' "$command_pid" > "$case_dir/local-command-pid.txt"
@@ -254,6 +267,38 @@ PY
     cat "$raw_log"
     return "$parser_status"
   fi
+}
+
+force_stop_test_processes_and_verify() {
+  local label="$1"
+  local case_dir="$2"
+  local log_file="$case_dir/$label.log"
+  local package output status stopped=false
+  mkdir -p "$case_dir"
+  : > "$log_file"
+  for package in "$app_package" "$test_package"; do
+    if timeout 30s adb shell am force-stop "$package" >> "$log_file" 2>&1; then
+      printf 'force_stop_%s=PASS\n' "$package" >> "$log_file"
+    else
+      printf 'force_stop_%s=FAIL\n' "$package" >> "$log_file"
+    fi
+  done
+  for attempt in $(seq 1 30); do
+    stopped=true
+    for package in "$app_package" "$test_package"; do
+      if output="$(timeout 10s adb shell pidof "$package" 2>>"$log_file")"; then
+        output="${output//$'\r'/}"
+        if [[ -n "$output" ]]; then stopped=false; fi
+      else
+        status=$?
+        if [[ "$status" -ne 1 ]]; then stopped=false; fi
+      fi
+    done
+    [[ "$stopped" == true ]] && break
+    sleep 1
+  done
+  printf '%s=%s\n' "$label" "$stopped" | tee "$case_dir/$label-verification.txt"
+  [[ "$stopped" == true ]]
 }
 
 pull_private_evidence() {
@@ -395,13 +440,19 @@ finish() {
     "${KVM_READY:-false}" "$validation_reason" "$slimsam_validation_reason" "$apk_dir" "$screenrecord_exit_status" \
     "$video_pull_status" "$pre_screenshot_pull_status" "$post_screenshot_pull_status" \
     "$test_a_force_stop_verified" "$test_b_force_stop_verified" \
-    "$test_a_class#$test_a_method" "$test_class#$test_method" "$test_c_class#$test_c_method" <<'PY'
+    "$test_perf_passed" "$test_perf_status" "$test_perf_timed_out" "$test_perf_force_stop_verified" \
+    "$cold_start_passed_count" "$cold_start_force_stop_verified" \
+    "$test_a_class#$test_a_method" "$test_class#$test_method" "$test_perf_class#$test_perf_method" \
+    "$test_perf_class#coldStartWaitsForRealVisionAndDecoderSessions" \
+    "$test_c_class#$test_c_method" <<'PY'
 import hashlib, json, pathlib, sys, time
 (path, evidence_root, source_sha, classification, reason, exit_code, instrument_status, timed_out,
  test_started, failure_phase, attempted, adb_ready, emulator_boot_pass, build_pass, kvm_ready,
  validation_reason, slimsam_validation_reason, apk_dir, screenrecord_exit_status, video_pull_status,
  pre_screenshot_pull_status, post_screenshot_pull_status, force_stop_verified,
- reveal_force_stop_verified, test_a_name, test_b_name, test_c_name) = sys.argv[1:]
+ reveal_force_stop_verified, test_perf_passed, test_perf_status, test_perf_timed_out,
+ perf_force_stop_verified, cold_start_passed_count, cold_start_force_stop_verified,
+ test_a_name, test_b_name, test_perf_name, test_cold_start_name, test_c_name) = sys.argv[1:]
 path = pathlib.Path(path)
 evidence_root = pathlib.Path(evidence_root)
 def load_case(name, test_name, phase):
@@ -419,6 +470,8 @@ def load_case(name, test_name, phase):
         }
 test_a = load_case('classifier', test_a_name, 'CLASSIFIER_TFLITE_RUNTIME')
 test_b = load_case('production-reveal', test_b_name, 'PRODUCTION_REVEAL_INSTRUMENTATION')
+test_perf = load_case('fishmask-performance-baseline', test_perf_name, 'FISH_MASK_PERFORMANCE_BASELINE')
+cold_starts = [load_case(f'cold-start-{index}', test_cold_start_name, 'COLD_START_SESSION_PRELOAD') for index in range(1, 4)]
 test_c = load_case('production-auto', test_c_name, 'PRODUCTION_AUTO_INSTRUMENTATION')
 def sha256_file(name):
     p = pathlib.Path(apk_dir) / name
@@ -430,8 +483,11 @@ def sha256_file(name):
             digest.update(block)
     return digest.hexdigest()
 passed = (classification == 'AUTO_SMOKE_PASS' and test_a.get('passed') is True and
-          test_b.get('passed') is True and test_c.get('passed') is True and
-          force_stop_verified == 'true' and reveal_force_stop_verified == 'true')
+          test_b.get('passed') is True and test_perf.get('passed') is True and
+          all(case.get('passed') is True for case in cold_starts) and
+          cold_start_passed_count == '3' and cold_start_force_stop_verified == 'true' and
+          test_c.get('passed') is True and force_stop_verified == 'true' and
+          reveal_force_stop_verified == 'true' and perf_force_stop_verified == 'true')
 result = {
     'source_sha': source_sha,
     'api_level_expected': 36,
@@ -448,14 +504,22 @@ result = {
     'instrumentation_cases': {
         'classifier_tensor_binding': test_a,
         'production_night_catch_reveal': test_b,
+        'cold_start_session_preload': cold_starts,
+        'fishmask_demo_performance_baseline': test_perf,
         'production_home_picker_auto': test_c,
     },
     'CLASSIFIER_TFLITE_RUNTIME_PASS': test_a.get('passed') is True,
     'PRODUCTION_REVEAL_INSTRUMENTATION_PASS': test_b.get('passed') is True,
+    'COLD_START_SESSION_PRELOAD_PASS': all(case.get('passed') is True for case in cold_starts) and cold_start_force_stop_verified == 'true',
+    'COLD_START_SESSION_PRELOAD_COMMAND_PASS_COUNT': int(cold_start_passed_count),
     'AUTO_PRODUCTION_SMOKE_PASS': test_c.get('passed') is True,
-    'API36_INSTRUMENTATION_PASS': test_a.get('passed') is True and test_b.get('passed') is True and test_c.get('passed') is True,
+    'FISHMASK_DEMO_PERFORMANCE_BASELINE_PASS': test_perf.get('passed') is True,
+    'FISHMASK_DEMO_PERFORMANCE_BASELINE_COMMAND_EXIT_CODE': int(test_perf_status),
+    'FISHMASK_DEMO_PERFORMANCE_BASELINE_TIMED_OUT': test_perf_timed_out == 'true',
+    'API36_INSTRUMENTATION_PASS': test_a.get('passed') is True and test_b.get('passed') is True and all(case.get('passed') is True for case in cold_starts) and test_perf.get('passed') is True and test_c.get('passed') is True,
     'APP_FORCE_STOP_VERIFIED_BETWEEN_TESTS': force_stop_verified == 'true',
     'APP_FORCE_STOP_VERIFIED_BETWEEN_REVEAL_AND_AUTO': reveal_force_stop_verified == 'true',
+    'APP_FORCE_STOP_VERIFIED_AFTER_PERFORMANCE_BASELINE': perf_force_stop_verified == 'true',
     'adb_ready': adb_ready == 'true',
     'emulator_boot_pass': emulator_boot_pass == 'true',
     'BUILD_PASS': build_pass == 'true',
@@ -735,6 +799,52 @@ printf 'APP_FORCE_STOP_VERIFIED_AFTER_TEST_B=%s\n' "$test_b_force_stop_verified"
   | tee "$evidence_dir/force-stop-after-reveal-verification.txt"
 adb logcat -b all -c
 
+enter_phase COLD_START_SESSION_PRELOAD COLD_START_SESSION_PRELOAD_SAMPLES_INCOMPLETE
+for cold_start_id in 1 2 3; do
+  cold_start_case="cold-start-$cold_start_id"
+  cold_start_dir="$evidence_dir/test-cases/$cold_start_case"
+  if force_stop_test_processes_and_verify "APP_AND_TEST_FORCE_STOP_BEFORE_COLD_START_$cold_start_id" "$cold_start_dir"; then
+    if run_instrumentation_case "$cold_start_case" "$test_perf_class" "coldStartWaitsForRealVisionAndDecoderSessions" \
+        "$cold_start_dir" -e cold_start_id "$cold_start_id"; then
+      cold_start_passed_count=$((cold_start_passed_count + 1))
+    fi
+  else
+    cold_start_force_stop_verified=false
+  fi
+  if ! force_stop_test_processes_and_verify "APP_AND_TEST_FORCE_STOP_AFTER_COLD_START_$cold_start_id" "$cold_start_dir"; then
+    cold_start_force_stop_verified=false
+  fi
+done
+
+enter_phase FISH_MASK_PERFORMANCE_BASELINE FISH_MASK_PERFORMANCE_BASELINE_DID_NOT_COMPLETE
+if run_instrumentation_case fishmask-performance-baseline "$test_perf_class" "$test_perf_method" \
+    "$evidence_dir/test-cases/fishmask-performance-baseline"; then
+  test_perf_passed=true
+  test_perf_status=0
+else
+  test_perf_status=$?
+fi
+if [[ "$test_perf_status" -eq 124 || "$test_perf_status" -eq 137 ]]; then
+  test_perf_timed_out=true
+fi
+
+enter_phase BETWEEN_PERFORMANCE_BASELINE_AND_AUTO APP_FORCE_STOP_AFTER_PERFORMANCE_BASELINE_NOT_VERIFIED
+if timeout 30s adb shell am force-stop "$app_package" > "$evidence_dir/force-stop-after-performance-baseline.log" 2>&1; then
+  for attempt in $(seq 1 30); do
+    if app_pid_after_performance="$(timeout 10s adb shell pidof "$app_package" 2>/dev/null)"; then
+      app_pid_after_performance="${app_pid_after_performance//$'\r'/}"
+      if [[ -n "$app_pid_after_performance" ]]; then sleep 1; else test_perf_force_stop_verified=true; break; fi
+    else
+      pidof_status=$?
+      if [[ "$pidof_status" -eq 1 ]]; then test_perf_force_stop_verified=true; fi
+      break
+    fi
+  done
+fi
+printf 'APP_FORCE_STOP_VERIFIED_AFTER_PERFORMANCE_BASELINE=%s\n' "$test_perf_force_stop_verified" \
+  | tee "$evidence_dir/force-stop-after-performance-baseline-verification.txt"
+adb logcat -b all -c
+
 enter_phase PRODUCTION_AUTO_INSTRUMENTATION PRODUCTION_AUTO_TEST_DID_NOT_COMPLETE
 if run_instrumentation_case production_auto "$test_c_class" "$test_c_method" \
     "$evidence_dir/test-cases/production-auto"; then
@@ -853,6 +963,24 @@ elif [[ "$test_b_force_stop_verified" != true ]]; then
   result_classification="INFRA_BLOCKED"
   failure_reason="APP_FORCE_STOP_BETWEEN_REVEAL_AND_AUTO_NOT_VERIFIED"
   failure_phase="BETWEEN_REVEAL_AND_AUTO"
+elif [[ "$cold_start_passed_count" -ne 3 ]]; then
+  result_classification="PERFORMANCE_BASELINE_FAILED"
+  failure_reason="COLD_START_SESSION_PRELOAD_SAMPLES_INCOMPLETE:$cold_start_passed_count/3"
+  failure_phase="COLD_START_SESSION_PRELOAD"
+elif [[ "$cold_start_force_stop_verified" != true ]]; then
+  result_classification="INFRA_BLOCKED"
+  failure_reason="COLD_START_PROCESS_TERMINATION_NOT_VERIFIED"
+  failure_phase="COLD_START_SESSION_PRELOAD"
+elif [[ "$test_perf_passed" != true ]]; then
+  result_classification="PERFORMANCE_BASELINE_FAILED"
+  test_perf_reason="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("reason", "RESULT_INVALID"))' \
+    "$evidence_dir/test-cases/fishmask-performance-baseline/result.json" 2>/dev/null || printf '%s' 'FISHMASK_PERFORMANCE_BASELINE_RESULT_MISSING')"
+  failure_reason="FISH_MASK_PERFORMANCE_BASELINE_FAILED:$test_perf_reason"
+  failure_phase="FISH_MASK_PERFORMANCE_BASELINE"
+elif [[ "$test_perf_force_stop_verified" != true ]]; then
+  result_classification="INFRA_BLOCKED"
+  failure_reason="APP_FORCE_STOP_AFTER_PERFORMANCE_BASELINE_NOT_VERIFIED"
+  failure_phase="BETWEEN_PERFORMANCE_BASELINE_AND_AUTO"
 elif [[ "$test_c_passed" != true ]]; then
   result_classification="BUSINESS_LOGIC_FAILURE"
   test_c_reason="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("reason", "RESULT_INVALID"))' \

@@ -1,0 +1,7 @@
+{
+  "repository": "18694061757-ctrl/Fish-Mask-Gold-Contour-Lab-Demo",
+  "commit": "bdb26d96f7dca27e43adfad665feee9cab555ccf",
+  "fixture_manifest": "fish-fixtures-manifest.json",
+  "use": "API36 performance baseline and four-photo regression inputs",
+  "production_outputs": false
+}

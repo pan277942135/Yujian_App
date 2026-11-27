@@ -1504,29 +1504,49 @@ class RecognitionRevealProductionRuntimeTest {
         captureMemory: (String) -> Unit,
     ) = runBlocking {
         val fixtures = listOf(
-            testContext to "recognition_real_catch_fixture.jpg",
-            targetContext to "test_catches/test_fish_01_catfish.jpg",
-            targetContext to "test_catches/test_fish_02_yellow_catfish.jpg",
-            targetContext to "test_catches/test_fish_03_mandarin_fish.jpg",
-            targetContext to "test_catches/test_fish_04_mandarin_perch.jpg",
-        )
+            "preset_fish.jpg",
+            "preset_catfish.jpg",
+            "preset_snakehead.jpg",
+            "fish_crop.jpg",
+        ).map { "performance/fishmask-demo/$it" }
+        val fixtureManifest = JSONObject(
+            testContext.assets.open("performance/fishmask-demo/fish-fixtures-manifest.json")
+                .bufferedReader().use { it.readText() },
+        ).getJSONArray("fixtures")
         val photoHashes = mutableSetOf<String>()
-        fixtures.forEachIndexed { index, (assetContext, assetName) ->
-            val bytes = assetContext.assets.open(assetName).use { it.readBytes() }
-            val photoSha = bytes.sha256()
-            assertTrue("five-photo instrumentation must use five distinct source images", photoHashes.add(photoSha))
-            val bitmap = requireNotNull(BitmapFactory.decodeByteArray(bytes, 0, bytes.size)) {
-                "could not decode sequential photo fixture $assetName"
-            }
-            val imageId = "slimsam-sequential-${index + 1}-$photoSha"
+        fixtures.forEachIndexed { index, assetName ->
+            val bytes = testContext.assets.open(assetName).use { it.readBytes() }
+            val sourceSha = bytes.sha256()
+            val fixtureId = assetName.substringAfterLast('/').removeSuffix(".jpg")
+            val fixtureSpec = (0 until fixtureManifest.length())
+                .map { fixtureManifest.getJSONObject(it) }
+                .first { it.getString("id") == fixtureId }
+            assertEquals("Demo fixture source SHA mismatch: $assetName", fixtureSpec.getString("sha256"), sourceSha)
+            assertEquals("Demo fixture byte size mismatch: $assetName", fixtureSpec.getLong("size_bytes"), bytes.size.toLong())
+            assertTrue("four-photo regression must use four distinct source images", photoHashes.add(sourceSha))
+            val selected = RecognitionImageStore.normalizeAsset(
+                testContext,
+                targetContext,
+                assetName,
+                "api36_fishmask_demo_regression",
+            )
+            val photoSha = selected.photoSha256
+            val photoIdentity = requireNotNull(selected.photoIdentity)
+            assertEquals("normalized PhotoIdentity must retain Demo source SHA", sourceSha, photoIdentity.sourceBytesSha256)
+            assertEquals("Demo photo must be EXIF normalized", ExifInterface.ORIENTATION_NORMAL, selected.sourceExifOrientation)
+            assertEquals("PhotoIdentity must match selected canonical SHA", photoSha, photoIdentity.canonicalPixelSha256)
+            assertEquals("canonical pixel SHA must match normalized Bitmap", photoSha, CanonicalPhotoPixelsV1.sha256(selected.bitmap.width, selected.bitmap.height) { row, pixels ->
+                selected.bitmap.getPixels(pixels, 0, selected.bitmap.width, 0, row, selected.bitmap.width, 1)
+            })
+            val bitmap = selected.bitmap
+            val imageId = selected.imageId
             val attemptId = "slimsam-sequential-attempt-${index + 1}"
-            val identity = RecognitionModelIdentity(SESSION_ID, attemptId, imageId, photoSha)
-            val selected = SelectedImage(
-                filePath = assetName,
-                bitmap = bitmap,
-                source = "androidTest_sequential_fish_photo",
-                imageId = imageId,
-                photoSha256 = photoSha,
+            val identity = RecognitionModelIdentity(
+                SESSION_ID,
+                attemptId,
+                imageId,
+                photoSha,
+                photoIdentity,
             )
             val pipelineDiagnostics = Collections.synchronizedList(mutableListOf<JSONObject>())
             val startedNs = SystemClock.elapsedRealtimeNanos()
@@ -1566,6 +1586,7 @@ class RecognitionRevealProductionRuntimeTest {
                     .put("asset", assetName)
                     .put("image_id", imageId)
                     .put("photo_sha256", photoSha)
+                    .put("source_bytes_sha256", sourceSha)
                     .put("width", bitmap.width)
                     .put("height", bitmap.height)
                     .put("recognition_status", recognition.status.name)
@@ -1615,10 +1636,11 @@ class RecognitionRevealProductionRuntimeTest {
                 captureMemory("AFTER_DISTINCT_PHOTO_${index + 1}")
             } finally {
                 pipeline.close()
+                File(selected.filePath).delete()
                 if (!bitmap.isRecycled) bitmap.recycle()
             }
         }
-        assertEquals("five distinct real photos must complete", 5, reportSink.size)
+        assertEquals("all four pinned Demo photos must complete", 4, reportSink.size)
     }
 
     private fun runCancelledPhotoReplacement(

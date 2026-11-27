@@ -1,0 +1,50 @@
+{
+  "source_repo": "https://github.com/18694061757-ctrl/Fish-Mask-Gold-Contour-Lab",
+  "source_commit": "a790f145620ab32f96fe525bc38dd902653bd960",
+  "fixtures": [
+    {
+      "id": "preset_fish",
+      "filename": "preset_fish.jpg",
+      "resource_path": "app/src/test/resources/preset_fish.jpg",
+      "source_path": "public/preset_fish.jpg",
+      "size_bytes": 341162,
+      "sha256": "4f0bda4d423239352ccc6f453ec7c02349203929e9ffde15cb547c6572bb7933",
+      "width": 1152,
+      "height": 1536,
+      "exif_orientation": 1
+    },
+    {
+      "id": "preset_catfish",
+      "filename": "preset_catfish.jpg",
+      "resource_path": "app/src/test/resources/preset_catfish.jpg",
+      "source_path": "public/preset_catfish.jpg",
+      "size_bytes": 469651,
+      "sha256": "386bb6ac75cade6043c7b2a3cb965d779c7ca96efe703db9d1120a097d8ed763",
+      "width": 1279,
+      "height": 1706,
+      "exif_orientation": 1
+    },
+    {
+      "id": "preset_snakehead",
+      "filename": "preset_snakehead.jpg",
+      "resource_path": "app/src/test/resources/preset_snakehead.jpg",
+      "source_path": "public/preset_snakehead.jpg",
+      "size_bytes": 1463553,
+      "sha256": "b24ab3a0841ed437369b5c893d1e08dab7d05fa3ca1f56333367a60ff99d2269",
+      "width": 1440,
+      "height": 1920,
+      "exif_orientation": 1
+    },
+    {
+      "id": "fish_crop",
+      "filename": "fish_crop.jpg",
+      "resource_path": "app/src/test/resources/fish_crop.jpg",
+      "source_path": "public/fish_crop.jpg",
+      "size_bytes": 53643,
+      "sha256": "fb4470a4ec1e330c312adc7c13220b75e80a1891ce612dc424df553ad635cf6a",
+      "width": 400,
+      "height": 1100,
+      "exif_orientation": 1
+    }
+  ]
+}
