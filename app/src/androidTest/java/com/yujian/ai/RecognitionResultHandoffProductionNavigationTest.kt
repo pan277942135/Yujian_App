@@ -1,10 +1,14 @@
 package com.yujian.ai
 
 import android.content.ContentValues
+import android.content.ComponentName
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
 import android.provider.MediaStore
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.exifinterface.media.ExifInterface
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -21,11 +25,24 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import java.io.ByteArrayInputStream
 import java.security.MessageDigest
 
 /** Drives the installed production app from Home through the system picker and Result route. */
 @RunWith(AndroidJUnit4::class)
 class RecognitionResultHandoffProductionNavigationTest {
+    private data class ExpectedPhotoIdentity(
+        val sourceBytesSha256: String,
+        val canonicalPixelSha256: String,
+        val sourceExifOrientationRaw: String?,
+        val sourceExifOrientation: Int,
+        val sourceOrientationDegreesApplied: Int,
+        val normalizationVersion: String,
+        val photoContentVersion: Long,
+        val width: Int,
+        val height: Int,
+    )
+
     private var seededPhotoUri: Uri? = null
 
     @After
@@ -60,19 +77,36 @@ class RecognitionResultHandoffProductionNavigationTest {
         val displayName = "yujian-v3-${SystemClock.uptimeMillis()}.jpg"
         val photoUri = publishPhoto(targetContext, sourceBytes, displayName)
         seededPhotoUri = photoUri
-        val expectedSelectedSha256 = runCatching {
-            val normalized = kotlinx.coroutines.runBlocking {
-                RecognitionImageStore.normalize(targetContext, photoUri, "gallery")
-            }
-            try {
-                normalized.photoSha256
-            } finally {
-                File(normalized.filePath).delete()
-                normalized.bitmap.recycle()
+        val expectedPhotoIdentity = runCatching {
+            kotlinx.coroutines.runBlocking {
+                val normalized = RecognitionImageStore.normalize(targetContext, photoUri, "gallery")
+                try {
+                    val identity = requireNotNull(normalized.photoIdentity)
+                    ExpectedPhotoIdentity(
+                        sourceBytesSha256 = identity.sourceBytesSha256,
+                        canonicalPixelSha256 = identity.canonicalPixelSha256,
+                        sourceExifOrientationRaw = normalized.sourceExifOrientationRaw,
+                        sourceExifOrientation = identity.sourceOrientation,
+                        sourceOrientationDegreesApplied = normalized.sourceOrientationDegrees,
+                        normalizationVersion = identity.normalizationVersion,
+                        photoContentVersion = identity.photoContentVersion,
+                        width = identity.width,
+                        height = identity.height,
+                    )
+                } finally {
+                    File(normalized.filePath).delete()
+                    normalized.bitmap.recycle()
+                }
             }
         }.getOrElse { error ->
             throw AssertionError("Seeded production photo could not be normalized: ${error.message}", error)
         }
+
+        val pickerRequest = PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        val pickerIntent = ActivityResultContracts.PickVisualMedia().createIntent(targetContext, pickerRequest)
+        val resolvedPicker = targetContext.packageManager.resolveActivity(pickerIntent, 0)?.activityInfo
+            ?: throw AssertionError("Production PickVisualMedia intent has no resolved system activity: $pickerIntent")
+        val resolvedPickerComponent = ComponentName(resolvedPicker.packageName, resolvedPicker.name)
 
         val launchIntent = android.content.Intent(targetContext, MainActivity::class.java).apply {
             addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -93,10 +127,33 @@ class RecognitionResultHandoffProductionNavigationTest {
                 requireNotNull(device.findObject(By.desc("从相册选择"))).click()
             }
 
-            assertTrue("System photo picker did not open", waitFor(device, 30_000L) {
-                pickerPackages().any { pkg -> device.findObject(By.pkg(pkg)) != null }
-            })
-            selectNewestPhoto(device, displayName)
+            val pickerOpened = waitFor(device, 30_000L) {
+                device.findObjects(By.pkg(resolvedPicker.packageName)).isNotEmpty()
+            }
+            val pickerActivityDump = device.executeShellCommand("dumpsys activity activities")
+            File(evidenceDir, "picker_activity_dump.txt").writeText(pickerActivityDump)
+            if (!pickerOpened) {
+                val hierarchy = File(evidenceDir, "picker_hierarchy.xml")
+                device.dumpWindowHierarchy(hierarchy)
+                throw AssertionError(
+                    "Resolved photo picker did not become visible; expected=$resolvedPickerComponent " +
+                        "currentPackage=${device.currentPackageName}; action=${pickerIntent.action}; " +
+                        "hierarchy=${hierarchy.name}",
+                )
+            }
+            val resumedPicker = requireNotNull(resumedActivityComponent(pickerActivityDump)) {
+                "Unable to identify a resumed system activity from dumpsys; expected=$resolvedPickerComponent"
+            }
+            assertEquals(
+                "The actual resumed system picker differs from the ActivityResultContract resolution",
+                resolvedPickerComponent,
+                resumedPicker,
+            )
+            assertTrue(
+                "The resumed picker activity dump does not carry the contract action ${pickerIntent.action}",
+                pickerActivityDump.contains("act=${pickerIntent.action}"),
+            )
+            selectNewestPhoto(device, displayName, resolvedPicker.packageName)
 
             assertTrue("Production Processing page did not display the selected photo", waitFor(device, 60_000L) {
                 device.findObject(By.desc("正在识别的鱼获照片")) != null
@@ -124,7 +181,27 @@ class RecognitionResultHandoffProductionNavigationTest {
             val evidenceRoot = qualificationFile.parentFile ?: error("app evidence folder missing")
             val runtimeMatrix = JSONObject(File(evidenceRoot, "runtime_matrix.json").readText())
             val runtimeIdentity = runtimeMatrix.getJSONObject("identity")
-            assertEquals(expectedSelectedSha256, runtimeIdentity.getString("photoSha256"))
+            assertEquals(expectedPhotoIdentity.canonicalPixelSha256, runtimeIdentity.getString("photoSha256"))
+            assertEquals(expectedPhotoIdentity.sourceBytesSha256, runtimeIdentity.getString("sourceBytesSha256"))
+            assertEquals(expectedPhotoIdentity.canonicalPixelSha256, runtimeIdentity.getString("canonicalPixelSha256"))
+            assertTrue("App-selected PhotoIdentity must be valid", runtimeIdentity.getBoolean("photoIdentityValid"))
+            val actualRawExifOrientation = if (runtimeIdentity.isNull("sourceExifOrientationRaw")) {
+                null
+            } else {
+                runtimeIdentity.getString("sourceExifOrientationRaw")
+            }
+            assertEquals(expectedPhotoIdentity.sourceExifOrientationRaw, actualRawExifOrientation)
+            assertEquals(expectedPhotoIdentity.sourceExifOrientation, runtimeIdentity.getInt("sourceExifOrientation"))
+            assertEquals(expectedPhotoIdentity.sourceOrientationDegreesApplied,
+                runtimeIdentity.getInt("sourceOrientationDegreesApplied"))
+            assertEquals(expectedPhotoIdentity.normalizationVersion, runtimeIdentity.getString("normalizationVersion"))
+            assertEquals(expectedPhotoIdentity.photoContentVersion, runtimeIdentity.getLong("photoContentVersion"))
+            assertEquals(expectedPhotoIdentity.width, runtimeIdentity.getInt("width"))
+            assertEquals(expectedPhotoIdentity.height, runtimeIdentity.getInt("height"))
+            assertTrue("Production selection must create a recognition session",
+                runtimeIdentity.getString("recognitionSessionId").isNotBlank())
+            assertTrue("Production selection must create a recognition attempt",
+                runtimeIdentity.getString("recognitionAttemptId").isNotBlank())
             assertEquals(13, runtimeMatrix.getInt("stageCount"))
             assertEquals(6_000L, runtimeMatrix.getLong("requiredAnimationBudgetMs"))
             assertTrue(runtimeMatrix.getBoolean("stageSequencePass"))
@@ -231,6 +308,9 @@ class RecognitionResultHandoffProductionNavigationTest {
                 put("device", runtimeDevice)
                 put("sourceFixture", FIXTURE)
                 put("sourceFixtureSha256", FIXTURE_SHA256)
+                put("pickerAction", pickerIntent.action)
+                put("resolvedPickerComponent", resolvedPickerComponent.flattenToString())
+                put("resumedPickerComponent", resumedPicker.flattenToString())
                 put("selectedPhotoSha256", runtimeIdentity.getString("photoSha256"))
                 put("recognitionSessionId", runtimeIdentity.getString("recognitionSessionId"))
                 put("recognitionAttemptId", runtimeIdentity.getString("recognitionAttemptId"))
@@ -265,17 +345,14 @@ class RecognitionResultHandoffProductionNavigationTest {
         return uri
     }
 
-    private fun selectNewestPhoto(device: UiDevice, displayName: String) {
+    private fun selectNewestPhoto(device: UiDevice, displayName: String, pickerPackage: String) {
         val filenameObject = device.findObject(By.textContains(displayName))
             ?: device.findObject(By.descContains(displayName))
         if (filenameObject != null) {
             filenameObject.click()
             return
         }
-        val packages = pickerPackages()
-        val cells = packages.flatMap { pkg ->
-            device.findObjects(By.pkg(pkg).clickable(true))
-        }.filter { item ->
+        val cells = device.findObjects(By.pkg(pickerPackage).clickable(true)).filter { item ->
             val bounds = item.visibleBounds
             bounds.width() >= 180 && bounds.height() >= 180 && bounds.top >= 0
         }.sortedWith(compareBy<UiObject2>({ it.visibleBounds.top }, { it.visibleBounds.left }))
@@ -288,15 +365,18 @@ class RecognitionResultHandoffProductionNavigationTest {
         throw AssertionError("System picker exposed no selectable photo cells; hierarchy=${hierarchy.absolutePath}")
     }
 
-    private fun pickerPackages(): List<String> = listOf(
-        "com.google.android.providers.media.module",
-        "com.android.providers.media",
-        "com.google.android.documentsui",
-        "com.android.documentsui",
-        "com.huawei.photos",
-        "com.huawei.photoshare",
-        "com.huawei.filemanager",
-    )
+    private fun resumedActivityComponent(activityDump: String): ComponentName? {
+        val activityLines = activityDump.lineSequence().filter { line ->
+            line.contains("topResumedActivity") || line.contains("mResumedActivity")
+        }
+        val componentPattern = Regex("([A-Za-z0-9_.]+)/([A-Za-z0-9_.$]+)")
+        return activityLines.mapNotNull { line ->
+            val match = componentPattern.find(line) ?: return@mapNotNull null
+            val packageName = match.groupValues[1]
+            val className = match.groupValues[2].let { if (it.startsWith('.')) packageName + it else it }
+            ComponentName(packageName, className)
+        }.firstOrNull()
+    }
 
     private fun waitFor(device: UiDevice, timeoutMs: Long, condition: () -> Boolean): Boolean {
         val deadline = SystemClock.elapsedRealtime() + timeoutMs

@@ -4,6 +4,7 @@ import com.yujian.ai.ai.subject.allocateSlimSamPixelBuffer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.nio.ByteBuffer
@@ -54,6 +55,41 @@ class RecognitionModelExecutionReceiptTest {
         val updatedHash = RecognitionTensorContentHash.sha256(bytes)
         assertNotEquals(directHash, updatedHash)
         assertEquals(RecognitionTensorContentHash.sha256(floats), updatedHash)
+    }
+
+    @Test fun finiteValidationAndHashMatchCanonicalHashWithoutChangingPosition() {
+        val buffer = ByteBuffer.allocateDirect(16).order(ByteOrder.LITTLE_ENDIAN)
+            .putFloat(1.25f)
+            .putFloat(-2.5f)
+            .putFloat(0f)
+            .putFloat(Float.MAX_VALUE)
+        buffer.flip()
+        val floats = buffer.asFloatBuffer()
+        floats.position(1)
+        val originalPosition = floats.position()
+
+        val combinedHash = RecognitionTensorContentHash.sha256AndRequireFinite(
+            floats,
+            "non-finite test tensor",
+        )
+
+        assertEquals(RecognitionTensorContentHash.sha256(floats), combinedHash)
+        assertEquals(originalPosition, floats.position())
+    }
+
+    @Test fun finiteValidationRejectsNanAndInfinity() {
+        listOf(Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY).forEach { invalid ->
+            val buffer = ByteBuffer.allocateDirect(Float.SIZE_BYTES).order(ByteOrder.LITTLE_ENDIAN)
+                .putFloat(invalid)
+                .apply { flip() }
+                .asFloatBuffer()
+
+            val error = assertThrows(IllegalArgumentException::class.java) {
+                RecognitionTensorContentHash.sha256AndRequireFinite(buffer, "tensor contains a non-finite value")
+            }
+            assertEquals("tensor contains a non-finite value", error.message)
+            assertEquals(0, buffer.position())
+        }
     }
 
     private fun receipt(

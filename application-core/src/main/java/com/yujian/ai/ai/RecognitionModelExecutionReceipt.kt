@@ -100,6 +100,24 @@ internal object RecognitionTensorContentHash {
         return digest.digest().toHex()
     }
 
+    /** Validates finite output values and hashes their canonical bytes in one bounded pass. */
+    fun sha256AndRequireFinite(buffer: FloatBuffer, failureMessage: String): String {
+        require(failureMessage.isNotBlank())
+        val digest = MessageDigest.getInstance("SHA-256")
+        val copy = buffer.asReadOnlyBuffer()
+        val bytes = ByteBuffer.allocate(64 * 1024).order(ByteOrder.LITTLE_ENDIAN)
+        while (copy.hasRemaining()) {
+            bytes.clear()
+            while (copy.hasRemaining() && bytes.remaining() >= Float.SIZE_BYTES) {
+                val value = copy.get()
+                require(value.isFinite()) { failureMessage }
+                bytes.putFloat(value)
+            }
+            digest.update(bytes.array(), 0, bytes.position())
+        }
+        return digest.digest().toHex()
+    }
+
     /** Canonical little-endian signed 64-bit bytes, hashed without copying the whole tensor. */
     fun sha256(buffer: LongBuffer): String {
         val digest = MessageDigest.getInstance("SHA-256")

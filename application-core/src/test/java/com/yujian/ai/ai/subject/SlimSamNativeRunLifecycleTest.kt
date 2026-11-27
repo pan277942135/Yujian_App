@@ -27,6 +27,7 @@ class SlimSamNativeRunLifecycleTest {
             val terminateThread = AtomicReference<Thread?>()
             val terminateCalls = AtomicInteger()
             val terminateReturned = CountDownLatch(1)
+            val terminateReturnedEvent = CountDownLatch(1)
             val events = CopyOnWriteArrayList<String>()
             val controller = SlimSamNativeRunController(
                 runOptionsId = "run-options-test-1",
@@ -38,7 +39,10 @@ class SlimSamNativeRunLifecycleTest {
                     terminateCalls.incrementAndGet()
                     terminateReturned.countDown()
                 },
-                onEvent = { event, _ -> events += event },
+                onEvent = { event, _ ->
+                    events += event
+                    if (event == "NATIVE_TERMINATE_CALL_RETURNED") terminateReturnedEvent.countDown()
+                },
             )
             controller.nativeStarted()
             val job = Job()
@@ -47,6 +51,10 @@ class SlimSamNativeRunLifecycleTest {
             job.cancel(CancellationException("recognition attempt replaced"))
 
             assertTrue("setTerminate must be called", terminateReturned.await(2, TimeUnit.SECONDS))
+            assertTrue(
+                "termination return event must be observed before simulating native return",
+                terminateReturnedEvent.await(2, TimeUnit.SECONDS),
+            )
             assertEquals(1, terminateCalls.get())
             assertFalse("RunOptions control must not run on the cancelled inference caller", callerThread === terminateThread.get())
             assertTrue(controller.snapshot().terminateRequested)

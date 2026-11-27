@@ -784,18 +784,28 @@ class SlimSamSegmenter(
             require(posTensor.info.type.name == "FLOAT" && posTensor.info.shape.contentEquals(expectedEmbeddingShape)) {
                 "SLIMSAM_VISION_POSITIONAL_OUTPUT_SCHEMA_MISMATCH"
             }
-            val (embValues, posValues) = timeEncoderStage(identity, "OUTPUT_FINITE_SCAN") {
-                val embeddings = embTensor.floatBuffer
-                val positionalEmbeddings = posTensor.floatBuffer
-                require(isFiniteFloatBuffer(embeddings) && isFiniteFloatBuffer(positionalEmbeddings)) {
-                    "SLIMSAM_VISION_NON_FINITE_OUTPUT"
+            val embValues = embTensor.floatBuffer
+            val posValues = posTensor.floatBuffer
+            val outputHashes: Pair<String, String>? = if (identity != null) {
+                timeEncoderStage(identity, "OUTPUT_VALIDATE_AND_SHA256") {
+                    RecognitionTensorContentHash.sha256AndRequireFinite(
+                        embValues,
+                        "SLIMSAM_VISION_NON_FINITE_OUTPUT",
+                    ) to RecognitionTensorContentHash.sha256AndRequireFinite(
+                        posValues,
+                        "SLIMSAM_VISION_NON_FINITE_OUTPUT",
+                    )
                 }
-                embeddings to positionalEmbeddings
+            } else {
+                timeEncoderStage(identity, "OUTPUT_FINITE_SCAN") {
+                    require(isFiniteFloatBuffer(embValues) && isFiniteFloatBuffer(posValues)) {
+                        "SLIMSAM_VISION_NON_FINITE_OUTPUT"
+                    }
+                }
+                null
             }
             if (identity != null) {
-                val (embeddingHash, positionalHash) = timeEncoderStage(identity, "OUTPUT_TENSOR_SHA256") {
-                    RecognitionTensorContentHash.sha256(embValues) to RecognitionTensorContentHash.sha256(posValues)
-                }
+                val (embeddingHash, positionalHash) = requireNotNull(outputHashes)
                 listOf(
                     Triple("image_embeddings", embTensor, embeddingHash),
                     Triple("image_positional_embeddings", posTensor, positionalHash),

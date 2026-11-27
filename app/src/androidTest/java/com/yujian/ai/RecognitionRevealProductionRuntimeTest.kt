@@ -12,6 +12,7 @@ import android.content.ComponentCallbacks2
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.test.ext.junit.rules.ActivityScenarioRule
@@ -95,6 +96,66 @@ class RecognitionRevealProductionRuntimeTest {
     @Test
     fun realNightCatchHandoffDrivesTheNativeResultReveal() = runProductionRuntimeFlow()
 
+    @Test
+    fun productionProcessingDeliversTerminalPipelineFailureAndDisposesImmediately() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val targetContext = instrumentation.targetContext
+        val testContext = instrumentation.context
+        val selectedImage = runBlocking {
+            RecognitionImageStore.normalizeAsset(testContext, targetContext, SOURCE_ASSET)
+        }
+        val stopped = mutableStateOf(false)
+        val failureDelivered = CountDownLatch(1)
+        val recognitionStarted = CountDownLatch(1)
+        val processingDisposed = CountDownLatch(1)
+        val deliveredFailure = AtomicReference<Throwable?>()
+        val deliveryCount = AtomicInteger()
+        val startedAt = SystemClock.elapsedRealtime()
+
+        try {
+            activityRule.scenario.onActivity { activity ->
+                activity.setContent {
+                    YujianTheme {
+                        if (!stopped.value) {
+                            DisposableEffect(Unit) {
+                                onDispose { processingDisposed.countDown() }
+                            }
+                            RecognitionProcessingScene(
+                                image = selectedImage,
+                                onBack = {},
+                                recognize = {
+                                    recognitionStarted.countDown()
+                                    throw IllegalStateException("instrumentation-terminal-failure")
+                                },
+                                onFinished = { error("A terminal recognition failure reached onFinished") },
+                                onFailure = { failure ->
+                                    deliveredFailure.set(failure)
+                                    deliveryCount.incrementAndGet()
+                                    stopped.value = true
+                                    failureDelivered.countDown()
+                                },
+                                recognitionSessionId = "terminal-failure-session",
+                                recognitionAttemptId = "terminal-failure-attempt",
+                            )
+                        }
+                    }
+                }
+            }
+
+            assertTrue("Production recognize callback did not start", recognitionStarted.await(5, TimeUnit.SECONDS))
+            assertTrue("Production terminal failure was not delivered promptly", failureDelivered.await(5, TimeUnit.SECONDS))
+            assertTrue("Processing composable was not disposed after terminal failure",
+                processingDisposed.await(5, TimeUnit.SECONDS))
+            assertEquals("instrumentation-terminal-failure", deliveredFailure.get()?.message)
+            assertEquals("terminal failure must be delivered exactly once", 1, deliveryCount.get())
+            assertTrue("terminal error-to-dispose path exceeded 5s",
+                SystemClock.elapsedRealtime() - startedAt < 5_000L)
+        } finally {
+            File(selectedImage.filePath).delete()
+            selectedImage.bitmap.recycle()
+        }
+    }
+
     /** Keep the large orchestration body out of a single generated coroutine state machine. */
     private fun runProductionRuntimeFlow() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -154,6 +215,7 @@ class RecognitionRevealProductionRuntimeTest {
         val handoffState = mutableStateOf<RecognitionRevealHandoff?>(null)
         val resultState = mutableStateOf<ProductionRecognitionResult?>(null)
         val showResult = mutableStateOf(false)
+        val processingStopped = mutableStateOf(false)
         val resultSceneFrame = mutableStateOf<com.yujian.ai.ui.waterlight.core.RecognitionSceneFrame?>(null)
         val geometryResolution = AtomicReference<RecognitionRevealGeometryResolution?>()
         val resultEntries = AtomicInteger(0)
@@ -163,6 +225,8 @@ class RecognitionRevealProductionRuntimeTest {
         val pathBoundUptimeMs = AtomicReference<Long?>()
         val automaticHandoff = AtomicReference<RecognitionRevealHandoff?>()
         val handoffFailure = AtomicReference<String?>()
+        val terminalRecognitionFailure = AtomicReference<Throwable?>()
+        val terminalRecognitionFailureUptimeMs = AtomicReference<Long?>()
         val processingCaptureFailure = AtomicReference<String?>()
         val processingCaptureStarted = AtomicBoolean(false)
         val rr09Evidence = File(evidence, "shared-stage-reveal").apply { mkdirs() }
@@ -331,7 +395,7 @@ class RecognitionRevealProductionRuntimeTest {
         activityRule.scenario.onActivity { activity ->
             activity.setContent {
                 YujianTheme {
-                    if (!showResult.value) {
+                    if (!showResult.value && !processingStopped.value) {
                         RecognitionProcessingScene(
                             image = selectedImage,
                             onBack = {},
@@ -494,6 +558,11 @@ class RecognitionRevealProductionRuntimeTest {
                                     showResult.value = true
                                 }
                             },
+                            onFailure = { error ->
+                                terminalRecognitionFailure.compareAndSet(null, error)
+                                terminalRecognitionFailureUptimeMs.compareAndSet(null, SystemClock.uptimeMillis())
+                                processingStopped.value = true
+                            },
                             recognitionSessionId = SESSION_ID,
                             recognitionAttemptId = ATTEMPT_ID,
                             diagnosticPlaybackController = sceneController,
@@ -623,9 +692,25 @@ class RecognitionRevealProductionRuntimeTest {
 
         try {
             assertTrue(
-                "production Processing did not automatically complete its SessionStore gate: ${handoffFailure.get()}",
-                waitUntil(210_000L) { automaticHandoff.get() != null || handoffFailure.get() != null },
+                "production Processing neither completed nor delivered a terminal failure: ${handoffFailure.get()}",
+                waitUntil(210_000L) {
+                    automaticHandoff.get() != null || handoffFailure.get() != null || terminalRecognitionFailure.get() != null
+                },
             )
+            terminalRecognitionFailure.get()?.let { failure ->
+                evidence.resolve("processing_terminal_failure.json").writeText(
+                    JSONObject()
+                        .put("recognitionSessionId", SESSION_ID)
+                        .put("attemptId", ATTEMPT_ID)
+                        .put("imageId", selectedImage.imageId)
+                        .put("failureClass", failure.javaClass.name)
+                        .put("failureMessage", failure.message ?: JSONObject.NULL)
+                        .put("failureUptimeMs", terminalRecognitionFailureUptimeMs.get() ?: JSONObject.NULL)
+                        .put("lastPipelinePhase", pipelineStageEvents.lastOrNull()?.optString("phase") ?: JSONObject.NULL)
+                        .toString(2) + "\n",
+                )
+                throw AssertionError("Production Processing delivered a terminal failure and stopped: ${failure.message}", failure)
+            }
             assertNull("automatic Production → Result handoff was rejected", handoffFailure.get())
             val result = requireNotNull(actualResult.get())
             val prediction = requireNotNull(result.prediction)
