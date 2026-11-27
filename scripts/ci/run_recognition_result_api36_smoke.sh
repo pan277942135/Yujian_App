@@ -48,6 +48,7 @@ screenrecord_exit_status=not_started
 video_pull_status=not_run
 pre_screenshot_pull_status=not_run
 post_screenshot_pull_status=not_run
+private_evidence_pull_failed=false
 
 mkdir -p "$evidence_dir/screenshots" "$evidence_dir/business-events" \
   "$evidence_dir/test-cases/classifier" "$evidence_dir/test-cases/production-reveal" \
@@ -58,6 +59,23 @@ enter_phase() {
   phase_pending_failure_reason="$2"
   failure_reason="$phase_pending_failure_reason"
   failure_phase="$current_phase"
+}
+
+record_unhandled_shell_failure() {
+  local status="$1"
+  local command="$2"
+  local line="$3"
+  [[ "$-" == *e* ]] || return 0
+  local command_repr
+  trap - ERR
+  printf -v command_repr '%q' "$command"
+  printf 'phase=%s line=%s status=%s command=%s\n' \
+    "$current_phase" "$line" "$status" "$command_repr" \
+    >> "$evidence_dir/unhandled-command-failure.log"
+  if [[ "$failure_reason" == "$phase_pending_failure_reason" ]]; then
+    failure_reason="UNHANDLED_SHELL_COMMAND_FAILURE:line=$line:status=$status"
+    failure_phase="$current_phase"
+  fi
 }
 
 run_optional_diagnostic() {
@@ -304,29 +322,67 @@ force_stop_test_processes_and_verify() {
 pull_private_evidence() {
   [[ "$adb_ready" == true ]] || return 0
   local cache_root="$evidence_dir/business-events"
-  adb exec-out run-as "$app_package" tar -C cache -cf - rr09-gold-transfer-production \
-    > "$cache_root/production-test-cache.tar" 2> "$cache_root/production-test-cache-pull.log"
-  if [[ -s "$cache_root/production-test-cache.tar" ]]; then
-    tar -xf "$cache_root/production-test-cache.tar" -C "$cache_root" >> "$cache_root/production-test-cache-pull.log" 2>&1
-    rm -f "$cache_root/production-test-cache.tar"
-  fi
-  adb exec-out run-as "$app_package" tar -C cache -cf - recognition-runtime-result-handoff \
-    > "$cache_root/production-runtime-evidence.tar" 2> "$cache_root/production-runtime-evidence-pull.log"
-  if [[ -s "$cache_root/production-runtime-evidence.tar" ]]; then
-    tar -xf "$cache_root/production-runtime-evidence.tar" -C "$cache_root" >> "$cache_root/production-runtime-evidence-pull.log" 2>&1
-    rm -f "$cache_root/production-runtime-evidence.tar"
-  fi
-  adb exec-out run-as "$app_package" tar -C cache -cf - YuJian_SlimSAM_Preload_Evidence \
-    > "$cache_root/slimsam-preload-evidence.tar" 2> "$cache_root/slimsam-preload-evidence-pull.log"
-  if [[ -s "$cache_root/slimsam-preload-evidence.tar" ]]; then
-    tar -xf "$cache_root/slimsam-preload-evidence.tar" -C "$cache_root" >> "$cache_root/slimsam-preload-evidence-pull.log" 2>&1
-    rm -f "$cache_root/slimsam-preload-evidence.tar"
-  fi
+  local status_file="$evidence_dir/private-evidence-pull-status.txt"
+  local remote_dir archive log_file pull_status extract_status
+  mkdir -p "$cache_root"
+  for remote_dir in \
+      rr09-gold-transfer-production \
+      recognition-runtime-result-handoff \
+      YuJian_SlimSAM_Preload_Evidence; do
+    case "$remote_dir" in
+      rr09-gold-transfer-production)
+        archive="$cache_root/production-test-cache.tar"
+        log_file="$cache_root/production-test-cache-pull.log"
+        ;;
+      recognition-runtime-result-handoff)
+        archive="$cache_root/production-runtime-evidence.tar"
+        log_file="$cache_root/production-runtime-evidence-pull.log"
+        ;;
+      YuJian_SlimSAM_Preload_Evidence)
+        archive="$cache_root/slimsam-preload-evidence.tar"
+        log_file="$cache_root/slimsam-preload-evidence-pull.log"
+        ;;
+    esac
+
+    if adb exec-out run-as "$app_package" tar -C cache -cf - "$remote_dir" \
+        > "$archive" 2> "$log_file"; then
+      pull_status=0
+    else
+      pull_status=$?
+    fi
+    if [[ "$pull_status" -ne 0 ]]; then
+      private_evidence_pull_failed=true
+      printf 'dataset=%s action=adb_exec_out status=%s\n' "$remote_dir" "$pull_status" \
+        >> "$status_file"
+      rm -f "$archive" || true
+      continue
+    fi
+    if [[ ! -s "$archive" ]]; then
+      private_evidence_pull_failed=true
+      printf 'dataset=%s action=adb_exec_out status=0 result=EMPTY_ARCHIVE\n' "$remote_dir" \
+        >> "$status_file"
+      continue
+    fi
+    if tar -xf "$archive" -C "$cache_root" >> "$log_file" 2>&1; then
+      extract_status=0
+    else
+      extract_status=$?
+    fi
+    rm -f "$archive" || true
+    if [[ "$extract_status" -ne 0 ]]; then
+      private_evidence_pull_failed=true
+      printf 'dataset=%s action=tar_extract status=%s\n' "$remote_dir" "$extract_status" \
+        >> "$status_file"
+    else
+      printf 'dataset=%s action=complete status=0\n' "$remote_dir" >> "$status_file"
+    fi
+  done
 }
 
 finish() {
   local rc=$?
   trap - EXIT
+  trap - ERR
   set +e
   if [[ "$rc" -ne 0 && "$failure_reason" == "SMOKE_NOT_STARTED" ]]; then
     failure_reason="$phase_pending_failure_reason"
@@ -673,7 +729,8 @@ set +e
 timeout 60s adb shell am start -W -n "$app_package/com.yujian.ai.MainActivity" \
   > "$evidence_dir/app-startup.txt" 2>&1
 app_start_status=$?
-set -e
+set -eE
+trap 'record_unhandled_shell_failure "$?" "$BASH_COMMAND" "$LINENO"' ERR
 if [[ "$app_start_status" -ne 0 ]] || ! grep -Fq 'Status: ok' "$evidence_dir/app-startup.txt"; then
   result_classification="BUSINESS_LOGIC_FAILURE"
   failure_reason="APP_STARTUP_FAILED:status=$app_start_status"
@@ -908,7 +965,7 @@ else
   validation_output="$(python3 scripts/ci/validate_recognition_result_api36_smoke.py "${validator_args[@]}" 2>&1)"
   validation_status=$?
 fi
-set -e
+set -eE
 printf '%s\n' "$validation_output" | tee "$evidence_dir/business-integrity-report.json"
 validation_reason="$(python3 -c 'import json,sys; print(json.loads(sys.stdin.read()).get("reason", "VALIDATOR_OUTPUT_INVALID"))' <<< "$validation_output" 2>/dev/null || printf '%s' 'VALIDATOR_OUTPUT_INVALID')"
 
@@ -917,7 +974,7 @@ enter_phase SLIMSAM_VALIDATION SLIMSAM_EVIDENCE_VALIDATION_DID_NOT_COMPLETE
 set +e
 slimsam_validation_output="$(python3 scripts/ci/validate_slimsam_preload_evidence.py --evidence-dir "$slimsam_evidence_dir" 2>&1)"
 slimsam_validation_status=$?
-set -e
+set -eE
 if [[ "$test_b_passed" != true ]] && grep -Fq '"REQUIRED_SLIMSAM_EVIDENCE_MISSING"' <<< "$slimsam_validation_output"; then
   slimsam_validation_output='{"passed": false, "reason": "UPSTREAM_RUNTIME_NOT_REACHED"}'
 fi
@@ -987,6 +1044,10 @@ elif [[ "$test_c_passed" != true ]]; then
     "$evidence_dir/test-cases/production-auto/result.json" 2>/dev/null || printf '%s' 'PRODUCTION_AUTO_TEST_RESULT_MISSING')"
   failure_reason="PRODUCTION_HOME_PICKER_AUTO_INSTRUMENTATION_FAILED:$test_c_reason"
   failure_phase="PRODUCTION_AUTO_INSTRUMENTATION"
+elif [[ "$private_evidence_pull_failed" == true ]]; then
+  result_classification="INFRA_BLOCKED"
+  failure_reason="PRIVATE_EVIDENCE_PULL_FAILED"
+  failure_phase="BUSINESS_VALIDATION"
 elif [[ "$validation_status" -eq 0 && "$validation_reason" == "NONE" ]]; then
   result_classification="AUTO_SMOKE_PASS"
   enter_phase COMPLETE NONE

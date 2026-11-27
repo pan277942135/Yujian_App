@@ -20,6 +20,10 @@ set -u
 printf '%s\n' "$*" >> "$FAKE_ADB_CALLS"
 
 if [[ "${1:-}" == exec-out ]]; then
+  if [[ "${FAKE_EXEC_OUT_EXIT:-0}" != 0 ]]; then
+    printf 'controlled fake exec-out failure: %s\n' "$FAKE_EXEC_OUT_EXIT" >&2
+    exit "$FAKE_EXEC_OUT_EXIT"
+  fi
   exit 0
 fi
 if [[ "${1:-}" == pull ]]; then
@@ -183,6 +187,7 @@ set +e
   FAKE_APP_STARTED="$test_root/app-started" \
   FAKE_APP_STOPPED="$test_root/app-stopped" \
   FAKE_INSTRUMENTATION_INVOKED="$test_root/instrumentation-invoked" \
+  FAKE_EXEC_OUT_EXIT=2 \
   bash "$runner") > "$test_root/runner.stdout" 2>&1
 runner_status=$?
 set -e
@@ -210,6 +215,11 @@ assert_permission_diagnostic_recorded() {
 
 assert_permission_diagnostic_recorded 'emulator /proc/swaps'
 assert_permission_diagnostic_recorded 'emulator /proc/pressure/memory'
+grep -Fq 'action=adb_exec_out status=2' "$test_root/evidence/private-evidence-pull-status.txt"
+if [[ -s "$test_root/evidence/unhandled-command-failure.log" ]]; then
+  cat "$test_root/evidence/unhandled-command-failure.log" >&2
+  exit 1
+fi
 grep -Fq 'Status: ok' "$test_root/evidence/app-startup.txt"
 grep -Fq 'event=APP_FIRST_FRAME' "$test_root/evidence/logcat-live.txt"
 grep -Fq 'am instrument' "$test_root/adb-calls.log"
