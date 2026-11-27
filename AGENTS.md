@@ -23,6 +23,10 @@ Run:
 python scripts/validate_control_plane_admission.py
 ```
 
+## Mandatory progressive development and acceptance standard
+
+After resolving the canonical Control Plane and before executing Work, read `harness/CODEX_PROGRESSIVE_DEVELOPMENT_ACCEPTANCE_STANDARD_V1.md`. This is a cross-cutting execution standard referenced by the canonical registry, not a second entrypoint or competing task authority. It applies to every Work and must be synchronized from `main` to product branches through the existing Control Plane Sync and Admission process.
+
 This is the only Work admission command. It resolves the canonical Control Plane, refreshes `origin/main`, validates the six static layers, and for product branches validates branch synchronization plus live Project/Work state.
 
 ## State
