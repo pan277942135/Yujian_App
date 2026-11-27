@@ -78,7 +78,7 @@ def main():
             if not mem_total or not 3840 * 1024 <= int(mem_total[1]) <= 4096 * 1024:
                 failures.append("guest MemTotal outside 3840–4096 MiB")
             if heap_size.strip().lower() != "512m":
-                failures.append("guest dalvik.vm.heapsize")
+                failures.append(f"guest dalvik.vm.heapsize observed={heap_size.strip()!r} expected='512m'")
 
             if failures:
                 raise ValueError(", ".join(failures))

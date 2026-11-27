@@ -59,3 +59,23 @@ class Api36EmulatorSerialTest(TestCase):
                     self.assertEqual(1, main())
             finally:
                 os.chdir(before)
+
+    def test_guest_heap_mismatch_reports_observed_value(self):
+        with tempfile.TemporaryDirectory() as root:
+            avd = Path(root) / "test.avd"
+            avd.mkdir()
+            (avd / "config.ini").write_text(
+                "hw.cpu.ncore=4\nhw.ramSize=4096M\nhw.heapSize=512M\nvm.heapSize=512\n")
+            (avd / "hardware-qemu.ini").write_text("hw.ramSize=4096\n")
+            before = os.getcwd()
+            try:
+                os.chdir(root)
+                with mock.patch.dict(os.environ, {"ANDROID_SERIAL": "emulator-5554", "ANDROID_AVD_HOME": root}), mock.patch(
+                    "scripts.ci.check_api36_emulator_resources.subprocess.run",
+                    return_value=mock.Mock(stdout="4\nMemTotal: 4000000 kB\n256m\n"),
+                ):
+                    self.assertEqual(1, main())
+                    report = Path("evidence/runtime/recognition-result-api36/emulator-resources.txt").read_text()
+                    self.assertIn("observed='256m' expected='512m'", report)
+            finally:
+                os.chdir(before)
