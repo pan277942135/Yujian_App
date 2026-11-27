@@ -93,6 +93,7 @@ layers:
       recognition_runtime_gate: "scripts/run_recognition_frozen_emulator_gate.sh"
       state_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
       canonical_branch: "main"
+      progressive_execution_standard: "harness/CODEX_PROGRESSIVE_DEVELOPMENT_ACCEPTANCE_STANDARD_V1.md"
 
   "06_automatic_recovery":
     sequence: 6
@@ -104,6 +105,7 @@ layers:
       agent_bootstrap: "AGENTS.md"
       work_checkpoint: "current_work_branch:WORK_EXECUTION_STATE.json"
       canonical_branch: "main"
+      progressive_execution_standard: "harness/CODEX_PROGRESSIVE_DEVELOPMENT_ACCEPTANCE_STANDARD_V1.md"
 
 design_task_sync:
   canonical: "main"
@@ -133,6 +135,7 @@ canonical_static_control_plane:
     - "harness/UNIFIED_CONTRACT_SCHEMA_V1.md"
     - "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
     - "harness/STATE_UPDATE_PROTOCOL.md"
+    - "harness/CODEX_PROGRESSIVE_DEVELOPMENT_ACCEPTANCE_STANDARD_V1.md"
     - "harness/WORK_EXECUTION_STATE_SCHEMA_V1.json"
     - "harness/WORK_EXECUTION_STATE_TEMPLATE_V1.json"
     - "scripts/validate_project_master_state.py"
