@@ -314,6 +314,40 @@ class Api36SmokeSummaryFinalizerTest(unittest.TestCase):
         self.assertIn("CLASSIFIER_TFLITE_RUNTIME_PASS", payload["failure_reason"])
         self.assertIs(payload["AUTO_SMOKE_PASS"], False)
 
+    def test_failed_case_diagnostics_are_visible_in_summary_and_annotations(self):
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        failed_case = payload["instrumentation_cases"]["production_home_picker_auto"]
+        failed_case.update({
+            "passed": False,
+            "failure_phase": "SLIMSAM_VALIDATION",
+            "failure_reason": "SLIMSAM_RUNTIME_EVIDENCE_INVALID:ENCODER_DEADLINE_EXCEEDED",
+            "reason": "SLIMSAM_RUNTIME_EVIDENCE_INVALID:ENCODER_DEADLINE_EXCEEDED",
+            "root_cause": "SLIMSAM_TIMEOUT",
+            "exception": "EncoderInferenceTimeoutException",
+            "command_exit_code": 1,
+            "timed_out": True,
+            "relevant_log_excerpt": "encoder stage exceeded shared model deadline; attempt=abc123",
+        })
+        payload["classification"] = "BUSINESS_LOGIC_FAILURE"
+        payload["failure_reason"] = "SLIMSAM_RUNTIME_EVIDENCE_INVALID:ENCODER_DEADLINE_EXCEEDED"
+        payload["AUTO_SMOKE_PASS"] = False
+        payload["AUTO_PRODUCTION_SMOKE_PASS"] = False
+        self.result_path.write_text(json.dumps(payload), encoding="utf-8")
+
+        process = self.finalize(smoke_result="failure")
+
+        summary = self.summary_path.read_text(encoding="utf-8")
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertIn("Test C — Home picker AUTO", summary)
+        self.assertIn("SLIMSAM_VALIDATION", summary)
+        self.assertIn("ENCODER_DEADLINE_EXCEEDED", summary)
+        self.assertIn("SLIMSAM_TIMEOUT", summary)
+        self.assertIn("EncoderInferenceTimeoutException", summary)
+        self.assertIn("encoder stage exceeded shared model deadline", summary)
+        self.assertIn("::error title=API36 Test C — Home picker AUTO failed::", process.stdout)
+        self.assertIn("root_cause=SLIMSAM_TIMEOUT", process.stdout)
+        self.assertIn("ENCODER_DEADLINE_EXCEEDED", process.stdout)
+
     def test_bad_memory_input_is_reported_and_fails_closed(self):
         process = self.finalize(corrupt_host_json=True)
         payload = json.loads(self.result_path.read_text(encoding="utf-8"))

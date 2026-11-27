@@ -16,6 +16,11 @@ from typing import Any
 TEST_A = "com.yujian.ai.ClassifierRealTfliteTensorBindingTest#packagedClassifierRunsWithFrozenTensorBinding"
 TEST_B = "com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal"
 TEST_C = "com.yujian.ai.RecognitionResultHandoffProductionNavigationTest#hostedApi36HomePickerAutoRecognitionCompletesResultHandoff"
+INSTRUMENTATION_CASES = (
+    ("Test A — Classifier TFLite", "classifier_tensor_binding", TEST_A),
+    ("Test B — Production reveal", "production_night_catch_reveal", TEST_B),
+    ("Test C — Home picker AUTO", "production_home_picker_auto", TEST_C),
+)
 
 
 def _case_passes(value: Any, expected_test: str) -> bool:
@@ -55,6 +60,16 @@ def _write_hashes(evidence_dir: pathlib.Path) -> None:
     for path in sorted(p for p in evidence_dir.rglob("*") if p.is_file() and p != sums_path):
         rows.append(f"{_sha256(path)}  {path.relative_to(evidence_dir).as_posix()}")
     sums_path.write_text("\n".join(rows) + ("\n" if rows else ""), encoding="utf-8")
+
+
+def _summary_cell(value: Any, limit: int = 1200) -> str:
+    if value is None:
+        return "NOT_RECORDED"
+    text = re.sub(r"\s+", " ", str(value)).strip()
+    text = text.replace("|", "/").replace("`", "'")
+    if len(text) > limit:
+        text = text[:limit] + "…"
+    return text or "NOT_RECORDED"
 
 
 def _append_summary(summary_path: pathlib.Path, payload: dict[str, Any]) -> None:
@@ -97,13 +112,43 @@ def _append_summary(summary_path: pathlib.Path, payload: dict[str, Any]) -> None
         markdown.append(f"| `{name}` | `{safe_value}` |")
     markdown.extend([
         "",
+        "### Instrumentation case details",
+        "",
+        "| Case | Started | Completed | Passed | Failure phase | Failure reason | Root cause | Exception | Exit | Timed out | Relevant log excerpt |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | ---: | --- | --- |",
+    ])
+    cases = payload.get("instrumentation_cases")
+    if not isinstance(cases, dict):
+        cases = {}
+    for label, key, expected_test in INSTRUMENTATION_CASES:
+        case = cases.get(key)
+        if not isinstance(case, dict):
+            case = {}
+        values = (
+            label,
+            case.get("started", "NOT_RECORDED"),
+            case.get("completed", "NOT_RECORDED"),
+            case.get("passed", "NOT_RECORDED"),
+            case.get("failure_phase", "NOT_RECORDED"),
+            case.get("failure_reason", case.get("reason", "NOT_RECORDED")),
+            case.get("root_cause", "NOT_RECORDED"),
+            case.get("exception", "NOT_RECORDED"),
+            case.get("command_exit_code", "NOT_RECORDED"),
+            case.get("timed_out", "NOT_RECORDED"),
+            case.get("relevant_log_excerpt", "NOT_RECORDED"),
+        )
+        markdown.append("| " + " | ".join(_summary_cell(value) for value in values) + " |")
+        if case.get("test") not in (None, expected_test):
+            markdown.append(f"\nExpected `{expected_test}`; observed `{_summary_cell(case.get('test'))}`.")
+    markdown.extend([
+        "",
         "Evidence hashes: `evidence/runtime/recognition-result-api36/evidence-sha256sums.txt`.",
     ])
     with summary_path.open("a", encoding="utf-8") as output:
         output.write("\n".join(markdown) + "\n")
 
 
-def _error_annotation(classification: str, reason: str) -> None:
+def _error_annotation(classification: str, reason: str, payload: dict[str, Any] | None = None) -> None:
     def command_escape(value: str) -> str:
         return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
@@ -111,6 +156,30 @@ def _error_annotation(classification: str, reason: str) -> None:
         "::error title=API36 production AUTO smoke failed::"
         f"classification={command_escape(classification)}; reason={command_escape(reason)}"
     )
+    if not isinstance(payload, dict):
+        return
+    cases = payload.get("instrumentation_cases")
+    if not isinstance(cases, dict):
+        cases = {}
+    for label, key, expected_test in INSTRUMENTATION_CASES:
+        case = cases.get(key)
+        if not _case_passes(case, expected_test):
+            case = case if isinstance(case, dict) else {}
+            details = (
+                ("test", case.get("test", expected_test)),
+                ("started", case.get("started", "NOT_RECORDED")),
+                ("completed", case.get("completed", "NOT_RECORDED")),
+                ("passed", case.get("passed", "NOT_RECORDED")),
+                ("failure_phase", case.get("failure_phase", payload.get("failure_phase", "NOT_RECORDED"))),
+                ("failure_reason", case.get("failure_reason", case.get("reason", "CASE_RESULT_MISSING"))),
+                ("root_cause", case.get("root_cause", "NOT_RECORDED")),
+                ("exception", case.get("exception", "NOT_RECORDED")),
+                ("command_exit_code", case.get("command_exit_code", "NOT_RECORDED")),
+                ("timed_out", case.get("timed_out", "NOT_RECORDED")),
+                ("relevant_log_excerpt", case.get("relevant_log_excerpt", "NOT_RECORDED")),
+            )
+            data = "; ".join(f"{name}={command_escape(_summary_cell(value, 1400))}" for name, value in details)
+            print(f"::error title=API36 {label} failed::{data}")
 
 
 def _enrich(payload: dict[str, Any], args: argparse.Namespace) -> None:
@@ -233,16 +302,20 @@ def _finalize(args: argparse.Namespace) -> int:
                 _append_summary(args.summary, payload)
             except Exception as summary_exc:
                 print(f"API36_STEP_SUMMARY_WRITE_FAILED:{type(summary_exc).__name__}:{summary_exc}")
-            _error_annotation("INFRA_BLOCKED", reason)
+            _error_annotation("INFRA_BLOCKED", reason, payload)
             return 0
         except Exception as fallback_exc:
             reason = f"SMOKE_RESULT_FINALIZATION_AND_FALLBACK_FAILED:{type(fallback_exc).__name__}:{str(fallback_exc)[:400]}"
             print(f"API36_FINALIZATION_FATAL:{reason}")
-            _error_annotation("INFRA_BLOCKED", reason)
+            _error_annotation("INFRA_BLOCKED", reason, payload)
             return 0
 
     if payload.get("classification") != "AUTO_SMOKE_PASS":
-        _error_annotation(str(payload.get("classification", "UNKNOWN")), str(payload.get("failure_reason", "UNKNOWN")))
+        _error_annotation(
+            str(payload.get("classification", "UNKNOWN")),
+            str(payload.get("failure_reason", "UNKNOWN")),
+            payload,
+        )
     else:
         print(f"API36_PRODUCTION_AUTO_SMOKE=AUTO_SMOKE_PASS source_sha={payload['source_sha']}")
     return 0
