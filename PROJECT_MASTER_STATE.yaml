@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'Master Goal V2.3 unified source baseline, Guard V1 integration, classifier real-inference receipt closure, and API36 exact-head verification (YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE)'
 state_control:
-  execution_baseline_sha: 66a8d4a99ccb76734efb58a05aefb21bc7ffbb54
+  execution_baseline_sha: 7fcddc1e09e6b7f45e99bf3b518d30a24768a96a
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
@@ -74,7 +74,7 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: 66a8d4a99ccb76734efb58a05aefb21bc7ffbb54
+    sha: 7fcddc1e09e6b7f45e99bf3b518d30a24768a96a
     admission: 'PENDING P0 V2 state-only checkpoint Admission and ordinary push. Candidate source db86f445 has parser unit 17/17 and runner fixture PASS; AndroidTest and API36 runtime remain NOT_RUN for this source.'
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
@@ -91,7 +91,7 @@ runtime_gates:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: 66a8d4a99ccb76734efb58a05aefb21bc7ffbb54
+  source_head: 7fcddc1e09e6b7f45e99bf3b518d30a24768a96a
   exact_head_apk: 'PENDING: build from the final pushed PR checkpoint; prior APKs are historical and must not be delivered.'
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
   input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
@@ -102,9 +102,9 @@ current_work:
   id: YUJIAN_EXIF_CLASSIFIER_AUTO_RESULT_API36_CLOSURE_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 66a8d4a99ccb76734efb58a05aefb21bc7ffbb54
+  exact_head: 7fcddc1e09e6b7f45e99bf3b518d30a24768a96a
   status: BLOCKED
-  stage: P0_V3_AVD_ACTION_INPUTS_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH
+  stage: P0_V3_AVD_GUEST_HEAP_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH
   requested_task_id: YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3
   requested_task_title: 'YuJian P0 V2 — EXIF, real classifier, AUTO recognition, Result runtime and API36 acceptance'
   blockers:

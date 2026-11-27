@@ -475,3 +475,8 @@
 
 - Run #4230 at 12f276e7: build PASS, actual guest CPU 4 PASS, but API36 rejected config `hw.cpu.ncore`, hardware `vm.heapSize`, guest `dalvik.vm.heapsize`; A/B/C NOT_STARTED.
 - Inspection of upstream `reactivecircus/android-emulator-runner@v2` shows default `cores: 2` and config append behavior. Source `66a8d4a99ccb76734efb58a05aefb21bc7ffbb54` sets documented `cores: 4`, `ram-size: 4096M`, `heap-size: 512M` inputs, normalizes units, and treats guest CPU/heap as authoritative. 48 CI tests PASS.
+
+## 2026-11-27 — API36 guest Dalvik heap checkpoint
+
+- Run #4231 at 6b4e8122: build PASS, config and actual guest 4 CPU/RAM PASS, but guest `dalvik.vm.heapsize` mismatched 512m; A/B/C NOT_STARTED and Release skipped.
+- Source `7fcddc1e09e6b7f45e99bf3b518d30a24768a96a` passes `-prop dalvik.vm.heapsize=512m` before emulator boot and reports observed heap on failure. No post-boot property mutation. 49 CI Python tests PASS.
