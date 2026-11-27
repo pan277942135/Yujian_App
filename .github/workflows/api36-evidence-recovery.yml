@@ -32,6 +32,7 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          import re
           from pathlib import Path
 
           root = Path(os.environ["RUNNER_TEMP"]) / "yujian-run-4236-api36"
@@ -45,6 +46,8 @@ jobs:
 
           def safe(value, limit=2400):
               text = " ".join(str(value if value is not None else "NOT_RECORDED").split())
+              text = re.sub(r"\b(session|attempt|image|photo(?:sha256|_sha256)|uri|displayName)=\S+", r"\1=[redacted]", text, flags=re.I)
+              text = re.sub(r"/(?:data|tmp|home)/\S+", "[path-redacted]", text)
               return text[:limit] + ("…" if len(text) > limit else "")
 
           def command_escape(value):
@@ -68,6 +71,17 @@ jobs:
               "| Case | Started | Completed | Passed | Phase | Reason | Root cause | Exception | Exit | Timed out |",
               "| --- | --- | --- | --- | --- | --- | --- | --- | ---: | --- |",
           ]
+          summary.extend([
+              "",
+              "### Downloaded artifact inventory",
+              "",
+              "| File | Bytes |",
+              "| --- | ---: |",
+          ])
+          files = sorted(path for path in root.rglob("*") if path.is_file())
+          for path in files:
+              summary.append(f"| `{path.relative_to(root).as_posix()}` | {path.stat().st_size} |")
+
           for label, key in names:
               case = cases.get(key)
               if not isinstance(case, dict):
@@ -92,17 +106,79 @@ jobs:
               ))
               print(f"::notice title={command_escape(label + ' evidence')}::{command_escape(annotation)}")
 
-          for pattern in ("slimsam_timing.json", "recognition_stage_timing.json", "memory-analysis.json"):
+          def redact_json(value):
+              if isinstance(value, dict):
+                  return {
+                      key: redact_json(item)
+                      for key, item in value.items()
+                      if not re.search(r"(?:^|_)(?:id|sha|path|uri|url|image|photo|attempt|session|fixture|display)(?:$|_)", key, re.I)
+                  }
+              if isinstance(value, list):
+                  return [redact_json(item) for item in value]
+              if isinstance(value, str):
+                  return safe(value, 500)
+              return value
+
+          for pattern in ("slimsam_timing.json", "recognition_stage_timing.json", "memory-analysis.json", "model_runtime_state.json"):
               for path in root.rglob(pattern):
                   try:
-                      payload = json.loads(path.read_text(encoding="utf-8"))
+                      payload = redact_json(json.loads(path.read_text(encoding="utf-8")))
                       encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True)
                   except Exception as exc:
                       encoded = f"JSON_READ_FAILED:{type(exc).__name__}:{exc}"
                   summary.extend(["", f"### `{path.name}`", "", "```json", safe(encoded, 12000), "```"])
 
+          diagnostic_pattern = re.compile(
+              r"SlimSamTiming:|ATTEMPT_DEADLINE_EXCEEDED|SLIMSAM_(?:START|END|PREWARM_[A-Z]+|ENCODER_[A-Z]+|DECODER_[A-Z]+)|"
+              r"VISION_ENCODER_(?:START|END)|MASK_DECODER_(?:START|END)|"
+              r"ActivityTaskManager.*(?:START|Displayed).*(?:picker|photos|documents)",
+              re.I,
+          )
+          event_pattern = re.compile(r"\b([A-Za-z][A-Za-z0-9_]*)=([^\s]+)")
+          keep_keys = {
+              "event", "stage", "durationMs", "result", "errorCode", "activeNativeRunCount",
+              "nativeHeapAllocatedBytes", "nativeHeapSizeBytes", "nativeHeapFreeBytes",
+              "processPssKb", "processRssKb", "ortArenaReservedBytes", "attempt_timeout_ms",
+              "remaining_ms", "failure_code", "resolution", "act", "cmp",
+          }
+          diagnostics = []
+          for path in files:
+              if path.suffix.lower() not in {".log", ".txt"}:
+                  continue
+              try:
+                  lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+              except OSError:
+                  continue
+              for line in lines:
+                  if not diagnostic_pattern.search(line):
+                      continue
+                  fields = {key: value for key, value in event_pattern.findall(line) if key in keep_keys}
+                  if "SlimSamTiming:" in line and not fields.get("event"):
+                      continue
+                  if "ActivityTaskManager" in line:
+                      fields = {key: value for key, value in fields.items() if key in {"act", "cmp"}}
+                      fields["source"] = "ActivityTaskManager"
+                  else:
+                      fields["source"] = path.relative_to(root).as_posix()
+                  diagnostics.append(fields)
+                  if len(diagnostics) >= 160:
+                      break
+              if len(diagnostics) >= 160:
+                  break
+          summary.extend(["", "### Allowlisted SlimSAM, timeout, memory, and picker events", ""])
+          if diagnostics:
+              summary.extend(["```json", json.dumps(diagnostics, ensure_ascii=False, indent=2), "```"])
+          else:
+              summary.append("No matching events were present in the downloaded text logs.")
+
           summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
           with summary_path.open("a", encoding="utf-8") as output:
               output.write("\n".join(summary) + "\n")
-          print("RUN4236_RUNTIME_RESULT=" + json.dumps(result, ensure_ascii=False, sort_keys=True))
+          print("RUN4236_RUNTIME_RESULT_SUMMARY=" + json.dumps({
+              key: result.get(key) for key in (
+                  "source_sha", "classification", "failure_phase", "failure_reason",
+                  "validation_reason", "slimsam_validation_reason", "AUTO_SMOKE_PASS",
+                  "API36_INSTRUMENTATION_PASS",
+              )
+          }, ensure_ascii=False, sort_keys=True))
           PY
