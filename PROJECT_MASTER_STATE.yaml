@@ -3,7 +3,7 @@ state_id: YUJIAN_APP_PR346_CROSS_LAYER_CLOSURE_V4_1
 project:
   name: YuJian Android App
   repository: pan277942135/Yujian_App
-  scope: 'Master Goal V2.3 unified source baseline, Guard V1 integration, classifier real-inference receipt closure, and API36 exact-head verification (YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE)'
+  scope: 'Work P0 V3 Run #4225 root-cause closure, SlimSAM 60s performance, API36 A/B/C acceptance, and exact-head APK delivery (YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3)'
 state_control:
   execution_baseline_sha: 6b61c50ce3d02f033635c54738d0ff868ef06599
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
@@ -18,16 +18,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: 9e600f981aab2737b60d3d1eada85ecc0acb79c0
+    head_sha: 20405b160cb2ed5c589f1485b4b54b316dbee15a
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: fix/det-fish-v03-main-runtime-closure
     base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
-    head_sha: 9e600f981aab2737b60d3d1eada85ecc0acb79c0
+    head_sha: 20405b160cb2ed5c589f1485b4b54b316dbee15a
     status: DRAFT_OPEN_UNMERGED
-    status_source: 'Live git ls-remote verified PR #346 branch and pull head at 9e600f981aab2737b60d3d1eada85ecc0acb79c0 on 2026-11-27. PR remains Open/Draft and unmerged.'
+    status_source: 'Live git ls-remote verified PR #346 branch and pull head at 20405b160cb2ed5c589f1485b4b54b316dbee15a on 2026-11-27. PR remains Open/Draft and unmerged.'
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -75,17 +75,17 @@ recognition_main_journey:
 runtime_gates:
   exact_head:
     sha: 6b61c50ce3d02f033635c54738d0ff868ef06599
-    admission: 'CONTROL_PLANE_ADMISSION=PASS after state checkpoint 9e600f981aab2737b60d3d1eada85ecc0acb79c0; source baseline 6b61c50ce3d02f033635c54738d0ff868ef06599.'
+    admission: 'CONTROL_PLANE_ADMISSION=PASS on the Run 4236 artifact-recovery checkpoint worktree; canonical origin/main revision 21295d95; structural_errors=0; historical OPEN_GAP=1 remains unchanged and non-blocking.'
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
       url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
       source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
-    build: 'Run 45953428564 was created by pushing state checkpoint 9e600f981aab2737b60d3d1eada85ecc0acb79c0; no API36 smoke ran because the commit message lacked the workflow trigger marker. Marker checkpoint now required.'
-    unit_tests: 'PASS: scripts/ci/tests/test_validate_recognition_result_api36_smoke.py 12/12 on source 6b61c50ce3d02f033635c54738d0ff868ef06599. Product/module JVM regression on this exact source remains PENDING; historical 604/604 and 574/574 are not promoted.'
-    android_test_compile: 'PENDING current V2.3 source; hosted exact-head compilation is required.'
-    lint: 'PENDING current V2.3 source; hosted exact-head lint is required.'
-    api36_emulator: 'PENDING: run 45953428564 had no API36 smoke because the pushed head commit omitted [recognition-result-api36-smoke]. A marker state checkpoint is being prepared to run the per-case diagnostic source 6b61c50 on API36.'
+    build: 'Run 45953790013 at workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a: all source-module JVM tests, Debug APK, AndroidTest compile, packaged assets/model, lint, Release Kotlin, and APK artifact uploads passed.'
+    unit_tests: 'PASS on exact workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a: all source-module JVM test step completed successfully. Exact count is not exposed in the public run summary; historical counts are not promoted.'
+    android_test_compile: 'PASS: Run 45953790013 compiled the Android runtime test APK from exact workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a.'
+    lint: 'PASS: Run 45953790013 Android lint completed on exact workflow HEAD 20405b160cb2ed5c589f1485b4b316dbee15a.'
+    api36_emulator: 'FAIL: Run 45953790013 passed KVM/AVD/APK checks and ran API36 smoke for 12m38s; final enforcement reported BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE. Artifact 15179468061 (15 MB, SHA256 7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765) is pending authenticated recovery; A/B/C and root cause remain NOT_CONFIRMED.'
     model_validation: 'PASS: scripts/verify_classifier_tensor_binding.py inspected the unchanged committed model FlatBuffer and exact model SHA. Real TFLite Interpreter.run() and production Top1 remain PENDING API36.'
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
@@ -97,24 +97,24 @@ apk_and_evidence:
   input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
   input_evidence_zip: 'artifacts/26kf_visual_reference_v1/inputs/YuJian_Recognition_Evidence_eac685c91965.zip; 16,204,260 bytes; SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; historical pre-fix source SHA 67f17f0eb6a80233438cb8b00111a55d6767a6d8'
   fixture_b: 'FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not found in current attachments/workspace.'
-  emulator_device_evidence: 'Historical prior-source Run 45928328121 at workflow HEAD 7db0c3f424d5a16cab62fbac42038ecd293d4430: build and API36 AVD health/config passed; smoke ran 22m40s then exited 2 and final enforcement failed with BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE. Artifact 15169320466, 15.8 MB, ZIP SHA256 672313504c2e430b1236fadee74120746480c8e0939b0ed2df3438c6044ce6f5; contents were inaccessible, so A/B/C outcomes and runtime root cause remain NOT_CONFIRMED. Push of 9e600f98 triggered run 45953428564, but API36 smoke was skipped because the message lacked its required marker. No AUTO PASS claimed.'
+  emulator_device_evidence: 'Run 45953790013 at workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a: build, KVM, AVD, APK hash, and AndroidTest checks passed; API36 smoke ran 12m38s then exited 2 with BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE. Artifact 15179468061 (15 MB, SHA256 7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765) will be recovered by a guarded Actions job using actions:read. A/B/C, SlimSAM timings, and runtime root cause remain NOT_CONFIRMED; no AUTO PASS claimed.'
 current_work:
   id: YUJIAN_EXIF_CLASSIFIER_AUTO_RESULT_API36_CLOSURE_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
   exact_head: 6b61c50ce3d02f033635c54738d0ff868ef06599
-  status: BLOCKED
-  stage: P0_V3_API36_TRIGGER_MARKER_STATE_CHECKPOINT_PENDING
+  status: RECOVERING
+  stage: P0_V3_RUN4236_ARTIFACT_RECOVERY_PENDING
   requested_task_id: YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3
   requested_task_title: 'YuJian P0 V3 — Run #4225 root cause, SlimSAM 60s performance, API36 A/B/C acceptance and APK delivery'
   blockers:
   - 'P0_2_HISTORY_UNAVAILABLE: requested historical commit object is unavailable; preservation review cannot be completed from current remote objects.'
-  - 'V23_PRODUCT_REGRESSION_PENDING: local Gradle wrapper distribution could not resolve services.gradle.org; current-source JVM, AndroidTest compile, Release Kotlin, lint, and APK results are pending hosted exact-head CI.'
-  - 'DEVICE_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator; exact-head API36 Test A/Test B evidence remains pending.'
-  - 'GITHUB_EXACT_HEAD_CI_PENDING: P0 V2 candidate db86f445 requires state checkpoint Admission and ordinary PR branch push before hosted CI can run.'
+  - 'RUN4236_BUILD_GATES_PASS: source-module JVM, AndroidTest compile, Debug APK, lint, Release Kotlin, and packaged asset/model gates passed on workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a.'
+  - 'RUN4236_API36_FAILURE: hosted smoke executed, but A/B/C case outcomes and runtime root cause are NOT_CONFIRMED pending authenticated artifact recovery.'
+  - 'GITHUB_EXACT_HEAD_API36_PENDING: Run 45953790013 exact workflow HEAD 20405b16 passed build gates but failed API36 smoke enforcement; final AUTO evidence and APK delivery remain pending.'
   - 'FIXTURE_B_UNAVAILABLE: named historical evidence ZIP is absent; no fixture replay will be claimed.'
-  - 'RUN4233_API36_FAILURE: API36 AVD passed but smoke failed after 22m40s; per-case diagnostics are committed in source 6b61c50, but underlying runtime cause remains NOT_CONFIRMED pending exact-head rerun.'
-  - 'API36_TRIGGER_MARKER_REQUIRED: run 45953428564 did not start API36 smoke because the pushed head commit lacked [recognition-result-api36-smoke]; a marker checkpoint is required.'
+  - 'RUN4233_API36_FAILURE: historical run 45928328121 failed after 22m40s; its underlying runtime cause remains NOT_CONFIRMED.'
+  - 'RUN4236_ARTIFACT_RECOVERY_PENDING: use a one-time workflow guarded by [api36-evidence-recovery] and actions:read to retrieve artifact 15179468061 and publish sanitized A/B/C plus SlimSAM evidence.'
 
 blockers:
 - id: P0-2-HISTORY-UNAVAILABLE-001
@@ -176,16 +176,20 @@ next_actions:
   action: Trace Gate authorization, four-model receipts, PhotoIdentity, atomic path binding, snapshot commit and native ownership in current production callers.
 - id: P0-DELIVERY-03
   owner: Codex
-  status: READY
-  action: Commit a state-only checkpoint with [recognition-result-api36-smoke], run Admission, and push to the existing PR branch to trigger exact-head API36 diagnostics.
+  status: COMPLETED
+  action: State checkpoint 20405b16 was pushed with the required marker; Run 45953790013 completed build/AVD gates and produced an API36 evidence artifact, but exact-head runtime enforcement failed.
 - id: V23-SOURCE-01
   owner: Codex
   status: COMPLETED
   action: Guard source commit 3cc0a443 and status ledger commit af5fac3c record Master Goal V2.3, classifier receipt integration, and sequential API36 Test A/Test B gates; local deterministic checks pass.
 - id: V23-CHECKPOINT-02
   owner: Codex
+  status: COMPLETED
+  action: Triggered exact-head Run 45953790013 at workflow HEAD 20405b16; API36 smoke failure is recorded and artifact recovery is the next action.
+- id: V3-RUN4236-EVIDENCE-RECOVERY
+  owner: Codex
   status: READY
-  action: Commit the trigger-marker state checkpoint, validate Admission, push by ordinary fast-forward to PR #346, and inspect exact-head CI/A-B/C diagnostics.
+  action: Use a guarded actions:read workflow to download artifact 15179468061, publish sanitized Test A/B/C and SlimSAM timing diagnostics, then confirm the production root cause before changing runtime code.
 
 completion_rules:
 - Complete applicable deterministic cross-layer tests before final APK packaging.
@@ -193,8 +197,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-27T06:43:30Z'
-  note: 'Source 6b61c50 adds per-case CI summary/annotations and passes 12/12 focused tests; state checkpoint 9e600f98 passed Admission and was pushed. Run 45953428564 did not start API36 because its head message omitted the workflow marker. A marker state checkpoint is pending; Run 45928328121 remains a prior-source failure with runtime cause NOT_CONFIRMED.'
+  last_updated_at: '2026-11-27T07:39:33Z'
+  note: 'Run 45953790013 at workflow HEAD 20405b16 passed full build, AndroidTest compile, lint, Release Kotlin, KVM and AVD checks, then failed API36 enforcement with BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE after 12m38s. Artifact 15179468061 is pending recovery through a guarded actions:read job; A/B/C and SlimSAM timing remain NOT_CONFIRMED.'
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.

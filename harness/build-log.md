@@ -503,3 +503,9 @@
 
 - Push of state checkpoint `9e600f981aab2737b60d3d1eada85ecc0acb79c0` was remote-verified and created workflow run `45953428564`. Workflow source confirms `recognition-result-api36-smoke` runs only when the head commit message contains `[recognition-result-api36-smoke]`; this checkpoint omitted it, so A/B/C did not run.
 - Adding a state-only trigger checkpoint with the required marker. This does not change product source; exact-head runtime remains NOT_RUN on the diagnostic source until the marked run executes.
+
+## 2026-11-27 — API36 Run #4236 evidence recovery checkpoint
+
+- Exact workflow HEAD `20405b160cb2ed5c589f1485b4b54b316dbee15a` passed source-module JVM tests, Debug APK assembly, AndroidTest compilation, packaged classifier/asset checks, lint, Release Kotlin, KVM preflight, AVD resource validation, and APK hash checks.
+- API36 smoke ran 12m38s and exited 2; final enforcement reported `BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE`. Existing artifact `15179468061` is 15 MB, SHA-256 `7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765`. A/B/C outcomes and SlimSAM timing are `NOT_CONFIRMED`; no runtime PASS is claimed.
+- `failure_gate.py` recorded this distinct source observation as attempt 2. A temporary, marker-guarded workflow will retrieve the existing artifact with repository `actions:read` and emit sanitized A/B/C, failure-phase, and SlimSAM timing details. No artifact re-upload is requested.

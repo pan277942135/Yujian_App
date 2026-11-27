@@ -1,0 +1,108 @@
+name: API36 Existing Run Evidence Recovery
+
+on:
+  push:
+    branches:
+      - fix/26kf-path-boundary-and-fish-gate-v1
+    paths:
+      - .github/workflows/api36-evidence-recovery.yml
+
+permissions: {}
+
+jobs:
+  recover-run-4236-evidence:
+    if: ${{ contains(github.event.head_commit.message, '[api36-evidence-recovery]') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+    steps:
+      - name: Download the existing Run 4236 runtime evidence artifact
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: 15179468061
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 45953790013
+          path: ${{ runner.temp }}/yujian-run-4236-api36
+
+      - name: Publish sanitized A/B/C and SlimSAM diagnostics
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "yujian-run-4236-api36"
+          result_path = next(root.rglob("runtime-result.json"), None)
+          if result_path is None:
+              raise SystemExit("Run 4236 artifact has no runtime-result.json")
+          result = json.loads(result_path.read_text(encoding="utf-8"))
+          cases = result.get("instrumentation_cases")
+          if not isinstance(cases, dict):
+              cases = {}
+
+          def safe(value, limit=2400):
+              text = " ".join(str(value if value is not None else "NOT_RECORDED").split())
+              return text[:limit] + ("…" if len(text) > limit else "")
+
+          def command_escape(value):
+              return safe(value).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+          names = (
+              ("Test A — Classifier TFLite", "classifier_tensor_binding"),
+              ("Test B — Production reveal", "production_night_catch_reveal"),
+              ("Test C — Home picker AUTO", "production_home_picker_auto"),
+          )
+          summary = [
+              "## Run 4236 API36 runtime evidence",
+              "",
+              f"- Workflow HEAD: `{result.get('source_sha', 'NOT_RECORDED')}`",
+              f"- Classification: `{result.get('classification', 'NOT_RECORDED')}`",
+              f"- Failure phase: `{result.get('failure_phase', 'NOT_RECORDED')}`",
+              f"- Failure reason: `{result.get('failure_reason', 'NOT_RECORDED')}`",
+              f"- Business validator: `{result.get('validation_reason', 'NOT_RECORDED')}`",
+              f"- SlimSAM validator: `{result.get('slimsam_validation_reason', 'NOT_RECORDED')}`",
+              "",
+              "| Case | Started | Completed | Passed | Phase | Reason | Root cause | Exception | Exit | Timed out |",
+              "| --- | --- | --- | --- | --- | --- | --- | --- | ---: | --- |",
+          ]
+          for label, key in names:
+              case = cases.get(key)
+              if not isinstance(case, dict):
+                  case = {}
+              fields = (
+                  label,
+                  case.get("started", "NOT_RECORDED"),
+                  case.get("completed", "NOT_RECORDED"),
+                  case.get("passed", "NOT_RECORDED"),
+                  case.get("failure_phase", "NOT_RECORDED"),
+                  case.get("failure_reason", case.get("reason", "NOT_RECORDED")),
+                  case.get("root_cause", "NOT_RECORDED"),
+                  case.get("exception", "NOT_RECORDED"),
+                  case.get("command_exit_code", "NOT_RECORDED"),
+                  case.get("timed_out", "NOT_RECORDED"),
+              )
+              summary.append("| " + " | ".join(safe(value, 700).replace("|", "/") for value in fields) + " |")
+              excerpt = safe(case.get("relevant_log_excerpt", "NOT_RECORDED"), 1600)
+              annotation = "; ".join(f"{name}={value}" for name, value in zip(
+                  ("started", "completed", "passed", "failure_phase", "failure_reason", "root_cause", "exception", "exit", "timed_out", "excerpt"),
+                  (fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8], fields[9], excerpt),
+              ))
+              print(f"::notice title={command_escape(label + ' evidence')}::{command_escape(annotation)}")
+
+          for pattern in ("slimsam_timing.json", "recognition_stage_timing.json", "memory-analysis.json"):
+              for path in root.rglob(pattern):
+                  try:
+                      payload = json.loads(path.read_text(encoding="utf-8"))
+                      encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+                  except Exception as exc:
+                      encoded = f"JSON_READ_FAILED:{type(exc).__name__}:{exc}"
+                  summary.extend(["", f"### `{path.name}`", "", "```json", safe(encoded, 12000), "```"])
+
+          summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary_path.open("a", encoding="utf-8") as output:
+              output.write("\n".join(summary) + "\n")
+          print("RUN4236_RUNTIME_RESULT=" + json.dumps(result, ensure_ascii=False, sort_keys=True))
+          PY
