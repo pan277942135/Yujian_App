@@ -492,3 +492,9 @@
 - Runtime artifact `15169320466` is 15.8 MB with ZIP SHA256 `672313504c2e430b1236fadee74120746480c8e0939b0ed2df3438c6044ce6f5`; GitHub artifact download is blocked by API egress, so Test A/B/C results, encoder timing, and memory evidence are NOT_CONFIRMED.
 - `failure_gate.py` recorded the failed API36 A/B/C run as attempt 1 for `BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE`. Per-case diagnostics are added to the next CI summary/error annotations; no runtime root cause is claimed.
 - Local `scripts/ci/tests/test_validate_recognition_result_api36_smoke.py`: 12/12 PASS. Exact-head hosted rerun and production/runtime fix remain pending.
+
+## 2026-11-27 — API36 per-case diagnostics source commit
+
+- Guarded source commit `6b61c50ce3d02f033635c54738d0ff868ef06599` adds Test A/B/C failure phase/reason/root cause/exception/log excerpts to the Actions Step Summary and error annotations; runtime verdict logic and deadlines are unchanged.
+- `python3 scripts/ci/tests/test_validate_recognition_result_api36_smoke.py`: 12/12 PASS.
+- Run #4233 remains a failure on older source `7db0c3f`; this commit only makes the next exact-head run diagnosable. State checkpoint, Admission, push, runtime rerun and production fix are pending.

@@ -20,7 +20,7 @@
     "RUN4233_API36_FAILURE: Run 45928328121 at workflow HEAD 7db0c3f failed API36 smoke after 22m40s; artifact 15169320466 inaccessible. Exact A/B/C result and runtime root cause NOT_CONFIRMED."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-27T06:34:10Z",
+  "checkpoint_updated_at": "2026-11-27T06:40:02Z",
   "control_plane_revision": "21295d95c3213acbe0da1de8557dfdab6ad20ce7",
   "current_work": {
     "blockers": [
@@ -34,17 +34,18 @@
       "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79.",
       "P0_V2_RUN4223_FAILURE: exact-head build passed, API36 smoke failed at 86065bcf; artifact 15125829938 is inaccessible under current network policy, so runtime root cause is NOT_CONFIRMED.",
       "P0_V2_API36_RUNTIME_PENDING: source 044e266 requires hosted Test A/B/C, classifier native execution, SlimSAM/Mask/Result evidence, and exact-head APK verification.",
-      "RUN4233_API36_FAILURE: AVD health/config passed; API36 smoke failed after 22m40s, but case diagnostics are inaccessible. Root cause NOT_CONFIRMED; per-case summary/annotation patch pending exact-head rerun."
+      "RUN4233_API36_FAILURE: AVD health/config passed; API36 smoke failed after 22m40s, but case diagnostics are inaccessible. Root cause NOT_CONFIRMED; per-case summary/annotation patch pending exact-head rerun.",
+      "API36_CASE_DIAGNOSTICS_EXACT_HEAD_PENDING: source 6b61c50 emits A/B/C details; must pass state checkpoint/Admission/push and run on hosted API36 before underlying runtime cause can be confirmed."
     ],
     "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
     "current_validated_tree_note": "Final pushed source commit 4c328ab5e7c6d555c9575ebeffa2c815e6618baf passed 604/604 JVM tests, :app:compileReleaseKotlin, Debug APK build, packaged model/assets, signature and ZIP checks. APK SHA256 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0; 200382052 bytes. AndroidTest and lint are blocked before source validation by Google Maven DNS; hosted exact-head CI and API36 runtime remain unverified.",
     "delivery_guard_status": "GUARD_CODE_AND_STATE_PUSH_PASS_CI_UNAVAILABLE",
-    "exact_head": "6d2b844808e2ba422b190cbf96d3a871686b8f24",
+    "exact_head": "6b61c50ce3d02f033635c54738d0ff868ef06599",
     "id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
     "phase": "P6",
     "requested_task_id": "YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE",
     "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C and exact-HEAD APK delivery",
-    "stage": "P0_V3_RUN4233_FAILED_CASE_DIAGNOSTICS_FIX_PENDING",
+    "stage": "P0_V3_CASE_DIAGNOSTICS_SOURCE_COMMITTED_STATE_CHECKPOINT_PENDING",
     "status": "BLOCKED",
     "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2"
   },
@@ -59,6 +60,21 @@
       "failure": "Could not resolve androidx.test.ext:junit:1.2.1, androidx.test:runner:1.6.2, androidx.test.uiautomator:uiautomator:2.3.0 from dl.google.com; temporary DNS resolution failure.",
       "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS_BEFORE_KOTLIN",
       "task": ":app:assembleDebugAndroidTest"
+    },
+    "api36_case_diagnostics_fix": {
+      "changed_files": [
+        "scripts/ci/finalize_recognition_result_api36_smoke.py",
+        "scripts/ci/tests/test_validate_recognition_result_api36_smoke.py"
+      ],
+      "failed": 0,
+      "parent_sha": "567197c2b20a8aa705619048dd11e90ce4d082f5",
+      "passed": 12,
+      "purpose": "Expose each API36 Test A/B/C started/completed/passed, failure phase/reason, root cause, exception, command exit, timeout, and relevant log excerpt in Step Summary and GitHub annotations.",
+      "result": "PASS",
+      "runtime_root_cause": "NOT_CONFIRMED; exact-head API36 rerun pending.",
+      "source_commit": "6b61c50ce3d02f033635c54738d0ff868ef06599",
+      "test_command": "python3 scripts/ci/tests/test_validate_recognition_result_api36_smoke.py",
+      "tests": 12
     },
     "api36_failure_classification": "AUTO_SMOKE_PASS=false. EMULATOR_BOOT_PASS=NOT_CONFIRMED. The production smoke command ended with exit code 1; final enforcement failed. Uploaded runtime artifact 14818308331 is 10.1 MB with SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33, but raw contents are inaccessible, so INFRA_BLOCKED versus BUSINESS_LOGIC_FAILURE versus RESOURCE_EXHAUSTED cannot be distinguished.",
     "api36_false_positive_audit": "User supplied Run 45032036762 facts: INSTRUMENTATION_RESULT shortMsg=Process crashed; INSTRUMENTATION_CODE=0; lowmemorykiller reported Kill com.yujian.ai.uiv2 with rss=670552kB, swap=1257028kB and min-watermark/swap-low reason. Source SHA/raw artifact remain NOT_CONFIRMED; facts were not independently replayed.",
@@ -148,7 +164,7 @@
       "terminal_event": "First PIPELINE_TERMINAL per Attempt is retained across both production call sites."
     },
     "code_implementation_commit": "6102640437041159abc519b00249b7aedff0bb03",
-    "current_admission_attempt": "PENDING: this state-only checkpoint references product/status source af5fac3c86cb3ac2e03894f52fd8031d3010611d; run CONTROL_PLANE_ADMISSION after this commit. Prior Admission passes remain historical and are not promoted.",
+    "current_admission_attempt": "PENDING: canonical control plane 21295d95 is synchronized; source commit 6b61c50 adds per-case API36 diagnostics and passes 12/12 focused Python tests. State checkpoint and post-checkpoint Admission/push are pending.",
     "current_source_changes": "V2.3 source commit 3cc0a443 returns actual validated classifier Input/Output Receipts, validates both receipts and model/tensor/photo/session/attempt identity in the production pipeline, and requires the receipt pair at the photo-identity-bound SessionStore consumer. API36 smoke now runs real classifier Test A and production reveal Test B separately with force-stop/PID verification, exact instrumentation status parsing, process-death/LMK checks, and fail-closed finalization. Model binary, frozen product contracts, Gate policy, and visual parameters were not changed.",
     "debug_apk_build": "PASS: local Debug APK built at exact source HEAD 4c328ab5e7c6d555c9575ebeffa2c815e6618baf with BUILD_SHA embedded/verified; ZIP/signature/package/asset checks passed. APK SHA256 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0, size 200382052 bytes.",
     "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
@@ -716,17 +732,17 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Commit the per-case CI diagnostic change, rerun exact-head API36 A/B/C, then fix the first confirmed runtime/business root cause without changing the 60s deadline or frozen model contract.",
+  "next_action": "Commit the source-6b61c50 state checkpoint, validate Admission, push to the existing PR #346 branch, then inspect exact-head A/B/C diagnostics and repair the confirmed runtime cause.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "requested_task_id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
   "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C and exact-HEAD APK delivery",
   "schema_version": "1.0",
-  "source_sha": "6d2b844808e2ba422b190cbf96d3a871686b8f24",
-  "stage": "P0_V3_RUN4233_FAILED_CASE_DIAGNOSTICS_FIX_PENDING",
+  "source_sha": "6b61c50ce3d02f033635c54738d0ff868ef06599",
+  "stage": "P0_V3_CASE_DIAGNOSTICS_SOURCE_COMMITTED_STATE_CHECKPOINT_PENDING",
   "state_update": {
-    "last_updated_at": "2026-11-27T06:34:10Z",
-    "note": "Canonical control plane 21295d95 synchronized; Admission passed before source changes. Run 45928328121 at workflow HEAD 7db0c3f built and passed AVD health/config, then API36 smoke failed after 22m40s. Artifact contents are inaccessible, so A/B/C root cause remains NOT_CONFIRMED. failure_gate recorded the actual run. Per-case diagnostic reporter passes 12/12 focused Python tests; exact-head rerun and runtime repair remain pending."
+    "last_updated_at": "2026-11-27T06:40:02Z",
+    "note": "Source 6b61c50 adds per-case API36 failure diagnostics; focused finalizer tests pass 12/12. Run 45928328121 remains a failure on the previous source: AVD pass, smoke exit 2 after 22m40s, root cause NOT_CONFIRMED. State checkpoint, Admission, push, exact-head rerun, and production fix remain pending."
   },
   "status": "BLOCKED",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
