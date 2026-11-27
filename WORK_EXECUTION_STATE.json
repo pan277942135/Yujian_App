@@ -16,11 +16,12 @@
     "RUN4229_AVD_RESOURCE_MISMATCH: public job annotation reports hw.cpu.ncore, vm.heapSize, guest online CPUs and dalvik.vm.heapsize mismatch. A/B/C NOT_STARTED.",
     "RUN4230_ACTION_DEFAULT_OVERRIDE: build PASS, actual guest CPU 4; Action appended default cores=2 in AVD config and guest Dalvik heap remained wrong. A/B/C NOT_STARTED.",
     "RUN4231_GUEST_HEAP_MISMATCH: all config/CPU/RAM checks passed; guest dalvik.vm.heapsize still non-512, so A/B/C NOT_STARTED.",
-    "RUN4232_DALVIK_SYSTEM_IMAGE_PROPERTY: AVD VM heap config=512M passed, guest dalvik.vm.heapsize=576m from API36 system image; checker conflated distinct settings, so A/B/C NOT_STARTED."
+    "RUN4232_DALVIK_SYSTEM_IMAGE_PROPERTY: AVD VM heap config=512M passed, guest dalvik.vm.heapsize=576m from API36 system image; checker conflated distinct settings, so A/B/C NOT_STARTED.",
+    "RUN4233_API36_FAILURE: Run 45928328121 at workflow HEAD 7db0c3f failed API36 smoke after 22m40s; artifact 15169320466 inaccessible. Exact A/B/C result and runtime root cause NOT_CONFIRMED."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-26T14:35:11Z",
-  "control_plane_revision": "bc89484ca79fe20c63c9c6e65b284f1ec3ac1863",
+  "checkpoint_updated_at": "2026-11-27T06:34:10Z",
+  "control_plane_revision": "21295d95c3213acbe0da1de8557dfdab6ad20ce7",
   "current_work": {
     "blockers": [
       "P0_2_ORIGINAL_COMMIT_UNAVAILABLE: 759e918332293a4ffaea479a57556386b7c41f1d cannot be fetched; original file-by-file comparison remains unverified.",
@@ -32,17 +33,18 @@
       "FIXTURE_B_UNAVAILABLE: historical runtime evidence ZIP is absent; replay is not claimed.",
       "GITHUB_ACTIONS_READ_UNAVAILABLE: GitHub API egress returned proxy HTTP 403 in the earlier session; Git remote write permission was independently proven by ordinary Guard push and ref verification at 4da469384e1ef814488b75d979eff8ca3ac1df79.",
       "P0_V2_RUN4223_FAILURE: exact-head build passed, API36 smoke failed at 86065bcf; artifact 15125829938 is inaccessible under current network policy, so runtime root cause is NOT_CONFIRMED.",
-      "P0_V2_API36_RUNTIME_PENDING: source 044e266 requires hosted Test A/B/C, classifier native execution, SlimSAM/Mask/Result evidence, and exact-head APK verification."
+      "P0_V2_API36_RUNTIME_PENDING: source 044e266 requires hosted Test A/B/C, classifier native execution, SlimSAM/Mask/Result evidence, and exact-head APK verification.",
+      "RUN4233_API36_FAILURE: AVD health/config passed; API36 smoke failed after 22m40s, but case diagnostics are inaccessible. Root cause NOT_CONFIRMED; per-case summary/annotation patch pending exact-head rerun."
     ],
     "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
     "current_validated_tree_note": "Final pushed source commit 4c328ab5e7c6d555c9575ebeffa2c815e6618baf passed 604/604 JVM tests, :app:compileReleaseKotlin, Debug APK build, packaged model/assets, signature and ZIP checks. APK SHA256 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0; 200382052 bytes. AndroidTest and lint are blocked before source validation by Google Maven DNS; hosted exact-head CI and API36 runtime remain unverified.",
     "delivery_guard_status": "GUARD_CODE_AND_STATE_PUSH_PASS_CI_UNAVAILABLE",
-    "exact_head": "af5fac3c86cb3ac2e03894f52fd8031d3010611d",
-    "id": "YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE",
+    "exact_head": "6d2b844808e2ba422b190cbf96d3a871686b8f24",
+    "id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
     "phase": "P6",
     "requested_task_id": "YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE",
-    "requested_task_title": "YuJian Master Goal V2.3 — unified source baseline, Guard V1 integration, classifier real inference, API36 simulator verification",
-    "stage": "P0_V23_STATE_CHECKPOINT_PENDING_ADMISSION_PUSH_EXACT_HEAD_CI_API36",
+    "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C and exact-HEAD APK delivery",
+    "stage": "P0_V3_RUN4233_FAILED_CASE_DIAGNOSTICS_FIX_PENDING",
     "status": "BLOCKED",
     "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2"
   },
@@ -62,6 +64,23 @@
     "api36_false_positive_audit": "User supplied Run 45032036762 facts: INSTRUMENTATION_RESULT shortMsg=Process crashed; INSTRUMENTATION_CODE=0; lowmemorykiller reported Kill com.yujian.ai.uiv2 with rss=670552kB, swap=1257028kB and min-watermark/swap-low reason. Source SHA/raw artifact remain NOT_CONFIRMED; facts were not independently replayed.",
     "api36_local_capability": "No local /dev/kvm, adb, or emulator. No TCG attempt.",
     "api36_memory_controls": "Run 45106300573 passed the hosted x64 KVM preflight and >=5 GiB host MemAvailable gate; standalone prelaunch AVD config step reported and asserted hw.ramSize=4096M and hw.heapSize=512M. Runtime artifact 14788427080 SHA256 f0aaa9891a87ffda19f52146be08a389a48acc62090c2eddf867c4e3f4e93099 is uploaded but its contents cannot be read here. Therefore actual emulator boot, in-guest meminfo, PSS/RSS/Swap, SlimSAM Encoder/Decoder timing, GC/Native Heap, LMK events and leak diagnosis are NOT_CONFIRMED for this run.",
+    "api36_run4233": {
+      "a_b_c": "NOT_CONFIRMED",
+      "artifact_readability": "BLOCKED: api.github.com proxy HTTP 403; case details were not emitted in public summary/annotation",
+      "auto_smoke_pass": false,
+      "avd_health_and_frozen_config": "PASS",
+      "build": "PASS",
+      "final_exact_head_enforcement": "FAIL: BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE",
+      "product_source_tree": "6d2b844808e2ba422b190cbf96d3a871686b8f24 (state-only checkpoint difference)",
+      "root_cause": "NOT_CONFIRMED",
+      "run_id": "45928328121",
+      "runtime_artifact_id": "15169320466",
+      "runtime_artifact_size": "15.8 MB",
+      "runtime_artifact_zip_sha256": "672313504c2e430b1236fadee74120746480c8e0939b0ed2df3438c6044ce6f5",
+      "smoke_exit_code": 2,
+      "smoke_step_duration": "22m40s",
+      "workflow_head": "7db0c3f424d5a16cab62fbac42038ecd293d4430"
+    },
     "api36_runtime_artifact": "Run 45172732325 artifact 14818308331 (YuJian-recognition-result-api36-6102640437041159abc519b00249b7aedff0bb03, 10.1 MB), SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33. Uploaded successfully; artifact content not readable in this session.",
     "archive_integrity": "Fixture A ZIP unzip -t passed; 14,190,826 bytes; SHA256 19a01dcc9dd07e0b489b22ddae41cc763fed1fe6a03377cceef5e13616e1164d; archive provenance records source SHA 3eb481c1f2ca4053fc58f87729f923fb70ef7f50, so it is historical evidence and not current-head runtime proof.",
     "baseline_unit_tests": {
@@ -486,6 +505,19 @@
         "symptom_key": "GRADLE_PLUGIN_RESOLUTION_NO_CACHE_OR_NETWORK",
         "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
       },
+      "429611cbf608ef533451": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "GitHub Actions run 45928328121 at state-only exact HEAD 7db0c3f424d5a16cab62fbac42038ecd293d4430: build passed, AVD health/config passed, API36 smoke step ran 22m40s and exited 2, artifact 15169320466 (15.8 MB; archive SHA256 672313504c2e430b1236fadee74120746480c8e0939b0ed2df3438c6044ce6f5); final exact-head enforcement failed with BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE. Artifact/API details are inaccessible through current GitHub network policy, so A/B/C root cause is not confirmed. Tested product source tree was 6d2b844808e2ba422b190cbf96d3a871686b8f24; 7db0c3f was a state-only checkpoint over that source.",
+            "hypothesis": "Run 45928328121 executed the API36 smoke for 22m40s and failed business evidence validation, but the finalizer exposes only aggregate status. Publish per-case instrumentation phase, reason, root cause, and log excerpt in the CI summary and annotation to localize the runtime failure without changing runtime acceptance or deadlines.",
+            "source_sha": "6d2b844808e2ba422b190cbf96d3a871686b8f24"
+          }
+        ],
+        "gate_id": "API36_A_B_C_RUNTIME",
+        "symptom_key": "BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
       "6c033ad651a4fd579f28": {
         "closed": false,
         "failures": [
@@ -684,17 +716,17 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Push VM heap semantics fix; verify API36 AVD config 512M and guest CPU 4, run real A/B/C, then Release only on PASS.",
+  "next_action": "Commit the per-case CI diagnostic change, rerun exact-head API36 A/B/C, then fix the first confirmed runtime/business root cause without changing the 60s deadline or frozen model contract.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "requested_task_id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
-  "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C, exact HEAD APK",
+  "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C and exact-HEAD APK delivery",
   "schema_version": "1.0",
   "source_sha": "6d2b844808e2ba422b190cbf96d3a871686b8f24",
-  "stage": "P0_V3_AVD_VM_HEAP_SEMANTICS_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH",
+  "stage": "P0_V3_RUN4233_FAILED_CASE_DIAGNOSTICS_FIX_PENDING",
   "state_update": {
-    "last_updated_at": "2026-11-26T14:35:11Z",
-    "note": "P0 V2 source 044e266 adds Java/native/assertion/cleanup/infra classifications with PID/time correlation. Local 34 parser/finalizer tests and runner fixture pass. Historical #4223 built successfully but API36 smoke failed; original runtime artifact is unavailable, cause NOT_CONFIRMED. #4224 at eb2db5e is in progress."
+    "last_updated_at": "2026-11-27T06:34:10Z",
+    "note": "Canonical control plane 21295d95 synchronized; Admission passed before source changes. Run 45928328121 at workflow HEAD 7db0c3f built and passed AVD health/config, then API36 smoke failed after 22m40s. Artifact contents are inaccessible, so A/B/C root cause remains NOT_CONFIRMED. failure_gate recorded the actual run. Per-case diagnostic reporter passes 12/12 focused Python tests; exact-head rerun and runtime repair remain pending."
   },
   "status": "BLOCKED",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",

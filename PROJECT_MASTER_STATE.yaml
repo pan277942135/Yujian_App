@@ -18,16 +18,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: a1c9c4aeac27e621cd7de4efc4956ff49bfb70fb
+    head_sha: 7db0c3f424d5a16cab62fbac42038ecd293d4430
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: fix/det-fish-v03-main-runtime-closure
     base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
-    head_sha: a1c9c4aeac27e621cd7de4efc4956ff49bfb70fb
+    head_sha: 7db0c3f424d5a16cab62fbac42038ecd293d4430
     status: DRAFT_OPEN_UNMERGED
-    status_source: 'Live git ls-remote verified PR #346 branch and pull head at a1c9c4aeac27e621cd7de4efc4956ff49bfb70fb before P0 V2 push. Candidate source db86f445 is local pending state checkpoint and Admission. No PR metadata mutation occurred.'
+    status_source: 'Live git ls-remote verified PR #346 branch and pull head at 7db0c3f424d5a16cab62fbac42038ecd293d4430 on 2026-11-27. PR remains Open/Draft and unmerged.'
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -75,17 +75,17 @@ recognition_main_journey:
 runtime_gates:
   exact_head:
     sha: 6d2b844808e2ba422b190cbf96d3a871686b8f24
-    admission: 'PENDING P0 V2 state-only checkpoint Admission and ordinary push. Candidate source db86f445 has parser unit 17/17 and runner fixture PASS; AndroidTest and API36 runtime remain NOT_RUN for this source.'
+    admission: 'CONTROL_PLANE_ADMISSION=PASS at local checkpoint based on remote HEAD 7db0c3f424d5a16cab62fbac42038ecd293d4430 after syncing canonical revision 21295d95c3213acbe0da1de8557dfdab6ad20ce7; rerun after source and state checkpoints.'
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
       url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
       source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
-    build: 'PENDING exact PR checkpoint; local Gradle wrapper could not resolve services.gradle.org, so no current-source APK build is claimed.'
-    unit_tests: 'Guard V1 31/31 PASS; classifier binding and API36 runner/finalizer deterministic tests pass. Product/module JVM regression remains PENDING for V2.3; historical 604/604 at 4c328ab and 574/574 at 316de1b are not promoted.'
+    build: 'PASS in GitHub Actions run 45928328121 at exact workflow HEAD 7db0c3f424d5a16cab62fbac42038ecd293d4430; this is a state-only checkpoint over product source 6d2b844808e2ba422b190cbf96d3a871686b8f24.'
+    unit_tests: 'API36 finalizer focused Python tests 12/12 PASS after per-case diagnostic change (local pending source commit). Product/module JVM regression on the next exact HEAD remains PENDING; historical 604/604 and 574/574 are not promoted.'
     android_test_compile: 'PENDING current V2.3 source; hosted exact-head compilation is required.'
     lint: 'PENDING current V2.3 source; hosted exact-head lint is required.'
-    api36_emulator: 'PENDING current V2.3 source; no local /dev/kvm, adb, or emulator. Hosted Test A and Test B must run on the marked checkpoint.'
+    api36_emulator: 'FAIL: run 45928328121 at exact workflow HEAD 7db0c3f424d5a16cab62fbac42038ecd293d4430; AVD health/config passed, API36 smoke ran 22m40s and exited 2, and exact-head enforcement reported BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE. A/B/C root cause is NOT_CONFIRMED because artifact 15169320466 is inaccessible from this environment.'
     model_validation: 'PASS: scripts/verify_classifier_tensor_binding.py inspected the unchanged committed model FlatBuffer and exact model SHA. Real TFLite Interpreter.run() and production Top1 remain PENDING API36.'
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
@@ -97,22 +97,23 @@ apk_and_evidence:
   input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
   input_evidence_zip: 'artifacts/26kf_visual_reference_v1/inputs/YuJian_Recognition_Evidence_eac685c91965.zip; 16,204,260 bytes; SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; historical pre-fix source SHA 67f17f0eb6a80233438cb8b00111a55d6767a6d8'
   fixture_b: 'FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not found in current attachments/workspace.'
-  emulator_device_evidence: 'Hosted Run 45172732325 at source 6102640437041159abc519b00249b7aedff0bb03: KVM preflight, memory gate, APK Pair verification and AVD memory config passed; API36 AUTO job failed and exact-head enforcement failed. Runtime evidence artifact 14818308331 (10.1 MB, SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33) uploaded but contents/logs are not readable here; emulator boot and failure classification are NOT_CONFIRMED. No AUTO PASS claimed.'
+  emulator_device_evidence: 'Run 45928328121 at workflow HEAD 7db0c3f424d5a16cab62fbac42038ecd293d4430: build and API36 AVD health/config passed; smoke ran 22m40s then exited 2 and final enforcement failed with BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE. Artifact 15169320466, 15.8 MB, ZIP SHA256 672313504c2e430b1236fadee74120746480c8e0939b0ed2df3438c6044ce6f5; artifact contents are inaccessible due GitHub API egress restriction, so A/B/C outcomes, model timing and memory evidence are NOT_CONFIRMED. No AUTO PASS claimed.'
 current_work:
   id: YUJIAN_EXIF_CLASSIFIER_AUTO_RESULT_API36_CLOSURE_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
   exact_head: 6d2b844808e2ba422b190cbf96d3a871686b8f24
   status: BLOCKED
-  stage: P0_V3_AVD_VM_HEAP_SEMANTICS_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH
+  stage: P0_V3_RUN4233_API36_FAILURE_CASE_DIAGNOSTICS_FIX_PENDING
   requested_task_id: YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3
-  requested_task_title: 'YuJian P0 V2 — EXIF, real classifier, AUTO recognition, Result runtime and API36 acceptance'
+  requested_task_title: 'YuJian P0 V3 — Run #4225 root cause, SlimSAM 60s performance, API36 A/B/C acceptance and APK delivery'
   blockers:
   - 'P0_2_HISTORY_UNAVAILABLE: requested historical commit object is unavailable; preservation review cannot be completed from current remote objects.'
   - 'V23_PRODUCT_REGRESSION_PENDING: local Gradle wrapper distribution could not resolve services.gradle.org; current-source JVM, AndroidTest compile, Release Kotlin, lint, and APK results are pending hosted exact-head CI.'
   - 'DEVICE_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator; exact-head API36 Test A/Test B evidence remains pending.'
   - 'GITHUB_EXACT_HEAD_CI_PENDING: P0 V2 candidate db86f445 requires state checkpoint Admission and ordinary PR branch push before hosted CI can run.'
   - 'FIXTURE_B_UNAVAILABLE: named historical evidence ZIP is absent; no fixture replay will be claimed.'
+  - 'RUN4233_API36_FAILURE: API36 AVD passed but smoke failed after 22m40s; case diagnostics were hidden from public summary and artifact is inaccessible. Per-case diagnostics are being added before root-cause repair.'
 
 blockers:
 - id: P0-2-HISTORY-UNAVAILABLE-001
@@ -175,7 +176,7 @@ next_actions:
 - id: P0-DELIVERY-03
   owner: Codex
   status: READY
-  action: Create the state-only checkpoint for V2.3, run Control Plane Admission, push by ordinary fast-forward to the existing PR #346 branch, then verify remote refs and exact-head CI artifacts.
+  action: Commit the per-case API36 diagnostic change, rerun exact-head API36 A/B/C, then repair the first confirmed business/runtime root cause without changing frozen deadlines or model contracts.
 - id: V23-SOURCE-01
   owner: Codex
   status: COMPLETED
@@ -183,7 +184,7 @@ next_actions:
 - id: V23-CHECKPOINT-02
   owner: Codex
   status: READY
-  action: Commit this state-only checkpoint with source_sha af5fac3c, validate Admission, then perform the existing branch's ordinary fast-forward push and inspect the exact-head hosted run.
+  action: Record the source commit in a state-only checkpoint, validate Admission, push by ordinary fast-forward to PR #346, and inspect exact-head CI/A-B-C diagnostics.
 
 completion_rules:
 - Complete applicable deterministic cross-layer tests before final APK packaging.
@@ -191,8 +192,8 @@ completion_rules:
 - 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
 state_update:
   initialized_at: '2026-11-22T11:07:35Z'
-  last_updated_at: '2026-11-26T14:35:11Z'
-  note: 'P0 V2 source 044e266 adds case-scoped Java/native/assertion/cleanup failure classification. Local parser/finalizer 34/34 and runner fault fixture PASS. Run #4223 built but API36 smoke failed with unreadable runtime artifact; Run #4224 at eb2db5e is in progress. Current source awaits Admission and push.'
+  last_updated_at: '2026-11-27T06:34:10Z'
+  note: 'Canonical control plane 21295d95 is synchronized and Admission passed on the local state checkpoint. Run #4233 built and passed AVD health/config but API36 smoke failed after 22m40s; artifact is inaccessible and A/B/C cause remains NOT_CONFIRMED. failure_gate records the actual failed run. Per-case CI summary/annotation change passes 12/12 focused Python tests; exact-head rerun and runtime root-cause repair remain pending.'
 agent_recovery:
   resume_order:
   - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.

@@ -485,3 +485,10 @@
 
 - Run #4232 at bc908a69: build PASS, AVD config 4 CPU/4096M/512M PASS, guest CPU/RAM PASS, but API36 system image sets `dalvik.vm.heapsize=576m`; A/B/C NOT_STARTED due conflated checker.
 - Source `6d2b844808e2ba422b190cbf96d3a871686b8f24` keeps 512M AVD VM heap mandatory and records actual 576m Dalvik property as separate observation; removes ineffective boot `-prop`. 50 CI Python tests PASS, including wrong AVD heap fail.
+
+## 2026-11-27 — API36 Run #4233 business evidence failure
+
+- Run `45928328121` at workflow HEAD `7db0c3f424d5a16cab62fbac42038ecd293d4430`: build and AVD health/config passed; API36 smoke ran 22m40s, exited 2, and exact-head enforcement failed with `BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE`.
+- Runtime artifact `15169320466` is 15.8 MB with ZIP SHA256 `672313504c2e430b1236fadee74120746480c8e0939b0ed2df3438c6044ce6f5`; GitHub artifact download is blocked by API egress, so Test A/B/C results, encoder timing, and memory evidence are NOT_CONFIRMED.
+- `failure_gate.py` recorded the failed API36 A/B/C run as attempt 1 for `BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE`. Per-case diagnostics are added to the next CI summary/error annotations; no runtime root cause is claimed.
+- Local `scripts/ci/tests/test_validate_recognition_result_api36_smoke.py`: 12/12 PASS. Exact-head hosted rerun and production/runtime fix remain pending.
