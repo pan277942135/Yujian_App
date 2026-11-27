@@ -470,3 +470,8 @@
 
 - Run #4229 at 2501ec1e: build PASS, API36 failed before A/B/C. Public annotation: `ValueError: hw.cpu.ncore, vm.heapSize, guest online CPUs, guest dalvik.vm.heapsize`. Release skipped.
 - Source `5775f08ff9774b418201be517a487ce8863dc45b` configures both heap keys and explicit emulator `-cores 4 -memory 4096`, checks config and actual guest 4 cores/512m. 48 Python CI tests and YAML parse PASS.
+
+## 2026-11-27 — Android emulator runner resource inputs checkpoint
+
+- Run #4230 at 12f276e7: build PASS, actual guest CPU 4 PASS, but API36 rejected config `hw.cpu.ncore`, hardware `vm.heapSize`, guest `dalvik.vm.heapsize`; A/B/C NOT_STARTED.
+- Inspection of upstream `reactivecircus/android-emulator-runner@v2` shows default `cores: 2` and config append behavior. Source `66a8d4a99ccb76734efb58a05aefb21bc7ffbb54` sets documented `cores: 4`, `ram-size: 4096M`, `heap-size: 512M` inputs, normalizes units, and treats guest CPU/heap as authoritative. 48 CI tests PASS.

@@ -13,7 +13,8 @@
     "V3_API36_RUNTIME_PENDING: Run #4225 failed; artifact 15134616720 is inaccessible from this environment. Source fix 5db2ba710037c45951defe687075bd5b38f5a800 requires exact-head hosted A/B/C and real encoder timing before PASS.",
     "RUN4226_EARLY_INFRA_FAILURE: build passed, API36 job failed before runtime-result; 47s smoke step, 3.54KB evidence artifact ID 15161108722; exact resource log inaccessible from workspace.",
     "RUN4228_EARLY_INFRA_FAILURE: build PASS; API36 smoke 2m10s, evidence artifact 15162193629 3.54KB, A/B/C NOT_STARTED, exact error hidden by GitHub logs.",
-    "RUN4229_AVD_RESOURCE_MISMATCH: public job annotation reports hw.cpu.ncore, vm.heapSize, guest online CPUs and dalvik.vm.heapsize mismatch. A/B/C NOT_STARTED."
+    "RUN4229_AVD_RESOURCE_MISMATCH: public job annotation reports hw.cpu.ncore, vm.heapSize, guest online CPUs and dalvik.vm.heapsize mismatch. A/B/C NOT_STARTED.",
+    "RUN4230_ACTION_DEFAULT_OVERRIDE: build PASS, actual guest CPU 4; Action appended default cores=2 in AVD config and guest Dalvik heap remained wrong. A/B/C NOT_STARTED."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
   "checkpoint_updated_at": "2026-11-26T14:35:11Z",
@@ -509,6 +510,19 @@
         "symptom_key": "API36_RESULT_SUMMARY_FINALIZATION_FAILURE",
         "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
       },
+      "9bbc21beda2a0d75a3d2": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Run 45922051109 job 140258743170 public annotation: config hw.cpu.ncore, hardware vm.heapSize, guest dalvik.vm.heapsize; upstream action.yml defaults cores=2 and src/emulator-manager.ts appends inputs to config.ini",
+            "hypothesis": "android-emulator-runner@v2 appends its default cores=2 and omits heap-size after the manual config, so documented action inputs must be set",
+            "source_sha": "5775f08ff9774b418201be517a487ce8863dc45b"
+          }
+        ],
+        "gate_id": "API36_AVD_4CORE",
+        "symptom_key": "ACTION_DEFAULT_CORES_HEAP_OVERRIDE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
       "9df57880ad59f5725fde": {
         "closed": false,
         "failures": [
@@ -642,14 +656,14 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Push actual 4-core/512M guest configuration and verify exact-head API36 A/B/C, then Release only on all PASS.",
+  "next_action": "Push emulator runner input fix; verify actual 4 CPU and 512M guest heap, then run API36 A/B/C and release only on PASS.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "requested_task_id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
   "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C, exact HEAD APK",
   "schema_version": "1.0",
-  "source_sha": "5775f08ff9774b418201be517a487ce8863dc45b",
-  "stage": "P0_V3_AVD_ACTUAL_RESOURCES_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH",
+  "source_sha": "66a8d4a99ccb76734efb58a05aefb21bc7ffbb54",
+  "stage": "P0_V3_AVD_ACTION_INPUTS_SOURCE_COMMITTED_PENDING_ADMISSION_PUSH",
   "state_update": {
     "last_updated_at": "2026-11-26T14:35:11Z",
     "note": "P0 V2 source 044e266 adds Java/native/assertion/cleanup/infra classifications with PID/time correlation. Local 34 parser/finalizer tests and runner fixture pass. Historical #4223 built successfully but API36 smoke failed; original runtime artifact is unavailable, cause NOT_CONFIRMED. #4224 at eb2db5e is in progress."
