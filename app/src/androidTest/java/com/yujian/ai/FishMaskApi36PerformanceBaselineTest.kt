@@ -121,6 +121,9 @@ class FishMaskApi36PerformanceBaselineTest {
         val runtimeReadyEvent = runtime.snapshotEvents().firstOrNull { it.eventName == "SLIMSAM_RUNTIME_READY" }
         val failure = java.util.concurrent.atomic.AtomicReference<String?>(null)
         var lastIdentity: RecognitionModelIdentity? = null
+        // The production UI owns one pipeline across attempts. Reuse it here so the
+        // baseline measures independent photo attempts without recreating model sessions.
+        val pipeline = FishRecognitionPipeline(target)
 
         try {
             repeat(10) { index ->
@@ -139,7 +142,6 @@ class FishMaskApi36PerformanceBaselineTest {
                 val gcCountStarted = Debug.getGlobalGcInvocationCount()
                 val allocCountStarted = Debug.getGlobalAllocCount()
                 val pipelineEvents = Collections.synchronizedList(mutableListOf<JSONObject>())
-                val pipeline = FishRecognitionPipeline(target)
                 var pipelineDurationMs: Double? = null
                 var recognitionStatus = "NOT_RUN"
                 var maskStatus = "NOT_RUN"
@@ -298,8 +300,6 @@ class FishMaskApi36PerformanceBaselineTest {
                         result = "FAIL",
                         error = error,
                     )
-                } finally {
-                    pipeline.close()
                 }
                 writeBaselineArtifacts(
                     root = evidenceRoot,
@@ -357,21 +357,28 @@ class FishMaskApi36PerformanceBaselineTest {
             failure.set("${t.javaClass.simpleName}:${t.message.orEmpty()}")
             throw t
         } finally {
-            writeBaselineArtifacts(
-                root = evidenceRoot,
-                rows = rows.toList(),
-                cacheHits = repeatHits.toList(),
-                selected = selected,
-                assetSha = assetSha,
-                normalizedPhotoReadyNs = normalizedPhotoReadyNs,
-                decodeNormalizeStartedNs = decodeNormalizeStartedNs,
-                runtimeReadyEvent = runtimeReadyEvent,
-                runtime = runtime,
-                buildSha = InstrumentationRegistry.getArguments().getString("source_sha") ?: "NOT_PROVIDED",
-                failure = failure.get(),
-            )
-            File(selected.filePath).delete()
-            if (!selected.bitmap.isRecycled) selected.bitmap.recycle()
+            try {
+                writeBaselineArtifacts(
+                    root = evidenceRoot,
+                    rows = rows.toList(),
+                    cacheHits = repeatHits.toList(),
+                    selected = selected,
+                    assetSha = assetSha,
+                    normalizedPhotoReadyNs = normalizedPhotoReadyNs,
+                    decodeNormalizeStartedNs = decodeNormalizeStartedNs,
+                    runtimeReadyEvent = runtimeReadyEvent,
+                    runtime = runtime,
+                    buildSha = InstrumentationRegistry.getArguments().getString("source_sha") ?: "NOT_PROVIDED",
+                    failure = failure.get(),
+                )
+            } finally {
+                try {
+                    pipeline.close()
+                } finally {
+                    File(selected.filePath).delete()
+                    if (!selected.bitmap.isRecycled) selected.bitmap.recycle()
+                }
+            }
         }
     }
 
