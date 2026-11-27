@@ -512,3 +512,6 @@
 - Post-commit Admission initially rejected recovery workflow commit `d335f227` because the Work source baseline still referenced `6b61c50`; the workflow file is a scoped change after that SHA. Recording a state-only checkpoint at `d335f227` and rerunning Admission before any push.
 
 - State recovery: Work `source_sha` and Project Master execution baseline now point to recovery workflow source `d335f227`; the next commit contains only branch-local state and build-log files. Work-state validation and full Admission will run against that committed checkpoint before any push.
+
+- Run 45961309057 recovered Run 45953790013 artifact 15179468061 (15 MB, ZIP SHA256 7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765). API36 cases: Test A real Classifier PASS; Test B production reveal FAIL at attempt_timeout_ms=60000 with SLIMSAM_TIMEOUT and CLASSIFIER_RESULT_WITHOUT_MASK; Test C home-picker AUTO FAIL with `System photo picker did not open`. These establish case outcomes, but B stage latency breakdown and C picker-launch/package cause are not yet verified.
+- Workflow source 7f83ef43 extends the actions:read recovery job with artifact inventory and allowlisted identity-redacted timing, timeout, memory, and picker activity extraction; its fixture passes. Product runtime code remains unchanged during evidence localization.
