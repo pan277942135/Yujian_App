@@ -498,3 +498,8 @@
 - Guarded source commit `6b61c50ce3d02f033635c54738d0ff868ef06599` adds Test A/B/C failure phase/reason/root cause/exception/log excerpts to the Actions Step Summary and error annotations; runtime verdict logic and deadlines are unchanged.
 - `python3 scripts/ci/tests/test_validate_recognition_result_api36_smoke.py`: 12/12 PASS.
 - Run #4233 remains a failure on older source `7db0c3f`; this commit only makes the next exact-head run diagnosable. State checkpoint, Admission, push, runtime rerun and production fix are pending.
+
+## 2026-11-27 — API36 workflow trigger marker correction
+
+- Push of state checkpoint `9e600f981aab2737b60d3d1eada85ecc0acb79c0` was remote-verified and created workflow run `45953428564`. Workflow source confirms `recognition-result-api36-smoke` runs only when the head commit message contains `[recognition-result-api36-smoke]`; this checkpoint omitted it, so A/B/C did not run.
+- Adding a state-only trigger checkpoint with the required marker. This does not change product source; exact-head runtime remains NOT_RUN on the diagnostic source until the marked run executes.
