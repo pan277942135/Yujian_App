@@ -18,38 +18,33 @@
     "RUN4231_GUEST_HEAP_MISMATCH: all config/CPU/RAM checks passed; guest dalvik.vm.heapsize still non-512, so A/B/C NOT_STARTED.",
     "RUN4232_DALVIK_SYSTEM_IMAGE_PROPERTY: AVD VM heap config=512M passed, guest dalvik.vm.heapsize=576m from API36 system image; checker conflated distinct settings, so A/B/C NOT_STARTED.",
     "RUN4233_API36_FAILURE: Run 45928328121 at workflow HEAD 7db0c3f failed API36 smoke after 22m40s; artifact 15169320466 inaccessible. Exact A/B/C result and runtime root cause NOT_CONFIRMED.",
-    "RUN4236_API36_RUNTIME_FAILURE: retained evidence confirms A PASS, B SLIMSAM_TIMEOUT at 60,000ms, and C picker assertion failure. Encoder occupied 52,352.72ms (native run 47,340.97ms); output finite scan/hash and tensor preparation bring the measured path near the shared deadline; decoder execution count was 0. Picker launch/component cause still requires retained ActivityTaskManager extraction."
+    "RUN4236_API36_RUNTIME_FAILURE: retained evidence confirms A PASS, B SLIMSAM_TIMEOUT at 60,000ms, and C picker assertion failure. Encoder occupied 52,352.72ms (native run 47,340.97ms); output finite scan/hash and tensor preparation bring the measured path near the shared deadline; decoder execution count was 0. Picker launch/component cause still requires retained ActivityTaskManager extraction.",
+    "FISH_MASK_API36_BASELINE_NOT_RUN: fixed-photo 10-run Cache MISS and Cache HIT measurements have not been captured for exact source 16464298.",
+    "FISH_MASK_API36_CASE_RESULTS_NOT_CONFIRMED: exact-head run 45978437133 artifact is uploaded but unreadable in this session.",
+    "FISH_MASK_API36_BASELINE_NOT_RUN: fixed-photo 10-run Cache MISS and Cache HIT measurements have not been captured for exact source 16464298.",
+    "FISH_MASK_API36_CASE_RESULTS_NOT_CONFIRMED: exact-head run 45978437133 artifact is uploaded but unreadable in this session."
   ],
   "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
-  "checkpoint_updated_at": "2026-11-27T08:16:21Z",
+  "checkpoint_updated_at": "2026-11-27T13:59:56Z",
   "control_plane_revision": "21295d95c3213acbe0da1de8557dfdab6ad20ce7",
   "current_work": {
     "blockers": [
-      "P0_2_ORIGINAL_COMMIT_UNAVAILABLE: 759e918332293a4ffaea479a57556386b7c41f1d cannot be fetched; original file-by-file comparison remains unverified.",
-      "LINT_PENDING_EXTERNAL_DNS: current V2.3 lint has not run; earlier lint dependency resolution failed at dl.google.com, so hosted exact-head lint remains pending.",
-      "API36_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator is available; exact-head Test A and Test B require hosted API36 execution.",
-      "DEBUG_APK_PENDING_EXACT_HEAD: prior APKs are historical; build and verify an APK from the final PR checkpoint.",
-      "TFLITE_NATIVE_HARD_TERMINATION_UNVERIFIED: no device/native termination evidence was obtained.",
-      "AUTO_RUNTIME_UNVERIFIED: no current-source 26KF device run, real Mask/PixelCopy evidence, or Stage10-13.5 end-to-end AUTO evidence was produced.",
-      "FIXTURE_B_UNAVAILABLE: historical runtime evidence ZIP is absent; replay is not claimed.",
-      "RUN4236_ARTIFACT_CASE_STATUS_RECOVERED: existing Run 45953790013 artifact confirms Test A PASS; Test B FAIL at the shared 60,000ms deadline with SLIMSAM_TIMEOUT/CLASSIFIER_RESULT_WITHOUT_MASK; Test C FAIL with System photo picker did not open. Retained timing shows Vision Encoder 52,352.72ms including 47,340.97ms native execution, 3,772.17ms finite scan, 904.55ms output hash, and decoderExecutionCount=0. Runtime intraOpThreads and ActivityTaskManager picker launch records await compact readback.",
-      "P0_V2_RUN4223_FAILURE: exact-head build passed, API36 smoke failed at 86065bcf; artifact 15125829938 is inaccessible under current network policy, so runtime root cause is NOT_CONFIRMED.",
-      "P0_V2_API36_RUNTIME_PENDING: source 044e266 requires hosted Test A/B/C, classifier native execution, SlimSAM/Mask/Result evidence, and exact-head APK verification.",
-      "RUN4233_API36_FAILURE: AVD health/config passed; API36 smoke failed after 22m40s, but case diagnostics are inaccessible. Root cause NOT_CONFIRMED; per-case summary/annotation patch pending exact-head rerun.",
-      "RUN4236_API36_FAILURE: Test B root cause is localized to encoder and validation latency consuming the shared attempt budget before Decoder starts; no deadline expansion is authorized. Test C is still unresolved pending its ActivityTaskManager start/component evidence. No production code changed and no new API36 runtime attempt has been spent."
+      "No fixed-photo 10-run API36 performance baseline exists for exact source 16464298.",
+      "Run 45978437133 fail-closed case artifact is uploaded but unreadable in this session.",
+      "Local emulator and /dev/kvm are absent; hosted API36 is required."
     ],
     "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
-    "current_validated_tree_note": "Final pushed source commit 4c328ab5e7c6d555c9575ebeffa2c815e6618baf passed 604/604 JVM tests, :app:compileReleaseKotlin, Debug APK build, packaged model/assets, signature and ZIP checks. APK SHA256 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0; 200382052 bytes. AndroidTest and lint are blocked before source validation by Google Maven DNS; hosted exact-head CI and API36 runtime remain unverified.",
-    "delivery_guard_status": "DIAGNOSTIC_WORKFLOW_SOURCE_COMMITTED_PENDING_STATE_CHECKPOINT_ADMISSION_AND_PUSH",
-    "exact_head": "d37da0be693fcd1992ccac88f9839f4081f8c99f",
-    "id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
+    "current_validated_tree_note": "Clean product source tree at 16464298cd7ab90737f6b636b2377a8c53a66794; remote PR branch and pull ref match. State checkpoint precedes production edits.",
+    "delivery_guard_status": "API36_BASELINE_NOT_RUN",
+    "exact_head": "16464298cd7ab90737f6b636b2377a8c53a66794",
+    "id": "YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1",
     "phase": "P6",
-    "requested_task_id": "YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE",
-    "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C and exact-HEAD APK delivery",
-    "stage": "P0_V3_RUN4236_ROOT_CAUSE_EVIDENCE_EXTRACTION",
-    "status": "RECOVERING",
-    "task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
-    "next_action": "Commit the state-only checkpoint at d37da0be, validate Work and Project Master state plus full Admission, and push with only the api36-evidence-recovery marker to expose compact timings, runtime thread configuration, and picker activity evidence."
+    "requested_task_id": "YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1",
+    "requested_task_title": "Fish-Mask Demo performance port, ORT runtime optimization, tensor preprocessing speedup, API36 one-photo 5-second acceptance V1",
+    "stage": "SOURCE_LOCK_AND_API36_PERFORMANCE_BASELINE",
+    "status": "RUNNING",
+    "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+    "next_action": "Pass Admission on the state-only checkpoint, then audit Demo source and collect the fixed-photo baseline."
   },
   "dependencies": [
     "P5-02"
@@ -527,6 +522,87 @@
       "production_code_changed": false,
       "api36_retry_spent": false,
       "runtime_pass_claimed": false
+    },
+    "fish_mask_performance_source_lock": {
+      "task_id": "YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1",
+      "remote": {
+        "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+        "local_head_before_checkpoint": "16464298cd7ab90737f6b636b2377a8c53a66794",
+        "remote_pr_branch_head": "16464298cd7ab90737f6b636b2377a8c53a66794",
+        "remote_pull_346_head": "16464298cd7ab90737f6b636b2377a8c53a66794",
+        "main_head": "21295d95c3213acbe0da1de8557dfdab6ad20ce7",
+        "pr_base_branch": "fix/det-fish-v03-main-runtime-closure",
+        "pr_base_head": "6ec43662ef76c6ffee8530148098649496ab7fb1",
+        "merge_base_with_main": "03db3692669847084d7e48fc3128f85cbf832af9",
+        "merge_base_with_pr_base": "6ec43662ef76c6ffee8530148098649496ab7fb1",
+        "local_only_commits": 0,
+        "remote_only_commits": 0
+      },
+      "worktree": {
+        "temporary_worktree": "/tmp/Yujian_App_PR346_V3_1",
+        "branch_state": "detached at exact PR source; preserve history for ordinary fast-forward updates",
+        "clean_before_admission": true,
+        "original_checkout": "/workspace/Yujian_App_PR346",
+        "original_head": "63dd7c0ebb0b1a6f1dd3ff1492272b898a8a4e64",
+        "original_tracked_modified_entries": 5,
+        "original_untracked_entries": 69,
+        "original_checkout_was_dirty": true,
+        "original_checkout_untouched_by_current_work": true
+      },
+      "assets_sha256": {
+        "slimsam_vision_encoder": "cce23c7b2e5d4f330932738fb67ba518e04b0d99ccdd1cccd22a7da4e01f2971",
+        "slimsam_mask_decoder": "cb90b279f549d2cab7fd6e20c38522438c65d84bdcca3d2a764cff7d857fdce2",
+        "classifier": "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18",
+        "detector_onnx": "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1"
+      },
+      "versions": {
+        "gradle_wrapper": "9.3.1",
+        "android_gradle_plugin": "9.1.1",
+        "kotlin": "2.2.10",
+        "onnxruntime_android": "1.29.0",
+        "tensorflow_lite": "2.16.1",
+        "compile_sdk": 35,
+        "target_sdk": 35
+      },
+      "environment": {
+        "java": "21.0.13",
+        "android_sdk_root": "/tmp/yujian-android-sdk",
+        "adb": "/tmp/yujian-android-sdk/platform-tools/adb (executable, not on PATH)",
+        "emulator": "NOT_FOUND",
+        "dev_kvm": "ABSENT",
+        "gradle_wrapper": "Default lock creation failed at /home/agent/.gradle; no source-lock build or test was run"
+      },
+      "api36_run_164": {
+        "run_id": "45978437133",
+        "source_sha": "16464298cd7ab90737f6b636b2377a8c53a66794",
+        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/45978437133",
+        "status": "FAIL_CLOSED",
+        "artifact_id": "15190004423",
+        "artifact_size_mb": 15.8,
+        "artifact_sha256": "a88c70a9b5fcef0586760c58612953f861d64b87a9d1850e623e608f0e441bab",
+        "artifact_url": "https://github.com/pan277942135/Yujian_App/actions/runs/45978437133#artifacts",
+        "case_results": "NOT_CONFIRMED",
+        "performance_baseline": "NOT_RUN"
+      },
+      "historical_run_4236": "Historical only, workflow source 20405b160cb2: Encoder 52,352.72ms including 47,340.97ms native; finite scan 3,772.17ms; output SHA 904.55ms; Decoder count 0.",
+      "demo_reference": {
+        "repository": "18694061757-ctrl/Fish-Mask-Gold-Contour-Lab-Demo",
+        "requested_sha": "bdb26d96f7dca27e43adfad665feee9cab555ccf",
+        "verification": "NOT_YET_FETCHED"
+      },
+      "performance_baseline": "NOT_RUN"
+    },
+    "failure_gate_check_slimSam_timeout": {
+      "result": "ALLOW_REPAIR",
+      "failed_attempts_before_this_work": 1,
+      "guard": "tools/work_execution_v2/failure_gate.py check",
+      "event": "API36_A_B_C_RUNTIME / RUN4225_ASSET_STORAGE_SLIMSAM_TIMEOUT; check only, no failure recorded"
+    },
+    "failure_gate_check_slimsAM_timeout": {
+      "result": "ALLOW_REPAIR",
+      "failed_attempts_before_this_work": 1,
+      "guard": "tools/work_execution_v2/failure_gate.py check",
+      "event": "API36_A_B_C_RUNTIME / RUN4225_ASSET_STORAGE_SLIMSAM_TIMEOUT; check only, no failure recorded"
     }
   },
   "execution_v2": {
@@ -787,19 +863,19 @@
     "schema_version": "1.0",
     "current_admission_attempt": "Diagnostic workflow source d37da0be only changes how already-retained Run 4236 evidence is surfaced. A state-only checkpoint is being prepared; post-checkpoint Work-state validation, Project Master validation, Unified Contract validation, and full Admission must pass before guarded push."
   },
-  "next_action": "Commit the state-only checkpoint at d37da0be, validate Work and Project Master state plus full Admission, and push with only the api36-evidence-recovery marker to expose compact timings, runtime thread configuration, and picker activity evidence.",
+  "next_action": "After post-checkpoint Admission passes, verify the pinned Demo revision and capture the fixed-photo API36 baseline before production edits.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
-  "requested_task_id": "YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3",
-  "requested_task_title": "Run #4225 root cause closure, SlimSAM 60s performance, API36 A/B/C and exact-HEAD APK delivery",
+  "requested_task_id": "YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1",
+  "requested_task_title": "Fish-Mask Demo performance port, ORT runtime optimization, tensor preprocessing speedup, API36 one-photo 5-second acceptance V1",
   "schema_version": "1.0",
-  "source_sha": "d37da0be693fcd1992ccac88f9839f4081f8c99f",
-  "stage": "P0_V3_RUN4236_ROOT_CAUSE_EVIDENCE_EXTRACTION",
+  "source_sha": "16464298cd7ab90737f6b636b2377a8c53a66794",
+  "stage": "SOURCE_LOCK_AND_API36_PERFORMANCE_BASELINE",
   "state_update": {
-    "last_updated_at": "2026-11-27T08:16:21Z",
-    "note": "Guarded source-only diagnostic workflow commit d37da0be passed local fixture, YAML and diff checks. Existing Run 4236 evidence now localizes Test B to ~52.35s Vision Encoder plus output validation with no Decoder run; Test C picker-start cause still awaits retained log annotations. Next create a state-only checkpoint, validate, and push with the recovery marker only; no new API36 runtime attempt or product source change."
+    "last_updated_at": "2026-11-27T13:59:56Z",
+    "note": "Started YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1 on exact PR source 16464298cd7ab90737f6b636b2377a8c53a66794; remote/model provenance recorded. Exact-head API36 outcome is FAIL_CLOSED with case results NOT_CONFIRMED; performance baseline NOT_RUN."
   },
-  "status": "RECOVERING",
+  "status": "RUNNING",
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
-  "work_id": "YUJIAN_PR346_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2"
+  "work_id": "YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1"
 }
