@@ -727,6 +727,9 @@ jobs:
           profile: pixel_2
           avd-name: test
           force-avd-creation: 'false'
+          cores: 4
+          ram-size: 4096M
+          heap-size: 512M
           disable-animations: true
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -cores 4 -memory 4096
           emulator-boot-timeout: 600

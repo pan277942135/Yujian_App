@@ -27,8 +27,8 @@ class Api36EmulatorSerialTest(TestCase):
             avd = Path(root) / "test.avd"
             avd.mkdir()
             (avd / "config.ini").write_text(
-                "hw.cpu.ncore=4\nhw.ramSize=4096\nhw.heapSize=512\nvm.heapSize=512\n")
-            (avd / "hardware-qemu.ini").write_text("hw.ramSize=4096\n")
+                "hw.cpu.ncore=2\nhw.cpu.ncore=4\nhw.ramSize=4096M\nhw.heapSize=512M\nvm.heapSize=512\n")
+            (avd / "hardware-qemu.ini").write_text("hw.ramSize=4096\nvm.heapSize=256\n")
             before = os.getcwd()
             try:
                 os.chdir(root)

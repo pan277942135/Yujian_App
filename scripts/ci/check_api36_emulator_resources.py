@@ -48,18 +48,19 @@ def main():
 
             expected = {"hw.cpu.ncore": "4", "hw.ramSize": "4096", "hw.heapSize": "512", "vm.heapSize": "512"}
             failures = []
+            def megabytes(value):
+                return re.sub(r"(?i)m(?:b)?$", "", value.strip())
             for key, value in expected.items():
                 configured_value = configured.get(key, "MISSING")
                 record(f"configured {key}={configured_value} expected={value}")
-                if configured_value != value:
+                if megabytes(configured_value) != value:
                     failures.append(f"config {key}")
                 observed = effective.get(key, "MISSING")
                 record(f"effective {key}={observed} expected={value}")
-                # The QEMU hardware file may omit CPU and Dalvik heap keys. The
-                # guest CPU count and heap property below are authoritative.
-                if key == "hw.ramSize" and observed != value:
-                    failures.append(f"hardware {key}")
-                elif key in ("hw.cpu.ncore", "hw.heapSize", "vm.heapSize") and observed not in ("MISSING", value):
+                # The QEMU hardware file may contain stale or omitted CPU and
+                # heap keys. Actual guest CPU count and Dalvik heap below are
+                # authoritative; RAM is also verified against guest MemTotal.
+                if key == "hw.ramSize" and megabytes(observed) != value:
                     failures.append(f"hardware {key}")
 
             guest = subprocess.run(
