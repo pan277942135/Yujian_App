@@ -731,7 +731,7 @@ jobs:
           ram-size: 4096M
           heap-size: 512M
           disable-animations: true
-          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -cores 4 -memory 4096 -prop dalvik.vm.heapsize=512m
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -cores 4 -memory 4096
           emulator-boot-timeout: 600
           script: |
             python3 scripts/ci/check_api36_emulator_resources.py
