@@ -33,20 +33,34 @@ def main():
         try:
             serial = resolve_serial()
             record(f"serial={serial}")
-            hardware = Path(os.environ["ANDROID_AVD_HOME"]) / "test.avd" / "hardware-qemu.ini"
+            avd_dir = Path(os.environ["ANDROID_AVD_HOME"]) / "test.avd"
+            hardware = avd_dir / "hardware-qemu.ini"
+            configured = {}
+            for line in (avd_dir / "config.ini").read_text(encoding="utf-8").splitlines():
+                key, sep, value = line.partition("=")
+                if sep:
+                    configured[key.strip()] = value.strip()
             effective = {}
             for line in hardware.read_text(encoding="utf-8").splitlines():
                 key, sep, value = line.partition("=")
                 if sep:
                     effective[key.strip()] = value.strip()
 
-            expected = {"hw.cpu.ncore": "4", "hw.ramSize": "4096", "vm.heapSize": "512"}
+            expected = {"hw.cpu.ncore": "4", "hw.ramSize": "4096", "hw.heapSize": "512", "vm.heapSize": "512"}
             failures = []
             for key, value in expected.items():
+                configured_value = configured.get(key, "MISSING")
+                record(f"configured {key}={configured_value} expected={value}")
+                if configured_value != value:
+                    failures.append(f"config {key}")
                 observed = effective.get(key, "MISSING")
                 record(f"effective {key}={observed} expected={value}")
-                if observed != value:
-                    failures.append(key)
+                # The QEMU hardware file may omit CPU and Dalvik heap keys. The
+                # guest CPU count and heap property below are authoritative.
+                if key == "hw.ramSize" and observed != value:
+                    failures.append(f"hardware {key}")
+                elif key in ("hw.cpu.ncore", "hw.heapSize", "vm.heapSize") and observed not in ("MISSING", value):
+                    failures.append(f"hardware {key}")
 
             guest = subprocess.run(
                 ["adb", "-s", serial, "shell", "grep -c '^processor[[:space:]]*:' /proc/cpuinfo && "

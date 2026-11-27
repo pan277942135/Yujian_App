@@ -691,13 +691,13 @@ jobs:
           fi
           test -f "$avd_config"
           sed -i -E '/^[[:space:]]*(hw\.(cpu\.ncore|ramSize|heapSize)|vm\.heapSize)[[:space:]]*=/d' "$avd_config"
-          printf '%s\n' 'hw.cpu.ncore=4' 'hw.ramSize=4096' 'vm.heapSize=512' >> "$avd_config"
+          printf '%s\n' 'hw.cpu.ncore=4' 'hw.ramSize=4096' 'hw.heapSize=512' 'vm.heapSize=512' >> "$avd_config"
           {
             printf 'avd_home=%s\navd_name=%s\navd_config=%s\n' "$avd_home" "$avd_name" "$avd_config"
             printf '%s\n' '--- avdmanager list avd -c ---'
             avdmanager list avd -c
             printf '%s\n' '--- active AVD CPU, RAM, heap, ABI and image config ---'
-            grep -E '^[[:space:]]*(hw\.(ramSize|cpu\.(arch|ncore))|vm\.heapSize|image\.sysdir\.1)=' "$avd_config"
+            grep -E '^[[:space:]]*(hw\.(ramSize|heapSize|cpu\.(arch|ncore))|vm\.heapSize|image\.sysdir\.1)=' "$avd_config"
             cat "$avd_config"
           } | tee "$evidence/avd-config-before-launch.txt"
           python3 - "$avd_config" <<'PY'
@@ -709,6 +709,7 @@ jobs:
                   config[key.strip()] = value.strip()
           assert config.get('hw.cpu.ncore') == '4', config.get('hw.cpu.ncore')
           assert config.get('hw.ramSize') == '4096', config.get('hw.ramSize')
+          assert config.get('hw.heapSize') == '512', config.get('hw.heapSize')
           assert config.get('vm.heapSize') == '512', config.get('vm.heapSize')
           assert config.get('hw.cpu.arch') == 'x86_64', config.get('hw.cpu.arch')
           image = config.get('image.sysdir.1', '').replace(chr(92), '/').rstrip('/')
@@ -727,7 +728,7 @@ jobs:
           avd-name: test
           force-avd-creation: 'false'
           disable-animations: true
-          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -cores 4 -memory 4096
           emulator-boot-timeout: 600
           script: |
             python3 scripts/ci/check_api36_emulator_resources.py
