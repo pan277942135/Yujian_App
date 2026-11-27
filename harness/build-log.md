@@ -460,3 +460,8 @@
 - Run #4226 built APK from ea803384 but failed before runtime-result.json; API36 step lasted 47 seconds and early-failure evidence artifact 15161108722 was 3.54 KB. Root log inaccessible from current workspace.
 - Source `3df38dc15e0e36ae70db0276d5251dc46cd39784` discovers exactly one online emulator if ANDROID_SERIAL is unset and records resource-check failure in runtime-result. 46 CI Python tests, YAML parse and diff check PASS.
 - Local production :app:compileDebugKotlin PASS; application-core 79, recognition-ui 237, app 126 JVM tests PASS, 0 fail/skip. Local AndroidTest compile blocked on uncached AndroidX dependencies.
+
+## 2026-11-27 — API36 visible failure annotation checkpoint
+
+- Run #4228 at fc6cd91e: build PASS, API36 smoke failed in 2m10s before runtime-result; evidence artifact 15162193629 only 3.54 KB. A/B/C NOT_STARTED, Release skipped.
+- Source `ca67fdf96eea3ad128add3d957efefdfc1149809` emits GitHub error annotations for resource/startup/verdict failure and preserves original failure reason through summary finalizer. 46 CI Python tests, YAML parse and diff check PASS.
