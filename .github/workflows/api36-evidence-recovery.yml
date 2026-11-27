@@ -53,6 +53,13 @@ jobs:
           def command_escape(value):
               return safe(value).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
+          def emit_notice_chunks(title, value, chunk_size=3000):
+              value = str(value)
+              chunks = [value[index:index + chunk_size] for index in range(0, len(value), chunk_size)] or ["EMPTY"]
+              for index, chunk in enumerate(chunks, start=1):
+                  chunk_title = f"{title} [{index}/{len(chunks)}]"
+                  print(f"::notice title={command_escape(chunk_title)}::{command_escape(chunk)}")
+
           names = (
               ("Test A — Classifier TFLite", "classifier_tensor_binding"),
               ("Test B — Production reveal", "production_night_catch_reveal"),
@@ -81,6 +88,10 @@ jobs:
           files = sorted(path for path in root.rglob("*") if path.is_file())
           for path in files:
               summary.append(f"| `{path.relative_to(root).as_posix()}` | {path.stat().st_size} |")
+          inventory = "\n".join(
+              f"{path.relative_to(root).as_posix()} {path.stat().st_size} bytes" for path in files
+          )
+          emit_notice_chunks("Run 4236 artifact inventory", inventory)
 
           for label, key in names:
               case = cases.get(key)
@@ -119,6 +130,7 @@ jobs:
                   return safe(value, 500)
               return value
 
+          json_reports = []
           for pattern in ("slimsam_timing.json", "recognition_stage_timing.json", "memory-analysis.json", "model_runtime_state.json"):
               for path in root.rglob(pattern):
                   try:
@@ -126,6 +138,7 @@ jobs:
                       encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True)
                   except Exception as exc:
                       encoded = f"JSON_READ_FAILED:{type(exc).__name__}:{exc}"
+                  json_reports.append((path.name, encoded))
                   summary.extend(["", f"### `{path.name}`", "", "```json", safe(encoded, 12000), "```"])
 
           diagnostic_pattern = re.compile(
@@ -170,6 +183,15 @@ jobs:
               summary.extend(["```json", json.dumps(diagnostics, ensure_ascii=False, indent=2), "```"])
           else:
               summary.append("No matching events were present in the downloaded text logs.")
+          for name, encoded in json_reports:
+              emit_notice_chunks(f"Run 4236 {name}", encoded)
+          if diagnostics:
+              emit_notice_chunks(
+                  "Run 4236 allowlisted runtime events",
+                  json.dumps(diagnostics, ensure_ascii=False, separators=(",", ":")),
+              )
+          else:
+              emit_notice_chunks("Run 4236 allowlisted runtime events", "NO_MATCHING_TEXT_LOG_EVENTS")
 
           summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
           with summary_path.open("a", encoding="utf-8") as output:
