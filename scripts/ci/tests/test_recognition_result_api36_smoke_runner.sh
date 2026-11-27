@@ -233,6 +233,7 @@ assert runner_status != 0, "controlled failing instrumentation must fail the rea
 assert result["instrumentation_attempted"] is True, result
 assert result["instrumentation_started"] is True, result
 assert result["AUTO_SMOKE_PASS"] is False, result
+assert result["private_evidence_pull_failed"] is True, result
 assert result["classification"] != "AUTO_SMOKE_PASS", result
 assert result["CLASSIFIER_TFLITE_RUNTIME_PASS"] is True, result
 assert result["PRODUCTION_REVEAL_INSTRUMENTATION_PASS"] is False, result

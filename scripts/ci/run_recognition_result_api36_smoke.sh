@@ -490,6 +490,7 @@ finish() {
     fi
   fi
 
+  PRIVATE_EVIDENCE_PULL_FAILED="$private_evidence_pull_failed" \
   python3 - "$evidence_dir/runtime-result.json" "$evidence_dir" "$source_sha" "$result_classification" \
     "$failure_reason" "$rc" "$instrument_status" "$instrumentation_timed_out" "$test_started" \
     "$failure_phase" "$instrumentation_attempted" "$adb_ready" "$emulator_boot_pass" "${BUILD_PASS:-false}" \
@@ -501,7 +502,7 @@ finish() {
     "$test_a_class#$test_a_method" "$test_class#$test_method" "$test_perf_class#$test_perf_method" \
     "$test_perf_class#coldStartWaitsForRealVisionAndDecoderSessions" \
     "$test_c_class#$test_c_method" <<'PY'
-import hashlib, json, pathlib, sys, time
+import hashlib, json, os, pathlib, sys, time
 (path, evidence_root, source_sha, classification, reason, exit_code, instrument_status, timed_out,
  test_started, failure_phase, attempted, adb_ready, emulator_boot_pass, build_pass, kvm_ready,
  validation_reason, slimsam_validation_reason, apk_dir, screenrecord_exit_status, video_pull_status,
@@ -589,6 +590,7 @@ result = {
     'video_pull_status': video_pull_status,
     'pre_screenshot_pull_status': pre_screenshot_pull_status,
     'post_screenshot_pull_status': post_screenshot_pull_status,
+    'private_evidence_pull_failed': os.environ.get('PRIVATE_EVIDENCE_PULL_FAILED') == 'true',
     'captured_at_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
 }
 pathlib.Path(path).write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
