@@ -517,3 +517,9 @@
 - Workflow source 7f83ef43 extends the actions:read recovery job with artifact inventory and allowlisted identity-redacted timing, timeout, memory, and picker activity extraction; its fixture passes. Product runtime code remains unchanged during evidence localization.
 
 - Run 45962682916 completed the second retained-artifact download, but its public Actions page exposed the three case annotations and not the step-summary body. Workflow source 5f00d377 now publishes the allowlisted, identity-redacted file inventory, timing events and ActivityTaskManager picker launch records directly as bounded GitHub notices. Its fixture passes; no product code or runtime deadline changed.
+
+## 2026-11-27 — Run #4236 retained timing and picker root-cause extraction
+
+- Guarded source-only diagnostic workflow commit `d37da0be693fcd1992ccac88f9839f4081f8c99f` adds compact, identity-redacted annotations from the existing Run 4236 artifact. It does not change product code or rerun the API36 runtime. Local recovery fixture, YAML parse, and `git diff --check` passed.
+- Existing Test A/B/C outcomes remain A PASS, B FAIL (`SLIMSAM_TIMEOUT` at the shared 60,000ms deadline, `CLASSIFIER_RESULT_WITHOUT_MASK`), C FAIL (`System photo picker did not open`). Retrieved stage timings show Vision Encoder total `52,352.72ms`, native ONNX run `47,340.97ms`, output finite scan `3,772.17ms`, output tensor SHA `904.55ms`, and Decoder execution count `0`. This identifies the encoder/validation path as exhausting the shared attempt budget before mask decoding; it does not authorize extending the deadline.
+- Runtime `intraOpThreads` and Test C ActivityTaskManager action/component are still awaiting annotation readback. No product fix or API36 retry has been made. State-only checkpoint, Admission, and ordinary fast-forward push are next.

@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: 'Work P0 V3 Run #4225 root-cause closure, SlimSAM 60s performance, API36 A/B/C acceptance, and exact-head APK delivery (YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3)'
 state_control:
-  execution_baseline_sha: 5f00d3775d8d95fb94c9d2c7a2bc8c8738756466
+  execution_baseline_sha: d37da0be693fcd1992ccac88f9839f4081f8c99f
   current_branch: fix/26kf-path-boundary-and-fish-gate-v1
   current_pr: 346
   base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
@@ -18,16 +18,16 @@ repositories:
   android_app:
     remote: https://github.com/pan277942135/Yujian_App.git
     branch: fix/26kf-path-boundary-and-fish-gate-v1
-    head_sha: 20405b160cb2ed5c589f1485b4b54b316dbee15a
+    head_sha: 2021de9b520bff43fc26f12f2e0868dc12295bf3
 pull_requests:
   PR346:
     number: 346
     branch: fix/26kf-path-boundary-and-fish-gate-v1
     base_branch: fix/det-fish-v03-main-runtime-closure
     base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
-    head_sha: 20405b160cb2ed5c589f1485b4b54b316dbee15a
+    head_sha: 2021de9b520bff43fc26f12f2e0868dc12295bf3
     status: DRAFT_OPEN_UNMERGED
-    status_source: 'Live git ls-remote verified PR #346 branch and pull head at 20405b160cb2ed5c589f1485b4b54b316dbee15a on 2026-11-27. PR remains Open/Draft and unmerged.'
+    status_source: 'Live git ls-remote verified PR #346 branch and pull head at 2021de9b520bff43fc26f12f2e0868dc12295bf3 on 2026-11-27. PR remains Open/Draft and unmerged.'
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -74,8 +74,8 @@ recognition_main_journey:
   - J20 FishRecordDetail B / Memory
 runtime_gates:
   exact_head:
-    sha: 5f00d3775d8d95fb94c9d2c7a2bc8c8738756466
-    admission: 'Annotation diagnostics workflow source is 5f00d377. Its state-only source-baseline checkpoint and post-checkpoint Work-state validation/Admission are pending.'
+    sha: d37da0be693fcd1992ccac88f9839f4081f8c99f
+    admission: 'Diagnostic workflow source is d37da0be. Its state-only source-baseline checkpoint and post-checkpoint Work-state validation/Admission are pending.'
     baseline_android_ci:
       status: PASS_BEFORE_THIS_WORK
       run_id: '44989215170'
@@ -85,36 +85,36 @@ runtime_gates:
     unit_tests: 'PASS on exact workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a: all source-module JVM test step completed successfully. Exact count is not exposed in the public run summary; historical counts are not promoted.'
     android_test_compile: 'PASS: Run 45953790013 compiled the Android runtime test APK from exact workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a.'
     lint: 'PASS: Run 45953790013 Android lint completed on exact workflow HEAD 20405b160cb2ed5c589f1485b4b316dbee15a.'
-    api36_emulator: 'FAIL: Run 45953790013 passed build/KVM/AVD gates but failed API36 evidence enforcement. Recovery run 45961309057 downloaded artifact 15179468061 (15 MB; ZIP SHA256 7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765): Test A PASS; Test B FAIL at the 60,000ms Attempt Deadline with SLIMSAM_TIMEOUT and CLASSIFIER_RESULT_WITHOUT_MASK; Test C FAIL with System photo picker did not open. Detailed per-stage timing and picker launch cause remain NOT_CONFIRMED pending retained-log extraction.'
+    api36_emulator: 'FAIL: Run 45953790013 passed build/KVM/AVD gates but failed API36 evidence enforcement. Recovered artifact 15179468061 (15 MB; ZIP SHA256 7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765) confirms Test A PASS; Test B SLIMSAM_TIMEOUT at 60,000ms/CLASSIFIER_RESULT_WITHOUT_MASK; Test C picker assertion failure. Timing shows Vision Encoder 52,352.72ms (native 47,340.97ms), output finite scan 3,772.17ms, output hash 904.55ms, decoder runs 0. Runtime thread configuration and picker ActivityTaskManager component are pending a compact readback; no runtime PASS.'
     model_validation: 'PASS: scripts/verify_classifier_tensor_binding.py inspected the unchanged committed model FlatBuffer and exact model SHA. Real TFLite Interpreter.run() and production Top1 remain PENDING API36.'
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
     status: NOT_CONFIRMED
 apk_and_evidence:
-  source_head: 5f00d3775d8d95fb94c9d2c7a2bc8c8738756466
+  source_head: d37da0be693fcd1992ccac88f9839f4081f8c99f
   exact_head_apk: 'PENDING: build from the final pushed PR checkpoint; prior APKs are historical and must not be delivered.'
   model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
   input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
   input_evidence_zip: 'artifacts/26kf_visual_reference_v1/inputs/YuJian_Recognition_Evidence_eac685c91965.zip; 16,204,260 bytes; SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; historical pre-fix source SHA 67f17f0eb6a80233438cb8b00111a55d6767a6d8'
   fixture_b: 'FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not found in current attachments/workspace.'
-  emulator_device_evidence: 'Run 45953790013 at workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a passed build/KVM/AVD checks and failed API36 smoke. Recovery run 45961309057 downloaded artifact 15179468061 (15 MB; ZIP SHA256 7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765): Test A PASS, Test B SLIMSAM_TIMEOUT at 60,000ms with no Mask, Test C photo picker not detected. Stage timings and picker launch diagnosis remain pending; no AUTO PASS claimed.'
+  emulator_device_evidence: 'Run 45953790013 at workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a passed build/KVM/AVD checks and failed API36 smoke. Retained artifact 15179468061 (15 MB; ZIP SHA256 7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765) confirms A PASS, B SLIMSAM_TIMEOUT at 60,000ms, C picker assertion failure. Vision Encoder 52,352.72ms including 47,340.97ms native; output finite scan 3,772.17ms, output hash 904.55ms, Decoder count 0. Runtime threads and picker activity component are pending compact annotation readback; no AUTO PASS claimed.'
 current_work:
   id: YUJIAN_EXIF_CLASSIFIER_AUTO_RESULT_API36_CLOSURE_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 5f00d3775d8d95fb94c9d2c7a2bc8c8738756466
+  exact_head: d37da0be693fcd1992ccac88f9839f4081f8c99f
   status: RECOVERING
-  stage: P0_V3_RUN4236_ARTIFACT_RECOVERY_PENDING
+  stage: P0_V3_RUN4236_ROOT_CAUSE_EVIDENCE_EXTRACTION
   requested_task_id: YUJIAN_API36_RUN4225_ROOT_CAUSE_CLOSURE_V3
   requested_task_title: 'YuJian P0 V3 — Run #4225 root cause, SlimSAM 60s performance, API36 A/B/C acceptance and APK delivery'
   blockers:
   - 'P0_2_HISTORY_UNAVAILABLE: requested historical commit object is unavailable; preservation review cannot be completed from current remote objects.'
   - 'RUN4236_BUILD_GATES_PASS: source-module JVM, AndroidTest compile, Debug APK, lint, Release Kotlin, and packaged asset/model gates passed on workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a.'
-  - 'RUN4236_API36_FAILURE: hosted smoke executed, but A/B/C case outcomes and runtime root cause are NOT_CONFIRMED pending authenticated artifact recovery.'
+  - 'RUN4236_API36_FAILURE: retained artifact establishes A PASS, B SLIMSAM_TIMEOUT at 60,000ms, C photo-picker assertion failure; Encoder total 52,352.72ms, native 47,340.97ms, Decoder count 0. Runtime thread configuration and Test C ActivityTaskManager component still await annotation readback.'
   - 'GITHUB_EXACT_HEAD_API36_PENDING: Run 45953790013 exact workflow HEAD 20405b16 passed build gates but failed API36 smoke enforcement; final AUTO evidence and APK delivery remain pending.'
   - 'FIXTURE_B_UNAVAILABLE: named historical evidence ZIP is absent; no fixture replay will be claimed.'
   - 'RUN4233_API36_FAILURE: historical run 45928328121 failed after 22m40s; its underlying runtime cause remains NOT_CONFIRMED.'
-  - 'RUN4236_ARTIFACT_RECOVERY_PENDING: use a one-time workflow guarded by [api36-evidence-recovery] and actions:read to retrieve artifact 15179468061 and publish sanitized A/B/C plus SlimSAM evidence.'
+  - 'RUN4236_DIAGNOSTIC_WORKFLOW_PUSH_PENDING: source commit d37da0be adds compact sanitized annotations for retained timing, runtime configuration, memory, and picker activity; state checkpoint, Admission, and guarded push remain pending.'
 
 blockers:
 - id: P0-2-HISTORY-UNAVAILABLE-001
