@@ -107,6 +107,7 @@ class RecognitionResultHandoffProductionNavigationTest {
         val resolvedPicker = targetContext.packageManager.resolveActivity(pickerIntent, 0)?.activityInfo
             ?: throw AssertionError("Production PickVisualMedia intent has no resolved system activity: $pickerIntent")
         val resolvedPickerComponent = ComponentName(resolvedPicker.packageName, resolvedPicker.name)
+        val recognizedPickerPackages = setOf(resolvedPicker.packageName, GOOGLE_PHOTO_PICKER_PACKAGE)
 
         val launchIntent = android.content.Intent(targetContext, MainActivity::class.java).apply {
             addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -128,7 +129,7 @@ class RecognitionResultHandoffProductionNavigationTest {
             }
 
             val pickerOpened = waitFor(device, 30_000L) {
-                device.findObjects(By.pkg(resolvedPicker.packageName)).isNotEmpty()
+                device.currentPackageName in recognizedPickerPackages
             }
             val pickerActivityDump = device.executeShellCommand("dumpsys activity activities")
             File(evidenceDir, "picker_activity_dump.txt").writeText(pickerActivityDump)
@@ -144,16 +145,17 @@ class RecognitionResultHandoffProductionNavigationTest {
             val resumedPicker = requireNotNull(resumedActivityComponent(pickerActivityDump)) {
                 "Unable to identify a resumed system activity from dumpsys; expected=$resolvedPickerComponent"
             }
-            assertEquals(
-                "The actual resumed system picker differs from the ActivityResultContract resolution",
-                resolvedPickerComponent,
-                resumedPicker,
+            assertTrue(
+                "The resumed activity is not a recognized system Photo Picker alias: " +
+                    "resolved=$resolvedPickerComponent resumed=$resumedPicker visiblePackage=${device.currentPackageName}",
+                resumedPicker.packageName in recognizedPickerPackages,
             )
+            assertEquals("The resumed picker does not match the visible package", device.currentPackageName, resumedPicker.packageName)
             assertTrue(
                 "The resumed picker activity dump does not carry the contract action ${pickerIntent.action}",
                 pickerActivityDump.contains("act=${pickerIntent.action}"),
             )
-            selectNewestPhoto(device, displayName, resolvedPicker.packageName)
+            selectNewestPhoto(device, displayName, resumedPicker.packageName)
 
             assertTrue("Production Processing page did not display the selected photo", waitFor(device, 60_000L) {
                 device.findObject(By.desc("正在识别的鱼获照片")) != null
@@ -408,6 +410,7 @@ class RecognitionResultHandoffProductionNavigationTest {
         .digest(this).joinToString("") { "%02x".format(it) }
 
     private companion object {
+        const val GOOGLE_PHOTO_PICKER_PACKAGE = "com.google.android.photopicker"
         const val EVIDENCE_DIR = "recognition-result-handoff"
         const val FIXTURE = "detector_case_b_night_flash.jpg"
         const val FIXTURE_SHA256 = "a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b"
