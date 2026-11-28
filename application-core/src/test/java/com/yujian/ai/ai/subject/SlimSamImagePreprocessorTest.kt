@@ -36,4 +36,25 @@ class SlimSamImagePreprocessorTest {
         assertEquals((1f - 0.406f) / 0.225f, input.get(size * size * 2 + 2), 1e-6f)
         assertEquals(0f, input.position().toFloat(), 0f)
     }
+
+    @Test
+    fun lookupNormalizationMatchesTheFrozenFloatFormulaForEveryChannelByte() {
+        val size = 256
+        val pixels = IntArray(size) { value ->
+            (0xff shl 24) or (value shl 16) or ((255 - value) shl 8) or (value xor 0x5a)
+        }
+        val input = FloatBuffer.allocate(3 * size * size)
+
+        writeNormalizedRgbRow(input, pixels, validWidth = size, y = 0, inputSize = size)
+
+        for (x in 0 until size) {
+            val pixel = pixels[x]
+            val red = ((pixel ushr 16) and 0xff) / 255f
+            val green = ((pixel ushr 8) and 0xff) / 255f
+            val blue = (pixel and 0xff) / 255f
+            assertEquals((red - 0.485f) / 0.229f, input.get(x), 0f)
+            assertEquals((green - 0.456f) / 0.224f, input.get(size * size + x), 0f)
+            assertEquals((blue - 0.406f) / 0.225f, input.get(size * size * 2 + x), 0f)
+        }
+    }
 }
