@@ -65,21 +65,14 @@ class SlimSamSegmenter(
     private var environment: OrtEnvironment? = null
     private val threadAllocation = RecognitionModelThreadPolicy.allocate()
 
-    private val sessionOptionsDelegate = lazy {
-        OrtSession.SessionOptions().apply {
-            val threadCount = threadAllocation.visionEncoderThreads
-            setIntraOpNumThreads(threadCount)
-            setInterOpNumThreads(1)
-            Log.i(
-                TAG,
-                "SLIMSAM_THREAD_POLICY status=${RecognitionModelThreadPolicy.VALIDATION_STATUS} " +
-                    "processors=${threadAllocation.availableProcessors} " +
-                    "intra_op=$threadCount inter_op=1 detector_intra_op=${threadAllocation.detectorThreads} " +
-                    "classifier_intra_op=${threadAllocation.classifierThreads}",
-            )
-        }
+    private val visionSessionOptionsDelegate = lazy {
+        createSessionOptions(model = "vision", disableCpuArena = true)
     }
-    private val sessionOptions: OrtSession.SessionOptions get() = sessionOptionsDelegate.value
+    private val decoderSessionOptionsDelegate = lazy {
+        createSessionOptions(model = "decoder", disableCpuArena = false)
+    }
+    private val visionSessionOptions: OrtSession.SessionOptions get() = visionSessionOptionsDelegate.value
+    private val decoderSessionOptions: OrtSession.SessionOptions get() = decoderSessionOptionsDelegate.value
 
     private var visionSession: OrtSession? = null
     private var decoderSession: OrtSession? = null
@@ -102,8 +95,11 @@ class SlimSamSegmenter(
             visionSession = null
             closeFailure = closeNativeResource(decoderSession, "Decoder Session", closeFailure)
             decoderSession = null
-            if (sessionOptionsDelegate.isInitialized()) {
-                closeFailure = closeNativeResource(sessionOptionsDelegate.value, "Shared SessionOptions", closeFailure)
+            if (visionSessionOptionsDelegate.isInitialized()) {
+                closeFailure = closeNativeResource(visionSessionOptionsDelegate.value, "Vision SessionOptions", closeFailure)
+            }
+            if (decoderSessionOptionsDelegate.isInitialized()) {
+                closeFailure = closeNativeResource(decoderSessionOptionsDelegate.value, "Decoder SessionOptions", closeFailure)
             }
             recordTiming(
                 identity = null,
@@ -242,6 +238,22 @@ class SlimSamSegmenter(
             "photoSha256=$photoSha256 source=${source.width}x${source.height}")
     }
 
+    private fun createSessionOptions(model: String, disableCpuArena: Boolean): OrtSession.SessionOptions =
+        OrtSession.SessionOptions().apply {
+            val threadCount = threadAllocation.visionEncoderThreads
+            setIntraOpNumThreads(threadCount)
+            setInterOpNumThreads(1)
+            if (disableCpuArena) setCPUArenaAllocator(false)
+            Log.i(
+                TAG,
+                "SLIMSAM_SESSION_POLICY model=$model " +
+                    "processors=${threadAllocation.availableProcessors} intra_op=$threadCount inter_op=1 " +
+                    "cpu_arena=${if (disableCpuArena) "DISABLED" else "ORT_DEFAULT"} " +
+                    "detector_intra_op=${threadAllocation.detectorThreads} " +
+                    "classifier_intra_op=${threadAllocation.classifierThreads}",
+            )
+        }
+
     @Synchronized
     private fun getVisionSession(): OrtSession {
         check(nativeSessionGate.snapshot().acceptingRuns) { "SlimSAM Native Sessions are not accepting work" }
@@ -252,7 +264,7 @@ class SlimSamSegmenter(
         verifyModelAssets()
         val bytes = requireNotNull(verifiedVisionModelBytes)
         return try {
-            val created = requireNotNull(environment).createSession(bytes, sessionOptions)
+            val created = requireNotNull(environment).createSession(bytes, visionSessionOptions)
             try {
                 validateVisionSession(created)
             } catch (error: Throwable) {
@@ -281,7 +293,7 @@ class SlimSamSegmenter(
         verifyModelAssets()
         val bytes = requireNotNull(verifiedDecoderModelBytes)
         return try {
-            val created = requireNotNull(environment).createSession(bytes, sessionOptions)
+            val created = requireNotNull(environment).createSession(bytes, decoderSessionOptions)
             try {
                 validateDecoderSession(created)
             } catch (error: Throwable) {
