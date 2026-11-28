@@ -263,6 +263,8 @@ def verify_model_snapshot(
     snapshot: dict[str, Any],
 ) -> dict[str, Any]:
     """Rebuild the snapshot from packaged assets and reject any drift."""
+    if snapshot.get("schema_version") == 2:
+        return verify_local_model_snapshot(model=model, metadata_bytes=metadata_bytes, class_map_bytes=class_map_bytes, tensor_contract_bytes=tensor_contract_bytes, snapshot=snapshot)
     if snapshot.get("schema_version") != 1:
         raise ModelContractError(f"unsupported model release snapshot schema: {snapshot.get('schema_version')!r}")
     asset_rows = snapshot.get("release_assets")
@@ -311,3 +313,63 @@ def snapshot_summary(snapshot: dict[str, Any]) -> dict[str, Any]:
             "class_map_sha256", "tensor_contract_sha256",
         )
     }
+
+
+def build_local_model_snapshot(assets, build_sha=None):
+    """Validate committed Main assets without claiming mutable Release provenance."""
+    from pathlib import Path
+    assets = Path(assets)
+    data = {name: (assets / name).read_bytes() for name in (
+        ANDROID_MODEL_FILE, ANDROID_METADATA_FILE, ANDROID_CLASS_MAP_FILE, ANDROID_TENSOR_CONTRACT_FILE
+    )}
+    model = data[ANDROID_MODEL_FILE]
+    _check_tflite_header(model)
+    metadata = _json_object(data[ANDROID_METADATA_FILE], "classifier metadata")
+    class_map = _json_object(data[ANDROID_CLASS_MAP_FILE], "class map")
+    tensor = _json_object(data[ANDROID_TENSOR_CONTRACT_FILE], "tensor contract")
+    rows = class_map.get("classes")
+    if not isinstance(rows, list) or len(rows) != 15:
+        raise ModelContractError("classifier must have exactly 15 class map entries")
+    rows = sorted(rows, key=lambda row: row["class_index"])
+    order = [row["species_key"] for row in rows]
+    if [row["class_index"] for row in rows] != list(range(15)) or metadata.get("class_names") != order:
+        raise ModelContractError("classifier class order does not match metadata")
+    inputs, outputs = tensor.get("inputs"), tensor.get("outputs")
+    if not isinstance(inputs, list) or not isinstance(outputs, list) or len(inputs) != 1 or len(outputs) != 1:
+        raise ModelContractError("classifier must have one input and output")
+    inp, out = inputs[0], outputs[0]
+    if inp.get("shape") != [1, 3, 224, 224] or inp.get("dtype") != "float32" or inp.get("layout") != "NCHW":
+        raise ModelContractError("classifier input tensor mismatch")
+    if out.get("shape") != [1, 15] or out.get("dtype") != "float32":
+        raise ModelContractError("classifier output tensor mismatch")
+    digest = sha256_bytes(model)
+    if digest != "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18" or metadata.get("sha256") != digest:
+        raise ModelContractError("classifier frozen SHA mismatch")
+    if metadata.get("model_id") != "MODEL_CROP_M1_v0.2" or metadata.get("dataset_id") != "DS_M1_v1.1" or metadata.get("num_classes") != 15 or metadata.get("input_size") != 224:
+        raise ModelContractError("classifier metadata version/count mismatch")
+    return {
+        "schema_version": 2, "source": "MAIN_COMMITTED_ASSETS", "build_sha": build_sha or None,
+        "model_id": metadata["model_id"], "dataset_id": metadata["dataset_id"],
+        "release_tag": RELEASE_TAG, "sha256": digest, "bytes": len(model),
+        "class_count": 15, "class_order": order, "input_shape": inp["shape"],
+        "input_dtype": inp["dtype"], "output_shape": out["shape"],
+        "output_dtype": out["dtype"], "class_map_sha256": sha256_bytes(data[ANDROID_CLASS_MAP_FILE]),
+        "tensor_contract_sha256": sha256_bytes(data[ANDROID_TENSOR_CONTRACT_FILE]),
+        "metadata_sha256": sha256_bytes(data[ANDROID_METADATA_FILE]),
+    }
+
+
+def verify_local_model_snapshot(*, model, metadata_bytes, class_map_bytes, tensor_contract_bytes, snapshot):
+    import tempfile
+    from pathlib import Path
+    if snapshot.get("schema_version") != 2 or snapshot.get("source") != "MAIN_COMMITTED_ASSETS":
+        raise ModelContractError("unsupported local classifier snapshot")
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        for name, payload in ((ANDROID_MODEL_FILE, model), (ANDROID_METADATA_FILE, metadata_bytes),
+                              (ANDROID_CLASS_MAP_FILE, class_map_bytes), (ANDROID_TENSOR_CONTRACT_FILE, tensor_contract_bytes)):
+            (root / name).write_bytes(payload)
+        rebuilt = build_local_model_snapshot(root, snapshot.get("build_sha"))
+    if rebuilt != snapshot:
+        raise ModelContractError("packaged local classifier snapshot does not match model bytes")
+    return rebuilt

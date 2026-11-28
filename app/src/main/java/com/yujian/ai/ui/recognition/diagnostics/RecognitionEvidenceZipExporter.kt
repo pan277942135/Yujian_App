@@ -517,9 +517,18 @@ object RecognitionEvidenceZipExporter {
                 isDaemon = true
                 start()
             }
-            val finished = process.waitFor(clampedTimeoutMs, TimeUnit.MILLISECONDS)
+            // Timed Process.waitFor and destroyForcibly require API 26. Poll exitValue
+            // within the same bounded capture budget for the app's API 24 minimum.
+            val deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(clampedTimeoutMs)
+            var finished = false
+            while (System.nanoTime() < deadlineNanos) {
+                finished = runCatching { process.exitValue(); true }.getOrDefault(false)
+                if (finished) break
+                Thread.sleep(25L)
+            }
+            if (!finished) finished = runCatching { process.exitValue(); true }.getOrDefault(false)
             if (!finished) {
-                process.destroyForcibly()
+                process.destroy()
                 readerThread.join(200L)
                 val prefix = captured.toByteArray()
                 val suffix = "\nLOGCAT_TIMEOUT:${clampedTimeoutMs}ms\n".toByteArray(Charsets.UTF_8)

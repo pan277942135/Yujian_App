@@ -1097,6 +1097,8 @@ fun RecognitionProcessingScene(
                 )
             }
         } else if (!delivered && !manualStepDiagnosticState.value) {
+            realPhase = RecognitionPhase.FAILURE
+            controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs(), currentIdentity = sceneIdentity)
             while (isActive && !delivered && !dispatchFinished(result)) delay(250L)
         }
     }

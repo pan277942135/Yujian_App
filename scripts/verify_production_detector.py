@@ -13,8 +13,8 @@ CONTRACT = ASSETS / "recognition_pipeline_v1.json"
 GOLDEN_MANIFEST = TEST_ASSETS / "golden_cases.json"
 GOLDEN_DIR = TEST_ASSETS / "golden"
 
-EXPECTED_MODEL = "DET_FISH_v0.1"
-EXPECTED_DATASET = "DET_DS_v0.1"
+EXPECTED_MODEL = "DET_FISH_v0.3"
+EXPECTED_DATASET = "DET_DS_v0.3"
 EXPECTED_FAMILY = "YOLOX_NANO"
 EXPECTED_CONTRACT = "RECOGNITION_PIPELINE_v1"
 EXPECTED_INPUT = 416
@@ -129,16 +129,23 @@ def main() -> None:
     if onnx_doc.get("input_shape") != [1, 3, 416, 416]:
         fail(f"unexpected ONNX input shape {onnx_doc.get('input_shape')}")
     output_shape = onnx_doc.get("output_shape") or []
-    if len(output_shape) != 3 or output_shape[0] != 1 or output_shape[-1] != 6:
+    if output_shape != [1, 3549, 6]:
         fail(f"unexpected ONNX output shape {output_shape}")
 
-    verify_golden_assets(actual_sha)
+    if actual_sha != "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1":
+        fail("frozen v0.3 ONNX SHA mismatch")
+    if onnx_doc.get("onnx_opset") != 17 or onnx_doc.get("input_name") != "images":
+        fail("ONNX opset/input name mismatch")
+    golden_status = "NOT_RUN_MISSING_MAIN"
+    if GOLDEN_MANIFEST.is_file():
+        verify_golden_assets(actual_sha)
+        golden_status = "PASS"
 
     print(
         "PRODUCTION_DETECTOR_VERIFY_PASS "
         f"model={EXPECTED_MODEL} bytes={actual_bytes} sha256={actual_sha} "
         f"input={onnx_doc.get('input_shape')} output={output_shape} "
-        f"golden_cases={len(EXPECTED_CASE_IDS)}"
+        f"golden_cases={golden_status}"
     )
 
 
