@@ -1,0 +1,881 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "base_branch": "main",
+  "base_sha": "03db3692669847084d7e48fc3128f85cbf832af9",
+  "blockers": [
+    "P0_2_ORIGINAL_COMMIT_UNAVAILABLE: 759e918332293a4ffaea479a57556386b7c41f1d cannot be fetched; original file-by-file comparison remains unverified.",
+    "API36_RUNTIME_PENDING: no local /dev/kvm, adb, or emulator is available; exact-head Test A and Test B require hosted API36 execution.",
+    "DEBUG_APK_PENDING_EXACT_HEAD: prior APKs are historical; build and verify an APK from the final PR checkpoint.",
+    "TFLITE_NATIVE_HARD_TERMINATION_UNVERIFIED: no device/native termination evidence was obtained.",
+    "AUTO_RUNTIME_UNVERIFIED: no current-source 26KF device run, real Mask/PixelCopy evidence, or Stage10-13.5 end-to-end AUTO evidence was produced.",
+    "FIXTURE_B_UNAVAILABLE: historical runtime evidence ZIP is absent; replay is not claimed.",
+    "RUN4236_ARTIFACT_RECOVERY_ACCESS: existing artifact 15179468061 was downloaded by the actions:read recovery workflow; its retained timing and picker launch records are being surfaced for root-cause verification.",
+    "V3_API36_RUNTIME_PENDING: Run #4225 failed; artifact 15134616720 is inaccessible from this environment. Source fix 5db2ba710037c45951defe687075bd5b38f5a800 requires exact-head hosted A/B/C and real encoder timing before PASS.",
+    "RUN4226_EARLY_INFRA_FAILURE: build passed, API36 job failed before runtime-result; 47s smoke step, 3.54KB evidence artifact ID 15161108722; exact resource log inaccessible from workspace.",
+    "RUN4228_EARLY_INFRA_FAILURE: build PASS; API36 smoke 2m10s, evidence artifact 15162193629 3.54KB, A/B/C NOT_STARTED, exact error hidden by GitHub logs.",
+    "RUN4229_AVD_RESOURCE_MISMATCH: public job annotation reports hw.cpu.ncore, vm.heapSize, guest online CPUs and dalvik.vm.heapsize mismatch. A/B/C NOT_STARTED.",
+    "RUN4230_ACTION_DEFAULT_OVERRIDE: build PASS, actual guest CPU 4; Action appended default cores=2 in AVD config and guest Dalvik heap remained wrong. A/B/C NOT_STARTED.",
+    "RUN4231_GUEST_HEAP_MISMATCH: all config/CPU/RAM checks passed; guest dalvik.vm.heapsize still non-512, so A/B/C NOT_STARTED.",
+    "RUN4232_DALVIK_SYSTEM_IMAGE_PROPERTY: AVD VM heap config=512M passed, guest dalvik.vm.heapsize=576m from API36 system image; checker conflated distinct settings, so A/B/C NOT_STARTED.",
+    "RUN4233_API36_FAILURE: Run 45928328121 at workflow HEAD 7db0c3f failed API36 smoke after 22m40s; artifact 15169320466 inaccessible. Exact A/B/C result and runtime root cause NOT_CONFIRMED.",
+    "RUN4236_API36_RUNTIME_FAILURE: retained evidence confirms A PASS, B SLIMSAM_TIMEOUT at 60,000ms, and C picker assertion failure. Encoder occupied 52,352.72ms (native run 47,340.97ms); output finite scan/hash and tensor preparation bring the measured path near the shared deadline; decoder execution count was 0. Picker launch/component cause still requires retained ActivityTaskManager extraction.",
+    "FISH_MASK_API36_BASELINE_NOT_RUN: fixed-photo 10-run Cache MISS and Cache HIT measurements have not been captured for exact source 16464298.",
+    "FISH_MASK_API36_CASE_RESULTS_NOT_CONFIRMED: exact-head run 45978437133 artifact is uploaded but unreadable in this session.",
+    "FISH_MASK_API36_BASELINE_NOT_RUN: fixed-photo 10-run Cache MISS and Cache HIT measurements have not been captured for exact source 16464298.",
+    "FISH_MASK_API36_CASE_RESULTS_NOT_CONFIRMED: exact-head run 45978437133 artifact is uploaded but unreadable in this session."
+  ],
+  "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+  "checkpoint_updated_at": "2026-11-27T13:59:56Z",
+  "control_plane_revision": "21295d95c3213acbe0da1de8557dfdab6ad20ce7",
+  "current_work": {
+    "blockers": [
+      "No fixed-photo 10-run API36 performance baseline exists for exact source 16464298.",
+      "Run 45978437133 fail-closed case artifact is uploaded but unreadable in this session.",
+      "Local emulator and /dev/kvm are absent; hosted API36 is required."
+    ],
+    "canonical_task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+    "current_validated_tree_note": "Clean product source tree at 16464298cd7ab90737f6b636b2377a8c53a66794; remote PR branch and pull ref match. State checkpoint precedes production edits.",
+    "delivery_guard_status": "API36_BASELINE_NOT_RUN",
+    "exact_head": "16464298cd7ab90737f6b636b2377a8c53a66794",
+    "id": "YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1",
+    "phase": "P6",
+    "requested_task_id": "YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1",
+    "requested_task_title": "Fish-Mask Demo performance port, ORT runtime optimization, tensor preprocessing speedup, API36 one-photo 5-second acceptance V1",
+    "stage": "SOURCE_LOCK_AND_API36_PERFORMANCE_BASELINE",
+    "status": "RUNNING",
+    "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+    "next_action": "Pass Admission on the state-only checkpoint, then audit Demo source and collect the fixed-photo baseline."
+  },
+  "dependencies": [
+    "P5-02"
+  ],
+  "evidence": {
+    "admission": "CONTROL_PLANE_ADMISSION=PASS on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 with product source 316de1b705fb54ee7d6e2114259ec1f87773aedf; Registry, Feature Matrix, Phase/Task, Unified Contract structure, Control Plane Sync, Project Master State and Work Execution State pass; structural_errors=0; the unchanged historical RecognitionResultScreen path remains one non-blocking OPEN_GAP.",
+    "admission_baseline": "CONTROL_PLANE_ADMISSION=PASS at 3eb481c1f2ca4053fc58f87729f923fb70ef7f50; structural_errors=0; historical OPEN_GAP=1 is not an Admission failure. Current recovered-state Admission is the next required check.",
+    "android_test_compile": {
+      "evidence": "/tmp/yujian-build-diagnostics/cafc289c-androidtest-postfix.log",
+      "failure": "Could not resolve androidx.test.ext:junit:1.2.1, androidx.test:runner:1.6.2, androidx.test.uiautomator:uiautomator:2.3.0 from dl.google.com; temporary DNS resolution failure.",
+      "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS_BEFORE_KOTLIN",
+      "task": ":app:assembleDebugAndroidTest"
+    },
+    "api36_case_diagnostics_fix": {
+      "changed_files": [
+        "scripts/ci/finalize_recognition_result_api36_smoke.py",
+        "scripts/ci/tests/test_validate_recognition_result_api36_smoke.py"
+      ],
+      "failed": 0,
+      "parent_sha": "567197c2b20a8aa705619048dd11e90ce4d082f5",
+      "passed": 12,
+      "purpose": "Expose each API36 Test A/B/C started/completed/passed, failure phase/reason, root cause, exception, command exit, timeout, and relevant log excerpt in Step Summary and GitHub annotations.",
+      "result": "PASS",
+      "runtime_root_cause": "NOT_CONFIRMED; exact-head API36 rerun pending.",
+      "source_commit": "6b61c50ce3d02f033635c54738d0ff868ef06599",
+      "test_command": "python3 scripts/ci/tests/test_validate_recognition_result_api36_smoke.py",
+      "tests": 12
+    },
+    "api36_failure_classification": "Latest exact-head Run 45953790013 failed final enforcement with BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE after 12m38s; A/B/C and runtime root cause remain NOT_CONFIRMED pending authenticated recovery of artifact 15179468061.",
+    "api36_false_positive_audit": "User supplied Run 45032036762 facts: INSTRUMENTATION_RESULT shortMsg=Process crashed; INSTRUMENTATION_CODE=0; lowmemorykiller reported Kill com.yujian.ai.uiv2 with rss=670552kB, swap=1257028kB and min-watermark/swap-low reason. Source SHA/raw artifact remain NOT_CONFIRMED; facts were not independently replayed.",
+    "api36_local_capability": "No local /dev/kvm, adb, or emulator. No TCG attempt.",
+    "api36_memory_controls": "Run 45106300573 passed the hosted x64 KVM preflight and >=5 GiB host MemAvailable gate; standalone prelaunch AVD config step reported and asserted hw.ramSize=4096M and hw.heapSize=512M. Runtime artifact 14788427080 SHA256 f0aaa9891a87ffda19f52146be08a389a48acc62090c2eddf867c4e3f4e93099 is uploaded but its contents cannot be read here. Therefore actual emulator boot, in-guest meminfo, PSS/RSS/Swap, SlimSAM Encoder/Decoder timing, GC/Native Heap, LMK events and leak diagnosis are NOT_CONFIRMED for this run.",
+    "api36_run4233": {
+      "a_b_c": "NOT_CONFIRMED",
+      "artifact_readability": "BLOCKED: api.github.com proxy HTTP 403; case details were not emitted in public summary/annotation",
+      "auto_smoke_pass": false,
+      "avd_health_and_frozen_config": "PASS",
+      "build": "PASS",
+      "final_exact_head_enforcement": "FAIL: BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE",
+      "product_source_tree": "6d2b844808e2ba422b190cbf96d3a871686b8f24 (state-only checkpoint difference)",
+      "root_cause": "NOT_CONFIRMED",
+      "run_id": "45928328121",
+      "runtime_artifact_id": "15169320466",
+      "runtime_artifact_size": "15.8 MB",
+      "runtime_artifact_zip_sha256": "672313504c2e430b1236fadee74120746480c8e0939b0ed2df3438c6044ce6f5",
+      "smoke_exit_code": 2,
+      "smoke_step_duration": "22m40s",
+      "workflow_head": "7db0c3f424d5a16cab62fbac42038ecd293d4430"
+    },
+    "api36_runtime_artifact": "Run 45172732325 artifact 14818308331 (YuJian-recognition-result-api36-6102640437041159abc519b00249b7aedff0bb03, 10.1 MB), SHA256 8c238e7cb9353b5eb9dc5898de6183e4e0d4806b4a100e939fb0c7c53f56fd33. Uploaded successfully; artifact content not readable in this session.",
+    "archive_integrity": "Fixture A ZIP unzip -t passed; 14,190,826 bytes; SHA256 19a01dcc9dd07e0b489b22ddae41cc763fed1fe6a03377cceef5e13616e1164d; archive provenance records source SHA 3eb481c1f2ca4053fc58f87729f923fb70ef7f50, so it is historical evidence and not current-head runtime proof.",
+    "baseline_unit_tests": {
+      "command": "Gradle 9.3.1 test --no-daemon (Android SDK and JDK supplied through temporary environment settings)",
+      "errors": 0,
+      "evidence": "Gradle JUnit XML files under each module build/test-results; counts were summed from suite XML.",
+      "failed": 0,
+      "modules": {
+        "app": 126,
+        "application-core": 62,
+        "recognition-domain": 8,
+        "recognition-result-ui": 20,
+        "recognition-runtime": 57,
+        "recognition-ui": 237,
+        "waterlight-renderer": 64
+      },
+      "no_test_sources": [
+        "recognition-result-components"
+      ],
+      "passed": 574,
+      "result": "BUILD SUCCESSFUL",
+      "skipped": 0,
+      "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf",
+      "total": 574
+    },
+    "branch_head": "Local source commit 3cc0a443253ff357b429fb0e3620f2954e3ef8f2 and status commit af5fac3c86cb3ac2e03894f52fd8031d3010611d are descendants of remotely verified PR/Main source lock 2d8bacef09f79d20dde7e2a8587c1caab00432fa; a state-only checkpoint now records source_sha af5fac3c86cb3ac2e03894f52fd8031d3010611d. Remote push and post-push refs are pending.",
+    "branch_source_commit": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10 (existing PR #346 branch fix/26kf-path-boundary-and-fish-gate-v1; source baseline for this remediation; no new PR or merge)",
+    "build_environment_recovery": "Default Gradle wrapper first hit unwritable /home/agent/.gradle, then Java DNS/proxy, missing writable Android preference location, stale ignored local.properties SDK path, and Java 21 runtime without javac. Using cached Gradle 9.3.1, proxy host/port, JDK 17, ANDROID_HOME, one ANDROID_USER_HOME and a temporary local.properties sdk.dir override enabled the baseline run. Original local.properties SHA256 00442ca5571017eaa602a8267c4b0c95b33f99e4ca945742a188352aeeaa2fe5 was restored and verified.",
+    "business_runtime_outcome": "NOT_RUN on current source; current exact-head Stage10–13.5 production AUTO evidence required.",
+    "cddg_state_checkpoint_attempt_1": {
+      "Admission": "NOT_RUN for failed state-only checkpoint",
+      "command": "python scripts/validate_project_master_state.py",
+      "evidence": "/workspace/goal_checkpoints/yujian_cddg_v1_20261126/20261126T073401407658Z_189f6d85/TEST_REPORT.md",
+      "failure": "runtime exact-head SHA drift",
+      "resolution": "Updated runtime exact-head pointer and documented that 30 local tool tests pass while Android product regressions remain historical.",
+      "result": "FAIL_BEFORE_COMMIT",
+      "root_cause": "Project Master runtime_gates.exact_head.sha remained 316de1b while state_control.execution_baseline_sha moved to CDDG code commit 189f6d85."
+    },
+    "classifier_real_tflite_tensor_binding": "CLASSIFIER_REAL_TFLITE_TENSOR_BINDING_GATE=PASS against unchanged app/src/main/assets/fish_classifier.tflite (SHA256 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18); fixture detector_case_b_night_flash.jpg SHA256 a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b. Real Interpreter.run(), production yellow_catfish Top1, and receipt identity acceptance remain PENDING API36.",
+    "classifier_tensor_runtime_regression_fix_v1": {
+      "androidtest_compile": "BLOCKED before Kotlin: dl.google.com DNS failure resolving AndroidX Test dependencies",
+      "base_remote_head": "37af697cae5dd88d25f00f50bffb1f45805d9076",
+      "classifier_inference_runtime": "NOT_VERIFIED: new Interpreter.run and production engine test added but not executed on device",
+      "debug_apk_build": "PASS on source tree before final state-only checkpoint; final-head rebuild pending",
+      "failure_screen": "Diagnostics collapsed by default; copy/export remain available after expansion.",
+      "github_artifact": "NOT_VERIFIED",
+      "github_ci": "NOT_VERIFIED: final-head hosted result unavailable",
+      "instrumentation_runtime": "NOT_RUN: no local API36 device/KVM/emulator",
+      "integrated_remote_head_before_fix": "cc2cde46725b4296f39cb489784ce42311dca05c",
+      "jvm": {
+        "errors": 0,
+        "failed": 0,
+        "junit_xml": 116,
+        "log": "/tmp/yujian-build-diagnostics/classifier-jvm-build.log",
+        "passed": 604,
+        "skipped": 0,
+        "tests": 604
+      },
+      "lint": "BLOCKED before analysis: lint-gradle:32.1.1 unavailable in offline cache",
+      "model_gate": "CLASSIFIER_REAL_TFLITE_TENSOR_BINDING_GATE=PASS on committed model and pre-fix APK model bytes; the new CI workflow checks the newly assembled APK.",
+      "production_fix": "Frozen MODEL_CROP_M1_v0.2 SHA maps logical images/logits to actual serving_default_args_0/serving_default_output_0_output, preserving shape/FLOAT32/NCHW checks before native run.",
+      "release_kotlin_compile": "PASS",
+      "source_fix_commit": "cf746e152e027e945494ddceee9f94ce63c7d8d3",
+      "task_id": "YUJIAN_P0_CLASSIFIER_TENSOR_RUNTIME_REGRESSION_FIX_V1",
+      "terminal_event": "First PIPELINE_TERMINAL per Attempt is retained across both production call sites."
+    },
+    "code_implementation_commit": "6102640437041159abc519b00249b7aedff0bb03",
+    "current_admission_attempt": "Diagnostic workflow source d37da0be passed its local fixture, YAML parse, and diff checks. The next commit is state-only and must set source_sha to d37da0be; then run Work-state validation, Project Master validation, Unified Contract validation, full Admission, and guarded fast-forward push.",
+    "current_source_changes": "V2.3 source commit 3cc0a443 returns actual validated classifier Input/Output Receipts, validates both receipts and model/tensor/photo/session/attempt identity in the production pipeline, and requires the receipt pair at the photo-identity-bound SessionStore consumer. API36 smoke now runs real classifier Test A and production reveal Test B separately with force-stop/PID verification, exact instrumentation status parsing, process-death/LMK checks, and fail-closed finalization. Model binary, frozen product contracts, Gate policy, and visual parameters were not changed.",
+    "debug_apk_build": "PASS: local Debug APK built at exact source HEAD 4c328ab5e7c6d555c9575ebeffa2c815e6618baf with BUILD_SHA embedded/verified; ZIP/signature/package/asset checks passed. APK SHA256 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0, size 200382052 bytes.",
+    "device_evidence_scope": "Huawei CMS-AL20 Android 16/API36 JSONL/screenshots were independently inspected. Stage10 controller path was PATH_BOUND with FISH_FOCUS_READY; SessionStore binding and navigation were NOT_OBSERVABLE. Result geometry emitted LAYOUT_ROOT_PENDING then RESULT_HERO_PENDING while transition/title/reveal geometry were ready and heroRenderReady was false. RETURN fallback event had zero segments and EVENT_GEOMETRY_MISMATCH. These facts do not identify the final device SessionStore rejection field.",
+    "diagnostics_checkpoint_push": {
+      "api36_smoke": "NOT_RUN: .github/workflows/android.yml requires the exact-head push commit message to contain [recognition-result-api36-smoke].",
+      "next_action": "Push a new state-only marker checkpoint; no source change or PASS inference.",
+      "remote_head": "9e600f981aab2737b60d3d1eada85ecc0acb79c0",
+      "result": "PUSHED_AND_REMOTE_SHA_VERIFIED",
+      "workflow_run_id": "45953428564",
+      "workflow_run_url": "https://github.com/pan277942135/Yujian_App/actions/runs/45953428564"
+    },
+    "evidence_zip": "/workspace/attachments/3e21b4db-d5b6-4a69-aed0-db926ae9a97f/YuJian_Recognition_Evidence_5344335d6a51.zip; 14,190,826 bytes; unzip -t passed; 33 recorded hash entries verified; extracted at /tmp/yujian-evidence-5344335",
+    "exact_head_androidtest_callback_closure_v1": {
+      "androidtest_compile": {
+        "failure": "Could not resolve androidx.test.ext:junit:1.2.1, androidx.test:runner:1.6.2, androidx.test.uiautomator:2.3.0 from dl.google.com; temporary DNS resolution failure.",
+        "log": "/tmp/yujian-build-diagnostics/cafc289c-androidtest-postfix.log",
+        "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS_BEFORE_KOTLIN",
+        "task": ":app:assembleDebugAndroidTest"
+      },
+      "api36_runtime": {
+        "adb": "SDK adb binary exists, but daemon cannot start because default /home/agent/.android is read-only; no device/emulator is present.",
+        "instrumentation_execution": "NOT_RUN",
+        "missing": [
+          "/dev/kvm",
+          "Android emulator binary"
+        ],
+        "result": "BLOCKED_NO_DEVICE_RUNTIME",
+        "stage10_13_5_auto": "NOT_VERIFIED"
+      },
+      "apk": {
+        "apksigner": "PASS v2",
+        "build_log": "/tmp/yujian-build-diagnostics/4c328ab5-exact-head-assembleDebug-final.log",
+        "build_sha_verified_in_model_trace": "4c328ab5e7c6d555c9575ebeffa2c815e6618baf",
+        "capture_presentation": "PASS",
+        "file": "/workspace/YuJian_Debug_4c328ab5.apk",
+        "final_commit_sha": "4c328ab5e7c6d555c9575ebeffa2c815e6618baf",
+        "launcher_icon": "PASS",
+        "metadata": "/workspace/YuJian_Debug_4c328ab5.metadata.json",
+        "orb_runtime_asset": "PASS",
+        "package_id": "com.yujian.ai.uiv2",
+        "packaged_model_assets": "PASS",
+        "result": "LOCAL_EXACT_HEAD_DEBUG_APK_PASS",
+        "sha256": "073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0",
+        "sha256_sidecar": "/workspace/YuJian_Debug_4c328ab5.apk.sha256",
+        "size_bytes": 200382052,
+        "version_code": 6,
+        "version_name": "2.3.3-orb-wake-v1.1-20261103",
+        "zip_integrity": "PASS"
+      },
+      "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+      "callsite_audit": {
+        "direct_updateFishPathSnapshot": "only AndroidTest Store-only identity/order/late-callback probes; no production bypass found",
+        "instrumentation": "single production runtime test now uses the 3-argument coordinator transaction",
+        "production": "YujianApp.kt uses shared CommitCoordinator",
+        "workflow_artifact_upload": "android.yml already uploads frozen APK pair and installable debug APK"
+      },
+      "ci_failure_run": {
+        "access_errors": [
+          "github.com Actions page HTTP 406",
+          "GitHub API tunnel HTTP 403",
+          "GH_TOKEN invalid; not retried"
+        ],
+        "raw_logs_retrieved": false,
+        "reported_status": "FAILURE",
+        "run_id": "45575753918",
+        "run_number": "4212",
+        "sha": "cafc289c27d7b7fc80d8bbc76183e799f5d28ae9",
+        "status_source": "user-provided task attachment"
+      },
+      "exact_head_ci": {
+        "final_head": "4c328ab5e7c6d555c9575ebeffa2c815e6618baf",
+        "prior_failed_run_id": "45575753918",
+        "prior_failed_run_sha": "cafc289c27d7b7fc80d8bbc76183e799f5d28ae9",
+        "reason": "No authenticated Actions run/log/artifact access; GH_TOKEN was invalid and not retried. A push occurred, but workflow status for this SHA is not established.",
+        "result": "NOT_VERIFIED"
+      },
+      "final_source_commit": "4c328ab5e7c6d555c9575ebeffa2c815e6618baf",
+      "github_artifact": {
+        "actual_final_run_artifact": "NOT_VERIFIED",
+        "local_download_artifact": "APK_SHA256_AND_METADATA_PRESENT",
+        "workflow_configuration": "PRESENT"
+      },
+      "lint": {
+        "failure": "Could not resolve com.android.tools.lint:lint-gradle:32.1.1 from dl.google.com; temporary DNS resolution failure.",
+        "log": "/tmp/yujian-build-diagnostics/cafc289c-lintDebug-postfix.log",
+        "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS_BEFORE_LINT",
+        "task": ":app:lintDebug"
+      },
+      "main_modified": false,
+      "master_goal_contract": "No tracked existing Master Goal Contract file found; no parallel contract created. Existing Work Execution State and harness build log were updated.",
+      "observed_remote_main": "bc89484ca79fe20c63c9c6e65b284f1ec3ac1863",
+      "p0_2_original_history": "759e918332293a4ffaea479a57556386b7c41f1d object not available for direct historical file-by-file comparison.",
+      "path_binding_existing_jvm_coverage": [
+        "dual endpoint prepare gate",
+        "store commit failure controller compensation",
+        "idempotent duplicate and conflicting content hash",
+        "stale photo/attempt identity",
+        "concurrent duplicate commit"
+      ],
+      "path_bound_transaction_validation": {
+        "controller_prepare_commit": "WIRED_TO_REAL_SCENE_CALLBACKS",
+        "coordinator_instance": "ONE_PER_TEST_FLOW",
+        "existing_coordinator_jvm_coverage": "PASS_AS_PART_OF_604_JVM_TESTS",
+        "identity_assertions": "SESSION_ATTEMPT_PHOTO_ID_AND_SHA_PATH_MASK_SHA_AND_VERSION_GEOMETRY_VERSION_CONTENT_HASH",
+        "instrumentation_compiled_or_executed": "NO_ANDROIDTEST_COMPILE_BLOCKED_BEFORE_KOTLIN_BY_EXTERNAL_DNS",
+        "instrumentation_source": "UPDATED_TO_SHARED_COORDINATOR_AND_RECEIPT_ASSERTIONS",
+        "same_receipt_object_assertions": "PRESENT_FOR_CONTROLLER_STORE_COORDINATOR",
+        "session_store_prepare_commit_abort": "WIRED"
+      },
+      "post_fix_jvm_regression": {
+        "command": "Gradle 9.3.1 --no-daemon --offline --rerun-tasks test :app:compileReleaseKotlin",
+        "errors": 0,
+        "failures": 0,
+        "junit_xml_count": 116,
+        "log": "/tmp/yujian-build-diagnostics/cafc289c-forced-jvm-release.log",
+        "module_counts": {
+          "app": 126,
+          "application-core": 78,
+          "recognition-domain": 8,
+          "recognition-result-ui": 20,
+          "recognition-runtime": 71,
+          "recognition-ui": 237,
+          "waterlight-renderer": 64
+        },
+        "passed": 604,
+        "release_kotlin_compile": "PASS",
+        "result": "BUILD_SUCCESSFUL",
+        "skipped": 0,
+        "tests": 604
+      },
+      "remote_branch_head_before_fix": "cafc289c27d7b7fc80d8bbc76183e799f5d28ae9",
+      "remote_final_verification": {
+        "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+        "branch_head": "4c328ab5e7c6d555c9575ebeffa2c815e6618baf",
+        "main_head": "bc89484ca79fe20c63c9c6e65b284f1ec3ac1863",
+        "pr_346_head": "4c328ab5e7c6d555c9575ebeffa2c815e6618baf",
+        "pr_state_modified": false,
+        "push": "NON_FORCE_PUSH_PASS"
+      },
+      "remote_pr_346_head_before_fix": "cafc289c27d7b7fc80d8bbc76183e799f5d28ae9",
+      "repository": "pan277942135/Yujian_App",
+      "source_changes": [
+        "app/src/androidTest/java/com/yujian/ai/RecognitionRevealProductionRuntimeTest.kt: use real Controller prepare/commit callbacks, SessionStore prepare/commit/abort, one flow-scoped CommitCoordinator, shared Receipt object capture, exact session/attempt/photo/mask/geometry/content identity assertions at onFinished and Handoff"
+      ],
+      "starting_local_head": "cafc289c27d7b7fc80d8bbc76183e799f5d28ae9",
+      "static_root_cause": {
+        "file": "app/src/androidTest/java/com/yujian/ai/RecognitionRevealProductionRuntimeTest.kt",
+        "old_call": "one-argument onFishPathSnapshot lambda called updateFishPathSnapshot directly",
+        "production_contract": "three-argument snapshot/prepareController/commitController callback; production App uses RecognitionPathBindingCommitCoordinator",
+        "production_declaration_file": "recognition-ui/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+        "raw_ci_error": "UNVERIFIED: could not read Run 45575753918 logs",
+        "status": "SOURCE_VERIFIED_CI_CORRELATION_UNVERIFIED"
+      },
+      "task_id": "YUJIAN_P0_EXACT_HEAD_ANDROIDTEST_CALLBACK_CLOSURE_V1",
+      "task_main_baseline": "03db3692669847084d7e48fc3128f85cbf832af9",
+      "tflite_hard_termination": "TFLITE_NATIVE_HARD_TERMINATION_UNVERIFIED"
+    },
+    "exact_head_apk": "PASS local exact-head APK: 073756ef126d69d6e9878be48db7978c0d92d37709d068cb23391e792a8c61b0, 200382052 bytes; package com.yujian.ai.uiv2 2.3.3-orb-wake-v1.1-20261103 (code 6). Download artifacts under /workspace. Hosted Artifact not verified.",
+    "exact_head_ci": "PENDING for final state checkpoint based on af5fac3c86cb3ac2e03894f52fd8031d3010611d; no current-run result or artifact is yet verified. The branch marker [recognition-result-api36-smoke] activates hosted API36 verification after the ordinary push.",
+    "fail_closed_parser_tests": "8/8 PASS: the three requested instrumentation cases plus finalizer exact-source/pass, runner-failure, boot-contradiction and malformed-memory fail-closed cases.",
+    "final_api36_status": "PENDING current source. No current-source KVM/boot/AUTO PASS declared.",
+    "final_head_ci_run": "NOT_VERIFIED for final HEAD 4c328ab5e7c6d555c9575ebeffa2c815e6618baf; Actions run access unavailable.",
+    "fixture_a": "Current supplied Huawei evidence ZIP SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; source SHA 67f17f0eb6a80233438cb8b00111a55d6767a6d8; pre-fix evidence, replayed as deterministic source fixture only.",
+    "fixture_b": "FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not present; deterministic ORB-only regressions are source tests, not real fixture replay.",
+    "frozen_visual_archive": "164,751,025 bytes; SHA256 d054bc189cd65795dbfd96fcbf57d3766d7c381ab3101d0411ada307f2b85746; all six uploaded part hashes match UPLOAD_MANIFEST.json; reconstructed archive passed unzip -t.",
+    "gate_deadline_policy": "User supplied Gate Deadline Policy V1 numeric table. Values and retry maxima match docs/contracts/yujian-ai-v2/12_NON_MODEL_GATE_DEADLINE_POLICY_V1.md; no budget increase or alternate values introduced.",
+    "github_continuous_delivery_guard": {
+      "actual_push": "PASS: delivery_guard pushed 189f6d85 code plus state checkpoint e30d33bf by normal fast-forward; refs/heads/fix/26kf-path-boundary-and-fish-gate-v1 and refs/pull/346/head both independently read as e30d33bfeda90d77f462d1a3512eb1ac8b6f5b67; main remained bc89484ca79fe20c63c9c6e65b284f1ec3ac1863",
+      "baseline_admission": "PASS at exact baseline 52aca20a49be6ab0f01d0b635988209cd5d55da0; historical OPEN_GAP only",
+      "code_commit_parent": "37af697cae5dd88d25f00f50bffb1f45805d9076",
+      "code_commit_sha": "2362e097befb38136ed4d48975ad19e94276e836",
+      "current_remote_branch_and_pr_ref": "4da469384e1ef814488b75d979eff8ca3ac1df79",
+      "environment_network_draft_id": "9648be1236299e1105b37fbeb7933e3ac574e70d70c26b19d5251edbb8b5ed1b~cecfgdraft_d322280e409c81969581e01d27d6167a",
+      "exact_head_ci": "UNAVAILABLE: api.github.com egress is proxy HTTP 403; CI_RAW_EVIDENCE_UNAVAILABLE retained, no run status or PASS asserted; independent work continues",
+      "git_push_dry_run": "PASS; followed by actual normal fast-forward push and independent remote SHA verification",
+      "git_remote_read": "PASS; public main, PR branch, and refs/pull/346/head readable",
+      "github_api": "NETWORK_OR_PROXY_BLOCKED (CONNECT/HTTP 403); username and repository push permission remain UNVERIFIED; no repeated invalid-auth request",
+      "github_auth": "Authenticated Git write PASS proven by successful fast-forward push; REST API identity and repository permissions remain UNVERIFIED because API egress is proxy-blocked; no token value recorded",
+      "local_bare_remote_scenarios": "PASS: fast-forward, denied push checkpoint, verified bundle restore, nonconflicting rebase with rerun tests, conflict hold, CI failure continues research",
+      "local_regression": "31/31 PASS via unittest discovery across delivery_guard, failure_gate, and work_control; UNAVAILABLE/PENDING continuation regression added",
+      "local_regression_report": "/workspace/goal_checkpoints/yujian_cddg_v1_20261126/stage_reports/37af697c_YUJIAN_P0_GITHUB_CONTINUOUS_DELIVERY_GUARD_V1.md",
+      "network_draft_requires_publish": true,
+      "secret_handling": "PASS: staged sensitive content rejected; untracked private/sensitive files skipped and preserved in source worktree",
+      "target_branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+      "task_id": "YUJIAN_P0_GITHUB_CONTINUOUS_DELIVERY_GUARD_V1",
+      "work_v2_failure_gate": "ALLOW_FIRST_ATTEMPT; 0 failed attempts for CDDG gate key"
+    },
+    "github_write_auth": "Git Remote write permission PASS: temporary probe ref was pushed, remotely verified, deleted, and absence verified. No token value was read or logged. GitHub API/CLI status is not used to infer Git Remote authorization.",
+    "hosted_apk_pair_artifact": "Run 45172732325 APK Pair artifact 14818985729, SHA256 4fae2e48d7d12adcc72f85f65a08cf94f51e6e9dd0849808a87d235fca18d45f; produced by hosted Build at source 6102640437041159abc519b00249b7aedff0bb03.",
+    "input_evidence_zip": "/workspace/Yujian_App/artifacts/26kf_visual_reference_v1/inputs/YuJian_Recognition_Evidence_eac685c91965.zip; 16,204,260 bytes; SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; integrity entries independently verified.",
+    "kf_matrix": "scripts/android_runtime/tests/test_26kf_runtime_trace_matrix_v2.py: 4/4 PASS; RecognitionVisualStateControllerTest.autoCheckpointStageWaitsForItsPixelCopyBeforeAdvancing passed in the module suite.",
+    "kvm_preflight_artifact": "Run 45106300573 artifact 14787935229 SHA256 b72e62d7006e3f8073442a7d1ac3675ba0ba1f7cd238a7ceb079148f76e7bc78.",
+    "latest_api36_run": {
+      "AUTO_SMOKE_PASS": false,
+      "BUILD_PASS": true,
+      "DEVICE_QA_PENDING": true,
+      "EMULATOR_BOOT_PASS": "NOT_CONFIRMED",
+      "KVM_READY": true,
+      "api36_emulator_boot": "NOT_CONFIRMED",
+      "apk_pair_artifact": "YuJian-runtime-apks-6ad3eb6264abdb29f43924210422765ce7a7803a-MODEL_CROP_M1_v0.2",
+      "apk_pair_artifact_id": "14789643852",
+      "apk_pair_artifact_sha256": "75e38e628acd3ddced2f2ee04828d44bd0429541b2ad4a8268a8982789cccf70",
+      "avd_prelaunch_memory_config": {
+        "hw.heapSize": "512M",
+        "hw.ramSize": "4096M",
+        "step_result": "success"
+      },
+      "build_result": "success",
+      "classification": "SUMMARY_FINALIZATION_FAILURE_UNCLASSIFIED",
+      "code_source_sha": "a9f597a4f3b5f2911e8962d2b138ace503fdbe4b",
+      "exact_head_apk_pair_verified": true,
+      "failure_reason": "The finalizer and Enforce steps failed; the runtime artifact is inaccessible, so the instrumentation result and runtime classification cannot be independently confirmed.",
+      "host_memory_preflight": "PASS; minimum 5 GiB MemAvailable gate satisfied; raw host report artifact inaccessible",
+      "instrumentation_started": "NOT_CONFIRMED",
+      "kvm_preflight": "KVM_READY",
+      "run_id": "45110217717",
+      "runtime_evidence_artifact": "YuJian-recognition-result-api36-6ad3eb6264abdb29f43924210422765ce7a7803a",
+      "runtime_evidence_artifact_id": "14790495872",
+      "runtime_evidence_limitation": "Artifact uploaded (8.58 MB); contents/raw logs unavailable in this environment. Do not infer API36 boot, Instrumentation completion, resource exhaustion, business failure or AUTO pass.",
+      "runtime_evidence_sha256": "2729c61d007bff9e659d7725e54f126df60cfc6935a8069e406ab44ab4d5febf",
+      "smoke_runner_outcome": "success_step_outcome; job failed in summary finalization and exact-head enforcement",
+      "source_sha": "6ad3eb6264abdb29f43924210422765ce7a7803a"
+    },
+    "lint": {
+      "evidence": "/tmp/yujian-build-diagnostics/cafc289c-lintDebug-postfix.log",
+      "failure": "Could not resolve com.android.tools.lint:lint-gradle:32.1.1 from dl.google.com; temporary DNS resolution failure.",
+      "result": "BLOCKED_EXTERNAL_DEPENDENCY_DNS_BEFORE_ANALYSIS",
+      "task": ":app:lintDebug"
+    },
+    "local_android_test_compile": "Exact-source :app:assembleDebugAndroidTest PASS after final test additions; production Instrumentation test has not run locally because KVM/ADB/emulator are absent.",
+    "local_script_validation": "8/8 targeted Python tests PASS; finalizer/validator py_compile PASS; smoke shell bash -n PASS; workflow YAML parses and all 5 embedded Python blocks compile; git diff --check PASS. actionlint is not installed.",
+    "local_sdk_state": "Tracked local.properties restored exactly; builds used ANDROID_HOME environment variables and did not persist SDK path edits.",
+    "local_source_commit": "7119089573515c4f5e0699b72d057cec592eee3b",
+    "main_control_plane": "03db3692669847084d7e48fc3128f85cbf832af9",
+    "model_asset_validation": "Model bootstrap and Detector/Classifer asset validation PASS; generated model snapshot uses the current source SHA during final build. Model bytes unchanged.",
+    "p0_2_history": "Remote integration commit 57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5 explicitly records Original source commit 759e918332293a4ffaea479a57556386b7c41f1d, parent babd6b3ad31ee02f70d74738a27d7f14cc6b5e10, original patch-id d91bb6389f704615dcd14dbceaf0610d52cf399c, and integrated patch-id da593356225b0d71ccfdbf797267446dd962c77f. It adds SlimSamImagePreprocessor, SlimSamMemoryTelemetry, SlimSamNativeRunLifecycle and tests; modifies SlimSamRuntimeCoordinator, SlimSamRuntimeManager, SlimSamSegmenter and coordinator tests. Remote source is being merged. The original object itself is still not reachable for a direct file-level comparison.",
+    "packaged_apk_verification": "PENDING final merged exact-HEAD APK.",
+    "performance_after": "NOT_RUN; no same-device post-fix run exists. Do not claim device performance improvement.",
+    "performance_baseline": "Historical Huawei log interval: 12,557 ms from first SlimSAM PROCESSING to READY; internal encoder/decoder timing, memory and GC were not recorded in that archive.",
+    "post_merge_release_compile": {
+      "log": "/tmp/yujian-build-diagnostics/postmerge-full.log",
+      "result": "PASS",
+      "task": ":app:compileReleaseKotlin"
+    },
+    "post_merge_unit_tests": {
+      "command": "Gradle 9.3.1 test --no-daemon (run with :app:compileReleaseKotlin)",
+      "errors": 0,
+      "failures": 0,
+      "log": "/tmp/yujian-build-diagnostics/postmerge-full.log",
+      "modules": {
+        "app": 126,
+        "application-core": 78,
+        "recognition-domain": 8,
+        "recognition-result-ui": 20,
+        "recognition-runtime": 71,
+        "recognition-ui": 237,
+        "waterlight-renderer": 64
+      },
+      "passed": 604,
+      "report_xml_count": 116,
+      "result": "PASS",
+      "skipped": 0,
+      "source_tree": "Merged working tree: local implementation 5b1f28c2 plus remote branch head 57ccf1b3; all XML reports correspond to the successful post-merge run.",
+      "total": 604
+    },
+    "post_merge_validation": "PASS: 604/604 JVM tests (0 failure/error/skip), :app:compileReleaseKotlin, exact-head local Debug APK ZIP/signature/package and packaged asset checks. AndroidTest compilation and Lint blocked before source analysis by dl.google.com DNS. Hosted final-head CI/Artifact and API36 runtime unverified.",
+    "pr_status": "PR #346 state was last observed DRAFT/open/unmerged on 2026-11-24 at prior head babd6b3; current PR source ref is 316de1b. Live metadata has not been queried during this V2 intake; no PR mutation performed.",
+    "pre_merge_release_compile": {
+      "evidence": "Final Gradle regression build completed BUILD SUCCESSFUL.",
+      "result": "PASS_BEFORE_REMOTE_MERGE; NOT_POST_MERGE_EVIDENCE",
+      "task": ":app:compileReleaseKotlin"
+    },
+    "pre_merge_unit_tests": {
+      "command": "Gradle 9.3.1 test --no-daemon",
+      "delta_from_original_574": 19,
+      "errors": 0,
+      "evidence": "114 Gradle JUnit XML reports under module build/test-results directories; final regression log /tmp/yujian-build-diagnostics/final2-unit-and-release.log",
+      "failed": 0,
+      "modules": {
+        "app": 126,
+        "application-core": 67,
+        "recognition-domain": 8,
+        "recognition-result-ui": 20,
+        "recognition-runtime": 71,
+        "recognition-ui": 237,
+        "waterlight-renderer": 64
+      },
+      "passed": 593,
+      "result": "PASS_BEFORE_REMOTE_MERGE; NOT_POST_MERGE_EVIDENCE",
+      "skipped": 0,
+      "source_state": "current implementation worktree after PATH_BOUND idempotency hardening",
+      "total": 593
+    },
+    "previous_admission_attempt": "CONTROL_PLANE_ADMISSION=PASS on the final marked state-only checkpoint for source commit 0ad7dbb5379504a3e6b3908e66fc5b74a76bdf20; structural_errors=0; one unchanged historical OPEN_GAP is non-blocking; no Registry or validator edits.",
+    "previous_task_spec": "/workspace/attachments/c9f1a71a-fd89-4cba-b20d-5eb1ac9c338d/已粘贴的文本.txt",
+    "previous_v5_status": "Preserved from existing state and build log: prior V5/API36 failures and historical test/APK evidence remain scoped to their recorded source SHAs; no current-source PASS is inferred.",
+    "real_device_evidence": "YuJian_Recognition_Evidence_eac685c91965.zip SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; 302e51a0725b602704363f264b1c70dc.mp4 SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392. Both are Huawei CMS-AL20/API36 historical pre-fix evidence, not current-run proof.",
+    "remote_branch_and_pr_ref": "Final remote refs verified by git ls-remote: origin/fix/26kf-path-boundary-and-fish-gate-v1=4c328ab5e7c6d555c9575ebeffa2c815e6618baf; refs/pull/346/head=4c328ab5e7c6d555c9575ebeffa2c815e6618baf; origin/main=bc89484ca79fe20c63c9c6e65b284f1ec3ac1863. No Main modification, PR merge, or Draft-state change.",
+    "remote_merge_review": {
+      "integration_provenance": "Remote commit 57ccf1b3 records original parent babd6b3ad31ee02f70d74738a27d7f14cc6b5e10 and patch ids original d91bb6389f704615dcd14dbceaf0610d52cf399c / integrated da593356225b0d71ccfdbf797267446dd962c77f; provenance metadata verified, direct file-level comparison against missing original object remains unavailable.",
+      "main_head": "03db3692669847084d7e48fc3128f85cbf832af9",
+      "merge_commit": "PENDING",
+      "original_commit_object_available": false,
+      "p0_2_original_commit": "759e918332293a4ffaea479a57556386b7c41f1d",
+      "pull_346_head_before_merge": "57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5",
+      "remote_target_before_merge": "57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5"
+    },
+    "requested_task_id": "YUJIAN_P0_PRODUCTION_CONTROL_IDENTITY_CLOSURE_V2",
+    "requested_task_title": "Production Control & Identity Closure V2 — Gate Control Plane, Recognition Identity, Atomic Path Binding, Native Runtime Safety, Exact-HEAD Delivery",
+    "runtime_capability": "Local host has no /dev/kvm, adb, or emulator; API36 AUTO requires the existing hosted x64 workflow.",
+    "runtime_evidence_scope": "Exact code source 6102640437041159abc519b00249b7aedff0bb03 KVM/build/AVD prelaunch gates passed, but production smoke returned exit 1 and enforcement failed. Raw runtime evidence artifact is uploaded, SHA recorded, and available on Run 45172732325 for authenticated inspection; this session cannot read the archive.",
+    "source_lock": "Local product commit 5b1f28c2 based on 316de1b; fetched existing PR branch and refs/pull/346/head both at 57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5 before merge; main at 03db3692669847084d7e48fc3128f85cbf832af9. No force push, new PR, merge-to-Main, or Draft mutation.",
+    "task_scope_blocker": "Prior V1 intake lacked the numeric Gate table; V2 user supplied it, and it matches the frozen formal Policy. This blocker is resolved.",
+    "task_spec": "/workspace/attachments/b839fe2f-e829-4a32-b8db-11ab2146b68a/已粘贴的文本.txt",
+    "tflite_hard_termination": "HARD_NATIVE_TERMINATION_NOT_VERIFIED: synchronous TFLite 2.16.1 Interpreter.run cannot be reliably interrupted with the available API; old Attempt receipts are rejected, concurrent Interpreter runs are prevented, and native resources are quarantined until the call actually returns.",
+    "unit_tests": "542 JUnit tests across eight configured module tasks; 0 failures, 0 errors, 0 skipped. The app suite passed after the standard model asset bootstrap.",
+    "user_supplied_failure_facts": "Task prose is not device evidence; inspect the ZIP records directly before promoting any fact",
+    "v23_build_limits": "Current-source Gradle/JVM, AndroidTest compilation, Release Kotlin, lint, APK, API36 runtime, and hosted CI remain pending. This environment cannot resolve the Gradle wrapper distribution host services.gradle.org and has no Android SDK/KVM/adb/emulator. Historical 604/604 and 574/574 are not current-source claims.",
+    "v23_deterministic_tests": "31/31 delivery Guard tests PASS; classifier FlatBuffer gate PASS; 20/20 API36 instrumentation parser and finalizer tests PASS; fake runner harness confirms Test A -> force-stop -> Test B order and keeps AUTO_SMOKE_PASS=false when simulated Test B crashes; workflow YAML, Bash syntax, and diff checks PASS. Fake runner results are control-flow-only, not device evidence.",
+    "video_attachment": "302e51a0725b602704363f264b1c70dc.mp4 is available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; source evidence is historical/pre-fix.",
+    "visual_status": "Reference inventory/tokens/mapping/ROIs and diagnostic-only comparisons for six historical captures are recorded under artifacts/26kf_visual_reference_v1. Current source visual acceptance NOT_RUN.",
+    "workflow_failure_summary_fix": "Source 7119089573515c4f5e0699b72d057cec592eee3b moves summary/result enrichment into scripts/ci/finalize_recognition_result_api36_smoke.py; exact runtime source SHA is mandatory, Build/KVM/Boot/runner gates must agree with AUTO, contradictions force AUTO_SMOKE_PASS=false, evidence hashes and APK SHA-256 values are captured, and finalization exceptions produce INFRA_BLOCKED evidence.",
+    "api36_run4236": {
+      "run_id": "45953790013",
+      "workflow_number": 4236,
+      "workflow_head": "20405b160cb2ed5c589f1485b4b54b316dbee15a",
+      "product_source_sha": "6b61c50ce3d02f033635c54738d0ff868ef06599",
+      "build": "PASS: full-module JVM tests, AndroidTest compile, Debug APK, lint, Release Kotlin, classifier packaged binding, and asset gates.",
+      "avd": "PASS: KVM preflight, 4-core/4096M/512M configuration, emulator boot/resource checks, exact APK hashes.",
+      "api36_smoke": "FAIL: ran 12m38s; smoke step exit 2; exact-head enforcement reported BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE.",
+      "artifact_id": "15179468061",
+      "artifact_size": "15 MB",
+      "artifact_sha256": "7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765",
+      "a_b_c": "RECOVERED_FROM_EXISTING_ARTIFACT: A PASS; B FAIL at 60,000ms with SLIMSAM_TIMEOUT/CLASSIFIER_RESULT_WITHOUT_MASK; C FAIL with System photo picker did not open.",
+      "runtime_root_cause": "PERFORMANCE_BOTTLENECK_CONFIRMED: Vision Encoder 52,352.72ms including 47,340.97ms native run; output validation/hash consumed additional measured time; Decoder execution count 0. Runtime thread configuration and picker launch component are pending readback; no definitive fix selected yet.",
+      "recovery": "Guarded actions:read workflow source d37da0be downloads the existing artifact and emits compact sanitized timing/runtime configuration and ActivityTaskManager annotations after the state checkpoint is pushed; no user re-upload or runtime retry."
+    },
+    "run4236_diagnostic_evidence_recovery": {
+      "source_commit": "d37da0be693fcd1992ccac88f9839f4081f8c99f",
+      "parent_sha": "2021de9b520bff43fc26f12f2e0868dc12295bf3",
+      "scope": "actions:read-only workflow parses the already retained Run 4236 artifact; it does not rebuild or rerun the app.",
+      "local_tests": "RECOVERY_WORKFLOW_ANNOTATION_FIXTURE_PASS; RECOVERY_WORKFLOW_YAML_VALID; git diff --check PASS",
+      "case_results": {
+        "A_classifier": "PASS",
+        "B_production_reveal": "FAIL: SLIMSAM_TIMEOUT at 60000ms, CLASSIFIER_RESULT_WITHOUT_MASK",
+        "C_home_picker_auto": "FAIL: System photo picker did not open"
+      },
+      "timing_ms": {
+        "vision_encoder_total": 52352.716366,
+        "vision_encoder_native": 47340.971823,
+        "output_finite_scan": 3772.174431,
+        "output_tensor_sha256": 904.549964,
+        "embedding_copy": 68.095343
+      },
+      "decoder_execution_count": 0,
+      "runtime_thread_configuration": "PENDING_COMPACT_ANNOTATION_READBACK",
+      "picker_activity_component": "PENDING_COMPACT_ANNOTATION_READBACK",
+      "production_code_changed": false,
+      "api36_retry_spent": false,
+      "runtime_pass_claimed": false
+    },
+    "fish_mask_performance_source_lock": {
+      "task_id": "YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1",
+      "remote": {
+        "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+        "local_head_before_checkpoint": "16464298cd7ab90737f6b636b2377a8c53a66794",
+        "remote_pr_branch_head": "16464298cd7ab90737f6b636b2377a8c53a66794",
+        "remote_pull_346_head": "16464298cd7ab90737f6b636b2377a8c53a66794",
+        "main_head": "21295d95c3213acbe0da1de8557dfdab6ad20ce7",
+        "pr_base_branch": "fix/det-fish-v03-main-runtime-closure",
+        "pr_base_head": "6ec43662ef76c6ffee8530148098649496ab7fb1",
+        "merge_base_with_main": "03db3692669847084d7e48fc3128f85cbf832af9",
+        "merge_base_with_pr_base": "6ec43662ef76c6ffee8530148098649496ab7fb1",
+        "local_only_commits": 0,
+        "remote_only_commits": 0
+      },
+      "worktree": {
+        "temporary_worktree": "/tmp/Yujian_App_PR346_V3_1",
+        "branch_state": "detached at exact PR source; preserve history for ordinary fast-forward updates",
+        "clean_before_admission": true,
+        "original_checkout": "/workspace/Yujian_App_PR346",
+        "original_head": "63dd7c0ebb0b1a6f1dd3ff1492272b898a8a4e64",
+        "original_tracked_modified_entries": 5,
+        "original_untracked_entries": 69,
+        "original_checkout_was_dirty": true,
+        "original_checkout_untouched_by_current_work": true
+      },
+      "assets_sha256": {
+        "slimsam_vision_encoder": "cce23c7b2e5d4f330932738fb67ba518e04b0d99ccdd1cccd22a7da4e01f2971",
+        "slimsam_mask_decoder": "cb90b279f549d2cab7fd6e20c38522438c65d84bdcca3d2a764cff7d857fdce2",
+        "classifier": "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18",
+        "detector_onnx": "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1"
+      },
+      "versions": {
+        "gradle_wrapper": "9.3.1",
+        "android_gradle_plugin": "9.1.1",
+        "kotlin": "2.2.10",
+        "onnxruntime_android": "1.29.0",
+        "tensorflow_lite": "2.16.1",
+        "compile_sdk": 35,
+        "target_sdk": 35
+      },
+      "environment": {
+        "java": "21.0.13",
+        "android_sdk_root": "/tmp/yujian-android-sdk",
+        "adb": "/tmp/yujian-android-sdk/platform-tools/adb (executable, not on PATH)",
+        "emulator": "NOT_FOUND",
+        "dev_kvm": "ABSENT",
+        "gradle_wrapper": "Default lock creation failed at /home/agent/.gradle; no source-lock build or test was run"
+      },
+      "api36_run_164": {
+        "run_id": "45978437133",
+        "source_sha": "16464298cd7ab90737f6b636b2377a8c53a66794",
+        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/45978437133",
+        "status": "FAIL_CLOSED",
+        "artifact_id": "15190004423",
+        "artifact_size_mb": 15.8,
+        "artifact_sha256": "a88c70a9b5fcef0586760c58612953f861d64b87a9d1850e623e608f0e441bab",
+        "artifact_url": "https://github.com/pan277942135/Yujian_App/actions/runs/45978437133#artifacts",
+        "case_results": "NOT_CONFIRMED",
+        "performance_baseline": "NOT_RUN"
+      },
+      "historical_run_4236": "Historical only, workflow source 20405b160cb2: Encoder 52,352.72ms including 47,340.97ms native; finite scan 3,772.17ms; output SHA 904.55ms; Decoder count 0.",
+      "demo_reference": {
+        "repository": "18694061757-ctrl/Fish-Mask-Gold-Contour-Lab-Demo",
+        "requested_sha": "bdb26d96f7dca27e43adfad665feee9cab555ccf",
+        "verification": "NOT_YET_FETCHED"
+      },
+      "performance_baseline": "NOT_RUN"
+    },
+    "failure_gate_check_slimSam_timeout": {
+      "result": "ALLOW_REPAIR",
+      "failed_attempts_before_this_work": 1,
+      "guard": "tools/work_execution_v2/failure_gate.py check",
+      "event": "API36_A_B_C_RUNTIME / RUN4225_ASSET_STORAGE_SLIMSAM_TIMEOUT; check only, no failure recorded"
+    },
+    "failure_gate_check_slimsAM_timeout": {
+      "result": "ALLOW_REPAIR",
+      "failed_attempts_before_this_work": 1,
+      "guard": "tools/work_execution_v2/failure_gate.py check",
+      "event": "API36_A_B_C_RUNTIME / RUN4225_ASSET_STORAGE_SLIMSAM_TIMEOUT; check only, no failure recorded"
+    }
+  },
+  "execution_v2": {
+    "issues": {
+      "154daccd66fc422594bb": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Gradle warns that sdk.dir=/Users/liliang/Library/Android/sdk does not exist; current SDK platforms are installed under /tmp/yujian-android-sdk.",
+            "hypothesis": "Ignored local.properties points to a removed macOS SDK directory; provide the discovered current SDK and temporarily update only local environment config, restoring its exact original hash afterward.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "ANDROID_SDK_LOCAL_PROPERTIES_PATH_STALE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "157c9329dfd480593019": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "./gradlew test --no-daemon exited 1 before build with Could not create parent directory for lock file /home/agent/.gradle/wrapper/dists/gradle-9.3.1-bin/...; no test task ran.",
+            "hypothesis": "The runner default Gradle user home is under /home/agent, outside writable roots; the Wrapper fails before Gradle starts.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "GRADLE_WRAPPER_LOCK_PATH_NOT_WRITABLE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "368f75586bdd2da505d8": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Direct Gradle 9.3.1 started with absolute /tmp daemon logs, then failed resolving com.android.application:com.android.application.gradle.plugin:9.1.1 from Google, MavenRepo and Gradle Plugin Portal; no source compilation or tests ran.",
+            "hypothesis": "The writable Gradle user home has no Android Gradle Plugin cache and restricted DNS/network prevents resolving the plugin marker from Google/Maven/Gradle repositories.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "GRADLE_PLUGIN_RESOLUTION_NO_CACHE_OR_NETWORK",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "429611cbf608ef533451": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "GitHub Actions run 45928328121 at state-only exact HEAD 7db0c3f424d5a16cab62fbac42038ecd293d4430: build passed, AVD health/config passed, API36 smoke step ran 22m40s and exited 2, artifact 15169320466 (15.8 MB; archive SHA256 672313504c2e430b1236fadee74120746480c8e0939b0ed2df3438c6044ce6f5); final exact-head enforcement failed with BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE. Artifact/API details are inaccessible through current GitHub network policy, so A/B/C root cause is not confirmed. Tested product source tree was 6d2b844808e2ba422b190cbf96d3a871686b8f24; 7db0c3f was a state-only checkpoint over that source.",
+            "hypothesis": "Run 45928328121 executed the API36 smoke for 22m40s and failed business evidence validation, but the finalizer exposes only aggregate status. Publish per-case instrumentation phase, reason, root cause, and log excerpt in the CI summary and annotation to localize the runtime failure without changing runtime acceptance or deadlines.",
+            "source_sha": "6d2b844808e2ba422b190cbf96d3a871686b8f24"
+          },
+          {
+            "evidence": "Run 45953790013 on workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a: build, JVM tests, AndroidTest compile, lint, Release Kotlin, KVM/AVD setup and APK hash checks passed; API36 smoke ran 12m38s, uploaded artifact 15179468061 (15 MB, SHA256 7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765), then exact-head enforcement reported BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE with runner exit code 2. No A/B/C annotation appeared. Artifact download returned HTTP 404 and api.github.com is denied by the environment proxy; no runtime root cause or A/B/C PASS is claimed.",
+            "hypothesis": "The API36 finalizer exposes case details only for failed cases, so an aggregate evidence-validation failure does not show the independently completed A/B/C statuses in visible annotations. Emit unconditional case status annotations and preserve shell failure phase/line before attempting the next exact-head run.",
+            "source_sha": "6b61c50ce3d02f033635c54738d0ff868ef06599"
+          }
+        ],
+        "gate_id": "API36_A_B_C_RUNTIME",
+        "symptom_key": "BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "6c033ad651a4fd579f28": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Gradle configuration completed, then exited before task execution: task testDebugUnitTest not found in project recognition-runtime.",
+            "hypothesis": "Gradle module exposes test task as :recognition-runtime:test rather than testDebugUnitTest",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "LOCAL_TARGETED_TEST",
+        "symptom_key": "TASK_NAME_NOT_FOUND_TESTDEBUGUNITTEST",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "70e35eb34f644c3c9063": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Run 45923813126 job 140265392104 public annotation ValueError: guest dalvik.vm.heapsize; all other config/CPU/RAM checks passed",
+            "hypothesis": "API36 guest ignores AVD heap-size property; inject 512m at emulator boot with documented -prop and verify guest property, never post-boot setprop",
+            "source_sha": "66a8d4a99ccb76734efb58a05aefb21bc7ffbb54"
+          }
+        ],
+        "gate_id": "API36_AVD_4CORE",
+        "symptom_key": "GUEST_DALVIK_HEAP_IGNORES_AVD_INPUT",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "8eb8d70b6e7a1f222ad4": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "GitHub Actions run 45110217717 at exact HEAD 6ad3eb6264abdb29f43924210422765ce7a7803a: BUILD and exact APK Pair passed; KVM, host memory and AVD 4096M/512M checks passed; smoke step ended and uploaded runtime artifact 14790495872 (8.58 MB, SHA256 2729c61d007bff9e659d7725e54f126df60cfc6935a8069e406ab44ab4d5febf); Record early API36 infrastructure failure when smoke did not start and Enforce exact-head result both failed at 04:32:14Z. Artifact contents and runtime classification/boot/instrumentation fields are inaccessible, so AUTO status remains NOT_CONFIRMED.",
+            "hypothesis": "The inline post-smoke summary finalizer failed for an input-dependent reason. Source 7119089573515c4f5e0699b72d057cec592eee3b extracts finalization into a tested helper, records exception evidence, and forces fail-closed gate consistency; exact-head hosted rerun is pending.",
+            "source_sha": "a9f597a4f3b5f2911e8962d2b138ace503fdbe4b"
+          }
+        ],
+        "gate_id": "G8_EXACT_HEAD_CI_AND_API36_SMOKE",
+        "symptom_key": "API36_RESULT_SUMMARY_FINALIZATION_FAILURE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "9bbc21beda2a0d75a3d2": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Run 45922051109 job 140258743170 public annotation: config hw.cpu.ncore, hardware vm.heapSize, guest dalvik.vm.heapsize; upstream action.yml defaults cores=2 and src/emulator-manager.ts appends inputs to config.ini",
+            "hypothesis": "android-emulator-runner@v2 appends its default cores=2 and omits heap-size after the manual config, so documented action inputs must be set",
+            "source_sha": "5775f08ff9774b418201be517a487ce8863dc45b"
+          }
+        ],
+        "gate_id": "API36_AVD_4CORE",
+        "symptom_key": "ACTION_DEFAULT_CORES_HEAP_OVERRIDE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "9df57880ad59f5725fde": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "With GRADLE_USER_HOME=/tmp/yujian-gradle-home, ./gradlew test --no-daemon failed during wrapper distribution download with java.net.UnknownHostException: services.gradle.org; no test task ran.",
+            "hypothesis": "The Gradle 9.3.1 wrapper distribution is not cached in the writable Gradle user home and the execution network cannot resolve services.gradle.org.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "GRADLE_DISTRIBUTION_DNS_UNAVAILABLE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "a0216e92ff5bcb55bc19": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Gradle resolved the Android application plugin and then failed during :app configuration with /home/agent/.android: Read-only file system (analytics.settings). No source compilation or tests ran.",
+            "hypothesis": "Android Gradle Plugin metrics initialization writes to the runner home at /home/agent/.android, which is read-only in this workspace; configure ANDROID_USER_HOME under writable /tmp.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "ANDROID_GRADLE_USER_HOME_READ_ONLY",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "ac3bb2ad23dfa92e4d71": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "scripts/validate_control_plane_admission.py returned CONTROL_PLANE_ADMISSION=FAIL; WORK_EXECUTION_STATE_VALIDATION listed production files changed after source_sha babd6b3 that require revalidation.",
+            "hypothesis": "Admission is blocked because branch-local WORK_EXECUTION_STATE points to babd6b3 while the active branch is at 316de1b with implementation files changed after the recorded source SHA.",
+            "source_sha": "babd6b3ad31ee02f70d74738a27d7f14cc6b5e10"
+          }
+        ],
+        "gate_id": "G-CONTROL-PLANE-ADMISSION",
+        "symptom_key": "WORK_EXECUTION_STATE_SOURCE_SHA_STALE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "b9beac4a3bab4e554c91": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Run 45917522348 job 140246417315 public annotation ValueError: hw.cpu.ncore, vm.heapSize, guest online CPUs, guest dalvik.vm.heapsize",
+            "hypothesis": "AVD config alone is not propagated to active emulator; start requires explicit four-core options and the guest heap key hw.heapSize",
+            "source_sha": "ca67fdf96eea3ad128add3d957efefdfc1149809"
+          }
+        ],
+        "gate_id": "API36_AVD_4CORE",
+        "symptom_key": "RUNTIME_CONFIG_2_CORES_NON512_HEAP",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "ba128882f16503f3086b": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Run 45840869777 artifact 15134616720 SHA256 47fd3ff89fea6bb7fa21375f19a9a1a51320398da45cc2f53bac834f3d3e9b7c as identified by user V3 attachment",
+            "hypothesis": "AndroidTest asset and storage contexts are mixed; SlimSAM encoder exceeds shared deadline under two-core AVD",
+            "source_sha": "044e266c5e452348425ec1dea1d016db69239e4b"
+          }
+        ],
+        "gate_id": "API36_A_B_C_RUNTIME",
+        "symptom_key": "RUN4225_ASSET_STORAGE_SLIMSAM_TIMEOUT",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "c3fa1c6d61c627f5724a": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Run 45925786797 job 140273255687 public annotation observed guest dalvik.vm.heapsize=576m; all AVD config, guest CPU/RAM checks passed",
+            "hypothesis": "AVD hw.heapSize=512M is frozen VM heap, while API36 system image independently sets dalvik.vm.heapsize=576m; checker conflated them",
+            "source_sha": "7fcddc1e09e6b7f45e99bf3b518d30a24768a96a"
+          }
+        ],
+        "gate_id": "API36_AVD_4CORE",
+        "symptom_key": "AVD_HEAP_VS_DALVIK_PROPERTY_CONFLATION",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "dfddf731f726e21befc4": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Gradle --stacktrace identifies AndroidLocationsException: both ANDROID_SDK_HOME and ANDROID_USER_HOME are set; plugin requires one injection method. Temporary local.properties SDK override restored to original SHA256 00442ca5571017eaa602a8267c4b0c95b33f99e4ca945742a188352aeeaa2fe5.",
+            "hypothesis": "Android Gradle Plugin rejects multiple Android preference-directory injection variables; use only the recommended ANDROID_USER_HOME and omit deprecated ANDROID_SDK_HOME.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "ANDROID_PREFERENCES_HOME_VARIABLE_CONFLICT",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "e6a6889795f5d5e80a49": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "With JAVA_HOME=/tmp/yujian-jdk17, ANDROID_HOME/SDK_ROOT=/tmp/yujian-android-sdk, ANDROID_USER_HOME/SDK_HOME=/tmp/yujian-android-home and a temporary local.properties sdk.dir override (restored after the attempt), Gradle failed creating AndroidLocationsBuildService before task execution.",
+            "hypothesis": "Android Gradle Plugin still cannot create its Android locations service after selecting the writable SDK; the suppressed nested cause must be resolved before retrying the baseline.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "ANDROID_LOCATIONS_DIRECTORY_CREATOR_FAILURE",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "ec96d6247d36fb592cfc": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Gradle task configuration fails because /usr/lib/jvm/java-21-openjdk-amd64 has no JAVA_COMPILER capability; /tmp/yujian-jdk17/bin/javac exists and project modules use Java 17.",
+            "hypothesis": "The default Java 21 runtime image contains no javac; configure JAVA_HOME to the installed JDK 17 because project modules target Java 17.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "JAVA_21_RUNTIME_LACKS_COMPILER",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "ef98c6d745afc159e5b6": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "GitHub Actions run 45106300573 triggered at exact HEAD 8301b4868f00476ed6f6ff2bc30e8286273d269c: Android Build, KVM/host-memory gate, exact APK Pair verification, and standalone API36 AVD RAM/heap setup passed; Run production AUTO smoke ended with runner exit code 2. Runtime artifact 14788427080 SHA256 f0aaa9891a87ffda19f52146be08a389a48acc62090c2eddf867c4e3f4e93099 uploaded but contents are not accessible in this environment; API36 boot and Instrumentation start are NOT_CONFIRMED.",
+            "hypothesis": "The emulator runner is exiting before the production smoke script records runtime state after the standalone AVD setup passed; surface classification and available runner evidence in the Actions summary before changing runner or workload configuration.",
+            "source_sha": "00e43d38bf8d7694f28fef308c9ad72442e98298"
+          }
+        ],
+        "gate_id": "G8_EXACT_HEAD_CI_AND_API36_SMOKE",
+        "symptom_key": "API36_EMULATOR_RUNNER_EXIT_2_BEFORE_RUNTIME_RESULT",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      },
+      "f4425fcf34f20b5269b2": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Cached Gradle 9.3.1 was launched directly with GRADLE_USER_HOME=/tmp/yujian-gradle-home; Gradle failed before task execution because -Xlog:gc... could not open build/diagnostics/gc-*.log. No tests ran.",
+            "hypothesis": "The repository JVM args send GC logs to build/diagnostics but the directory does not exist in this clean workspace, preventing daemon startup.",
+            "source_sha": "316de1b705fb54ee7d6e2114259ec1f87773aedf"
+          }
+        ],
+        "gate_id": "G6_BASELINE_UNIT_TESTS",
+        "symptom_key": "GRADLE_DAEMON_GC_LOG_DIRECTORY_MISSING",
+        "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+      }
+    },
+    "schema_version": "1.0",
+    "current_admission_attempt": "Diagnostic workflow source d37da0be only changes how already-retained Run 4236 evidence is surfaced. A state-only checkpoint is being prepared; post-checkpoint Work-state validation, Project Master validation, Unified Contract validation, and full Admission must pass before guarded push."
+  },
+  "next_action": "After post-checkpoint Admission passes, verify the pinned Demo revision and capture the fixed-photo API36 baseline before production edits.",
+  "phase": "P6",
+  "repository": "pan277942135/Yujian_App",
+  "requested_task_id": "YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1",
+  "requested_task_title": "Fish-Mask Demo performance port, ORT runtime optimization, tensor preprocessing speedup, API36 one-photo 5-second acceptance V1",
+  "schema_version": "1.0",
+  "source_sha": "16464298cd7ab90737f6b636b2377a8c53a66794",
+  "stage": "SOURCE_LOCK_AND_API36_PERFORMANCE_BASELINE",
+  "state_update": {
+    "last_updated_at": "2026-11-27T13:59:56Z",
+    "note": "Started YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1 on exact PR source 16464298cd7ab90737f6b636b2377a8c53a66794; remote/model provenance recorded. Exact-head API36 outcome is FAIL_CLOSED with case results NOT_CONFIRMED; performance baseline NOT_RUN."
+  },
+  "status": "RUNNING",
+  "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+  "work_id": "YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1"
+}

@@ -13,7 +13,6 @@ on:
       - 'integration/**'
       - audit/design-system-v3-1-phase1-master-baseline
     paths-ignore:
-      - ".github/workflows/android.yml"
       - ".github/workflows/nh01-cloud-runtime.yml"
       - ".github/workflows/control-plane-admission.yml"
       - "CONTROL_PLANE_REGISTRY.yaml"
@@ -38,6 +37,14 @@ on:
     branches: [main, design/ai-orb-existing-asset-gap-closure-v1]
     paths:
       - "app/**"
+      - "recognition-domain/**"
+      - "recognition-runtime/**"
+      - "waterlight-renderer/**"
+      - "application-core/**"
+      - "recognition-ui/**"
+      - "recognition-result-components/**"
+      - "recognition-result-ui/**"
+      - "scripts/ci/**"
       - "gradle/**"
       - "gradlew"
       - "gradlew.bat"
@@ -75,11 +82,16 @@ on:
         required: false
         default: false
         type: boolean
+      api36_kvm_preflight_only:
+        description: Run the API 36 GitHub-hosted x64 KVM preflight without building Android APKs
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted' }}
-  # Keep only the latest PR head; do not cancel manual/push release runs.
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # Preserve active PR builds so compiler failures retain their diagnostics.
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -90,9 +102,192 @@ env:
   YUJIAN_FEEDBACK_BASE_URL: https://81.71.1.11
 
 jobs:
-  build:
+  api36-kvm-preflight-primary:
+    if: ${{ (github.event_name == 'push' && github.ref != 'refs/heads/main' && (contains(github.event.head_commit.message, '[api36-kvm-preflight-only]') || contains(github.event.head_commit.message, '[recognition-result-api36-smoke]'))) || (github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      classification: ${{ steps.resources.outputs.classification }}
+    steps:
+      - name: Checkout the selected source
+        uses: actions/checkout@v4
+
+      - name: Set up Android emulator tools for KVM-only preflight
+        uses: android-actions/setup-android@v3
+        with:
+          packages: emulator
+
+      - name: Check /dev/kvm permissions and emulator hardware acceleration
+        id: kvm
+        continue-on-error: true
+        env:
+          KVM_PREFLIGHT_REPORT: evidence/kvm-preflight-ubuntu-24.04.txt
+        run: bash scripts/ci/check_api36_kvm.sh
+
+      - name: Capture host memory and validate 4 GiB AVD plus 1 GiB host headroom
+        id: resources
+        env:
+          KVM_CLASSIFICATION: ${{ steps.kvm.outputs.classification }}
+          KVM_REPORT: evidence/kvm-preflight-ubuntu-24.04.txt
+          REQUIRED_AVAILABLE_KB: '5242880'
+        run: |
+          set -euo pipefail
+          {
+            echo "runner_name=${RUNNER_NAME:-unknown} arch=${RUNNER_ARCH:-unknown}"
+            echo '--- /proc/meminfo ---'
+            cat /proc/meminfo
+            echo '--- /proc/swaps ---'
+            cat /proc/swaps
+            echo '--- /proc/pressure/memory ---'
+            cat /proc/pressure/memory
+            for f in /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory.events; do
+              if [[ -r "$f" ]]; then echo "--- $f ---"; cat "$f"; fi
+            done
+          } >> "$KVM_REPORT"
+          available_kb="$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)"
+          classification="$KVM_CLASSIFICATION"
+          if [[ "$KVM_CLASSIFICATION" == KVM_READY && "$available_kb" -lt "$REQUIRED_AVAILABLE_KB" ]]; then
+            classification=HOST_MEMORY_HEADROOM_INSUFFICIENT
+          fi
+          echo "host_mem_available_kb=$available_kb required_available_kb=$REQUIRED_AVAILABLE_KB" | tee -a "$KVM_REPORT"
+          echo "classification=$classification" | tee -a "$KVM_REPORT"
+          echo "classification=$classification" >> "$GITHUB_OUTPUT"
+
+      - name: Upload primary runner KVM preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api36-kvm-preflight-ubuntu-24.04-${{ github.sha }}
+          path: evidence/kvm-preflight-ubuntu-24.04.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+  api36-kvm-preflight-fallback:
+    if: ${{ always() && needs.api36-kvm-preflight-primary.outputs.classification != 'KVM_READY' && ((github.event_name == 'push' && github.ref != 'refs/heads/main' && (contains(github.event.head_commit.message, '[api36-kvm-preflight-only]') || contains(github.event.head_commit.message, '[recognition-result-api36-smoke]'))) || (github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only)) }}
+    needs: api36-kvm-preflight-primary
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      classification: ${{ steps.resources.outputs.classification }}
+    steps:
+      - name: Checkout the selected source
+        uses: actions/checkout@v4
+
+      - name: Set up Android emulator tools for fallback x64 runner
+        uses: android-actions/setup-android@v3
+        with:
+          packages: emulator
+
+      - name: Check fallback /dev/kvm and emulator hardware acceleration
+        id: kvm
+        continue-on-error: true
+        env:
+          KVM_PREFLIGHT_REPORT: evidence/kvm-preflight-ubuntu-22.04.txt
+        run: bash scripts/ci/check_api36_kvm.sh
+
+      - name: Capture fallback host memory and validate 4 GiB AVD plus 1 GiB host headroom
+        id: resources
+        env:
+          KVM_CLASSIFICATION: ${{ steps.kvm.outputs.classification }}
+          KVM_REPORT: evidence/kvm-preflight-ubuntu-22.04.txt
+          REQUIRED_AVAILABLE_KB: '5242880'
+        run: |
+          set -euo pipefail
+          {
+            echo "runner_name=${RUNNER_NAME:-unknown} arch=${RUNNER_ARCH:-unknown}"
+            echo '--- /proc/meminfo ---'
+            cat /proc/meminfo
+            echo '--- /proc/swaps ---'
+            cat /proc/swaps
+            echo '--- /proc/pressure/memory ---'
+            cat /proc/pressure/memory
+            for f in /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory.events; do
+              if [[ -r "$f" ]]; then echo "--- $f ---"; cat "$f"; fi
+            done
+          } >> "$KVM_REPORT"
+          available_kb="$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)"
+          classification="$KVM_CLASSIFICATION"
+          if [[ "$KVM_CLASSIFICATION" == KVM_READY && "$available_kb" -lt "$REQUIRED_AVAILABLE_KB" ]]; then
+            classification=HOST_MEMORY_HEADROOM_INSUFFICIENT
+          fi
+          echo "host_mem_available_kb=$available_kb required_available_kb=$REQUIRED_AVAILABLE_KB" | tee -a "$KVM_REPORT"
+          echo "classification=$classification" | tee -a "$KVM_REPORT"
+          echo "classification=$classification" >> "$GITHUB_OUTPUT"
+
+      - name: Upload fallback runner KVM preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api36-kvm-preflight-ubuntu-22.04-${{ github.sha }}
+          path: evidence/kvm-preflight-ubuntu-22.04.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+  api36-kvm-preflight-summary:
+    if: ${{ always() && ((github.event_name == 'push' && github.ref != 'refs/heads/main' && (contains(github.event.head_commit.message, '[api36-kvm-preflight-only]') || contains(github.event.head_commit.message, '[recognition-result-api36-smoke]'))) || (github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only)) }}
+    needs:
+      - api36-kvm-preflight-primary
+      - api36-kvm-preflight-fallback
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 2
+    outputs:
+      classification: ${{ steps.summary.outputs.classification }}
+      runner: ${{ steps.summary.outputs.runner }}
+      mode: ${{ steps.summary.outputs.mode }}
+    steps:
+      - name: Summarize the primary and fallback x64 KVM checks
+        id: summary
+        env:
+          PRIMARY_CLASSIFICATION: ${{ needs.api36-kvm-preflight-primary.outputs.classification }}
+          PRIMARY_RESULT: ${{ needs.api36-kvm-preflight-primary.result }}
+          FALLBACK_CLASSIFICATION: ${{ needs.api36-kvm-preflight-fallback.outputs.classification }}
+          FALLBACK_RESULT: ${{ needs.api36-kvm-preflight-fallback.result }}
+          PREFLIGHT_ONLY: ${{ (github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[api36-kvm-preflight-only]')) }}
+        run: |
+          set -euo pipefail
+          primary="${PRIMARY_CLASSIFICATION:-}"
+          fallback="${FALLBACK_CLASSIFICATION:-}"
+          mode=FULL_VALIDATION
+          if [[ "$PREFLIGHT_ONLY" == "true" ]]; then mode=PREFLIGHT_ONLY; fi
+          runner=none
+          classification=KVM_ACCEL_NOT_USABLE
+          if [[ "$primary" == KVM_READY ]]; then
+            runner=ubuntu-24.04
+            classification=KVM_READY
+          elif [[ "$fallback" == KVM_READY ]]; then
+            runner=ubuntu-22.04
+            classification=KVM_READY
+          elif [[ "$primary" == KVM_PERMISSION_DENIED || "$fallback" == KVM_PERMISSION_DENIED ]]; then
+            classification=KVM_PERMISSION_DENIED
+          elif [[ "$primary" == KVM_MISSING && ( -z "$fallback" || "$fallback" == KVM_MISSING ) ]]; then
+            classification=KVM_MISSING
+          elif [[ "$primary" == HOST_MEMORY_HEADROOM_INSUFFICIENT || "$fallback" == HOST_MEMORY_HEADROOM_INSUFFICIENT ]]; then
+            classification=HOST_MEMORY_HEADROOM_INSUFFICIENT
+          fi
+          {
+            echo "classification=$classification"
+            echo "runner=$runner"
+            echo "mode=$mode"
+          } >> "$GITHUB_OUTPUT"
+          echo "API36_KVM_CLASSIFICATION=$classification"
+          echo "API36_KVM_RUNNER=$runner"
+          echo "API36_PREFLIGHT_MODE=$mode"
+          echo "PRIMARY_RESULT=${PRIMARY_RESULT:-unknown} PRIMARY_CLASSIFICATION=${primary:-unknown}"
+          echo "FALLBACK_RESULT=${FALLBACK_RESULT:-unknown} FALLBACK_CLASSIFICATION=${fallback:-unknown}"
+          if [[ "$classification" != KVM_READY ]]; then
+            echo "API36_KVM_PREFLIGHT_BLOCKED=$classification" >&2
+            exit 1
+          fi
+
+  build:
+    needs: api36-kvm-preflight-summary
+    if: ${{ always() && !(github.event_name == 'push' && contains(github.event.head_commit.message, '[api36-kvm-preflight-only]')) && !(github.event_name == 'workflow_dispatch' && inputs.api36_kvm_preflight_only) && (!(github.event_name == 'push' && contains(github.event.head_commit.message, '[recognition-result-api36-smoke]')) || needs.api36-kvm-preflight-summary.outputs.classification == 'KVM_READY') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
     env:
       # A02 delivers an APK whose provenance is the product branch HEAD, not the PR merge ref.
       SOURCE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
@@ -114,6 +309,14 @@ jobs:
           test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
           echo "sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
 
+      - name: Validate fail-closed API36 smoke parser
+        run: |
+          python3 -m unittest discover -s scripts/ci/tests -p 'test_validate_recognition_result_api36_smoke.py' -v
+          python3 -m unittest discover -s scripts/ci/tests -p 'test_api36_instrumentation_case.py' -v
+          python3 -m unittest discover -s scripts/ci/tests -p 'test_package_api36_evidence.py' -v
+          python3 -m unittest discover -s scripts/ci/tests -p 'test_validate_slimsam_preload_evidence.py' -v
+          bash scripts/ci/tests/test_recognition_result_api36_smoke_runner.sh
+
       - name: Set up Python image verification dependency
         uses: actions/setup-python@v5
         with:
@@ -134,6 +337,9 @@ jobs:
           python3 scripts/test_bootstrap_android_recognition_assets.py
           python3 -m unittest discover -s scripts -p 'test_runtime_evidence_source_closure.py'
 
+      - name: Verify 26KF runtime trace matrix
+        run: python3 -m unittest discover -s scripts/android_runtime/tests -p 'test_26kf_runtime_trace_matrix_v2.py' -v
+
       - name: Materialize the verified design resource package
         run: >-
           python3 scripts/materialize_yujian_resource_package.py
@@ -149,6 +355,9 @@ jobs:
 
       - name: Bootstrap verified recognition assets
         run: python3 scripts/bootstrap_android_recognition_assets.py
+
+      - name: CLASSIFIER_REAL_TFLITE_TENSOR_BINDING_GATE
+        run: python3 scripts/verify_classifier_tensor_binding.py
 
       - name: Read production model identity
         id: model_trace
@@ -200,14 +409,17 @@ jobs:
       - name: Verify generated AI Orb runtime profile parity
         run: python3 scripts/android_runtime/generate_orb_runtime_profile.py --check
 
+      - name: Verify Android module boundaries
+        run: python3 scripts/ci/verify_android_module_boundaries.py
+
       - name: Verify immutable AI Orb core WebP
         run: python3 scripts/android_runtime/verify_orb_runtime_asset.py
 
       - name: Verify P0-2 frozen Orb wake, release and R01B resources
         run: python3 scripts/android_runtime/verify_orb_wake_breath_release_assets_v1_1.py
 
-      - name: Unit tests
-        run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:testDebugUnitTest --stacktrace --no-daemon --max-workers=2
+      - name: Unit tests (all source modules)
+        run: bash scripts/ci/run_android_module_unit_tests.sh "$YUJIAN_AAPT2"
 
       - name: Camera runtime harness contract tests
         run: bash scripts/android_runtime/tests/test_contract.sh
@@ -227,16 +439,29 @@ jobs:
           keytool -list -keystore debug.keystore -storepass android -alias androiddebugkey >/dev/null
 
       - name: Assemble debug APK
-        run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebug --stacktrace --no-daemon --max-workers=2
+        run: >-
+          bash scripts/ci/with-gradle-memory-diagnostics.sh assemble-debug
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebug
+          --console=plain --stacktrace --info --profile --no-daemon --max-workers=1
 
       - name: Compile Android runtime test APK
-        run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebugAndroidTest --stacktrace --no-daemon --max-workers=2
+        run: >-
+          bash scripts/ci/with-gradle-memory-diagnostics.sh assemble-androidtest
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2"
+          :application-core:assembleDebugAndroidTest
+          :waterlight-renderer:assembleDebugAndroidTest
+          :recognition-ui:assembleDebugAndroidTest
+          :app:assembleDebugAndroidTest
+          --console=plain --stacktrace --info --profile --no-daemon --max-workers=1
 
       - name: Verify packaged launcher icon in APK
         run: python3 scripts/verify_packaged_launcher_icon.py
 
       - name: Verify packaged recognition assets in APK
         run: python3 scripts/verify_packaged_android_apk.py
+
+      - name: Verify packaged classifier tensor binding
+        run: python3 scripts/verify_classifier_tensor_binding.py --apk app/build/outputs/apk/debug/app-debug.apk
 
       - name: Decode capture and Processing rasters from actual APK
         run: python3 scripts/verify_capture_presentation_assets.py --apk app/build/outputs/apk/debug/app-debug.apk
@@ -252,10 +477,16 @@ jobs:
           --build-sha "$SOURCE_SHA"
 
       - name: Android lint
-        run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:lintDebug --stacktrace --no-daemon --max-workers=2
+        run: >-
+          bash scripts/ci/with-gradle-memory-diagnostics.sh lint-debug
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:lintDebug
+          --console=plain --stacktrace --info --profile --no-daemon --max-workers=1
 
       - name: Compile Release Kotlin from the same candidate runtime
-        run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:compileReleaseKotlin --stacktrace --no-daemon --max-workers=2
+        run: >-
+          bash scripts/ci/with-gradle-memory-diagnostics.sh compile-release
+          gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:compileReleaseKotlin
+          --console=plain --stacktrace --info --profile --no-daemon --max-workers=1
 
       # Build Once contract: the two files below are the only APK pair any
       # Android Runtime job is allowed to install.
@@ -328,6 +559,445 @@ jobs:
             build/runtime-apks/apk_model_trace.json
           if-no-files-found: error
           retention-days: 14
+
+      - name: Upload compiler and memory diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-compiler-diagnostics-${{ env.SOURCE_SHA }}
+          path: build/diagnostics
+          if-no-files-found: warn
+          retention-days: 14
+
+  # Exact-head AUTO recognition smoke on a GitHub-hosted API 36 AVD. The commit
+  # marker keeps this production-model flow opt-in while preserving the normal
+  # Android CI cost for unrelated updates.
+  recognition-result-api36-smoke:
+    if: ${{ always() && github.event_name == 'push' && github.ref != 'refs/heads/main' && contains(github.event.head_commit.message, '[recognition-result-api36-smoke]') && needs.build.result == 'success' && needs.api36-kvm-preflight-summary.result == 'success' && needs.api36-kvm-preflight-summary.outputs.classification == 'KVM_READY' }}
+    needs:
+      - build
+      - api36-kvm-preflight-summary
+    runs-on: ${{ needs.api36-kvm-preflight-summary.outputs.runner || 'ubuntu-24.04' }}
+    timeout-minutes: 45
+    env:
+      SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+      BUILD_PASS: ${{ needs.build.result == 'success' }}
+      KVM_READY: ${{ needs.api36-kvm-preflight-summary.outputs.classification == 'KVM_READY' }}
+      API36_SINGLE_PHOTO_E2E_ONLY: 'true'
+    steps:
+      - name: Checkout exact source commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.source_sha }}
+
+      - name: Set up API 36 Android SDK and AVD packages
+        uses: android-actions/setup-android@v3
+        with:
+          packages: >-
+            platform-tools
+            emulator
+            build-tools;35.0.0
+            system-images;android-36;google_apis;x86_64
+
+      - name: Check KVM permissions and hardware acceleration on the smoke runner
+        run: |
+          mkdir -p evidence/runtime/recognition-result-api36
+          KVM_PREFLIGHT_REPORT=evidence/runtime/recognition-result-api36/kvm-preflight.txt \
+            bash scripts/ci/check_api36_kvm.sh
+          echo 'KVM_READY=true' >> "$GITHUB_ENV"
+
+      - name: Capture hosted runner memory and require AVD headroom
+        env:
+          REQUIRED_AVAILABLE_KB: '5242880'
+        run: |
+          set -euo pipefail
+          evidence=evidence/runtime/recognition-result-api36
+          mkdir -p "$evidence"
+          {
+            echo "runner_name=${RUNNER_NAME:-unknown}"
+            echo "runner_arch=${RUNNER_ARCH:-unknown}"
+            echo "kernel=$(uname -a)"
+            echo '--- /proc/meminfo ---'
+            cat /proc/meminfo
+            echo '--- /proc/swaps ---'
+            cat /proc/swaps
+            echo '--- /proc/pressure/memory ---'
+            cat /proc/pressure/memory
+            echo '--- cgroup memory ---'
+            for f in /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory.events; do
+              if [[ -r "$f" ]]; then echo "--- $f ---"; cat "$f"; fi
+            done
+          } > "$evidence/host-memory-preflight.txt"
+          python3 - "$evidence/host-memory-preflight.json" "$REQUIRED_AVAILABLE_KB" <<'PY'
+          import json, pathlib, sys
+          mem = {}
+          for line in pathlib.Path('/proc/meminfo').read_text().splitlines():
+              key, _, rest = line.partition(':')
+              if key in {'MemTotal', 'MemAvailable', 'SwapTotal', 'SwapFree'}:
+                  mem[key] = int(rest.strip().split()[0])
+          required = int(sys.argv[2])
+          payload = {
+              'runner_name': __import__('os').environ.get('RUNNER_NAME', 'unknown'),
+              'runner_arch': __import__('os').environ.get('RUNNER_ARCH', 'unknown'),
+              'mem_total_kb': mem.get('MemTotal'),
+              'mem_available_kb': mem.get('MemAvailable'),
+              'swap_total_kb': mem.get('SwapTotal'),
+              'swap_free_kb': mem.get('SwapFree'),
+              'required_mem_available_kb_before_avd': required,
+              'headroom_pass': mem.get('MemAvailable', 0) >= required,
+          }
+          pathlib.Path(sys.argv[1]).write_text(json.dumps(payload, indent=2) + '\n')
+          if not payload['headroom_pass']:
+              runtime = dict(payload, source_sha=__import__('os').environ.get('SOURCE_SHA'),
+                  classification='INFRA_BLOCKED', failure_reason='HOST_MEMORY_HEADROOM_INSUFFICIENT',
+                  BUILD_PASS=True, KVM_READY=True, emulator_boot_pass=False, EMULATOR_BOOT_PASS=False, AUTO_SMOKE_PASS=False,
+                  DEVICE_QA_PENDING=True)
+              pathlib.Path('evidence/runtime/recognition-result-api36/runtime-result.json').write_text(
+                  json.dumps(runtime, indent=2) + '\n')
+              raise SystemExit('HOST_MEMORY_HEADROOM_INSUFFICIENT')
+          PY
+
+      - name: Download APK pair built from the exact source commit
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          path: build/runtime-apks
+
+      - name: Verify exact APK pair and hashes
+        run: |
+          set -euo pipefail
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+          test -s build/runtime-apks/app-debug.apk
+          test -s build/runtime-apks/app-debug-androidTest.apk
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          contract = json.loads(Path('build/runtime-apks/model_release_contract.json').read_text())
+          assert contract.get('build_sha') == os.environ['SOURCE_SHA'], contract.get('build_sha')
+          PY
+
+      - name: Create and verify API 36 AVD resource configuration
+        run: |
+          set -euo pipefail
+          evidence=evidence/runtime/recognition-result-api36
+          mkdir -p "$evidence"
+          avd_home="$HOME/.android/avd"
+          avd_name=test
+          avd_config="$avd_home/$avd_name.avd/config.ini"
+          export ANDROID_AVD_HOME="$avd_home"
+          printf 'ANDROID_AVD_HOME=%s\n' "$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
+          mkdir -p "$avd_home"
+          if [[ ! -f "$avd_config" ]]; then
+            printf 'no\n' | avdmanager create avd --force -n "$avd_name" \
+              --package 'system-images;android-36;google_apis;x86_64' --device pixel_2
+          fi
+          test -f "$avd_config"
+          sed -i -E '/^[[:space:]]*(hw\.(cpu\.ncore|ramSize|heapSize)|vm\.heapSize)[[:space:]]*=/d' "$avd_config"
+          printf '%s\n' 'hw.cpu.ncore=4' 'hw.ramSize=4096' 'hw.heapSize=512' 'vm.heapSize=512' >> "$avd_config"
+          {
+            printf 'avd_home=%s\navd_name=%s\navd_config=%s\n' "$avd_home" "$avd_name" "$avd_config"
+            printf '%s\n' '--- avdmanager list avd -c ---'
+            avdmanager list avd -c
+            printf '%s\n' '--- active AVD CPU, RAM, heap, ABI and image config ---'
+            grep -E '^[[:space:]]*(hw\.(ramSize|heapSize|cpu\.(arch|ncore))|vm\.heapSize|image\.sysdir\.1)=' "$avd_config"
+            cat "$avd_config"
+          } | tee "$evidence/avd-config-before-launch.txt"
+          python3 - "$avd_config" <<'PY'
+          import pathlib, sys
+          config = {}
+          for line in pathlib.Path(sys.argv[1]).read_text(encoding='utf-8').splitlines():
+              key, sep, value = line.partition('=')
+              if sep:
+                  config[key.strip()] = value.strip()
+          assert config.get('hw.cpu.ncore') == '4', config.get('hw.cpu.ncore')
+          assert config.get('hw.ramSize') == '4096', config.get('hw.ramSize')
+          assert config.get('hw.heapSize') == '512', config.get('hw.heapSize')
+          assert config.get('vm.heapSize') == '512', config.get('vm.heapSize')
+          assert config.get('hw.cpu.arch') == 'x86_64', config.get('hw.cpu.arch')
+          image = config.get('image.sysdir.1', '').replace(chr(92), '/').rstrip('/')
+          assert image.endswith('system-images/android-36/google_apis/x86_64'), image
+          PY
+
+      - name: Run production AUTO smoke on API 36
+        id: api36_smoke
+        continue-on-error: true
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          avd-name: test
+          force-avd-creation: 'false'
+          cores: 4
+          ram-size: 4096M
+          heap-size: 512M
+          disable-animations: true
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -cores 4 -memory 4096
+          emulator-boot-timeout: 600
+          script: |
+            python3 scripts/ci/check_api36_emulator_resources.py
+            bash scripts/ci/run_recognition_result_api36_smoke.sh
+
+      - name: Record early API36 infrastructure failure when smoke did not start
+        if: always()
+        run: |
+          set -euo pipefail
+          result=evidence/runtime/recognition-result-api36/runtime-result.json
+          if [[ ! -s "$result" ]]; then
+            kvm_report=evidence/runtime/recognition-result-api36/kvm-preflight.txt
+            kvm_classification=NOT_CONFIRMED
+            if [[ -s "$kvm_report" ]]; then
+              kvm_classification="$(sed -n 's/^classification=//p' "$kvm_report" | tail -1)"
+            fi
+            python3 - "$result" "$SOURCE_SHA" "$kvm_classification" "${{ needs.build.result }}" "${{ steps.api36_smoke.outcome }}" <<'PY'
+            import json, pathlib, sys
+            path, source_sha, kvm, build_result, smoke_result = sys.argv[1:]
+            resource_report = pathlib.Path(path).parent / 'emulator-resources.txt'
+            resource_failure = next((line.strip() for line in resource_report.read_text().splitlines()
+                                     if line.startswith('API36_EMULATOR_RESOURCES_FAIL=')), None) if resource_report.is_file() else None
+            failure_reason = resource_failure or f'SMOKE_DID_NOT_WRITE_RUNTIME_RESULT:kvm={kvm}:build={build_result}:runner={smoke_result}'
+            payload = {
+                'source_sha': source_sha,
+                'api_level_expected': 36,
+                'classification': 'INFRA_BLOCKED',
+                'failure_reason': failure_reason,
+                'failure_phase': 'AVD_RESOURCE_VALIDATION' if resource_failure else 'SMOKE_STARTUP',
+                'root_cause': failure_reason,
+                'relevant_log_excerpt': resource_report.read_text()[-2048:] if resource_report.is_file() else '',
+                'validation_reason': 'NOT_RUN',
+                'instrumentation_started': False,
+                'instrumentation_attempted': False,
+                'instrumentation_command_exit_code': None,
+                'instrumentation_timed_out': False,
+                'BUILD_PASS': build_result == 'success',
+                'KVM_READY': kvm == 'KVM_READY',
+                'emulator_boot_pass': False,
+                'EMULATOR_BOOT_PASS': False,
+                'AUTO_SMOKE_PASS': False,
+                'DEVICE_QA_PENDING': True,
+            }
+            pathlib.Path(path).parent.mkdir(parents=True, exist_ok=True)
+            pathlib.Path(path).write_text(json.dumps(payload, indent=2) + '\n')
+            print(f'::error title=API36 smoke startup::{failure_reason}')
+            PY
+          fi
+          finalizer_status=0
+          python3 scripts/ci/finalize_recognition_result_api36_smoke.py \
+            --result "$result" \
+            --evidence-dir evidence/runtime/recognition-result-api36 \
+            --summary "$GITHUB_STEP_SUMMARY" \
+            --apk-dir build/runtime-apks \
+            --build-result "${{ needs.build.result }}" \
+            --smoke-result "${{ steps.api36_smoke.outcome }}" \
+            --source-sha "$SOURCE_SHA" \
+            --kvm-ready "${KVM_READY:-false}" || finalizer_status=$?
+          if [[ "$finalizer_status" -ne 0 ]]; then
+            python3 - "$result" "$GITHUB_STEP_SUMMARY" "$SOURCE_SHA" "$finalizer_status" \
+              "${{ needs.build.result }}" "${{ steps.api36_smoke.outcome }}" "${KVM_READY:-false}" <<'PY'
+          import hashlib, json, pathlib, sys
+          result, summary, source_sha, status, build_result, smoke_result, kvm_ready = sys.argv[1:]
+          result_path = pathlib.Path(result)
+          try:
+              payload = json.loads(result_path.read_text(encoding='utf-8'))
+              if not isinstance(payload, dict): payload = {}
+          except Exception:
+              payload = {}
+          prior_reason = payload.get('failure_reason')
+          reason = f'{prior_reason};SUMMARY_FINALIZER_PROCESS_EXIT_{status}' if prior_reason else f'SUMMARY_FINALIZER_PROCESS_EXIT_{status}'
+          payload.update({
+              'source_sha': source_sha,
+              'classification': 'INFRA_BLOCKED',
+              'failure_reason': reason,
+              'validation_reason': payload.get('validation_reason', 'NOT_CONFIRMED'),
+              'BUILD_PASS': build_result == 'success',
+              'KVM_READY': kvm_ready.lower() == 'true',
+              'EMULATOR_BOOT_PASS': payload.get('EMULATOR_BOOT_PASS', payload.get('emulator_boot_pass', 'NOT_CONFIRMED')),
+              'AUTO_SMOKE_PASS': False,
+              'DEVICE_QA_PENDING': True,
+              'smoke_step_outcome': smoke_result,
+          })
+          result_path.parent.mkdir(parents=True, exist_ok=True)
+          result_path.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
+          try:
+              root = result_path.parent
+              sums = root / 'evidence-sha256sums.txt'
+              rows = []
+              for path in sorted(x for x in root.rglob('*') if x.is_file() and x != sums):
+                  digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                  rows.append(f'{digest}  {path.relative_to(root).as_posix()}')
+              sums.write_text('\n'.join(rows) + ('\n' if rows else ''), encoding='utf-8')
+          except Exception as exc:
+              reason = f'{reason}:EVIDENCE_HASH_ERROR:{type(exc).__name__}:{str(exc)[:200]}'
+              payload['failure_reason'] = reason
+              result_path.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
+          with pathlib.Path(summary).open('a', encoding='utf-8') as out:
+              out.write('## API 36 production AUTO smoke result\n\n')
+              out.write(f'- `classification`: `INFRA_BLOCKED`\n- `failure_reason`: `{reason}`\n')
+              out.write(f'- `source_sha`: `{source_sha}`\n- `smoke_step_outcome`: `{smoke_result}`\n')
+              out.write('- Runtime result finalization failed; inspect `summary-finalization-error.txt` and the full runtime artifact.\n')
+          print(f'::error title=API36 result finalization failed::{reason}')
+          PY
+          fi
+
+
+      - name: Package API 36 runtime evidence ZIP
+        if: always()
+        run: |
+          set -euo pipefail
+          evidence=evidence/runtime/recognition-result-api36
+          archive="evidence/runtime/YuJian-recognition-result-api36-${SOURCE_SHA}.zip"
+          mkdir -p evidence/runtime
+          python3 scripts/ci/package_api36_evidence.py --root "$evidence" --output "$archive"
+
+      - name: Upload API 36 runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-recognition-result-api36-${{ needs.build.outputs.source_sha }}
+          path: |
+            evidence/runtime/recognition-result-api36
+            evidence/runtime/YuJian-recognition-result-api36-${{ needs.build.outputs.source_sha }}.zip
+            evidence/runtime/YuJian-recognition-result-api36-${{ needs.build.outputs.source_sha }}.zip.sha256
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce exact-head API 36 end-to-end result
+        if: always()
+        run: |
+          result="evidence/runtime/recognition-result-api36/runtime-result.json"
+          if [[ ! -s "$result" ]]; then
+            printf '%s\n' 'API36_AUTO_SMOKE_CLASSIFICATION=INFRA_BLOCKED reason=runtime_result_missing'
+            exit 1
+          fi
+          python3 - "$result" "$SOURCE_SHA" "${{ steps.api36_smoke.outcome }}" <<'PY'
+          import json, sys
+          path, expected_sha, smoke_outcome = sys.argv[1:]
+          try:
+              result = json.load(open(path, encoding='utf-8'))
+          except Exception as exc:
+              print(f'API36_AUTO_SMOKE_CLASSIFICATION=INFRA_BLOCKED reason=RUNTIME_RESULT_INVALID:{type(exc).__name__}:{exc}')
+              raise SystemExit(1)
+          classification = result.get('classification', 'UNKNOWN')
+          failures = []
+          e2e_mode = result.get('e2e_acceptance_mode') == 'API36_SINGLE_AND_FIVE_PHOTO'
+          evidence_zip = __import__('pathlib').Path(
+              f'evidence/runtime/YuJian-recognition-result-api36-{expected_sha}.zip')
+          evidence_zip_sha = evidence_zip.with_suffix(evidence_zip.suffix + '.sha256')
+          evidence_zip_pass = False
+          try:
+              import hashlib, zipfile
+              checksum_line = evidence_zip_sha.read_text(encoding='utf-8').strip().split('  ', 1)
+              assert len(checksum_line) == 2 and checksum_line[1] == evidence_zip.name
+              assert hashlib.sha256(evidence_zip.read_bytes()).hexdigest() == checksum_line[0]
+              with zipfile.ZipFile(evidence_zip) as archive:
+                  assert archive.testzip() is None
+                  members = set(archive.namelist())
+                  assert 'runtime-result.json' in members and 'evidence-sha256sums.txt' in members
+              evidence_zip_pass = True
+          except Exception as exc:
+              failures.append(f'EVIDENCE_ZIP_INVALID:{type(exc).__name__}:{exc}')
+          if result.get('source_sha') != expected_sha:
+              failures.append('SOURCE_SHA_MISMATCH')
+          if smoke_outcome != 'success':
+              failures.append('SMOKE_RUNNER_STEP_NOT_SUCCESS')
+          common = ('BUILD_PASS', 'KVM_READY', 'EMULATOR_BOOT_PASS')
+          required = common + (('API36_SINGLE_PHOTO_E2E_PASS', 'API36_FIVE_PHOTO_E2E_PASS', 'API36_E2E_ACCEPTANCE_PASS')
+                               if e2e_mode else ('AUTO_SMOKE_PASS',))
+          for field in required:
+              if result.get(field) is not True:
+                  failures.append(f'{field}_NOT_TRUE')
+          expected_classification = 'YUJIAN_P0_API36_E2E_ACCEPTANCE_PASS' if e2e_mode else 'AUTO_SMOKE_PASS'
+          if classification != expected_classification:
+              failures.append(f'CLASSIFICATION_NOT_{expected_classification}')
+          if e2e_mode and not evidence_zip_pass:
+              failures.append('EVIDENCE_ZIP_NOT_VERIFIED')
+          if result.get('DEVICE_QA_PENDING') is not True:
+              failures.append('DEVICE_QA_PENDING_NOT_TRUE')
+          if failures:
+              print(f"::error title=API36 AUTO smoke verdict::{classification}: {','.join(failures)}; {result.get('failure_reason', '')}")
+              print(f"API36_E2E_CLASSIFICATION={classification} reason={','.join(failures)}")
+              raise SystemExit(1)
+          print(f"API36_E2E_CLASSIFICATION={expected_classification} source_sha={expected_sha}")
+          PY
+
+  recognition-result-api36-delivery:
+    name: Publish exact-head Debug APK and API36 evidence
+    needs: [build, recognition-result-api36-smoke]
+    if: ${{ github.event_name == 'push' && needs.build.result == 'success' && needs.recognition-result-api36-smoke.result == 'success' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download exact-head APK pair
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          path: build/runtime-apks
+
+      - name: Download API36 end-to-end evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-recognition-result-api36-${{ needs.build.outputs.source_sha }}
+          path: build/api36-evidence
+
+      - name: Verify exact-head PASS and prepare release assets
+        env:
+          SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "$SOURCE_SHA" = "$GITHUB_SHA"
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+          (cd build/api36-evidence/recognition-result-api36 && sha256sum -c evidence-sha256sums.txt)
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, zipfile
+          sha = os.environ['SOURCE_SHA']
+          evidence_archive = pathlib.Path(f'build/api36-evidence/YuJian-recognition-result-api36-{sha}.zip')
+          evidence_archive_sha = evidence_archive.with_suffix(evidence_archive.suffix + '.sha256')
+          assert hashlib.sha256(evidence_archive.read_bytes()).hexdigest() == \
+              evidence_archive_sha.read_text(encoding='utf-8').split('  ', 1)[0]
+          with zipfile.ZipFile(evidence_archive) as archive:
+              assert archive.testzip() is None
+          root = pathlib.Path('build/api36-evidence/recognition-result-api36')
+          result = json.loads((root / 'runtime-result.json').read_text())
+          assert result['source_sha'] == sha
+          assert result['e2e_acceptance_mode'] == 'API36_SINGLE_AND_FIVE_PHOTO'
+          assert result['API36_SINGLE_PHOTO_E2E_PASS'] is True
+          assert result['API36_FIVE_PHOTO_E2E_PASS'] is True
+          assert result['API36_E2E_ACCEPTANCE_PASS'] is True
+          assert result['classification'] == 'YUJIAN_P0_API36_E2E_ACCEPTANCE_PASS'
+          apk = pathlib.Path('build/runtime-apks/app-debug.apk')
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          pathlib.Path('build/runtime-apks/app-debug.apk.sha256').write_text(f'{digest}  app-debug.apk\n')
+          metadata = {'source_sha': sha, 'run_id': os.environ['GITHUB_RUN_ID'], 'apk_sha256': digest,
+                      'apk_size_bytes': apk.stat().st_size, 'api36_single_and_five_photo_e2e': 'PASS'}
+          pathlib.Path('build/runtime-apks/build-metadata.json').write_text(json.dumps(metadata, indent=2) + '\n')
+          with zipfile.ZipFile('build/YuJian-API36-Evidence.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+              for path in sorted(root.rglob('*')):
+                  if path.is_file(): archive.write(path, path.relative_to(root))
+          with zipfile.ZipFile('build/YuJian-API36-Evidence.zip') as archive:
+              assert archive.testzip() is None
+          PY
+
+      - name: Publish SHA-bound GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          tag="yujian-debug-${SOURCE_SHA}"
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" \
+            --title "YuJian Debug ${SOURCE_SHA:0:7} API36 E2E PASS" \
+            --notes "Exact HEAD $SOURCE_SHA; API36 single-photo and five-photo production E2E passed in run $GITHUB_RUN_ID. Device QA remains pending." \
+            build/runtime-apks/app-debug.apk \
+            build/runtime-apks/app-debug.apk.sha256 \
+            build/runtime-apks/build-metadata.json \
+            build/YuJian-API36-Evidence.zip
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq '.assets[].name' | sort > build/release-assets.txt
+          for asset in app-debug.apk app-debug.apk.sha256 build-metadata.json YuJian-API36-Evidence.zip; do
+            grep -Fx "$asset" build/release-assets.txt
+          done
 
   fish-optics-api36-runtime:
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 316 }}

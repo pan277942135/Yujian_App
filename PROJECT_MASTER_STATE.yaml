@@ -1,0 +1,220 @@
+schema_version: '1.0'
+state_id: YUJIAN_APP_PR346_CROSS_LAYER_CLOSURE_V4_1
+project:
+  name: YuJian Android App
+  repository: pan277942135/Yujian_App
+  scope: 'YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1: pinned Demo performance port, ORT/preprocessing optimization, API36 one-photo 5-second acceptance.'
+state_control:
+  execution_baseline_sha: 16464298cd7ab90737f6b636b2377a8c53a66794
+  current_branch: fix/26kf-path-boundary-and-fish-gate-v1
+  current_pr: 346
+  base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
+  state_origin: initialized on this Work branch from canonical control-plane definitions; no prior branch-local state existed
+source_of_truth:
+  canonical_control_plane: origin/main:CONTROL_PLANE_REGISTRY.yaml
+  current_work_state: WORK_EXECUTION_STATE.json
+  evidence_status: Frozen visual ZIP (164751025 bytes, SHA256 d054bc189cd65795dbfd96fcbf57d3766d7c381ab3101d0411ada307f2b85746), EAC685C9 evidence ZIP (SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275), and 302e51a0725b602704363f264b1c70dc.mp4 (SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392) are available and verified; all device evidence predates the current source changes.
+repositories:
+  android_app:
+    remote: https://github.com/pan277942135/Yujian_App.git
+    branch: fix/26kf-path-boundary-and-fish-gate-v1
+    head_sha: 16464298cd7ab90737f6b636b2377a8c53a66794
+pull_requests:
+  PR346:
+    number: 346
+    branch: fix/26kf-path-boundary-and-fish-gate-v1
+    base_branch: fix/det-fish-v03-main-runtime-closure
+    base_sha: 6ec43662ef76c6ffee8530148098649496ab7fb1
+    head_sha: 16464298cd7ab90737f6b636b2377a8c53a66794
+    status: DRAFT_OPEN_UNMERGED
+    status_source: 'git ls-remote verified PR branch and refs/pull/346/head at 16464298cd7ab90737f6b636b2377a8c53a66794 on 2026-11-27. PR metadata endpoint returned HTTP 403; last observed status remains Draft/Open/Unmerged and this Work did not change it.'
+phases:
+  P0:
+    status: NOT_CONFIRMED
+  P1:
+    status: NOT_CONFIRMED
+  P2:
+    status: NOT_CONFIRMED
+  P3:
+    status: NOT_CONFIRMED
+  P4:
+    status: NOT_CONFIRMED
+  P5:
+    status: NOT_CONFIRMED
+  P6:
+    status: IN_PROGRESS
+  P7:
+    status: NOT_CONFIRMED
+  P8:
+    status: NOT_CONFIRMED
+  P9:
+    status: NOT_CONFIRMED
+recognition_main_journey:
+  contract_status: FROZEN
+  route:
+  - J01 Empty Home
+  - J02 Tap Camera
+  - J03 Camera Permission
+  - J04 First Capture Guide
+  - J05 Camera Capture
+  - J06 Preview Ready
+  - J07 Recognition Processing
+  - J08 Detection
+  - J09 Outline
+  - J10 Classification
+  - J11 Recognition Result
+  - J12 High Confidence Result
+  - J13 Medium/Low Confidence Result
+  - J14 No Fish / Invalid Image
+  - J15 Save Catch
+  - J16 Continue / Edit Catch
+  - J17 Return Home
+  - J18 Recent Catch
+  - J19 FishRecordDetail A
+  - J20 FishRecordDetail B / Memory
+runtime_gates:
+  exact_head:
+    sha: 16464298cd7ab90737f6b636b2377a8c53a66794
+    admission: 'Initial Admission passed static checks but failed Work Execution State provenance because the saved source d37da0be lagged product HEAD 16464298; state checkpoint pending revalidation.'
+    baseline_android_ci:
+      status: PASS_BEFORE_THIS_WORK
+      run_id: '44989215170'
+      url: https://github.com/pan277942135/Yujian_App/actions/runs/44989215170
+      source_sha: 3eb481c1f2ca4053fc58f87729f923fb70ef7f50
+    build: 'PASS on exact source 16464298: run 45978437133 build job passed JVM tests, packaged TFLite metadata gate, Android lint, Release Kotlin, AndroidTest APK compilation, and Debug APK packaging.'
+    unit_tests: 'PASS: local exact-source suite on 16464298 reported 611 passed, 0 failed, 0 errors, 0 skipped.'
+    android_test_compile: 'PASS: run 45978437133 compiled AndroidTest APK on 16464298.'
+    lint: 'PASS: run 45978437133 Android lint passed on 16464298.'
+    previous_api36_emulator: 'Historical run 45953790013 on source 20405b16: Test A PASS; Test B SlimSAM timeout at 60 seconds, Encoder total 52,352.72ms/native 47,340.97ms, finite scan 3,772.17ms, output SHA 904.55ms, Decoder count 0; Test C picker assertion failed. Not current-source evidence.'
+    api36_emulator: >-
+      FAIL_CLOSED on exact source 16464298: run 45978437133 completed hosted API36 setup, APK verification, smoke execution, and artifact upload; final enforcement reported INFRA_BLOCKED and BUSINESS_EVIDENCE_VALIDATION_DID_NOT_COMPLETE. Artifact 15190004423, 15.8 MB, SHA256 a88c70a9b5fcef0586760c58612953f861d64b87a9d1850e623e608f0e441bab, listed at https://github.com/pan277942135/Yujian_App/actions/runs/45978437133#artifacts; case-level results are NOT_CONFIRMED here. This is not a performance baseline or API36 PASS.
+    model_validation: 'PASS: packaged real TFLite FlatBuffer metadata gate ran in 45978437133. Production API36 classifier, Decoder, Mask and contour results remain NOT_CONFIRMED.'
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+    status: NOT_CONFIRMED
+apk_and_evidence:
+  source_head: 16464298cd7ab90737f6b636b2377a8c53a66794
+  exact_head_apk: 'Baseline-only local APK from 16464298; 200176176 bytes; SHA256 b4403a78470f4b6850a91aeded08d9d672e381f7f1b20acd688850025b81d117; not API36-accepted and not final Work APK.'
+  model_sha256: 29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18
+  exact_head_api36_artifact: 'Run 45978437133, source 16464298, artifact 15190004423, 15.8 MB, SHA256 a88c70a9b5fcef0586760c58612953f861d64b87a9d1850e623e608f0e441bab; contents inaccessible here; case results NOT_CONFIRMED.'
+  input_video: '302e51a0725b602704363f264b1c70dc.mp4 available; SHA256 fee1858c7e5e47687bf7de2a7bfa15716f6755e6b798c285dc4630f9691b7392; historical pre-fix Huawei evidence.'
+  input_evidence_zip: 'artifacts/26kf_visual_reference_v1/inputs/YuJian_Recognition_Evidence_eac685c91965.zip; 16,204,260 bytes; SHA256 f90816d652ef6f6907ce753e5fd4a72d7f2459619bb7735548abe8ccbb045275; historical pre-fix source SHA 67f17f0eb6a80233438cb8b00111a55d6767a6d8'
+  fixture_b: 'FIXTURE_B_UNAVAILABLE: YuJian_Recognition_Evidence_c2b6cc74040c.zip not found in current attachments/workspace.'
+  emulator_device_evidence: 'Run 45953790013 at workflow HEAD 20405b160cb2ed5c589f1485b4b54b316dbee15a passed build/KVM/AVD checks and failed API36 smoke. Retained artifact 15179468061 (15 MB; ZIP SHA256 7bf6046d7d39aa229deac8b9b4357c09c1065ff89bd29386d2785ed9a223b765) confirms A PASS, B SLIMSAM_TIMEOUT at 60,000ms, C picker assertion failure. Vision Encoder 52,352.72ms including 47,340.97ms native; output finite scan 3,772.17ms, output hash 904.55ms, Decoder count 0. Runtime threads and picker activity component are pending compact annotation readback; no AUTO PASS claimed.'
+current_work:
+  id: YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1
+  phase: P6
+  task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
+  exact_head: 16464298cd7ab90737f6b636b2377a8c53a66794
+  status: IN_PROGRESS
+  stage: SOURCE_LOCK_AND_API36_PERFORMANCE_BASELINE
+  requested_task_id: YUJIAN_FISH_MASK_DEMO_PERFORMANCE_PORT_AND_API36_5S_ACCEPTANCE_V1
+  requested_task_title: Fish-Mask Demo performance port, ORT optimization, Tensor preprocessing speedup, API36 one-photo 5-second acceptance V1
+  blockers:
+  - 'API36_PERFORMANCE_BASELINE_NOT_RUN: no fixed-photo 10-run Cache MISS baseline exists for exact source 16464298.'
+  - 'EXACT_HEAD_API36_RESULT_NOT_CONFIRMED: run 45978437133 failed closed; case-level artifact is not readable in this session.'
+  - 'LOCAL_API36_EMULATOR_UNAVAILABLE: no emulator binary or /dev/kvm; API36 requires hosted runner.'
+
+blockers:
+- id: P0-2-HISTORY-UNAVAILABLE-001
+  severity: P0
+  area: SOURCE_LOCK
+  status: OPEN
+  condition: Requested historical commit 759e918332293a4ffaea479a57556386b7c41f1d is unavailable in local Git objects and origin rejects direct fetch by SHA.
+  affected_gate: Historical P0-2 preservation review.
+  unblock_condition: Make the commit object or a trusted GitHub diff/patch reachable for direct file-by-file comparison.
+  independent_work_may_continue: true
+- id: FIXTURE-B-INPUT-001
+  severity: P0
+  area: G0/G6
+  status: OPEN
+  condition: YuJian_Recognition_Evidence_c2b6cc74040c.zip was not present in current attachments or workspace search.
+  affected_gate: Real BBOX_ONLY/ORB_ONLY fixture replay.
+  unblock_condition: Obtain the authorized ZIP; deterministic source regressions may proceed without claiming fixture replay.
+  independent_work_may_continue: true
+- id: EXACT-HEAD-TESTS-001
+  severity: P0
+  area: G6/G8
+  status: OPEN
+  condition: P0 V2 candidate db86f445 contains EXIF test and parser fixes; 17 parser unit tests and runner harness pass, while AndroidTest compile, real runtime and APK await hosted exact-head CI.
+  affected_gate: Cross-layer regression and exact-head delivery.
+  unblock_condition: Push the P0 V2 state checkpoint by ordinary fast-forward and inspect its exact-head GitHub Actions results and artifacts.
+  independent_work_may_continue: true
+- id: API36-AUTO-SMOKE-001
+  severity: P0
+  area: G8
+  status: OPEN
+  condition: No current-source API36 KVM/AVD/instrumentation run is confirmed; local KVM, adb, and emulator are unavailable.
+  affected_gate: Exact-head API36 AUTO and device runtime evidence.
+  unblock_condition: Run the final exact-head AndroidTest APK on hosted API36 and verify both real instrumentation cases and complete results.
+  independent_work_may_continue: true
+
+- id: FISH-MASK-API36-BASELINE-001
+  severity: P0
+  area: API36_PERFORMANCE_BASELINE
+  status: OPEN
+  condition: Exact source 16464298 API36 smoke ended fail-closed; case-level artifact has not been read, and no fixed-photo 10-run baseline exists for this SHA.
+  affected_gate: API36 baseline and one-photo 5-second acceptance.
+  unblock_condition: Read exact-source runtime evidence or capture the task-specific hosted API36 fixed-photo baseline after Admission.
+  independent_work_may_continue: false
+
+protected_invariants:
+  product_scope:
+  - Keep Detector, Classifier, SlimSAM, trusted Mask, P-star, PathLedger and Orb GPU material behavior unchanged unless a
+    failing cross-layer test proves a required edit.
+  - Use production AUTO flow; MANUAL preview is not runtime evidence.
+  timing:
+  - Retain the frozen 13-stage minimum 6000 ms contract.
+  - Use the first stable photo frame as the shared clock origin; model wait remains independently bounded.
+  - Do not force Result Stable by time or hard-coded state.
+  handoff:
+  - FULL_REVEAL uses the real Attempt Mask and Fish Path with consistent identity, mask and geometry provenance.
+  - Orb, Chinese glyph and Result progress only from real rendering and accepted events.
+  evidence:
+  - Do not promote user-pasted facts or synthetic fixtures to device-verified evidence.
+  - Do not claim API36 emulator or physical-device PASS without exact-HEAD execution evidence.
+next_actions:
+- id: P0-SOURCE-LOCK-01
+  owner: Codex
+  status: COMPLETED
+  action: State checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 passed Control Plane Admission for source 316de1b705fb54ee7d6e2114259ec1f87773aedf.
+- id: P0-ROOT-CAUSE-02
+  owner: Codex
+  status: READY
+  action: Trace Gate authorization, four-model receipts, PhotoIdentity, atomic path binding, snapshot commit and native ownership in current production callers.
+- id: P0-DELIVERY-03
+  owner: Codex
+  status: COMPLETED
+  action: State checkpoint 20405b16 was pushed with the required marker; Run 45953790013 completed build/AVD gates and produced an API36 evidence artifact, but exact-head runtime enforcement failed.
+- id: V23-SOURCE-01
+  owner: Codex
+  status: COMPLETED
+  action: Guard source commit 3cc0a443 and status ledger commit af5fac3c record Master Goal V2.3, classifier receipt integration, and sequential API36 Test A/Test B gates; local deterministic checks pass.
+- id: V23-CHECKPOINT-02
+  owner: Codex
+  status: COMPLETED
+  action: Triggered exact-head Run 45953790013 at workflow HEAD 20405b16; API36 smoke failure is recorded and artifact recovery is the next action.
+- id: V3-RUN4236-EVIDENCE-RECOVERY
+  owner: Codex
+  status: BLOCKED
+  action: Do not repeat historical artifact recovery in this Work; retain Run 4236 findings as historical and leave the picker component cause open.
+
+- id: FISH-MASK-PERF-SOURCE-LOCK
+  owner: Codex
+  status: READY
+  action: Complete post-checkpoint Admission, verify the pinned Demo revision and YuJian preprocessor/ORT call path, then capture the fixed-photo API36 baseline before production edits.
+
+completion_rules:
+- Complete applicable deterministic cross-layer tests before final APK packaging.
+- Separate LOGIC_PASS, EMULATOR_PASS, EXACT_HEAD_CI_PASS and DEVICE_QA_PASS.
+- 'Keep PR #346 Open/Draft; never merge or mark ready for review in this Work.'
+state_update:
+  initialized_at: '2026-11-22T11:07:35Z'
+  last_updated_at: '2026-11-27T13:59:56Z'
+  note: 'Fish-Mask performance Work started on exact PR source 16464298. Remote refs and model hashes recorded. Exact-source API36 run 45978437133 failed closed with uploaded but unreadable evidence. Task-specific performance baseline is NOT_RUN. State checkpoint updates provenance before production changes.'
+agent_recovery:
+  resume_order:
+  - Keep the historical Registry OPEN_GAP unchanged; Admission PASS is recorded on state checkpoint ad7e735948edb81839c1f769e00e0d458d0ed411 for product source 316de1b705fb54ee7d6e2114259ec1f87773aedf.
+  - V2.3 deterministic source checks passed at guarded source commit 3cc0a443; the later status commit is af5fac3c. Current-source Gradle/JVM, AndroidTest compile, lint, APK, and hosted exact-head API36 Test A/Test B remain pending.
+  - Preserve the unavailable Fixture B and unavailable post-fix device evidence accurately; do not promote historical captures to current-head PASS.
+  - Push only to the existing PR #346 branch; do not create another PR, merge, or mark ready.

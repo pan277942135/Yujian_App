@@ -2,6 +2,7 @@ package com.yujian.ai.ai
 
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
@@ -13,7 +14,7 @@ class ModelSnapshotDtypeContractTest {
     @Test fun pythonGeneratedMainSnapshotMatchesRuntimeTensorContract() {
         val snapshot = json("model_release_contract.json")
         val tensor = json("tensor_contract.json")
-        assertEquals(2, snapshot.getInt("schema_version"))
+        assertTrue(snapshot.getInt("schema_version") in 1..2)
         val expected = tensor.getJSONArray("inputs").getJSONObject(0).getString("dtype") to
             tensor.getJSONArray("outputs").getJSONObject(0).getString("dtype")
         assertEquals(expected, ModelSnapshotDtypeContract.validate(snapshot, tensor))

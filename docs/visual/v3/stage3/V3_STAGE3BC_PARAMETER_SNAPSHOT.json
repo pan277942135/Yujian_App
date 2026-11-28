@@ -1,0 +1,9 @@
+{
+  "status": "TUNABLE_DEVICE_PENDING",
+  "authority": "OWNER_AUTHORIZED_ADMISSION_BYPASS",
+  "source_webp_sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+  "frozen": {"source_size": [384, 384], "alpha_bbox_observed": [35, 37, 345, 345], "core_ndc_radius": 0.4},
+  "tunable": {"deep_flow_time": 0.37, "mid_flow_time": -0.43, "deep_uv_amplitude": 0.009, "mid_uv_amplitude": 0.006, "refraction_shift": 0.015, "transmission": 0.12, "interior_material_mix": 0.48},
+  "refraction_sample_source": "procedural_back_fbo",
+  "visual_freeze": false
+}

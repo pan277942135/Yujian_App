@@ -12,7 +12,7 @@ import sys
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
-RESOURCE = ROOT / "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp"
+RESOURCE = ROOT / "recognition-ui/src/main/res/drawable-nodpi/processing_water_core_v1.webp"
 CONTRACT = ROOT / "design/system/components/ai_orb_core/profiles/R04_two_state_final_contract.json"
 DERIVED = ROOT / "design/system/components/ai_orb_core/assets/derived/processing_water_core_v1.webp"
 

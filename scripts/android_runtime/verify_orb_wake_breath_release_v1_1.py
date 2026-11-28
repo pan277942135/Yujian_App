@@ -85,7 +85,7 @@ def main() -> None:
         require((leaf["periodMs"], leaf["phaseDeg"], leaf["amplitudeD"], leaf["maskFile"]) ==
                 (period, phase, amplitude, mask_name), f"{leaf_id} frozen motion parameters match runtime contract")
 
-    runtime_core = repo / "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp"
+    runtime_core = repo / "recognition-ui/src/main/res/drawable-nodpi/processing_water_core_v1.webp"
     runtime_image = Image.open(runtime_core).convert("RGBA")
     require(runtime_image.size == (384, 384), "Android Runtime Core is 384x384")
     require(sha256(runtime_core) == "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
@@ -114,11 +114,11 @@ def main() -> None:
             require(leaf["amplitudeD"] * size_dp <= 0.03 * size_dp + 1e-9,
                     f"{size_dp:g}dp tip displacement stays within 0.03D")
 
-    core_source = (repo / "app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text()
-    motion_source = (repo / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbWakeBreathReleaseV11.kt").read_text()
-    renderer_source = (repo / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt").read_text()
-    path_math_source = (repo / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentPathMathV1.kt").read_text()
-    grass_profile_source = (repo / "app/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbGrassMotionProfileV11.kt").read_text()
+    core_source = (repo / "recognition-ui/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text()
+    motion_source = (repo / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbWakeBreathReleaseV11.kt").read_text()
+    renderer_source = (repo / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentRenderer.kt").read_text()
+    path_math_source = (repo / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbFilamentPathMathV1.kt").read_text()
+    grass_profile_source = (repo / "waterlight-renderer/src/main/java/com/yujian/ai/ui/waterlight/renderer/OrbGrassMotionProfileV11.kt").read_text()
     require("WaterGrassField" not in core_source and core_source.count("painterResource(R.drawable.processing_water_core_v1)") == 1,
             "Orb renders one immutable Core texture without a duplicate grass overlay")
     require("R01_grass_back.svg" not in str(runtime_assets) and "R01_grass_front.svg" not in str(runtime_assets),

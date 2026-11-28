@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "FIXTURE_HUAWEI_EAC685C9_V1",
+  "measurementStatus": "NOT_RUN",
+  "sameDeviceAsBaseline": null,
+  "samePhotoAsBaseline": null,
+  "sameModelAsBaseline": null,
+  "sourceShaAfter": null,
+  "phaseMetrics": {
+    "APPLICATION_STARTUP_PRELOAD": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "VISION_SESSION_INIT": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "DECODER_SESSION_INIT": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "SESSION_READY": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "PHOTO_PREPROCESS": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "VISION_EMBEDDING": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "PROMPT_BUILD": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "MASK_DECODER": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "MASK_POSTPROCESS": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "PNG_ENCODE": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "PNG_DECODE": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "CONTOUR_EXTRACT": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "PSTAR_RESOLVE": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    },
+    "FISH_PATH_CREATE": {
+      "durationMs": null,
+      "status": "NOT_RUN"
+    }
+  },
+  "resourceMetrics": {
+    "pssKb": null,
+    "rssKb": null,
+    "swapKb": null,
+    "nativeHeapKb": null,
+    "gcEvents": null,
+    "status": "NOT_RUN"
+  },
+  "reason": "The supplied Huawei evidence does not contain the original photo bytes. No Huawei CMS-AL20 device is attached to this cloud session. An emulator measurement cannot be presented as same-device performance evidence."
+}

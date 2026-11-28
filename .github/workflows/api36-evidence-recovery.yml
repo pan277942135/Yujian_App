@@ -1,0 +1,248 @@
+name: API36 Existing Run Evidence Recovery
+
+on:
+  push:
+    branches:
+      - fix/26kf-path-boundary-and-fish-gate-v1
+    paths:
+      - .github/workflows/api36-evidence-recovery.yml
+
+permissions: {}
+
+jobs:
+  recover-run-4236-evidence:
+    if: ${{ contains(github.event.head_commit.message, '[api36-evidence-recovery]') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+    steps:
+      - name: Download the existing Run 4236 runtime evidence artifact
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: 15179468061
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 45953790013
+          path: ${{ runner.temp }}/yujian-run-4236-api36
+
+      - name: Publish sanitized A/B/C and SlimSAM diagnostics
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "yujian-run-4236-api36"
+          result_path = next(root.rglob("runtime-result.json"), None)
+          if result_path is None:
+              raise SystemExit("Run 4236 artifact has no runtime-result.json")
+          result = json.loads(result_path.read_text(encoding="utf-8"))
+          cases = result.get("instrumentation_cases")
+          if not isinstance(cases, dict):
+              cases = {}
+
+          def safe(value, limit=2400):
+              text = " ".join(str(value if value is not None else "NOT_RECORDED").split())
+              text = re.sub(r"\b(session|attempt|image|photo(?:sha256|_sha256)|uri|displayName)=\S+", r"\1=[redacted]", text, flags=re.I)
+              text = re.sub(r"/(?:data|tmp|home)/\S+", "[path-redacted]", text)
+              return text[:limit] + ("…" if len(text) > limit else "")
+
+          def command_escape(value):
+              return str(value).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+          def emit_notice_chunks(title, value, chunk_size=1700):
+              value = str(value)
+              chunks = [value[index:index + chunk_size] for index in range(0, len(value), chunk_size)] or ["EMPTY"]
+              for index, chunk in enumerate(chunks, start=1):
+                  chunk_title = f"{title} [{index}/{len(chunks)}]"
+                  print(f"::notice title={command_escape(chunk_title)}::{command_escape(chunk)}")
+
+          names = (
+              ("Test A — Classifier TFLite", "classifier_tensor_binding"),
+              ("Test B — Production reveal", "production_night_catch_reveal"),
+              ("Test C — Home picker AUTO", "production_home_picker_auto"),
+          )
+          summary = [
+              "## Run 4236 API36 runtime evidence",
+              "",
+              f"- Workflow HEAD: `{result.get('source_sha', 'NOT_RECORDED')}`",
+              f"- Classification: `{result.get('classification', 'NOT_RECORDED')}`",
+              f"- Failure phase: `{result.get('failure_phase', 'NOT_RECORDED')}`",
+              f"- Failure reason: `{result.get('failure_reason', 'NOT_RECORDED')}`",
+              f"- Business validator: `{result.get('validation_reason', 'NOT_RECORDED')}`",
+              f"- SlimSAM validator: `{result.get('slimsam_validation_reason', 'NOT_RECORDED')}`",
+              "",
+              "| Case | Started | Completed | Passed | Phase | Reason | Root cause | Exception | Exit | Timed out |",
+              "| --- | --- | --- | --- | --- | --- | --- | --- | ---: | --- |",
+          ]
+          summary.extend([
+              "",
+              "### Downloaded artifact inventory",
+              "",
+              "| File | Bytes |",
+              "| --- | ---: |",
+          ])
+          files = sorted(path for path in root.rglob("*") if path.is_file())
+          for path in files:
+              if path.name in {"runtime-result.json", "slimsam_timing.json", "memory-analysis.json", "model_runtime_state.json"}:
+                  summary.append(f"| `{path.relative_to(root).as_posix()}` | {path.stat().st_size} |")
+
+          case_rows = []
+          for label, key in names:
+              case = cases.get(key)
+              if not isinstance(case, dict):
+                  case = {}
+              fields = (
+                  label,
+                  case.get("started", "NOT_RECORDED"),
+                  case.get("completed", "NOT_RECORDED"),
+                  case.get("passed", "NOT_RECORDED"),
+                  case.get("failure_phase", "NOT_RECORDED"),
+                  case.get("failure_reason", case.get("reason", "NOT_RECORDED")),
+                  case.get("root_cause", "NOT_RECORDED"),
+                  case.get("exception", "NOT_RECORDED"),
+                  case.get("command_exit_code", "NOT_RECORDED"),
+                  case.get("timed_out", "NOT_RECORDED"),
+              )
+              summary.append("| " + " | ".join(safe(value, 700).replace("|", "/") for value in fields) + " |")
+              case_rows.append({
+                  "case": label,
+                  "started": fields[1], "completed": fields[2], "passed": fields[3],
+                  "failure_phase": safe(fields[4], 180), "failure_reason": safe(fields[5], 180),
+                  "root_cause": safe(fields[6], 180), "exception": safe(fields[7], 300),
+                  "exit": fields[8], "timed_out": fields[9],
+              })
+          emit_notice_chunks("Run 4236 A/B/C case outcomes", json.dumps({
+              "classification": result.get("classification"),
+              "failure_phase": result.get("failure_phase"),
+              "failure_reason": result.get("failure_reason"),
+              "cases": case_rows,
+          }, ensure_ascii=False, separators=(",", ":")))
+
+          inventory_names = {
+              "runtime-result.json", "slimsam_timing.json", "memory-analysis.json",
+              "model_runtime_state.json", "model-gc-native-memory-events.txt",
+              "logcat.txt", "result.json", "instrumentation.log",
+          }
+          inventory = [
+              {"file": path.relative_to(root).as_posix(), "bytes": path.stat().st_size}
+              for path in files if path.name in inventory_names
+          ]
+          emit_notice_chunks("Run 4236 key artifact files", json.dumps({
+              "file_count": len(files), "key_files": inventory[:12],
+          }, ensure_ascii=False, separators=(",", ":")))
+
+          def redact_json(value):
+              if isinstance(value, dict):
+                  return {
+                      key: redact_json(item)
+                      for key, item in value.items()
+                      if not re.search(r"(?:^|_)(?:id|sha|path|uri|url|image|photo|attempt|session|fixture|display)(?:$|_)", key, re.I)
+                  }
+              if isinstance(value, list):
+                  return [redact_json(item) for item in value]
+              if isinstance(value, str):
+                  return safe(value, 500)
+              return value
+
+          timing_paths = list(root.rglob("slimsam_timing.json"))
+          timing_summaries = []
+          timing_events = {
+              "PHOTO_PREPROCESS_END", "ONNX_INPUT_TENSOR_CREATE_END", "INPUT_TENSOR_SHA256_END",
+              "VISION_ENCODER_NATIVE_START", "VISION_ENCODER_NATIVE_END", "NATIVE_RUN_RETURNED",
+              "OUTPUT_FINITE_SCAN_END", "OUTPUT_TENSOR_SHA256_END", "EMBEDDING_COPY_END",
+              "VISION_ENCODER_END", "MASK_DECODER_START", "MASK_DECODER_END",
+              "EMBEDDING_TASK_WAIT_END", "MUTEX_ACQUIRED",
+          }
+          for path in timing_paths:
+              try:
+                  payload = json.loads(path.read_text(encoding="utf-8"))
+                  events = payload.get("events", [])
+                  rows = [{
+                      "event": event.get("eventName"), "stage": event.get("stageName"),
+                      "duration_ms": round(float(event.get("durationMs", 0)), 2),
+                      "result": event.get("result"), "error": event.get("errorCode"),
+                  } for event in events if isinstance(event, dict) and event.get("eventName") in timing_events]
+                  timing_summaries.append({
+                      "vision_encoder_runs": payload.get("visionEncoderExecutionCount"),
+                      "decoder_runs": payload.get("decoderExecutionCount"),
+                      "same_photo_cache_hits": payload.get("samePhotoCacheHitCount"),
+                      "startup": payload.get("startup_timing"), "events": rows[:18],
+                  })
+              except Exception as exc:
+                  timing_summaries.append({"error": f"{type(exc).__name__}:{exc}"})
+          model_state_summaries = []
+          for path in root.rglob("model_runtime_state.json"):
+              try:
+                  payload = json.loads(path.read_text(encoding="utf-8"))
+                  model_state_summaries.append({key: payload.get(key) for key in (
+                      "status", "stage", "visionSessionReady", "decoderSessionReady",
+                      "intraOpThreads", "activeOperationCount", "embeddingBufferBytes",
+                      "cachedPhotoCount", "failure",
+                  )})
+              except Exception as exc:
+                  model_state_summaries.append({"error": f"{type(exc).__name__}:{exc}"})
+          emit_notice_chunks("Run 4236 SlimSAM stage timings", json.dumps(
+              {"runs": timing_summaries, "model_runtime": model_state_summaries},
+              ensure_ascii=False, separators=(",", ":")))
+          summary.extend(["", "### SlimSAM stage timings", "", "```json",
+                          safe(json.dumps(timing_summaries, ensure_ascii=False, indent=2), 8000), "```"])
+
+          memory_paths = list(root.rglob("memory-analysis.json"))
+          memory_keys = (
+              "resource_classification", "resource_classifications", "emulator_peak_swap_used_kb",
+              "emulator_swap_activity_observed", "model_peak_assessment", "memory_leak_assessment",
+              "host_memory_min_available_kb", "emulator_memory_min_available_kb",
+              "app_rss_peak_in_slimsam_window_kb", "final_app_rss_kb", "lowmemorykiller_app_kill_observed",
+          )
+          memory_summaries = []
+          for path in memory_paths:
+              try:
+                  payload = json.loads(path.read_text(encoding="utf-8"))
+                  memory_summaries.append({key: payload.get(key) for key in memory_keys})
+              except Exception as exc:
+                  memory_summaries.append({"error": f"{type(exc).__name__}:{exc}"})
+          emit_notice_chunks("Run 4236 memory summary", json.dumps(
+              memory_summaries, ensure_ascii=False, separators=(",", ":")))
+
+          picker_pattern = re.compile(r"ActivityTaskManager.*(?:START|Displayed)", re.I)
+          event_pattern = re.compile(r"\b([A-Za-z][A-Za-z0-9_]*)=([^\s]+)")
+          picker_events = []
+          for path in files:
+              if "production-auto" not in path.as_posix() or path.suffix.lower() not in {".log", ".txt"}:
+                  continue
+              try:
+                  lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+              except OSError:
+                  continue
+              for line in lines:
+                  if not (picker_pattern.search(line) and re.search(r"picker|photos|documents|PICK_IMAGES|GET_CONTENT", line, re.I)):
+                      continue
+                  fields = {key: value for key, value in event_pattern.findall(line) if key in {"act", "cmp"}}
+                  if fields:
+                      picker_events.append(fields)
+                  if len(picker_events) >= 8:
+                      break
+              if len(picker_events) >= 8:
+                  break
+          picker_summary = {"activity_event_count": len(picker_events), "events": picker_events,
+                            "interpretation": "NO_PICKER_ACTIVITY_EVENT_FOUND" if not picker_events else "PICKER_ACTIVITY_EVENT_FOUND"}
+          emit_notice_chunks("Run 4236 picker launch evidence", json.dumps(
+              picker_summary, ensure_ascii=False, separators=(",", ":")))
+          summary.extend(["", "### Photo picker launch evidence", "", "```json",
+                          json.dumps(picker_summary, ensure_ascii=False, indent=2), "```"])
+
+          summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary_path.open("a", encoding="utf-8") as output:
+              output.write("\n".join(summary) + "\n")
+          print("RUN4236_RUNTIME_RESULT_SUMMARY=" + json.dumps({
+              key: result.get(key) for key in (
+                  "source_sha", "classification", "failure_phase", "failure_reason",
+                  "validation_reason", "slimsam_validation_reason", "AUTO_SMOKE_PASS",
+                  "API36_INSTRUMENTATION_PASS",
+              )
+          }, ensure_ascii=False, sort_keys=True))
+          PY

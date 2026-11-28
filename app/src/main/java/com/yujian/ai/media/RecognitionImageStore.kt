@@ -3,9 +3,15 @@ package com.yujian.ai.media
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.ColorSpace
+import android.graphics.Paint
+import android.os.Build
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
+import com.yujian.ai.recognition.domain.CanonicalPhotoPixelsV1
+import com.yujian.ai.recognition.domain.PhotoIdentity
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.components.applyExifOrientation
 import kotlinx.coroutines.Dispatchers
@@ -52,14 +58,38 @@ object RecognitionImageStore {
         }
     }
 
-    suspend fun normalizeAsset(context: Context, assetPath: String, source: String = "test_sample"): SelectedImage = withContext(Dispatchers.IO) {
-        val tempDir = File(context.cacheDir, "asset_imports").apply { mkdirs() }
+    suspend fun normalizeAsset(context: Context, assetPath: String, source: String = "test_sample"): SelectedImage =
+        normalizeAsset(context, context, assetPath, source)
+
+    suspend fun normalizeAsset(
+        assetContext: Context,
+        storageContext: Context,
+        assetPath: String,
+        source: String = "test_sample",
+    ): SelectedImage = withContext(Dispatchers.IO) {
+        val tempDir = File(storageContext.cacheDir, "asset_imports")
+        require(tempDir.isDirectory || tempDir.mkdirs()) { "无法创建测试照片临时目录" }
+        require(tempDir.isDirectory && tempDir.canWrite()) { "测试照片临时目录不可写" }
         val tempFile = File(tempDir, "asset_${UUID.randomUUID()}.jpg")
         try {
-            context.assets.open(assetPath).use { input ->
+            val sourceDigest = MessageDigest.getInstance("SHA-256")
+            assetContext.assets.open(assetPath).use { input ->
                 tempFile.outputStream().use { output -> input.copyTo(output) }
             }
-            normalizeLocalFile(context, tempFile, source, "测试照片格式不受支持")
+            require(tempFile.isFile && tempFile.length() > 0L) { "测试照片内容为空" }
+            assetContext.assets.open(assetPath).use { input ->
+                val bytes = ByteArray(64 * 1024)
+                while (true) {
+                    val count = input.read(bytes)
+                    if (count < 0) break
+                    sourceDigest.update(bytes, 0, count)
+                }
+            }
+            val expectedSha256 = sourceDigest.digest().joinToString("") { "%02x".format(it) }
+            require(sha256(tempFile) == expectedSha256) { "测试照片源文件校验失败" }
+            normalizeLocalFile(storageContext, tempFile, source, "测试照片格式不受支持").also { selected ->
+                require(selected.photoIdentity?.sourceBytesSha256 == expectedSha256) { "测试照片身份校验失败" }
+            }
         } finally {
             tempFile.delete()
         }
@@ -76,10 +106,13 @@ object RecognitionImageStore {
         captureTimestampEpochMs: Long? = null,
     ): CameraNormalizationResult = withContext(Dispatchers.IO) {
         require(file.exists() && file.length() > 0L) { "没有读取到拍照内容，请重新拍摄" }
+        val sourceBytesSha256 = sha256(file)
 
         val exif = runCatching { ExifInterface(file) }.getOrNull()
+        val rawOrientation = exif?.getAttribute(ExifInterface.TAG_ORIENTATION)
         val rotation = exif?.rotationDegrees ?: 0
         val orientation = exif?.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            ?.takeIf { it in ExifInterface.ORIENTATION_NORMAL..ExifInterface.ORIENTATION_ROTATE_270 }
             ?: ExifInterface.ORIENTATION_NORMAL
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
@@ -95,8 +128,10 @@ object RecognitionImageStore {
         val exifCaptureTime = captureTimeFromExif(exif, importedAt)
         val selected = persistNormalized(
             context, decoded, orientation, rotation, "camera", previewAspectRatio,
+            sourceBytesSha256 = sourceBytesSha256,
             captureTimestampEpochMs = captureTimestampEpochMs ?: exifCaptureTime.first,
             captureTimestampSource = if (captureTimestampEpochMs != null) "CAMERA_CAPTURE_CALLBACK" else exifCaptureTime.second,
+            rawExifOrientation = rawOrientation,
         )
         CameraNormalizationResult(
             selectedImage = selected,
@@ -112,9 +147,12 @@ object RecognitionImageStore {
         source: String,
         invalidMessage: String,
     ): SelectedImage {
+        val sourceBytesSha256 = sha256(file)
         val exif = runCatching { ExifInterface(file) }.getOrNull()
+        val rawOrientation = exif?.getAttribute(ExifInterface.TAG_ORIENTATION)
         val rotation = exif?.rotationDegrees ?: 0
         val orientation = exif?.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            ?.takeIf { it in ExifInterface.ORIENTATION_NORMAL..ExifInterface.ORIENTATION_ROTATE_270 }
             ?: ExifInterface.ORIENTATION_NORMAL
 
         // BitmapFactory intentionally returns null when inJustDecodeBounds=true;
@@ -132,8 +170,10 @@ object RecognitionImageStore {
         val captureTime = captureTimeFromExif(exif, System.currentTimeMillis())
         return persistNormalized(
             context, decoded, orientation, rotation, source,
+            sourceBytesSha256 = sourceBytesSha256,
             captureTimestampEpochMs = captureTime.first,
             captureTimestampSource = captureTime.second,
+            rawExifOrientation = rawOrientation,
         )
     }
 
@@ -144,8 +184,10 @@ object RecognitionImageStore {
         rotation: Int,
         source: String,
         previewAspectRatio: Float? = null,
+        sourceBytesSha256: String,
         captureTimestampEpochMs: Long,
         captureTimestampSource: String,
+        rawExifOrientation: String? = null,
     ): SelectedImage {
         // Normalize all eight EXIF orientations, including mirrors, before any
         // detector, segmenter, crop or UI consumes this canonical bitmap.
@@ -155,7 +197,7 @@ object RecognitionImageStore {
         // PreviewView ViewPort. The file output may still contain the full sensor
         // buffer: apply the visible FILL_CENTER rectangle after EXIF orientation.
         // Gallery input deliberately never receives this camera-only crop.
-        val visible = if (previewAspectRatio != null && previewAspectRatio.isFinite() && previewAspectRatio > 0f) {
+        var visible = if (previewAspectRatio != null && previewAspectRatio.isFinite() && previewAspectRatio > 0f) {
             val sourceRatio = oriented.width.toFloat() / oriented.height
             if (sourceRatio > previewAspectRatio) {
                 val cropWidth = (oriented.height * previewAspectRatio).toInt().coerceIn(1, oriented.width)
@@ -167,24 +209,74 @@ object RecognitionImageStore {
         } else oriented
         if (visible !== oriented) oriented.recycle()
 
+        // Freeze model-input pixels as ARGB_8888 in sRGB before hashing or JPEG persistence.
+        // The digest below is over these in-memory pixels, never the JPEG encoding.
+        val canonicalBitmap = toCanonicalSrgbArgb8888(visible)
+        if (canonicalBitmap !== visible && !visible.isRecycled) visible.recycle()
+        visible = canonicalBitmap
+        val canonicalPixelSha256 = CanonicalPhotoPixelsV1.sha256(visible.width, visible.height) { rowIndex, row ->
+            visible.getPixels(row, 0, visible.width, 0, rowIndex, visible.width, 1)
+        }
+
         val dir = File(context.filesDir, "recognition_inputs").apply { mkdirs() }
         val normalized = File(dir, "input_${UUID.randomUUID()}.jpg")
         normalized.outputStream().use { output ->
             check(visible.compress(Bitmap.CompressFormat.JPEG, 92, output)) { "无法保存识别照片" }
         }
         check(normalized.exists() && normalized.length() > 0L) { "无法保存识别照片" }
-        val sha256 = MessageDigest.getInstance("SHA-256").digest(normalized.readBytes())
-            .joinToString("") { "%02x".format(it) }
+        val imageId = "yj_img_${UUID.randomUUID()}"
+        val photoIdentity = PhotoIdentity(
+            photoId = imageId,
+            sourceBytesSha256 = sourceBytesSha256,
+            canonicalPixelSha256 = canonicalPixelSha256,
+            width = visible.width,
+            height = visible.height,
+            sourceOrientation = orientation,
+            normalizationVersion = PhotoIdentity.NORMALIZATION_VERSION_V1,
+            photoContentVersion = 1L,
+        )
         return SelectedImage(
             filePath = normalized.absolutePath,
             bitmap = visible,
             source = source,
+            imageId = imageId,
             sourceOrientationDegrees = rotation,
             sourceExifOrientation = orientation,
-            photoSha256 = sha256,
+            photoSha256 = canonicalPixelSha256,
             captureTimestampEpochMs = captureTimestampEpochMs,
             captureTimestampSource = captureTimestampSource,
+            photoIdentity = photoIdentity,
+            sourceExifOrientationRaw = rawExifOrientation,
         )
+    }
+
+    private fun toCanonicalSrgbArgb8888(source: Bitmap): Bitmap {
+        val target = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Bitmap.createBitmap(
+                source.width,
+                source.height,
+                Bitmap.Config.ARGB_8888,
+                true,
+                ColorSpace.get(ColorSpace.Named.SRGB),
+            )
+        } else {
+            Bitmap.createBitmap(source.width, source.height, Bitmap.Config.ARGB_8888)
+        }
+        Canvas(target).drawBitmap(source, 0f, 0f, Paint())
+        return target
+    }
+
+    private fun sha256(file: File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().buffered().use { input ->
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     private fun captureTimeFromExif(exif: ExifInterface?, fallbackEpochMs: Long): Pair<Long, String> {

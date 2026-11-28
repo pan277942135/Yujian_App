@@ -2,14 +2,20 @@ package com.yujian.ai.media
 
 import android.graphics.Bitmap
 import androidx.exifinterface.media.ExifInterface
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import android.content.Context
 import com.yujian.ai.ui.components.applyExifOrientation
+import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class RecognitionExifOrientationTest {
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+
     @Test fun allEightOrientationsTransformActualPixels() {
         val cases = listOf(
             ExifInterface.ORIENTATION_NORMAL to listOf("abc", "def"),
@@ -34,4 +40,69 @@ class RecognitionExifOrientationTest {
             result.recycle()
         }
     }
+
+    @Test
+    fun normalizationRecordsOriginalExifAndUsesTransformedCanonicalDimensions() = kotlinx.coroutines.runBlocking {
+        val input = File(context.cacheDir, "camera/exif-transpose-identity.jpg")
+        val bitmap = Bitmap.createBitmap(3, 2, Bitmap.Config.ARGB_8888).apply {
+            setPixels(intArrayOf(
+                0xffff0000.toInt(), 0xff00ff00.toInt(), 0xff0000ff.toInt(),
+                0xffffff00.toInt(), 0xffff00ff.toInt(), 0xff00ffff.toInt(),
+            ), 0, 3, 0, 0, 3, 2)
+        }
+        var normalized: File? = null
+        try {
+            input.parentFile?.mkdirs()
+            input.outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)) }
+            ExifInterface(input).apply {
+                setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_TRANSPOSE.toString())
+                saveAttributes()
+            }
+
+            val selected = RecognitionImageStore.normalizeCameraFile(context, input)
+            normalized = File(selected.filePath)
+            val identity = requireNotNull(selected.photoIdentity)
+
+            assertEquals(ExifInterface.ORIENTATION_TRANSPOSE, identity.sourceOrientation)
+            assertEquals(ExifInterface.ORIENTATION_TRANSPOSE.toString(), selected.sourceExifOrientationRaw)
+            assertEquals(2, identity.width)
+            assertEquals(3, identity.height)
+            assertEquals(identity.width, selected.bitmap.width)
+            assertEquals(identity.height, selected.bitmap.height)
+        } finally {
+            bitmap.recycle()
+            input.delete()
+            normalized?.delete()
+        }
+    }
+
+    @Test
+    fun undefinedOrientationKeepsRawDiagnosticAndAppliesNormalGeometry() = kotlinx.coroutines.runBlocking {
+        val input = File(context.cacheDir, "camera/exif-undefined-identity.jpg")
+        input.parentFile?.mkdirs()
+        val bitmap = Bitmap.createBitmap(3, 2, Bitmap.Config.ARGB_8888)
+        var normalized: File? = null
+        try {
+            input.outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)) }
+            ExifInterface(input).apply {
+                setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED.toString())
+                saveAttributes()
+            }
+            val raw = ExifInterface(input).getAttribute(ExifInterface.TAG_ORIENTATION)
+            assertEquals("0", raw)
+            val selected = RecognitionImageStore.normalizeCameraFile(context, input)
+            normalized = File(selected.filePath)
+            assertEquals(raw, selected.sourceExifOrientationRaw)
+            assertEquals(ExifInterface.ORIENTATION_NORMAL, selected.sourceExifOrientation)
+            assertEquals(ExifInterface.ORIENTATION_NORMAL, requireNotNull(selected.photoIdentity).sourceOrientation)
+            assertEquals(3, selected.bitmap.width)
+            assertEquals(2, selected.bitmap.height)
+            selected.bitmap.recycle()
+        } finally {
+            bitmap.recycle()
+            input.delete()
+            normalized?.delete()
+        }
+    }
+
 }

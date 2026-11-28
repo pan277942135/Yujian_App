@@ -7,6 +7,7 @@ import android.graphics.Path
 import android.graphics.Color
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -89,6 +90,19 @@ class SpeciesNameRevealRuntimeTest {
                     glyphRevealRendered = true,
                     nameStable = true,
                     renderReceipt = receipt,
+                    framePresentedReceipt = RecognitionFramePresentedReceipt(
+                        identity = identity,
+                        snapshotId = null,
+                        snapshotContentHash = null,
+                        renderer = "COMPOSE_TEXT_GLYPH",
+                        stage = RecognitionSceneStage.SPECIES_NAME_REVEAL,
+                        checkpointId = "KF18",
+                        frameSequence = 1L,
+                        geometryVersion = measured.geometryVersion,
+                        drawPassSequence = receipt.drawPassSequence,
+                        presentFenceSignalTimeNanos = 1L,
+                        observedAtUptimeMs = 1L,
+                    ),
                 )
                 assertTrue(RecognitionGlyphReadinessContract.isNameStableClaim(identity, speciesKey, name, rendered))
                 assertFalse(

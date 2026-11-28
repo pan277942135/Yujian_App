@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewTreeObserver
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -56,6 +57,17 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+        val decor = window.decorView
+        val firstFrameListener = object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                if (decor.viewTreeObserver.isAlive) {
+                    decor.viewTreeObserver.removeOnPreDrawListener(this)
+                }
+                (application as? YujianApplication)?.slimSamRuntimeManager?.recordAppFirstFrame()
+                return true
+            }
+        }
+        decor.viewTreeObserver.addOnPreDrawListener(firstFrameListener)
     }
     /** Android Views keep diagnostics usable when the Compose Home itself crashes. */
     private fun showStartupRecovery() {

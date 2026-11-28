@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "goalId": "YUJIAN_AI_FULL_RECOGNITION_AND_VISUAL_FIDELITY",
+  "createdAt": "2026-11-25",
+  "lifecycle": "NOT_ACCEPTED",
+  "registryEntryPoint": "main:CONTROL_PLANE_REGISTRY.yaml",
+  "masterDocumentIsCanonicalControlPlane": false,
+  "repository": "pan277942135/Yujian_App",
+  "pr": 346,
+  "activeBranch": "fix/26kf-path-boundary-and-fish-gate-v1",
+  "baselineReportHead": "2d8bacef09f79d20dde7e2a8587c1caab00432fa",
+  "failedDeviceEvidenceBuild": "57ccf1b30dfad4ec4fe049dd972a60f5cbfc64c5",
+  "device": "HUAWEI CMS-AL20; Android 16 API36",
+  "evidence": [
+    {
+      "case": "HIGH",
+      "id": "6f3a69a93779",
+      "zipSha256": "6c0c296c7d2ed35eaa6e42cc89d3dd5cd2426540c551a359590956d374c51f94",
+      "classifierConfidence": 0.8288033,
+      "slimSam": "READY",
+      "stagesCompleted": 8,
+      "stagesTotal": 13,
+      "lastStage": "FISH_GOLD_PEAK",
+      "status": "BLOCKED_AT_57CC; NEW_HEAD_UNVERIFIED"
+    },
+    {
+      "case": "MEDIUM_LOW",
+      "id": "9bc218e51c16",
+      "zipSha256": "0e06c3eac636fa0e4b1f1e54167ba925ecd3391338bc9ed0d05230f9cb8861a5",
+      "classifierConfidence": 0.44935718,
+      "slimSam": "READY",
+      "stagesCompleted": 4,
+      "stagesTotal": 13,
+      "lastStage": "PATH_TO_FISH",
+      "status": "BLOCKED_AT_57CC; NEW_HEAD_UNVERIFIED"
+    },
+    {
+      "case": "CLASSIFIER_REAL_TFLITE_TENSOR_BINDING_GATE",
+      "id": "YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE",
+      "sourceHeadAtStart": "2d8bacef09f79d20dde7e2a8587c1caab00432fa",
+      "classifierModelSha256": "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18",
+      "nightFixtureSha256": "a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b",
+      "status": "SOURCE_AND_METADATA_GATE_PROGRESS; API36 EXACT-HEAD RUNTIME PENDING"
+    }
+  ],
+  "frozen": {
+    "stageCount": 13,
+    "activeAnimationBudgetMs": 6000,
+    "modelAttemptDeadlineMs": 60000,
+    "nonModelAttemptBlockedWaitBudgetMs": 10000,
+    "kfIds": "KF00-KF25",
+    "kfStatusRows": 26,
+    "substageIds": [
+      "NAME_STABLE",
+      "PHOTO_SETTLE",
+      "RESULT_SCENE_HANDOFF",
+      "RESULT_INFO_ARRIVAL",
+      "RESULT_SCENE_STABLE"
+    ],
+    "residentIds": [
+      "G01",
+      "G02",
+      "A01",
+      "A02",
+      "C01"
+    ]
+  },
+  "sourceMigration": {
+    "sixContractsLocatedOnPrBranch": true,
+    "masterImageSha256": "173b1314bcfaebbf0510b71585a929eb67be962806b225b7660cedcaf115abac",
+    "allRawAssetsInGithub": false,
+    "rawDeviceEvidenceInGithub": false,
+    "visualReferenceGapsRemain": true
+  },
+  "acceptance": {
+    "model": "FROZEN_BINDING_AND_FLATBUFFER_METADATA_GATE_PASS; REAL_INTERPRETER_RUN_PENDING",
+    "fullReveal": "FAIL_AT_57CC; PENDING_NEW_DEVICE",
+    "staticResult": "FAIL_AT_57CC; PENDING_NEW_DEVICE",
+    "stage": "FAIL_AT_57CC; PENDING_NEW_DEVICE",
+    "resultHandoff": "FAIL_AT_57CC; PENDING_NEW_DEVICE",
+    "pixelCopy": "INCOMPLETE",
+    "visualFidelity": "PENDING",
+    "nativeMemory": "PENDING",
+    "exactHeadCI": "PENDING",
+    "realDevice": "NOT_ACCEPTED",
+    "sourceReconciliation": "REMOTE_BASELINE_CONFIRMED; 12 Main Master Goal files reconciled; V2.3 source commit 3cc0a443253ff357b429fb0e3620f2954e3ef8f2 created; remote delivery and exact-head CI pending",
+    "guardV1": "31/31 TOOL TESTS PASS; final Admission/fast-forward push pending",
+    "classifierTop1": "PENDING_API36_EXACT_HEAD",
+    "classifierReceipts": "PRODUCTION_RECEIPT_CONSUMER_WIRED_AT_3cc0a443253ff357b429fb0e3620f2954e3ef8f2; API36_IDENTITY_ACCEPTANCE_PENDING",
+    "jvmRegression": "PENDING_CURRENT_SOURCE",
+    "androidTestCompile": "PENDING_CURRENT_SOURCE",
+    "api36EmulatorBoot": "PENDING_HOSTED_EXACT_HEAD",
+    "api36Instrumentation": "PENDING_HOSTED_EXACT_HEAD_TEST_A_AND_TEST_B",
+    "debugApk": "PENDING_EXACT_HEAD_ARTIFACT"
+  },
+  "issueCount": 23,
+  "issueStatePolicy": "append-only history; verify closeout at exact source SHA",
+  "rootCauseHypothesisCount": 9,
+  "issueRegisters": {
+    "preserved": [
+      "H01-H22",
+      "R01-R08"
+    ],
+    "H23": {
+      "confirmedIncidentSourceSha": "52aca20a49be6ab0f01d0b635988209cd5d55da0",
+      "sourceFix": "PASS_AT_cf746e152e027e945494ddceee9f94ce63c7d8d3",
+      "modelMetadata": "PASS_LOCAL_FLATBUFFER_GATE_ON_UNCHANGED_COMMITTED_ASSET",
+      "jvmRegression": "PENDING_CURRENT_SOURCE",
+      "androidTestCompile": "PENDING_CURRENT_SOURCE",
+      "classifierInterpreter": "PENDING_API36",
+      "productionTop1": "PENDING_API36",
+      "receiptIdentity": "PENDING_API36",
+      "api36Runtime": "PENDING_EXACT_HEAD",
+      "exactHeadCI": "PENDING"
+    },
+    "R09": {
+      "logicalInput": "images",
+      "runtimeInput": "serving_default_args_0",
+      "logicalOutput": "logits",
+      "runtimeOutput": "serving_default_output_0_output",
+      "modelSha256": "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18",
+      "sourceFix": "PASS_AT_cf746e152e027e945494ddceee9f94ce63c7d8d3",
+      "metadataGate": "PASS_LOCAL_FLATBUFFER_GATE_ON_UNCHANGED_COMMITTED_ASSET",
+      "realInference": "PENDING_API36"
+    }
+  },
+  "activeWork": {
+    "taskId": "YUJIAN_MASTER_GOAL_V23_UNIFIED_BASELINE_CLASSIFIER_API36_CLOSURE",
+    "masterGoalId": "YUJIAN_AI_FULL_RECOGNITION_AND_VISUAL_FIDELITY",
+    "sourceHeadAtStart": "2d8bacef09f79d20dde7e2a8587c1caab00432fa",
+    "branch": "fix/26kf-path-boundary-and-fish-gate-v1",
+    "pr": 346,
+    "stage": "SOURCE_COMMITTED_PENDING_REMOTE_DELIVERY_EXACT_HEAD_CI_AND_API36",
+    "status": "IN_PROGRESS",
+    "sourceCommit": "3cc0a443253ff357b429fb0e3620f2954e3ef8f2",
+    "remotePush": "PENDING",
+    "exactHeadCI": "PENDING",
+    "api36": "PENDING"
+  }
+}
