@@ -3,6 +3,11 @@ package com.yujian.ai.ai.subject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -18,6 +23,58 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.CopyOnWriteArrayList
 
 class SlimSamNativeRunLifecycleTest {
+    @Test
+    fun attemptCancellationReturnsWhileNativeRunIsStillBlockedAndDefersCleanup() = runBlocking {
+        val terminationExecutor = Executors.newSingleThreadExecutor()
+        val watchdog = Executors.newSingleThreadScheduledExecutor()
+        val nativeExecutor = Executors.newSingleThreadExecutor()
+        try {
+            val nativeEntered = CountDownLatch(1)
+            val allowNativeReturn = CountDownLatch(1)
+            val terminationRequested = CountDownLatch(1)
+            val resourcesReleased = CountDownLatch(1)
+            val controller = SlimSamNativeRunController(
+                runOptionsId = "run-options-bounded-attempt",
+                terminationExecutor = terminationExecutor,
+                watchdogScheduler = watchdog,
+                terminationWaitMs = 5_000,
+                setTerminate = { terminationRequested.countDown() },
+            )
+            val attempt = launch(Dispatchers.Default) {
+                try {
+                    awaitSlimSamNativeRun(
+                        controller = controller,
+                        nativeExecutor = nativeExecutor,
+                    ) {
+                        nativeEntered.countDown()
+                        allowNativeReturn.await()
+                        AutoCloseable {}
+                    }
+                } finally {
+                    controller.finishResourceCleanup {
+                        controller.cleanupCompleted()
+                        resourcesReleased.countDown()
+                    }
+                }
+            }
+
+            assertTrue(nativeEntered.await(2, TimeUnit.SECONDS))
+            withTimeout(500) { attempt.cancelAndJoin() }
+            assertTrue("business cancellation must request native termination", terminationRequested.await(2, TimeUnit.SECONDS))
+            assertFalse("resources must remain owned while Session.run is blocked", resourcesReleased.await(50, TimeUnit.MILLISECONDS))
+            assertFalse(controller.snapshot().nativeReturned)
+
+            allowNativeReturn.countDown()
+            assertTrue("deferred cleanup runs after the real Native return", resourcesReleased.await(2, TimeUnit.SECONDS))
+            assertTrue(controller.snapshot().nativeReturned)
+            assertTrue(controller.snapshot().cleanupCompleted)
+        } finally {
+            nativeExecutor.shutdownNow()
+            terminationExecutor.shutdownNow()
+            watchdog.shutdownNow()
+        }
+    }
+
     @Test
     fun coroutineCancellationTerminatesRunOptionsOnIndependentControlThread() {
         val terminationExecutor = Executors.newSingleThreadExecutor()
@@ -61,8 +118,13 @@ class SlimSamNativeRunLifecycleTest {
             assertFalse(controller.snapshot().nativeReturned)
 
             cancellationHandle.dispose()
+            val cleanupCompleted = CountDownLatch(1)
+            controller.finishResourceCleanup {
+                controller.cleanupCompleted()
+                cleanupCompleted.countDown()
+            }
             controller.nativeReturned()
-            controller.cleanupCompleted()
+            assertTrue(cleanupCompleted.await(2, TimeUnit.SECONDS))
             assertEquals(SlimSamNativeRunState.CLEANUP_COMPLETED, controller.snapshot().state)
             assertTrue(events.indexOf("NATIVE_RUN_STARTED") < events.indexOf("NATIVE_CANCEL_REQUESTED"))
             assertTrue(events.indexOf("NATIVE_CANCEL_REQUESTED") < events.indexOf("NATIVE_TERMINATE_REQUESTED"))
@@ -82,6 +144,7 @@ class SlimSamNativeRunLifecycleTest {
         try {
             val calls = AtomicInteger()
             val completed = CountDownLatch(1)
+            val terminateCallReturned = CountDownLatch(1)
             val controller = SlimSamNativeRunController(
                 runOptionsId = "run-options-test-2",
                 terminationExecutor = terminationExecutor,
@@ -91,14 +154,24 @@ class SlimSamNativeRunLifecycleTest {
                     calls.incrementAndGet()
                     completed.countDown()
                 },
+                onEvent = { event, _ ->
+                    if (event == "NATIVE_TERMINATE_CALL_RETURNED") terminateCallReturned.countDown()
+                },
             )
 
+            controller.nativeStarted()
             assertTrue(controller.requestTermination())
             assertFalse(controller.requestTermination())
             assertTrue(completed.await(2, TimeUnit.SECONDS))
+            assertTrue(terminateCallReturned.await(2, TimeUnit.SECONDS))
             assertEquals(1, calls.get())
+            val cleanupCompleted = CountDownLatch(1)
+            controller.finishResourceCleanup {
+                controller.cleanupCompleted()
+                cleanupCompleted.countDown()
+            }
             controller.nativeReturned()
-            controller.cleanupCompleted()
+            assertTrue(cleanupCompleted.await(2, TimeUnit.SECONDS))
         } finally {
             terminationExecutor.shutdownNow()
             watchdog.shutdownNow()
@@ -145,6 +218,7 @@ class SlimSamNativeRunLifecycleTest {
                 onTerminationUnconfirmed = { gate.poison(); unconfirmed.countDown() },
             )
 
+            controller.nativeStarted()
             assertTrue(controller.requestTermination())
             assertTrue("bounded wait must report a still-running native call", unconfirmed.await(2, TimeUnit.SECONDS))
             assertTrue(controller.snapshot().terminationUnconfirmed)
@@ -227,6 +301,7 @@ class SlimSamNativeRunLifecycleTest {
                 setTerminate = { calls.incrementAndGet() },
             )
 
+            controller.nativeStarted()
             controller.nativeReturned()
 
             assertFalse(controller.requestTermination())

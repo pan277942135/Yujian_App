@@ -98,6 +98,7 @@ import com.yujian.ai.ai.RecognitionProgress
 import com.yujian.ai.ai.RecognitionStageFailureException
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.FishSubjectQuality
+import com.yujian.ai.ai.subject.SlimSamMaskQualityGate
 import com.yujian.ai.ai.subject.SlimSamSegmenter
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
@@ -915,24 +916,34 @@ fun RecognitionProcessingScene(
                 loaded.height == result.roiHeight &&
                 loaded.width == metadata?.roiPx?.width() && loaded.height == metadata?.roiPx?.height()
             val maskShapeValid = result.quality == FishSubjectQuality.GOOD &&
-                result.maskSize > 0 && result.maskSize == result.expectedMaskSize &&
+                result.maskSize >= SlimSamMaskQualityGate.MIN_MASK_PIXELS &&
+                result.maskSize <= result.expectedMaskSize &&
+                result.expectedMaskSize == loaded.width * loaded.height &&
                 maskShaValid && cropDimensionsMatch && geometryMatchesPhoto && roi != null
             val contourStartedAtNs = SystemClock.elapsedRealtimeNanos()
             recordSlimSamTiming("CONTOUR_EXTRACT", "CONTOUR_EXTRACT_START", contourStartedAtNs, contourStartedAtNs, "STARTED")
-            val extractedContour = if (maskShapeValid) {
+            val contourExtraction = if (maskShapeValid) {
                 try {
                     withContext(Dispatchers.Default) {
-                        WaterLightMaskAdapter.toPhotoSpace(requireNotNull(metadata), extractContour(loaded))
+                        RecognitionMaskContourExtractor.extract(loaded)
                     }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Throwable) {
                     Log.e(LOG_TAG, "MASK_CONTOUR_EXTRACTION_FAILED maskSha=${result.maskSha256}", error)
-                    emptyList()
+                    null
                 }
             } else {
-                emptyList()
+                null
             }
+            val contourReceiptValid = contourExtraction?.let {
+                it.traceClosed && it.terminationReason.name == result.contourTerminationReason &&
+                    it.rawPointCount >= SlimSamMaskQualityGate.MIN_CLOSED_CONTOUR_POINTS &&
+                    it.rawPointCount == result.contourRawPointCount
+            } == true
+            val extractedContour = if (maskShapeValid && contourReceiptValid) {
+                WaterLightMaskAdapter.toPhotoSpace(requireNotNull(metadata), requireNotNull(contourExtraction).segments)
+            } else emptyList()
             val contourEndedAtNs = SystemClock.elapsedRealtimeNanos()
             recordSlimSamTiming("CONTOUR_EXTRACT", "CONTOUR_EXTRACT_END", contourStartedAtNs, contourEndedAtNs,
                 if (extractedContour.isEmpty()) "EMPTY" else "PASS")
@@ -1022,12 +1033,14 @@ fun RecognitionProcessingScene(
             val maskRejectReason = when {
                 result.quality == FishSubjectQuality.WARNING -> "MASK_QUALITY_WARNING"
                 result.quality != FishSubjectQuality.GOOD -> "MASK_QUALITY_${result.quality}"
-                result.maskSize <= 0 || result.maskSize != result.expectedMaskSize -> "MASK_SIZE_MISMATCH"
+                result.maskSize < SlimSamMaskQualityGate.MIN_MASK_PIXELS ||
+                    result.maskSize > result.expectedMaskSize || result.expectedMaskSize != loaded.width * loaded.height -> "MASK_SIZE_MISMATCH"
                 !maskShaValid -> "MASK_SHA_MISMATCH"
                 !photoIdentityMatches -> "MASK_IDENTITY_MISMATCH"
                 !geometryMatchesPhoto -> "MASK_GEOMETRY_MISMATCH"
                 !cropDimensionsMatch -> "MASK_SIZE_MISMATCH"
                 extractedContour.isEmpty() -> "EMPTY_CONTOUR"
+                !contourReceiptValid -> "MASK_CONTOUR_RECEIPT_INVALID"
                 extractedContour.lastOrNull()?.closesContour != true -> "CONTOUR_NOT_CLOSED"
                 recognitionSessionId.isNullOrBlank() || recognitionAttemptId.isNullOrBlank() -> "SESSION_IDENTITY_MISSING"
                 selected.imageId.isBlank() || selected.photoSha256.isBlank() -> "PHOTO_IDENTITY_MISSING"
@@ -3653,13 +3666,7 @@ private fun createRecognitionEnergyProducerSnapshot(
 }
 
 fun extractContour(bitmap: Bitmap): List<RecognitionContourSegment> {
-    val width = bitmap.width
-    val height = bitmap.height
-    if (width <= 1 || height <= 1) return emptyList()
-    val pixels = IntArray(width * height)
-    bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-    val alpha = ByteArray(pixels.size) { index -> android.graphics.Color.alpha(pixels[index]).toByte() }
-    return RecognitionMaskContourExtractor.extract(width, height, alpha)
+    return RecognitionMaskContourExtractor.extract(bitmap).segments
 }
 
 private fun logFocusDiagnostic(

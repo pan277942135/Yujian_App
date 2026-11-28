@@ -228,6 +228,7 @@ class SlimSamRuntimeManager(
         selected: SelectedImage,
         detectorBbox: NormalizedFishBox,
         identity: RecognitionModelIdentity? = null,
+        detectorConfidence: Float? = null,
     ): FishSubjectResult {
         awaitReady()
         activeOperations.incrementAndGet()
@@ -250,6 +251,7 @@ class SlimSamRuntimeManager(
                         imageId = selected.imageId,
                         photoSha256 = selected.photoSha256,
                         identity = identity,
+                        detectorConfidence = detectorConfidence,
                     )
                 }
             }

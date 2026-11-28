@@ -14,6 +14,7 @@ import com.yujian.ai.ai.subject.FishSubjectPreviewEngine
 import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
+import com.yujian.ai.ai.subject.SlimSamMaskQualityGate
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
@@ -21,6 +22,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionMaskIntegrity
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionSubjectGeometrySnapshot
 import com.yujian.ai.ui.waterlight.mask.WaterLightMaskAdapter
+import com.yujian.ai.ui.recognition.RecognitionMaskContourExtractor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -78,7 +80,7 @@ class RecognitionSubjectAttemptRunner(
                             photoIdentity = selected.photoIdentity,
                             attemptDeadline = deadline,
                         ),
-                    ) { engine.generate(selected, box, sessionId, attemptId) }
+                    ) { engine.generate(selected, box, sessionId, attemptId, confidence) }
                 }
             } catch (timeout: TimeoutCancellationException) {
                 FishSubjectResult(SubjectStatus.FAILED, errorCode = RecognitionAttemptFailureCode.SLIMSAM_TIMEOUT)
@@ -139,7 +141,8 @@ class RecognitionSubjectAttemptRunner(
         sessionId: String, attemptId: String, result: FishSubjectResult,
     ): RecognitionSubjectGeometrySnapshot? {
         if (result.status != SubjectStatus.READY || result.quality != FishSubjectQuality.GOOD ||
-            result.maskSize <= 0 || result.maskSize != result.expectedMaskSize) return null
+            result.maskSize < SlimSamMaskQualityGate.MIN_MASK_PIXELS ||
+            result.maskSize > result.expectedMaskSize || result.expectedMaskSize <= 0) return null
         val metadata = result.geometry ?: return null
         if (!metadata.matches(sessionId, attemptId, image.imageId, image.photoSha256,
                 image.bitmap.width, image.bitmap.height)) return null
@@ -153,9 +156,14 @@ class RecognitionSubjectAttemptRunner(
         ) ?: return null
         try {
             if (bitmap.width != result.roiWidth || bitmap.height != result.roiHeight ||
-                bitmap.width != metadata.roiPx.width() || bitmap.height != metadata.roiPx.height()) return null
+                bitmap.width != metadata.roiPx.width() || bitmap.height != metadata.roiPx.height() ||
+                result.expectedMaskSize != bitmap.width * bitmap.height) return null
             val roi = metadata.normalizedRoi()
-            val contour = WaterLightMaskAdapter.toPhotoSpace(metadata, extractContour(bitmap))
+            val extracted = RecognitionMaskContourExtractor.extract(bitmap)
+            if (!extracted.traceClosed || extracted.terminationReason.name != result.contourTerminationReason ||
+                extracted.rawPointCount < SlimSamMaskQualityGate.MIN_CLOSED_CONTOUR_POINTS ||
+                extracted.rawPointCount != result.contourRawPointCount) return null
+            val contour = WaterLightMaskAdapter.toPhotoSpace(metadata, extracted.segments)
             if (contour.isEmpty()) return null
             val geometry = RecognitionSubjectGeometrySnapshot(
                 imageId = image.imageId, recognitionSessionId = sessionId, recognitionAttemptId = attemptId,

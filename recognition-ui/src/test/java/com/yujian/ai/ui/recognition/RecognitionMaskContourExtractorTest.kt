@@ -1,80 +1,74 @@
 package com.yujian.ai.ui.recognition
 
+import com.yujian.ai.ai.subject.BoundaryTerminationReason
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.math.roundToInt
 
 class RecognitionMaskContourExtractorTest {
-    @Test fun defaultThresholdMatchesSlimSamHalfConfidenceAlphaEncoding() {
-        val width = 12
-        val height = 12
-        val alpha = ByteArray(width * height) { 36.toByte() }
-        for (y in 3..8) for (x in 3..8) alpha[y * width + x] = 128.toByte()
-        val contour = RecognitionMaskContourExtractor.extract(width, height, alpha)
-        assertEquals(1, contour.count { it.beginsContour })
-        assertEquals(1, contour.count { it.closesContour })
-        assertTrue(contour.all { it.startX in .2f..8.5f / width && it.startY in .2f..8.5f / height })
+    @Test fun binaryAlphaProducesOneClosedReferenceContour() {
+        val width = 24
+        val height = 24
+        val alpha = ByteArray(width * height)
+        for (y in 4..19) for (x in 5..18) alpha[y * width + x] = 0xff.toByte()
+
+        val result = RecognitionMaskContourExtractor.extract(width, height, alpha)
+
+        assertTrue(result.segments.isNotEmpty())
+        assertEquals(1, result.segments.count { it.beginsContour })
+        assertEquals(1, result.segments.count { it.closesContour })
+        assertTrue(result.traceClosed)
+        assertEquals(BoundaryTerminationReason.RETURNED_TO_START, result.terminationReason)
+        assertTrue(result.rawPointCount >= 20)
+        assertTrue(result.segments.all(::normalizedFinite))
     }
 
-    @Test fun marchingSquaresEmitsClosedContourWithSubpixelThresholdCrossings() {
-        val width = 6
-        val height = 5
-        val alpha = ByteArray(width * height)
-        val columns = intArrayOf(0, 40, 82, 174, 230, 255)
-        for (y in 1..3) for (x in 0 until width) alpha[y * width + x] = columns[x].toByte()
+    @Test fun configuredThresholdIsAppliedBeforeFourConnectedLcc() {
+        val width = 18
+        val height = 18
+        val alpha = ByteArray(width * height) { 90.toByte() }
+        for (y in 4..13) for (x in 4..13) alpha[y * width + x] = 100.toByte()
+        alpha[0] = 255.toByte() // detached noise must not become the returned component
 
-        val contour = RecognitionMaskContourExtractor.extract(width, height, alpha, threshold = 100)
-        assertTrue(contour.isNotEmpty())
-        assertEquals(1, contour.count { it.beginsContour })
-        assertEquals(1, contour.count { it.closesContour })
-        val hasSubpixelCrossing = contour.any { segment ->
-            val sourceX = segment.startX * width
-            kotlin.math.abs(sourceX - sourceX.roundToInt()) > .05f
+        val result = RecognitionMaskContourExtractor.extract(width, height, alpha, threshold = 100)
+
+        assertTrue(result.traceClosed)
+        assertEquals(BoundaryTerminationReason.RETURNED_TO_START, result.terminationReason)
+        assertTrue(result.segments.all(::normalizedFinite))
+    }
+
+    @Test fun exteriorContourDoesNotCreateASecondLoopForAHole() {
+        val width = 24
+        val height = 24
+        val alpha = ByteArray(width * height)
+        for (y in 3..20) for (x in 3..20) {
+            if (x !in 10..13 || y !in 10..13) alpha[y * width + x] = 0xff.toByte()
         }
-        assertTrue("Mask alpha interpolation should retain subpixel edge locations", hasSubpixelCrossing)
+
+        val result = RecognitionMaskContourExtractor.extract(width, height, alpha)
+
+        assertTrue(result.traceClosed)
+        assertEquals(1, result.segments.count { it.beginsContour })
+        assertEquals(1, result.segments.count { it.closesContour })
     }
 
-    @Test fun keepsHoleContoursAndRejectsIsolatedTransparentMaskNoise() {
-        val width = 12
-        val height = 12
-        val alpha = ByteArray(width * height)
-        for (y in 2..9) for (x in 2..9) {
-            if (x !in 5..6 || y !in 5..6) alpha[y * width + x] = 255.toByte()
-        }
-        alpha[0] = 255.toByte() // a detached single pixel is below the component floor
+    @Test fun isolatedPixelReturnsAnExplicitUnclosedFailure() {
+        val alpha = ByteArray(12 * 12)
+        alpha[6 * 12 + 6] = 0xff.toByte()
 
-        val contour = RecognitionMaskContourExtractor.extract(width, height, alpha)
-        assertEquals(2, contour.count { it.beginsContour })
-        assertEquals(2, contour.count { it.closesContour })
-        assertTrue(contour.all { segment ->
-            listOf(segment.startX, segment.startY, segment.endX, segment.endY,
-                segment.control1X, segment.control1Y, segment.control2X, segment.control2Y)
-                .all { it.isFinite() && it in 0f..1f }
-        })
+        val result = RecognitionMaskContourExtractor.extract(12, 12, alpha)
+
+        assertTrue(result.segments.isEmpty())
+        assertFalse(result.traceClosed)
+        assertEquals(BoundaryTerminationReason.ISOLATED_PIXEL, result.terminationReason)
     }
 
-    @Test fun narrowTailAndFinConnectionsStayInTheLargestRealMaskContour() {
-        val width = 16
-        val height = 10
-        val alpha = ByteArray(width * height)
-        for (y in 3..6) for (x in 4..11) alpha[y * width + x] = 255.toByte()
-        for (x in 1..3) alpha[4 * width + x] = 255.toByte() // tail
-        for (x in 7..9) alpha[2 * width + x] = 255.toByte() // fin
-
-        val contour = RecognitionMaskContourExtractor.extract(width, height, alpha)
-        assertEquals(1, contour.count { it.beginsContour })
-        val allX = contour.flatMap { listOf(it.startX, it.endX) }
-        val allY = contour.flatMap { listOf(it.startY, it.endY) }
-        assertTrue(allX.minOrNull()!! < .2f)
-        assertTrue(allY.minOrNull()!! < .3f)
-    }
-
-    @Test fun closedSmoothingKeepsARealMaskFinTipTailAndFiltersDetachedNoise() {
+    @Test fun connectedFinAndTailRemainInThePrimaryClosedContour() {
         val width = 64
         val height = 48
         val alpha = ByteArray(width * height)
-        fun fill(x: Int, y: Int) { alpha[y * width + x] = 255.toByte() }
+        fun fill(x: Int, y: Int) { alpha[y * width + x] = 0xff.toByte() }
 
         for (y in 18..35) for (x in 10..53) fill(x, y)
         for (y in 23..27) {
@@ -85,17 +79,21 @@ class RecognitionMaskContourExtractorTest {
             val halfWidth = 1 + (y - 7) * 2
             for (x in 30 - halfWidth..30 + halfWidth) fill(x, y)
         }
-        fill(61, 2) // Detached one-pixel segmentation noise.
+        fill(61, 2)
 
-        val contour = RecognitionMaskContourExtractor.extract(width, height, alpha)
-        assertEquals(1, contour.count { it.beginsContour })
-        assertEquals(1, contour.count { it.closesContour })
-        assertTrue("Closed-loop smoothing must retain the pointed dorsal fin", contour.minOf { it.startY } < .18f)
-        assertTrue("The actual tail pixels must remain part of the contour", contour.minOf { it.startX } < .08f)
-        assertTrue(contour.all { segment ->
-            listOf(segment.startX, segment.startY, segment.endX, segment.endY,
-                segment.control1X, segment.control1Y, segment.control2X, segment.control2Y)
-                .all { it.isFinite() && it in 0f..1f }
-        })
+        val result = RecognitionMaskContourExtractor.extract(width, height, alpha)
+
+        assertTrue(result.traceClosed)
+        assertEquals(1, result.segments.count { it.beginsContour })
+        // The reference applies three closed-loop smoothing passes; retain the peak within five
+        // pixels of the unsmoothed seven-pixel tip rather than requiring the raw boundary point.
+        assertTrue("smoothed fin tip minY=${result.segments.minOf { it.startY }}", result.segments.minOf { it.startY } < .25f)
+        assertTrue("smoothed left-fin minX=${result.segments.minOf { it.startX }}", result.segments.minOf { it.startX } < .15f)
+        assertTrue(result.segments.all(::normalizedFinite))
     }
+
+    private fun normalizedFinite(segment: RecognitionContourSegment): Boolean = listOf(
+        segment.startX, segment.startY, segment.endX, segment.endY,
+        segment.control1X, segment.control1Y, segment.control2X, segment.control2Y,
+    ).all { it.isFinite() && it in 0f..1f }
 }

@@ -3,6 +3,7 @@ package com.yujian.ai.ai.subject
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.CountDownLatch
@@ -57,6 +58,7 @@ internal class SlimSamNativeRunController(
     @Volatile private var watchdog: ScheduledFuture<*>? = null
     private var terminateCallFinished = true
     private var deferredResourceCleanup: (() -> Unit)? = null
+    private var cleanupRegistered = false
 
     init {
         require(runOptionsId.isNotBlank())
@@ -119,15 +121,30 @@ internal class SlimSamNativeRunController(
         return true
     }
 
+    fun tryNativeStarted(): Boolean {
+        val accepted = synchronized(lock) {
+            if (terminateRequested.get() || nativeReturned.get() || nativeNotStarted.get() || nativeStarted.get()) {
+                false
+            } else {
+                nativeStarted.set(true)
+                state = SlimSamNativeRunState.RUNNING
+                true
+            }
+        }
+        if (accepted) emitEvent("NATIVE_RUN_STARTED", null)
+        return accepted
+    }
+
     fun nativeStarted() {
-        check(nativeStarted.compareAndSet(false, true)) { "Native inference started more than once for RunOptions $runOptionsId" }
-        if (!terminateRequested.get()) state = SlimSamNativeRunState.RUNNING
-        emitEvent("NATIVE_RUN_STARTED", null)
+        check(tryNativeStarted()) { "Native inference could not start for RunOptions $runOptionsId" }
     }
 
     /** Called only after the synchronous Session.run call has returned or thrown. */
     fun nativeReturned() {
-        if (!nativeReturned.compareAndSet(false, true)) return
+        val accepted = synchronized(lock) {
+            !nativeNotStarted.get() && nativeStarted.get() && nativeReturned.compareAndSet(false, true)
+        }
+        if (!accepted) return
         if (terminationActionHasFinished()) watchdog?.cancel(false)
         state = SlimSamNativeRunState.NATIVE_RETURNED
         emitEvent("NATIVE_RUN_RETURNED", null)
@@ -136,21 +153,22 @@ internal class SlimSamNativeRunController(
 
     /** Settles a RunOptions object when cancellation wins before Session.run starts. */
     fun nativeNotStarted() {
-        if (nativeStarted.get() || !nativeNotStarted.compareAndSet(false, true)) return
+        val accepted = synchronized(lock) {
+            !nativeStarted.get() && nativeNotStarted.compareAndSet(false, true)
+        }
+        if (!accepted) return
         if (terminationActionHasFinished()) watchdog?.cancel(false)
         state = SlimSamNativeRunState.NATIVE_NOT_STARTED
         emitEvent("NATIVE_RUN_NOT_STARTED", null)
         runDeferredCleanupIfReady()
     }
 
-    /** Closes RunOptions only after both Session.run and the external terminate call are finished. */
+    /** Registers cleanup; if Native is still running, the owner executes it after both calls settle. */
     fun finishResourceCleanup(releaseResources: () -> Unit) {
-        check(nativeReturned.get() || nativeNotStarted.get()) {
-            "Native resources cannot be released before Session.run returns"
-        }
         val runNow = synchronized(lock) {
-            check(deferredResourceCleanup == null) { "Native run cleanup registered more than once" }
-            if (terminateCallFinished) true else {
+            check(!cleanupRegistered) { "Native run cleanup registered more than once" }
+            cleanupRegistered = true
+            if ((nativeReturned.get() || nativeNotStarted.get()) && terminateCallFinished) true else {
                 deferredResourceCleanup = releaseResources
                 false
             }
@@ -161,6 +179,7 @@ internal class SlimSamNativeRunController(
     /** Called after Ort.Result, tensors and RunOptions have been closed. */
     fun cleanupCompleted() {
         check(nativeReturned.get() || nativeNotStarted.get()) { "Native resources cannot be released before Session.run returns" }
+        check(terminationActionHasFinished()) { "RunOptions cannot close before setTerminate returns" }
         if (!cleanupCompleted.compareAndSet(false, true)) return
         watchdog?.cancel(false)
         state = SlimSamNativeRunState.CLEANUP_COMPLETED
@@ -226,6 +245,58 @@ internal class SlimSamNativeRunController(
 
     companion object {
         const val DEFAULT_TERMINATION_WAIT_MS = 5_000L
+    }
+}
+
+/** Runs one synchronous ORT call off the cancellable coroutine thread and returns its result handle. */
+@OptIn(InternalCoroutinesApi::class)
+internal suspend fun <T : AutoCloseable> awaitSlimSamNativeRun(
+    controller: SlimSamNativeRunController,
+    nativeExecutor: Executor,
+    onNativeRunFinished: (Throwable?) -> Unit = {},
+    onResultCreated: (T) -> Unit = {},
+    invoke: () -> T,
+): T = suspendCancellableCoroutine { continuation ->
+    continuation.invokeOnCancellation { controller.requestTermination() }
+    val task = Runnable {
+        if (!continuation.isActive || !controller.tryNativeStarted()) {
+            controller.nativeNotStarted()
+            if (continuation.isActive) {
+                val token = continuation.tryResumeWithException(
+                    IllegalStateException("Native run was prevented after its Attempt was cancelled or expired"),
+                )
+                if (token != null) continuation.completeResume(token)
+            }
+            return@Runnable
+        }
+        var result: T? = null
+        var failure: Throwable? = null
+        try {
+            val produced = invoke()
+            result = produced
+            onResultCreated(produced)
+        } catch (error: Throwable) {
+            failure = error
+        } finally {
+            runCatching { onNativeRunFinished(failure) }
+            controller.nativeReturned()
+        }
+        val error = failure
+        if (error != null) {
+            val token = continuation.tryResumeWithException(error)
+            if (token != null) continuation.completeResume(token)
+        } else {
+            val value = requireNotNull(result)
+            val token = continuation.tryResume(value)
+            if (token != null) continuation.completeResume(token)
+        }
+    }
+    try {
+        nativeExecutor.execute(task)
+    } catch (error: Throwable) {
+        controller.nativeNotStarted()
+        val token = continuation.tryResumeWithException(error)
+        if (token != null) continuation.completeResume(token)
     }
 }
 
@@ -322,6 +393,9 @@ internal object SlimSamNativeRunExecutors {
     }
 
     val termination = Executors.newCachedThreadPool(daemonFactory)
+    val nativeRuns = Executors.newFixedThreadPool(2) { task ->
+        Thread(task, "slimsam-native-run").apply { isDaemon = true }
+    }
     val watchdog: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(daemonFactory)
     val memorySampling: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor { task ->
         Thread(task, "slimsam-memory-sampler").apply { isDaemon = true }

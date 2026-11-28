@@ -7,7 +7,7 @@ import com.yujian.ai.model.SelectedImage
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-data class SubjectCropConfig(val expandRatio: Float = 0.12f) {
+data class SubjectCropConfig(val expandRatio: Float = 0.45f) {
     init { require(expandRatio >= 0f && expandRatio <= 1f) }
 }
 
@@ -34,11 +34,12 @@ class FishSubjectPreviewEngine(
         detectorBbox: NormalizedFishBox,
         sessionId: String,
         attemptId: String,
+        detectorConfidence: Float? = null,
     ): FishSubjectResult = generationMutex.withLock {
         val identity = RecognitionModelIdentity(
             sessionId, attemptId, selected.imageId, selected.photoSha256, selected.photoIdentity,
         )
-        runtime.generate(selected, detectorBbox, identity)
+        runtime.generate(selected, detectorBbox, identity, detectorConfidence)
     }
 
     override fun close() {

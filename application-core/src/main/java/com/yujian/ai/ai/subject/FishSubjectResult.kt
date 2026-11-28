@@ -21,12 +21,20 @@ data class FishSubjectResult(
     val processingMs: Long = 0L,
     val roiWidth: Int = 0,
     val roiHeight: Int = 0,
+    /** Foreground pixel count from the selected binary LCC mask. */
     val maskSize: Int = 0,
+    /** Number of pixels in the emitted ROI image. */
     val expectedMaskSize: Int = 0,
     val maskAreaRatio: Float = 0f,
     val quality: FishSubjectQuality? = null,
     /** Model decoder output for traceability; it is recorded but not treated as calibrated quality. */
     val maskIouScore: Float? = null,
+    /** Exact decoder candidate selected by the reference rank and full trust gate. */
+    val selectedCandidateIndex: Int? = null,
+    /** Lightweight diagnostics for every original decoder candidate, in model order. */
+    val candidateDiagnostics: List<SlimSamCandidateDiagnostic> = emptyList(),
+    val contourRawPointCount: Int = 0,
+    val contourTerminationReason: String = BoundaryTerminationReason.INVALID_INPUT.name,
     /** SHA-256 of the actual transparent PNG emitted by SlimSAM for this attempt. */
     val maskSha256: String = "",
     /** Actual inference geometry, never reconstructed from a later detector BBox. */

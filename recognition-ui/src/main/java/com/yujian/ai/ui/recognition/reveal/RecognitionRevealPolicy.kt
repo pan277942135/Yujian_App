@@ -2,6 +2,7 @@ package com.yujian.ai.ui.recognition.reveal
 
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.subject.FishSubjectQuality
+import com.yujian.ai.ai.subject.SlimSamMaskQualityGate
 import com.yujian.ai.ui.identify.DisplayPoint
 import com.yujian.ai.ui.identify.DisplayRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
@@ -59,7 +60,8 @@ object RecognitionRevealPolicy {
             (photoSha256 == null || subject.photoSha256 == photoSha256)
         val trustedMask = matches && subject.quality == FishSubjectQuality.GOOD &&
             subject.maskSha256.matches(Regex("(?i)^[a-f0-9]{64}$")) &&
-            subject.maskSize > 0 && subject.maskSize == subject.expectedMaskSize &&
+            subject.maskSize >= SlimSamMaskQualityGate.MIN_MASK_PIXELS &&
+            subject.maskSize <= subject.expectedMaskSize && subject.expectedMaskSize > 0 &&
             isValidRect(subject.subjectBox) && subject.contour.isNotEmpty() &&
             roiContainsDetectorBox(subject.subjectBox, detectorBox, sourceWidthPx, sourceHeightPx) &&
             subject.contour.all { segment ->
