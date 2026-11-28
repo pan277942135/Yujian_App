@@ -29,7 +29,13 @@ data class RecognitionPixelCopyResult(
     val sameSceneIdentity: Boolean,
     val completionTimestampMs: Long,
     val geometryVersionAtCompletion: Long? = null,
+    val eventSequenceAtCompletion: Long? = null,
+    val pathIdAtCompletion: String? = null,
 )
+
+internal fun interface RecognitionPixelCopyRequestBackend {
+    fun request(window: Window, bitmap: Bitmap, handler: Handler, callback: (Int) -> Unit)
+}
 
 /** Captures the real Android Window buffer. The caller compares stage identity after completion. */
 object RecognitionPixelCopyCapture {
@@ -40,6 +46,16 @@ object RecognitionPixelCopyCapture {
         frame: RecognitionSceneFrame,
         currentFrame: () -> RecognitionSceneFrame?,
         timeoutMs: Long = DEFAULT_TIMEOUT_MS,
+        callback: (RecognitionPixelCopyResult) -> Unit,
+    ) = requestWithBackend(window, frame, currentFrame, timeoutMs, ANDROID_BACKEND, callback)
+
+    /** Backend injection exists for Android instrumentation fault tests; production always uses PixelCopy. */
+    internal fun requestWithBackend(
+        window: Window?,
+        frame: RecognitionSceneFrame,
+        currentFrame: () -> RecognitionSceneFrame?,
+        timeoutMs: Long,
+        backend: RecognitionPixelCopyRequestBackend,
         callback: (RecognitionPixelCopyResult) -> Unit,
     ) {
         val requestTime = android.os.SystemClock.uptimeMillis()
@@ -59,12 +75,17 @@ object RecognitionPixelCopyCapture {
         val handler = Handler(Looper.getMainLooper())
         val completed = java.util.concurrent.atomic.AtomicBoolean(false)
         val copyStarted = java.util.concurrent.atomic.AtomicBoolean(false)
+        fun pathId(latest: RecognitionSceneFrame?): String = latest?.energyEvent?.pathId ?: "NOT_CREATED"
         fun sameIdentityFor(latest: RecognitionSceneFrame?): Boolean =
-            RecognitionEvidenceCapturePolicy.sameSceneIdentityAndGeometry(
+            RecognitionEvidenceCapturePolicy.sameSceneFrameIdentity(
                 requestedIdentity = frame.identity,
                 completedIdentity = latest?.identity,
                 requestedGeometryVersion = frame.geometryVersion,
                 completedGeometryVersion = latest?.geometryVersion,
+                requestedEventSequence = frame.eventSequence,
+                completedEventSequence = latest?.eventSequence,
+                requestedPathId = frame.energyEvent?.pathId ?: "NOT_CREATED",
+                completedPathId = pathId(latest),
             )
         val timeoutRunnable = Runnable {
             if (!completed.compareAndSet(false, true)) return@Runnable
@@ -80,6 +101,8 @@ object RecognitionPixelCopyCapture {
                     sameSceneIdentity = sameIdentityFor(latest),
                     completionTimestampMs = maxOf(requestTime, completionTime),
                     geometryVersionAtCompletion = latest?.geometryVersion,
+                    eventSequenceAtCompletion = latest?.eventSequence,
+                    pathIdAtCompletion = pathId(latest),
                 ),
             )
         }
@@ -121,7 +144,7 @@ object RecognitionPixelCopyCapture {
                 return
             }
             runCatching {
-                PixelCopy.request(window, bitmap, { copyResult ->
+                backend.request(window, bitmap, handler) { copyResult ->
                     handler.removeCallbacks(timeoutRunnable)
                     if (!completed.compareAndSet(false, true)) {
                         runCatching { if (!bitmap.isRecycled) bitmap.recycle() }
@@ -151,9 +174,11 @@ object RecognitionPixelCopyCapture {
                             sameSceneIdentity = sameIdentity,
                             completionTimestampMs = maxOf(requestTime, completionTime),
                             geometryVersionAtCompletion = latest?.geometryVersion,
+                            eventSequenceAtCompletion = latest?.eventSequence,
+                            pathIdAtCompletion = pathId(latest),
                         ),
                     )
-                }, handler)
+                }
             }.onFailure {
                 handler.removeCallbacks(timeoutRunnable)
                 if (completed.compareAndSet(false, true)) {
@@ -198,6 +223,14 @@ object RecognitionPixelCopyCapture {
             decor.hasWindowFocus() &&
             decor.width > 0 &&
             decor.height > 0
+
+    private val ANDROID_BACKEND = RecognitionPixelCopyRequestBackend { window, bitmap, handler, callback ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            PixelCopy.request(window, bitmap, { result -> callback(result) }, handler)
+        } else {
+            callback(PixelCopy.ERROR_UNKNOWN)
+        }
+    }
 
     private const val POST_COMMIT_FALLBACK_DELAY_MS = 48L
 }

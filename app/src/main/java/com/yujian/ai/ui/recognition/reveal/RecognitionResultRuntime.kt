@@ -10,6 +10,7 @@ import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.waterlight.core.RecognitionFishPathSnapshot
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
@@ -292,6 +293,7 @@ data class RecognitionResultHandoffEvent(
     val renderStatus: String,
     val resultIdentity: String,
     val glyphReadiness: RecognitionGlyphReadiness? = null,
+    val playbackMode: ScenePlaybackMode = ScenePlaybackMode.AUTO,
 )
 
 data class RecognitionResultHandoffReceipt(

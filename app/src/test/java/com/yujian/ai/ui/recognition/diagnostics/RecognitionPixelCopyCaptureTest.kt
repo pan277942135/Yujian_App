@@ -41,4 +41,43 @@ class RecognitionPixelCopyCaptureTest {
             RecognitionEvidenceCapturePolicy.pixelCopyStatus("PIXELCOPY_ERROR", "ORB_RELEASE", "ORB_RELEASE", true),
         )
     }
+
+    @Test fun pixelCopyRequiresMatchingRuntimeEventSequenceAndPathIdentity() {
+        assertTrue(
+            RecognitionEvidenceCapturePolicy.sameSceneFrameIdentity(
+                requestedIdentity = identity,
+                completedIdentity = identity,
+                requestedGeometryVersion = 8L,
+                completedGeometryVersion = 8L,
+                requestedEventSequence = 12L,
+                completedEventSequence = 12L,
+                requestedPathId = "path-1",
+                completedPathId = "path-1",
+            ),
+        )
+        assertFalse(
+            RecognitionEvidenceCapturePolicy.sameSceneFrameIdentity(
+                requestedIdentity = identity,
+                completedIdentity = identity,
+                requestedGeometryVersion = 8L,
+                completedGeometryVersion = 8L,
+                requestedEventSequence = 12L,
+                completedEventSequence = 13L,
+                requestedPathId = "path-1",
+                completedPathId = "path-1",
+            ),
+        )
+        assertFalse(
+            RecognitionEvidenceCapturePolicy.sameSceneFrameIdentity(
+                requestedIdentity = identity,
+                completedIdentity = identity,
+                requestedGeometryVersion = 8L,
+                completedGeometryVersion = 8L,
+                requestedEventSequence = 12L,
+                completedEventSequence = 12L,
+                requestedPathId = "path-1",
+                completedPathId = "path-2",
+            ),
+        )
+    }
 }

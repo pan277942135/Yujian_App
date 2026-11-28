@@ -592,6 +592,7 @@ fun RecognitionResultScreen(
             renderStatus = "READY",
             resultIdentity = resultSnapshot?.glyphSpeciesKey ?: prediction.top1.speciesKey,
             glyphReadiness = eventGlyphReadiness,
+            playbackMode = frame.playbackMode,
         )
         resultHandoffEventTimestampMs = eventTimestampMs
         if (resultGeometryReady) {
@@ -1093,8 +1094,7 @@ fun RecognitionResultScreen(
                     frame = evidenceFrame,
                     latestFrame = { latestEvidenceResultFrame.value },
                     resultSceneStable = evidenceFrame.resultSceneStable,
-                    allowPixelCopyCapture = diagnosticUiAvailable &&
-                        diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC,
+                    allowPixelCopyCapture = BuildConfig.DEBUG && recognitionEvidenceRecorder != null,
                 )
             }
             val handoff = revealHandoff
@@ -1592,6 +1592,7 @@ fun RecognitionResultScreen(
                         event = event,
                         accepted = true,
                         taskEnergyMergedBeforeEvent = resultSceneFrame.taskEnergyMerged,
+                        sourceDomain = resultSceneFrame.playbackMode.name,
                     )
                 } else if (activeController != null && receipt?.rejectionReason != null) {
                     recognitionEvidenceRecorder?.recordEnergyEventRejection(

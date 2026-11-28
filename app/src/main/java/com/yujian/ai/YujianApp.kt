@@ -19,8 +19,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,8 +35,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -96,6 +104,8 @@ import com.yujian.ai.ui.screens.LegalDocumentScreen
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceIdentity
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionAttemptTerminalState
+import com.yujian.ai.ui.recognition.diagnostics.RecognitionEvidenceZipExporter
 import com.yujian.ai.ui.recognition.diagnostics.RecognitionSessionEvidenceRecorder
 import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.identify.RecognitionUiState
@@ -170,6 +180,22 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
     val feedbackRepository = remember { FeedbackRepository(context) }
     val inferenceRecorder = remember { InferenceRecorder(context) }
     val recognitionEvidenceRecorder = remember(context) { RecognitionSessionEvidenceRecorder(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, recognitionEvidenceRecorder) {
+        val observer = LifecycleEventObserver { _, event ->
+            recognitionEvidenceRecorder.recordLifecycleState(event.name)
+            if (event == Lifecycle.Event.ON_PAUSE || event == Lifecycle.Event.ON_STOP) {
+                recognitionEvidenceRecorder.flushAsync()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            recognitionEvidenceRecorder.recordLifecycleState("COMPOSITION_DISPOSED")
+            recognitionEvidenceRecorder.flushAsync()
+        }
+    }
+    var recoveredEvidenceExportStatus by remember { mutableStateOf<String?>(null) }
     DisposableEffect(diagnosticPlaybackController, recognitionEvidenceRecorder) {
         diagnosticPlaybackController.setStageEventObserver(recognitionEvidenceRecorder::recordStageEvent)
         onDispose { diagnosticPlaybackController.setStageEventObserver(null) }
@@ -270,6 +296,10 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
     }
 
     fun clearRecognitionSession(preserveSession: Boolean = false) {
+        recognitionEvidenceRecorder.finishAttempt(
+            RecognitionAttemptTerminalState.CANCELLED,
+            "RECOGNITION_SESSION_CANCELLED_OR_REPLACED",
+        )
         subjectAttemptRunner.cancel()
         diagnosticPlaybackController.cancelSession()
         revealSessionStore.clearAttempt(preserveSession)
@@ -344,6 +374,9 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                 attemptId = requireNotNull(activeRecognitionAttemptId),
                 imageId = selected.imageId,
                 photoSha256 = selected.photoSha256,
+                photoWidthPx = selected.bitmap.width,
+                photoHeightPx = selected.bitmap.height,
+                orientationDegrees = selected.sourceOrientationDegrees.mod(360),
             ),
         )
         revealSessionStore.beginAttempt(
@@ -559,6 +592,10 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                     Log.e("RecognitionRevealHandoff", "RESULT_NAVIGATION_FAILED attempt=$attemptId", it)
                 }
         } else {
+            recognitionEvidenceRecorder.finishAttempt(
+                RecognitionAttemptTerminalState.RECOGNITION_FAILED,
+                "RECOGNITION_RESULT_NOT_READY",
+            )
             runCatching { nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } } }
                 .onFailure { Log.e("RecognitionRevealHandoff", "RECOGNITION_ISSUE_NAVIGATION_FAILED attempt=$attemptId", it) }
         }
@@ -712,6 +749,7 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                     val resolvedHomeState = resolveHomeState(catchesState.catches, catchesState.resolved)
                     val showEmpty = resolvedHomeState == HomeState.EMPTY ||
                         (resolvedHomeState == null && validHomeRecords(catchesState.catches).isEmpty())
+                    Box(Modifier.fillMaxSize()) {
                     HomeScreen(
                         nickname = active?.nickname.orEmpty(),
                         statistics = catchesState.statistics,
@@ -733,6 +771,38 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                         onProfileClick = { if (active == null) nav.navigate("auth/login") else nav.navigate("my") },
                         onCatchClick = { catchId -> nav.navigate("catch/" + Uri.encode(catchId)) },
                     )
+                    val recoveredAttemptId = recognitionEvidenceRecorder.recoveredAttemptIds().firstOrNull()
+                    if (BuildConfig.DEBUG && recoveredAttemptId != null) {
+                        TextButton(
+                            modifier = Modifier.align(Alignment.TopEnd).padding(12.dp),
+                            onClick = {
+                                scope.launch {
+                                    recoveredEvidenceExportStatus = "EXPORTING"
+                                    runCatching {
+                                        RecognitionEvidenceZipExporter.export(
+                                            activityContext,
+                                            recognitionEvidenceRecorder,
+                                            recoveredAttemptIdHash = recoveredAttemptId,
+                                        )
+                                    }.onSuccess { exported ->
+                                        val share = RecognitionEvidenceZipExporter.share(activityContext, exported)
+                                        recoveredEvidenceExportStatus = "RECOVERED · ${exported.integrityStatus} · ${exported.sha256.take(12)}"
+                                        Log.i(
+                                            "RecognitionEvidenceRecovery",
+                                            "RECOVERED_ZIP_EXPORTED attemptHash=${recoveredAttemptId.take(12)} " +
+                                                "sha256=${exported.sha256} share=${share.chooserLaunched}",
+                                        )
+                                    }.onFailure { failure ->
+                                        recoveredEvidenceExportStatus = "EXPORT_FAILED · ${failure.message ?: failure::class.simpleName}"
+                                        Log.e("RecognitionEvidenceRecovery", "RECOVERED_ZIP_EXPORT_FAILED", failure)
+                                    }
+                                }
+                            },
+                        ) {
+                            Text(recoveredEvidenceExportStatus ?: "导出上次中断的识鱼证据 (${recognitionEvidenceRecorder.recoveredAttemptCount})")
+                        }
+                    }
+                    }
                 }
                 composable(
                     route = "memory_capture/{catchId}/{captureMode}",
@@ -1086,6 +1156,10 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                         },
                         onFailure = {
                             if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
+                                recognitionEvidenceRecorder.finishAttempt(
+                                    RecognitionAttemptTerminalState.RECOGNITION_FAILED,
+                                    "RECOGNITION_PIPELINE_FAILURE",
+                                )
                                 productionResult = null
                                 recognitionTechnicalFailure = true
                                 nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
@@ -1239,6 +1313,10 @@ fun YujianApp(productionAutoPlayback: Boolean = true) {
                                     key = key,
                                     store = revealSessionStore,
                                     controller = diagnosticPlaybackController,
+                                )
+                                recognitionEvidenceRecorder.finishAttempt(
+                                    RecognitionAttemptTerminalState.RESULT_STABLE,
+                                    "RESULT_REVEAL_FINISHED",
                                 )
                             },
                             onSave = { draft, feedback, destination ->
