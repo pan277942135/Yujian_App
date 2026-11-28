@@ -313,6 +313,7 @@ jobs:
         run: |
           python3 -m unittest discover -s scripts/ci/tests -p 'test_validate_recognition_result_api36_smoke.py' -v
           python3 -m unittest discover -s scripts/ci/tests -p 'test_api36_instrumentation_case.py' -v
+          python3 -m unittest discover -s scripts/ci/tests -p 'test_package_api36_evidence.py' -v
           python3 -m unittest discover -s scripts/ci/tests -p 'test_validate_slimsam_preload_evidence.py' -v
           bash scripts/ci/tests/test_recognition_result_api36_smoke_runner.sh
 
@@ -847,28 +848,7 @@ jobs:
           evidence=evidence/runtime/recognition-result-api36
           archive="evidence/runtime/YuJian-recognition-result-api36-${SOURCE_SHA}.zip"
           mkdir -p evidence/runtime
-          python3 - "$evidence" "$archive" <<'PY'
-          import hashlib, pathlib, sys, zipfile
-          root, output = map(pathlib.Path, sys.argv[1:])
-          root.mkdir(parents=True, exist_ok=True)
-          sums = root / 'evidence-sha256sums.txt'
-          if not sums.is_file():
-              files = sorted(path for path in root.rglob('*') if path.is_file() and path != sums)
-              sums.write_text(''.join(f'{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.relative_to(root).as_posix()}\n' for path in files))
-          for line in sums.read_text(encoding='utf-8').splitlines():
-              digest, relative = line.split('  ', 1)
-              path = root / relative
-              assert path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == digest, relative
-          with zipfile.ZipFile(output, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
-              for path in sorted(root.rglob('*')):
-                  if path.is_file():
-                      archive.write(path, path.relative_to(root).as_posix())
-          with zipfile.ZipFile(output) as archive:
-              assert archive.testzip() is None
-          digest = hashlib.sha256(output.read_bytes()).hexdigest()
-          output.with_suffix(output.suffix + '.sha256').write_text(f'{digest}  {output.name}\n')
-          print(f'API36_EVIDENCE_ZIP={output} bytes={output.stat().st_size} sha256={digest}')
-          PY
+          python3 scripts/ci/package_api36_evidence.py --root "$evidence" --output "$archive"
 
       - name: Upload API 36 runtime evidence
         if: always()
