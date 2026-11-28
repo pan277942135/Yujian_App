@@ -1,6 +1,7 @@
 package com.yujian.ai.ai
 
 import android.content.Context
+import android.os.Process
 import android.os.SystemClock
 import com.yujian.ai.model.SelectedImage
 import org.json.JSONObject
@@ -41,9 +42,12 @@ class RecognitionAttemptDiagnostics(context: Context) {
             val row = JSONObject().put("schema_version", 1).put("event_sequence", ++sequence)
                 .put("event_name", name).put("stage", stage).put("status", status)
                 .put("wall_time", java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", java.util.Locale.US).format(java.util.Date())).put("uptime_ms", now)
+                .put("elapsed_realtime_ns", SystemClock.elapsedRealtimeNanos())
                 .put("duration_ms", now - startedMs)
                 .put("recognition_session_id", session).put("recognition_attempt_id", id)
+                .put("trace_id", "$session:$id:${image?.photoSha256.orEmpty()}")
                 .put("image_id", image?.imageId).put("photo_sha256", image?.photoSha256)
+                .put("process_pid", Process.myPid()).put("thread_name", Thread.currentThread().name)
                 .put("expected_detector_model_id", "DET_FISH_v0.3")
                 .put("expected_detector_sha256", "98257b953b0e9f8aa673572fe4a9749a730ed8a2c014a42b7c492a0e3592c9a1")
                 .put("expected_classifier_model_id", "MODEL_CROP_M1_v0.2")

@@ -73,6 +73,15 @@ data class SlimSamRuntimeEvent(
     val androidNativeHeapFreeBytes: Long? = null,
     val androidProcessPssKb: Long? = null,
     val androidProcessRssKb: Long? = null,
+    val androidProcessVmHwmKb: Long? = null,
+    val androidProcessRssAnonKb: Long? = null,
+    val androidProcessVmSwapKb: Long? = null,
+    val androidSystemMemAvailableKb: Long? = null,
+    val androidSystemSwapFreeKb: Long? = null,
+    val androidMemoryPsiSome: String? = null,
+    val androidMemoryPsiFull: String? = null,
+    val androidJavaHeapUsedBytes: Long? = null,
+    val androidJavaHeapMaxBytes: Long? = null,
     val ortArenaReservedBytes: Long? = null,
     val memorySampleUptimeNs: Long? = null,
     val stageName: String,
@@ -545,6 +554,10 @@ class SlimSamRuntimeManager(
         append(" activeNativeRunCount=$activeNativeRunCount")
         append(" nativeHeapAllocatedBytes=$androidNativeHeapAllocatedBytes nativeHeapSizeBytes=$androidNativeHeapSizeBytes")
         append(" nativeHeapFreeBytes=$androidNativeHeapFreeBytes processPssKb=$androidProcessPssKb processRssKb=$androidProcessRssKb")
+        append(" processVmHwmKb=$androidProcessVmHwmKb processRssAnonKb=$androidProcessRssAnonKb processVmSwapKb=$androidProcessVmSwapKb")
+        append(" systemMemAvailableKb=$androidSystemMemAvailableKb systemSwapFreeKb=$androidSystemSwapFreeKb")
+        append(" javaHeapUsedBytes=$androidJavaHeapUsedBytes javaHeapMaxBytes=$androidJavaHeapMaxBytes")
+        append(" memoryPsiSome=$androidMemoryPsiSome memoryPsiFull=$androidMemoryPsiFull")
         append(" ortArenaReservedBytes=$ortArenaReservedBytes nodeName=$nodeName executionBoundary=$executionBoundary knownTensorInputBytes=$knownTensorInputBytes")
         append(" memorySampleUptimeNs=$memorySampleUptimeNs")
         append(" threadName=$threadName result=$result errorCode=$errorCode")

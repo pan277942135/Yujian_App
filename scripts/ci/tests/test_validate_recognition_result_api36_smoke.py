@@ -236,6 +236,47 @@ class Api36SmokeSummaryFinalizerTest(unittest.TestCase):
             "--kvm-ready", "true",
         ], capture_output=True, text=True, check=False)
 
+    def configure_e2e_result(self, classification, single_status, five_status):
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        payload.update({
+            "e2e_acceptance_mode": "API36_SINGLE_AND_FIVE_PHOTO",
+            "single_photo_e2e_status": single_status,
+            "five_photo_e2e_status": five_status,
+            "API36_SINGLE_PHOTO_E2E_PASS": single_status == "PASS",
+            "API36_FIVE_PHOTO_E2E_PASS": five_status == "PASS",
+            "API36_E2E_ACCEPTANCE_PASS": single_status == "PASS" and five_status == "PASS",
+            "classification": classification,
+            "failure_reason": "fixture reason",
+        })
+        self.result_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    def test_single_photo_pass_with_missing_five_photo_set_does_not_claim_full_acceptance(self):
+        self.configure_e2e_result(
+            "SINGLE_PHOTO_PASS_FIVE_PHOTO_FIXTURE_SET_BLOCKED",
+            "PASS",
+            "NOT_RUN_FIVE_PHOTO_FIXTURE_SET_UNDEFINED",
+        )
+        process = self.finalize(smoke_result="failure")
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertIs(payload["API36_SINGLE_PHOTO_E2E_PASS"], True)
+        self.assertIs(payload["API36_FIVE_PHOTO_E2E_PASS"], False)
+        self.assertIs(payload["API36_E2E_ACCEPTANCE_PASS"], False)
+        self.assertEqual("SINGLE_PHOTO_PASS_FIVE_PHOTO_FIXTURE_SET_BLOCKED", payload["classification"])
+
+    def test_stale_e2e_success_classification_is_downgraded(self):
+        self.configure_e2e_result(
+            "YUJIAN_P0_API36_E2E_ACCEPTANCE_PASS",
+            "FAIL",
+            "NOT_RUN_SINGLE_PHOTO_GATE_BLOCKED",
+        )
+        process = self.finalize(smoke_result="failure")
+        payload = json.loads(self.result_path.read_text(encoding="utf-8"))
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertIs(payload["API36_E2E_ACCEPTANCE_PASS"], False)
+        self.assertEqual("INFRA_BLOCKED", payload["classification"])
+        self.assertIn("API36_E2E_ACCEPTANCE_GATE_FAILED", payload["failure_reason"])
+
     def test_valid_exact_head_auto_pass_is_preserved(self):
         process = self.finalize()
         payload = json.loads(self.result_path.read_text(encoding="utf-8"))

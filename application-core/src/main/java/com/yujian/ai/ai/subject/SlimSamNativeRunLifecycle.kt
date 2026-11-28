@@ -323,6 +323,9 @@ internal object SlimSamNativeRunExecutors {
 
     val termination = Executors.newCachedThreadPool(daemonFactory)
     val watchdog: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(daemonFactory)
+    val memorySampling: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor { task ->
+        Thread(task, "slimsam-memory-sampler").apply { isDaemon = true }
+    }
     val eventLogging: Executor = Executors.newSingleThreadExecutor { task ->
         Thread(task, "slimsam-native-events").apply { isDaemon = true }
     }

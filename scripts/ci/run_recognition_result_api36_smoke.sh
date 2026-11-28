@@ -27,6 +27,9 @@ test_b_passed=false
 test_b_status=-1
 test_b_timed_out=false
 test_c_passed=false
+single_photo_status="NOT_RUN"
+five_photo_status="NOT_RUN_SINGLE_PHOTO_GATE_BLOCKED"
+single_photo_reason="NOT_RUN"
 test_perf_passed=false
 test_perf_status=-1
 test_perf_timed_out=false
@@ -164,6 +167,7 @@ capture_memory_snapshot() {
   run_optional_diagnostic 'emulator Dalvik heap properties' bash -o pipefail -c \
     'adb shell getprop | grep -E "dalvik.vm.(heap|growth)|ro.config.low_ram"' || return $?
   run_optional_diagnostic "emulator dumpsys meminfo $app_package" adb shell dumpsys meminfo "$app_package" || return $?
+  run_optional_diagnostic "emulator process exit info $app_package" adb shell dumpsys activity exit-info "$app_package" || return $?
   local pid_capture_file
   if ! pid_capture_file="$(mktemp "$evidence_dir/app-pid.XXXXXX")"; then
     return 1
@@ -222,6 +226,7 @@ run_instrumentation_case() {
   local raw_log="$case_dir/instrumentation.log"
   local start_time end_time command_pid command_status timed_out=false case_timeout=1200
   if [[ "$label" == fishmask-performance-baseline ]]; then case_timeout=2400; fi
+  if [[ "$label" == production-auto || "$label" == single-photo-e2e ]]; then case_timeout=240; fi
   local had_errexit=false
   [[ "$-" == *e* ]] && had_errexit=true
   start_time="$(date -u +%Y-%m-%dT%H:%M:%S.%6NZ)"
@@ -238,12 +243,84 @@ run_instrumentation_case() {
     "$test_package/$runner" > "$raw_log" 2>&1 &
   command_pid=$!
   printf 'local_instrumentation_command_pid=%s\n' "$command_pid" > "$case_dir/local-command-pid.txt"
+  local watchdog_started=$SECONDS last_progress=$SECONDS last_checkpoint_signature="" last_runtime_signature=""
+  local last_stall_capture=0 encoder_run_id="" encoder_start_ns="" encoder_capture_45=false encoder_capture_55=false
   while kill -0 "$command_pid" 2>/dev/null; do
     record_instrumentation_process_state "$case_dir" "${label}_running"
+    local checkpoint_tmp="$case_dir/last-checkpoint-live.json"
+    local checkpoint_signature=""
+    if timeout 10s adb shell run-as "$app_package" cat \
+        "/data/user/0/$app_package/cache/recognition-result-handoff/instrumentation/last_checkpoint.json" \
+        > "$checkpoint_tmp" 2>/dev/null; then
+      checkpoint_signature="$(sha256sum "$checkpoint_tmp" | awk '{print $1}')"
+      if [[ "$checkpoint_signature" != "$last_checkpoint_signature" ]]; then
+        last_checkpoint_signature="$checkpoint_signature"
+        last_progress=$SECONDS
+        cp "$checkpoint_tmp" "$case_dir/last_checkpoint.json"
+      fi
+    fi
+    local runtime_tmp="$case_dir/runtime-events-live.log"
+    timeout 10s adb logcat -d -s SlimSamTiming:I > "$runtime_tmp" 2>/dev/null || true
+    local runtime_signature
+    runtime_signature="$(tail -n 1 "$runtime_tmp" 2>/dev/null | sha256sum | awk '{print $1}')"
+    if [[ -n "$runtime_signature" && "$runtime_signature" != "$last_runtime_signature" ]]; then
+      last_runtime_signature="$runtime_signature"
+      if tail -n 20 "$runtime_tmp" | grep -Fq 'event=NATIVE_MEMORY_SAMPLE'; then last_progress=$SECONDS; fi
+    fi
+
+    local current_event=""
+    current_event="$(sed -n 's/.*"event"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$case_dir/last_checkpoint.json" 2>/dev/null | head -1)"
+    local no_progress=$((SECONDS - last_progress))
+    local ui_wait=false
+    case "$current_event" in
+      HOME_ACTIVITY_LAUNCH_REQUESTED|PHOTO_PICKER_OPEN_REQUESTED|PHOTO_PICKER_ACTIVITY_RESUMED|PHOTO_SELECTION_TAPPED|PHOTO_INPUT_READY_PROCESSING_VISIBLE|RESULT_PAGE_RESUMED_AND_VISIBLE)
+        ui_wait=true
+        ;;
+    esac
+    if { [[ "$ui_wait" == true && "$no_progress" -ge 20 ]] || [[ "$no_progress" -ge 30 ]]; } && \
+        (( SECONDS - last_stall_capture >= 20 )); then
+      capture_instrumentation_snapshot "$case_dir" "NO_PROGRESS_${current_event:-UNKNOWN}"
+      last_stall_capture=$SECONDS
+    fi
+
+    local latest_encoder_line latest_encoder_run end_for_encoder device_uptime
+    latest_encoder_line="$(grep -F 'event=VISION_ENCODER_START' "$runtime_tmp" | tail -1 || true)"
+    latest_encoder_run="$(sed -n 's/.*runOptionsId=\([^ ]*\).*/\1/p' <<< "$latest_encoder_line")"
+    if [[ -n "$latest_encoder_run" ]]; then
+      end_for_encoder="$(grep -F "event=VISION_ENCODER_NATIVE_END" "$runtime_tmp" | grep -F "runOptionsId=$latest_encoder_run" | tail -1 || true)"
+      if [[ -z "$end_for_encoder" ]]; then
+        encoder_run_id="$latest_encoder_run"
+        encoder_start_ns="$(sed -n 's/.*startUptimeNs=\([0-9]*\).*/\1/p' <<< "$latest_encoder_line")"
+        device_uptime="$(timeout 10s adb shell cat /proc/uptime 2>/dev/null | awk '{print $1}' | tr -d '\r' || true)"
+        if [[ "$encoder_start_ns" =~ ^[0-9]+$ && "$device_uptime" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+          local encoder_elapsed_ms
+          encoder_elapsed_ms="$(awk -v now="$device_uptime" -v start="$encoder_start_ns" 'BEGIN { elapsed=(now-start/1000000000)*1000; if (elapsed<0) elapsed=0; printf "%d", elapsed }')"
+          if [[ "$encoder_elapsed_ms" -ge 45000 && "$encoder_capture_45" != true ]]; then
+            capture_instrumentation_snapshot "$case_dir" "ENCODER_45S"
+            encoder_capture_45=true
+          fi
+          if [[ "$encoder_elapsed_ms" -ge 55000 && "$encoder_capture_55" != true ]]; then
+            capture_instrumentation_snapshot "$case_dir" "ENCODER_55S"
+            encoder_capture_55=true
+          fi
+          printf 'active_encoder_run_options_id=%s elapsed_ms=%s\n' "$encoder_run_id" "$encoder_elapsed_ms" \
+            >> "$case_dir/encoder-watchdog.log"
+        fi
+      fi
+    fi
+
+    if (( SECONDS - watchdog_started >= case_timeout - 20 )); then
+      capture_instrumentation_snapshot "$case_dir" TOTAL_TIMEOUT_BEFORE_TERMINATION
+    fi
     sleep 5
   done
   if wait "$command_pid"; then command_status=0; else command_status=$?; fi
   if [[ "$command_status" -eq 124 || "$command_status" -eq 137 ]]; then timed_out=true; fi
+  if [[ "$timed_out" == true ]]; then
+    capture_instrumentation_snapshot "$case_dir" TOTAL_TIMEOUT_AFTER_ADB_CLIENT_EXIT
+    timeout 20s adb shell am force-stop "$test_package" > "$case_dir/force-stop-instrumentation-after-timeout.log" 2>&1 || true
+    timeout 20s adb shell am force-stop "$app_package" > "$case_dir/force-stop-app-after-timeout.log" 2>&1 || true
+  fi
   if [[ "$had_errexit" == true ]]; then set -e; fi
   end_time="$(date -u +%Y-%m-%dT%H:%M:%S.%6NZ)"
 
@@ -287,6 +364,51 @@ PY
   fi
 }
 
+capture_instrumentation_snapshot() {
+  local case_dir="$1"
+  local reason="$2"
+  local snapshot_dir="$case_dir/watchdog/${reason}_$(date -u +%Y%m%dT%H%M%SZ)"
+  mkdir -p "$snapshot_dir"
+  printf 'reason=%s\nwall_time_utc=%s\n' "$reason" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    > "$snapshot_dir/watchdog_reason.txt"
+  if [[ -s "$case_dir/last_checkpoint.json" ]]; then
+    cp "$case_dir/last_checkpoint.json" "$snapshot_dir/last_checkpoint.json"
+  else
+    timeout 10s adb shell run-as "$app_package" cat \
+      "/data/user/0/$app_package/cache/recognition-result-handoff/instrumentation/last_checkpoint.json" \
+      > "$snapshot_dir/last_checkpoint.json" 2>&1 || true
+  fi
+  timeout 15s adb shell dumpsys activity activities > "$snapshot_dir/activity_state.txt" 2>&1 || true
+  timeout 15s adb shell dumpsys window windows > "$snapshot_dir/window_state.txt" 2>&1 || true
+  timeout 15s adb shell dumpsys activity exit-info "$app_package" > "$snapshot_dir/process_exit_info.txt" 2>&1 || true
+  timeout 15s adb shell dumpsys meminfo "$app_package" > "$snapshot_dir/app_meminfo.txt" 2>&1 || true
+  timeout 15s adb shell dumpsys meminfo "$test_package" > "$snapshot_dir/test_meminfo.txt" 2>&1 || true
+  local pid
+  for pid in $(timeout 10s adb shell pidof "$app_package" "$test_package" 2>/dev/null | tr -d '\r' || true); do
+    [[ "$pid" =~ ^[0-9]+$ ]] || continue
+    printf 'pid=%s\n' "$pid" >> "$snapshot_dir/thread_dump_requests.txt"
+    timeout 10s adb shell "kill -3 $pid" >> "$snapshot_dir/thread_dump_requests.txt" 2>&1 || true
+    timeout 10s adb shell "grep -E '^(Name|VmPeak|VmSize|VmHWM|VmRSS|VmSwap|RssAnon|RssFile|RssShmem):' /proc/$pid/status" \
+      >> "$snapshot_dir/process_status.txt" 2>&1 || true
+  done
+  timeout 15s adb shell uiautomator dump /sdcard/yujian-api36-watchdog-window.xml \
+    > "$snapshot_dir/ui_dump_command.txt" 2>&1 || true
+  timeout 10s adb pull /sdcard/yujian-api36-watchdog-window.xml "$snapshot_dir/ui_hierarchy.xml" \
+    >> "$snapshot_dir/ui_dump_command.txt" 2>&1 || true
+  timeout 10s adb exec-out screencap -p > "$snapshot_dir/screen.png" 2> "$snapshot_dir/screen.log" || true
+  timeout 15s adb logcat -d -b all -v threadtime > "$snapshot_dir/logcat.txt" 2>&1 || true
+  timeout 10s adb logcat -d -s SlimSamTiming:I > "$snapshot_dir/recent_runtime_events.txt" 2>&1 || true
+  tail -n 50 "$snapshot_dir/recent_runtime_events.txt" > "$snapshot_dir/runtime_events_last_50.txt" 2>/dev/null || true
+  timeout 15s adb exec-out run-as "$app_package" tar -C cache -cf - \
+    recognition-result-handoff recognition-runtime-result-handoff YuJian_SlimSAM_Preload_Evidence \
+    > "$snapshot_dir/app_private_evidence.tar" 2> "$snapshot_dir/app_private_evidence_pull.log" || true
+  if [[ -s "$snapshot_dir/app_private_evidence.tar" ]]; then
+    mkdir -p "$snapshot_dir/private"
+    tar -xf "$snapshot_dir/app_private_evidence.tar" -C "$snapshot_dir/private" 2>> "$snapshot_dir/app_private_evidence_pull.log" || true
+    rm -f "$snapshot_dir/app_private_evidence.tar"
+  fi
+}
+
 force_stop_test_processes_and_verify() {
   local label="$1"
   local case_dir="$2"
@@ -325,10 +447,11 @@ pull_private_evidence() {
   local status_file="$evidence_dir/private-evidence-pull-status.txt"
   local remote_dir archive log_file pull_status extract_status
   mkdir -p "$cache_root"
-  for remote_dir in \
-      rr09-gold-transfer-production \
-      recognition-runtime-result-handoff \
-      YuJian_SlimSAM_Preload_Evidence; do
+  local -a remote_dirs=(rr09-gold-transfer-production recognition-runtime-result-handoff YuJian_SlimSAM_Preload_Evidence)
+  if [[ "${API36_SINGLE_PHOTO_E2E_ONLY:-false}" == true ]]; then
+    remote_dirs=(recognition-result-handoff recognition-runtime-result-handoff YuJian_SlimSAM_Preload_Evidence)
+  fi
+  for remote_dir in "${remote_dirs[@]}"; do
     case "$remote_dir" in
       rr09-gold-transfer-production)
         archive="$cache_root/production-test-cache.tar"
@@ -337,6 +460,10 @@ pull_private_evidence() {
       recognition-runtime-result-handoff)
         archive="$cache_root/production-runtime-evidence.tar"
         log_file="$cache_root/production-runtime-evidence-pull.log"
+        ;;
+      recognition-result-handoff)
+        archive="$cache_root/production-e2e-test-evidence.tar"
+        log_file="$cache_root/production-e2e-test-evidence-pull.log"
         ;;
       YuJian_SlimSAM_Preload_Evidence)
         archive="$cache_root/slimsam-preload-evidence.tar"
@@ -422,7 +549,7 @@ finish() {
     adb logcat -b all -d -v threadtime > "$evidence_dir/logcat.txt" 2>&1
     grep -Ei 'lowmemorykiller|lmkd|am_kill|am_proc_died|out of memory|oom.*kill|low memory' \
       "$evidence_dir/logcat.txt" > "$evidence_dir/lowmemorykiller-events.txt" || true
-    grep -Ei 'SLIMSAM_(START|END|PREWARM_[A-Z]+)|SLIMSAM_(ENCODER|DECODER)_(START|END)|SLIMSAM_.*duration_ms|ATTEMPT_DEADLINE_EXCEEDED|SLIMSAM_RESULT_FAILED|NATIVE_RUN_RETURNED|GC |GC:|Native Heap|lowmemorykiller|lmkd' \
+    grep -Ei 'SLIMSAM_(START|END|PREWARM_[A-Z]+)|SLIMSAM_(ENCODER|DECODER)_(START|END)|SLIMSAM_.*duration_ms|NATIVE_MEMORY_SAMPLE|VISION_ENCODER_NATIVE_END|NATIVE_RUN_RETURNED|NATIVE_TERMINATION_UNCONFIRMED|ATTEMPT_DEADLINE_EXCEEDED|SLIMSAM_RESULT_FAILED|GC |GC:|nativeHeapAllocatedBytes|processVmHwmKb|processRssAnonKb|processVmSwapKb|lowmemorykiller|lmkd' \
       "$evidence_dir/logcat.txt" > "$evidence_dir/model-gc-native-memory-events.txt" || true
     adb devices -l > "$evidence_dir/adb-devices-final.txt" 2>&1
     pull_private_evidence
@@ -501,7 +628,7 @@ finish() {
     "$cold_start_passed_count" "$cold_start_force_stop_verified" \
     "$test_a_class#$test_a_method" "$test_class#$test_method" "$test_perf_class#$test_perf_method" \
     "$test_perf_class#coldStartWaitsForRealVisionAndDecoderSessions" \
-    "$test_c_class#$test_c_method" <<'PY'
+    "$test_c_class#$test_c_method" "$single_photo_status" "$five_photo_status" "$single_photo_reason" <<'PY'
 import hashlib, json, os, pathlib, sys, time
 (path, evidence_root, source_sha, classification, reason, exit_code, instrument_status, timed_out,
  test_started, failure_phase, attempted, adb_ready, emulator_boot_pass, build_pass, kvm_ready,
@@ -509,7 +636,8 @@ import hashlib, json, os, pathlib, sys, time
  pre_screenshot_pull_status, post_screenshot_pull_status, force_stop_verified,
  reveal_force_stop_verified, test_perf_passed, test_perf_status, test_perf_timed_out,
  perf_force_stop_verified, cold_start_passed_count, cold_start_force_stop_verified,
- test_a_name, test_b_name, test_perf_name, test_cold_start_name, test_c_name) = sys.argv[1:]
+ test_a_name, test_b_name, test_perf_name, test_cold_start_name, test_c_name,
+ single_photo_status, five_photo_status, single_photo_reason) = sys.argv[1:]
 path = pathlib.Path(path)
 evidence_root = pathlib.Path(evidence_root)
 def load_case(name, test_name, phase):
@@ -550,6 +678,13 @@ result = {
     'api_level_expected': 36,
     'test': 'com.yujian.ai.RecognitionRevealProductionRuntimeTest#realNightCatchHandoffDrivesTheNativeResultReveal',
     'classification': classification,
+    'e2e_acceptance_mode': 'API36_SINGLE_AND_FIVE_PHOTO' if os.environ.get('API36_SINGLE_PHOTO_E2E_ONLY') == 'true' else 'LEGACY_API36_SMOKE',
+    'single_photo_e2e_status': single_photo_status,
+    'single_photo_e2e_reason': single_photo_reason,
+    'five_photo_e2e_status': five_photo_status,
+    'API36_SINGLE_PHOTO_E2E_PASS': single_photo_status == 'PASS',
+    'API36_FIVE_PHOTO_E2E_PASS': five_photo_status == 'PASS',
+    'API36_E2E_ACCEPTANCE_PASS': single_photo_status == 'PASS' and five_photo_status == 'PASS',
     'failure_reason': reason,
     'failure_phase': failure_phase,
     'validation_reason': validation_reason,
@@ -780,6 +915,133 @@ fi
 memory_sampler_pid=$!
 
 instrumentation_attempted=true
+if [[ "${API36_SINGLE_PHOTO_E2E_ONLY:-false}" == true ]]; then
+  single_case_dir="$evidence_dir/test-cases/production-auto"
+  enter_phase API36_SINGLE_PHOTO_E2E SINGLE_PHOTO_E2E_DID_NOT_COMPLETE
+  test_c_status=0
+  if run_instrumentation_case single-photo-e2e "$test_c_class" "$test_c_method" "$single_case_dir"; then
+    test_c_passed=true
+  else
+    test_c_status=$?
+  fi
+  instrument_status="$test_c_status"
+  test_b_status="$test_c_status"
+  if [[ "$test_c_status" -eq 124 || "$test_c_status" -eq 137 ]]; then
+    instrumentation_timed_out=true
+  fi
+  if grep -Fq "INSTRUMENTATION_STATUS: test=$test_c_method" "$single_case_dir/instrumentation.log" 2>/dev/null; then
+    test_started=true
+  fi
+  cp "$single_case_dir/instrumentation.log" "$evidence_dir/instrumentation.log" 2>/dev/null || true
+  cp "$single_case_dir/results.xml" "$evidence_dir/instrumentation_results.xml" 2>/dev/null || true
+  adb logcat -d -b all -v threadtime > "$single_case_dir/logcat-final.txt" 2>&1 || true
+  adb shell run-as "$app_package" cat \
+    "/data/user/0/$app_package/cache/recognition-runtime-result-handoff/attempt_failure.json" \
+    > "$single_case_dir/attempt_failure.json" 2>/dev/null || true
+  local_checkpoint="$single_case_dir/last_checkpoint.json"
+  if [[ ! -s "$local_checkpoint" ]]; then
+    timeout 10s adb shell run-as "$app_package" cat \
+      "/data/user/0/$app_package/cache/recognition-result-handoff/instrumentation/last_checkpoint.json" \
+      > "$local_checkpoint" 2>/dev/null || true
+  fi
+
+  if [[ "$test_c_passed" == true ]]; then
+    report="$single_case_dir/production_e2e_test_report.json"
+    timeout 10s adb shell run-as "$app_package" cat \
+      "/data/user/0/$app_package/cache/recognition-result-handoff/production_e2e_test_report.json" \
+      > "$report" 2>/dev/null || true
+    if python3 - "$report" "$source_sha" <<'PY'
+import json, pathlib, sys
+payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'))
+assert payload.get('status') == 'PASS'
+assert payload.get('sourceCommitSha') == sys.argv[2]
+assert payload.get('sourceFixtureSha256') == 'a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b'
+assert payload.get('pickerAction') and payload.get('resumedPickerComponent')
+assert payload.get('photoUriScheme') == 'content'
+assert payload.get('acceptedHandoffEventCount') == 5
+assert payload.get('recognitionSessionId') and payload.get('recognitionAttemptId')
+assert payload.get('selectedPhotoSha256') == payload.get('canonicalPixelSha256')
+assert payload.get('sourceBytesSha256') == payload.get('sourceFixtureSha256')
+assert payload.get('width') and payload.get('height')
+assert payload.get('resultScreenshotSha256') and payload.get('processingScreenshotSha256')
+PY
+    then
+      single_photo_status="PASS"
+      single_photo_reason="ALL_SINGLE_PHOTO_PRODUCTION_ASSERTIONS_PASSED"
+      five_photo_status="NOT_RUN_FIVE_PHOTO_FIXTURE_SET_UNDEFINED"
+      result_classification="SINGLE_PHOTO_PASS_FIVE_PHOTO_FIXTURE_SET_BLOCKED"
+      failure_reason="NO_FROZEN_FIVE_PRODUCTION_PHOTO_MANIFEST:tracked Fish-Mask manifest declares four regression inputs with production_outputs=false"
+      failure_phase="FIVE_PHOTO_PREFLIGHT"
+      printf 'API36_SINGLE_PHOTO_E2E_PASS source_sha=%s\n' "$source_sha"
+      printf 'API36_FIVE_PHOTO_E2E=NOT_RUN reason=%s\n' "$failure_reason"
+      exit 51
+    else
+      single_photo_status="FAIL"
+      single_photo_reason="EVIDENCE_INCOMPLETE:single-photo instrumentation passed but report identity or handoff evidence did not validate"
+      five_photo_status="NOT_RUN_SINGLE_PHOTO_EVIDENCE_GATE_BLOCKED"
+      result_classification="EVIDENCE_INCOMPLETE"
+      failure_reason="$single_photo_reason"
+      failure_phase="SINGLE_PHOTO_EVIDENCE_VALIDATION"
+      exit 50
+    fi
+  fi
+
+  latest_event="$(sed -n 's/.*"event"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$local_checkpoint" 2>/dev/null | head -1)"
+  test_reason="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("reason", "RESULT_INVALID"))' \
+    "$single_case_dir/result.json" 2>/dev/null || printf 'RESULT_MISSING')"
+  runtime_log="$single_case_dir/runtime-events-live.log"
+  if grep -Eq 'NATIVE_EXECUTION_STILL_RUNNING|NATIVE_TERMINATION_UNCONFIRMED' "$runtime_log" 2>/dev/null; then
+    single_photo_classification="NATIVE_RUN_NOT_TERMINATED"
+  elif grep -Fq 'LMK_CONFIRMED' "$single_case_dir/result.json" 2>/dev/null; then
+    single_photo_classification="LMK_KILLED"
+  elif grep -Eqi 'fatal signal|tombstone|debuggerd' "$single_case_dir/logcat-final.txt" 2>/dev/null; then
+    single_photo_classification="NATIVE_CRASH"
+  elif [[ "$test_c_status" -eq 124 || "$test_c_status" -eq 137 ]]; then
+    case "$latest_event" in
+      HOME_ACTIVITY_LAUNCH_REQUESTED|PHOTO_PICKER_OPEN_REQUESTED|PHOTO_PICKER_ACTIVITY_RESUMED|PHOTO_SELECTION_TAPPED|PHOTO_INPUT_READY_PROCESSING_VISIBLE|RESULT_PAGE_RESUMED_AND_VISIBLE)
+        single_photo_classification="UI_AUTOMATION_BLOCKED" ;;
+      WAITING_FOR_PRODUCTION_RESULT)
+        if grep -Eqi 'HANDOFF.*(TIMEOUT|FAIL)|RESULT.*TIMEOUT' "$runtime_log" "$single_case_dir/attempt_failure.json" 2>/dev/null; then
+          single_photo_classification="RESULT_HANDOFF_TIMEOUT"
+        else
+          single_photo_classification="COROUTINE_WAIT_STUCK"
+        fi ;;
+      *) single_photo_classification="INSTRUMENTATION_TIMEOUT" ;;
+    esac
+  elif [[ "$test_reason" == EXPECTED_TEST_NOT_STARTED ]]; then
+    single_photo_classification="INFRA_BLOCKED"
+  elif [[ "$latest_event" == WAITING_FOR_PRODUCTION_RESULT ]]; then
+    if grep -Eqi 'HANDOFF.*(TIMEOUT|FAIL)|RESULT.*TIMEOUT' "$runtime_log" "$single_case_dir/attempt_failure.json" 2>/dev/null; then
+      single_photo_classification="RESULT_HANDOFF_TIMEOUT"
+    else
+      single_photo_classification="COROUTINE_WAIT_STUCK"
+    fi
+  elif [[ "$latest_event" == PHOTO_SELECTION_TAPPED ]]; then
+    single_photo_classification="PHOTO_PICKER_FAILURE"
+  elif [[ "$latest_event" == PHOTO_PICKER_* ]]; then
+    single_photo_classification="UI_AUTOMATION_BLOCKED"
+  else
+    failure_code="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("failureCode", ""))' \
+      "$single_case_dir/attempt_failure.json" 2>/dev/null || true)"
+    case "$failure_code" in
+      *MODEL*|*SLIMSAM*|*ENCODER*|*DECODER*) single_photo_classification="MODEL_INFERENCE_FAILURE" ;;
+      *MASK*) single_photo_classification="MASK_NOT_TRUSTED" ;;
+      *PATH*|*CONTOUR*|*PSTAR*) single_photo_classification="FISH_PATH_FAILURE" ;;
+      *HANDOFF*) single_photo_classification="HANDOFF_FAILURE" ;;
+      *RESULT*) single_photo_classification="RESULT_RENDER_FAILURE" ;;
+      *) single_photo_classification="BUSINESS_FAILURE" ;;
+    esac
+  fi
+  single_photo_status="FAIL"
+  single_photo_reason="$single_photo_classification:$test_reason:lastCheckpoint=${latest_event:-NOT_RECORDED}"
+  five_photo_status="NOT_RUN_SINGLE_PHOTO_GATE_BLOCKED"
+  result_classification="$single_photo_classification"
+  failure_reason="$single_photo_reason"
+  failure_phase="API36_SINGLE_PHOTO_E2E"
+  printf 'API36_SINGLE_PHOTO_E2E_FAIL classification=%s reason=%s\n' "$result_classification" "$failure_reason"
+  exit 50
+fi
+
 enter_phase CLASSIFIER_TFLITE_RUNTIME CLASSIFIER_INSTRUMENTATION_DID_NOT_COMPLETE
 if run_instrumentation_case classifier_tflite "$test_a_class" "$test_a_method" \
     "$evidence_dir/test-cases/classifier"; then

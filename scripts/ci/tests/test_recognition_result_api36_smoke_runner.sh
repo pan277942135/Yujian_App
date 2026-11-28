@@ -292,6 +292,48 @@ for path in sys.argv[4:]:
     assert pathlib.Path(path).with_name('results.xml').is_file()
 PY
 
+# The P0 single-photo mode must stop after the real picker E2E case and never
+# run the old cold-start or 10-photo performance baseline.
+single_evidence="$test_root/single-photo-evidence"
+mkdir -p "$single_evidence"
+set +e
+(cd "$repo_root" && env \
+  PATH="$test_root/bin:$PATH" \
+  HOME="$test_root/home" \
+  ANDROID_AVD_HOME="$test_root/home/.android/avd" \
+  EVIDENCE_DIR="$single_evidence" \
+  APK_DIR="$test_root/apks" \
+  SOURCE_SHA=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+  API36_SINGLE_PHOTO_E2E_ONLY=true \
+  FAKE_ADB_CALLS="$test_root/single-adb-calls.log" \
+  FAKE_APP_STARTED="$test_root/app-started" \
+  FAKE_APP_STOPPED="$test_root/app-stopped" \
+  FAKE_INSTRUMENTATION_INVOKED="$test_root/single-instrumentation-invoked" \
+  FAKE_EXEC_OUT_EXIT=2 \
+  bash "$runner") > "$test_root/single-runner.stdout" 2>&1
+single_runner_status=$?
+set -e
+python3 - "$single_evidence/runtime-result.json" "$single_runner_status" "$test_root/single-adb-calls.log" <<'PY'
+import json, pathlib, sys
+result_path = pathlib.Path(sys.argv[1])
+status = int(sys.argv[2])
+calls_path = pathlib.Path(sys.argv[3])
+result = json.loads(result_path.read_text(encoding='utf-8'))
+calls = calls_path.read_text(encoding='utf-8').splitlines()
+instrumentation = [row for row in calls if 'am instrument -w -r' in row]
+assert status != 0, 'controlled single-photo failure must fail closed'
+assert result['e2e_acceptance_mode'] == 'API36_SINGLE_AND_FIVE_PHOTO', result
+assert result['single_photo_e2e_status'] == 'FAIL', result
+assert result['five_photo_e2e_status'] == 'NOT_RUN_SINGLE_PHOTO_GATE_BLOCKED', result
+assert result['API36_SINGLE_PHOTO_E2E_PASS'] is False, result
+assert result['API36_FIVE_PHOTO_E2E_PASS'] is False, result
+assert len(instrumentation) == 1, instrumentation
+assert 'RecognitionResultHandoffProductionNavigationTest#hostedApi36HomePickerAutoRecognitionCompletesResultHandoff' in instrumentation[0]
+assert not any('coldStartWaitsForRealVisionAndDecoderSessions' in row for row in calls), calls
+assert not any('tenPresetFishCacheMissesRunProductionRecognitionAndMask' in row for row in calls), calls
+assert not any('ClassifierRealTfliteTensorBindingTest#' in row for row in calls), calls
+PY
+
 printf '%s\n' \
   'PROC_SWAPS_PERMISSION_DENIED=RECORDED' \
   'PROC_PRESSURE_PERMISSION_DENIED=RECORDED' \

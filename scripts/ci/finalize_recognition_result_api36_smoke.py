@@ -100,6 +100,13 @@ def _append_summary(summary_path: pathlib.Path, payload: dict[str, Any]) -> None
         ("host_swap_total_kb", payload.get("host_swap_total_kb", "NOT_RECORDED")),
         ("avd_ram_mb", payload.get("avd_ram_mb", "NOT_CONFIRMED")),
         ("avd_vm_heap_mb", payload.get("avd_vm_heap_mb", "NOT_CONFIRMED")),
+        ("e2e_acceptance_mode", payload.get("e2e_acceptance_mode", "LEGACY_API36_SMOKE")),
+        ("single_photo_e2e_status", payload.get("single_photo_e2e_status", "NOT_RUN")),
+        ("single_photo_e2e_reason", payload.get("single_photo_e2e_reason", "NOT_RECORDED")),
+        ("five_photo_e2e_status", payload.get("five_photo_e2e_status", "NOT_RUN")),
+        ("API36_SINGLE_PHOTO_E2E_PASS", payload.get("API36_SINGLE_PHOTO_E2E_PASS", False)),
+        ("API36_FIVE_PHOTO_E2E_PASS", payload.get("API36_FIVE_PHOTO_E2E_PASS", False)),
+        ("API36_E2E_ACCEPTANCE_PASS", payload.get("API36_E2E_ACCEPTANCE_PASS", False)),
     ]
     markdown = [
         "## API 36 production AUTO smoke result",
@@ -120,7 +127,14 @@ def _append_summary(summary_path: pathlib.Path, payload: dict[str, Any]) -> None
     cases = payload.get("instrumentation_cases")
     if not isinstance(cases, dict):
         cases = {}
-    for label, key, expected_test in INSTRUMENTATION_CASES:
+    cases_to_report = (
+        ("Single photo production E2E", "production_home_picker_auto", TEST_C)
+        if payload.get("e2e_acceptance_mode") == "API36_SINGLE_AND_FIVE_PHOTO"
+        else INSTRUMENTATION_CASES
+    )
+    if payload.get("e2e_acceptance_mode") == "API36_SINGLE_AND_FIVE_PHOTO":
+        cases_to_report = (cases_to_report,)
+    for label, key, expected_test in cases_to_report:
         case = cases.get(key)
         if not isinstance(case, dict):
             case = {}
@@ -152,11 +166,30 @@ def _error_annotation(classification: str, reason: str, payload: dict[str, Any] 
     def command_escape(value: str) -> str:
         return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
+    title = (
+        "API36 single/five-photo E2E failed"
+        if isinstance(payload, dict) and payload.get("e2e_acceptance_mode") == "API36_SINGLE_AND_FIVE_PHOTO"
+        else "API36 production AUTO smoke failed"
+    )
     print(
-        "::error title=API36 production AUTO smoke failed::"
+        f"::error title={title}::"
         f"classification={command_escape(classification)}; reason={command_escape(reason)}"
     )
     if not isinstance(payload, dict):
+        return
+    if payload.get("e2e_acceptance_mode") == "API36_SINGLE_AND_FIVE_PHOTO":
+        cases = payload.get("instrumentation_cases")
+        case = cases.get("production_home_picker_auto", {}) if isinstance(cases, dict) else {}
+        if not isinstance(case, dict):
+            case = {}
+        detail = (
+            f"single_photo_status={payload.get('single_photo_e2e_status', 'NOT_RECORDED')}; "
+            f"single_photo_reason={payload.get('single_photo_e2e_reason', 'NOT_RECORDED')}; "
+            f"five_photo_status={payload.get('five_photo_e2e_status', 'NOT_RECORDED')}; "
+            f"last_test_failure={case.get('reason', 'NOT_RECORDED')}; "
+            f"failure_phase={payload.get('failure_phase', 'NOT_RECORDED')}"
+        )
+        print(f"::error title=API36 single/five-photo E2E::{command_escape(detail)}")
         return
     cases = payload.get("instrumentation_cases")
     if not isinstance(cases, dict):
@@ -200,7 +233,39 @@ def _enrich(payload: dict[str, Any], args: argparse.Namespace) -> None:
     payload.setdefault("AUTO_SMOKE_PASS", False)
     payload["DEVICE_QA_PENDING"] = True
 
-    if payload.get("classification") == "AUTO_SMOKE_PASS":
+    if payload.get("e2e_acceptance_mode") == "API36_SINGLE_AND_FIVE_PHOTO":
+        single_pass = payload.get("single_photo_e2e_status") == "PASS" and \
+            payload.get("API36_SINGLE_PHOTO_E2E_PASS") is True
+        five_pass = payload.get("five_photo_e2e_status") == "PASS" and \
+            payload.get("API36_FIVE_PHOTO_E2E_PASS") is True
+        gate_failures = []
+        if observed_source_sha != args.source_sha:
+            gate_failures.append("SOURCE_SHA")
+        if args.build_result != "success":
+            gate_failures.append("BUILD")
+        if args.kvm_ready.lower() != "true":
+            gate_failures.append("KVM")
+        if payload.get("EMULATOR_BOOT_PASS") is not True:
+            gate_failures.append("EMULATOR_BOOT")
+        if args.smoke_result != "success":
+            gate_failures.append("API36_RUNNER")
+        payload["API36_SINGLE_PHOTO_E2E_PASS"] = single_pass
+        payload["API36_FIVE_PHOTO_E2E_PASS"] = five_pass
+        payload["API36_E2E_ACCEPTANCE_PASS"] = single_pass and five_pass and not gate_failures
+        if payload["API36_E2E_ACCEPTANCE_PASS"]:
+            payload["classification"] = "YUJIAN_P0_API36_E2E_ACCEPTANCE_PASS"
+        elif single_pass and five_pass and gate_failures:
+            payload["classification"] = "INFRA_BLOCKED"
+            payload["failure_reason"] = "API36_E2E_ACCEPTANCE_GATE_FAILED:" + ",".join(gate_failures)
+        elif payload.get("classification") == "YUJIAN_P0_API36_E2E_ACCEPTANCE_PASS":
+            # Never preserve a success label when the exact-head acceptance gates disagree.
+            payload["classification"] = "INFRA_BLOCKED" if gate_failures else "EVIDENCE_INCOMPLETE"
+            payload["failure_reason"] = (
+                "API36_E2E_ACCEPTANCE_GATE_FAILED:" + ",".join(gate_failures)
+                if gate_failures
+                else "API36_E2E_ACCEPTANCE_PASS_CONTRADICTS_SINGLE_OR_FIVE_PHOTO_RESULT"
+            )
+    elif payload.get("classification") == "AUTO_SMOKE_PASS":
         failed_gates = [
             field
             for field in ("BUILD_PASS", "KVM_READY", "EMULATOR_BOOT_PASS", "AUTO_SMOKE_PASS")
@@ -310,12 +375,18 @@ def _finalize(args: argparse.Namespace) -> int:
             _error_annotation("INFRA_BLOCKED", reason, payload)
             return 0
 
-    if payload.get("classification") != "AUTO_SMOKE_PASS":
+    e2e_acceptance_pass = (
+        payload.get("e2e_acceptance_mode") == "API36_SINGLE_AND_FIVE_PHOTO"
+        and payload.get("API36_E2E_ACCEPTANCE_PASS") is True
+    )
+    if payload.get("classification") != "AUTO_SMOKE_PASS" and not e2e_acceptance_pass:
         _error_annotation(
             str(payload.get("classification", "UNKNOWN")),
             str(payload.get("failure_reason", "UNKNOWN")),
             payload,
         )
+    elif e2e_acceptance_pass:
+        print(f"API36_E2E_ACCEPTANCE_PASS source_sha={payload.get('source_sha')}")
     else:
         print(f"API36_PRODUCTION_AUTO_SMOKE=AUTO_SMOKE_PASS source_sha={payload['source_sha']}")
     return 0

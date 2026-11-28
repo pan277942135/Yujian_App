@@ -39,6 +39,8 @@ import java.security.MessageDigest
 import java.util.ArrayDeque
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 import kotlin.math.exp
 import kotlin.math.max
 import kotlin.math.min
@@ -775,6 +777,25 @@ class SlimSamSegmenter(
             nativeCallStarted = true
             val encoderInputs = mapOf("pixel_values" to tensor)
             val nativeStartedNs = SystemClock.elapsedRealtimeNanos()
+            val memorySampler: ScheduledFuture<*>? = runCatching {
+                SlimSamNativeRunExecutors.memorySampling.scheduleAtFixedRate({
+                    val sampledAtNs = SystemClock.elapsedRealtimeNanos()
+                    runCatching {
+                        recordTiming(
+                            identity,
+                            "VISION_ENCODER_NATIVE_MEMORY",
+                            "NATIVE_MEMORY_SAMPLE",
+                            sampledAtNs,
+                            sampledAtNs,
+                            "SAMPLE",
+                            runOptionsId = runOptionsId,
+                            modelSha256 = visionModelSha256,
+                            executionBoundary = "OrtSession.run",
+                            tensorMetadata = encoderTensorMetadata,
+                        )
+                    }
+                }, 0L, 500L, TimeUnit.MILLISECONDS)
+            }.getOrNull()
             var nativeReturnedSuccessfully = false
             val result = try {
                 session.run(encoderInputs, runOptions).also {
@@ -782,6 +803,7 @@ class SlimSamSegmenter(
                     nativeReturnedSuccessfully = true
                 }
             } finally {
+                memorySampler?.cancel(false)
                 val nativeEndedNs = SystemClock.elapsedRealtimeNanos()
                 runController.nativeReturned()
                 recordTiming(
@@ -789,7 +811,7 @@ class SlimSamSegmenter(
                     nativeStartedNs, nativeEndedNs, if (nativeReturnedSuccessfully) "PASS" else "ERROR",
                     runOptionsId = runOptionsId,
                     executionBoundary = "OrtSession.run",
-                    sampleMemory = false,
+                    sampleMemory = true,
                 )
             }
             deadlineGuard?.throwIfExpired()
@@ -1423,6 +1445,15 @@ class SlimSamSegmenter(
                 androidNativeHeapFreeBytes = memory?.nativeHeapFreeBytes,
                 androidProcessPssKb = memory?.processPssKb,
                 androidProcessRssKb = memory?.processRssKb,
+                androidProcessVmHwmKb = memory?.processVmHwmKb,
+                androidProcessRssAnonKb = memory?.processRssAnonKb,
+                androidProcessVmSwapKb = memory?.processVmSwapKb,
+                androidSystemMemAvailableKb = memory?.systemMemAvailableKb,
+                androidSystemSwapFreeKb = memory?.systemSwapFreeKb,
+                androidMemoryPsiSome = memory?.memoryPsiSome,
+                androidMemoryPsiFull = memory?.memoryPsiFull,
+                androidJavaHeapUsedBytes = memory?.javaHeapUsedBytes,
+                androidJavaHeapMaxBytes = memory?.javaHeapMaxBytes,
                 memorySampleUptimeNs = memorySampleUptimeNs,
                 stageName = stage,
                 eventName = event,
